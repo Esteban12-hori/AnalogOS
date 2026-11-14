@@ -1,12 +1,15 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from pipelines.build_precision_snapshot import _nasadem_metrics
 from pipelines.contracts import ROOT, validate
 
 
 SCIENCE = ROOT / "artifacts" / "science-v2"
 CONFIG_PATH = ROOT / "config" / "science_snapshot_v2.json"
+YUNGAY_TILE = ROOT / "data" / "raw" / "nasadem" / "NASADEM_HGT_s24w070.zip"
 
 
 def load(name: str):
@@ -39,7 +42,18 @@ def test_precision_snapshot_uses_authenticated_real_sources():
     )
 
 
-def test_yungay_mosaic_crosses_four_tiles_without_truncation():
+def test_versioned_yungay_analysis_records_four_complete_tiles():
+    summary = load("analysis-summary.json")
+    site = next(item for item in summary["sites"] if item["site_id"] == "cl-pampa-yungay-screening")
+    assert site["nasadem"]["tiles"] == ["s24w070", "s24w071", "s25w070", "s25w071"]
+    assert site["nasadem"]["source_valid_fraction"] == 1.0
+
+
+@pytest.mark.skipif(
+    not YUNGAY_TILE.exists(),
+    reason="integración NASADEM opcional: ejecutar python -m pipelines.fetch_precision_data",
+)
+def test_raw_yungay_mosaic_crosses_four_tiles_without_truncation():
     config = json.loads(CONFIG_PATH.read_text("utf-8"))
     site = next(item for item in config["sites"] if item["site_id"] == "cl-pampa-yungay-screening")
     metrics = _nasadem_metrics(site, config)

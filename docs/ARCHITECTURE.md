@@ -17,7 +17,7 @@ pipelines/scoring
   ↓ similitud, confianza y restricciones
 pipelines/candidates
   ↓ clustering y generalización
-artifacts/demo
+artifacts/science-v2
   ↓ JSON + GeoJSON + metadatos
 apps/web
   ↓ mapa, ranking, ficha, comparación y metodología
@@ -27,9 +27,9 @@ build estático
 ## Frontend
 
 - Vite + React + TypeScript.
-- MapLibre GL JS.
+- Mapa SVG local derivado del GeoJSON de Natural Earth; sin WebGL ni teselas externas.
 - Estado local; no Redux en P0.
-- Carga desde `/demo/manifest.json` y rutas relativas.
+- Carga final desde `/science-v2/manifest.json` y rutas relativas; `/demo/` se conserva solo para tests.
 - Vista inicial: mapa + panel lateral.
 - Rutas opcionales: `/`, `/methodology`, `/about`.
 - Sin login.
@@ -49,9 +49,9 @@ El frontend no conoce Rasterio, CRS internos ni lógica de descarga. Solo consum
 
 - `manifest.json`;
 - `mission-profile.json`;
-- `candidates.geojson`;
 - `candidate-details.json`;
-- capas PMTiles opcionales.
+- `chile-outline.geojson`;
+- `analysis-summary.json`.
 
 Los archivos deben validar contra `contracts/` antes del build.
 
@@ -64,8 +64,7 @@ apps/web/src/
 │   ├── CandidateMap.tsx
 │   ├── CandidateRanking.tsx
 │   ├── CandidateDetails.tsx
-│   ├── ScoreBreakdown.tsx
-│   └── DataProvenance.tsx
+│   └── CandidateComparison.tsx
 ├── domain/
 │   ├── contracts.ts
 │   ├── scoring.ts
@@ -113,4 +112,4 @@ apps/web/src/
 - Un comando genera el snapshot demo.
 - Los artefactos validan contra los schemas.
 - La web funciona sirviendo el directorio construido sin red externa.
-- Un segundo computador puede ejecutar las instrucciones del README.
+- Un clon limpio puede ejecutar `npm run verify`; la prueba que reprocesa NASADEM crudo se activa únicamente cuando `data/raw/` está disponible.

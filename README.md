@@ -90,9 +90,10 @@ Cambiar cualquiera de estas decisiones requiere un ADR en `docs/decisions/` y ac
 
 ```text
 analogos-chile/
-├── apps/web/                    # React + TypeScript + MapLibre
+├── apps/web/                    # React + TypeScript + mapa SVG local
 ├── pipelines/                   # ingesta, features, scoring y candidatos
-├── artifacts/demo/              # snapshot estático consumido por la web
+├── artifacts/demo/              # fixtures sintéticos para contratos y estados límite
+├── artifacts/science-v2/        # snapshot científico consumido por la web final
 ├── config/mission_profiles/     # perfil versionado
 ├── contracts/                   # JSON Schema
 ├── docs/                        # decisiones, ciencia y arquitectura

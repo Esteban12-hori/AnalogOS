@@ -62,7 +62,7 @@ Interpretación obligatoria: es un screening de escritorio para ordenar investig
 
 | Comando | Resultado |
 |---|---|
-| `.venv/bin/python -m pytest -q` | 30 tests verdes |
+| `.venv/bin/python -m pytest -q` | 31 tests verdes; en un clon sin `data/raw/`, 30 verdes y 1 omitido |
 | `npm run test` | 14 tests verdes |
 | `npm run build` | contratos + TypeScript + Vite verdes |
 | revisión manual | snapshot v2, ranking, mapa, evidencia, layout y consola sin errores verificados |
@@ -112,4 +112,4 @@ npm run verify
 
 ## Aviso de Git
 
-La carpeta tiene repositorio Git propio desde 2026-11-14 (rama `main`), con remoto `origin` en https://github.com/Esteban12-hori/AnalogOS (privado: para la entrega debe hacerse público o dar acceso a los jueces). El remoto secundario `hori0729` (https://github.com/hori0729/AnalogOS, público) conserva solo los dos primeros commits y ya no se actualiza. `.env`, `data/raw/`, `node_modules/`, `dist/`, `.venv/`, `*.egg-info/` y `.claude/` quedan fuera por `.gitignore`. En un clon nuevo, `tests/test_precision_artifacts.py` necesita `data/raw/` (ejecutar antes `python -m pipelines.fetch_precision_data`).
+La carpeta tiene repositorio Git propio desde 2026-11-14 (rama `main`), con remoto `origin` en https://github.com/Esteban12-hori/AnalogOS (privado: para la entrega debe hacerse público o dar acceso a los jueces). El remoto secundario `hori0729` (https://github.com/hori0729/AnalogOS, público) conserva solo los dos primeros commits y ya no se actualiza. `.env`, `data/raw/`, `node_modules/`, `dist/`, `.venv/`, `*.egg-info/` y `.claude/` quedan fuera por `.gitignore`. En un clon nuevo, la prueba que reprocesa NASADEM crudo se omite hasta ejecutar `python -m pipelines.fetch_precision_data`; el resto pasa sin `data/raw/` (comprobado en un clon limpio).
