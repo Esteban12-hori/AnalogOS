@@ -1,5 +1,5 @@
 import { ANTHROPIC_ENDPOINT, ANTHROPIC_VERSION, type AiConfig } from './config'
-import type { AiProvenance } from '../../apps/web/src/mission/exportReport'
+import type { AiProvenance } from '../../shared/mission/exportReport'
 
 export type AiErrorCode =
   | 'ai_unavailable'

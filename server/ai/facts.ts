@@ -3,9 +3,9 @@
 import candidates from '../../artifacts/science-v3/candidate-details.json'
 import manifest from '../../artifacts/science-v3/manifest.json'
 import profile from '../../artifacts/science-v3/mission-profile.json'
-import { assertSnapshotContracts } from '../../apps/web/src/domain/contracts'
-import type { CandidateSite, DataManifest, MissionProfile } from '../../apps/web/src/domain/contracts'
-import type { EvidenceBundle } from '../../apps/web/src/mission/types'
+import { assertSnapshotContracts } from '../../shared/domain/contracts'
+import type { CandidateSite, DataManifest, MissionProfile } from '../../shared/domain/contracts'
+import type { EvidenceBundle } from '../../shared/mission/types'
 
 let cached: EvidenceBundle | null = null
 

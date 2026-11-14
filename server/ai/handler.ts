@@ -1,6 +1,6 @@
 // Manejador agnóstico del framework (testeable sin red ni Vercel). POST /api/ai, same-origin.
-import { MAX_BRIEF_CHARS } from '../../apps/web/src/mission/catalog'
-import type { EvidenceBundle } from '../../apps/web/src/mission/types'
+import { MAX_BRIEF_CHARS } from '../../shared/mission/catalog'
+import type { EvidenceBundle } from '../../shared/mission/types'
 import { AiCallError, type AiErrorCode } from './anthropic'
 import type { AiConfig } from './config'
 import { header, isOriginAllowed, RateLimiter, type HeaderBag } from './guard'

@@ -49,6 +49,9 @@ jobs:
       - name: Vercel build
         run: vercel build ${{ steps.env.outputs.prod_flag }} --token=${{ secrets.VERCEL_TOKEN }}
 
+      - name: Comprobar arranque de la función empaquetada
+        run: node scripts/check-vercel-function.mjs
+
       - name: Vercel deploy
         id: deploy
         env:

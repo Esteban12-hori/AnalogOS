@@ -23,6 +23,8 @@ El responsable de una campaña de robótica planetaria debe justificar dónde ha
 
 ## Validación
 
+Corrección de integración Vercel (2026-11-14): el núcleo puro de requisitos y los validadores viven en `shared/`, fuera del paquete ESM de la web. La web conserva reexports y el servidor importa directamente el núcleo compartido. Esto evita que la función CommonJS requiera archivos emitidos como ESM por el `package.json` anidado de `apps/web`. No hay dos motores ni cambios de fórmulas. CI ejecuta la función realmente empaquetada (GET 405 y POST sin clave 503) antes de desplegar; ese control verifica también presencia de snapshot y contratos.
+
 Requisitos distintos, exclusiones, datos insuficientes, Yungay, zonas sin cobertura, IA malformada/timeout/sin clave, respuestas tardías y modo sin WebGL. Prueba real de Anthropic con credencial configurada; mocks no la sustituyen. Detalle en project/NEXT_TASK.md.
 
 ## Fuentes

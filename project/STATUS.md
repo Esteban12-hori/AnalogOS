@@ -4,6 +4,8 @@
 **Responsable del checkpoint:** Codex
 
 **Entrega M8 autorizada:** Dan pidió subir a dev y verificar la IA allí. Codex prepara commit/push y seguirá el despliegue hasta probar borrador y explicación reales. La clave se configura como GitHub Secret y se inyecta solo en runtime del deploy dev; no se incluye en build ni ZIP. Verificación previa repetida: 177 Python, 196 web, typecheck y build correctos. La aceptación local de abajo permanece como evidencia; publicación remota aún en curso.
+
+**Corrección de runtime:** `707d4b1` se desplegó (Actions 43639120488), pero la IA falló por incompatibilidad CommonJS/ESM detectada en navegador y logs. El núcleo se extrae a `shared/` sin duplicarlo; se añade comprobación de arranque de la función empaquetada. La IA remota no se da por aprobada hasta completar ambas operaciones.
 **Milestone activo:** M8 — implementación local aceptada; entrega remota pendiente. Claude espera nueva asignación.
 **Estado general:** producto funcional con snapshot científico v3: 50 ventanas evaluadas, seis candidatos y Yungay como referencia. Faltan capas territoriales, revisión bibliográfica completa y experta, contraste climático local y acciones de entrega humana.
 

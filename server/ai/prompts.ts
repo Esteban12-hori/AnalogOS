@@ -1,6 +1,6 @@
-import { METRICS, METRIC_IDS, UNMEASURED_TOPICS } from '../../apps/web/src/mission/catalog'
+import { METRICS, METRIC_IDS, UNMEASURED_TOPICS } from '../../shared/mission/catalog'
 
-export { DRAFT_SCHEMA, EXPLAIN_SCHEMA } from '../../apps/web/src/mission/aiSchemas'
+export { DRAFT_SCHEMA, EXPLAIN_SCHEMA } from '../../shared/mission/aiSchemas'
 
 const catalogText = METRIC_IDS.map((id) => `- ${id}: ${METRICS[id].label}; unidades ${METRICS[id].units.join('/')}; operadores ${METRICS[id].operators.join(' ')}`).join('\n')
 const unmeasuredText = UNMEASURED_TOPICS.map((t) => `- ${t.id}: ${t.label}`).join('\n')
@@ -31,7 +31,7 @@ Reglas:
 
 /** Hechos compactos para el modelo: salen de la evaluación recalculada en servidor, no del cliente. */
 export function explainFacts(
-  evaluation: import('../../apps/web/src/mission/types').MissionEvaluation,
+  evaluation: import('../../shared/mission/types').MissionEvaluation,
   verifications: Array<{ id: string; text: string }>,
 ): string {
   return JSON.stringify({

@@ -1,5 +1,12 @@
 # Changelog de trabajo
 
+## 2026-11-14 Codex — corrección de ejecución en Vercel
+
+- El primer deploy de M8 (`707d4b1`, Actions 43639120488) compiló y publicó, pero la prueba de IA en navegador reveló `ERR_REQUIRE_ESM`: la función Node requería módulos dentro del paquete ESM de la web.
+- Extraído el mismo núcleo puro a `shared/`, con reexports compatibles para el frontend e imports directos desde servidor. Sin cambios de reglas, datos ni dependencias. Typecheck servidor alineado con NodeNext.
+- Nueva comprobación de arranque sobre la función realmente empaquetada antes del deploy: carga módulos, snapshot/contratos y valida GET 405 y POST sin clave 503. Verificado también con compilación Node local.
+- Repetidos 177 Python, 196 web (+2 opt-in omitidas), typecheck y build. Segunda publicación y prueba real remota en curso.
+
 ## 2026-11-14 Codex — publicación M8 en dev autorizada
 
 - Dan pidió commit/push a dev y comprobación de la IA remota. Preparado despliegue con `ANTHROPIC_API_KEY` como secreto de GitHub, inyectado por `vercel deploy --env` únicamente en runtime de dev. Main y protección de Vercel se conservan.
