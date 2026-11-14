@@ -1,18 +1,17 @@
-import type { CandidateSite, DataManifest, MissionProfile } from '../domain/contracts'
+import { ScoreBreakdown } from '../breakdown/ScoreBreakdown'
+import type { CandidateSite, MissionProfile } from '../domain/contracts'
+import type { MarsReference } from '../domain/marsReference'
 import {
-  criterionLabels,
-  criterionStatusLabels,
   feasibilityLabels,
   formatArea,
-  formatRawValue,
   formatScore,
   shortCandidateName,
 } from '../domain/formatting'
 
 interface CandidateDetailsProps {
   candidate: CandidateSite
-  manifest: DataManifest
   profile: MissionProfile
+  marsReference: MarsReference | null
 }
 
 function Metric({ label, value, hint, muted = false }: { label: string; value: string; hint: string; muted?: boolean }) {
@@ -25,7 +24,7 @@ function Metric({ label, value, hint, muted = false }: { label: string; value: s
   )
 }
 
-export function CandidateDetails({ candidate, manifest, profile }: CandidateDetailsProps) {
+export function CandidateDetails({ candidate, profile, marsReference }: CandidateDetailsProps) {
   const statusLabel = candidate.status === 'fixture' ? 'Fixture' : candidate.status === 'candidate' ? 'Screening' : candidate.status
   const downloadCandidate = () => {
     const blob = new Blob([JSON.stringify(candidate, null, 2)], { type: 'application/json' })
@@ -37,7 +36,7 @@ export function CandidateDetails({ candidate, manifest, profile }: CandidateDeta
     URL.revokeObjectURL(url)
   }
   return (
-    <aside className="details-panel" aria-live="polite">
+    <aside className="details-panel glass" aria-live="polite" aria-label="Ficha del candidato seleccionado">
       <div className="details-header">
         <div>
           <span className="section-kicker">Ficha de candidato</span>
@@ -68,7 +67,6 @@ export function CandidateDetails({ candidate, manifest, profile }: CandidateDeta
 
       <div className="detail-meta">
         <span><small>Área aproximada</small><strong>{formatArea(candidate.area_km2)}</strong></span>
-        <span><small>Snapshot</small><strong>{manifest.snapshot_version}</strong></span>
         <span><small>Perfil</small><strong>{profile.version}</strong></span>
       </div>
 
@@ -85,31 +83,7 @@ export function CandidateDetails({ candidate, manifest, profile }: CandidateDeta
         </div>
       )}
 
-      <section className="details-section" aria-labelledby="breakdown-heading">
-        <div className="subheading-row">
-          <h3 id="breakdown-heading">Desglose del score</h3>
-          <span>{candidate.score_breakdown.filter((item) => item.status === 'valid').length}/{candidate.score_breakdown.length} criterios válidos</span>
-        </div>
-        <div className="criteria-list">
-          {candidate.score_breakdown.map((item) => {
-            const percentage = item.normalized_similarity === null ? 0 : item.normalized_similarity * 100
-            return (
-              <div className={`criterion-row status-${item.status}`} key={item.criterion_id}>
-                <div className="criterion-topline">
-                  <strong>{criterionLabels[item.criterion_id] ?? item.criterion_id}</strong>
-                  <span>{item.normalized_similarity === null ? criterionStatusLabels[item.status] : `${formatScore(percentage)} %`}</span>
-                </div>
-                <div className="criterion-track" aria-hidden="true"><i style={{ width: `${percentage}%` }} /></div>
-                <div className="criterion-caption">
-                  <span>{formatRawValue(item.raw_value, item.unit)}</span>
-                  <span>Peso {formatScore(item.weight * 100)} %</span>
-                  <span>Calidad {formatScore(item.quality * 100)} %</span>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </section>
+      <ScoreBreakdown items={candidate.score_breakdown} marsReference={marsReference} />
 
       <section className="details-section two-column-notes">
         <div>

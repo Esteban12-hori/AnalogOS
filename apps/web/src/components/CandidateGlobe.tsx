@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import type { CandidateSite, GeoJsonFeatureCollection, Position } from '../domain/contracts'
 import { formatScore } from '../domain/formatting'
 import { densifyRing, facingFactor, geometryCenter, latLngToVec3, outerRings, type Vec3 } from '../domain/globe'
+import { altitudeForZoom, lonLatFromDirection, ZOOM_ENTER_FLAT, zoomForAltitude } from '../domain/mapZoom'
 import { rankCandidates } from '../domain/scoring'
 import earthTextureUrl from '../assets/globe/earth-blue-marble.jpg'
 import earthBumpUrl from '../assets/globe/earth-topology.png'
@@ -31,8 +32,16 @@ type ControlsRef = ComponentRef<typeof OrbitControls>
 
 /** `nonce` permite repetir la misma vista después de que el usuario giró el globo. */
 export interface GlobeView {
-  kind: 'global' | 'close'
+  /** `at`: volver desde el mapa 2D al mismo centro y escala. */
+  kind: 'global' | 'close' | 'at'
   nonce: number
+  at?: { lon: number; lat: number; zoom: number }
+}
+
+export interface FlatHandoff {
+  lon: number
+  lat: number
+  zoom: number
 }
 
 interface CandidateGlobeProps {
@@ -43,6 +52,10 @@ interface CandidateGlobeProps {
   view: GlobeView
   /** Si es `false` el render se pausa (vista 2D activa). */
   active: boolean
+  /** Píxeles tapados a la derecha por la ficha; el globo se centra en el espacio restante. */
+  rightInset: number
+  /** La cámara cruzó el umbral de zoom: el globo cede al mapa 2D. */
+  onEnterFlat: (handoff: FlatHandoff) => void
   /** Se invoca si el contexto WebGL se pierde, para volver al mapa SVG. */
   onContextLost: () => void
 }
@@ -240,7 +253,9 @@ function Callout({ candidate, rank, anchor, offsetY, selected, onSelect }: Callo
 interface CameraRigProps {
   focus: Position
   distance: number
+  zoom?: number
   nonce: number
+  inset: number
   controlsRef: RefObject<ControlsRef | null>
 }
 
@@ -251,24 +266,27 @@ function fitDistance(verticalFovDegrees: number, aspect: number): number {
   return (RADIUS * 1.12) / Math.sin(Math.min(vertical, horizontal) / 2)
 }
 
-function CameraRig({ focus, distance: requestedDistance, nonce, controlsRef }: CameraRigProps) {
+function CameraRig({ focus, distance: requestedDistance, zoom, nonce, inset, controlsRef }: CameraRigProps) {
   const { camera, size } = useThree()
   const fov = camera instanceof THREE.PerspectiveCamera ? camera.fov : 40
-  // `0` significa "vista global": se calcula según el aspecto real del panel.
-  const distance = requestedDistance > 0
-    ? requestedDistance
-    : THREE.MathUtils.clamp(fitDistance(fov, size.width / Math.max(size.height, 1)), MIN_DISTANCE, MAX_DISTANCE)
+  // `zoom` (vuelta desde el 2D) manda; `0` significa "vista global" según el aspecto real del panel.
+  const distance = zoom !== undefined
+    ? THREE.MathUtils.clamp(RADIUS + altitudeForZoom(zoom, RADIUS, fov, size.height, focus[1]), MIN_DISTANCE, MAX_DISTANCE)
+    : requestedDistance > 0
+      ? requestedDistance
+      : THREE.MathUtils.clamp(fitDistance(fov, Math.max(size.width - inset, 1) / Math.max(size.height, 1)), MIN_DISTANCE, MAX_DISTANCE)
+  const instant = zoom !== undefined
   const goal = useRef<{ direction: THREE.Vector3; distance: number } | null>(null)
   const [lon, lat] = focus
 
   useEffect(() => {
     goal.current = { direction: toVector(latLngToVec3(lat, lon, 1)).normalize(), distance }
-    if (prefersReducedMotion()) {
+    if (instant || prefersReducedMotion()) {
       camera.position.copy(goal.current.direction.clone().multiplyScalar(distance))
       camera.lookAt(0, 0, 0)
       goal.current = null
     }
-  }, [lat, lon, distance, nonce, camera])
+  }, [lat, lon, distance, nonce, camera, instant])
 
   useEffect(() => {
     const controls = controlsRef.current
@@ -318,6 +336,39 @@ function SunLight() {
   return <directionalLight ref={light} intensity={2.1} color="#fff6ea" />
 }
 
+/** Desplaza el encuadre a la izquierda la mitad de lo que tapa la ficha flotante. */
+function ViewOffset({ inset }: { inset: number }) {
+  const { camera, size } = useThree()
+  useEffect(() => {
+    if (!(camera instanceof THREE.PerspectiveCamera)) return
+    if (inset > 0) camera.setViewOffset(size.width, size.height, inset / 2, 0, size.width, size.height)
+    else camera.clearViewOffset()
+    camera.updateProjectionMatrix()
+  }, [camera, size.width, size.height, inset])
+  return null
+}
+
+/** Avisa una vez cuando la cámara supera el zoom de entrada al mapa 2D. */
+function ZoomWatcher({ active, onEnterFlat }: { active: boolean; onEnterFlat: (handoff: FlatHandoff) => void }) {
+  const { camera, size } = useThree()
+  const fired = useRef(false)
+  useEffect(() => {
+    fired.current = false
+  }, [active])
+  useFrame(() => {
+    if (!active || fired.current) return
+    const { x, y, z } = camera.position
+    const [lon, lat] = lonLatFromDirection(x, y, z)
+    const fov = camera instanceof THREE.PerspectiveCamera ? camera.fov : 40
+    const zoom = zoomForAltitude(camera.position.length() - RADIUS, RADIUS, fov, size.height, lat)
+    if (zoom >= ZOOM_ENTER_FLAT) {
+      fired.current = true
+      onEnterFlat({ lon, lat, zoom })
+    }
+  })
+  return null
+}
+
 // ============================================================================
 // Componente principal
 // ============================================================================
@@ -329,6 +380,8 @@ export default function CandidateGlobe({
   onSelect,
   view,
   active,
+  rightInset,
+  onEnterFlat,
   onContextLost,
 }: CandidateGlobeProps) {
   const controlsRef = useRef<ControlsRef | null>(null)
@@ -346,7 +399,7 @@ export default function CandidateGlobe({
   }, [candidates])
 
   const selectedAnchor = callouts.find((row) => row.candidate.site_id === selectedId)?.anchor ?? HOME
-  const focus = view.kind === 'close' ? selectedAnchor : HOME
+  const focus: Position = view.kind === 'at' && view.at ? [view.at.lon, view.at.lat] : view.kind === 'close' ? selectedAnchor : HOME
   const distance = view.kind === 'close' ? CLOSE_DISTANCE : 0
   const initialPosition = latLngToVec3(HOME[1], HOME[0], GLOBAL_DISTANCE)
 
@@ -395,7 +448,16 @@ export default function CandidateGlobe({
         enableDamping
         dampingFactor={0.1}
       />
-      <CameraRig focus={focus} distance={distance} nonce={view.nonce} controlsRef={controlsRef} />
+      <CameraRig
+        focus={focus}
+        distance={distance}
+        zoom={view.kind === 'at' ? view.at?.zoom : undefined}
+        nonce={view.nonce}
+        inset={rightInset}
+        controlsRef={controlsRef}
+      />
+      <ViewOffset inset={rightInset} />
+      <ZoomWatcher active={active} onEnterFlat={onEnterFlat} />
     </Canvas>
     {!ready && (
       <div className="globe-loading globe-loading-page" role="status">

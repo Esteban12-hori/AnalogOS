@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CandidateDetails } from './components/CandidateDetails'
 import { CandidateComparison } from './components/CandidateComparison'
-import { CandidateMapView } from './components/CandidateMapView'
-import { CandidateRanking } from './components/CandidateRanking'
+import { MapStage } from './components/MapStage'
 import { LiquidNav, liquidIcons, type LiquidNavItem } from './components/LiquidNav'
 import { SurfaceSignals } from './components/SurfaceSignals'
 import { LiquidBackdrop, useLiquidPointer } from './liquid/LiquidGlass'
@@ -52,6 +51,36 @@ function useScrollSpy(ids: readonly string[], enabled: boolean) {
 
 const NAV_IDS = NAV_ITEMS.map((item) => item.id)
 
+/** Ancho que la ficha flotante tapa a la derecha (0 cuando la ficha baja bajo el globo). */
+const DETAILS_INSET = 520
+const FLOATING_DETAILS_QUERY = '(min-width: 1100px)'
+
+function useRightInset(): number {
+  const query = () => (window.matchMedia?.(FLOATING_DETAILS_QUERY).matches ? DETAILS_INSET : 0)
+  const [inset, setInset] = useState(query)
+  useEffect(() => {
+    const media = window.matchMedia?.(FLOATING_DETAILS_QUERY)
+    if (!media) return
+    const update = () => setInset(media.matches ? DETAILS_INSET : 0)
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+  return inset
+}
+
+/** Al bajar del primer pantallazo, el globo se oscurece y deja de capturar la rueda del mouse. */
+function useStagePassive(enabled: boolean): boolean {
+  const [passive, setPassive] = useState(false)
+  useEffect(() => {
+    if (!enabled) return
+    const onScroll = () => setPassive(window.scrollY > window.innerHeight * 0.45)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [enabled])
+  return passive
+}
+
 function App() {
   const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' })
   const [selectedId, setSelectedId] = useState('')
@@ -83,6 +112,8 @@ function App() {
   }, [loadState, selectedId])
 
   const { active, goTo } = useScrollSpy(NAV_IDS, loadState.status === 'ready')
+  const rightInset = useRightInset()
+  const stagePassive = useStagePassive(loadState.status === 'ready')
   useLiquidPointer()
 
   if (loadState.status === 'loading') {
@@ -122,8 +153,15 @@ function App() {
   const fixtureMode = snapshot.candidates.every((candidate) => candidate.status === 'fixture')
 
   return (
-    <div className="app-shell">
-      <LiquidBackdrop />
+    <div className={`app-shell${stagePassive ? ' stage-passive' : ''}`}>
+      <MapStage
+        candidates={snapshot.candidates}
+        chileOutline={snapshot.chileOutline}
+        selectedId={selected.site_id}
+        onSelect={setSelectedId}
+        rightInset={rightInset}
+      />
+      <div className="stage-scrim" aria-hidden="true" />
       <div className={`fixture-banner${fixtureMode ? '' : ' science-banner'}`} role="status">
         <span />
         {fixtureMode
@@ -145,31 +183,18 @@ function App() {
         </div>
       </header>
 
-      <section className="intro-strip">
-        <div>
-          <span className="section-kicker">{fixtureMode ? 'Corte vertical M1' : 'Snapshot científico v2'}</span>
-          <h1>No buscamos un lugar que “parezca Marte”.</h1>
-          <p>Priorizamos dónde conviene investigar para una prueba concreta, con evidencia, incertidumbre y límites visibles.</p>
-        </div>
-        <div className="mission-question glass">
-          <small>Perfil activo · {snapshot.profile.name}</small>
-          <p>¿Qué zona reproduce mejor condiciones relevantes para percepción, tracción, navegación y autonomía de rover?</p>
-        </div>
-      </section>
-
-      <main id="workspace" className="workspace glass">
-        <CandidateRanking
-          candidates={snapshot.candidates}
-          selectedId={selected.site_id}
-          onSelect={setSelectedId}
+      <main id="workspace" className="hero">
+        <section className="hero-intro glass" aria-labelledby="hero-title">
+          <span className="section-kicker">{fixtureMode ? 'Corte vertical M1' : 'Snapshot científico v2'} · {snapshot.profile.name}</span>
+          <h1 id="hero-title">No buscamos un lugar que “parezca Marte”.</h1>
+          <p>¿Qué zona reproduce mejor condiciones relevantes para percepción, tracción, navegación y autonomía de rover? Elige un sector en el mapa.</p>
+        </section>
+        <CandidateDetails
+          key={selected.site_id}
+          candidate={selected}
+          profile={snapshot.profile}
+          marsReference={snapshot.marsReference}
         />
-        <CandidateMapView
-          candidates={snapshot.candidates}
-          chileOutline={snapshot.chileOutline}
-          selectedId={selected.site_id}
-          onSelect={setSelectedId}
-        />
-        <CandidateDetails key={selected.site_id} candidate={selected} manifest={snapshot.manifest} profile={snapshot.profile} />
       </main>
 
       <SurfaceSignals candidates={snapshot.candidates} selectedId={selected.site_id} series={snapshot.surfaceSeries} />

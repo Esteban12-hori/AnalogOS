@@ -42,3 +42,18 @@ describe('series mensuales Sentinel-2', () => {
     expect(formatIndex(0.14334)).toBe('0,143')
   })
 })
+
+describe('referencia MOLA', () => {
+  it('lee las medianas de Jezero por criterio topográfico', async () => {
+    const { parseMarsReference } = await import('../domain/marsReference')
+    const summary = JSON.parse(readFileSync(resolve(root, 'artifacts/science-v2/analysis-summary.json'), 'utf8')) as unknown
+    const reference = parseMarsReference(summary)
+    expect(reference?.byCriterion).toEqual({ slope: 2.226, terrain_roughness: 11, local_relief: 47 })
+  })
+
+  it('devuelve null si no hay referencia utilizable', async () => {
+    const { parseMarsReference } = await import('../domain/marsReference')
+    expect(parseMarsReference({})).toBeNull()
+    expect(parseMarsReference({ mola_reference: { median_slope_degree: 0 } })).toBeNull()
+  })
+})

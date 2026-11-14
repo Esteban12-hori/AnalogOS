@@ -1,23 +1,8 @@
 /*
- * Vista de mapa: globo 3D (WebGL) + mapa SVG alternativo/fallback.
+ * Globo 3D y mapa 2D: rótulos de candidatos, carga y leyenda.
  * Archivo propio para no acoplarse a styles.css (rediseño en paralelo).
  * Cada variable tiene fallback por si la paleta global cambia de nombres.
  */
-.map-view { position: relative; display: flex; flex-direction: column; min-width: 0; }
-.map-view > .map-frame { flex: 1; }
-.map-view-tools { position: absolute; z-index: 4; top: 64px; right: 16px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-.view-switch { display: inline-flex; padding: 3px; border: 1px solid var(--line, rgba(191, 219, 207, .25)); border-radius: 999px; background: var(--glass-strong, rgba(6, 15, 23, .78)); box-shadow: var(--glass-rim, none); -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4); }
-.view-switch button { min-height: 30px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: var(--muted, #91a39c); cursor: pointer; font-size: 10px; font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
-.view-switch button:hover:not(:disabled) { color: var(--text, #f3f6ef); }
-.view-switch button[aria-pressed="true"] { background: radial-gradient(120% 140% at 30% 0%, rgba(255, 255, 255, .45), transparent 55%), var(--blue, #0297DE); box-shadow: inset 0 1px 1px rgba(255, 255, 255, .6), 0 4px 12px -4px rgba(2, 151, 222, .7); color: #fff; }
-.view-switch button:disabled { cursor: not-allowed; opacity: .45; }
-.view-switch button:focus-visible, .globe-label:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-.view-note { padding: 6px 9px; border-radius: 8px; background: var(--glass-strong, rgba(6, 15, 23, .78)); color: var(--muted, #91a39c); font-size: 9px; }
-
-/* El escenario queda fijo en pantalla mientras se recorre la ficha, que es más alta. */
-/* Llena el panel si .workspace tiene alto fijo; si el panel es más alto, se limita al viewport y queda sticky. */
-.map-view > .globe-frame { position: sticky; top: 0; flex: 1 1 auto; min-height: 560px; max-height: min(100svh, 900px); overflow: hidden; background: radial-gradient(circle at 50% 45%, #0A2236 0%, #04111B 55%, #02070A 100%); }
-.map-view > .globe-frame[hidden] { display: none; }
 .globe-canvas { position: absolute !important; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
 .globe-canvas:active { cursor: grabbing; }
 .globe-loading { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid var(--line, rgba(191, 219, 207, .13)); border-radius: 10px; background: var(--glass-strong, rgba(6, 15, 23, .78)); color: var(--muted, #91a39c); font-size: 10px; white-space: nowrap; }
@@ -42,8 +27,3 @@
 .globe-callout.insufficient .globe-label b { border-color: #8EA4B3; background: #3D5363; }
 .legend-swatch.globe-outline { border: 1px solid #9FD9F6; background: transparent; }
 .legend-credit { color: var(--muted-2, #687c74); }
-
-@media (max-width: 760px) {
-  .map-view > .globe-frame { position: relative; flex: 0 0 auto; height: 520px; min-height: 520px; max-height: none; }
-  .map-view-tools { top: auto; bottom: 64px; left: 8px; right: 8px;  flex-direction: row; flex-wrap: wrap; justify-content: center; }
-}

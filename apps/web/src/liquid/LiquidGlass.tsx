@@ -14,6 +14,7 @@ export const LIQUID_SURFACES = [
   '.comparison-card',
   '.metric',
   '.criterion-row',
+  '.sb-card',
   '.method-steps li',
   '.two-column-notes > div',
   '.detail-actions button',
