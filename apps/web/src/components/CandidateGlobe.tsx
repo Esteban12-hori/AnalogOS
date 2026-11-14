@@ -7,8 +7,7 @@ import { formatScore } from '../domain/formatting'
 import { densifyRing, facingFactor, geometryCenter, latLngToVec3, outerRings, type Vec3 } from '../domain/globe'
 import { altitudeForZoom, lonLatFromDirection, ZOOM_ENTER_FLAT, zoomForAltitude } from '../domain/mapZoom'
 import { rankCandidates } from '../domain/scoring'
-import earthTextureUrl from '../assets/globe/earth-blue-marble.jpg'
-import earthBumpUrl from '../assets/globe/earth-topology.png'
+import { GLOBE_TEXTURES } from '../data/preload'
 
 // ============================================================================
 // Configuración visual (inspirada en Globe3D; adaptada a la paleta de la app)
@@ -72,7 +71,7 @@ function prefersReducedMotion(): boolean {
 // ============================================================================
 
 function Earth({ onReady }: { onReady: () => void }) {
-  const [colorMap, bumpMap] = useTexture([earthTextureUrl, earthBumpUrl])
+  const [colorMap, bumpMap] = useTexture([GLOBE_TEXTURES.color, GLOBE_TEXTURES.bump])
   useEffect(onReady, [onReady])
   useMemo(() => {
     colorMap.colorSpace = THREE.SRGBColorSpace
@@ -267,7 +266,7 @@ function fitDistance(verticalFovDegrees: number, aspect: number): number {
 }
 
 function CameraRig({ focus, distance: requestedDistance, zoom, nonce, inset, controlsRef }: CameraRigProps) {
-  const { camera, size } = useThree()
+  const { camera, size, invalidate } = useThree()
   const fov = camera instanceof THREE.PerspectiveCamera ? camera.fov : 40
   // `zoom` (vuelta desde el 2D) manda; `0` significa "vista global" según el aspecto real del panel.
   const distance = zoom !== undefined
@@ -286,7 +285,8 @@ function CameraRig({ focus, distance: requestedDistance, zoom, nonce, inset, con
       camera.lookAt(0, 0, 0)
       goal.current = null
     }
-  }, [lat, lon, distance, nonce, camera, instant])
+    invalidate()
+  }, [lat, lon, distance, nonce, camera, instant, invalidate])
 
   useEffect(() => {
     const controls = controlsRef.current
@@ -298,20 +298,20 @@ function CameraRig({ focus, distance: requestedDistance, zoom, nonce, inset, con
     return () => controls.removeEventListener('start', cancel)
   }, [controlsRef])
 
+  const scratch = useMemo(() => new THREE.Vector3(), [])
   useFrame((_, delta) => {
     const controls = controlsRef.current
     const target = goal.current
     if (target) {
-      const t = 1 - Math.exp(-delta * 3.2)
+      // Con frameloop="demand" la animación pide su siguiente cuadro mientras dure.
+      invalidate()
+      const t = 1 - Math.exp(-Math.min(delta, 0.1) * 3.2)
       const currentDistance = camera.position.length()
-      const direction = camera.position.clone().normalize().lerp(target.direction, t).normalize()
+      scratch.copy(camera.position).normalize().lerp(target.direction, t).normalize()
       const nextDistance = THREE.MathUtils.lerp(currentDistance, target.distance, t)
-      camera.position.copy(direction.multiplyScalar(nextDistance))
+      camera.position.copy(scratch).multiplyScalar(nextDistance)
       camera.lookAt(0, 0, 0)
-      if (
-        camera.position.clone().normalize().angleTo(target.direction) < 0.0015 &&
-        Math.abs(nextDistance - target.distance) < 0.01
-      ) {
+      if (scratch.angleTo(target.direction) < 0.0015 && Math.abs(nextDistance - target.distance) < 0.01) {
         goal.current = null
       }
     }
@@ -325,26 +325,30 @@ function CameraRig({ focus, distance: requestedDistance, zoom, nonce, inset, con
   return null
 }
 
+const SUN_OFFSET = new THREE.Vector3(-0.55, 0.45, 0.2)
+
 function SunLight() {
   const light = useRef<THREE.DirectionalLight>(null)
+  const offset = useMemo(() => new THREE.Vector3(), [])
   const { camera } = useThree()
   useFrame(() => {
     // La luz acompaña a la cámara (desde arriba a la izquierda) para que la zona observada esté iluminada.
-    const offset = new THREE.Vector3(-0.55, 0.45, 0.2).applyQuaternion(camera.quaternion)
-    light.current?.position.copy(camera.position).add(offset.multiplyScalar(camera.position.length()))
+    offset.copy(SUN_OFFSET).applyQuaternion(camera.quaternion).multiplyScalar(camera.position.length())
+    light.current?.position.copy(camera.position).add(offset)
   })
   return <directionalLight ref={light} intensity={2.1} color="#fff6ea" />
 }
 
 /** Desplaza el encuadre a la izquierda la mitad de lo que tapa la ficha flotante. */
 function ViewOffset({ inset }: { inset: number }) {
-  const { camera, size } = useThree()
+  const { camera, size, invalidate } = useThree()
   useEffect(() => {
     if (!(camera instanceof THREE.PerspectiveCamera)) return
     if (inset > 0) camera.setViewOffset(size.width, size.height, inset / 2, 0, size.width, size.height)
     else camera.clearViewOffset()
     camera.updateProjectionMatrix()
-  }, [camera, size.width, size.height, inset])
+    invalidate()
+  }, [camera, size.width, size.height, inset, invalidate])
   return null
 }
 
@@ -418,8 +422,9 @@ export default function CandidateGlobe({
     <Canvas
       className="globe-canvas"
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-      dpr={[1, 2]}
-      frameloop={active ? 'always' : 'never'}
+      // Dibujo a demanda: sin interacción ni animación no se redibuja, y el vidrio encima no se recalcula.
+      dpr={[1, 1.5]}
+      frameloop={active ? 'demand' : 'never'}
       camera={{ fov: 40, near: 0.01, far: 100, position: initialPosition }}
       onCreated={({ gl }) => {
         gl.domElement.addEventListener('webglcontextlost', onContextLost, { once: true })

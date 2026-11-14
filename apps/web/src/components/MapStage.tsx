@@ -7,9 +7,22 @@ import type { FlatHandoff, GlobeView } from './CandidateGlobe'
 import './CandidateGlobe.css'
 import './MapStage.css'
 
-// three.js y MapLibre van en chunks diferidos: el resto de la app no los paga.
-const CandidateGlobe = lazy(() => import('./CandidateGlobe'))
-const CandidateFlatMap = lazy(() => import('./CandidateFlatMap'))
+import { whenIdle } from '../data/preload'
+import { ZOOM_ENTER_FLAT } from '../domain/mapZoom'
+
+// three.js y MapLibre van en chunks aparte, pero se piden de inmediato: el globo al evaluar
+// este módulo (en paralelo con el snapshot) y el mapa 2D apenas el navegador queda ocioso.
+const globeModule = import('./CandidateGlobe')
+let flatModule: ReturnType<typeof importFlat> | null = null
+function importFlat() {
+  return import('./CandidateFlatMap')
+}
+const loadFlat = () => (flatModule ??= importFlat())
+const CandidateGlobe = lazy(() => globeModule)
+const CandidateFlatMap = lazy(loadFlat)
+
+/** Encuadre con que se monta el mapa 2D invisible antes de usarlo (Atacama central). */
+const PREWARM_ENTRY: FlatHandoff = { lon: -69.5, lat: -24, zoom: ZOOM_ENTER_FLAT }
 
 interface MapStageProps {
   candidates: CandidateSite[]
@@ -99,6 +112,16 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
   const [pendingFocus, setPendingFocus] = useState(false)
   const [basemaps, setBasemaps] = useState<Basemap[] | null>(null)
   const [flatSources, setFlatSources] = useState<ActiveSource[]>([])
+  const [prewarm, setPrewarm] = useState(false)
+
+  // En cuanto el navegador está ocioso se monta el 2D oculto: chunk, worker, estilo,
+  // imágenes locales y teselas quedan listos y el paso desde el globo es instantáneo.
+  useEffect(() => {
+    whenIdle(() => {
+      void loadFlat()
+      setPrewarm(true)
+    }, 2500)
+  }, [])
 
   useEffect(() => {
     let alive = true
@@ -186,9 +209,9 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
             />
           </Suspense>
         </div>
-        {entry && !layers && mode === 'flat' && <StageLoading text="Cargando imágenes del mapa…" />}
-        {entry && layers && (
-          <div className="stage-layer stage-flat" hidden={mode !== 'flat'}>
+        {!layers && mode === 'flat' && <StageLoading text="Cargando imágenes del mapa…" />}
+        {(entry || prewarm) && layers && (
+          <div className={`stage-layer stage-flat${mode === 'flat' ? '' : ' is-dormant'}`} aria-hidden={mode !== 'flat'}>
             <Suspense fallback={<StageLoading text="Cargando mapa 2D…" />}>
               <CandidateFlatMap
                 candidates={candidates}
@@ -196,7 +219,7 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
                 basemaps={layers}
                 selectedId={selectedId}
                 onSelect={onSelect}
-                entry={entry}
+                entry={entry ?? PREWARM_ENTRY}
                 focusRequest={focusRequest}
                 active={mode === 'flat'}
                 rightInset={rightInset}

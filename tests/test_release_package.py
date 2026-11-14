@@ -282,3 +282,65 @@ def test_temporaries_are_unique_and_do_not_clobber_existing_tmp_files(dist: Path
     ]
     assert (out / "demo.zip.tmp").read_text("utf-8") == "archivo ajeno"
     assert (out / "SHA256SUMS.txt.tmp").read_text("utf-8") == "archivo ajeno"
+
+
+# --- Build con chunks diferidos (globo/mapa 2D) y mapas base: manifiesto de Vite ---
+
+LAZY = ["assets/CandidateGlobe-aaa.js", "assets/CandidateFlatMap-bbb.js", "assets/CandidateFlatMap-ccc.css",
+        "assets/maplibre-gl-worker-ddd.mjs", "assets/earth-eee.jpg", "assets/shared-fff.js"]
+
+
+def write_manifest(root: Path, extra: dict | None = None) -> None:
+    manifest = {
+        "index.html": {"file": "assets/index-abc123.js", "isEntry": True, "css": ["assets/index-def456.css"],
+                       "dynamicImports": ["src/Globe.tsx", "src/Flat.tsx"]},
+        "src/Globe.tsx": {"file": "assets/CandidateGlobe-aaa.js", "imports": ["_shared"], "assets": ["assets/earth-eee.jpg"]},
+        "src/Flat.tsx": {"file": "assets/CandidateFlatMap-bbb.js", "css": ["assets/CandidateFlatMap-ccc.css"],
+                         "assets": ["assets/maplibre-gl-worker-ddd.mjs"], "imports": ["_shared"]},
+        "_shared": {"file": "assets/shared-fff.js"},
+        **(extra or {}),
+    }
+    (root / ".vite").mkdir(exist_ok=True)
+    (root / release.VITE_MANIFEST).write_text(json.dumps(manifest), encoding="utf-8")
+
+
+@pytest.fixture
+def lazy_dist(dist: Path) -> Path:
+    for name in [*LAZY, *release.BASEMAP_FILES]:
+        (dist / name).parent.mkdir(parents=True, exist_ok=True)
+        (dist / name).write_bytes(f"FIXTURE DE TEST: {name}\n".encode())
+    write_manifest(dist)
+    return dist
+
+
+def test_manifest_admits_reachable_lazy_chunks_and_basemaps(lazy_dist: Path, tmp_path: Path):
+    zip_path, _, _ = run(lazy_dist, tmp_path / "out")
+    with zipfile.ZipFile(zip_path) as archive:
+        names = sorted(archive.namelist())
+    assert names == sorted([*EXPECTED, *LAZY, *release.BASEMAP_FILES])
+    assert release.VITE_MANIFEST not in names
+
+
+def test_chunk_not_reachable_from_manifest_is_still_rejected(lazy_dist: Path, tmp_path: Path):
+    (lazy_dist / "assets" / "otro-chunk.js").write_text("x", encoding="utf-8")
+    with pytest.raises(release.ReleaseError, match="Archivo inesperado"):
+        run(lazy_dist, tmp_path / "out")
+
+
+@pytest.mark.parametrize("bad", ["../science-v2/manifest.json", "assets/x.html", "/assets/abs.js"])
+def test_manifest_entries_outside_assets_are_rejected(lazy_dist: Path, tmp_path: Path, bad: str):
+    write_manifest(lazy_dist, {"src/Flat.tsx": {"file": bad}})
+    with pytest.raises(release.ReleaseError, match="no permitido"):
+        run(lazy_dist, tmp_path / "out")
+
+
+def test_manifest_for_another_build_is_rejected(lazy_dist: Path, tmp_path: Path):
+    write_manifest(lazy_dist, {"index.html": {"file": "assets/index-otro.js", "isEntry": True}})
+    with pytest.raises(release.ReleaseError, match="no corresponde"):
+        run(lazy_dist, tmp_path / "out")
+
+
+def test_unknown_basemap_file_is_rejected(lazy_dist: Path, tmp_path: Path):
+    (lazy_dist / "basemaps" / "extra.webp").write_bytes(b"x")
+    with pytest.raises(release.ReleaseError, match="Archivo inesperado"):
+        run(lazy_dist, tmp_path / "out")

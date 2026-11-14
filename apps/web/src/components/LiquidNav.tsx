@@ -265,17 +265,39 @@ export function LiquidNav({ items, active, onSelect, label = 'Secciones' }: Liqu
     s.mouse.s += ((s.mouse.on ? 1 : 0) - s.mouse.s) * Math.min(1, dt * 7)
   }, [])
 
+  // Sin interacción, el agua ambiental se dibuja a ~15 fps: el resto del escenario (globo,
+  // mapa, vidrio) conserva la fluidez. Cualquier interacción vuelve a 60 fps al instante.
+  const idleTimer = useRef(0)
   const loop = useCallback(() => {
     const s = st.current
+    if (idleTimer.current) {
+      window.clearTimeout(idleTimer.current)
+      idleTimer.current = 0
+      s.raf = 0
+    }
     if (s.raf) return
     s.last = performance.now()
+    let wasIdle = false
     const tick = (now: number) => {
-      const dt = Math.min((now - s.last) / 1000, 1 / 30)
+      const dt = Math.min((now - s.last) / 1000, wasIdle ? 1 / 12 : 1 / 30)
       s.last = now
       step(dt, now)
       draw()
       const busy = s.moving || s.rips.length > 0 || s.sats.length > 0 || s.mouse.s > 0.01
-      s.raf = s.visible && (!s.reduce || busy) ? requestAnimationFrame(tick) : 0
+      if (!s.visible || (s.reduce && !busy)) {
+        s.raf = 0
+        return
+      }
+      wasIdle = !busy
+      if (busy) {
+        s.raf = requestAnimationFrame(tick)
+      } else {
+        s.raf = -1
+        idleTimer.current = window.setTimeout(() => {
+          idleTimer.current = 0
+          s.raf = requestAnimationFrame(tick)
+        }, 66)
+      }
     }
     s.raf = requestAnimationFrame(tick)
   }, [draw, step])
@@ -345,6 +367,8 @@ export function LiquidNav({ items, active, onSelect, label = 'Secciones' }: Liqu
       io.disconnect()
       document.removeEventListener('visibilitychange', onVisibility)
       cancelAnimationFrame(s.raf)
+      window.clearTimeout(idleTimer.current)
+      idleTimer.current = 0
       s.raf = 0
     }
   }, [loop])

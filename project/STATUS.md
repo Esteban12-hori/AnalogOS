@@ -32,6 +32,22 @@ Fusiona dos ramas: el globo 3D (`redesign/planeta-3d`) y el rediseño visual (`r
 - **Bloqueos:** ninguno técnico. Abierto: con zoom, el globo se ve pixelado, porque Blue Marble tiene ~10 km por píxel. Propuesta evaluada, pendiente de decisión del usuario: hornear offline parches NASA GIBS, HLS S30 a 30 m por sector y MODIS a 250 m regional.
 - **Próximos pasos:** 1) aceptar o rechazar ADR-004; 2) decidir la mejora de textura con GIBS; 3) revisar en el equipo de presentación real.
 
+## Rendimiento y precarga — rama `redesign/planeta-3d` (2026-11-14 14:55, Claude)
+
+- **Qué cambió:**
+  - El globo se dibuja a demanda: 0 dibujos WebGL en reposo, contra ~360 cada 3 s antes.
+  - El agua de la navbar baja a ~15 fps cuando no hay interacción.
+  - Texturas 2K/1K: de 1,84 MB a 0,38 MB.
+  - Globo, texturas y mapa 2D se piden al cargar la página; el 2D se monta oculto cuando el navegador queda ocioso, así que el paso desde el globo es instantáneo.
+  - Caché inmutable en Vercel para `/assets/*` (`vercel.json`).
+- **Mediciones** (Chromium con GPU Metal, red simulada de 8 Mbps): globo con rótulos de 3,2 s a 1,7 s; imagen 2D inmediata al cruzar el umbral (antes 273 ms y solo la capa regional).
+- **Empaquetador:** `scripts/package_release.py` admite los chunks diferidos y assets alcanzables según `.vite/manifest.json`, que no entra al ZIP, y `basemaps/` con nombres fijos. Lo que el manifiesto no alcanza se sigue rechazando.
+- **Pruebas:**
+  - Python: 128 pasan y 1 se omite, incluidas las de lktron (contexto visual y empaquetador, más 7 nuevas).
+  - Web: 52 pasan; build y `git diff --check` limpios.
+  - `package_release.py` produce un ZIP de 24 archivos con checksum OK.
+  - El ZIP descomprimido bajo `/AnalogOS/`, sin red externa, funciona sin fallas: globo, 2D, panel de lktron y cambio de candidato.
+
 ## Rediseño de layout — rama `redesign/planeta-3d` (2026-11-14 15:30, Claude, pedido directo del equipo)
 
 - **Qué funciona:** el globo es el fondo del sitio. Al acercarse pasa solo a un mapa 2D con imágenes oficiales y vuelve al alejarse; no hay selector 3D/2D. La leyenda indica la fuente visible. Ya no hay columna de candidatos: un selector 1·2·3 en la ficha, que flota en liquid glass. La Sentinel-2 de ADR-005 se dibuja sobre cada polígono en el 2D. Sin WebGL se usa el SVG.

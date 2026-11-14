@@ -77,3 +77,8 @@
 /* Sobre imágenes claras (desierto) el vidrio necesita un tinte más oscuro para mantener contraste. */
 .hero .hero-intro.glass, .hero .details-panel.glass, .map-stage .stage-dock.glass { background-color: rgba(3, 10, 15, .74); }
 .map-stage[data-mode="flat"] ~ .topbar, .map-stage[data-mode="flat"] ~ .fixture-banner { background-color: rgba(3, 10, 15, .7); }
+
+/* El mapa 2D se monta antes de usarse: invisible pero con tamaño real, para que MapLibre cargue todo. */
+.stage-layer.is-dormant { visibility: hidden; pointer-events: none; }
+/* La refracción SVG sobre rótulos que se mueven con el mapa es costosa: aquí basta el desenfoque. */
+.lg-refract .map-stage .globe-label { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }

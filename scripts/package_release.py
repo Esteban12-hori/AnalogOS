@@ -7,6 +7,10 @@ Solo entra al ZIP una lista explícita: ``index.html``, los JS/CSS compilados
 que ese HTML referencia de forma relativa, los cinco archivos ``science-v2/``
 y el contexto visual (``visual-context/index.json`` más sus tres PNG, cuyo
 SHA-256 debe coincidir con el declarado en ese índice).
+Si el build trae ``.vite/manifest.json``, también entran los chunks diferidos,
+CSS y assets (worker, texturas) alcanzables desde la entrada que referencia
+``index.html``; nada que el manifiesto no alcance. El manifiesto no entra al ZIP.
+Los mapas base 2D (``basemaps/``) son opcionales, pero solo con nombres fijos.
 Cualquier archivo adicional, enlace simbólico, referencia no portable,
 archivo requerido ausente o destino solapado con el build detiene el
 empaquetado antes de escribir nada.
@@ -51,10 +55,20 @@ VISUAL_IMAGES = (
     "visual-context/cl-pampa-maria-elena-screening.png",
     "visual-context/cl-pampa-yungay-screening.png",
 )
+# Mapas base 2D horneados por pipelines/fetch_basemaps.py: opcionales, nombres fijos.
+BASEMAP_FILES = (
+    "basemaps/basemaps.json",
+    "basemaps/cl-domeyko-interior-screening.webp",
+    "basemaps/cl-pampa-maria-elena-screening.webp",
+    "basemaps/cl-pampa-yungay-screening.webp",
+    "basemaps/region-norte-grande.webp",
+)
 # Referencia relativa a un JS/CSS compilado: carga igual en "/" y en "/AnalogOS/".
-# ponytail: cubre el build de una sola entrada; si Vite emite más chunks o
-# imágenes, ampliar la lista a partir de su manifest en vez de relajar el patrón.
 ASSET_REFERENCE = re.compile(r"^(?:\./)?(assets/[A-Za-z0-9._-]+\.(?:js|css))$")
+# Los chunks y assets que Vite emite (imports diferidos, worker, texturas) se toman de
+# su manifiesto, alcanzables desde la entrada, en vez de relajar el patrón anterior.
+VITE_MANIFEST = ".vite/manifest.json"
+MANIFEST_ASSET = re.compile(r"^assets/[A-Za-z0-9._-]+\.(?:js|mjs|css|jpg|png|webp)$")
 FIXED_TIME = (1980, 1, 1, 0, 0, 0)  # mínimo del formato ZIP
 
 
@@ -73,6 +87,41 @@ class _References(HTMLParser):
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         self.found += [value for name, value in attrs if name in ("src", "href") and value]
+
+
+def _manifest_assets(dist: Path, entry_assets: list[str]) -> set[str]:
+    """Archivos alcanzables desde la entrada de ``index.html`` según el manifiesto de Vite."""
+    path = dist / VITE_MANIFEST
+    if not path.exists():
+        return set()
+    if path.is_symlink() or not path.is_file():
+        raise ReleaseError(f"Manifiesto de Vite no válido: {VITE_MANIFEST}")
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ReleaseError(f"No se pudo leer {VITE_MANIFEST}: {error}") from error
+    if not isinstance(manifest, dict):
+        raise ReleaseError(f"{VITE_MANIFEST} no tiene la forma esperada.")
+    entries = [key for key, chunk in manifest.items() if isinstance(chunk, dict) and chunk.get("isEntry")]
+    if not entries or not all(manifest[key].get("file") in entry_assets for key in entries):
+        raise ReleaseError("El manifiesto de Vite no corresponde al index.html de este build.")
+    reachable: set[str] = set()
+    pending, seen = list(entries), set()
+    while pending:
+        key = pending.pop()
+        if key in seen:
+            continue
+        seen.add(key)
+        chunk = manifest.get(key)
+        if not isinstance(chunk, dict):
+            raise ReleaseError(f"{VITE_MANIFEST} referencia una entrada inexistente: {key!r}")
+        files = [chunk.get("file"), *chunk.get("css", []), *chunk.get("assets", [])]
+        for name in files:
+            if not isinstance(name, str) or not MANIFEST_ASSET.match(name):
+                raise ReleaseError(f"Archivo no permitido en {VITE_MANIFEST}: {name!r}")
+            reachable.add(name)
+        pending += [*chunk.get("imports", []), *chunk.get("dynamicImports", [])]
+    return reachable
 
 
 def allowed_files(dist: Path) -> list[str]:
@@ -97,7 +146,10 @@ def allowed_files(dist: Path) -> list[str]:
     if not any(name.endswith(".js") for name in assets):
         raise ReleaseError("index.html no referencia ningún JavaScript compilado en assets/.")
 
-    allowed = sorted({"index.html", *assets, *SCIENCE_FILES, VISUAL_INDEX, *VISUAL_IMAGES})
+    optional = [name for name in BASEMAP_FILES if (dist / name).exists() or (dist / name).is_symlink()]
+    allowed = sorted({
+        "index.html", *assets, *_manifest_assets(dist, assets), *SCIENCE_FILES, VISUAL_INDEX, *VISUAL_IMAGES, *optional,
+    })
     found = set()
     for folder, folders, files in os.walk(dist):
         for name in folders + files:
@@ -106,6 +158,8 @@ def allowed_files(dist: Path) -> list[str]:
             if path.is_symlink():
                 raise ReleaseError(f"Enlace simbólico no permitido: {relative}")
             if name in files:
+                if relative == VITE_MANIFEST:
+                    continue  # se usa para validar; no se publica en el ZIP
                 if relative not in allowed or not path.is_file():
                     raise ReleaseError(f"Archivo inesperado en el build: {relative}")
                 found.add(relative)
