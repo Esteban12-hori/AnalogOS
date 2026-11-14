@@ -3,7 +3,7 @@
  * mueve el controlador (transform y `d`) sin pasar por React. Toda la capa es aria-hidden:
  * duplica el riel de métricas, que es la ruta accesible (y la que lee el lector de pantalla).
  */
-import { useEffect, useLayoutEffect, useRef, type CSSProperties } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, type CSSProperties } from 'react'
 import type { CandidateGeometry } from '../../domain/contracts'
 import { GLYPH } from '../../shell/public'
 import type { StageInsets } from '../../state/ui'
@@ -43,6 +43,22 @@ function indexStyle(index: number): CSSProperties {
   return { '--i': index } as CSSProperties
 }
 
+/**
+ * Slots del escenario que tapan la capa sin ser `data-obstacle` del armazón: la franja del HUD
+ * (la caja posicionada que aloja el interruptor «Líneas», slot `stage.hud`) y la píldora
+ * «✦ Lectura» (slot `pill.reading`). Ni etiquetas ni líneas pueden cruzarlos.
+ */
+function slotHosts(): HTMLElement[] {
+  if (typeof document === 'undefined') return []
+  const hosts: HTMLElement[] = []
+  let hud = document.querySelector<HTMLElement>('.leaders-toggle')?.parentElement ?? null
+  while (hud && hud !== document.body && getComputedStyle(hud).position === 'static') hud = hud.parentElement
+  if (hud && hud !== document.body) hosts.push(hud)
+  const pill = document.querySelector<HTMLElement>('[data-slot="pill.reading"]')
+  if (pill) hosts.push(pill)
+  return hosts
+}
+
 export function LeaderStage(props: LeaderStageProps) {
   const { labels, header, narrow, activeId } = props
   const root = useRef<HTMLDivElement>(null)
@@ -78,27 +94,43 @@ export function LeaderStage(props: LeaderStageProps) {
   }, [controller, props.drawKey])
 
   // Contenido o layout asentado: medir una vez (nunca por cuadro) y recalcular.
-  const { siteId, geometry, sideSheet, compact, width, height, insets, obstacles } = props
-  useLayoutEffect(() => {
+  const latest = useRef(props)
+  latest.current = props
+  const refresh = useCallback(() => {
+    const current = latest.current
     controller.setScene({
-      siteId,
-      geometry,
-      narrow,
-      sideSheet,
-      compact,
-      viewport: { width, height },
-      insets,
-      obstacles: toRects(obstacles),
-      labels: narrow
+      siteId: current.siteId,
+      geometry: current.geometry,
+      narrow: current.narrow,
+      sideSheet: current.sideSheet,
+      compact: current.compact,
+      viewport: { width: current.width, height: current.height },
+      insets: current.insets,
+      obstacles: [...toRects(current.obstacles), ...toRects(slotHosts().map((host) => host.getBoundingClientRect()))],
+      labels: current.narrow
         ? []
-        : labels.flatMap((label) => {
+        : current.labels.flatMap((label) => {
             const size = measure(labelEls.current.get(label.id))
             return size ? [{ id: label.id, ...size }] : []
           }),
-      header: narrow ? null : measure(headerEl.current),
-      chip: narrow ? null : measure(chipEl.current),
+      header: current.narrow ? null : measure(headerEl.current),
+      chip: current.narrow ? null : measure(chipEl.current),
     })
-  }, [controller, siteId, geometry, labels, header, narrow, sideSheet, compact, width, height, insets, obstacles])
+  }, [controller])
+  const { siteId, geometry, sideSheet, compact, width, height, insets, obstacles } = props
+  useLayoutEffect(() => {
+    refresh()
+    // Un cuadro después: el HUD se reubica con las variables de márgenes del escenario.
+    const frame = requestAnimationFrame(refresh)
+    return () => cancelAnimationFrame(frame)
+  }, [refresh, siteId, geometry, labels, header, narrow, sideSheet, compact, width, height, insets, obstacles])
+  // El HUD crece en 2D (fuentes) y la píldora cambia de texto: se remide al cambiar de tamaño.
+  useEffect(() => {
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => refresh())
+    for (const host of slotHosts()) observer.observe(host)
+    return () => observer.disconnect()
+  }, [refresh])
 
   // Cada cuadro de cámara va directo al controlador.
   useEffect(() => {
