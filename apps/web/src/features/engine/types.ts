@@ -3,8 +3,8 @@
  * `features/engine`: se pueden AÑADIR campos opcionales, no cambiar ni quitar los existentes
  * sin pasar por el integrador (docs/BUILD_CONTRACTS.md).
  */
-import type { CriterionLevel, MissionInterpretation } from '../../domain/aiContracts'
-import type { CandidateSite, CriterionId, MissionProfile } from '../../domain/contracts'
+import type { CriterionLevel, MissionInterpretation, UnsupportedReason } from '../../domain/aiContracts'
+import type { CandidateSite, CriterionId, CriterionStatus, MissionProfile } from '../../domain/contracts'
 import type { MissionPhase } from '../../state/ui'
 
 export type { CriterionLevel, CriterionId, MissionPhase }
@@ -46,6 +46,8 @@ export interface AggregateResult {
   validWeight: number
   /** Contribución w'_i·ln(max(s_i, ε)) por criterio, redondeada a 4 decimales; null si no aporta. */
   contributions: Readonly<Record<string, number | null>>
+  /** Estado efectivo de cada criterio tras las reglas del pipeline (valid sin similitud → missing). */
+  statuses?: Readonly<Record<string, CriterionStatus>>
 }
 
 export interface SensitivityScenario {
@@ -84,6 +86,14 @@ export interface MissionScoring {
   engineVersion: string
   /** Ordenados como rankCandidates: similitud descendente, nulos al final, empate por site_id. */
   sites: readonly ScoredSite[]
+  /** Cobertura mínima (minimum_valid_weight del perfil base); bajo ella: «Datos insuficientes». */
+  minimumValidWeight?: number
+  /**
+   * Por qué TODOS los sectores quedaron «por calcular» (sin cifras):
+   * `empty_profile` = todos los niveles en Excluir; `base_unavailable` = el perfil base no trae
+   * criterios ni agregación válidos; `base_mismatch` = el perfil de misión es de otro perfil base.
+   */
+  reason?: 'empty_profile' | 'base_unavailable' | 'base_mismatch'
 }
 
 /** Perfil predefinido (Movilidad + parciales needs_calibration). */
@@ -92,6 +102,16 @@ export interface MissionPreset {
   label: string
   description: string
   levels: Readonly<Record<CriterionId, CriterionLevel>>
+  /** Todos los predefinidos son needs_calibration: el mapeo a niveles no tiene validación experta. */
+  status?: 'needs_calibration'
+  /** true = cubre solo una parte de los criterios del perfil base. */
+  partial?: boolean
+}
+
+/** Tramo [start, end) del texto original (índices de String, UTF-16). */
+export interface TextSpan {
+  start: number
+  end: number
 }
 
 /** Resultado del matcher DEMO por palabras clave («DEMO · sin IA»). */
@@ -99,6 +119,14 @@ export interface DemoMatch {
   interpretation: MissionInterpretation
   /** Tramos del texto que activaron cada criterio, para resaltarlos. */
   highlights: ReadonlyArray<{ start: number; end: number; criterionId: CriterionId }>
+  /** Rótulo obligatorio junto a la interpretación: «DEMO · sin IA». */
+  label?: string
+  /** Palabras de contexto de movilidad («rover», «navegación»…) que aplican el perfil Movilidad. */
+  contextHighlights?: readonly TextSpan[]
+  /** Lo pedido que el snapshot no mide (hielo, radiación, regolito…). */
+  unsupportedHighlights?: ReadonlyArray<TextSpan & { reason: UnsupportedReason }>
+  /** Marcas de exclusión explícita («excluir», «no importa»…) que llevaron un criterio a 0. */
+  exclusionHighlights?: readonly TextSpan[]
 }
 
 /** Eventos de la máquina de estados de la misión (domain/missionPhase en la spec). */
@@ -117,10 +145,59 @@ export interface PhaseThresholds {
   counterMs: number
   slowMs: number
   timeoutMs: number
+  /** 0–300 ms: nada se mueve, para evitar parpadeo (solo Enviar → Detener). */
+  quietMs?: number
+}
+
+/** Tramo visible de la espera de la IA según el tiempo transcurrido (§2.3 C). */
+export type WaitStage = 'quiet' | 'busy' | 'counter' | 'slow' | 'timeout'
+
+/** Por qué se abortó una corrida: la reemplazó otro envío, se canceló o se agotó el tiempo. */
+export type MissionAbortReason = 'replaced' | 'cancelled' | 'timeout'
+
+/** Una corrida de misión (interpretar → perfil → motor → análisis) con su AbortSignal. */
+export interface MissionRun {
+  readonly id: number
+  readonly signal: AbortSignal
+  readonly startedAt: number
+}
+
+/** Coordina «cancelar y reemplazar»: una sola corrida vigente; las anteriores quedan abortadas. */
+export interface MissionRunController {
+  /** Empieza una corrida nueva; aborta la vigente con 'replaced' y arma el tiempo agotado. */
+  start(): MissionRun
+  /** Aborta la corrida vigente con 'cancelled'. Devuelve false si no había ninguna. */
+  cancel(): boolean
+  /** La corrida terminó (done o error): desarma su temporizador. Ignora corridas no vigentes. */
+  finish(run: MissionRun): void
+  /** ¿Sus eventos todavía cuentan? false si fue reemplazada, cancelada, agotada o terminada. */
+  isCurrent(run: MissionRun): boolean
+  current(): MissionRun | null
+  /** Motivo del aborto de una corrida; null si sigue vigente o terminó sin abortarse. */
+  abortReason(run: MissionRun): MissionAbortReason | null
+  /** Aborta y desarma todo (al desmontar). */
+  dispose(): void
+}
+
+export interface MissionRunControllerOptions {
+  thresholds?: PhaseThresholds
+  now?: () => number
+  setTimer?: (callback: () => void, ms: number) => unknown
+  clearTimer?: (handle: unknown) => void
+  /** Se llama una vez cuando una corrida vigente supera `timeoutMs` (ya abortada con 'timeout'). */
+  onTimeout?: (run: MissionRun) => void
 }
 
 export interface ScoreMissionInput {
   profile: MissionProfileDraft
   candidates: readonly CandidateSite[]
   base: MissionProfile
+}
+
+/** Insumos exactos de `aggregate`/`sensitivity` para un sector con un perfil de misión. */
+export interface MissionInputs {
+  criteria: readonly AggregateCriterion[]
+  inputs: Readonly<Record<string, AggregateInput>>
+  epsilon: number
+  minimumValidWeight: number
 }
