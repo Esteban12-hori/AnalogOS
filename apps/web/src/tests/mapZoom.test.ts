@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { latLngToVec3 } from '../domain/globe'
-import { altitudeForZoom, fitDistanceRatio, flatThresholds, globeScreenRadius, lonLatFromDirection, zoomForAltitude } from '../domain/mapZoom'
+import {
+  altitudeForZoom,
+  fitDistanceRatio,
+  fitDistanceRatioForInsets,
+  flatThresholds,
+  globeScreenCenter,
+  globeScreenRadius,
+  lonLatFromDirection,
+  normalizeInsets,
+  zoomForAltitude,
+} from '../domain/mapZoom'
+import { baseStageInsets } from '../shell/stageGeometry.js'
 
 describe('zoomForAltitude / altitudeForZoom', () => {
   it('son inversas entre sí', () => {
@@ -51,6 +62,34 @@ describe('lonLatFromDirection', () => {
       const [longitude, latitude] = lonLatFromDirection(x, y, z)
       expect(latitude).toBeCloseTo(lat, 6)
       expect(longitude).toBeCloseTo(lon, 6)
+    }
+  })
+})
+
+describe('márgenes {top, right, bottom, left} (ADR-008)', () => {
+  it('un número es el margen derecho (compatibilidad con rightInset)', () => {
+    expect(normalizeInsets(520)).toEqual({ top: 0, right: 520, bottom: 0, left: 0 })
+    expect(normalizeInsets({ bottom: 280 })).toEqual({ top: 0, right: 0, bottom: 280, left: 0 })
+    expect(globeScreenRadius(1440, 900, 520)).toBeCloseTo(globeScreenRadius(1440, 900, { right: 520 }), 9)
+    expect(flatThresholds(1440, 900, 520)).toEqual(flatThresholds(1440, 900, { right: 520 }))
+  })
+
+  it('sin márgenes verticales coincide con fitDistanceRatio(anchoLibre / alto)', () => {
+    expect(fitDistanceRatioForInsets(1440, 900, { left: 384, right: 404 })).toBeCloseTo(fitDistanceRatio((1440 - 788) / 900), 9)
+  })
+
+  it('el dock y la barra achican el globo y lo centran en el área libre', () => {
+    const insets = { top: 78, right: 0, bottom: 280, left: 0 }
+    expect(globeScreenRadius(1440, 900, insets)).toBeLessThan(globeScreenRadius(1440, 900))
+    expect(globeScreenCenter(1440, 900, insets)).toEqual({ x: 720, y: 78 + (900 - 78 - 280) / 2 })
+    expect(globeScreenCenter(1440, 900, { left: 384, right: 404 }).x).toBe(384 + (1440 - 788) / 2)
+  })
+
+  it('la vista global nunca cae en 2D con los márgenes base de cada tramo', () => {
+    for (const [w, h] of [[390, 844], [844, 390], [1100, 700], [1280, 720], [1440, 900], [3840, 2160]] as const) {
+      const t = flatThresholds(w, h, baseStageInsets(w, h))
+      expect(t.global).toBeLessThan(t.exit)
+      expect(t.enter).toBeGreaterThan(t.exit)
     }
   })
 })
