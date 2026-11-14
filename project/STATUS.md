@@ -7,6 +7,8 @@
 
 **Sincronización autorizada:** Dan pidió «actualiza dev». Este checkpoint integra M7 (`1302ed8`) con el rediseño remoto para su commit y push a `origin/dev`. Las secciones posteriores registran cortes históricos; la verificación vigente es la siguiente.
 
+**Publicación en dev:** integración subida y verificada en `8df83c0`. El build y deploy de Vercel terminaron correctamente, pero el alias fijo falló con «User not found», igual que en el despliegue anterior del equipo. Se añade `--scope "$VERCEL_ORG_ID"` al paso del alias para usar explícitamente el equipo propietario. Validación final mediante GitHub Actions; no altera el build ni el paquete científico.
+
 ## Integración revisada por Codex para dev
 
 - Conservados el globo 3D, paso automático a mapa 2D, liquid glass, ficha flotante, desglose de magnitudes, series mensuales y despliegue del equipo. La aplicación carga v3 y sus siete imágenes; Yungay aparece como REF, fuera de los seis puestos, también en globo, mapa y selector.

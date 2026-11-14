@@ -254,3 +254,9 @@
 - 177 pruebas Python, 69 web y build correctos. ZIP repetido idéntico: 30 entradas, 12.865.983 bytes, SHA-256 804184d6015440fa073e451bfea376fc9b1c9ae6b672e133094cd528ac3af12b. Once hashes de baseline científico v2 y artefactos v3 sin cambios.
 - Revisado el ZIP servido en /AnalogOS/: globo, Argentina y Sentinel-2 en 2D, Yungay como referencia, filtro por país, escritorio y móvil sin desborde horizontal. Captura submission/assets/analogos-integrated-dev.jpg. Actualizadas instrucciones del stack, entrega e informe de revisión.
 - Comandos: source .venv/bin/activate && npm run verify; npm run release:package. No nuevas adquisiciones de datos ni cambios de pesos. Pendientes científicos: territorio, bibliografía de la Puna y clima local. Claude espera nueva asignación.
+
+## 2026-11-14 Codex — corrección del alias dev en Vercel
+
+- Integración publicada en origin/dev (8df83c0), árbol local limpio y SHA remoto verificado. Actions 43629101506 completó build/deploy, pero falló al asignar analogos-dev.vercel.app con «User not found», el mismo error del run anterior 43628749578.
+- El paso del alias ahora pasa explícitamente --scope "$VERCEL_ORG_ID", usando el equipo ya configurado en el workflow. Referencia: https://vercel.com/docs/cli/global-options#scope (acepta slug o ID de equipo).
+- Cambio limitado al despliegue y registro de estado; no requiere reconstruir ZIP ni repetir pruebas científicas. Se valida ejecutando el workflow en dev.
