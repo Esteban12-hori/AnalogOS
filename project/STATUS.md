@@ -112,4 +112,4 @@ npm run verify
 
 ## Aviso de Git
 
-La carpeta tiene repositorio Git propio desde 2026-11-14 (rama `main`), con remoto `origin` en https://github.com/hori0729/AnalogOS (público). `.env`, `data/raw/`, `node_modules/`, `dist/`, `.venv/`, `*.egg-info/` y `.claude/` quedan fuera por `.gitignore`. En un clon nuevo, `tests/test_precision_artifacts.py` necesita `data/raw/` (ejecutar antes `python -m pipelines.fetch_precision_data`).
+La carpeta tiene repositorio Git propio desde 2026-11-14 (rama `main`), con remoto `origin` en https://github.com/Esteban12-hori/AnalogOS (privado: para la entrega debe hacerse público o dar acceso a los jueces). El remoto secundario `hori0729` (https://github.com/hori0729/AnalogOS, público) conserva solo los dos primeros commits y ya no se actualiza. `.env`, `data/raw/`, `node_modules/`, `dist/`, `.venv/`, `*.egg-info/` y `.claude/` quedan fuera por `.gitignore`. En un clon nuevo, `tests/test_precision_artifacts.py` necesita `data/raw/` (ejecutar antes `python -m pipelines.fetch_precision_data`).

@@ -50,6 +50,6 @@
 ## Links que el equipo debe completar
 
 - Demo pública: `PENDIENTE`
-- Repositorio: `PENDIENTE`
+- Repositorio: `https://github.com/Esteban12-hori/AnalogOS` (privado; hacerlo público antes de enviar)
 - Video: `PENDIENTE`
 - Integrantes/contribuciones: `PENDIENTE`

@@ -74,4 +74,5 @@
 - `submission/METHODOLOGY.md` documenta lo anterior; regenerados `analogos-chile-static.zip` y `SHA256SUMS.txt`.
 - Verificado: 30 tests Python, 14 tests web, build y revisión en navegador sin errores de consola.
 - Publicado en `origin/main` como segundo commit.
+- Destino cambiado por decisión del equipo: `origin` pasa a https://github.com/Esteban12-hori/AnalogOS (privado). https://github.com/hori0729/AnalogOS queda como remoto secundario `hori0729`, con los dos primeros commits y sin más actualizaciones.
 - Pendiente: las dos capturas de `submission/assets/` son anteriores a estos rótulos.
