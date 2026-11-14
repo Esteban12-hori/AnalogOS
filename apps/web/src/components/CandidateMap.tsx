@@ -93,7 +93,7 @@ export function CandidateMap({ candidates, chileOutline, selectedId, onSelect }:
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         role="img"
         aria-label={`Mapa vectorial de Chile con ${candidates.length} zonas seleccionables`}
-        preserveAspectRatio="xMidYMid meet"
+        preserveAspectRatio="xMidYMin meet"
       >
         <defs>
           <linearGradient id="ocean-gradient" x1="0" y1="0" x2="1" y2="1">

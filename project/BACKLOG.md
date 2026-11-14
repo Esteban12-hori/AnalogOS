@@ -57,7 +57,7 @@
 
 ## M4 Validación
 
-- [ ] Revisar resultados altos, medios y bajos en Worldview/imagen reciente.
+- [ ] Revisar resultados altos, medios y bajos en Worldview/imagen reciente. (parcial: contexto Sentinel-2 de diciembre de 2025 offline por candidato y observaciones en `docs/VISUAL_REVIEW.md`; faltan imagen reciente y revisión experta)
 - [x] Usar Atacama como control.
 - [x] Ejecutar sensibilidad ±20 %.
 - [x] Revisar NoData y resolución limitante.

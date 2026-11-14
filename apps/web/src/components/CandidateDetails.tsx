@@ -1,6 +1,8 @@
 import { ScoreBreakdown } from '../breakdown/ScoreBreakdown'
 import type { CandidateSite, MissionProfile } from '../domain/contracts'
 import type { MarsReference } from '../domain/marsReference'
+import type { VisualContextState } from '../data/loadVisualContext'
+import { VisualContext } from './VisualContext'
 import {
   feasibilityLabels,
   formatArea,
@@ -12,6 +14,7 @@ interface CandidateDetailsProps {
   candidate: CandidateSite
   profile: MissionProfile
   marsReference: MarsReference | null
+  visual: VisualContextState
 }
 
 function Metric({ label, value, hint, muted = false }: { label: string; value: string; hint: string; muted?: boolean }) {
@@ -24,7 +27,7 @@ function Metric({ label, value, hint, muted = false }: { label: string; value: s
   )
 }
 
-export function CandidateDetails({ candidate, profile, marsReference }: CandidateDetailsProps) {
+export function CandidateDetails({ candidate, profile, marsReference, visual }: CandidateDetailsProps) {
   const statusLabel = candidate.status === 'fixture' ? 'Fixture' : candidate.status === 'candidate' ? 'Screening' : candidate.status
   const downloadCandidate = () => {
     const blob = new Blob([JSON.stringify(candidate, null, 2)], { type: 'application/json' })
@@ -82,6 +85,8 @@ export function CandidateDetails({ candidate, profile, marsReference }: Candidat
           )}
         </div>
       )}
+
+      <VisualContext candidate={candidate} state={visual} />
 
       <ScoreBreakdown items={candidate.score_breakdown} marsReference={marsReference} />
 

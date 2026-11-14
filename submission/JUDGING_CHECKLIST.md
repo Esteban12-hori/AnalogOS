@@ -10,7 +10,7 @@
 - [x] Los criterios sin evidencia quedan fuera del score.
 - [x] Similitud, confianza, estabilidad y factibilidad están separadas.
 - [x] El resultado dice “screening preliminar”, no “sitio aprobado”.
-- [ ] Inspeccionar visualmente los tres polígonos en NASA Worldview o imagen reciente.
+- [ ] Inspeccionar visualmente los tres polígonos en NASA Worldview o imagen reciente. (avance parcial: vista Sentinel-2 de diciembre de 2025 integrada en la ficha y observaciones en `docs/VISUAL_REVIEW.md`; faltan imagen reciente, capas territoriales y revisión experta)
 - [ ] Obtener revisión rápida de una persona con experiencia geológica o robótica, si está disponible.
 
 ## Producto

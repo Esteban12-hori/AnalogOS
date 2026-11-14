@@ -3,6 +3,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
+  // Rutas relativas: el mismo build carga en "/" y en un subdirectorio como "/AnalogOS/".
+  base: './',
   plugins: [react()],
   publicDir: fileURLToPath(new URL('../../artifacts', import.meta.url)),
   server: {

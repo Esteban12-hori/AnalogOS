@@ -6,6 +6,7 @@ import { LiquidNav, liquidIcons, type LiquidNavItem } from './components/LiquidN
 import { SurfaceSignals } from './components/SurfaceSignals'
 import { LiquidBackdrop, useLiquidPointer } from './liquid/LiquidGlass'
 import { loadDemoSnapshot, type DemoSnapshot } from './data/loadDemoSnapshot'
+import { loadVisualContext, type VisualContextState } from './data/loadVisualContext'
 import { rankCandidates } from './domain/scoring'
 
 type LoadState =
@@ -84,6 +85,18 @@ function useStagePassive(enabled: boolean): boolean {
 function App() {
   const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' })
   const [selectedId, setSelectedId] = useState('')
+  const [visual, setVisual] = useState<VisualContextState>({ status: 'loading' })
+
+  // El contexto visual es opcional: se carga aparte y nunca bloquea ni rompe el snapshot.
+  useEffect(() => {
+    let active = true
+    void loadVisualContext().then((state) => {
+      if (active) setVisual(state)
+    })
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -194,6 +207,7 @@ function App() {
           candidate={selected}
           profile={snapshot.profile}
           marsReference={snapshot.marsReference}
+          visual={visual}
         />
       </main>
 
