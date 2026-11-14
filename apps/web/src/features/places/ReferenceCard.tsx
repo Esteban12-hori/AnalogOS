@@ -1,14 +1,23 @@
-/** STUB de la tarjeta compacta del riel para un ◆ (incremento 3): sin datos inventados. */
-import { GLYPH } from '../../shell/public'
+/**
+ * Slot `rail.reference` / `sheet.reference`: la tarjeta de un ◆ vive en un chunk diferido
+ * (no pesa en el chunk principal). Misma firma que antes; el Suspense es propio para que el
+ * armazón no necesite uno.
+ */
+import { lazy, Suspense } from 'react'
 import type { ReferenceCardProps } from './index'
 
-export function ReferenceCard({ analogId }: ReferenceCardProps) {
+const load = () => import('./ReferenceCardView')
+const View = lazy(load)
+
+/** Precarga la tarjeta (al pasar o enfocar un ◆ en el carrusel): el riel abre sin espera. */
+export function preloadReferenceCard(): void {
+  void load()
+}
+
+export function ReferenceCard(props: ReferenceCardProps) {
   return (
-    <div className="place-stub">
-      <p className="place-stub-head">
-        <span>{GLYPH.reference} Referencia mundial · por calcular</span>
-      </p>
-      <p className="place-stub-note">Análogo «{analogId}»: catálogo con fuentes por publicar (incremento 3).</p>
-    </div>
+    <Suspense fallback={<p className="places-state" aria-busy="true">Cargando la referencia…</p>}>
+      <View {...props} />
+    </Suspense>
   )
 }

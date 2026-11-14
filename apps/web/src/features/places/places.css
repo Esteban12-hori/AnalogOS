@@ -1,15 +1,111 @@
-/* STUB de features/places: estilos mínimos de la lista provisional. El incremento 3 los reemplaza. */
-.place-stub { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; height: 100%; align-content: start; }
-.place-stub-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0; color: var(--muted); font-family: var(--mono); font-size: var(--fs-caps); letter-spacing: var(--caps-tracking); text-transform: uppercase; }
-.place-stub-head small { font-size: var(--fs-min); }
-.place-stub-note { margin: 0; color: var(--muted); font-size: var(--fs-12); }
-.place-stub-list { display: flex; gap: 8px; margin: 0; padding: 0 0 4px; list-style: none; overflow-x: auto; scrollbar-width: thin; }
-.place-stub[data-placement="sheet"] .place-stub-list { flex-direction: column; overflow: visible; }
-.place-stub-list button { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: baseline; gap: 2px 8px; min-width: 220px; min-height: 44px; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 14px; background: var(--marker-bg); color: var(--text); cursor: pointer; text-align: left; font-size: var(--fs-13); }
-.place-stub[data-placement="sheet"] .place-stub-list button { width: 100%; min-width: 0; }
-.place-stub-list button:hover { border-color: var(--sel-line); }
-.place-stub-list button[aria-pressed="true"] { border-color: var(--sel-line); box-shadow: inset 0 2px 0 var(--sel-accent), 0 0 0 1px var(--sel-ring); }
-.place-stub-list button > span:first-child { color: var(--earth-bright); }
-.place-stub-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.place-stub-list b { color: var(--earth-bright); font-variant-numeric: tabular-nums; }
-.place-stub-list small { grid-column: 3; color: var(--muted); font-size: var(--fs-min); text-align: right; }
+/*
+ * features/places · carrusel de lugares y tarjeta ◆ (docs/UX_REDESIGN.md §3.5, §2.2, §2.4).
+ * Solo tokens de shell/tokens.css; sin backdrop-filter; solo se animan transform y opacity
+ * (y stroke-dashoffset del anillo). Ninguna cifra se anima: aparece ya con su valor final.
+ */
+.places { container: places / inline-size; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 6px; height: 100%; min-width: 0; min-height: 0; }
+.places-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.places-title { display: flex; align-items: baseline; gap: 10px; min-width: 0; margin: 0; overflow: hidden; color: var(--muted); font-family: var(--mono); font-size: var(--fs-caps); letter-spacing: var(--caps-tracking); text-transform: uppercase; white-space: nowrap; }
+.places-title > span { overflow: hidden; color: var(--text); text-overflow: ellipsis; }
+.places-title small { font-size: var(--fs-min); }
+.places-title small > span:first-child { color: var(--earth-bright); }
+.places-tools { display: flex; flex: none; align-items: center; gap: 6px; }
+.places-count { color: var(--muted); font-size: var(--fs-min); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.places-tool { min-width: 28px; min-height: 28px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 999px; background: transparent; color: var(--text); cursor: pointer; font-size: var(--fs-12); transition: border-color var(--dur-1) var(--ease-standard); }
+.places-tool:hover:not(:disabled) { border-color: var(--sel-line); }
+.places-tool:disabled { cursor: default; opacity: var(--o-dim); }
+.places-tool:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+.places-arrow { width: 28px; padding: 0; font-size: 16px; line-height: 1; }
+.places-note, .places-state { margin: 0; color: var(--muted); font-size: var(--fs-min); }
+.places-state { font-size: var(--fs-12); }
+.places-skeleton { display: flex; gap: 10px; overflow: hidden; }
+.places-skeleton i { flex: none; width: 232px; height: 104px; border: 1px dashed var(--line-strong); border-radius: 14px; }
+
+/* ---- Pista: scroll-snap nativo, sin barra ------------------------------------------------- */
+.places-track { position: relative; display: flex; gap: 10px; min-height: 0; padding: 2px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; transition: opacity var(--dur-2) var(--ease-standard); }
+.places-track::-webkit-scrollbar { display: none; }
+.places[data-busy] .places-track { opacity: var(--o-busy); }
+.places-group { display: flex; flex: none; gap: 10px; }
+.places-group[data-kind="reference"] { padding-left: 10px; border-left: 1px dashed var(--pending); }
+.places-group-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ---- Tarjeta (role=option) ---------------------------------------------------------------- */
+/* Filas: 1 qué es · 2 nombre · 3 área (anillo a la derecha de las tres) · 4 insignia · 5 pie. */
+.places-card {
+  position: relative; display: grid; flex: none; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto auto auto 1fr;
+  gap: 2px 8px; width: clamp(232px, calc((100cqi - 40px) / 4.2), 300px); max-height: 100%; padding: 9px 12px;
+  overflow: clip; border: 1px solid var(--line-strong); border-radius: 14px; background: var(--marker-bg); color: var(--text); cursor: pointer;
+  font-size: var(--fs-12); line-height: 1.3; scroll-snap-align: start; user-select: none;
+  transition: border-color var(--dur-1) var(--ease-standard);
+  animation: places-in var(--dur-4) var(--ease-enter) both; animation-delay: calc(var(--i, 0) * var(--stagger-list));
+}
+.places-card[data-kind="reference"] { border-style: dashed; border-color: var(--pending); }
+.places-card:hover { border-color: var(--sel-line); }
+.places-card[aria-selected="true"] { border-style: solid; border-color: var(--sel-line); box-shadow: inset 0 2px 0 var(--sel-accent), 0 0 0 1px var(--sel-ring); }
+.places-card:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+.places-kicker, .places-name, .places-meta, .places-badge { grid-column: 1; min-height: 1.3em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.places-kicker { color: var(--muted); font-family: var(--mono); font-size: var(--fs-min); letter-spacing: var(--caps-tracking); text-transform: uppercase; }
+.places-card[data-kind="evaluated"] .places-kicker > span:first-child { color: var(--earth-bright); }
+.places-card[data-status="insufficient_data"] .places-kicker > span:first-child, .places-card[data-kind="reference"] .places-kicker > span:first-child { color: var(--ice); }
+.places-card .places-kicker[data-selected] { color: var(--sel-ring); }
+.places-card .places-kicker[data-selected] > span:first-child { color: var(--sel-ring); }
+.places-name { font-size: var(--fs-13); }
+.places-meta { color: var(--muted); font-size: var(--fs-min); }
+.places-badge { grid-column: 1 / -1; grid-row: 4; color: var(--ice); font-size: var(--fs-min); }
+.places-foot { display: flex; grid-column: 1 / -1; grid-row: 5; align-items: center; align-self: end; justify-content: space-between; gap: 6px; min-width: 0; }
+.places-conf { display: inline-flex; flex: none; align-items: center; gap: 5px; color: var(--muted); font-size: var(--fs-min); white-space: nowrap; }
+.places-conf b { color: var(--confidence); font-weight: 600; font-variant-numeric: tabular-nums; }
+.places-conf i { position: relative; width: 30px; height: 4px; overflow: hidden; border-radius: 2px; background: var(--line-strong); }
+.places-conf i::after { content: ""; position: absolute; inset: 0; background: var(--confidence); transform: scaleX(var(--v, 0)); transform-origin: left; transition: transform var(--dur-3) var(--ease-standard); }
+.places-conf.is-pending, .places-source { color: var(--pending); }
+.places-source { font-size: var(--fs-min); }
+.places-chip { min-width: 0; padding: 0 7px; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--text); font-size: var(--fs-min); text-overflow: ellipsis; white-space: nowrap; }
+.places-source { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.places-profile { display: none; }
+
+/* Anillo de similitud: el número aparece ya final; solo el trazo se dibuja (900 ms). */
+.places-ring { position: relative; display: grid; grid-column: 2; grid-row: 1 / span 3; justify-items: center; align-content: start; width: 58px; }
+.places-ring svg { width: 42px; height: 42px; transform: rotate(-90deg); }
+.places-ring circle { fill: none; stroke-width: 3; }
+.places-ring-track { stroke: var(--line-strong); }
+.places-ring[data-empty] .places-ring-track { stroke: var(--pending); stroke-dasharray: 4 4; }
+.places-ring-value { stroke: var(--earth-bright); stroke-linecap: round; animation: places-ring var(--dur-6) var(--ease-emph) both; animation-delay: calc(var(--i, 0) * var(--stagger-list)); }
+.places-ring b { position: absolute; top: 0; display: grid; place-items: center; width: 100%; height: 42px; font-size: var(--fs-13); font-variant-numeric: tabular-nums; }
+.places-ring[data-empty] b { color: var(--pending); }
+.places-ring small { max-width: 100%; overflow: hidden; color: var(--muted); font-size: var(--fs-min); line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.places-ring .places-ring-tag { color: var(--pending); }
+
+@keyframes places-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes places-ring { from { stroke-dashoffset: var(--v); } }
+
+/* ---- Hoja (<1100): una tarjeta y el borde de la siguiente; filas de 44 px en la lista ----- */
+.places[data-placement="sheet"] .places-card { width: min(86cqi, 340px); }
+@container places (max-width: 520px) { .places-title small:not(.places-profile), .places-suffix { display: none; } }
+
+/* ---- Vista de lista («Ver lista»): todas a la vista, filas de 44 px -------------------------- */
+.places[data-view="list"] .places-track { display: block; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: none; }
+.places[data-view="list"] .places-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px; }
+.places[data-view="list"] .places-group[data-kind="reference"] { margin-top: 8px; padding: 8px 0 0; border-top: 1px dashed var(--pending); border-left: 0; }
+.places[data-view="list"] .places-group-label { position: static; grid-column: 1 / -1; width: auto; height: auto; clip-path: none; color: var(--muted); font-family: var(--mono); font-size: var(--fs-min); letter-spacing: var(--caps-tracking); text-transform: uppercase; }
+.places[data-view="list"] .places-card { grid-template-rows: auto auto; width: auto; min-height: 44px; padding: 5px 10px; animation: none; }
+.places[data-view="list"] .places-name { grid-row: 1; }
+.places[data-view="list"] .places-kicker { grid-row: 2; }
+.places[data-view="list"] .places-card > :is(.places-meta, .places-badge, .places-foot) { display: none; }
+.places[data-view="list"] .places-ring { grid-row: 1 / span 2; align-self: center; width: auto; }
+.places[data-view="list"] .places-ring :is(svg, .places-ring-tag), .places[data-view="list"] .places-ring:not([data-empty]) small, .places[data-view="list"] .places-ring[data-empty] b { display: none; }
+.places[data-view="list"] .places-ring b { position: static; height: auto; }
+
+/* Alto < 860 px: tarjetas más bajas (el dock mide 218 px); el perfil pasa a la cabecera. */
+@media (max-height: 859px) {
+  .places-card { padding: 7px 10px; row-gap: 1px; }
+  .places-ring svg { width: 34px; height: 34px; }
+  .places-ring b { height: 34px; font-size: var(--fs-12); }
+  .places-ring .places-ring-tag { display: none; }
+  .places-profile { display: inline; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .places-card { animation-name: places-fade; }
+  .places-ring-value { animation: none; }
+  @keyframes places-fade { from { opacity: 0; } }
+}
