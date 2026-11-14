@@ -158,3 +158,37 @@
 - Dan autorizó commit y push de M4-VISUAL-EVIDENCE a `dev`.
 - El checkpoint incorpora los tres PNG reales y su procedencia, el panel offline, validadores y pruebas, documentación, ZIP y checksum revisados.
 - Verificación previa al commit: `npm run verify` (119 pruebas Python, 24 web y build), checksum del ZIP y `git diff --check`.
+
+## 2026-11-14 Codex — asignación M7-GLOBAL-DISCOVERY
+
+- Dan autorizó AnalogOS con visión global y primer piloto de búsqueda Chile–Argentina, usando Yungay como referencia conocida.
+- Asignado a Claude un corte vertical: 50 ventanas topográficas en dos regiones declaradas, hasta seis preselecciones multifuente, auditoría bibliográfica, snapshot v3, roles referencia/candidato, mapa binacional, exportación y paquete offline.
+- Preservar v2 y pesos/fórmulas como línea base; distinguir alcance regional de cobertura mundial y ausencia de antecedentes de novedad demostrada.
+- Baseline comprobada antes del handoff: 119 pruebas Python, 24 web y build verdes. Sin cambios de implementación, commit ni push en esta asignación.
+
+## 2026-11-14 Claude Code — M7-GLOBAL-DISCOVERY (entregado en `review`, sin commit)
+
+- Marca visible «AnalogOS» con subtítulo «Exploración de análogos planetarios · Piloto Chile–Argentina». Carpeta, remoto y paquetes no cambian.
+- Búsqueda reproducible: `config/discovery_search_v3.json`, `pipelines/discover_candidates.py` y `pipelines/fetch_discovery_data.py`. 50 ventanas de 0,2° en dos regiones de prueba, prioridad topográfica con pesos relativos 0,20/0,20/0,15, hasta 3 por país con centros a ≥ 25 km. Cada ventana guarda su motivo.
+- Resultado de la etapa 1: 50 evaluadas, 4 excluidas por coordenadas de muestreo publicadas, 2 por cercanía, 38 fuera del cupo y 6 preseleccionadas (3 por país).
+- Snapshot `artifacts/science-v3/` con `pipelines/build_discovery_snapshot.py`: seis candidatos y Yungay como referencia, con las fórmulas y pesos v2. Yungay conserva 75,67 / 77,45 / 99,03. Los candidatos chilenos obtienen 94,87 / 91,87 / 90,35 y los argentinos 63,85 / 53,68 / 49,43; coinciden con el cálculo independiente de Codex.
+- Antecedentes: `config/analog_precedents_v1.json` con las 30 coordenadas del material suplementario de Navarro-González et al. (2003) y fuentes sobre Atacama y la Puna; tres búsquedas dirigidas registradas. Ningún candidato se declara nuevo.
+- Contratos: `candidate-site` admite `cl-`/`ar-`, añade `country`, `role`, `discovery`, `literature_review` y el estado `reference`; nuevos `discovery-search` y `precedent-catalog`. Los snapshots históricos siguen validando.
+- Calidad sin confianza falsa: completitud Sentinel-2 contra 12 meses con rechazo de filas mal formadas, calidad topográfica × cobertura, validación de POWER y caché ligada a la petición exacta. Los valores v2 no cambian.
+- Correcciones tras las revisiones de Codex: fallos de datos por ventana sin abortar la búsqueda, identidad de petición en el build, filas Sentinel-2 y POWER estrictas, redacción «valores coincidentes; posible celda compartida», búsqueda sin preselección como experimento negativo y etiqueta accesible del mapa.
+- Web: alcance de la búsqueda, ranking con filtro por país, tarjeta de referencia aparte, mapa SVG regional con las 50 ventanas, ambos países y recuadro de ubicación, sección «Origen y antecedentes» en la ficha y exportación con rol, origen y alcance.
+- Contexto visual v3 en `artifacts/visual-context-v3/`: seis imágenes nuevas y la de Yungay reutilizada del paquete v2. Observaciones preliminares en `config/visual_observations_v3.json`, visibles como advertencia.
+- Empaquetador v3: lista derivada de metadata validada; `submission/analogos-static.zip` (18 archivos, 9.012.267 bytes) con `analogos-static.zip.sha256`. El ZIP v2 se conserva.
+- Documentación: ADR-006 (`proposed`), `docs/DISCOVERY_REPORT.md`, README, documentos de producto y ciencia, material de `submission/` y captura `assets/analogos-pilot-overview.jpg`.
+- Verificado: 167 tests Python, 39 tests web, build, empaquetado repetido byte a byte, demo en `/AnalogOS/` por HTTP y `git diff --check` limpio. v2 y sus artefactos sin cambios.
+- Uso de red: 7 teselas NASADEM, 6 consultas Statistical API, 6 POWER, 6 inventarios HLS y 6 imágenes Process API, todas dentro de los límites; credenciales solo desde el programa.
+
+## 2026-11-14 Codex — aceptación M7-GLOBAL-DISCOVERY (15:33)
+
+- Aceptada la implementación de Claude como piloto regional de AnalogOS: 50 ventanas, seis candidatos, referencia Yungay fuera del ranking y precedentes visibles. Sin declarar descubrimientos confirmados ni cobertura global.
+- Repetidos de forma independiente: 167 tests Python, 39 web y build; reconstrucción byte a byte de v2/v3; 11 hashes de baseline; cachés de 18 entradas y paquetes visuales v2/v3 sin red/login.
+- Recalculadas las 50 prioridades, la selección y las seis similitudes/confianzas desde datos crudos. Verificados los puntos bibliográficos y las seis imágenes nuevas. Correcciones devueltas a Claude y regresiones incluidas.
+- Navegador: filtro Argentina, fichas, referencia, exportación real con rol/origen, teclado del mapa, móvil y ZIP extraído en raíz y /AnalogOS/. Sin errores de aplicación durante la comprobación.
+- ZIP determinista: 18 entradas, 9.012.267 bytes, SHA-256 3b419d770f1a1dce5e01f7345aaafef3f33ca18df4d2f73e6d3fb8c7c9853415. Baseline v2 intacto.
+- ADR-006 y NEXT_TASK aceptados; informe independiente en docs/CODEX_M7_REVIEW.md. Actualizados STATUS, BACKLOG, instrucciones de continuidad y referencias activas de producto/ciencia para evitar volver a v2.
+- Pendientes explícitos: territorio, bibliografía completa de la Puna y contraste climático local. Claude espera nueva asignación. Sin commit, push ni publicación.

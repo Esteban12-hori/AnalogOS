@@ -1,4 +1,4 @@
-# Paquete de presentación — AnalogOS Chile
+# Paquete de presentación — AnalogOS (piloto Chile–Argentina)
 
 ## Archivos para entregar
 
@@ -12,10 +12,10 @@
 - `TEAM.md`: plantilla para integrantes, contribuciones y declaración de IA.
 - `VIDEO_SHOT_LIST.md`: plan de grabación de respaldo.
 - `JUDGING_CHECKLIST.md`: auditoría antes de enviar.
-- `assets/analogos-chile-overview.jpg`: captura principal.
-- `assets/analogos-chile-comparison.jpg`: captura de evidencia, comparación y método.
-- `analogos-chile-static.zip`: build estático listo para publicar.
-- `SHA256SUMS.txt`: checksum del ZIP de despliegue.
+- `assets/analogos-pilot-overview.jpg`: captura del piloto (alcance, ranking, mapa y ficha).
+- `analogos-static.zip`: build estático v3 listo para publicar.
+- `analogos-static.zip.sha256`: checksum del ZIP v3.
+- Históricos v2, que no se regeneran: `analogos-chile-static.zip`, `SHA256SUMS.txt` y las capturas `assets/analogos-chile-*.jpg`.
 
 ## Mensaje central
 
@@ -23,7 +23,9 @@
 
 ## Resultado que se puede afirmar
 
-Con el perfil preliminar de movilidad de rover y el snapshot autenticado `science-screening-v2`, Pampa Yungay obtiene la mayor similitud de los tres sectores evaluados: 75,67/100. La confianza de evidencia es 77,45/100 y la factibilidad sigue en `requiere revisión`; no es autorización ni validación de terreno.
+Con el perfil preliminar de movilidad de rover y el snapshot `science-screening-v3`, una búsqueda sobre 50 ventanas en dos regiones de prueba de Chile y Argentina preseleccionó seis candidatos. Los tres chilenos obtienen entre 90,35 y 94,87 de similitud y los tres argentinos entre 49,43 y 63,85; Yungay, recalculado como referencia conocida, obtiene 75,67 y queda fuera del ranking. La confianza ronda 77/100 y la factibilidad sigue en `requiere revisión` para todos.
+
+No se puede afirmar que algún candidato sea un análogo nuevo, que sea mejor sitio que Yungay ni que el terreno esté disponible: ambas regiones tienen antecedentes publicados y falta el cruce territorial.
 
 ## Inicio de la demo
 
@@ -33,7 +35,7 @@ npm install
 npm run dev
 ```
 
-Abrir `http://127.0.0.1:5173/`. Para una demo sin herramientas de desarrollo, descomprimir `analogos-chile-static.zip` en cualquier hosting estático, en la raíz o en un subdirectorio como `/AnalogOS/`: el build usa rutas relativas.
+Abrir `http://127.0.0.1:5173/`. Para una demo sin herramientas de desarrollo, descomprimir `analogos-static.zip` en cualquier hosting estático, en la raíz o en un subdirectorio como `/AnalogOS/`: el build usa rutas relativas.
 
 ## Regenerar y comprobar el ZIP
 
@@ -41,14 +43,14 @@ Desde la raíz del repositorio, con `npm install` hecho y el entorno Python acti
 
 ```bash
 npm run release:package
-(cd submission && shasum -a 256 -c SHA256SUMS.txt)
+(cd submission && shasum -a 256 -c analogos-static.zip.sha256)
 ```
 
-El ZIP contiene únicamente `index.html`, el JS/CSS compilado, los cinco archivos `science-v2/` y el contexto visual (`visual-context/index.json` y tres PNG Sentinel-2, uno por candidato); son 12 archivos y unos 4,1 MB. Es determinista para un mismo build. Las imágenes son contexto preliminar de diciembre de 2025: no validan los sitios ni cambian el ranking. Prueba por HTTP local en un subdirectorio:
+El ZIP contiene únicamente `index.html`, el JS/CSS compilado, los siete archivos `science-v3/` y el contexto visual (`visual-context-v3/index.json` y siete PNG Sentinel-2, uno por sitio); son 18 archivos y unos 9,0 MB. Es determinista para un mismo build. Las imágenes son contexto preliminar de diciembre de 2025: no validan los sitios ni cambian el ranking. Descomprimir `analogos-static.zip` sirve para una demo sin herramientas de desarrollo. Prueba por HTTP local en un subdirectorio:
 
 ```bash
 mkdir -p /tmp/analogos-demo/AnalogOS
-unzip -o -q submission/analogos-chile-static.zip -d /tmp/analogos-demo/AnalogOS
+unzip -o -q submission/analogos-static.zip -d /tmp/analogos-demo/AnalogOS
 python3 -m http.server 8080 --bind 127.0.0.1 --directory /tmp/analogos-demo
 ```
 

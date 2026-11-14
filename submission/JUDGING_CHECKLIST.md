@@ -10,7 +10,12 @@
 - [x] Los criterios sin evidencia quedan fuera del score.
 - [x] Similitud, confianza, estabilidad y factibilidad están separadas.
 - [x] El resultado dice “screening preliminar”, no “sitio aprobado”.
-- [ ] Inspeccionar visualmente los tres polígonos en NASA Worldview o imagen reciente. (avance parcial: vista Sentinel-2 de diciembre de 2025 integrada en la ficha y observaciones en `docs/VISUAL_REVIEW.md`; faltan imagen reciente, capas territoriales y revisión experta)
+- [x] Los candidatos salen de una búsqueda por rejilla documentada (50 ventanas), no de una lista manual.
+- [x] Yungay figura como referencia conocida, fuera del ranking.
+- [x] Las ventanas con coordenadas publicadas quedan excluidas y visibles; ningún candidato se declara nuevo.
+- [ ] Completar la revisión bibliográfica de la Puna con textos completos y coordenadas.
+- [ ] Contrastar el contexto climático POWER de los candidatos argentinos con datos locales.
+- [ ] Inspeccionar visualmente los sitios en NASA Worldview o imagen reciente. (avance parcial: vista Sentinel-2 de diciembre de 2025 por sitio y observaciones en `docs/VISUAL_REVIEW.md`; faltan imagen reciente, capas territoriales de ambos países y revisión experta)
 - [ ] Obtener revisión rápida de una persona con experiencia geológica o robótica, si está disponible.
 
 ## Producto
@@ -32,7 +37,7 @@
 - [x] Tests Python y web verdes.
 - [x] Build estático generado.
 - [x] Dependencias sin vulnerabilidades conocidas por `npm audit`.
-- [ ] Probar `analogos-chile-static.zip` en un segundo equipo o hosting.
+- [ ] Probar `analogos-static.zip` en un segundo equipo o hosting.
 - [ ] Probar links públicos en incógnito.
 
 ## Entrega

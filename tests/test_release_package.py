@@ -18,19 +18,30 @@ INDEX = (
     '<link rel="stylesheet" crossorigin href="./assets/index-def456.css">'
     '</head><body><div id="root"></div></body></html>'
 )
+SNAPSHOT = "fixture-de-test"
+SITES = ("cl-win-s2500-w06970", "ar-win-s2620-w06750", "cl-pampa-yungay-screening")
+IMAGES = tuple(f"{release.VISUAL_DIR}/{site}.png" for site in SITES)
 EXPECTED = sorted([
     "index.html", "assets/index-abc123.js", "assets/index-def456.css",
-    *release.SCIENCE_FILES, release.VISUAL_INDEX, *release.VISUAL_IMAGES,
+    *release.SCIENCE_FILES, release.VISUAL_INDEX, *IMAGES,
 ])
 
 
-def write_visual_index(root: Path, images: tuple[str, ...] = release.VISUAL_IMAGES) -> None:
+def write_sites(root: Path, sites: tuple[str, ...] = SITES, snapshot: str = SNAPSHOT) -> None:
+    """Metadata sintética mínima de la que el empaquetador deriva la lista de imágenes."""
+    (root / release.CANDIDATES).write_text(
+        json.dumps([{"site_id": site, "data_snapshot_version": snapshot} for site in sites]), encoding="utf-8")
+    (root / release.MANIFEST).write_text(json.dumps({"snapshot_version": SNAPSHOT}), encoding="utf-8")
+
+
+def write_visual_index(root: Path, images: tuple[str, ...] = IMAGES, snapshot: str = SNAPSHOT) -> None:
     """Índice sintético coherente con los archivos de prueba (no son imágenes reales)."""
     sites = [
         {"image": Path(name).name, "sha256": hashlib.sha256((root / name).read_bytes()).hexdigest()}
         for name in images
     ]
-    (root / release.VISUAL_INDEX).write_text(json.dumps({"kind": "FIXTURE-DE-TEST", "sites": sites}), encoding="utf-8")
+    (root / release.VISUAL_INDEX).write_text(
+        json.dumps({"kind": "FIXTURE-DE-TEST", "snapshot_version": snapshot, "sites": sites}), encoding="utf-8")
 
 
 @pytest.fixture
@@ -41,6 +52,7 @@ def dist(tmp_path: Path) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(f"FIXTURE DE TEST, no es contenido real: {name}\n".encode())
     (root / "index.html").write_text(INDEX, encoding="utf-8")
+    write_sites(root)
     write_visual_index(root)
     return root
 
@@ -74,10 +86,11 @@ def test_zip_contains_exactly_the_allowed_files_with_dist_bytes(dist: Path, tmp_
 
 @pytest.mark.parametrize("missing", [
     "index.html",
-    "science-v2/manifest.json",
+    "science-v3/search-results.json",
+    "science-v3/candidate-details.json",
     "assets/index-abc123.js",  # referencia de index.html sin archivo
-    "visual-context/index.json",
-    "visual-context/cl-pampa-yungay-screening.png",
+    "visual-context-v3/index.json",
+    "visual-context-v3/cl-pampa-yungay-screening.png",
 ])
 def test_missing_required_or_referenced_file_is_rejected(dist: Path, tmp_path: Path, missing: str):
     (dist / missing).unlink()
@@ -91,9 +104,12 @@ def test_missing_required_or_referenced_file_is_rejected(dist: Path, tmp_path: P
     "assets/index-abc123.js.map",
     "assets/otro-chunk.js",
     ".env",
-    "visual-context/otra-imagen.png",  # ningún PNG o JSON extra entra por extensión
-    "visual-context/request.json",
-    "visual-context/cl-pampa-yungay-screening.png.bak",
+    "science-v2/manifest.json",        # snapshots históricos no viajan en la entrega v3
+    "visual-context/index.json",
+    "visual-context-v3/otra-imagen.png",  # ningún PNG o JSON extra entra por extensión
+    "visual-context-v3/request.json",
+    "visual-context-v3/cl-pampa-yungay-screening.png.bak",
+    "science-v3/otro.json",
 ])
 def test_unexpected_file_is_rejected(dist: Path, tmp_path: Path, extra: str):
     path = dist / extra
@@ -104,8 +120,8 @@ def test_unexpected_file_is_rejected(dist: Path, tmp_path: Path, extra: str):
 
 
 def test_visual_image_changed_after_indexing_is_rejected(dist: Path, tmp_path: Path):
-    (dist / release.VISUAL_IMAGES[0]).write_bytes(b"imagen sustituida")
-    with pytest.raises(release.ReleaseError, match="SHA-256 de visual-context/.+ no coincide"):
+    (dist / IMAGES[0]).write_bytes(b"imagen sustituida")
+    with pytest.raises(release.ReleaseError, match="SHA-256 de visual-context-v3/.+ no coincide"):
         run(dist, tmp_path / "out")
 
 
@@ -116,17 +132,51 @@ def test_visual_image_changed_after_indexing_is_rejected(dist: Path, tmp_path: P
 ])
 def test_unreadable_visual_index_is_rejected(dist: Path, tmp_path: Path, index_text: str):
     (dist / release.VISUAL_INDEX).write_text(index_text, encoding="utf-8")
-    with pytest.raises(release.ReleaseError, match="no es un índice de contexto visual legible"):
+    with pytest.raises(release.ReleaseError, match="no es JSON legible|no es un índice de contexto visual legible"):
         run(dist, tmp_path / "out")
 
 
-def test_visual_index_must_declare_exactly_the_three_allowed_images(dist: Path, tmp_path: Path):
-    write_visual_index(dist, release.VISUAL_IMAGES[:2])
-    with pytest.raises(release.ReleaseError, match="exactamente las tres imágenes"):
+def test_visual_index_must_declare_exactly_one_image_per_site(dist: Path, tmp_path: Path):
+    write_visual_index(dist, IMAGES[:2])
+    with pytest.raises(release.ReleaseError, match="exactamente una imagen por sitio"):
         run(dist, tmp_path / "out")
 
 
-@pytest.mark.parametrize("link", ["science-v2/extra.json", "science-v2/manifest.json", "enlace-a-carpeta"])
+def test_image_list_follows_validated_site_metadata(dist: Path, tmp_path: Path):
+    # Un sitio nuevo en la metadata exige su imagen; no basta con que exista algún PNG.
+    write_sites(dist, (*SITES, "ar-win-s2640-w06730"))
+    with pytest.raises(release.ReleaseError, match="ar-win-s2640-w06730.png"):
+        run(dist, tmp_path / "out")
+    # Un sitio menos convierte su imagen en un archivo inesperado.
+    write_sites(dist, SITES[:2])
+    with pytest.raises(release.ReleaseError, match="inesperado"):
+        run(dist, tmp_path / "out")
+
+
+@pytest.mark.parametrize("sites", [
+    ("cl-ok", "../../etc/passwd"),
+    ("cl-ok", "cl-ok/../../fuera"),
+    ("cl-ok", "br-otro-pais"),
+    ("cl-ok", "cl-ok"),
+    (),
+])
+def test_unsafe_duplicated_or_empty_site_ids_are_rejected(dist: Path, tmp_path: Path, sites: tuple[str, ...]):
+    write_sites(dist, sites)
+    with pytest.raises(release.ReleaseError, match="identificadores de sitio"):
+        run(dist, tmp_path / "out")
+
+
+def test_sites_manifest_and_visual_index_must_share_the_snapshot_version(dist: Path, tmp_path: Path):
+    write_visual_index(dist, snapshot="otro-snapshot")
+    with pytest.raises(release.ReleaseError, match="otra versión de snapshot"):
+        run(dist, tmp_path / "out")
+    write_visual_index(dist)
+    write_sites(dist, snapshot="otro-snapshot")
+    with pytest.raises(release.ReleaseError, match="misma versión de snapshot"):
+        run(dist, tmp_path / "out")
+
+
+@pytest.mark.parametrize("link", ["science-v3/extra.json", "science-v3/precedents.json", "enlace-a-carpeta"])
 def test_symlink_is_rejected_even_under_an_allowed_name(dist: Path, tmp_path: Path, link: str):
     outside = tmp_path / "fuera"
     outside.mkdir()
@@ -141,7 +191,7 @@ def test_symlink_is_rejected_even_under_an_allowed_name(dist: Path, tmp_path: Pa
 @pytest.mark.parametrize("reference", [
     "/assets/index-abc123.js",          # absoluta: rompe bajo /AnalogOS/
     "https://cdn.example/app.js",       # externa: rompe la demo offline
-    "./assets/../science-v2/manifest.json",
+    "./assets/../science-v3/manifest.json",
 ])
 def test_non_portable_reference_is_rejected(dist: Path, tmp_path: Path, reference: str):
     (dist / "index.html").write_text(INDEX.replace("./assets/index-abc123.js", reference), encoding="utf-8")
@@ -153,7 +203,7 @@ def test_failed_validation_preserves_previous_delivery_and_explains(dist: Path, 
     out = tmp_path / "out"
     zip_path, checksum_path, _ = run(dist, out)
     previous = (zip_path.read_bytes(), checksum_path.read_bytes())
-    (dist / "science-v2" / "mission-profile.json").unlink()
+    (dist / "science-v3" / "mission-profile.json").unlink()
 
     code = release.main(["--dist", str(dist), "--zip", str(zip_path), "--checksum", str(checksum_path)])
 

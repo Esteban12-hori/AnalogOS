@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analogos.cl/schemas/precedent-catalog.schema.json",
+  "title": "AnalogOS Analog Precedent Catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "catalog_id",
+    "catalog_version",
+    "reviewed_at",
+    "reviewed_by",
+    "scope_note",
+    "relation_definitions",
+    "precedents",
+    "context_sources",
+    "searches"
+  ],
+  "properties": {
+    "catalog_id": {
+      "type": "string"
+    },
+    "catalog_version": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "reviewed_by": {
+      "type": "string"
+    },
+    "scope_note": {
+      "type": "string",
+      "minLength": 20
+    },
+    "relation_definitions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contains_published_sampling_coordinate",
+        "study_area_overlap",
+        "proximity_heuristic",
+        "regional_precedent"
+      ],
+      "properties": {
+        "contains_published_sampling_coordinate": {
+          "type": "string"
+        },
+        "study_area_overlap": {
+          "type": "string"
+        },
+        "proximity_heuristic": {
+          "type": "string"
+        },
+        "regional_precedent": {
+          "type": "string"
+        }
+      }
+    },
+    "precedents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "precedent_id",
+          "name",
+          "country",
+          "activity",
+          "spatial_precision",
+          "study_area",
+          "region_ids",
+          "points",
+          "sources"
+        ],
+        "properties": {
+          "precedent_id": {
+            "type": "string",
+            "pattern": "^(cl|ar)-[a-z0-9-]+$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "country": {
+            "enum": [
+              "CL",
+              "AR"
+            ]
+          },
+          "activity": {
+            "type": "string"
+          },
+          "spatial_precision": {
+            "type": "string",
+            "minLength": 10
+          },
+          "study_area": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "description",
+              "geometry"
+            ],
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "geometry": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "type",
+                      "bbox"
+                    ],
+                    "properties": {
+                      "type": {
+                        "const": "BBox"
+                      },
+                      "bbox": {
+                        "type": "array",
+                        "minItems": 4,
+                        "maxItems": 4,
+                        "items": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "region_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "label",
+                "as_published",
+                "latitude",
+                "longitude"
+              ],
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "as_published": {
+                  "type": "string"
+                },
+                "latitude": {
+                  "type": "number",
+                  "minimum": -90,
+                  "maximum": 90
+                },
+                "longitude": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                }
+              }
+            }
+          },
+          "sources": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "title",
+                "url",
+                "accessed_at",
+                "finding"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "accessed_at": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "finding": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "context_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "url",
+          "note"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "searches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "date",
+          "query",
+          "scope",
+          "finding"
+        ],
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "query": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "finding": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "windows_without_match": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

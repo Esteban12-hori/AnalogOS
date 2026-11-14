@@ -1,11 +1,15 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14 14:15 America/Santiago
+**Última actualización:** 2026-11-14 15:33 America/Santiago
 **Responsable del checkpoint:** Codex
-**Milestone activo:** M6 — empaquetado y entrega
-**Estado general:** producto funcional y presentable con snapshot científico v2 autenticado. NASADEM corrige el mosaico de borde y Sentinel-2 completa superficie no vegetada. Faltan acciones humanas/externas: video, URLs públicas, integrantes, capas territoriales y revisión experta.
+**Milestone activo:** M7 — AnalogOS global, búsqueda regional Chile–Argentina (implementado por Claude y aceptado por Codex; sin commit ni push)
+**Estado general:** producto funcional con snapshot científico v3: 50 ventanas evaluadas, seis candidatos y Yungay como referencia. Faltan capas territoriales, revisión bibliográfica completa y experta, contraste climático local y acciones de entrega humana.
+
+**Sincronización autorizada:** Dan pidió actualizar `dev`. Codex prepara el checkpoint aceptado e integra el avance remoto del equipo antes del push; los resultados de aceptación de abajo corresponden al corte anterior a esa integración.
 
 ## Modelo de trabajo activo
+
+- Dan autorizó ampliar la visión a AnalogOS global, buscar candidatos en Chile y Argentina y mantener Yungay como referencia conocida. Encargo `M7-GLOBAL-DISCOVERY` aceptado; Claude espera una nueva asignación. La entrega v2 de abajo es histórica. Sin publicación autorizada en este corte.
 
 - Codex dirige producto, ciencia, arquitectura, prioridades, revisión y release.
 - Claude implementa solo tareas asignadas en `project/NEXT_TASK.md` y entrega en estado `review`.
@@ -15,9 +19,36 @@
 
 - Encargo `M4-VISUAL-EVIDENCE`: implementado por Claude, corregido tras revisión y aceptado por Codex (13:54). Dan autorizó su commit y push a `dev` (14:15); Claude espera una nueva asignación.
 
+## Entrega M7 aceptada (Codex, 15:33)
+
+Revisión independiente en `docs/CODEX_M7_REVIEW.md`: 167 pruebas Python, 39 web y build; scores y selección recalculados, rebuild v2/v3 byte a byte, cachés sin red, ZIP determinista y navegador en raíz/subcarpeta. ADR-006 aceptado. La aceptación del software no certifica novedad ni aptitud de campo.
+
+AnalogOS con piloto Chile–Argentina. Búsqueda real sobre 50 ventanas de ~20 km en dos regiones de prueba; seis candidatos preseleccionados y Yungay como referencia conocida, fuera del ranking.
+
+| Rol | Sitio | Similitud | Confianza | Estabilidad | Factibilidad |
+|---|---|---:|---:|---:|---|
+| Candidato 1 | `cl-win-s2500-w06970` · 25,0° S, 69,7° O | 94,87 | 77,45 | 99,33 | requiere revisión |
+| Candidato 2 | `cl-win-s2480-w06950` · 24,8° S, 69,5° O | 91,87 | 77,45 | 99,03 | requiere revisión |
+| Candidato 3 | `cl-win-s2520-w06950` · 25,2° S, 69,5° O | 90,35 | 77,36 | 99,08 | requiere revisión |
+| Candidato 4 | `ar-win-s2620-w06750` · 26,2° S, 67,5° O | 63,85 | 77,00 | 95,88 | requiere revisión |
+| Candidato 5 | `ar-win-s2640-w06730` · 26,4° S, 67,3° O | 53,68 | 77,25 | 96,81 | requiere revisión |
+| Candidato 6 | `ar-win-s2580-w06710` · 25,8° S, 67,1° O | 49,43 | 77,40 | 96,81 | requiere revisión |
+| Referencia | `cl-pampa-yungay-screening` | 75,67 | 77,45 | 99,03 | requiere revisión |
+
+- Etapa 1: 50 ventanas evaluadas (≈ 22.274 km²); 4 excluidas por contener coordenadas de muestreo publicadas, 2 por cercanía, 38 fuera del cupo, 6 preseleccionadas.
+- Ningún candidato se declara nuevo: ambas regiones tienen antecedentes y los seis quedan como `regional_precedent`.
+- Los argentinos bajan sobre todo por el contexto climático POWER (celda MERRA-2 mayor que la ventana); no se cambiaron pesos ni valores.
+- Las siete imágenes Sentinel-2 muestran trazas y estructuras a contrastar; van como advertencia en cada ficha.
+- Snapshot v2, paquete visual v2 y ZIP v2 intactos (`git diff --quiet HEAD` sobre ellos devuelve 0).
+- Entregable nuevo: `submission/analogos-static.zip` (18 archivos, 9.012.267 bytes, sha256 `3b419d770f1a1dce5e01f7345aaafef3f33ca18df4d2f73e6d3fb8c7c9853415`).
+- Verificado: 167 tests Python, 39 tests web, build, empaquetado repetido idéntico, demo por HTTP en `/AnalogOS/`.
+- Detalle: `docs/DISCOVERY_REPORT.md`, ADR-006 (`accepted`) y el reporte en `project/NEXT_TASK.md`.
+
+Próximos tres pasos: cruce territorial con capas oficiales de IDE Chile e IDERA; revisión bibliográfica con textos completos y coordenadas de la Puna; contraste local del clima. Requieren una nueva asignación, sin ampliar automáticamente regiones ni pesos.
+
 ## Resultado disponible
 
-La vista final consume `artifacts/science-v2/`, no fixtures.
+La app consume `artifacts/science-v3/` (ver la sección anterior). La tabla siguiente es el snapshot v2, que se conserva como histórico.
 
 | Rank | Sector | Similitud | Confianza | Estabilidad | Factibilidad |
 |---:|---|---:|---:|---:|---|
@@ -27,7 +58,9 @@ La vista final consume `artifacts/science-v2/`, no fixtures.
 
 Interpretación obligatoria: es un screening de escritorio para ordenar investigación. No aprueba sitios ni autoriza acceso.
 
-## Qué funciona
+## Base funcional heredada de v2
+
+Los conteos y nombres de los tres sectores en esta sección describen el histórico v2; el resultado activo v3 y su entrega están arriba. El comportamiento de ranking, mapa, ficha, comparador y exportación se amplió a los siete sitios y ambos países.
 
 - Pipeline autenticado con Earthdata Login y OAuth Copernicus; ningún secreto se persiste en artefactos.
 - NASADEM_HGT.001 mosaico multitesela; Yungay usa correctamente cuatro tiles antes de agregarse a ~473 m.
@@ -67,14 +100,16 @@ Interpretación obligatoria: es un screening de escritorio para ordenar investig
 
 ## Limitaciones abiertas
 
-- No existe barrido nacional exhaustivo; se evaluaron tres sectores semilla de 0,2°.
+- No existe barrido nacional exhaustivo: v3 evalúa 50 ventanas en dos regiones de prueba; v2 evaluaba tres sectores semilla de 0,2°.
 - Geología sigue fuera del score por falta de revisión experta.
 - No se intersectaron capas oficiales de urbano, áreas sensibles, propiedad o acceso; agua sí está screenada.
 - La resolución ~460–480 m no evalúa obstáculos o tracción a escala de rueda.
 - Falta inspección Worldview/imagen reciente y revisión experta, si el tiempo lo permite. El contexto Sentinel-2 de diciembre de 2025 es un avance parcial: muestra trazas rectilíneas y estructuras geométricas en Yungay y María Elena que son hipótesis a contrastar con capas oficiales, no hechos comprobados.
 - La estabilidad mide cambio de score por un peso a la vez; no es incertidumbre científica total.
 
-## Verificación ejecutada
+## Verificación histórica de v2
+
+La revisión actual de M7 está en `docs/CODEX_M7_REVIEW.md`. Los resultados siguientes corresponden a los hitos previos y sus ZIP históricos.
 
 | Comando | Resultado |
 |---|---|
@@ -98,18 +133,28 @@ Codex repitió la suite y el empaquetado durante la aceptación de M4-VISUAL-EVI
 npm install
 npm run dev
 
-# Ciencia v2 desde fuentes autenticadas
+# Entorno y ciencia histórica v2 (también aporta la referencia Yungay)
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[dev]'
 python -m pipelines.fetch_precision_data
 python -m pipelines.build_precision_snapshot
 
+# Piloto activo v3; descargas acotadas y reutilización de caché
+python -m pipelines.fetch_discovery_data --stage tiles
+python -m pipelines.discover_candidates
+python -m pipelines.fetch_discovery_data --stage sources
+python -m pipelines.build_context_outline
+python -m pipelines.build_discovery_snapshot
+python -m pipelines.fetch_visual_context --snapshot v3
+
 # Auditoría completa
 npm run verify
 ```
 
 ## Archivos grandes/no versionables
+
+M7 añade siete teselas NASADEM (~102 MB), estadísticas e inventario de seis ventanas y el registro de adquisición en `data/raw/`; ver rutas exactas en `docs/DISCOVERY_REPORT.md`. La lista siguiente describe los insumos históricos reutilizados.
 
 - `data/raw/mola/megt44n000hb.img`: ~124 MiB.
 - `data/raw/nasadem/*.zip`: seis archivos, ~61 MiB combinados.
@@ -124,11 +169,12 @@ npm run verify
 - `docs/decisions/ADR-003-authenticated-precision-snapshot-v2.md`
 - `docs/decisions/ADR-004-portable-static-release.md`
 - `docs/decisions/ADR-005-offline-visual-context.md`
+- `docs/decisions/ADR-006-global-discovery-pilot.md`
 
 ## Acciones humanas antes de enviar
 
 1. Grabar el video usando `submission/VIDEO_SHOT_LIST.md`.
-2. Publicar `apps/web/dist/` o `submission/analogos-chile-static.zip`.
+2. Publicar, cuando se autorice, `apps/web/dist/` o `submission/analogos-static.zip` (v3).
 3. Probar demo/repositorio/video en incógnito y completar sus URLs.
 4. Añadir integrantes y contribuciones del equipo.
 5. Guardar el comprobante de envío.

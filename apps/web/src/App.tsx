@@ -3,18 +3,24 @@ import { CandidateDetails } from './components/CandidateDetails'
 import { CandidateComparison } from './components/CandidateComparison'
 import { CandidateMap } from './components/CandidateMap'
 import { CandidateRanking } from './components/CandidateRanking'
-import { loadDemoSnapshot, type DemoSnapshot } from './data/loadDemoSnapshot'
+import { loadDemoSnapshot, SNAPSHOT_PATH, type DemoSnapshot } from './data/loadDemoSnapshot'
 import { loadVisualContext, type VisualContextState } from './data/loadVisualContext'
-import { rankCandidates } from './domain/scoring'
+import {
+  availableCountries, filterByCountry, initialSelection, splitByRole, summarizeSearch, type CountryFilter,
+} from './domain/discovery'
+import { formatScore } from './domain/formatting'
 
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'ready'; snapshot: DemoSnapshot }
 
+const integer = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 })
+
 function App() {
   const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' })
   const [selectedId, setSelectedId] = useState('')
+  const [country, setCountry] = useState<CountryFilter>('all')
   const [visual, setVisual] = useState<VisualContextState>({ status: 'loading' })
 
   // El contexto visual es opcional: se carga aparte y nunca bloquea ni rompe el snapshot.
@@ -33,8 +39,8 @@ function App() {
     loadDemoSnapshot()
       .then((snapshot) => {
         if (!active) return
-        const first = rankCandidates(snapshot.candidates)[0]
-        setSelectedId(first?.site_id ?? '')
+        // El primer seleccionado es un candidato de la búsqueda; la referencia solo si no hay ninguno.
+        setSelectedId(initialSelection(snapshot.candidates))
         setLoadState({ status: 'ready', snapshot })
       })
       .catch((error: unknown) => {
@@ -47,12 +53,11 @@ function App() {
     }
   }, [])
 
-  const selected = useMemo(() => {
-    if (loadState.status !== 'ready') return null
-    return loadState.snapshot.candidates.find((candidate) => candidate.site_id === selectedId)
-      ?? loadState.snapshot.candidates[0]
-      ?? null
-  }, [loadState, selectedId])
+  const roles = useMemo(
+    () => (loadState.status === 'ready' ? splitByRole(loadState.snapshot.candidates) : { ranked: [], references: [] }),
+    [loadState],
+  )
+  const rankOf = useMemo(() => new Map(roles.ranked.map((candidate, index) => [candidate.site_id, index + 1])), [roles])
 
   if (loadState.status === 'loading') {
     return (
@@ -75,17 +80,19 @@ function App() {
   }
 
   const { snapshot } = loadState
+  const selected = snapshot.candidates.find((candidate) => candidate.site_id === selectedId) ?? snapshot.candidates[0] ?? null
   if (!selected) {
     return (
       <main className="system-state error-state">
         <span>Snapshot vacío</span>
-        <h1>No existen candidatos para mostrar.</h1>
-        <p>Ejecuta el pipeline demo y verifica el contrato de salida.</p>
+        <h1>No existen candidatos ni referencias para mostrar.</h1>
+        <p>La búsqueda no dejó sitios en este snapshot. Revisa los resultados de la búsqueda y el contrato de salida.</p>
       </main>
     )
   }
 
   const fixtureMode = snapshot.candidates.every((candidate) => candidate.status === 'fixture')
+  const summary = snapshot.search ? summarizeSearch(snapshot.search) : null
 
   return (
     <div className="app-shell">
@@ -99,8 +106,8 @@ function App() {
         <div className="brand-block">
           <div className="brand-mark" aria-hidden="true" />
           <div>
-            <strong>AnalogOS Chile</strong>
-            <small>Earth analog decision system</small>
+            <strong>AnalogOS</strong>
+            <small>Exploración de análogos planetarios · Piloto Chile–Argentina</small>
           </div>
         </div>
         <div className="mission-block">
@@ -115,7 +122,7 @@ function App() {
 
       <section className="intro-strip">
         <div>
-          <span className="section-kicker">{fixtureMode ? 'Corte vertical M1' : 'Snapshot científico v2'}</span>
+          <span className="section-kicker">{fixtureMode ? 'Corte vertical M1' : 'Piloto Chile–Argentina'}</span>
           <h1>No buscamos un lugar que “parezca Marte”.</h1>
           <p>Priorizamos dónde conviene investigar para una prueba concreta, con evidencia, incertidumbre y límites visibles.</p>
         </div>
@@ -125,23 +132,66 @@ function App() {
         </div>
       </section>
 
+      {summary && snapshot.search && (
+        <section className="search-strip" aria-labelledby="search-title">
+          <div>
+            <span className="section-kicker">Alcance de la búsqueda</span>
+            <h2 id="search-title">Un piloto acotado, no una búsqueda global</h2>
+            <p>{snapshot.search.scope_note}</p>
+          </div>
+          <dl>
+            <div><dt>Regiones de prueba</dt><dd>{summary.regions}</dd></div>
+            <div><dt>Ventanas de ~20 km</dt><dd>{summary.evaluated} evaluadas de {summary.attempted}</dd></div>
+            <div><dt>Área explorada</dt><dd>≈ {integer.format(summary.exploredAreaKm2)} km²</dd></div>
+            <div><dt>Con coordenadas publicadas</dt><dd>{summary.excludedByPrecedent} excluidas del ranking</dd></div>
+            <div><dt>Preseleccionadas</dt><dd>{summary.selected} · hasta {summary.maxPerCountry} por país</dd></div>
+            <div><dt>Criterio</dt><dd>Prioridad topográfica y centros a ≥ {formatScore(summary.minDistanceKm)} km</dd></div>
+          </dl>
+          <ul className="region-list">
+            {snapshot.search.regions.map((region) => (
+              <li key={region.region_id}>
+                <strong>{region.name}</strong>
+                <span>bbox {region.bbox.join(', ')} · {region.windows_evaluated} ventanas · {region.windows_selected} preseleccionadas</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <main className="workspace">
         <CandidateRanking
-          candidates={snapshot.candidates}
+          ranked={filterByCountry(roles.ranked, country)}
+          references={roles.references}
+          rankOf={rankOf}
+          countries={availableCountries(roles.ranked)}
+          country={country}
+          onCountryChange={setCountry}
           selectedId={selected.site_id}
           onSelect={setSelectedId}
         />
         <CandidateMap
           candidates={snapshot.candidates}
-          chileOutline={snapshot.chileOutline}
+          rankOf={rankOf}
+          outline={snapshot.outline}
+          search={snapshot.search}
+          precedents={snapshot.precedents}
           selectedId={selected.site_id}
           onSelect={setSelectedId}
         />
-        <CandidateDetails candidate={selected} manifest={snapshot.manifest} profile={snapshot.profile} visual={visual} />
+        <CandidateDetails
+          candidate={selected}
+          manifest={snapshot.manifest}
+          profile={snapshot.profile}
+          visual={visual}
+          search={snapshot.search}
+          precedents={snapshot.precedents}
+        />
       </main>
 
       <CandidateComparison
-        candidates={snapshot.candidates}
+        ranked={roles.ranked}
+        references={roles.references}
+        rankOf={rankOf}
         selectedId={selected.site_id}
         onSelect={setSelectedId}
       />
@@ -149,14 +199,21 @@ function App() {
       <section id="method" className="method-section" aria-labelledby="method-title">
         <div className="method-intro">
           <span className="section-kicker">Método reproducible</span>
-          <h2 id="method-title">La comparación ocurre a la misma escala.</h2>
-          <p>NASADEM se mosaica y agrega desde ~30 m a ~480 m antes de compararlo con MOLA. Sentinel-2 aporta doce observaciones mensuales de superficie y POWER solo contexto climático regional.</p>
-          <a href={`${import.meta.env.BASE_URL}${import.meta.env.VITE_SNAPSHOT_PATH ?? 'science-v2'}/analysis-summary.json`} target="_blank" rel="noreferrer">Abrir análisis auditable ↗</a>
+          <h2 id="method-title">Primero se busca; después se caracteriza.</h2>
+          <p>
+            Cada ventana de la rejilla se compara con MOLA a la misma escala (~480 m). Solo las preseleccionadas reciben
+            doce meses de Sentinel-2 y contexto climático POWER, que describe una celda mayor que la ventana. Yungay se
+            recalcula con las mismas reglas y queda fuera del ranking.
+          </p>
+          <a href={`${import.meta.env.BASE_URL}${SNAPSHOT_PATH}/analysis-summary.json`} target="_blank" rel="noreferrer">Abrir análisis auditable ↗</a>
+          {snapshot.search && (
+            <a href={`${import.meta.env.BASE_URL}${SNAPSHOT_PATH}/search-results.json`} target="_blank" rel="noreferrer">Abrir las {snapshot.search.windows.length} ventanas y sus motivos ↗</a>
+          )}
         </div>
         <ol className="method-steps">
-          <li><b>01</b><strong>Referencia MOLA</strong><span>Entorno regional de Jezero · ~451 m nominal</span></li>
-          <li><b>02</b><strong>Terreno NASADEM</strong><span>Mosaico multitesela · bloques 16×16 · ~480 m</span></li>
-          <li><b>03</b><strong>Superficie Sentinel-2</strong><span>12 mosaicos mensuales · SCL, NDVI y BSI · ~30 m</span></li>
+          <li><b>01</b><strong>Rejilla regional</strong><span>Ventanas de 0,2° derivadas de origen y paso · sin elección manual</span></li>
+          <li><b>02</b><strong>Prioridad topográfica</strong><span>NASADEM agregado vs MOLA en Jezero · solo ordena</span></li>
+          <li><b>03</b><strong>Antecedentes</strong><span>Coordenadas publicadas excluyen; nada se declara nuevo</span></li>
           <li><b>04</b><strong>Decisión separada</strong><span>Similitud ≠ confianza ≠ factibilidad</span></li>
         </ol>
       </section>

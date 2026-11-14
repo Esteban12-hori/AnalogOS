@@ -50,15 +50,22 @@
 
 ### Natural Earth
 
-- Producto: Admin 0 Countries, escala 1:50m, vía `world-atlas`.
+- Producto: Admin 0 Countries, escala 1:50m, vía `world-atlas` 2.0.2 (Chile y Argentina en el snapshot v3).
 - Fuente: https://www.naturalearthdata.com/downloads/50m-cultural-vectors/
 - Licencia: dominio público.
-- Uso: contorno referencial de Chile; no es un límite oficial ni participa del score.
+- Uso: contornos referenciales de Chile y Argentina; no son límites oficiales ni autoridad territorial, y no participan del score.
+
+### Antecedentes de análogos
+
+- Catálogo propio `config/analog_precedents_v1.json`, revisado el 2026-11-14, con las fuentes citadas en cada entrada.
+- Coordenadas de muestreo transcritas del material suplementario de Navarro-González et al. (2003), Science 302: https://www.astro.uantof.cl/wp-content/uploads/2015/06/navarro.SOM_.pdf
+- Otras fuentes: NASA Astrobiology (2005 y 2017), Azua-Bustos et al. (2015), Universidad Nacional de Catamarca (2025), ficha CONICET (2021) y resúmenes EPSC 2022.
+- Uso: registrar antecedentes y excluir del ranking las ventanas con coordenadas publicadas. No participa del score.
 
 ## Software
 
-El código de AnalogOS Chile se distribuye bajo licencia MIT. Dependencias principales: React, Vite, TypeScript, Ajv, JSON Schema, earthaccess, Requests, NumPy, PyProj y pytest. Cada dependencia conserva su propia licencia.
+El código de AnalogOS se distribuye bajo licencia MIT. Dependencias principales: React, Vite, TypeScript, Ajv, JSON Schema, earthaccess, Requests, NumPy, PyProj y pytest. Cada dependencia conserva su propia licencia.
 
 ## Advertencia
 
-Los nombres de sectores y polígonos son ventanas de screening aproximadas, no límites administrativos, propiedades ni sitios autorizados. Las fuentes oficiales mantienen sus propias condiciones de uso y atribución; el manifiesto del snapshot registra enlaces y checksums exactos.
+Los nombres de sectores y polígonos son ventanas de screening aproximadas, no límites administrativos, propiedades ni sitios autorizados, en Chile ni en Argentina. Las autoridades citadas en las fichas (IDE Chile, IDERA) indican dónde verificar; no implican permiso. Las fuentes oficiales mantienen sus propias condiciones de uso y atribución; el manifiesto del snapshot registra enlaces y checksums exactos.

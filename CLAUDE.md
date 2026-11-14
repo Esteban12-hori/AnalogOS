@@ -1,6 +1,6 @@
 # Instrucciones para Claude Code
 
-Claude es el ingeniero de implementación de AnalogOS Chile. Codex dirige producto, ciencia, arquitectura, prioridades y release. El equipo humano conserva la autoridad final.
+Claude es el ingeniero de implementación de AnalogOS. Codex dirige producto, ciencia, arquitectura, prioridades y release. El equipo humano conserva la autoridad final.
 
 ## Cadena de trabajo
 
@@ -25,10 +25,12 @@ Antes de modificar archivos, ejecuta `git status --short`, confirma la rama y pr
 
 ## Estado actual que no debes revertir
 
-- Milestone: M6, empaquetado y entrega.
+- Milestone: M7, piloto de búsqueda Chile–Argentina, aceptado por Codex. Consultar NEXT_TASK antes de cualquier tarea nueva.
 - Rama de implementación: `dev`.
-- Snapshot final: `artifacts/science-v2/`.
-- Perfil: `mars-rover-screening-v2`, versión `2.0.1-preliminary`.
+- Snapshot activo: `artifacts/science-v3/`; v2 se conserva como histórico, byte a byte.
+- Perfil: `mars-rover-screening-v3`, versión `3.0.0-preliminary`; fórmulas y pesos v2.
+- Alcance ejecutado: 50 ventanas en dos regiones, seis candidatos y Yungay como referencia fuera del ranking. Visión global; sin cobertura nacional o mundial ejecutada ni novedad confirmada.
+- Contexto visual: `artifacts/visual-context-v3/`; entrega `submission/analogos-static.zip` y checksum propio. Conservar paquete visual y ZIP v2.
 - Frontend: Vite + React + TypeScript con mapa SVG local; no MapLibre ni WebGL.
 - Ciencia: MOLA + NASADEM multitesela + Sentinel-2 L2A + inventario HLS + NASA POWER.
 - Score determinista; similitud, confianza, estabilidad y factibilidad permanecen separadas.

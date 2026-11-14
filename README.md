@@ -1,20 +1,23 @@
-# AnalogOS Chile
+# AnalogOS
 
-Plataforma geoespacial explicable para identificar y caracterizar zonas de Chile útiles como análogos terrestres de una prueba de movilidad, navegación y autonomía de rover marciano.
+Exploración de análogos planetarios · Piloto Chile–Argentina. Plataforma geoespacial explicable para buscar y caracterizar zonas terrestres útiles como análogos de una prueba de movilidad, navegación y autonomía de rover marciano. La carpeta y el repositorio conservan el nombre `analogos-chile`.
 
 ## Estado de la entrega
 
-La app final consume `science-screening-v2`, un snapshot real y reproducible construido con NASA PDS MOLA, NASADEM mediante Earthdata Login, Sentinel-2 L2A mediante Copernicus y NASA POWER. Prioriza tres sectores de screening:
+La app final consume `science-screening-v3`: una búsqueda real y reproducible sobre 50 ventanas de ~20 km en dos regiones de prueba (interior de Antofagasta, Chile, y Puna de Catamarca y Salta, Argentina), con NASA PDS MOLA, NASADEM, Sentinel-2 L2A y NASA POWER. Cuatro ventanas quedaron excluidas por contener coordenadas de muestreo publicadas y seis se preseleccionaron:
 
-| Ranking | Sector | Similitud | Confianza | Factibilidad |
+| Ranking | Candidato | Similitud | Confianza | Factibilidad |
 |---:|---|---:|---:|---|
-| 1 | Pampa Yungay | 75,67 | 77,45 | requiere revisión |
-| 2 | Cordón de Domeyko | 71,60 | 77,41 | requiere revisión |
-| 3 | Pampa María Elena | 49,99 | 77,44 | requiere revisión |
+| 1 | Interior de Antofagasta · 25,0° S, 69,7° O | 94,87 | 77,45 | requiere revisión |
+| 2 | Interior de Antofagasta · 24,8° S, 69,5° O | 91,87 | 77,45 | requiere revisión |
+| 3 | Interior de Antofagasta · 25,2° S, 69,5° O | 90,35 | 77,36 | requiere revisión |
+| 4 | Puna de Catamarca y Salta · 26,2° S, 67,5° O | 63,85 | 77,00 | requiere revisión |
+| 5 | Puna de Catamarca y Salta · 26,4° S, 67,3° O | 53,68 | 77,25 | requiere revisión |
+| 6 | Puna de Catamarca y Salta · 25,8° S, 67,1° O | 49,43 | 77,40 | requiere revisión |
 
-La confianza sigue separada del score. El suelo no vegetado ya se mide en doce mosaicos mensuales; geología y restricciones territoriales todavía no se rellenan manualmente.
+Pampa Yungay se recalcula con las mismas reglas como referencia conocida (75,67) y queda fuera del ranking. Ningún candidato se declara nuevo ni validado: ambas regiones tienen antecedentes publicados, el contexto climático de los argentinos es de resolución gruesa y todas las ventanas necesitan cruce territorial. El detalle está en `docs/DISCOVERY_REPORT.md` y la decisión, en `docs/decisions/ADR-006-global-discovery-pilot.md`. El snapshot v2 (Yungay, Domeyko, María Elena) se conserva como histórico.
 
-![Vista principal](submission/assets/analogos-chile-overview.jpg)
+![Vista del piloto](submission/assets/analogos-pilot-overview.jpg)
 
 ## Demo rápida
 
@@ -40,16 +43,16 @@ Instalación previa, una sola vez: `npm install`, y el entorno Python de la secc
 
 ```bash
 npm run release:package
-(cd submission && shasum -a 256 -c SHA256SUMS.txt)
+(cd submission && shasum -a 256 -c analogos-static.zip.sha256)
 ```
 
-El comando reconstruye el frontend, comprueba que el build contenga solo `index.html`, el JS/CSS compilado, los cinco archivos `science-v2/` y el contexto visual (`visual-context/index.json` más sus tres PNG, con el SHA-256 que declara ese índice), y escribe `submission/analogos-chile-static.zip` con su SHA-256. El ZIP es determinista para un mismo build. Si la validación falla, la entrega anterior no se toca.
+El comando reconstruye el frontend, comprueba que el build contenga solo `index.html`, el JS/CSS compilado, los siete archivos `science-v3/` y el contexto visual (`visual-context-v3/index.json` más una imagen por sitio del snapshot, con el SHA-256 que declara ese índice), y escribe `submission/analogos-static.zip` con su SHA-256. La lista de imágenes se deriva de la metadata validada, no de un patrón por extensión. El ZIP v2 (`analogos-chile-static.zip`) se conserva como histórico y no se regenera. El ZIP es determinista para un mismo build. Si la validación falla, la entrega anterior no se toca.
 
 El build usa rutas relativas: carga igual en la raíz o en un subdirectorio. Para probarlo por HTTP local en `/AnalogOS/`:
 
 ```bash
 mkdir -p /tmp/analogos-demo/AnalogOS
-unzip -o -q submission/analogos-chile-static.zip -d /tmp/analogos-demo/AnalogOS
+unzip -o -q submission/analogos-static.zip -d /tmp/analogos-demo/AnalogOS
 python3 -m http.server 8080 --bind 127.0.0.1 --directory /tmp/analogos-demo
 ```
 
@@ -57,14 +60,30 @@ Abrir `http://127.0.0.1:8080/AnalogOS/` (con la barra final). No se garantiza ab
 
 ### Contexto visual Sentinel-2
 
-La ficha de cada candidato muestra una vista Sentinel-2 L2A en color natural (mosaico de diciembre de 2025) guardada en `artifacts/visual-context/` con su procedencia. Es contexto preliminar para inspección: no cambia ningún score ni cierra verificaciones. La web la sirve como archivo local; nunca llama a Copernicus.
+La ficha de cada sitio muestra una vista Sentinel-2 L2A en color natural (mosaico de diciembre de 2025) guardada en `artifacts/visual-context-v3/` con su procedencia; el paquete v2 sigue en `artifacts/visual-context/`. Es contexto preliminar para inspección: no cambia ningún score ni cierra verificaciones. La web la sirve como archivo local; nunca llama a Copernicus.
 
 ```bash
-python -m pipelines.fetch_visual_context            # reutiliza el paquete local; sin red ni credenciales
-python -m pipelines.fetch_visual_context --refresh  # consulta de nuevo; requiere credenciales Copernicus en .env
+python -m pipelines.fetch_visual_context --snapshot v3            # reutiliza el paquete local; sin red ni credenciales
+python -m pipelines.fetch_visual_context --snapshot v3 --refresh  # consulta de nuevo; requiere credenciales Copernicus en .env
 ```
 
 Qué mirar, qué se observó y qué falta está en `docs/VISUAL_REVIEW.md`; la decisión, en `docs/decisions/ADR-005-offline-visual-context.md`.
+
+## Reproducir la búsqueda v3
+
+Con el entorno Python activo y credenciales Earthdata y Copernicus en `.env` (solo las leen los programas):
+
+```bash
+python -m pipelines.fetch_discovery_data --stage tiles     # teselas NASADEM que falten
+python -m pipelines.discover_candidates                    # etapa 1: 50 ventanas y preselección
+python -m pipelines.fetch_discovery_data --stage sources   # Sentinel-2, POWER y HLS de la preselección
+python -m pipelines.build_context_outline                  # contornos de Chile y Argentina
+python -m pipelines.build_discovery_snapshot               # snapshot v3 en artifacts/science-v3/
+python -m pipelines.fetch_visual_context --snapshot v3     # imágenes de los sitios
+npm run verify
+```
+
+Las descargas son reanudables y están acotadas: 50 ventanas, hasta 6 ventanas multifuente, hasta 20 teselas y hasta 6 imágenes nuevas. La caché se liga a la petición exacta, así que cambiar regiones o periodo exige consultar de nuevo. Los mismos pasos existen como `npm run discovery:tiles`, `discovery:search`, `discovery:sources`, `discovery:build` y `discovery:images`.
 
 ## Reproducir la ciencia v2 desde las fuentes
 

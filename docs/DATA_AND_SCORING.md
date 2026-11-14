@@ -6,11 +6,11 @@
 |---|---|---|
 | Topografía terrestre | NASA Earthdata NASADEM_HGT.001 | elevación, pendiente, rugosidad, relieve local y máscara de agua |
 | Superficie | Copernicus Sentinel-2 L2A | SCL clase 5, NDVI, BSI, vegetación y agua mensual |
-| Validación de disponibilidad | NASA HLS S30 v2.0 / CMR | inventario independiente; no entra al score v2 |
+| Validación de disponibilidad | NASA HLS S30 v2.0 / CMR | inventario independiente; no entra al score v2/v3 |
 | Clima regional | NASA POWER | aridez y contexto; no precisión local |
 | Temperatura superficial | MODIS LST | opcional si el periodo y calidad son defendibles |
-| Geología | SERNAGEOMIN | clases simplificadas y relevancia |
-| Restricciones | IDE Chile | límites, áreas sensibles y contexto |
+| Geología | SERNAGEOMIN (Chile) / SEGEMAR (Argentina) | pendiente de integración y calibración; no puntúa |
+| Restricciones | IDE Chile / IDERA (Argentina) | cruce oficial pendiente; no se infiere permiso ni ausencia de restricciones |
 | Marte | NASA PDS MOLA | firma planetaria topográfica |
 
 ## Manifiesto obligatorio
@@ -127,3 +127,14 @@ Perturbar pesos ±20 %, renormalizar y registrar:
 - ranking estable ante empate;
 - restricciones excluyen con razón trazable;
 - score y confianza no se mezclan.
+
+## Corte v3 implementado
+
+- Configuración: `config/discovery_search_v3.json` (regiones, umbrales, límites) y `config/analog_precedents_v1.json` (antecedentes).
+- Etapa 1 (`pipelines.discover_candidates`): métricas NASADEM de 50 ventanas con el código v2; rechazo por cobertura < 95 %, agua > 5 %, fallo de datos o coordenadas publicadas; prioridad topográfica con pesos relativos 0,20/0,20/0,15; hasta 3 ventanas por país con centros a ≥ 25 km.
+- Etapa 2 (`pipelines.fetch_discovery_data --stage sources` y `pipelines.build_discovery_snapshot`): Sentinel-2, POWER e inventario HLS solo para la preselección; mismas fórmulas, pesos y mínimo de 0,70 de peso válido.
+- La prioridad topográfica no es un score ni una confianza y no relaja el mínimo del score multifuente.
+- Calidad: completitud Sentinel-2 contra los 12 meses configurados; calidad topográfica × cobertura NASADEM válida; POWER validado contra unidades, relleno y rangos. Ninguno de estos cambios altera los valores v2.
+- Caché: cada dato crudo guarda la huella de su petición (bbox, periodo, producto, transformación). El build falla si un dato pertenece a otra petición.
+- Contratos: `candidate-site` admite `cl-`/`ar-` y exige en v3 `country`, `role`, `discovery` y `literature_review`; nuevos `discovery-search` y `precedent-catalog`.
+- Una búsqueda sin preselección produce un snapshot con solo la referencia y sin datasets de etapa 2.

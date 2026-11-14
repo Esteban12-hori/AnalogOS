@@ -1,56 +1,74 @@
-# AnalogOS Chile
+# AnalogOS
+
+Planetary analog exploration · Chile–Argentina pilot
 
 ## Short description
 
-AnalogOS Chile is an explainable geospatial decision system that prioritizes terrestrial sectors for investigating Mars rover mobility, perception, navigation, and autonomy tests. It compares Martian and Chilean topography at a similar spatial scale, adds climate context, and keeps similarity, evidence confidence, and field feasibility as separate decisions.
+AnalogOS is an explainable geospatial decision system that searches for and prioritizes terrestrial sectors worth investigating for Mars rover mobility, perception, navigation and autonomy tests. It combines Mars and Earth topography at a comparable scale, satellite-observed surface, climate context and published precedents, and keeps similarity, confidence and feasibility as separate decisions. The vision is global; what has been executed is a bounded pilot in Chile and Argentina.
 
 ## The problem
 
-Saying that a place “looks like Mars” is not a test specification. Engineering teams need to know which property is analogous, which experiment it supports, what evidence backs the claim, what is missing, and what must be verified in the field.
+Saying a place “looks like Mars” is not enough to plan a test. A team needs to know which property is analogous, which experiment it serves, what evidence supports it, what data is missing and what must be verified in the field. Pointing at famous analogs does not demonstrate search capability either: Yungay, in the Atacama, has been studied for more than twenty years.
 
 ## Our solution
 
-The MVP turns one mission question into a measurable profile: which Chilean sector best reproduces terrain conditions relevant to rover perception, traction, navigation, and autonomy?
+AnalogOS turns a mission question into a measurable profile and applies it to a documented search. For the pilot we ask: which sector best reproduces conditions relevant to testing rover perception, traction, navigation and autonomy?
 
-AnalogOS:
+The system:
 
-1. derives a regional topographic reference around Jezero from NASA PDS MOLA;
-2. downloads NASADEM through Earthdata, mosaics every intersecting tile, and aggregates terrain to a comparable scale;
-3. measures non-vegetated surface, vegetation, water, NDVI, and BSI from twelve monthly Sentinel-2 L2A mosaics;
-4. adds regional aridity and surface-temperature context from NASA POWER;
-5. computes an explainable weighted geometric similarity;
-6. displays confidence, missing evidence, weight sensitivity, and feasibility separately; and
-7. exports auditable candidate records from a versioned offline snapshot.
+1. Derives a regional topographic reference around Jezero from NASA PDS MOLA.
+2. Walks a regular grid of ~20 km windows across two test regions and computes NASADEM topography for each at the same scale as MOLA.
+3. Records why each window is rejected, discarded or shortlisted; it never completes the list by hand.
+4. Checks every window against a catalog of precedents: a window containing published sampling coordinates leaves the ranking and stays visible as a precedent.
+5. Characterizes the shortlist with twelve monthly Sentinel-2 L2A mosaics and NASA POWER climate context.
+6. Computes an explainable similarity with a weighted geometric mean and shows confidence, missing data, stability and feasibility without mixing them.
+7. Shows a real satellite image per site, exports an auditable record and runs offline from a versioned snapshot.
 
 ## Preliminary result
 
-We evaluated three 0.2° screening sectors in northern Chile. Pampa Yungay ranks first at 75.67/100, the interior Domeyko Range sector follows at 71.60, and Pampa María Elena scores 49.99. Evidence confidence is approximately 77.4/100, while all three still require field review.
+The pilot evaluated 50 windows (about 22,000 km²) in the interior of Antofagasta, Chile, and the Puna of Catamarca and Salta, Argentina. Four Chilean windows were excluded because they contain already published sampling coordinates. Six were shortlisted, three per country:
 
-Yungay does not win because of a preassigned “Mars analog” label. It combines NASADEM terrain comparable to the regional Jezero MOLA window, 100% non-vegetated surface in the monthly Sentinel-2 median, and hyper-arid context.
+| Candidate | Similarity | Confidence |
+|---|---:|---:|
+| Antofagasta interior · 25.0° S, 69.7° W | 94.87 | 77.45 |
+| Antofagasta interior · 24.8° S, 69.5° W | 91.87 | 77.45 |
+| Antofagasta interior · 25.2° S, 69.5° W | 90.35 | 77.36 |
+| Puna of Catamarca and Salta · 26.2° S, 67.5° W | 63.85 | 77.00 |
+| Puna of Catamarca and Salta · 26.4° S, 67.3° W | 53.68 | 77.25 |
+| Puna of Catamarca and Salta · 25.8° S, 67.1° W | 49.43 | 77.40 |
 
-## What is innovative
+Yungay was recomputed with the same rules as a known reference (75.67) and stays out of the ranking.
 
-- Earth and Mars are compared at similar spatial scales, avoiding false precision.
-- Similarity, evidence quality, and operational feasibility are deliberately separated.
-- Missing evidence lowers confidence without being treated as physical dissimilarity.
-- Every source keeps its URL, version, period, resolution, units, transformations, and SHA-256 checksum.
-- AI does not decide the ranking; scoring is deterministic and auditable.
+What this result does not say: no candidate is a confirmed new analog. Both regions have published precedents, every site requires review, and the images show tracks and structures that must be checked against official mapping. The Argentine candidates score lower mainly because of coarse-resolution climate context, not a local measurement.
 
-## NASA data
+## Innovation
 
-- Mars Global Surveyor MOLA MEGDR from the NASA Planetary Data System.
-- NASADEM_HGT.001, accessed with NASA Earthdata Login.
-- HLS Sentinel-2 v2.0 metadata through CMR as an independent availability inventory.
-- NASA POWER Climatology API for 2001–2025.
+- It searches instead of listing: an algorithmically derived grid, a versioned shortlisting rule and a record of every discard.
+- It separates the role of a site (candidate or reference) from the state of its literature review, and never hides a precedent.
+- It compares Earth and Mars at a similar spatial scale, avoiding the false detail of matching 30 m against hundreds of meters.
+- It separates similarity, evidence quality and operational feasibility.
+- It never turns failures into data: incomplete months, fill values or requests from another configuration stay missing or stop the process.
+- No AI decides the ranking; the score is deterministic and auditable.
 
-Partner data: Copernicus Sentinel-2 L2A through the Statistical API.
+## NASA data used
+
+- Mars Global Surveyor MOLA MEGDR, NASA Planetary Data System.
+- NASADEM_HGT.001 through NASA Earthdata Login.
+- HLS Sentinel-2 v2.0 through CMR, used as an independent inventory.
+- NASA POWER Climatology API, 2001–2025.
+
+Associated data: Copernicus Sentinel-2 L2A through the Statistical and Process APIs; Natural Earth outlines.
 
 ## Limitations and next steps
 
-This is desktop screening, not site approval. It does not reproduce Martian gravity, atmosphere, radiation, or soil mechanics, and the ~460–480 m topographic comparison cannot detect wheel-scale hazards. Permanent water is now screened, while geology, protected areas, urban infrastructure, ownership, and access remain pending.
+This is a desktop screening, not an official selection. It does not represent Martian gravity, atmosphere, radiation or soil mechanics; the ~460–480 m topographic comparison cannot see wheel-scale obstacles. Geology, protected areas, urban land, ownership and access remain pending in both countries. NASA POWER describes a 0.5° × 0.625° cell, larger than each window. The precedent catalog is incomplete.
 
-Next, we will add SERNAGEOMIN geology, official Chilean restriction layers, Worldview inspection, and field validation, then expand from three seeded sectors to a national grid.
+Next steps: cross the candidates with official IDE Chile and IDERA layers, add SERNAGEOMIN and SEGEMAR geology, check the climate against local data, complete the literature review and extend the search to more regions.
 
-## Technology
+## Impact
 
-Python, earthaccess, Sentinel Hub Statistical API, NumPy, PyProj, JSON Schema, React, TypeScript, Vite, and SVG. The final app is static, keyboard accessible, and requires no external service during the demo.
+The approach narrows the search space and makes early planning defensible for robotic campaigns, education, geological research and autonomous-system testing. The same engine supports other regions and profiles without changing the data contract or the decision interface.
+
+## Technologies
+
+Python, earthaccess, Sentinel Hub Statistical and Process APIs, NumPy, PyProj, JSON Schema, React, TypeScript, Vite and SVG. The frontend is static, keyboard-accessible and does not depend on external services during the demo.

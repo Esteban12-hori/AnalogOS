@@ -2,28 +2,28 @@
 
 ## 0:00–0:25 — Problema
 
-“Este lugar parece Marte” suena atractivo, pero no es una especificación de ingeniería. Si un equipo quiere probar un rover necesita responder algo mucho más concreto: ¿qué sitio reproduce las condiciones relevantes para percepción, tracción y navegación, con qué evidencia, y qué todavía debe validarse?
+«Este lugar parece Marte» suena atractivo, pero no es una especificación de ingeniería. Un equipo que quiere probar un rover necesita algo más concreto: qué sitio reproduce las condiciones relevantes para percepción, tracción y navegación, con qué evidencia y qué falta validar. Y señalar análogos ya famosos, como Yungay, no demuestra que sepamos buscar.
 
 ## 0:25–0:50 — Solución
 
-Creamos AnalogOS Chile, un sistema de decisión geoespacial explicable. No declara que un lugar sea Marte. Prioriza dónde conviene investigar para una prueba definida y separa tres preguntas que normalmente se mezclan: similitud física, confianza de la evidencia y factibilidad de terreno.
+Creamos AnalogOS, un sistema de exploración de análogos planetarios. No declara que un lugar sea Marte. Busca dónde conviene investigar para una prueba definida y separa tres preguntas que suelen mezclarse: similitud física, confianza de la evidencia y factibilidad de terreno. La visión es global; hoy mostramos un piloto acotado en Chile y Argentina.
 
 ## 0:50–1:30 — Ciencia
 
-Tomamos una ventana regional alrededor de Jezero usando MOLA de NASA PDS. Como MOLA está a cientos de metros por píxel, no la comparamos directamente con NASADEM a 30 metros: primero construimos el mosaico completo y luego lo agregamos hasta aproximadamente 480 metros. Así calculamos, a la misma escala, pendiente, diferencia entre celdas vecinas y relieve local.
+Tomamos como referencia el entorno de Jezero con MOLA de NASA PDS. Recorrimos una rejilla de 50 ventanas de unos 20 kilómetros en dos regiones de prueba y calculamos su topografía NASADEM a la misma escala que MOLA, cerca de 480 metros. Con eso ordenamos la preselección.
 
-Luego usamos doce mosaicos mensuales Sentinel-2 L2A para medir superficie no vegetada, vegetación, agua, NDVI y BSI con máscara de nubes. NASA POWER añade contexto regional. Geología sigue fuera del score: no inventamos valores para completar una pantalla.
+Después contrastamos cada ventana con antecedentes publicados. Cuatro contenían coordenadas de muestreo de un estudio de 2003 y quedaron fuera del ranking, a la vista. Solo las seis preseleccionadas recibieron doce mosaicos mensuales Sentinel-2 y contexto climático NASA POWER. La geología sigue fuera del score: no inventamos valores.
 
 ## 1:30–2:15 — Resultado y demo
 
-El ranking preliminar coloca a Pampa Yungay primero con 75,67 de similitud, seguido por un sector interior del Cordón de Domeyko con 71,60 y Pampa María Elena con 49,99. Yungay lidera por la combinación de terreno comparable, aridez y continuidad no vegetada.
+Los tres candidatos chilenos obtienen entre 90 y 95 de similitud, por encima de Yungay, que recalculamos como referencia conocida con 75,67. Los tres argentinos quedan entre 49 y 64.
 
-La confianza ahora ronda 77,4 porque el suelo expuesto dejó de ser un supuesto. La factibilidad, sin embargo, sigue requiriendo revisión. El sistema deja visibles geología, restricciones territoriales y verificaciones de campo. Cada fuente abre su URL y cada artefacto guarda versión, transformación y checksum.
+Hay que leerlo bien. Ningún candidato es un análogo nuevo confirmado: ambas regiones tienen antecedentes y todos requieren revisión. Los argentinos bajan sobre todo por un dato climático de resolución gruesa, que describe una celda mayor que la ventana, y lo decimos en la ficha. Las imágenes satelitales muestran trazas y estructuras que hay que contrastar con cartografía oficial.
 
 ## 2:15–2:45 — Diferenciador
 
-El score es determinista: una media geométrica ponderada que penaliza criterios débiles. La confianza nunca altera la similitud. La factibilidad nunca se deduce del parecido con Marte. Además, perturbamos los pesos ±20 % y mostramos estabilidad. La app funciona offline con un snapshot estático validado por contratos.
+El sistema busca en lugar de listar: la rejilla sale de un algoritmo y cada descarte queda registrado con su motivo. Nunca oculta un antecedente para aparentar un descubrimiento. El score es determinista, la confianza no altera la similitud y la factibilidad no se deduce del parecido con Marte. La app funciona offline con un snapshot validado por contratos.
 
 ## 2:45–3:00 — Cierre
 
-Nuestro siguiente paso es ampliar el screening a todo Chile e incorporar geología SERNAGEOMIN, restricciones oficiales de IDE Chile y validación de campo. AnalogOS transforma una impresión visual en una hipótesis medible, auditable y lista para validación. No dice “este lugar es Marte”; dice “investiguemos este lugar, por estas razones y con estos límites”.
+El siguiente paso es cruzar los candidatos con capas oficiales de ambos países, sumar geología, contrastar el clima con datos locales y ampliar la búsqueda a más regiones. AnalogOS transforma una impresión visual en una hipótesis medible y auditable. No dice «este lugar es Marte»; dice «investiguemos este lugar, por estas razones y con estos límites».

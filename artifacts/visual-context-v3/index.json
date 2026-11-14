@@ -1,0 +1,1689 @@
+{
+  "kind": "analogos-visual-context",
+  "schema_version": 1,
+  "status": "preliminary_visual_context",
+  "snapshot_version": "science-screening-v3",
+  "pipeline_version": "0.2.0",
+  "generated_at": "2026-11-14T18:04:07Z",
+  "source": {
+    "provider": "Copernicus Data Space Ecosystem — Sentinel Hub Process API",
+    "endpoint": "https://sh.dataspace.copernicus.eu/process/v1",
+    "collection": "sentinel-2-l2a",
+    "documentation": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Process.html",
+    "authentication": "OAuth2 client credentials; credenciales y token omitidos",
+    "attribution": "Contiene datos modificados de Copernicus Sentinel (2025), procesados con Sentinel Hub en Copernicus Data Space Ecosystem."
+  },
+  "product": {
+    "period_label": "Mosaico de diciembre de 2025",
+    "time_range": {
+      "from": "2025-12-01T00:00:00Z",
+      "to": "2026-01-01T00:00:00Z"
+    },
+    "mosaicking": "ORBIT con orden leastCC; por píxel, primera órbita con datos",
+    "max_cloud_coverage_percent": 40,
+    "bands": [
+      "B04",
+      "B03",
+      "B02",
+      "dataMask"
+    ],
+    "transformation": "RGB = reflectancia L2A × 2, recortada a [0, 1] y cuantizada a 8 bits; alfa 0 donde ninguna órbita tiene datos",
+    "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+    "image_format": "PNG RGBA de 8 bits, tal como lo devolvió el servicio"
+  },
+  "limitations": [
+    "Contexto visual preliminar: apoya la inspección; no valida el sitio ni cierra advertencias, restricciones territoriales o revisión experta.",
+    "Es un mosaico de diciembre de 2025 (2025-12-01 a 2026-01-01 UTC), no una fecha única ni una imagen actual.",
+    "El límite de nubosidad (40 %) se aplica por escena, no por píxel: la vista puede contener nubes, sombras o bruma.",
+    "Vista reducida: cada píxel cubre unos 29 m; las bandas B02–B04 son de 10 m en origen. No muestra obstáculos ni pendientes a escala de rover.",
+    "Color natural con realce lineal simple; no es reflectancia calibrada para análisis ni indica composición mineral.",
+    "La imagen no participa en similitud, confianza, estabilidad ni factibilidad."
+  ],
+  "sites": [
+    {
+      "site_id": "cl-win-s2500-w06970",
+      "name": "Interior de Antofagasta · 25,0° S, 69,7° O",
+      "image": "cl-win-s2500-w06970.png",
+      "width": 700,
+      "height": 768,
+      "bbox": [
+        -69.8,
+        -25.1,
+        -69.6,
+        -24.9
+      ],
+      "extent_km": {
+        "width": 20.19,
+        "height": 22.15
+      },
+      "approx_meters_per_pixel": 28.8,
+      "request": {
+        "input": {
+          "bounds": {
+            "bbox": [
+              -69.8,
+              -25.1,
+              -69.6,
+              -24.9
+            ],
+            "properties": {
+              "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+            }
+          },
+          "data": [
+            {
+              "type": "sentinel-2-l2a",
+              "dataFilter": {
+                "timeRange": {
+                  "from": "2025-12-01T00:00:00Z",
+                  "to": "2026-01-01T00:00:00Z"
+                },
+                "mosaickingOrder": "leastCC",
+                "maxCloudCoverage": 40
+              }
+            }
+          ]
+        },
+        "output": {
+          "width": 700,
+          "height": 768,
+          "responses": [
+            {
+              "identifier": "default",
+              "format": {
+                "type": "image/png"
+              }
+            },
+            {
+              "identifier": "userdata",
+              "format": {
+                "type": "application/json"
+              }
+            }
+          ]
+        },
+        "evalscript": "//VERSION=3\n// AnalogOS Chile - contexto visual Sentinel-2 L2A (analogos-s2-visual-v1).\n// Color natural: reflectancia x GAIN; sampleType AUTO recorta a [0, 1] y cuantiza a 8 bits.\n// Por pixel se toma la primera orbita con datos, en el orden que entrega el servicio.\nvar GAIN = 2.0;\nvar pixelsByOrbitIndex = {};\nvar pixelsWithoutData = 0;\n\nfunction setup() {\n  return {\n    input: [\"B04\", \"B03\", \"B02\", \"dataMask\"],\n    mosaicking: Mosaicking.ORBIT,\n    output: { id: \"default\", bands: 4, sampleType: \"AUTO\" }\n  };\n}\n\nfunction evaluatePixel(samples) {\n  for (var i = 0; i < samples.length; i++) {\n    var sample = samples[i];\n    if (sample.dataMask === 1) {\n      pixelsByOrbitIndex[i] = (pixelsByOrbitIndex[i] || 0) + 1;\n      return [GAIN * sample.B04, GAIN * sample.B03, GAIN * sample.B02, 1];\n    }\n  }\n  pixelsWithoutData += 1;\n  return [0, 0, 0, 0];\n}\n\nfunction updateOutputMetadata(scenes, inputMetadata, outputMetadata) {\n  outputMetadata.userData = {\n    evalscript_version: \"analogos-s2-visual-v1\",\n    gain: GAIN,\n    service_version: inputMetadata.serviceVersion,\n    normalization_factor: inputMetadata.normalizationFactor,\n    orbits: scenes.orbits,\n    pixels_by_orbit_index: pixelsByOrbitIndex,\n    pixels_without_data: pixelsWithoutData\n  };\n}\n"
+      },
+      "sha256": "df19b01f77cffdf3fbf0c6308ac05168f69017df67f7e7830adf7266f6fd806f",
+      "bytes": 1167389,
+      "queried_at": "2026-11-14T18:03:19Z",
+      "scenes_considered": 7,
+      "scenes_used": [
+        {
+          "orbit_index": 0,
+          "date_from": "2025-12-03T00:00:00Z",
+          "date_to": "2025-12-03T23:59:59Z",
+          "pixels": 537600,
+          "fraction": 1.0
+        }
+      ],
+      "valid_fraction": 1.0,
+      "returned_metadata": {
+        "evalscript_version": "analogos-s2-visual-v1",
+        "gain": 2,
+        "service_version": "5.333.0",
+        "normalization_factor": 0.0001,
+        "orbits": [
+          {
+            "dateFrom": "2025-12-03T00:00:00Z",
+            "dateTo": "2025-12-03T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56386529,
+                "cloudCoverage": 0.05,
+                "date": "2025-12-03T14:49:57.691Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/03/S2C_MSIL2A_20251203T143751_N0511_R096_T19JDN_20251203T181813.SAFE/GRANULE/L2A_T19JDN_A006501_20251203T144123/IMG_DATA/RRESOLUTION/T19JDN_20251203T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251203T143751_N0511_R096_T19JDN_20251203T181813.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251203T143751_N0511_R096_T19JDN_20251203T181813.SAFE"
+              }
+            ],
+            "__idx": 0
+          },
+          {
+            "dateFrom": "2025-12-25T00:00:00Z",
+            "dateTo": "2025-12-25T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56651059,
+                "cloudCoverage": 0.06,
+                "date": "2025-12-25T14:50:09.787Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/25/S2A_MSIL2A_20251225T143801_N0511_R096_T19JDN_20251225T195610.SAFE/GRANULE/L2A_T19JDN_A054891_20251225T144110/IMG_DATA/RRESOLUTION/T19JDN_20251225T143801_TILEBAND_RESOLUTION",
+                "productId": "S2A_MSIL2A_20251225T143801_N0511_R096_T19JDN_20251225T195610.SAFE",
+                "sentinel2ProductId": "S2A_MSIL2A_20251225T143801_N0511_R096_T19JDN_20251225T195610.SAFE"
+              }
+            ],
+            "__idx": 1
+          },
+          {
+            "dateFrom": "2025-12-08T00:00:00Z",
+            "dateTo": "2025-12-08T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56444160,
+                "cloudCoverage": 0.25,
+                "date": "2025-12-08T14:49:47.385Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/08/S2B_MSIL2A_20251208T143739_N0511_R096_T19JDN_20251208T181537.SAFE/GRANULE/L2A_T19JDN_A045739_20251208T144601/IMG_DATA/RRESOLUTION/T19JDN_20251208T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251208T143739_N0511_R096_T19JDN_20251208T181537.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251208T143739_N0511_R096_T19JDN_20251208T181537.SAFE"
+              }
+            ],
+            "__idx": 2
+          },
+          {
+            "dateFrom": "2025-12-13T00:00:00Z",
+            "dateTo": "2025-12-13T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56504790,
+                "cloudCoverage": 0.75,
+                "date": "2025-12-13T14:49:58.530Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/13/S2C_MSIL2A_20251213T143751_N0511_R096_T19JDN_20251213T182210.SAFE/GRANULE/L2A_T19JDN_A006644_20251213T144214/IMG_DATA/RRESOLUTION/T19JDN_20251213T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251213T143751_N0511_R096_T19JDN_20251213T182210.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251213T143751_N0511_R096_T19JDN_20251213T182210.SAFE"
+              }
+            ],
+            "__idx": 3
+          },
+          {
+            "dateFrom": "2025-12-18T00:00:00Z",
+            "dateTo": "2025-12-18T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56560877,
+                "cloudCoverage": 1.8,
+                "date": "2025-12-18T14:49:48.104Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/18/S2B_MSIL2A_20251218T143739_N0511_R096_T19JDN_20251218T181336.SAFE/GRANULE/L2A_T19JDN_A045882_20251218T144616/IMG_DATA/RRESOLUTION/T19JDN_20251218T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251218T143739_N0511_R096_T19JDN_20251218T181336.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251218T143739_N0511_R096_T19JDN_20251218T181336.SAFE"
+              }
+            ],
+            "__idx": 4
+          },
+          {
+            "dateFrom": "2025-12-28T00:00:00Z",
+            "dateTo": "2025-12-28T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56690632,
+                "cloudCoverage": 3.12,
+                "date": "2025-12-28T14:49:49.601Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/28/S2B_MSIL2A_20251228T143739_N0511_R096_T19JDN_20251228T195813.SAFE/GRANULE/L2A_T19JDN_A046025_20251228T144314/IMG_DATA/RRESOLUTION/T19JDN_20251228T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251228T143739_N0511_R096_T19JDN_20251228T195813.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251228T143739_N0511_R096_T19JDN_20251228T195813.SAFE"
+              }
+            ],
+            "__idx": 5
+          },
+          {
+            "dateFrom": "2025-12-23T00:00:00Z",
+            "dateTo": "2025-12-23T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56623013,
+                "cloudCoverage": 3.27,
+                "date": "2025-12-23T14:49:57.870Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/23/S2C_MSIL2A_20251223T143751_N0511_R096_T19JDN_20251223T181410.SAFE/GRANULE/L2A_T19JDN_A006787_20251223T144217/IMG_DATA/RRESOLUTION/T19JDN_20251223T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251223T143751_N0511_R096_T19JDN_20251223T181410.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251223T143751_N0511_R096_T19JDN_20251223T181410.SAFE"
+              }
+            ],
+            "__idx": 6
+          }
+        ],
+        "pixels_by_orbit_index": {
+          "0": 537600
+        },
+        "pixels_without_data": 0
+      }
+    },
+    {
+      "site_id": "cl-win-s2480-w06950",
+      "name": "Interior de Antofagasta · 24,8° S, 69,5° O",
+      "image": "cl-win-s2480-w06950.png",
+      "width": 701,
+      "height": 768,
+      "bbox": [
+        -69.6,
+        -24.9,
+        -69.4,
+        -24.7
+      ],
+      "extent_km": {
+        "width": 20.22,
+        "height": 22.15
+      },
+      "approx_meters_per_pixel": 28.8,
+      "request": {
+        "input": {
+          "bounds": {
+            "bbox": [
+              -69.6,
+              -24.9,
+              -69.4,
+              -24.7
+            ],
+            "properties": {
+              "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+            }
+          },
+          "data": [
+            {
+              "type": "sentinel-2-l2a",
+              "dataFilter": {
+                "timeRange": {
+                  "from": "2025-12-01T00:00:00Z",
+                  "to": "2026-01-01T00:00:00Z"
+                },
+                "mosaickingOrder": "leastCC",
+                "maxCloudCoverage": 40
+              }
+            }
+          ]
+        },
+        "output": {
+          "width": 701,
+          "height": 768,
+          "responses": [
+            {
+              "identifier": "default",
+              "format": {
+                "type": "image/png"
+              }
+            },
+            {
+              "identifier": "userdata",
+              "format": {
+                "type": "application/json"
+              }
+            }
+          ]
+        },
+        "evalscript": "//VERSION=3\n// AnalogOS Chile - contexto visual Sentinel-2 L2A (analogos-s2-visual-v1).\n// Color natural: reflectancia x GAIN; sampleType AUTO recorta a [0, 1] y cuantiza a 8 bits.\n// Por pixel se toma la primera orbita con datos, en el orden que entrega el servicio.\nvar GAIN = 2.0;\nvar pixelsByOrbitIndex = {};\nvar pixelsWithoutData = 0;\n\nfunction setup() {\n  return {\n    input: [\"B04\", \"B03\", \"B02\", \"dataMask\"],\n    mosaicking: Mosaicking.ORBIT,\n    output: { id: \"default\", bands: 4, sampleType: \"AUTO\" }\n  };\n}\n\nfunction evaluatePixel(samples) {\n  for (var i = 0; i < samples.length; i++) {\n    var sample = samples[i];\n    if (sample.dataMask === 1) {\n      pixelsByOrbitIndex[i] = (pixelsByOrbitIndex[i] || 0) + 1;\n      return [GAIN * sample.B04, GAIN * sample.B03, GAIN * sample.B02, 1];\n    }\n  }\n  pixelsWithoutData += 1;\n  return [0, 0, 0, 0];\n}\n\nfunction updateOutputMetadata(scenes, inputMetadata, outputMetadata) {\n  outputMetadata.userData = {\n    evalscript_version: \"analogos-s2-visual-v1\",\n    gain: GAIN,\n    service_version: inputMetadata.serviceVersion,\n    normalization_factor: inputMetadata.normalizationFactor,\n    orbits: scenes.orbits,\n    pixels_by_orbit_index: pixelsByOrbitIndex,\n    pixels_without_data: pixelsWithoutData\n  };\n}\n"
+      },
+      "sha256": "6f4f3d3800e4aad1c0a76fc7078107713565740c7138d3f5460486b118e57161",
+      "bytes": 1207880,
+      "queried_at": "2026-11-14T18:03:29Z",
+      "scenes_considered": 7,
+      "scenes_used": [
+        {
+          "orbit_index": 0,
+          "date_from": "2025-12-03T00:00:00Z",
+          "date_to": "2025-12-03T23:59:59Z",
+          "pixels": 538368,
+          "fraction": 1.0
+        }
+      ],
+      "valid_fraction": 1.0,
+      "returned_metadata": {
+        "evalscript_version": "analogos-s2-visual-v1",
+        "gain": 2,
+        "service_version": "5.333.0",
+        "normalization_factor": 0.0001,
+        "orbits": [
+          {
+            "dateFrom": "2025-12-03T00:00:00Z",
+            "dateTo": "2025-12-03T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56386529,
+                "cloudCoverage": 0.05,
+                "date": "2025-12-03T14:49:57.691Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/03/S2C_MSIL2A_20251203T143751_N0511_R096_T19JDN_20251203T181813.SAFE/GRANULE/L2A_T19JDN_A006501_20251203T144123/IMG_DATA/RRESOLUTION/T19JDN_20251203T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251203T143751_N0511_R096_T19JDN_20251203T181813.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251203T143751_N0511_R096_T19JDN_20251203T181813.SAFE"
+              }
+            ],
+            "__idx": 0
+          },
+          {
+            "dateFrom": "2025-12-25T00:00:00Z",
+            "dateTo": "2025-12-25T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56651059,
+                "cloudCoverage": 0.06,
+                "date": "2025-12-25T14:50:09.787Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/25/S2A_MSIL2A_20251225T143801_N0511_R096_T19JDN_20251225T195610.SAFE/GRANULE/L2A_T19JDN_A054891_20251225T144110/IMG_DATA/RRESOLUTION/T19JDN_20251225T143801_TILEBAND_RESOLUTION",
+                "productId": "S2A_MSIL2A_20251225T143801_N0511_R096_T19JDN_20251225T195610.SAFE",
+                "sentinel2ProductId": "S2A_MSIL2A_20251225T143801_N0511_R096_T19JDN_20251225T195610.SAFE"
+              }
+            ],
+            "__idx": 1
+          },
+          {
+            "dateFrom": "2025-12-08T00:00:00Z",
+            "dateTo": "2025-12-08T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56444160,
+                "cloudCoverage": 0.25,
+                "date": "2025-12-08T14:49:47.385Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/08/S2B_MSIL2A_20251208T143739_N0511_R096_T19JDN_20251208T181537.SAFE/GRANULE/L2A_T19JDN_A045739_20251208T144601/IMG_DATA/RRESOLUTION/T19JDN_20251208T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251208T143739_N0511_R096_T19JDN_20251208T181537.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251208T143739_N0511_R096_T19JDN_20251208T181537.SAFE"
+              }
+            ],
+            "__idx": 2
+          },
+          {
+            "dateFrom": "2025-12-13T00:00:00Z",
+            "dateTo": "2025-12-13T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56504790,
+                "cloudCoverage": 0.75,
+                "date": "2025-12-13T14:49:58.530Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/13/S2C_MSIL2A_20251213T143751_N0511_R096_T19JDN_20251213T182210.SAFE/GRANULE/L2A_T19JDN_A006644_20251213T144214/IMG_DATA/RRESOLUTION/T19JDN_20251213T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251213T143751_N0511_R096_T19JDN_20251213T182210.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251213T143751_N0511_R096_T19JDN_20251213T182210.SAFE"
+              }
+            ],
+            "__idx": 3
+          },
+          {
+            "dateFrom": "2025-12-18T00:00:00Z",
+            "dateTo": "2025-12-18T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56560877,
+                "cloudCoverage": 1.8,
+                "date": "2025-12-18T14:49:48.104Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/18/S2B_MSIL2A_20251218T143739_N0511_R096_T19JDN_20251218T181336.SAFE/GRANULE/L2A_T19JDN_A045882_20251218T144616/IMG_DATA/RRESOLUTION/T19JDN_20251218T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251218T143739_N0511_R096_T19JDN_20251218T181336.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251218T143739_N0511_R096_T19JDN_20251218T181336.SAFE"
+              }
+            ],
+            "__idx": 4
+          },
+          {
+            "dateFrom": "2025-12-28T00:00:00Z",
+            "dateTo": "2025-12-28T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56690632,
+                "cloudCoverage": 3.12,
+                "date": "2025-12-28T14:49:49.601Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/28/S2B_MSIL2A_20251228T143739_N0511_R096_T19JDN_20251228T195813.SAFE/GRANULE/L2A_T19JDN_A046025_20251228T144314/IMG_DATA/RRESOLUTION/T19JDN_20251228T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251228T143739_N0511_R096_T19JDN_20251228T195813.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251228T143739_N0511_R096_T19JDN_20251228T195813.SAFE"
+              }
+            ],
+            "__idx": 5
+          },
+          {
+            "dateFrom": "2025-12-23T00:00:00Z",
+            "dateTo": "2025-12-23T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56623013,
+                "cloudCoverage": 3.27,
+                "date": "2025-12-23T14:49:57.870Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/23/S2C_MSIL2A_20251223T143751_N0511_R096_T19JDN_20251223T181410.SAFE/GRANULE/L2A_T19JDN_A006787_20251223T144217/IMG_DATA/RRESOLUTION/T19JDN_20251223T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251223T143751_N0511_R096_T19JDN_20251223T181410.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251223T143751_N0511_R096_T19JDN_20251223T181410.SAFE"
+              }
+            ],
+            "__idx": 6
+          }
+        ],
+        "pixels_by_orbit_index": {
+          "0": 538368
+        },
+        "pixels_without_data": 0
+      }
+    },
+    {
+      "site_id": "cl-win-s2520-w06950",
+      "name": "Interior de Antofagasta · 25,2° S, 69,5° O",
+      "image": "cl-win-s2520-w06950.png",
+      "width": 699,
+      "height": 768,
+      "bbox": [
+        -69.6,
+        -25.3,
+        -69.4,
+        -25.1
+      ],
+      "extent_km": {
+        "width": 20.16,
+        "height": 22.16
+      },
+      "approx_meters_per_pixel": 28.8,
+      "request": {
+        "input": {
+          "bounds": {
+            "bbox": [
+              -69.6,
+              -25.3,
+              -69.4,
+              -25.1
+            ],
+            "properties": {
+              "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+            }
+          },
+          "data": [
+            {
+              "type": "sentinel-2-l2a",
+              "dataFilter": {
+                "timeRange": {
+                  "from": "2025-12-01T00:00:00Z",
+                  "to": "2026-01-01T00:00:00Z"
+                },
+                "mosaickingOrder": "leastCC",
+                "maxCloudCoverage": 40
+              }
+            }
+          ]
+        },
+        "output": {
+          "width": 699,
+          "height": 768,
+          "responses": [
+            {
+              "identifier": "default",
+              "format": {
+                "type": "image/png"
+              }
+            },
+            {
+              "identifier": "userdata",
+              "format": {
+                "type": "application/json"
+              }
+            }
+          ]
+        },
+        "evalscript": "//VERSION=3\n// AnalogOS Chile - contexto visual Sentinel-2 L2A (analogos-s2-visual-v1).\n// Color natural: reflectancia x GAIN; sampleType AUTO recorta a [0, 1] y cuantiza a 8 bits.\n// Por pixel se toma la primera orbita con datos, en el orden que entrega el servicio.\nvar GAIN = 2.0;\nvar pixelsByOrbitIndex = {};\nvar pixelsWithoutData = 0;\n\nfunction setup() {\n  return {\n    input: [\"B04\", \"B03\", \"B02\", \"dataMask\"],\n    mosaicking: Mosaicking.ORBIT,\n    output: { id: \"default\", bands: 4, sampleType: \"AUTO\" }\n  };\n}\n\nfunction evaluatePixel(samples) {\n  for (var i = 0; i < samples.length; i++) {\n    var sample = samples[i];\n    if (sample.dataMask === 1) {\n      pixelsByOrbitIndex[i] = (pixelsByOrbitIndex[i] || 0) + 1;\n      return [GAIN * sample.B04, GAIN * sample.B03, GAIN * sample.B02, 1];\n    }\n  }\n  pixelsWithoutData += 1;\n  return [0, 0, 0, 0];\n}\n\nfunction updateOutputMetadata(scenes, inputMetadata, outputMetadata) {\n  outputMetadata.userData = {\n    evalscript_version: \"analogos-s2-visual-v1\",\n    gain: GAIN,\n    service_version: inputMetadata.serviceVersion,\n    normalization_factor: inputMetadata.normalizationFactor,\n    orbits: scenes.orbits,\n    pixels_by_orbit_index: pixelsByOrbitIndex,\n    pixels_without_data: pixelsWithoutData\n  };\n}\n"
+      },
+      "sha256": "febf034f6e81e3db59b9c43ef3f1c41927bdb8c87b54bed1d3b0b6c923b5b61a",
+      "bytes": 1108545,
+      "queried_at": "2026-11-14T18:03:36Z",
+      "scenes_considered": 7,
+      "scenes_used": [
+        {
+          "orbit_index": 0,
+          "date_from": "2025-12-03T00:00:00Z",
+          "date_to": "2025-12-03T23:59:59Z",
+          "pixels": 536832,
+          "fraction": 1.0
+        }
+      ],
+      "valid_fraction": 1.0,
+      "returned_metadata": {
+        "evalscript_version": "analogos-s2-visual-v1",
+        "gain": 2,
+        "service_version": "5.333.0",
+        "normalization_factor": 0.0001,
+        "orbits": [
+          {
+            "dateFrom": "2025-12-03T00:00:00Z",
+            "dateTo": "2025-12-03T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56386529,
+                "cloudCoverage": 0.05,
+                "date": "2025-12-03T14:49:57.691Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/03/S2C_MSIL2A_20251203T143751_N0511_R096_T19JDN_20251203T181813.SAFE/GRANULE/L2A_T19JDN_A006501_20251203T144123/IMG_DATA/RRESOLUTION/T19JDN_20251203T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251203T143751_N0511_R096_T19JDN_20251203T181813.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251203T143751_N0511_R096_T19JDN_20251203T181813.SAFE"
+              }
+            ],
+            "__idx": 0
+          },
+          {
+            "dateFrom": "2025-12-25T00:00:00Z",
+            "dateTo": "2025-12-25T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56651059,
+                "cloudCoverage": 0.06,
+                "date": "2025-12-25T14:50:09.787Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/25/S2A_MSIL2A_20251225T143801_N0511_R096_T19JDN_20251225T195610.SAFE/GRANULE/L2A_T19JDN_A054891_20251225T144110/IMG_DATA/RRESOLUTION/T19JDN_20251225T143801_TILEBAND_RESOLUTION",
+                "productId": "S2A_MSIL2A_20251225T143801_N0511_R096_T19JDN_20251225T195610.SAFE",
+                "sentinel2ProductId": "S2A_MSIL2A_20251225T143801_N0511_R096_T19JDN_20251225T195610.SAFE"
+              }
+            ],
+            "__idx": 1
+          },
+          {
+            "dateFrom": "2025-12-08T00:00:00Z",
+            "dateTo": "2025-12-08T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56444160,
+                "cloudCoverage": 0.25,
+                "date": "2025-12-08T14:49:47.385Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/08/S2B_MSIL2A_20251208T143739_N0511_R096_T19JDN_20251208T181537.SAFE/GRANULE/L2A_T19JDN_A045739_20251208T144601/IMG_DATA/RRESOLUTION/T19JDN_20251208T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251208T143739_N0511_R096_T19JDN_20251208T181537.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251208T143739_N0511_R096_T19JDN_20251208T181537.SAFE"
+              }
+            ],
+            "__idx": 2
+          },
+          {
+            "dateFrom": "2025-12-13T00:00:00Z",
+            "dateTo": "2025-12-13T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56504790,
+                "cloudCoverage": 0.75,
+                "date": "2025-12-13T14:49:58.530Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/13/S2C_MSIL2A_20251213T143751_N0511_R096_T19JDN_20251213T182210.SAFE/GRANULE/L2A_T19JDN_A006644_20251213T144214/IMG_DATA/RRESOLUTION/T19JDN_20251213T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251213T143751_N0511_R096_T19JDN_20251213T182210.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251213T143751_N0511_R096_T19JDN_20251213T182210.SAFE"
+              }
+            ],
+            "__idx": 3
+          },
+          {
+            "dateFrom": "2025-12-18T00:00:00Z",
+            "dateTo": "2025-12-18T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56560877,
+                "cloudCoverage": 1.8,
+                "date": "2025-12-18T14:49:48.104Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/18/S2B_MSIL2A_20251218T143739_N0511_R096_T19JDN_20251218T181336.SAFE/GRANULE/L2A_T19JDN_A045882_20251218T144616/IMG_DATA/RRESOLUTION/T19JDN_20251218T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251218T143739_N0511_R096_T19JDN_20251218T181336.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251218T143739_N0511_R096_T19JDN_20251218T181336.SAFE"
+              }
+            ],
+            "__idx": 4
+          },
+          {
+            "dateFrom": "2025-12-28T00:00:00Z",
+            "dateTo": "2025-12-28T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56690632,
+                "cloudCoverage": 3.12,
+                "date": "2025-12-28T14:49:49.601Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/28/S2B_MSIL2A_20251228T143739_N0511_R096_T19JDN_20251228T195813.SAFE/GRANULE/L2A_T19JDN_A046025_20251228T144314/IMG_DATA/RRESOLUTION/T19JDN_20251228T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251228T143739_N0511_R096_T19JDN_20251228T195813.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251228T143739_N0511_R096_T19JDN_20251228T195813.SAFE"
+              }
+            ],
+            "__idx": 5
+          },
+          {
+            "dateFrom": "2025-12-23T00:00:00Z",
+            "dateTo": "2025-12-23T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56623013,
+                "cloudCoverage": 3.27,
+                "date": "2025-12-23T14:49:57.870Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/23/S2C_MSIL2A_20251223T143751_N0511_R096_T19JDN_20251223T181410.SAFE/GRANULE/L2A_T19JDN_A006787_20251223T144217/IMG_DATA/RRESOLUTION/T19JDN_20251223T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251223T143751_N0511_R096_T19JDN_20251223T181410.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251223T143751_N0511_R096_T19JDN_20251223T181410.SAFE"
+              }
+            ],
+            "__idx": 6
+          }
+        ],
+        "pixels_by_orbit_index": {
+          "0": 536832
+        },
+        "pixels_without_data": 0
+      }
+    },
+    {
+      "site_id": "ar-win-s2620-w06750",
+      "name": "Puna de Catamarca y Salta · 26,2° S, 67,5° O",
+      "image": "ar-win-s2620-w06750.png",
+      "width": 693,
+      "height": 768,
+      "bbox": [
+        -67.6,
+        -26.3,
+        -67.4,
+        -26.1
+      ],
+      "extent_km": {
+        "width": 19.99,
+        "height": 22.16
+      },
+      "approx_meters_per_pixel": 28.9,
+      "request": {
+        "input": {
+          "bounds": {
+            "bbox": [
+              -67.6,
+              -26.3,
+              -67.4,
+              -26.1
+            ],
+            "properties": {
+              "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+            }
+          },
+          "data": [
+            {
+              "type": "sentinel-2-l2a",
+              "dataFilter": {
+                "timeRange": {
+                  "from": "2025-12-01T00:00:00Z",
+                  "to": "2026-01-01T00:00:00Z"
+                },
+                "mosaickingOrder": "leastCC",
+                "maxCloudCoverage": 40
+              }
+            }
+          ]
+        },
+        "output": {
+          "width": 693,
+          "height": 768,
+          "responses": [
+            {
+              "identifier": "default",
+              "format": {
+                "type": "image/png"
+              }
+            },
+            {
+              "identifier": "userdata",
+              "format": {
+                "type": "application/json"
+              }
+            }
+          ]
+        },
+        "evalscript": "//VERSION=3\n// AnalogOS Chile - contexto visual Sentinel-2 L2A (analogos-s2-visual-v1).\n// Color natural: reflectancia x GAIN; sampleType AUTO recorta a [0, 1] y cuantiza a 8 bits.\n// Por pixel se toma la primera orbita con datos, en el orden que entrega el servicio.\nvar GAIN = 2.0;\nvar pixelsByOrbitIndex = {};\nvar pixelsWithoutData = 0;\n\nfunction setup() {\n  return {\n    input: [\"B04\", \"B03\", \"B02\", \"dataMask\"],\n    mosaicking: Mosaicking.ORBIT,\n    output: { id: \"default\", bands: 4, sampleType: \"AUTO\" }\n  };\n}\n\nfunction evaluatePixel(samples) {\n  for (var i = 0; i < samples.length; i++) {\n    var sample = samples[i];\n    if (sample.dataMask === 1) {\n      pixelsByOrbitIndex[i] = (pixelsByOrbitIndex[i] || 0) + 1;\n      return [GAIN * sample.B04, GAIN * sample.B03, GAIN * sample.B02, 1];\n    }\n  }\n  pixelsWithoutData += 1;\n  return [0, 0, 0, 0];\n}\n\nfunction updateOutputMetadata(scenes, inputMetadata, outputMetadata) {\n  outputMetadata.userData = {\n    evalscript_version: \"analogos-s2-visual-v1\",\n    gain: GAIN,\n    service_version: inputMetadata.serviceVersion,\n    normalization_factor: inputMetadata.normalizationFactor,\n    orbits: scenes.orbits,\n    pixels_by_orbit_index: pixelsByOrbitIndex,\n    pixels_without_data: pixelsWithoutData\n  };\n}\n"
+      },
+      "sha256": "0bc1891434dd2ed4648a91345a4bf1fbe2070098587f15c727ee0f021dce01af",
+      "bytes": 1146946,
+      "queried_at": "2026-11-14T18:03:45Z",
+      "scenes_considered": 7,
+      "scenes_used": [
+        {
+          "orbit_index": 0,
+          "date_from": "2025-12-20T00:00:00Z",
+          "date_to": "2025-12-20T23:59:59Z",
+          "pixels": 532224,
+          "fraction": 1.0
+        }
+      ],
+      "valid_fraction": 1.0,
+      "returned_metadata": {
+        "evalscript_version": "analogos-s2-visual-v1",
+        "gain": 2,
+        "service_version": "5.333.0",
+        "normalization_factor": 0.0001,
+        "orbits": [
+          {
+            "dateFrom": "2025-12-20T00:00:00Z",
+            "dateTo": "2025-12-20T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56583878,
+                "cloudCoverage": 2.03,
+                "date": "2025-12-20T14:40:09.840Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/20/S2C_MSIL2A_20251220T142721_N0511_R053_T19JFM_20251220T181210.SAFE/GRANULE/L2A_T19JFM_A006744_20251220T143259/IMG_DATA/RRESOLUTION/T19JFM_20251220T142721_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251220T142721_N0511_R053_T19JFM_20251220T181210.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251220T142721_N0511_R053_T19JFM_20251220T181210.SAFE"
+              },
+              {
+                "shId": 56584134,
+                "cloudCoverage": 7.04,
+                "date": "2025-12-20T14:40:24.310Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/20/S2C_MSIL2A_20251220T142721_N0511_R053_T19JFL_20251220T181210.SAFE/GRANULE/L2A_T19JFL_A006744_20251220T143259/IMG_DATA/RRESOLUTION/T19JFL_20251220T142721_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251220T142721_N0511_R053_T19JFL_20251220T181210.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251220T142721_N0511_R053_T19JFL_20251220T181210.SAFE"
+              }
+            ],
+            "__idx": 0
+          },
+          {
+            "dateFrom": "2025-12-02T00:00:00Z",
+            "dateTo": "2025-12-02T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56375015,
+                "cloudCoverage": 2.46,
+                "date": "2025-12-02T14:40:18.907Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/02/S2A_MSIL2A_20251202T142811_N0511_R053_T19JFM_20251202T194010.SAFE/GRANULE/L2A_T19JFM_A054562_20251202T143509/IMG_DATA/RRESOLUTION/T19JFM_20251202T142811_TILEBAND_RESOLUTION",
+                "productId": "S2A_MSIL2A_20251202T142811_N0511_R053_T19JFM_20251202T194010.SAFE",
+                "sentinel2ProductId": "S2A_MSIL2A_20251202T142811_N0511_R053_T19JFM_20251202T194010.SAFE"
+              },
+              {
+                "shId": 56375124,
+                "cloudCoverage": 3.07,
+                "date": "2025-12-02T14:40:33.350Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/02/S2A_MSIL2A_20251202T142811_N0511_R053_T19JFL_20251202T194010.SAFE/GRANULE/L2A_T19JFL_A054562_20251202T143509/IMG_DATA/RRESOLUTION/T19JFL_20251202T142811_TILEBAND_RESOLUTION",
+                "productId": "S2A_MSIL2A_20251202T142811_N0511_R053_T19JFL_20251202T194010.SAFE",
+                "sentinel2ProductId": "S2A_MSIL2A_20251202T142811_N0511_R053_T19JFL_20251202T194010.SAFE"
+              }
+            ],
+            "__idx": 1
+          },
+          {
+            "dateFrom": "2025-12-10T00:00:00Z",
+            "dateTo": "2025-12-10T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56467310,
+                "cloudCoverage": 3.03,
+                "date": "2025-12-10T14:40:10.428Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/10/S2C_MSIL2A_20251210T142721_N0511_R053_T19JFM_20251210T181015.SAFE/GRANULE/L2A_T19JFM_A006601_20251210T143237/IMG_DATA/RRESOLUTION/T19JFM_20251210T142721_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251210T142721_N0511_R053_T19JFM_20251210T181015.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251210T142721_N0511_R053_T19JFM_20251210T181015.SAFE"
+              },
+              {
+                "shId": 56467237,
+                "cloudCoverage": 9.8,
+                "date": "2025-12-10T14:40:24.899Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/10/S2C_MSIL2A_20251210T142721_N0511_R053_T19JFL_20251210T181015.SAFE/GRANULE/L2A_T19JFL_A006601_20251210T143237/IMG_DATA/RRESOLUTION/T19JFL_20251210T142721_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251210T142721_N0511_R053_T19JFL_20251210T181015.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251210T142721_N0511_R053_T19JFL_20251210T181015.SAFE"
+              }
+            ],
+            "__idx": 2
+          },
+          {
+            "dateFrom": "2025-12-15T00:00:00Z",
+            "dateTo": "2025-12-15T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56526047,
+                "cloudCoverage": 3.06,
+                "date": "2025-12-15T14:40:00.149Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/15/S2B_MSIL2A_20251215T142709_N0511_R053_T19JFM_20251215T180519.SAFE/GRANULE/L2A_T19JFM_A045839_20251215T143658/IMG_DATA/RRESOLUTION/T19JFM_20251215T142709_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251215T142709_N0511_R053_T19JFM_20251215T180519.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251215T142709_N0511_R053_T19JFM_20251215T180519.SAFE"
+              },
+              {
+                "shId": 56526077,
+                "cloudCoverage": 18.19,
+                "date": "2025-12-15T14:40:14.605Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/15/S2B_MSIL2A_20251215T142709_N0511_R053_T19JFL_20251215T180519.SAFE/GRANULE/L2A_T19JFL_A045839_20251215T143658/IMG_DATA/RRESOLUTION/T19JFL_20251215T142709_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251215T142709_N0511_R053_T19JFL_20251215T180519.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251215T142709_N0511_R053_T19JFL_20251215T180519.SAFE"
+              }
+            ],
+            "__idx": 3
+          },
+          {
+            "dateFrom": "2025-12-22T00:00:00Z",
+            "dateTo": "2025-12-22T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56610338,
+                "cloudCoverage": 3.77,
+                "date": "2025-12-22T14:40:20.424Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/22/S2A_MSIL2A_20251222T142811_N0511_R053_T19JFM_20251222T194309.SAFE/GRANULE/L2A_T19JFM_A054848_20251222T143536/IMG_DATA/RRESOLUTION/T19JFM_20251222T142811_TILEBAND_RESOLUTION",
+                "productId": "S2A_MSIL2A_20251222T142811_N0511_R053_T19JFM_20251222T194309.SAFE",
+                "sentinel2ProductId": "S2A_MSIL2A_20251222T142811_N0511_R053_T19JFM_20251222T194309.SAFE"
+              },
+              {
+                "shId": 56610262,
+                "cloudCoverage": 6.01,
+                "date": "2025-12-22T14:40:34.874Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/22/S2A_MSIL2A_20251222T142811_N0511_R053_T19JFL_20251222T194309.SAFE/GRANULE/L2A_T19JFL_A054848_20251222T143536/IMG_DATA/RRESOLUTION/T19JFL_20251222T142811_TILEBAND_RESOLUTION",
+                "productId": "S2A_MSIL2A_20251222T142811_N0511_R053_T19JFL_20251222T194309.SAFE",
+                "sentinel2ProductId": "S2A_MSIL2A_20251222T142811_N0511_R053_T19JFL_20251222T194309.SAFE"
+              }
+            ],
+            "__idx": 4
+          },
+          {
+            "dateFrom": "2025-12-30T00:00:00Z",
+            "dateTo": "2025-12-30T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56716330,
+                "cloudCoverage": 7.61,
+                "date": "2025-12-30T14:40:09.566Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/30/S2C_MSIL2A_20251230T142721_N0511_R053_T19JFM_20251230T180410.SAFE/GRANULE/L2A_T19JFM_A006887_20251230T143237/IMG_DATA/RRESOLUTION/T19JFM_20251230T142721_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251230T142721_N0511_R053_T19JFM_20251230T180410.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251230T142721_N0511_R053_T19JFM_20251230T180410.SAFE"
+              },
+              {
+                "shId": 56716436,
+                "cloudCoverage": 27.27,
+                "date": "2025-12-30T14:40:24.034Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/30/S2C_MSIL2A_20251230T142721_N0511_R053_T19JFL_20251230T180410.SAFE/GRANULE/L2A_T19JFL_A006887_20251230T143237/IMG_DATA/RRESOLUTION/T19JFL_20251230T142721_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251230T142721_N0511_R053_T19JFL_20251230T180410.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251230T142721_N0511_R053_T19JFL_20251230T180410.SAFE"
+              }
+            ],
+            "__idx": 5
+          },
+          {
+            "dateFrom": "2025-12-25T00:00:00Z",
+            "dateTo": "2025-12-25T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56650053,
+                "cloudCoverage": 39.92,
+                "date": "2025-12-25T14:40:01.423Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/25/S2B_MSIL2A_20251225T142709_N0511_R053_T19JFM_20251225T180724.SAFE/GRANULE/L2A_T19JFM_A045982_20251225T143214/IMG_DATA/RRESOLUTION/T19JFM_20251225T142709_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251225T142709_N0511_R053_T19JFM_20251225T180724.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251225T142709_N0511_R053_T19JFM_20251225T180724.SAFE"
+              }
+            ],
+            "__idx": 6
+          }
+        ],
+        "pixels_by_orbit_index": {
+          "0": 532224
+        },
+        "pixels_without_data": 0
+      }
+    },
+    {
+      "site_id": "ar-win-s2640-w06730",
+      "name": "Puna de Catamarca y Salta · 26,4° S, 67,3° O",
+      "image": "ar-win-s2640-w06730.png",
+      "width": 692,
+      "height": 768,
+      "bbox": [
+        -67.4,
+        -26.5,
+        -67.2,
+        -26.3
+      ],
+      "extent_km": {
+        "width": 19.96,
+        "height": 22.16
+      },
+      "approx_meters_per_pixel": 28.9,
+      "request": {
+        "input": {
+          "bounds": {
+            "bbox": [
+              -67.4,
+              -26.5,
+              -67.2,
+              -26.3
+            ],
+            "properties": {
+              "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+            }
+          },
+          "data": [
+            {
+              "type": "sentinel-2-l2a",
+              "dataFilter": {
+                "timeRange": {
+                  "from": "2025-12-01T00:00:00Z",
+                  "to": "2026-01-01T00:00:00Z"
+                },
+                "mosaickingOrder": "leastCC",
+                "maxCloudCoverage": 40
+              }
+            }
+          ]
+        },
+        "output": {
+          "width": 692,
+          "height": 768,
+          "responses": [
+            {
+              "identifier": "default",
+              "format": {
+                "type": "image/png"
+              }
+            },
+            {
+              "identifier": "userdata",
+              "format": {
+                "type": "application/json"
+              }
+            }
+          ]
+        },
+        "evalscript": "//VERSION=3\n// AnalogOS Chile - contexto visual Sentinel-2 L2A (analogos-s2-visual-v1).\n// Color natural: reflectancia x GAIN; sampleType AUTO recorta a [0, 1] y cuantiza a 8 bits.\n// Por pixel se toma la primera orbita con datos, en el orden que entrega el servicio.\nvar GAIN = 2.0;\nvar pixelsByOrbitIndex = {};\nvar pixelsWithoutData = 0;\n\nfunction setup() {\n  return {\n    input: [\"B04\", \"B03\", \"B02\", \"dataMask\"],\n    mosaicking: Mosaicking.ORBIT,\n    output: { id: \"default\", bands: 4, sampleType: \"AUTO\" }\n  };\n}\n\nfunction evaluatePixel(samples) {\n  for (var i = 0; i < samples.length; i++) {\n    var sample = samples[i];\n    if (sample.dataMask === 1) {\n      pixelsByOrbitIndex[i] = (pixelsByOrbitIndex[i] || 0) + 1;\n      return [GAIN * sample.B04, GAIN * sample.B03, GAIN * sample.B02, 1];\n    }\n  }\n  pixelsWithoutData += 1;\n  return [0, 0, 0, 0];\n}\n\nfunction updateOutputMetadata(scenes, inputMetadata, outputMetadata) {\n  outputMetadata.userData = {\n    evalscript_version: \"analogos-s2-visual-v1\",\n    gain: GAIN,\n    service_version: inputMetadata.serviceVersion,\n    normalization_factor: inputMetadata.normalizationFactor,\n    orbits: scenes.orbits,\n    pixels_by_orbit_index: pixelsByOrbitIndex,\n    pixels_without_data: pixelsWithoutData\n  };\n}\n"
+      },
+      "sha256": "eb93d40cc71c9cfc013f05941631d5ed4de282ef6795865716a4837334938627",
+      "bytes": 1097385,
+      "queried_at": "2026-11-14T18:03:52Z",
+      "scenes_considered": 6,
+      "scenes_used": [
+        {
+          "orbit_index": 0,
+          "date_from": "2025-12-02T00:00:00Z",
+          "date_to": "2025-12-02T23:59:59Z",
+          "pixels": 531456,
+          "fraction": 1.0
+        }
+      ],
+      "valid_fraction": 1.0,
+      "returned_metadata": {
+        "evalscript_version": "analogos-s2-visual-v1",
+        "gain": 2,
+        "service_version": "5.333.0",
+        "normalization_factor": 0.0001,
+        "orbits": [
+          {
+            "dateFrom": "2025-12-02T00:00:00Z",
+            "dateTo": "2025-12-02T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56375124,
+                "cloudCoverage": 3.07,
+                "date": "2025-12-02T14:40:33.350Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/02/S2A_MSIL2A_20251202T142811_N0511_R053_T19JFL_20251202T194010.SAFE/GRANULE/L2A_T19JFL_A054562_20251202T143509/IMG_DATA/RRESOLUTION/T19JFL_20251202T142811_TILEBAND_RESOLUTION",
+                "productId": "S2A_MSIL2A_20251202T142811_N0511_R053_T19JFL_20251202T194010.SAFE",
+                "sentinel2ProductId": "S2A_MSIL2A_20251202T142811_N0511_R053_T19JFL_20251202T194010.SAFE"
+              }
+            ],
+            "__idx": 0
+          },
+          {
+            "dateFrom": "2025-12-22T00:00:00Z",
+            "dateTo": "2025-12-22T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56610262,
+                "cloudCoverage": 6.01,
+                "date": "2025-12-22T14:40:34.874Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/22/S2A_MSIL2A_20251222T142811_N0511_R053_T19JFL_20251222T194309.SAFE/GRANULE/L2A_T19JFL_A054848_20251222T143536/IMG_DATA/RRESOLUTION/T19JFL_20251222T142811_TILEBAND_RESOLUTION",
+                "productId": "S2A_MSIL2A_20251222T142811_N0511_R053_T19JFL_20251222T194309.SAFE",
+                "sentinel2ProductId": "S2A_MSIL2A_20251222T142811_N0511_R053_T19JFL_20251222T194309.SAFE"
+              }
+            ],
+            "__idx": 1
+          },
+          {
+            "dateFrom": "2025-12-20T00:00:00Z",
+            "dateTo": "2025-12-20T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56584134,
+                "cloudCoverage": 7.04,
+                "date": "2025-12-20T14:40:24.310Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/20/S2C_MSIL2A_20251220T142721_N0511_R053_T19JFL_20251220T181210.SAFE/GRANULE/L2A_T19JFL_A006744_20251220T143259/IMG_DATA/RRESOLUTION/T19JFL_20251220T142721_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251220T142721_N0511_R053_T19JFL_20251220T181210.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251220T142721_N0511_R053_T19JFL_20251220T181210.SAFE"
+              }
+            ],
+            "__idx": 2
+          },
+          {
+            "dateFrom": "2025-12-10T00:00:00Z",
+            "dateTo": "2025-12-10T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56467237,
+                "cloudCoverage": 9.8,
+                "date": "2025-12-10T14:40:24.899Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/10/S2C_MSIL2A_20251210T142721_N0511_R053_T19JFL_20251210T181015.SAFE/GRANULE/L2A_T19JFL_A006601_20251210T143237/IMG_DATA/RRESOLUTION/T19JFL_20251210T142721_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251210T142721_N0511_R053_T19JFL_20251210T181015.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251210T142721_N0511_R053_T19JFL_20251210T181015.SAFE"
+              }
+            ],
+            "__idx": 3
+          },
+          {
+            "dateFrom": "2025-12-15T00:00:00Z",
+            "dateTo": "2025-12-15T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56526077,
+                "cloudCoverage": 18.19,
+                "date": "2025-12-15T14:40:14.605Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/15/S2B_MSIL2A_20251215T142709_N0511_R053_T19JFL_20251215T180519.SAFE/GRANULE/L2A_T19JFL_A045839_20251215T143658/IMG_DATA/RRESOLUTION/T19JFL_20251215T142709_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251215T142709_N0511_R053_T19JFL_20251215T180519.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251215T142709_N0511_R053_T19JFL_20251215T180519.SAFE"
+              }
+            ],
+            "__idx": 4
+          },
+          {
+            "dateFrom": "2025-12-30T00:00:00Z",
+            "dateTo": "2025-12-30T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56716436,
+                "cloudCoverage": 27.27,
+                "date": "2025-12-30T14:40:24.034Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/30/S2C_MSIL2A_20251230T142721_N0511_R053_T19JFL_20251230T180410.SAFE/GRANULE/L2A_T19JFL_A006887_20251230T143237/IMG_DATA/RRESOLUTION/T19JFL_20251230T142721_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251230T142721_N0511_R053_T19JFL_20251230T180410.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251230T142721_N0511_R053_T19JFL_20251230T180410.SAFE"
+              }
+            ],
+            "__idx": 5
+          }
+        ],
+        "pixels_by_orbit_index": {
+          "0": 531456
+        },
+        "pixels_without_data": 0
+      }
+    },
+    {
+      "site_id": "ar-win-s2580-w06710",
+      "name": "Puna de Catamarca y Salta · 25,8° S, 67,1° O",
+      "image": "ar-win-s2580-w06710.png",
+      "width": 695,
+      "height": 768,
+      "bbox": [
+        -67.2,
+        -25.9,
+        -67.0,
+        -25.7
+      ],
+      "extent_km": {
+        "width": 20.06,
+        "height": 22.16
+      },
+      "approx_meters_per_pixel": 28.9,
+      "request": {
+        "input": {
+          "bounds": {
+            "bbox": [
+              -67.2,
+              -25.9,
+              -67.0,
+              -25.7
+            ],
+            "properties": {
+              "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+            }
+          },
+          "data": [
+            {
+              "type": "sentinel-2-l2a",
+              "dataFilter": {
+                "timeRange": {
+                  "from": "2025-12-01T00:00:00Z",
+                  "to": "2026-01-01T00:00:00Z"
+                },
+                "mosaickingOrder": "leastCC",
+                "maxCloudCoverage": 40
+              }
+            }
+          ]
+        },
+        "output": {
+          "width": 695,
+          "height": 768,
+          "responses": [
+            {
+              "identifier": "default",
+              "format": {
+                "type": "image/png"
+              }
+            },
+            {
+              "identifier": "userdata",
+              "format": {
+                "type": "application/json"
+              }
+            }
+          ]
+        },
+        "evalscript": "//VERSION=3\n// AnalogOS Chile - contexto visual Sentinel-2 L2A (analogos-s2-visual-v1).\n// Color natural: reflectancia x GAIN; sampleType AUTO recorta a [0, 1] y cuantiza a 8 bits.\n// Por pixel se toma la primera orbita con datos, en el orden que entrega el servicio.\nvar GAIN = 2.0;\nvar pixelsByOrbitIndex = {};\nvar pixelsWithoutData = 0;\n\nfunction setup() {\n  return {\n    input: [\"B04\", \"B03\", \"B02\", \"dataMask\"],\n    mosaicking: Mosaicking.ORBIT,\n    output: { id: \"default\", bands: 4, sampleType: \"AUTO\" }\n  };\n}\n\nfunction evaluatePixel(samples) {\n  for (var i = 0; i < samples.length; i++) {\n    var sample = samples[i];\n    if (sample.dataMask === 1) {\n      pixelsByOrbitIndex[i] = (pixelsByOrbitIndex[i] || 0) + 1;\n      return [GAIN * sample.B04, GAIN * sample.B03, GAIN * sample.B02, 1];\n    }\n  }\n  pixelsWithoutData += 1;\n  return [0, 0, 0, 0];\n}\n\nfunction updateOutputMetadata(scenes, inputMetadata, outputMetadata) {\n  outputMetadata.userData = {\n    evalscript_version: \"analogos-s2-visual-v1\",\n    gain: GAIN,\n    service_version: inputMetadata.serviceVersion,\n    normalization_factor: inputMetadata.normalizationFactor,\n    orbits: scenes.orbits,\n    pixels_by_orbit_index: pixelsByOrbitIndex,\n    pixels_without_data: pixelsWithoutData\n  };\n}\n"
+      },
+      "sha256": "08a3b2dc0baf36a9954f438ff7a9b54d0b90f32d659d36727acb3669424b4ece",
+      "bytes": 1225032,
+      "queried_at": "2026-11-14T18:03:58Z",
+      "scenes_considered": 7,
+      "scenes_used": [
+        {
+          "orbit_index": 0,
+          "date_from": "2025-12-20T00:00:00Z",
+          "date_to": "2025-12-20T23:59:59Z",
+          "pixels": 533760,
+          "fraction": 1.0
+        }
+      ],
+      "valid_fraction": 1.0,
+      "returned_metadata": {
+        "evalscript_version": "analogos-s2-visual-v1",
+        "gain": 2,
+        "service_version": "5.333.0",
+        "normalization_factor": 0.0001,
+        "orbits": [
+          {
+            "dateFrom": "2025-12-20T00:00:00Z",
+            "dateTo": "2025-12-20T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56583754,
+                "cloudCoverage": 0.43,
+                "date": "2025-12-20T14:40:06.375Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/20/S2C_MSIL2A_20251220T142721_N0511_R053_T19JGM_20251220T181210.SAFE/GRANULE/L2A_T19JGM_A006744_20251220T143259/IMG_DATA/RRESOLUTION/T19JGM_20251220T142721_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251220T142721_N0511_R053_T19JGM_20251220T181210.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251220T142721_N0511_R053_T19JGM_20251220T181210.SAFE"
+              },
+              {
+                "shId": 56583878,
+                "cloudCoverage": 2.03,
+                "date": "2025-12-20T14:40:09.840Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/20/S2C_MSIL2A_20251220T142721_N0511_R053_T19JFM_20251220T181210.SAFE/GRANULE/L2A_T19JFM_A006744_20251220T143259/IMG_DATA/RRESOLUTION/T19JFM_20251220T142721_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251220T142721_N0511_R053_T19JFM_20251220T181210.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251220T142721_N0511_R053_T19JFM_20251220T181210.SAFE"
+              }
+            ],
+            "__idx": 0
+          },
+          {
+            "dateFrom": "2025-12-02T00:00:00Z",
+            "dateTo": "2025-12-02T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56375015,
+                "cloudCoverage": 2.46,
+                "date": "2025-12-02T14:40:18.907Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/02/S2A_MSIL2A_20251202T142811_N0511_R053_T19JFM_20251202T194010.SAFE/GRANULE/L2A_T19JFM_A054562_20251202T143509/IMG_DATA/RRESOLUTION/T19JFM_20251202T142811_TILEBAND_RESOLUTION",
+                "productId": "S2A_MSIL2A_20251202T142811_N0511_R053_T19JFM_20251202T194010.SAFE",
+                "sentinel2ProductId": "S2A_MSIL2A_20251202T142811_N0511_R053_T19JFM_20251202T194010.SAFE"
+              }
+            ],
+            "__idx": 1
+          },
+          {
+            "dateFrom": "2025-12-10T00:00:00Z",
+            "dateTo": "2025-12-10T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56467310,
+                "cloudCoverage": 3.03,
+                "date": "2025-12-10T14:40:10.428Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/10/S2C_MSIL2A_20251210T142721_N0511_R053_T19JFM_20251210T181015.SAFE/GRANULE/L2A_T19JFM_A006601_20251210T143237/IMG_DATA/RRESOLUTION/T19JFM_20251210T142721_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251210T142721_N0511_R053_T19JFM_20251210T181015.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251210T142721_N0511_R053_T19JFM_20251210T181015.SAFE"
+              }
+            ],
+            "__idx": 2
+          },
+          {
+            "dateFrom": "2025-12-15T00:00:00Z",
+            "dateTo": "2025-12-15T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56526047,
+                "cloudCoverage": 3.06,
+                "date": "2025-12-15T14:40:00.149Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/15/S2B_MSIL2A_20251215T142709_N0511_R053_T19JFM_20251215T180519.SAFE/GRANULE/L2A_T19JFM_A045839_20251215T143658/IMG_DATA/RRESOLUTION/T19JFM_20251215T142709_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251215T142709_N0511_R053_T19JFM_20251215T180519.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251215T142709_N0511_R053_T19JFM_20251215T180519.SAFE"
+              }
+            ],
+            "__idx": 3
+          },
+          {
+            "dateFrom": "2025-12-22T00:00:00Z",
+            "dateTo": "2025-12-22T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56610338,
+                "cloudCoverage": 3.77,
+                "date": "2025-12-22T14:40:20.424Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/22/S2A_MSIL2A_20251222T142811_N0511_R053_T19JFM_20251222T194309.SAFE/GRANULE/L2A_T19JFM_A054848_20251222T143536/IMG_DATA/RRESOLUTION/T19JFM_20251222T142811_TILEBAND_RESOLUTION",
+                "productId": "S2A_MSIL2A_20251222T142811_N0511_R053_T19JFM_20251222T194309.SAFE",
+                "sentinel2ProductId": "S2A_MSIL2A_20251222T142811_N0511_R053_T19JFM_20251222T194309.SAFE"
+              }
+            ],
+            "__idx": 4
+          },
+          {
+            "dateFrom": "2025-12-30T00:00:00Z",
+            "dateTo": "2025-12-30T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56716330,
+                "cloudCoverage": 7.61,
+                "date": "2025-12-30T14:40:09.566Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/30/S2C_MSIL2A_20251230T142721_N0511_R053_T19JFM_20251230T180410.SAFE/GRANULE/L2A_T19JFM_A006887_20251230T143237/IMG_DATA/RRESOLUTION/T19JFM_20251230T142721_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251230T142721_N0511_R053_T19JFM_20251230T180410.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251230T142721_N0511_R053_T19JFM_20251230T180410.SAFE"
+              }
+            ],
+            "__idx": 5
+          },
+          {
+            "dateFrom": "2025-12-25T00:00:00Z",
+            "dateTo": "2025-12-25T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56650053,
+                "cloudCoverage": 39.92,
+                "date": "2025-12-25T14:40:01.423Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/25/S2B_MSIL2A_20251225T142709_N0511_R053_T19JFM_20251225T180724.SAFE/GRANULE/L2A_T19JFM_A045982_20251225T143214/IMG_DATA/RRESOLUTION/T19JFM_20251225T142709_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251225T142709_N0511_R053_T19JFM_20251225T180724.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251225T142709_N0511_R053_T19JFM_20251225T180724.SAFE"
+              }
+            ],
+            "__idx": 6
+          }
+        ],
+        "pixels_by_orbit_index": {
+          "0": 533760
+        },
+        "pixels_without_data": 0
+      }
+    },
+    {
+      "site_id": "cl-pampa-yungay-screening",
+      "name": "Pampa Yungay — sector de screening",
+      "image": "cl-pampa-yungay-screening.png",
+      "sha256": "24f6a7b94f3f4f04989634723e68f189938b84b01d0e8a9fe5051012d8d4a9d0",
+      "bytes": 1205517,
+      "width": 705,
+      "height": 768,
+      "bbox": [
+        -70.05,
+        -24.18,
+        -69.85,
+        -23.98
+      ],
+      "extent_km": {
+        "width": 20.34,
+        "height": 22.15
+      },
+      "approx_meters_per_pixel": 28.8,
+      "queried_at": "2026-11-14T16:16:17Z",
+      "scenes_considered": 15,
+      "scenes_used": [
+        {
+          "orbit_index": 0,
+          "date_from": "2025-12-21T00:00:00Z",
+          "date_to": "2025-12-21T23:59:59Z",
+          "pixels": 541440,
+          "fraction": 1.0
+        }
+      ],
+      "valid_fraction": 1.0,
+      "returned_metadata": {
+        "evalscript_version": "analogos-s2-visual-v1",
+        "gain": 2,
+        "service_version": "5.333.0",
+        "normalization_factor": 0.0001,
+        "orbits": [
+          {
+            "dateFrom": "2025-12-21T00:00:00Z",
+            "dateTo": "2025-12-21T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56597769,
+                "cloudCoverage": 0,
+                "date": "2025-12-21T14:59:28.949Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/21/S2B_MSIL2A_20251221T144729_N0511_R139_T19KDP_20251221T195733.SAFE/GRANULE/L2A_T19KDP_A045925_20251221T145720/IMG_DATA/RRESOLUTION/T19KDP_20251221T144729_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251221T144729_N0511_R139_T19KDP_20251221T195733.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251221T144729_N0511_R139_T19KDP_20251221T195733.SAFE"
+              },
+              {
+                "shId": 56597701,
+                "cloudCoverage": 0.02,
+                "date": "2025-12-21T14:59:33.052Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/21/S2B_MSIL2A_20251221T144729_N0511_R139_T19KCP_20251221T195733.SAFE/GRANULE/L2A_T19KCP_A045925_20251221T145720/IMG_DATA/RRESOLUTION/T19KCP_20251221T144729_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251221T144729_N0511_R139_T19KCP_20251221T195733.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251221T144729_N0511_R139_T19KCP_20251221T195733.SAFE"
+              }
+            ],
+            "__idx": 0
+          },
+          {
+            "dateFrom": "2025-12-11T00:00:00Z",
+            "dateTo": "2025-12-11T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56479242,
+                "cloudCoverage": 0.01,
+                "date": "2025-12-11T14:59:28.061Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/11/S2B_MSIL2A_20251211T144729_N0511_R139_T19KDP_20251211T181911.SAFE/GRANULE/L2A_T19KDP_A045782_20251211T145719/IMG_DATA/RRESOLUTION/T19KDP_20251211T144729_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251211T144729_N0511_R139_T19KDP_20251211T181911.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251211T144729_N0511_R139_T19KDP_20251211T181911.SAFE"
+              },
+              {
+                "shId": 56479368,
+                "cloudCoverage": 14.92,
+                "date": "2025-12-11T14:59:32.168Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/11/S2B_MSIL2A_20251211T144729_N0511_R139_T19KCP_20251211T181911.SAFE/GRANULE/L2A_T19KCP_A045782_20251211T145719/IMG_DATA/RRESOLUTION/T19KCP_20251211T144729_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251211T144729_N0511_R139_T19KCP_20251211T181911.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251211T144729_N0511_R139_T19KCP_20251211T181911.SAFE"
+              }
+            ],
+            "__idx": 1
+          },
+          {
+            "dateFrom": "2025-12-06T00:00:00Z",
+            "dateTo": "2025-12-06T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56420482,
+                "cloudCoverage": 0.02,
+                "date": "2025-12-06T14:59:37.862Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/06/S2C_MSIL2A_20251206T144741_N0511_R139_T19KDP_20251206T182513.SAFE/GRANULE/L2A_T19KDP_A006544_20251206T145230/IMG_DATA/RRESOLUTION/T19KDP_20251206T144741_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251206T144741_N0511_R139_T19KDP_20251206T182513.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251206T144741_N0511_R139_T19KDP_20251206T182513.SAFE"
+              },
+              {
+                "shId": 56420341,
+                "cloudCoverage": 33.2,
+                "date": "2025-12-06T14:59:42.025Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/06/S2C_MSIL2A_20251206T144741_N0511_R139_T19KCP_20251206T182513.SAFE/GRANULE/L2A_T19KCP_A006544_20251206T145230/IMG_DATA/RRESOLUTION/T19KCP_20251206T144741_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251206T144741_N0511_R139_T19KCP_20251206T182513.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251206T144741_N0511_R139_T19KCP_20251206T182513.SAFE"
+              }
+            ],
+            "__idx": 2
+          },
+          {
+            "dateFrom": "2025-12-25T00:00:00Z",
+            "dateTo": "2025-12-25T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56651052,
+                "cloudCoverage": 0.06,
+                "date": "2025-12-25T14:49:55.203Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/25/S2A_MSIL2A_20251225T143801_N0511_R096_T19KDP_20251225T195610.SAFE/GRANULE/L2A_T19KDP_A054891_20251225T144110/IMG_DATA/RRESOLUTION/T19KDP_20251225T143801_TILEBAND_RESOLUTION",
+                "productId": "S2A_MSIL2A_20251225T143801_N0511_R096_T19KDP_20251225T195610.SAFE",
+                "sentinel2ProductId": "S2A_MSIL2A_20251225T143801_N0511_R096_T19KDP_20251225T195610.SAFE"
+              },
+              {
+                "shId": 56650892,
+                "cloudCoverage": 0.13,
+                "date": "2025-12-25T14:49:58.766Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/25/S2A_MSIL2A_20251225T143801_N0511_R096_T19KCP_20251225T195610.SAFE/GRANULE/L2A_T19KCP_A054891_20251225T144110/IMG_DATA/RRESOLUTION/T19KCP_20251225T143801_TILEBAND_RESOLUTION",
+                "productId": "S2A_MSIL2A_20251225T143801_N0511_R096_T19KCP_20251225T195610.SAFE",
+                "sentinel2ProductId": "S2A_MSIL2A_20251225T143801_N0511_R096_T19KCP_20251225T195610.SAFE"
+              }
+            ],
+            "__idx": 3
+          },
+          {
+            "dateFrom": "2025-12-03T00:00:00Z",
+            "dateTo": "2025-12-03T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56386293,
+                "cloudCoverage": 0.07,
+                "date": "2025-12-03T14:49:43.100Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/03/S2C_MSIL2A_20251203T143751_N0511_R096_T19KDP_20251203T181813.SAFE/GRANULE/L2A_T19KDP_A006501_20251203T144123/IMG_DATA/RRESOLUTION/T19KDP_20251203T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251203T143751_N0511_R096_T19KDP_20251203T181813.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251203T143751_N0511_R096_T19KDP_20251203T181813.SAFE"
+              },
+              {
+                "shId": 56386313,
+                "cloudCoverage": 0.2,
+                "date": "2025-12-03T14:49:46.658Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/03/S2C_MSIL2A_20251203T143751_N0511_R096_T19KCP_20251203T181813.SAFE/GRANULE/L2A_T19KCP_A006501_20251203T144123/IMG_DATA/RRESOLUTION/T19KCP_20251203T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251203T143751_N0511_R096_T19KCP_20251203T181813.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251203T143751_N0511_R096_T19KCP_20251203T181813.SAFE"
+              }
+            ],
+            "__idx": 4
+          },
+          {
+            "dateFrom": "2025-12-18T00:00:00Z",
+            "dateTo": "2025-12-18T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56560776,
+                "cloudCoverage": 0.16,
+                "date": "2025-12-18T14:49:33.517Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/18/S2B_MSIL2A_20251218T143739_N0511_R096_T19KDP_20251218T181336.SAFE/GRANULE/L2A_T19KDP_A045882_20251218T144616/IMG_DATA/RRESOLUTION/T19KDP_20251218T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251218T143739_N0511_R096_T19KDP_20251218T181336.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251218T143739_N0511_R096_T19KDP_20251218T181336.SAFE"
+              },
+              {
+                "shId": 56560917,
+                "cloudCoverage": 0.59,
+                "date": "2025-12-18T14:49:37.102Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/18/S2B_MSIL2A_20251218T143739_N0511_R096_T19KCP_20251218T181336.SAFE/GRANULE/L2A_T19KCP_A045882_20251218T144616/IMG_DATA/RRESOLUTION/T19KCP_20251218T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251218T143739_N0511_R096_T19KCP_20251218T181336.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251218T143739_N0511_R096_T19KCP_20251218T181336.SAFE"
+              }
+            ],
+            "__idx": 5
+          },
+          {
+            "dateFrom": "2025-12-16T00:00:00Z",
+            "dateTo": "2025-12-16T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56537591,
+                "cloudCoverage": 0.17,
+                "date": "2025-12-16T14:59:38.371Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/16/S2C_MSIL2A_20251216T144741_N0511_R139_T19KDP_20251216T182710.SAFE/GRANULE/L2A_T19KDP_A006687_20251216T145248/IMG_DATA/RRESOLUTION/T19KDP_20251216T144741_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251216T144741_N0511_R139_T19KDP_20251216T182710.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251216T144741_N0511_R139_T19KDP_20251216T182710.SAFE"
+              },
+              {
+                "shId": 56537715,
+                "cloudCoverage": 1.23,
+                "date": "2025-12-16T14:59:42.545Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/16/S2C_MSIL2A_20251216T144741_N0511_R139_T19KCP_20251216T182710.SAFE/GRANULE/L2A_T19KCP_A006687_20251216T145248/IMG_DATA/RRESOLUTION/T19KCP_20251216T144741_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251216T144741_N0511_R139_T19KCP_20251216T182710.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251216T144741_N0511_R139_T19KCP_20251216T182710.SAFE"
+              }
+            ],
+            "__idx": 6
+          },
+          {
+            "dateFrom": "2025-12-08T00:00:00Z",
+            "dateTo": "2025-12-08T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56444176,
+                "cloudCoverage": 0.22,
+                "date": "2025-12-08T14:49:32.802Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/08/S2B_MSIL2A_20251208T143739_N0511_R096_T19KDP_20251208T181537.SAFE/GRANULE/L2A_T19KDP_A045739_20251208T144601/IMG_DATA/RRESOLUTION/T19KDP_20251208T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251208T143739_N0511_R096_T19KDP_20251208T181537.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251208T143739_N0511_R096_T19KDP_20251208T181537.SAFE"
+              },
+              {
+                "shId": 56444159,
+                "cloudCoverage": 0.54,
+                "date": "2025-12-08T14:49:36.382Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/08/S2B_MSIL2A_20251208T143739_N0511_R096_T19KCP_20251208T181537.SAFE/GRANULE/L2A_T19KCP_A045739_20251208T144601/IMG_DATA/RRESOLUTION/T19KCP_20251208T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251208T143739_N0511_R096_T19KCP_20251208T181537.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251208T143739_N0511_R096_T19KCP_20251208T181537.SAFE"
+              }
+            ],
+            "__idx": 7
+          },
+          {
+            "dateFrom": "2025-12-23T00:00:00Z",
+            "dateTo": "2025-12-23T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56622947,
+                "cloudCoverage": 1.16,
+                "date": "2025-12-23T14:49:46.799Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/23/S2C_MSIL2A_20251223T143751_N0511_R096_T19KCP_20251223T181410.SAFE/GRANULE/L2A_T19KCP_A006787_20251223T144217/IMG_DATA/RRESOLUTION/T19KCP_20251223T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251223T143751_N0511_R096_T19KCP_20251223T181410.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251223T143751_N0511_R096_T19KCP_20251223T181410.SAFE"
+              },
+              {
+                "shId": 56623124,
+                "cloudCoverage": 3.56,
+                "date": "2025-12-23T14:49:43.268Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/23/S2C_MSIL2A_20251223T143751_N0511_R096_T19KDP_20251223T181410.SAFE/GRANULE/L2A_T19KDP_A006787_20251223T144217/IMG_DATA/RRESOLUTION/T19KDP_20251223T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251223T143751_N0511_R096_T19KDP_20251223T181410.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251223T143751_N0511_R096_T19KDP_20251223T181410.SAFE"
+              }
+            ],
+            "__idx": 8
+          },
+          {
+            "dateFrom": "2025-12-01T00:00:00Z",
+            "dateTo": "2025-12-01T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56362904,
+                "cloudCoverage": 2.75,
+                "date": "2025-12-01T14:59:28.925Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/01/S2B_MSIL2A_20251201T144729_N0511_R139_T19KCP_20251201T182133.SAFE/GRANULE/L2A_T19KCP_A045639_20251201T145437/IMG_DATA/RRESOLUTION/T19KCP_20251201T144729_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251201T144729_N0511_R139_T19KCP_20251201T182133.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251201T144729_N0511_R139_T19KCP_20251201T182133.SAFE"
+              },
+              {
+                "shId": 56362491,
+                "cloudCoverage": 5.89,
+                "date": "2025-12-01T14:59:24.869Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/01/S2B_MSIL2A_20251201T144729_N0511_R139_T19KDP_20251201T182133.SAFE/GRANULE/L2A_T19KDP_A045639_20251201T145437/IMG_DATA/RRESOLUTION/T19KDP_20251201T144729_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251201T144729_N0511_R139_T19KDP_20251201T182133.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251201T144729_N0511_R139_T19KDP_20251201T182133.SAFE"
+              }
+            ],
+            "__idx": 9
+          },
+          {
+            "dateFrom": "2025-12-28T00:00:00Z",
+            "dateTo": "2025-12-28T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56690608,
+                "cloudCoverage": 3.01,
+                "date": "2025-12-28T14:49:35.009Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/28/S2B_MSIL2A_20251228T143739_N0511_R096_T19KDP_20251228T195813.SAFE/GRANULE/L2A_T19KDP_A046025_20251228T144314/IMG_DATA/RRESOLUTION/T19KDP_20251228T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251228T143739_N0511_R096_T19KDP_20251228T195813.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251228T143739_N0511_R096_T19KDP_20251228T195813.SAFE"
+              },
+              {
+                "shId": 56690535,
+                "cloudCoverage": 8.98,
+                "date": "2025-12-28T14:49:38.574Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/28/S2B_MSIL2A_20251228T143739_N0511_R096_T19KCP_20251228T195813.SAFE/GRANULE/L2A_T19KCP_A046025_20251228T144314/IMG_DATA/RRESOLUTION/T19KCP_20251228T143739_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251228T143739_N0511_R096_T19KCP_20251228T195813.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251228T143739_N0511_R096_T19KCP_20251228T195813.SAFE"
+              }
+            ],
+            "__idx": 10
+          },
+          {
+            "dateFrom": "2025-12-13T00:00:00Z",
+            "dateTo": "2025-12-13T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56504543,
+                "cloudCoverage": 5.06,
+                "date": "2025-12-13T14:49:43.928Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/13/S2C_MSIL2A_20251213T143751_N0511_R096_T19KDP_20251213T182210.SAFE/GRANULE/L2A_T19KDP_A006644_20251213T144214/IMG_DATA/RRESOLUTION/T19KDP_20251213T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251213T143751_N0511_R096_T19KDP_20251213T182210.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251213T143751_N0511_R096_T19KDP_20251213T182210.SAFE"
+              },
+              {
+                "shId": 56504523,
+                "cloudCoverage": 24.9,
+                "date": "2025-12-13T14:49:47.447Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/13/S2C_MSIL2A_20251213T143751_N0511_R096_T19KCP_20251213T182210.SAFE/GRANULE/L2A_T19KCP_A006644_20251213T144214/IMG_DATA/RRESOLUTION/T19KCP_20251213T143751_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251213T143751_N0511_R096_T19KCP_20251213T182210.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251213T143751_N0511_R096_T19KCP_20251213T182210.SAFE"
+              }
+            ],
+            "__idx": 11
+          },
+          {
+            "dateFrom": "2025-12-05T00:00:00Z",
+            "dateTo": "2025-12-05T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56409928,
+                "cloudCoverage": 9.79,
+                "date": "2025-12-05T14:49:55.248Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/05/S2A_MSIL2A_20251205T143801_N0511_R096_T19KCP_20251205T195110.SAFE/GRANULE/L2A_T19KCP_A054605_20251205T144038/IMG_DATA/RRESOLUTION/T19KCP_20251205T143801_TILEBAND_RESOLUTION",
+                "productId": "S2A_MSIL2A_20251205T143801_N0511_R096_T19KCP_20251205T195110.SAFE",
+                "sentinel2ProductId": "S2A_MSIL2A_20251205T143801_N0511_R096_T19KCP_20251205T195110.SAFE"
+              }
+            ],
+            "__idx": 12
+          },
+          {
+            "dateFrom": "2025-12-31T00:00:00Z",
+            "dateTo": "2025-12-31T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56730493,
+                "cloudCoverage": 15.99,
+                "date": "2025-12-31T14:59:33.679Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/31/S2B_MSIL2A_20251231T144729_N0511_R139_T19KCP_20251231T200248.SAFE/GRANULE/L2A_T19KCP_A046068_20251231T145417/IMG_DATA/RRESOLUTION/T19KCP_20251231T144729_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251231T144729_N0511_R139_T19KCP_20251231T200248.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251231T144729_N0511_R139_T19KCP_20251231T200248.SAFE"
+              },
+              {
+                "shId": 56730591,
+                "cloudCoverage": 36.57,
+                "date": "2025-12-31T14:59:29.574Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/31/S2B_MSIL2A_20251231T144729_N0511_R139_T19KDP_20251231T200248.SAFE/GRANULE/L2A_T19KDP_A046068_20251231T145417/IMG_DATA/RRESOLUTION/T19KDP_20251231T144729_TILEBAND_RESOLUTION",
+                "productId": "S2B_MSIL2A_20251231T144729_N0511_R139_T19KDP_20251231T200248.SAFE",
+                "sentinel2ProductId": "S2B_MSIL2A_20251231T144729_N0511_R139_T19KDP_20251231T200248.SAFE"
+              }
+            ],
+            "__idx": 13
+          },
+          {
+            "dateFrom": "2025-12-26T00:00:00Z",
+            "dateTo": "2025-12-26T23:59:59Z",
+            "tiles": [
+              {
+                "shId": 56663079,
+                "cloudCoverage": 25.76,
+                "date": "2025-12-26T14:59:42.108Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/26/S2C_MSIL2A_20251226T144741_N0511_R139_T19KCP_20251226T182414.SAFE/GRANULE/L2A_T19KCP_A006830_20251226T145248/IMG_DATA/RRESOLUTION/T19KCP_20251226T144741_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251226T144741_N0511_R139_T19KCP_20251226T182414.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251226T144741_N0511_R139_T19KCP_20251226T182414.SAFE"
+              },
+              {
+                "shId": 56662981,
+                "cloudCoverage": 37.66,
+                "date": "2025-12-26T14:59:37.936Z",
+                "dataPath": "creo://eodata/Sentinel-2/MSI/L2A/2025/12/26/S2C_MSIL2A_20251226T144741_N0511_R139_T19KDP_20251226T182414.SAFE/GRANULE/L2A_T19KDP_A006830_20251226T145248/IMG_DATA/RRESOLUTION/T19KDP_20251226T144741_TILEBAND_RESOLUTION",
+                "productId": "S2C_MSIL2A_20251226T144741_N0511_R139_T19KDP_20251226T182414.SAFE",
+                "sentinel2ProductId": "S2C_MSIL2A_20251226T144741_N0511_R139_T19KDP_20251226T182414.SAFE"
+              }
+            ],
+            "__idx": 14
+          }
+        ],
+        "pixels_by_orbit_index": {
+          "0": 541440
+        },
+        "pixels_without_data": 0
+      },
+      "request": {
+        "input": {
+          "bounds": {
+            "bbox": [
+              -70.05,
+              -24.18,
+              -69.85,
+              -23.98
+            ],
+            "properties": {
+              "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+            }
+          },
+          "data": [
+            {
+              "type": "sentinel-2-l2a",
+              "dataFilter": {
+                "timeRange": {
+                  "from": "2025-12-01T00:00:00Z",
+                  "to": "2026-01-01T00:00:00Z"
+                },
+                "mosaickingOrder": "leastCC",
+                "maxCloudCoverage": 40
+              }
+            }
+          ]
+        },
+        "output": {
+          "width": 705,
+          "height": 768,
+          "responses": [
+            {
+              "identifier": "default",
+              "format": {
+                "type": "image/png"
+              }
+            },
+            {
+              "identifier": "userdata",
+              "format": {
+                "type": "application/json"
+              }
+            }
+          ]
+        },
+        "evalscript": "//VERSION=3\n// AnalogOS Chile - contexto visual Sentinel-2 L2A (analogos-s2-visual-v1).\n// Color natural: reflectancia x GAIN; sampleType AUTO recorta a [0, 1] y cuantiza a 8 bits.\n// Por pixel se toma la primera orbita con datos, en el orden que entrega el servicio.\nvar GAIN = 2.0;\nvar pixelsByOrbitIndex = {};\nvar pixelsWithoutData = 0;\n\nfunction setup() {\n  return {\n    input: [\"B04\", \"B03\", \"B02\", \"dataMask\"],\n    mosaicking: Mosaicking.ORBIT,\n    output: { id: \"default\", bands: 4, sampleType: \"AUTO\" }\n  };\n}\n\nfunction evaluatePixel(samples) {\n  for (var i = 0; i < samples.length; i++) {\n    var sample = samples[i];\n    if (sample.dataMask === 1) {\n      pixelsByOrbitIndex[i] = (pixelsByOrbitIndex[i] || 0) + 1;\n      return [GAIN * sample.B04, GAIN * sample.B03, GAIN * sample.B02, 1];\n    }\n  }\n  pixelsWithoutData += 1;\n  return [0, 0, 0, 0];\n}\n\nfunction updateOutputMetadata(scenes, inputMetadata, outputMetadata) {\n  outputMetadata.userData = {\n    evalscript_version: \"analogos-s2-visual-v1\",\n    gain: GAIN,\n    service_version: inputMetadata.serviceVersion,\n    normalization_factor: inputMetadata.normalizationFactor,\n    orbits: scenes.orbits,\n    pixels_by_orbit_index: pixelsByOrbitIndex,\n    pixels_without_data: pixelsWithoutData\n  };\n}\n"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1933 @@
+{
+  "snapshot_version": "science-screening-v3",
+  "method": "Rejilla de 50 ventanas → prioridad topográfica NASADEM vs MOLA → hasta 6 ventanas con Sentinel-2 L2A mensual y POWER; fórmulas y pesos v2. Yungay recalculado como referencia.",
+  "mola_reference": {
+    "name": "Entorno regional de Jezero, Marte",
+    "center": [
+      77.58,
+      18.38
+    ],
+    "window_degree": 1.6,
+    "nominal_spacing_meter": 451.2,
+    "median_slope_degree": 2.226,
+    "median_neighbor_difference_meter": 11.0,
+    "median_3x3_relief_meter": 47.0,
+    "valid_fraction": 1.0,
+    "elevation_p05_meter": -2764.0,
+    "elevation_p95_meter": -1658.0
+  },
+  "search": {
+    "search_id": "analogos-pilot-cl-ar-v3",
+    "counts": {
+      "attempted": 50,
+      "evaluated": 50,
+      "not_selected_proximity": 2,
+      "not_selected_quota": 38,
+      "rejected_precedent_overlap": 4,
+      "selected": 6
+    },
+    "shortlist": [
+      "cl-win-s2500-w06970",
+      "cl-win-s2480-w06950",
+      "cl-win-s2520-w06950",
+      "ar-win-s2620-w06750",
+      "ar-win-s2640-w06730",
+      "ar-win-s2580-w06710"
+    ],
+    "explored_area_km2": 22274.0
+  },
+  "sites": [
+    {
+      "site_id": "cl-win-s2500-w06970",
+      "role": "candidate",
+      "nasadem": {
+        "tiles": [
+          "s25w070",
+          "s26w070"
+        ],
+        "center": [
+          -69.7,
+          -25.0
+        ],
+        "window_degree": 0.2,
+        "source_spacing_meter": 29.4,
+        "analysis_spacing_meter": 471.0,
+        "permanent_water_fraction": 0.0,
+        "source_valid_fraction": 1.0,
+        "source_scale": {
+          "slope_p90_degree": 10.034,
+          "slope_p95_degree": 13.558,
+          "fraction_over_15_degree": 0.03887,
+          "fraction_over_25_degree": 0.004467
+        },
+        "median_slope_degree": 2.169,
+        "median_neighbor_difference_meter": 11.291,
+        "median_3x3_relief_meter": 46.797,
+        "valid_fraction": 1.0,
+        "elevation_p05_meter": 2305.0,
+        "elevation_p95_meter": 2775.1
+      },
+      "sentinel2": {
+        "valid_intervals": 12,
+        "expected_intervals": 12,
+        "median_valid_fraction": 1.0,
+        "nonvegetated_fraction": 1.0,
+        "vegetation_fraction": 0.0,
+        "water_fraction": 0.0,
+        "maximum_monthly_water_fraction": 0.0,
+        "median_ndvi": 0.053613,
+        "median_bsi": 0.117417,
+        "temporal_ndvi_stdev": 0.003615,
+        "quality": 0.9,
+        "monthly": [
+          {
+            "from": "2025-01-01T00:00:00Z",
+            "to": "2025-02-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.11270918147215658,
+            "ndvi": 0.055136655192522574,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-02-01T00:00:00Z",
+            "to": "2025-03-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.1171859179107312,
+            "ndvi": 0.049397195882522504,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-03-01T00:00:00Z",
+            "to": "2025-04-01T00:00:00Z",
+            "valid_fraction": 0.9999932567449409,
+            "bsi": 0.12030292688620166,
+            "ndvi": 0.05639031753712121,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-04-01T00:00:00Z",
+            "to": "2025-05-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.121917907760403,
+            "ndvi": 0.05038722996026877,
+            "nonvegetated": 0.9999775224831265,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-05-01T00:00:00Z",
+            "to": "2025-06-01T00:00:00Z",
+            "valid_fraction": 0.9999977522483137,
+            "bsi": 0.1179470425987037,
+            "ndvi": 0.05634631056735843,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-06-01T00:00:00Z",
+            "to": "2025-07-01T00:00:00Z",
+            "valid_fraction": 0.999395354796365,
+            "bsi": 0.12495024997705988,
+            "ndvi": 0.0569879245365519,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-07-01T00:00:00Z",
+            "to": "2025-08-01T00:00:00Z",
+            "valid_fraction": 0.9997257742942621,
+            "bsi": 0.12879873189095944,
+            "ndvi": 0.04892896375678067,
+            "nonvegetated": 0.9999977516317553,
+            "vegetation": 2.2483682467449385e-06,
+            "water": 0.0
+          },
+          {
+            "from": "2025-08-01T00:00:00Z",
+            "to": "2025-09-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.11764753162413899,
+            "ndvi": 0.054414018291782,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-09-01T00:00:00Z",
+            "to": "2025-10-01T00:00:00Z",
+            "valid_fraction": 0.9981613391205447,
+            "bsi": 0.11013443046766731,
+            "ndvi": 0.06034669213694676,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-10-01T00:00:00Z",
+            "to": "2025-11-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.11632061798565763,
+            "ndvi": 0.052811238053001155,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-11-01T00:00:00Z",
+            "to": "2025-12-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.10906566501714186,
+            "ndvi": 0.052305681862694096,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-12-01T00:00:00Z",
+            "to": "2026-01-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.11600787658653819,
+            "ndvi": 0.048158736590384964,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          }
+        ],
+        "rejected_intervals": []
+      },
+      "hls_granule_count": 85,
+      "nasa_power": {
+        "annual_precipitation_mm": 10.96,
+        "skin_temperature_range_c": 53.82,
+        "skin_temperature_mean_c": 17.23,
+        "period": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)",
+        "api_version": "v2.10.1",
+        "request_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-69.7&latitude=-25.0&format=JSON"
+      },
+      "valid_weight": 0.9,
+      "sensitivity": {
+        "stability": 99.33,
+        "max_score_delta": 0.67,
+        "scenarios": [
+          {
+            "criterion_id": "slope",
+            "direction": "minus",
+            "score": 94.75,
+            "delta": -0.12
+          },
+          {
+            "criterion_id": "slope",
+            "direction": "plus",
+            "score": 94.98,
+            "delta": 0.11
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "minus",
+            "score": 94.75,
+            "delta": -0.12
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "plus",
+            "score": 94.98,
+            "delta": 0.11
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "minus",
+            "score": 94.71,
+            "delta": -0.16
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "plus",
+            "score": 95.02,
+            "delta": 0.15
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "minus",
+            "score": 94.64,
+            "delta": -0.23
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "plus",
+            "score": 95.08,
+            "delta": 0.21
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "minus",
+            "score": 95.54,
+            "delta": 0.67
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "plus",
+            "score": 94.23,
+            "delta": -0.64
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "minus",
+            "score": 94.81,
+            "delta": -0.06
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "plus",
+            "score": 94.92,
+            "delta": 0.05
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "minus",
+            "score": 94.87,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "plus",
+            "score": 94.87,
+            "delta": 0.0
+          }
+        ]
+      },
+      "source_problems": [],
+      "power_values_matching": [],
+      "visual_observation": "numerosas trazas lineales y una red sinuosa y ramificada de tono claro en el noreste"
+    },
+    {
+      "site_id": "cl-win-s2480-w06950",
+      "role": "candidate",
+      "nasadem": {
+        "tiles": [
+          "s25w070"
+        ],
+        "center": [
+          -69.5,
+          -24.8
+        ],
+        "window_degree": 0.2,
+        "source_spacing_meter": 29.5,
+        "analysis_spacing_meter": 471.4,
+        "permanent_water_fraction": 0.0,
+        "source_valid_fraction": 1.0,
+        "source_scale": {
+          "slope_p90_degree": 9.298,
+          "slope_p95_degree": 12.874,
+          "fraction_over_15_degree": 0.035455,
+          "fraction_over_25_degree": 0.004944
+        },
+        "median_slope_degree": 2.388,
+        "median_neighbor_difference_meter": 10.992,
+        "median_3x3_relief_meter": 49.348,
+        "valid_fraction": 1.0,
+        "elevation_p05_meter": 1986.5,
+        "elevation_p95_meter": 2566.8
+      },
+      "sentinel2": {
+        "valid_intervals": 12,
+        "expected_intervals": 12,
+        "median_valid_fraction": 0.999949,
+        "nonvegetated_fraction": 1.0,
+        "vegetation_fraction": 0.0,
+        "water_fraction": 0.0,
+        "maximum_monthly_water_fraction": 0.0,
+        "median_ndvi": 0.060923,
+        "median_bsi": 0.138133,
+        "temporal_ndvi_stdev": 0.00342,
+        "quality": 0.9,
+        "monthly": [
+          {
+            "from": "2025-01-01T00:00:00Z",
+            "to": "2025-02-01T00:00:00Z",
+            "valid_fraction": 0.9995909091930796,
+            "bsi": 0.13188459584329626,
+            "ndvi": 0.06103745165328392,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-02-01T00:00:00Z",
+            "to": "2025-03-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.13609083441296188,
+            "ndvi": 0.05619118061352916,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-03-01T00:00:00Z",
+            "to": "2025-04-01T00:00:00Z",
+            "valid_fraction": 0.9999527972145861,
+            "bsi": 0.14078224631614433,
+            "ndvi": 0.060074663460872965,
+            "nonvegetated": 0.999988760711062,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-04-01T00:00:00Z",
+            "to": "2025-05-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.14194886454623162,
+            "ndvi": 0.05468919711463912,
+            "nonvegetated": 0.9998696304022067,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-05-01T00:00:00Z",
+            "to": "2025-06-01T00:00:00Z",
+            "valid_fraction": 0.9999955044966272,
+            "bsi": 0.13826447995861355,
+            "ndvi": 0.061383268612014395,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-06-01T00:00:00Z",
+            "to": "2025-07-01T00:00:00Z",
+            "valid_fraction": 0.999946053959527,
+            "bsi": 0.1459099147316334,
+            "ndvi": 0.061391400214576286,
+            "nonvegetated": 0.9995391860451943,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-07-01T00:00:00Z",
+            "to": "2025-08-01T00:00:00Z",
+            "valid_fraction": 0.9999977522483137,
+            "bsi": 0.15150770826003182,
+            "ndvi": 0.05649808649476769,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-08-01T00:00:00Z",
+            "to": "2025-09-01T00:00:00Z",
+            "valid_fraction": 0.9999887612415681,
+            "bsi": 0.13800185276348753,
+            "ndvi": 0.06255391880243316,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-09-01T00:00:00Z",
+            "to": "2025-10-01T00:00:00Z",
+            "valid_fraction": 0.9943603910188834,
+            "bsi": 0.13149455575843808,
+            "ndvi": 0.0684581745837884,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-10-01T00:00:00Z",
+            "to": "2025-11-01T00:00:00Z",
+            "valid_fraction": 0.9996133867099434,
+            "bsi": 0.1387388402046995,
+            "ndvi": 0.06086956092090043,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-11-01T00:00:00Z",
+            "to": "2025-12-01T00:00:00Z",
+            "valid_fraction": 0.9991705796277274,
+            "bsi": 0.13025548862825917,
+            "ndvi": 0.06097692914573335,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-12-01T00:00:00Z",
+            "to": "2026-01-01T00:00:00Z",
+            "valid_fraction": 0.9996943057706529,
+            "bsi": 0.13407417362588475,
+            "ndvi": 0.05881741686408234,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          }
+        ],
+        "rejected_intervals": []
+      },
+      "hls_granule_count": 85,
+      "nasa_power": {
+        "annual_precipitation_mm": 18.26,
+        "skin_temperature_range_c": 56.29,
+        "skin_temperature_mean_c": 12.04,
+        "period": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)",
+        "api_version": "v2.10.1",
+        "request_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-69.5&latitude=-24.8&format=JSON"
+      },
+      "valid_weight": 0.9,
+      "sensitivity": {
+        "stability": 99.03,
+        "max_score_delta": 0.97,
+        "scenarios": [
+          {
+            "criterion_id": "slope",
+            "direction": "minus",
+            "score": 91.8,
+            "delta": -0.07
+          },
+          {
+            "criterion_id": "slope",
+            "direction": "plus",
+            "score": 91.92,
+            "delta": 0.05
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "minus",
+            "score": 91.51,
+            "delta": -0.36
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "plus",
+            "score": 92.2,
+            "delta": 0.33
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "minus",
+            "score": 91.75,
+            "delta": -0.12
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "plus",
+            "score": 91.97,
+            "delta": 0.1
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "minus",
+            "score": 91.51,
+            "delta": -0.36
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "plus",
+            "score": 92.2,
+            "delta": 0.33
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "minus",
+            "score": 92.84,
+            "delta": 0.97
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "plus",
+            "score": 90.95,
+            "delta": -0.92
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "minus",
+            "score": 91.78,
+            "delta": -0.09
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "plus",
+            "score": 91.95,
+            "delta": 0.08
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "minus",
+            "score": 91.87,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "plus",
+            "score": 91.87,
+            "delta": 0.0
+          }
+        ]
+      },
+      "source_problems": [],
+      "power_values_matching": [
+        "cl-win-s2520-w06950"
+      ],
+      "visual_observation": "relieve con abanicos, una franja clara ancha y sinuosa que cruza la ventana y trazas lineales"
+    },
+    {
+      "site_id": "cl-win-s2520-w06950",
+      "role": "candidate",
+      "nasadem": {
+        "tiles": [
+          "s26w070"
+        ],
+        "center": [
+          -69.5,
+          -25.2
+        ],
+        "window_degree": 0.2,
+        "source_spacing_meter": 29.4,
+        "analysis_spacing_meter": 470.7,
+        "permanent_water_fraction": 0.0,
+        "source_valid_fraction": 1.0,
+        "source_scale": {
+          "slope_p90_degree": 7.379,
+          "slope_p95_degree": 10.184,
+          "fraction_over_15_degree": 0.016819,
+          "fraction_over_25_degree": 0.001547
+        },
+        "median_slope_degree": 2.375,
+        "median_neighbor_difference_meter": 12.242,
+        "median_3x3_relief_meter": 47.68,
+        "valid_fraction": 1.0,
+        "elevation_p05_meter": 2395.3,
+        "elevation_p95_meter": 3027.1
+      },
+      "sentinel2": {
+        "valid_intervals": 12,
+        "expected_intervals": 12,
+        "median_valid_fraction": 0.994953,
+        "nonvegetated_fraction": 1.0,
+        "vegetation_fraction": 0.0,
+        "water_fraction": 0.0,
+        "maximum_monthly_water_fraction": 2e-06,
+        "median_ndvi": 0.059711,
+        "median_bsi": 0.145624,
+        "temporal_ndvi_stdev": 0.003455,
+        "quality": 0.8955,
+        "monthly": [
+          {
+            "from": "2025-01-01T00:00:00Z",
+            "to": "2025-02-01T00:00:00Z",
+            "valid_fraction": 0.9943064449784104,
+            "bsi": 0.1409598426342017,
+            "ndvi": 0.06169690416152013,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-02-01T00:00:00Z",
+            "to": "2025-03-01T00:00:00Z",
+            "valid_fraction": 0.9968036971019737,
+            "bsi": 0.14530853318264655,
+            "ndvi": 0.0559523723895251,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-03-01T00:00:00Z",
+            "to": "2025-04-01T00:00:00Z",
+            "valid_fraction": 0.9954505505867756,
+            "bsi": 0.14998082247592232,
+            "ndvi": 0.0602440742102386,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-04-01T00:00:00Z",
+            "to": "2025-05-01T00:00:00Z",
+            "valid_fraction": 0.9960259750184878,
+            "bsi": 0.14843914990766716,
+            "ndvi": 0.056419189893042586,
+            "nonvegetated": 0.9999526088810824,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-05-01T00:00:00Z",
+            "to": "2025-06-01T00:00:00Z",
+            "valid_fraction": 0.9944547965897111,
+            "bsi": 0.14524413059377708,
+            "ndvi": 0.06168875584530187,
+            "nonvegetated": 0.9999457531496985,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-06-01T00:00:00Z",
+            "to": "2025-07-01T00:00:00Z",
+            "valid_fraction": 0.9880666862970314,
+            "bsi": 0.15290367681624148,
+            "ndvi": 0.06245646676387387,
+            "nonvegetated": 0.9997702352245151,
+            "vegetation": 0.0,
+            "water": 2.2748987670048826e-06
+          },
+          {
+            "from": "2025-07-01T00:00:00Z",
+            "to": "2025-08-01T00:00:00Z",
+            "valid_fraction": 0.9908471551330781,
+            "bsi": 0.15854860706452437,
+            "ndvi": 0.054800057506814326,
+            "nonvegetated": 0.9999296760333864,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-08-01T00:00:00Z",
+            "to": "2025-09-01T00:00:00Z",
+            "valid_fraction": 0.9944503010863384,
+            "bsi": 0.14594021225144962,
+            "ndvi": 0.05946496154026373,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-09-01T00:00:00Z",
+            "to": "2025-10-01T00:00:00Z",
+            "valid_fraction": 0.9927869648384203,
+            "bsi": 0.1386000414956345,
+            "ndvi": 0.06778151229436129,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-10-01T00:00:00Z",
+            "to": "2025-11-01T00:00:00Z",
+            "valid_fraction": 0.9968958549211152,
+            "bsi": 0.14653627769914124,
+            "ndvi": 0.059859444936463876,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-11-01T00:00:00Z",
+            "to": "2025-12-01T00:00:00Z",
+            "valid_fraction": 0.9985074928802465,
+            "bsi": 0.13848203094191888,
+            "ndvi": 0.059562821555944806,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-12-01T00:00:00Z",
+            "to": "2026-01-01T00:00:00Z",
+            "valid_fraction": 0.998444555833028,
+            "bsi": 0.1445180141620035,
+            "ndvi": 0.0560712986921347,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          }
+        ],
+        "rejected_intervals": []
+      },
+      "hls_granule_count": 85,
+      "nasa_power": {
+        "annual_precipitation_mm": 18.26,
+        "skin_temperature_range_c": 56.29,
+        "skin_temperature_mean_c": 12.04,
+        "period": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)",
+        "api_version": "v2.10.1",
+        "request_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-69.5&latitude=-25.2&format=JSON"
+      },
+      "valid_weight": 0.9,
+      "sensitivity": {
+        "stability": 99.08,
+        "max_score_delta": 0.92,
+        "scenarios": [
+          {
+            "criterion_id": "slope",
+            "direction": "minus",
+            "score": 90.19,
+            "delta": -0.16
+          },
+          {
+            "criterion_id": "slope",
+            "direction": "plus",
+            "score": 90.49,
+            "delta": 0.14
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "minus",
+            "score": 90.37,
+            "delta": 0.02
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "plus",
+            "score": 90.33,
+            "delta": -0.02
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "minus",
+            "score": 90.08,
+            "delta": -0.27
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "plus",
+            "score": 90.6,
+            "delta": 0.25
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "minus",
+            "score": 89.92,
+            "delta": -0.43
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "plus",
+            "score": 90.74,
+            "delta": 0.39
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "minus",
+            "score": 91.27,
+            "delta": 0.92
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "plus",
+            "score": 89.48,
+            "delta": -0.87
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "minus",
+            "score": 90.25,
+            "delta": -0.1
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "plus",
+            "score": 90.45,
+            "delta": 0.1
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "minus",
+            "score": 90.35,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "plus",
+            "score": 90.35,
+            "delta": 0.0
+          }
+        ]
+      },
+      "source_problems": [],
+      "power_values_matching": [
+        "cl-win-s2480-w06950"
+      ],
+      "visual_observation": "trazas rectilíneas y concentraciones geométricas de tono claro en el norte"
+    },
+    {
+      "site_id": "ar-win-s2620-w06750",
+      "role": "candidate",
+      "nasadem": {
+        "tiles": [
+          "s27w068"
+        ],
+        "center": [
+          -67.5,
+          -26.2
+        ],
+        "window_degree": 0.2,
+        "source_spacing_meter": 29.3,
+        "analysis_spacing_meter": 468.8,
+        "permanent_water_fraction": 0.00095991,
+        "source_valid_fraction": 1.0,
+        "source_scale": {
+          "slope_p90_degree": 18.735,
+          "slope_p95_degree": 25.339,
+          "fraction_over_15_degree": 0.136195,
+          "fraction_over_25_degree": 0.052449
+        },
+        "median_slope_degree": 2.568,
+        "median_neighbor_difference_meter": 12.654,
+        "median_3x3_relief_meter": 55.867,
+        "valid_fraction": 1.0,
+        "elevation_p05_meter": 3154.9,
+        "elevation_p95_meter": 3818.2
+      },
+      "sentinel2": {
+        "valid_intervals": 12,
+        "expected_intervals": 12,
+        "median_valid_fraction": 0.975111,
+        "nonvegetated_fraction": 0.993911,
+        "vegetation_fraction": 0.00012,
+        "water_fraction": 0.001103,
+        "maximum_monthly_water_fraction": 0.002082,
+        "median_ndvi": 0.044234,
+        "median_bsi": 0.146761,
+        "temporal_ndvi_stdev": 0.004712,
+        "quality": 0.8776,
+        "monthly": [
+          {
+            "from": "2025-01-01T00:00:00Z",
+            "to": "2025-02-01T00:00:00Z",
+            "valid_fraction": 0.9744385678225355,
+            "bsi": 0.14427710024276483,
+            "ndvi": 0.04573447473274711,
+            "nonvegetated": 0.9938848995541278,
+            "vegetation": 0.0016631412378291816,
+            "water": 0.0010726222962421108
+          },
+          {
+            "from": "2025-02-01T00:00:00Z",
+            "to": "2025-03-01T00:00:00Z",
+            "valid_fraction": 0.9733394172478977,
+            "bsi": 0.161524207582577,
+            "ndvi": 0.034336394988025105,
+            "nonvegetated": 0.9928110884284662,
+            "vegetation": 0.0012470325244556845,
+            "water": 0.001032265811910529
+          },
+          {
+            "from": "2025-03-01T00:00:00Z",
+            "to": "2025-04-01T00:00:00Z",
+            "valid_fraction": 0.970289218209486,
+            "bsi": 0.15100903841747623,
+            "ndvi": 0.051467286355612644,
+            "nonvegetated": 0.9867375848736547,
+            "vegetation": 0.0009683300476520492,
+            "water": 0.0010633097891682107
+          },
+          {
+            "from": "2025-04-01T00:00:00Z",
+            "to": "2025-05-01T00:00:00Z",
+            "valid_fraction": 0.9855402134015451,
+            "bsi": 0.15181986065382685,
+            "ndvi": 0.04678108604435729,
+            "nonvegetated": 0.9939378181619256,
+            "vegetation": 0.00023719597861585653,
+            "water": 0.001040013137008074
+          },
+          {
+            "from": "2025-05-01T00:00:00Z",
+            "to": "2025-06-01T00:00:00Z",
+            "valid_fraction": 0.9998449051336401,
+            "bsi": 0.15495228465015712,
+            "ndvi": 0.040740046666106,
+            "nonvegetated": 0.9947034755631394,
+            "vegetation": 0.0,
+            "water": 0.0011330425790207828
+          },
+          {
+            "from": "2025-06-01T00:00:00Z",
+            "to": "2025-07-01T00:00:00Z",
+            "valid_fraction": 0.9999707792280771,
+            "bsi": 0.14162512657375526,
+            "ndvi": 0.04417137715725053,
+            "nonvegetated": 0.9891857506361358,
+            "vegetation": 0.0,
+            "water": 0.0014363552990046891
+          },
+          {
+            "from": "2025-07-01T00:00:00Z",
+            "to": "2025-08-01T00:00:00Z",
+            "valid_fraction": 0.9997527473144987,
+            "bsi": 0.14823068440537437,
+            "ndvi": 0.03608391207319417,
+            "nonvegetated": 0.9922298489811876,
+            "vegetation": 0.0,
+            "water": 0.0018526054512466405
+          },
+          {
+            "from": "2025-08-01T00:00:00Z",
+            "to": "2025-09-01T00:00:00Z",
+            "valid_fraction": 0.999928071946036,
+            "bsi": 0.14334474263218486,
+            "ndvi": 0.04373067369327472,
+            "nonvegetated": 0.9978037886332205,
+            "vegetation": 0.0,
+            "water": 0.0019332055019927593
+          },
+          {
+            "from": "2025-09-01T00:00:00Z",
+            "to": "2025-10-01T00:00:00Z",
+            "valid_fraction": 0.9718603966382626,
+            "bsi": 0.14352579086955627,
+            "ndvi": 0.044535640851937744,
+            "nonvegetated": 0.9876980364040164,
+            "vegetation": 2.3128339153965546e-06,
+            "water": 0.0020815505238569332
+          },
+          {
+            "from": "2025-10-01T00:00:00Z",
+            "to": "2025-11-01T00:00:00Z",
+            "valid_fraction": 0.9746498564810548,
+            "bsi": 0.14416176204095252,
+            "ndvi": 0.04429620858698374,
+            "nonvegetated": 0.9951777053626458,
+            "vegetation": 0.0,
+            "water": 0.0012315185730989715
+          },
+          {
+            "from": "2025-11-01T00:00:00Z",
+            "to": "2025-12-01T00:00:00Z",
+            "valid_fraction": 0.9755714346724689,
+            "bsi": 0.14782931594465526,
+            "ndvi": 0.03816547812602878,
+            "nonvegetated": 0.9962121648491606,
+            "vegetation": 0.0002442278138615369,
+            "water": 0.0010022556512242788
+          },
+          {
+            "from": "2025-12-01T00:00:00Z",
+            "to": "2026-01-01T00:00:00Z",
+            "valid_fraction": 0.9722964604654195,
+            "bsi": 0.1456926775657335,
+            "ndvi": 0.04696917633774197,
+            "nonvegetated": 0.9952353871334503,
+            "vegetation": 0.0011073505885834324,
+            "water": 0.0010449320794148611
+          }
+        ],
+        "rejected_intervals": []
+      },
+      "hls_granule_count": 174,
+      "nasa_power": {
+        "annual_precipitation_mm": 588.05,
+        "skin_temperature_range_c": 68.34,
+        "skin_temperature_mean_c": 5.19,
+        "period": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)",
+        "api_version": "v2.10.1",
+        "request_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-67.5&latitude=-26.2&format=JSON"
+      },
+      "valid_weight": 0.9,
+      "sensitivity": {
+        "stability": 95.88,
+        "max_score_delta": 4.12,
+        "scenarios": [
+          {
+            "criterion_id": "slope",
+            "direction": "minus",
+            "score": 62.95,
+            "delta": -0.9
+          },
+          {
+            "criterion_id": "slope",
+            "direction": "plus",
+            "score": 64.69,
+            "delta": 0.84
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "minus",
+            "score": 62.95,
+            "delta": -0.9
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "plus",
+            "score": 64.7,
+            "delta": 0.85
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "minus",
+            "score": 63.25,
+            "delta": -0.6
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "plus",
+            "score": 64.43,
+            "delta": 0.58
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "minus",
+            "score": 62.55,
+            "delta": -1.3
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "plus",
+            "score": 65.07,
+            "delta": 1.22
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "minus",
+            "score": 67.97,
+            "delta": 4.12
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "plus",
+            "score": 60.15,
+            "delta": -3.7
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "minus",
+            "score": 63.53,
+            "delta": -0.32
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "plus",
+            "score": 64.17,
+            "delta": 0.32
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "minus",
+            "score": 63.85,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "plus",
+            "score": 63.85,
+            "delta": 0.0
+          }
+        ]
+      },
+      "source_problems": [],
+      "power_values_matching": [],
+      "visual_observation": "campos oscuros en el centro y el este y una franja verde u oscura en el borde noreste"
+    },
+    {
+      "site_id": "ar-win-s2640-w06730",
+      "role": "candidate",
+      "nasadem": {
+        "tiles": [
+          "s27w068"
+        ],
+        "center": [
+          -67.3,
+          -26.4
+        ],
+        "window_degree": 0.2,
+        "source_spacing_meter": 29.3,
+        "analysis_spacing_meter": 468.4,
+        "permanent_water_fraction": 0.0,
+        "source_valid_fraction": 1.0,
+        "source_scale": {
+          "slope_p90_degree": 26.815,
+          "slope_p95_degree": 30.658,
+          "fraction_over_15_degree": 0.266653,
+          "fraction_over_25_degree": 0.126908
+        },
+        "median_slope_degree": 3.433,
+        "median_neighbor_difference_meter": 16.697,
+        "median_3x3_relief_meter": 75.355,
+        "valid_fraction": 1.0,
+        "elevation_p05_meter": 3056.3,
+        "elevation_p95_meter": 4219.4
+      },
+      "sentinel2": {
+        "valid_intervals": 12,
+        "expected_intervals": 12,
+        "median_valid_fraction": 0.988656,
+        "nonvegetated_fraction": 0.983938,
+        "vegetation_fraction": 0.000584,
+        "water_fraction": 0.0,
+        "maximum_monthly_water_fraction": 0.0,
+        "median_ndvi": 0.034253,
+        "median_bsi": 0.127433,
+        "temporal_ndvi_stdev": 0.005191,
+        "quality": 0.8898,
+        "monthly": [
+          {
+            "from": "2025-01-01T00:00:00Z",
+            "to": "2025-02-01T00:00:00Z",
+            "valid_fraction": 0.9322887281996183,
+            "bsi": 0.1367838325481183,
+            "ndvi": 0.02233653148652674,
+            "nonvegetated": 0.9785251889623874,
+            "vegetation": 0.0033922823767675836,
+            "water": 0.0
+          },
+          {
+            "from": "2025-02-01T00:00:00Z",
+            "to": "2025-03-01T00:00:00Z",
+            "valid_fraction": 0.9791453598538062,
+            "bsi": 0.14010738254396415,
+            "ndvi": 0.02770130575315824,
+            "nonvegetated": 0.98173829402839,
+            "vegetation": 0.003275858506787035,
+            "water": 0.0
+          },
+          {
+            "from": "2025-03-01T00:00:00Z",
+            "to": "2025-04-01T00:00:00Z",
+            "valid_fraction": 0.9770774283023406,
+            "bsi": 0.1262937107338896,
+            "ndvi": 0.042990372830742765,
+            "nonvegetated": 0.9712462415831029,
+            "vegetation": 0.0026225525718268656,
+            "water": 0.0
+          },
+          {
+            "from": "2025-04-01T00:00:00Z",
+            "to": "2025-05-01T00:00:00Z",
+            "valid_fraction": 0.9994537963402107,
+            "bsi": 0.12625434799641752,
+            "ndvi": 0.039671225918691995,
+            "nonvegetated": 0.9982075628702419,
+            "vegetation": 0.0009445716367627387,
+            "water": 0.0
+          },
+          {
+            "from": "2025-05-01T00:00:00Z",
+            "to": "2025-06-01T00:00:00Z",
+            "valid_fraction": 0.9999370629527815,
+            "bsi": 0.13762524911020516,
+            "ndvi": 0.03356847257758786,
+            "nonvegetated": 0.9861372428691234,
+            "vegetation": 0.00022254142305124422,
+            "water": 0.0
+          },
+          {
+            "from": "2025-06-01T00:00:00Z",
+            "to": "2025-07-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.1223874457197948,
+            "ndvi": 0.03583427273362314,
+            "nonvegetated": 0.9781203850847819,
+            "vegetation": 6.7432550591270965e-06,
+            "water": 0.0
+          },
+          {
+            "from": "2025-07-01T00:00:00Z",
+            "to": "2025-08-01T00:00:00Z",
+            "valid_fraction": 0.9998426573819537,
+            "bsi": 0.13562080719950215,
+            "ndvi": 0.029487391315505818,
+            "nonvegetated": 0.9775009610650701,
+            "vegetation": 2.248105409166434e-06,
+            "water": 0.0
+          },
+          {
+            "from": "2025-08-01T00:00:00Z",
+            "to": "2025-09-01T00:00:00Z",
+            "valid_fraction": 0.9999977522483137,
+            "bsi": 0.12644045920188315,
+            "ndvi": 0.03494411366415993,
+            "nonvegetated": 0.9996111380841896,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-09-01T00:00:00Z",
+            "to": "2025-10-01T00:00:00Z",
+            "valid_fraction": 0.9802579969385622,
+            "bsi": 0.12495060411311797,
+            "ndvi": 0.03452174263829416,
+            "nonvegetated": 0.9752147413702273,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-10-01T00:00:00Z",
+            "to": "2025-11-01T00:00:00Z",
+            "valid_fraction": 0.9841848191346606,
+            "bsi": 0.13009460849884544,
+            "ndvi": 0.03398518000078628,
+            "nonvegetated": 0.9892338296186226,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-11-01T00:00:00Z",
+            "to": "2025-12-01T00:00:00Z",
+            "valid_fraction": 0.9881768261296638,
+            "bsi": 0.12842641876174152,
+            "ndvi": 0.030482589370530094,
+            "nonvegetated": 0.9923298963444241,
+            "vegetation": 0.0012806252544759144,
+            "water": 0.0
+          },
+          {
+            "from": "2025-12-01T00:00:00Z",
+            "to": "2026-01-01T00:00:00Z",
+            "valid_fraction": 0.9891343683480599,
+            "bsi": 0.12439216530027787,
+            "ndvi": 0.03524198482661585,
+            "nonvegetated": 0.9923827703355301,
+            "vegetation": 0.0018043199145561218,
+            "water": 0.0
+          }
+        ],
+        "rejected_intervals": []
+      },
+      "hls_granule_count": 88,
+      "nasa_power": {
+        "annual_precipitation_mm": 562.49,
+        "skin_temperature_range_c": 65.71,
+        "skin_temperature_mean_c": 6.33,
+        "period": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)",
+        "api_version": "v2.10.1",
+        "request_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-67.3&latitude=-26.4&format=JSON"
+      },
+      "valid_weight": 0.9,
+      "sensitivity": {
+        "stability": 96.81,
+        "max_score_delta": 3.19,
+        "scenarios": [
+          {
+            "criterion_id": "slope",
+            "direction": "minus",
+            "score": 53.21,
+            "delta": -0.47
+          },
+          {
+            "criterion_id": "slope",
+            "direction": "plus",
+            "score": 54.12,
+            "delta": 0.44
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "minus",
+            "score": 53.17,
+            "delta": -0.51
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "plus",
+            "score": 54.15,
+            "delta": 0.47
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "minus",
+            "score": 53.41,
+            "delta": -0.27
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "plus",
+            "score": 53.94,
+            "delta": 0.26
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "minus",
+            "score": 52.19,
+            "delta": -1.49
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "plus",
+            "score": 55.09,
+            "delta": 1.41
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "minus",
+            "score": 56.87,
+            "delta": 3.19
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "plus",
+            "score": 50.81,
+            "delta": -2.87
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "minus",
+            "score": 53.31,
+            "delta": -0.37
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "plus",
+            "score": 54.05,
+            "delta": 0.37
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "minus",
+            "score": 53.68,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "plus",
+            "score": 53.68,
+            "delta": 0.0
+          }
+        ]
+      },
+      "source_problems": [],
+      "power_values_matching": [],
+      "visual_observation": "una concentración densa de estructuras claras en el sur con una franja verde u oscura adyacente, compatible con intervención humana a contrastar"
+    },
+    {
+      "site_id": "ar-win-s2580-w06710",
+      "role": "candidate",
+      "nasadem": {
+        "tiles": [
+          "s26w067",
+          "s26w068"
+        ],
+        "center": [
+          -67.1,
+          -25.8
+        ],
+        "window_degree": 0.2,
+        "source_spacing_meter": 29.3,
+        "analysis_spacing_meter": 469.6,
+        "permanent_water_fraction": 0.0,
+        "source_valid_fraction": 1.0,
+        "source_scale": {
+          "slope_p90_degree": 21.252,
+          "slope_p95_degree": 25.205,
+          "fraction_over_15_degree": 0.239687,
+          "fraction_over_25_degree": 0.052528
+        },
+        "median_slope_degree": 3.563,
+        "median_neighbor_difference_meter": 19.812,
+        "median_3x3_relief_meter": 78.023,
+        "valid_fraction": 1.0,
+        "elevation_p05_meter": 4406.1,
+        "elevation_p95_meter": 5266.2
+      },
+      "sentinel2": {
+        "valid_intervals": 12,
+        "expected_intervals": 12,
+        "median_valid_fraction": 0.997227,
+        "nonvegetated_fraction": 0.995811,
+        "vegetation_fraction": 0.001985,
+        "water_fraction": 0.0,
+        "maximum_monthly_water_fraction": 3e-06,
+        "median_ndvi": 0.067075,
+        "median_bsi": 0.167878,
+        "temporal_ndvi_stdev": 0.00443,
+        "quality": 0.8975,
+        "monthly": [
+          {
+            "from": "2025-01-01T00:00:00Z",
+            "to": "2025-02-01T00:00:00Z",
+            "valid_fraction": 0.9782057996489012,
+            "bsi": 0.16154329259561673,
+            "ndvi": 0.06910272949195628,
+            "nonvegetated": 0.9953147224334937,
+            "vegetation": 0.004611746972033111,
+            "water": 0.0
+          },
+          {
+            "from": "2025-02-01T00:00:00Z",
+            "to": "2025-03-01T00:00:00Z",
+            "valid_fraction": 0.996907093679547,
+            "bsi": 0.1741417066145034,
+            "ndvi": 0.0666001400500823,
+            "nonvegetated": 0.9950824440320479,
+            "vegetation": 0.004696592884537712,
+            "water": 0.0
+          },
+          {
+            "from": "2025-03-01T00:00:00Z",
+            "to": "2025-04-01T00:00:00Z",
+            "valid_fraction": 0.9985299703971103,
+            "bsi": 0.1718635002428598,
+            "ndvi": 0.07294971728497326,
+            "nonvegetated": 0.995036410908619,
+            "vegetation": 0.004551644962688771,
+            "water": 0.0
+          },
+          {
+            "from": "2025-04-01T00:00:00Z",
+            "to": "2025-05-01T00:00:00Z",
+            "valid_fraction": 0.9991256245939999,
+            "bsi": 0.17317036225997148,
+            "ndvi": 0.07125122597016437,
+            "nonvegetated": 0.9944521934757979,
+            "vegetation": 0.003856017997750281,
+            "water": 0.0
+          },
+          {
+            "from": "2025-05-01T00:00:00Z",
+            "to": "2025-06-01T00:00:00Z",
+            "valid_fraction": 0.9997504995628123,
+            "bsi": 0.18082818185130312,
+            "ndvi": 0.06607342552759492,
+            "nonvegetated": 0.99374294591907,
+            "vegetation": 0.0015828120995192592,
+            "water": 0.0
+          },
+          {
+            "from": "2025-06-01T00:00:00Z",
+            "to": "2025-07-01T00:00:00Z",
+            "valid_fraction": 0.7888057470515117,
+            "bsi": 0.14147768137748154,
+            "ndvi": 0.06016388792411446,
+            "nonvegetated": 0.9825492760685026,
+            "vegetation": 2.8495630195109184e-06,
+            "water": 0.0
+          },
+          {
+            "from": "2025-07-01T00:00:00Z",
+            "to": "2025-08-01T00:00:00Z",
+            "valid_fraction": 0.6811159637572518,
+            "bsi": 0.14142090302907934,
+            "ndvi": 0.05769701914658561,
+            "nonvegetated": 0.9969870075011444,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-08-01T00:00:00Z",
+            "to": "2025-09-01T00:00:00Z",
+            "valid_fraction": 0.831686105972501,
+            "bsi": 0.1718347701412318,
+            "ndvi": 0.06092161539353367,
+            "nonvegetated": 0.9993000151348108,
+            "vegetation": 0.0,
+            "water": 2.7026442671509548e-06
+          },
+          {
+            "from": "2025-09-01T00:00:00Z",
+            "to": "2025-10-01T00:00:00Z",
+            "valid_fraction": 0.9216770924882386,
+            "bsi": 0.16302386226405724,
+            "ndvi": 0.0675503909038257,
+            "nonvegetated": 0.9995537064315194,
+            "vegetation": 6.584659207304461e-05,
+            "water": 0.0
+          },
+          {
+            "from": "2025-10-01T00:00:00Z",
+            "to": "2025-11-01T00:00:00Z",
+            "valid_fraction": 0.9975477029101641,
+            "bsi": 0.1617427374559773,
+            "ndvi": 0.06822269975784213,
+            "nonvegetated": 0.9989161735744839,
+            "vegetation": 0.0010455207098725226,
+            "water": 0.0
+          },
+          {
+            "from": "2025-11-01T00:00:00Z",
+            "to": "2025-12-01T00:00:00Z",
+            "valid_fraction": 0.9998921079190539,
+            "bsi": 0.1683574384190671,
+            "ndvi": 0.06331889381400778,
+            "nonvegetated": 0.9976103821365557,
+            "vegetation": 0.0023873698692341745,
+            "water": 0.0
+          },
+          {
+            "from": "2025-12-01T00:00:00Z",
+            "to": "2026-01-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.1673992591486654,
+            "ndvi": 0.06851742159810172,
+            "nonvegetated": 0.9963069439792976,
+            "vegetation": 0.0036930560207153167,
+            "water": 0.0
+          }
+        ],
+        "rejected_intervals": []
+      },
+      "hls_granule_count": 173,
+      "nasa_power": {
+        "annual_precipitation_mm": 767.02,
+        "skin_temperature_range_c": 64.46,
+        "skin_temperature_mean_c": 2.93,
+        "period": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)",
+        "api_version": "v2.10.1",
+        "request_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-67.1&latitude=-25.8&format=JSON"
+      },
+      "valid_weight": 0.9,
+      "sensitivity": {
+        "stability": 96.81,
+        "max_score_delta": 3.19,
+        "scenarios": [
+          {
+            "criterion_id": "slope",
+            "direction": "minus",
+            "score": 48.89,
+            "delta": -0.54
+          },
+          {
+            "criterion_id": "slope",
+            "direction": "plus",
+            "score": 49.92,
+            "delta": 0.49
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "minus",
+            "score": 49.16,
+            "delta": -0.27
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "plus",
+            "score": 49.67,
+            "delta": 0.24
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "minus",
+            "score": 49.09,
+            "delta": -0.34
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "plus",
+            "score": 49.74,
+            "delta": 0.31
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "minus",
+            "score": 47.84,
+            "delta": -1.59
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "plus",
+            "score": 50.92,
+            "delta": 1.49
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "minus",
+            "score": 52.62,
+            "delta": 3.19
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "plus",
+            "score": 46.56,
+            "delta": -2.87
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "minus",
+            "score": 49.04,
+            "delta": -0.39
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "plus",
+            "score": 49.81,
+            "delta": 0.38
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "minus",
+            "score": 49.43,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "plus",
+            "score": 49.43,
+            "delta": 0.0
+          }
+        ]
+      },
+      "source_problems": [],
+      "power_values_matching": [],
+      "visual_observation": "franjas verdes u oscuras ramificadas en el norte y el oeste"
+    },
+    {
+      "site_id": "cl-pampa-yungay-screening",
+      "role": "reference",
+      "nasadem": {
+        "tiles": [
+          "s24w070",
+          "s24w071",
+          "s25w070",
+          "s25w071"
+        ],
+        "center": [
+          -69.95,
+          -24.08
+        ],
+        "window_degree": 0.2,
+        "source_spacing_meter": 29.5,
+        "analysis_spacing_meter": 472.7,
+        "permanent_water_fraction": 0.0,
+        "source_valid_fraction": 1.0,
+        "source_scale": {
+          "slope_p90_degree": 15.391,
+          "slope_p95_degree": 19.18,
+          "fraction_over_15_degree": 0.105146,
+          "fraction_over_25_degree": 0.012117
+        },
+        "median_slope_degree": 3.207,
+        "median_neighbor_difference_meter": 16.564,
+        "median_3x3_relief_meter": 75.125,
+        "valid_fraction": 1.0,
+        "elevation_p05_meter": 969.0,
+        "elevation_p95_meter": 1413.5
+      },
+      "sentinel2": {
+        "valid_intervals": 12,
+        "expected_intervals": 12,
+        "median_valid_fraction": 1.0,
+        "nonvegetated_fraction": 1.0,
+        "vegetation_fraction": 0.0,
+        "water_fraction": 0.0,
+        "maximum_monthly_water_fraction": 0.0,
+        "median_ndvi": 0.074588,
+        "median_bsi": 0.139154,
+        "temporal_ndvi_stdev": 0.008472,
+        "quality": 0.9,
+        "monthly": [
+          {
+            "from": "2025-01-01T00:00:00Z",
+            "to": "2025-02-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.14334891475015318,
+            "ndvi": 0.06140056965332915,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-02-01T00:00:00Z",
+            "to": "2025-03-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.15226078775504,
+            "ndvi": 0.04911213923219251,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-03-01T00:00:00Z",
+            "to": "2025-04-01T00:00:00Z",
+            "valid_fraction": 0.9999910089932545,
+            "bsi": 0.14581776323713463,
+            "ndvi": 0.06303717239268357,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-04-01T00:00:00Z",
+            "to": "2025-05-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.1414783840155615,
+            "ndvi": 0.07137295722599996,
+            "nonvegetated": 0.9999572927179431,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-05-01T00:00:00Z",
+            "to": "2025-06-01T00:00:00Z",
+            "valid_fraction": 0.9999595404696452,
+            "bsi": 0.1374156000817471,
+            "ndvi": 0.07788742136720299,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-06-01T00:00:00Z",
+            "to": "2025-07-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.14447900208034842,
+            "ndvi": 0.07540658147267378,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-07-01T00:00:00Z",
+            "to": "2025-08-01T00:00:00Z",
+            "valid_fraction": 0.999982017986509,
+            "bsi": 0.13739045321360713,
+            "ndvi": 0.07874639436159907,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-08-01T00:00:00Z",
+            "to": "2025-09-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.1408921095414821,
+            "ndvi": 0.07499095957314217,
+            "nonvegetated": 0.9999438062078341,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-09-01T00:00:00Z",
+            "to": "2025-10-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.13498559346753858,
+            "ndvi": 0.07846419321892273,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-10-01T00:00:00Z",
+            "to": "2025-11-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.12564245970048488,
+            "ndvi": 0.07252846736186598,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-11-01T00:00:00Z",
+            "to": "2025-12-01T00:00:00Z",
+            "valid_fraction": 0.999611138958257,
+            "bsi": 0.12604955969797696,
+            "ndvi": 0.07472294453112802,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          },
+          {
+            "from": "2025-12-01T00:00:00Z",
+            "to": "2026-01-01T00:00:00Z",
+            "valid_fraction": 1.0,
+            "bsi": 0.13122099831041534,
+            "ndvi": 0.0744527324832791,
+            "nonvegetated": 1.0,
+            "vegetation": 0.0,
+            "water": 0.0
+          }
+        ],
+        "rejected_intervals": []
+      },
+      "hls_granule_count": 338,
+      "nasa_power": {
+        "annual_precipitation_mm": 7.3,
+        "skin_temperature_range_c": 47.66,
+        "skin_temperature_mean_c": 18.95,
+        "period": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)",
+        "api_version": "v2.10.1",
+        "request_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-69.95&latitude=-24.08&format=JSON"
+      },
+      "valid_weight": 0.9,
+      "sensitivity": {
+        "stability": 99.03,
+        "max_score_delta": 0.97,
+        "scenarios": [
+          {
+            "criterion_id": "slope",
+            "direction": "minus",
+            "score": 75.98,
+            "delta": 0.31
+          },
+          {
+            "criterion_id": "slope",
+            "direction": "plus",
+            "score": 75.4,
+            "delta": -0.27
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "minus",
+            "score": 76.13,
+            "delta": 0.46
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "plus",
+            "score": 75.25,
+            "delta": -0.42
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "minus",
+            "score": 76.17,
+            "delta": 0.5
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "plus",
+            "score": 75.21,
+            "delta": -0.46
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "minus",
+            "score": 74.7,
+            "delta": -0.97
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "plus",
+            "score": 76.58,
+            "delta": 0.91
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "minus",
+            "score": 75.64,
+            "delta": -0.03
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "plus",
+            "score": 75.71,
+            "delta": 0.04
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "minus",
+            "score": 75.44,
+            "delta": -0.23
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "plus",
+            "score": 75.91,
+            "delta": 0.24
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "minus",
+            "score": 75.67,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "plus",
+            "score": 75.67,
+            "delta": 0.0
+          }
+        ]
+      },
+      "power_values_matching": [],
+      "source_problems": [],
+      "visual_observation": "trazas rectilíneas y un conjunto de parches brillantes de contorno rectangular en el sureste"
+    }
+  ]
+}

@@ -274,6 +274,68 @@ a { color: inherit; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* Piloto Chile–Argentina: alcance de la búsqueda, filtro por país, referencia, antecedentes y mapa regional. */
+.search-strip { display: grid; grid-template-columns: minmax(240px, .9fr) 1.4fr; gap: 18px 34px; margin: 0 18px 18px; padding: 20px 24px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+.search-strip h2 { margin: 5px 0 6px; font-size: 17px; letter-spacing: -.02em; }
+.search-strip p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.search-strip dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 16px; margin: 0; }
+.search-strip dt { color: var(--muted-2); font-size: 8px; letter-spacing: .06em; text-transform: uppercase; }
+.search-strip dd { margin: 3px 0 0; color: var(--sand); font-size: 12px; }
+.region-list { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 16px; margin: 0; padding: 12px 0 0; border-top: 1px solid var(--line); list-style: none; }
+.region-list strong { display: block; font-size: 10px; }
+.region-list span { color: var(--muted); font-family: ui-monospace, SFMono-Regular, monospace; font-size: 8px; }
+.country-filter { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 11px; }
+.country-filter button { padding: 6px 10px; border: 1px solid var(--line-strong); border-radius: 999px; background: transparent; color: var(--muted); font-size: 9px; cursor: pointer; }
+.country-filter button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--sand); }
+.country-filter button:focus-visible, .precedent-list a:focus-visible, .method-intro a:focus-visible { outline: 2px solid var(--sand); outline-offset: 2px; }
+.ranking-empty { margin: 0; padding: 12px; border: 1px dashed var(--line-strong); border-radius: 10px; color: var(--muted); font-size: 9px; line-height: 1.5; }
+.reference-block { display: grid; gap: 8px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.reference-block p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
+.candidate-card.reference, .comparison-card.reference { border-style: dashed; border-color: rgba(164, 220, 200, .35); }
+.candidate-card.reference .rank-number { width: auto; padding: 0 7px; border-color: var(--mint); border-radius: 999px; color: var(--mint); font-size: 8px; }
+.comparison-card.reference .comparison-rank { color: var(--mint); }
+.origin-list { display: grid; gap: 6px; margin: 0; }
+.origin-list div { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 8px; color: var(--muted); font-size: 8px; line-height: 1.5; }
+.origin-list dt { color: var(--muted-2); }
+.origin-list dd { margin: 0; }
+.precedent-list { display: grid; gap: 7px; margin: 10px 0 0; padding: 0; list-style: none; }
+.precedent-list li { display: grid; gap: 3px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); font-size: 8px; line-height: 1.45; }
+.precedent-list strong { color: var(--text); font-size: 9px; }
+.precedent-list small { color: var(--muted-2); font-size: 7.5px; }
+.precedent-list a { color: var(--sand); overflow-wrap: anywhere; text-decoration: none; }
+.method-intro a { display: block; margin-top: 6px; }
+.map-ocean { fill: #081310; }
+.country-shape path { fill: #12302a; fill-rule: evenodd; stroke: #4f7469; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.graticule line { stroke: rgba(164, 220, 200, .08); stroke-width: 1; stroke-dasharray: 3 7; }
+.graticule text { fill: rgba(164, 220, 200, .38); font-family: ui-monospace, SFMono-Regular, monospace; font-size: 8px; }
+.search-region { fill: none; stroke: rgba(255, 189, 115, .6); stroke-width: 1.2; stroke-dasharray: 5 4; }
+.region-label { fill: #d9c9ae; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 8.5px; letter-spacing: .06em; }
+.window { fill: rgba(164, 220, 200, .05); stroke: rgba(164, 220, 200, .3); stroke-width: .6; }
+.window.precedent { fill: rgba(120, 170, 255, .22); stroke: rgba(150, 190, 255, .75); }
+.window.rejected { fill: rgba(127, 145, 139, .28); }
+.window.selected { fill: none; stroke: none; }
+.published-point { fill: #9cc2ff; stroke: #0b1b17; stroke-width: .6; }
+.site-shape { cursor: pointer; outline: none; }
+.site-shape path { fill: rgba(255, 113, 72, .48); stroke: #ffb08f; stroke-width: 1.4; transition: fill .18s ease; }
+.site-shape text { fill: #fff7ed; font-size: 10px; font-weight: 800; pointer-events: none; }
+.site-shape.reference path { fill: rgba(164, 220, 200, .22); stroke: var(--mint); stroke-dasharray: 4 3; }
+.site-shape.reference text { fill: var(--mint); font-size: 7px; }
+.site-shape.selected path { fill: var(--sand); stroke: #fff3df; stroke-width: 2.2; stroke-dasharray: none; }
+.site-shape.selected text { fill: #3a1c0f; }
+.site-shape.insufficient path { fill: rgba(127, 145, 139, .5); stroke: #a6b8b1; }
+.site-shape:focus-visible path { stroke: #ffffff; stroke-width: 3; }
+.inset-background { fill: rgba(7, 16, 15, .92); stroke: rgba(191, 219, 207, .22); }
+.inset-land { fill: #1f463d; }
+.inset-frame { fill: rgba(255, 189, 115, .28); stroke: var(--sand); stroke-width: 1; }
+.legend-swatch.reference { border: 1px dashed var(--mint); background: rgba(164, 220, 200, .22); }
+.legend-swatch.evaluated { border: 1px solid rgba(164, 220, 200, .45); background: rgba(164, 220, 200, .06); }
+.legend-swatch.precedent { border: 1px solid rgba(150, 190, 255, .8); background: rgba(120, 170, 255, .25); }
+.legend-swatch.point { width: 6px; height: 6px; border-radius: 50%; background: #9cc2ff; }
+/* El mapa ocupa su alto natural bajo el encabezado y la leyenda queda junto a él. */
+.map-canvas { position: static; display: block; width: 100%; height: auto; min-height: 0; margin-top: 66px; }
+.map-legend { position: static; margin: 10px 14px 14px; }
+.detail-meta { grid-template-columns: repeat(2, 1fr); }
+
 @media (max-width: 1180px) {
   .workspace { grid-template-columns: 275px minmax(400px, 1fr); }
   .details-panel { grid-column: 1 / -1; border-top: 1px solid var(--line); border-left: 0; }
@@ -288,7 +350,7 @@ a { color: inherit; }
   .workspace { display: flex; flex-direction: column; margin: 0 8px; }
   .ranking-panel { border-right: 0; border-bottom: 1px solid var(--line); }
   .map-frame { min-height: 520px; }
-  .map-canvas { min-height: 520px; }
+  .map-canvas { min-height: 0; }
   .details-panel { border-left: 0; }
   .two-column-notes { grid-template-columns: 1fr; }
   .app-footer { flex-direction: column; padding-inline: 16px; }
@@ -296,6 +358,9 @@ a { color: inherit; }
   .comparison-heading { display: block; }
   .comparison-heading p { margin-top: 10px; }
   .comparison-grid, .method-section, .method-steps { grid-template-columns: 1fr; }
+  .search-strip { grid-template-columns: 1fr; margin: 0 8px 8px; padding: 18px; }
+  .search-strip dl { grid-template-columns: repeat(2, 1fr); }
+  .region-list { grid-template-columns: 1fr; }
   .comparison-card dl { grid-template-columns: repeat(2, 1fr); }
 }
 

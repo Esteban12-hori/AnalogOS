@@ -1,0 +1,2677 @@
+{
+  "search_id": "analogos-pilot-cl-ar-v3",
+  "snapshot_version": "science-screening-v3",
+  "created_at": "2026-11-14T18:19:27Z",
+  "scope_note": "Experimento regional acotado del piloto Chile–Argentina. Las dos regiones son una selección de prueba, no una muestra representativa nacional ni regiones garantizadas inéditas.",
+  "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+  "window_size_degree": 0.2,
+  "stage1": {
+    "name": "prioridad topográfica",
+    "min_valid_fraction": 0.95,
+    "max_permanent_water_fraction": 0.05,
+    "criteria": [
+      {
+        "id": "slope",
+        "weight": 0.2,
+        "unit": "degree"
+      },
+      {
+        "id": "terrain_roughness",
+        "weight": 0.2,
+        "unit": "meter"
+      },
+      {
+        "id": "local_relief",
+        "weight": 0.15,
+        "unit": "meter"
+      }
+    ],
+    "epsilon": 0.01
+  },
+  "selection": {
+    "max_per_country": 3,
+    "min_center_distance_km": 25,
+    "order": "prioridad topográfica descendente; empate por window_id"
+  },
+  "precedents": {
+    "catalog": "config/analog_precedents_v1.json",
+    "proximity_km": 25,
+    "catalog_version": "1.0.0",
+    "reviewed_at": "2026-11-14"
+  },
+  "limits": {
+    "max_windows": 50,
+    "max_multisource_windows": 6,
+    "max_new_nasadem_tiles": 20,
+    "max_rgb_images": 6,
+    "attempts_per_request": 3
+  },
+  "mola_reference": {
+    "name": "Entorno regional de Jezero, Marte",
+    "nominal_spacing_meter": 451.2,
+    "median_slope_degree": 2.226,
+    "median_neighbor_difference_meter": 11.0,
+    "median_3x3_relief_meter": 47.0
+  },
+  "regions": [
+    {
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta",
+      "bbox": [
+        -70.0,
+        -25.5,
+        -69.0,
+        -24.5
+      ],
+      "windows_evaluated": 25,
+      "windows_selected": 3,
+      "explored_area_km2": 11182.5
+    },
+    {
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta",
+      "bbox": [
+        -67.8,
+        -26.5,
+        -66.8,
+        -25.5
+      ],
+      "windows_evaluated": 25,
+      "windows_selected": 3,
+      "explored_area_km2": 11091.5
+    }
+  ],
+  "counts": {
+    "attempted": 50,
+    "evaluated": 50,
+    "not_selected_proximity": 2,
+    "not_selected_quota": 38,
+    "rejected_precedent_overlap": 4,
+    "selected": 6
+  },
+  "explored_area_km2": 22274.0,
+  "shortlist": [
+    "cl-win-s2500-w06970",
+    "cl-win-s2480-w06950",
+    "cl-win-s2520-w06950",
+    "ar-win-s2620-w06750",
+    "ar-win-s2640-w06730",
+    "ar-win-s2580-w06710"
+  ],
+  "windows": [
+    {
+      "window_id": "cl-win-s2540-w06990",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,4° S, 69,9° O",
+      "center": [
+        -69.9,
+        -25.4
+      ],
+      "bbox": [
+        -70.0,
+        -25.5,
+        -69.8,
+        -25.3
+      ],
+      "area_km2": 445.9,
+      "nasadem": {
+        "tiles": [
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 470.3,
+        "median_slope_degree": 2.499,
+        "median_neighbor_difference_meter": 11.635,
+        "median_3x3_relief_meter": 53.91
+      },
+      "topographic_similarities": {
+        "slope": 0.890756,
+        "terrain_roughness": 0.945423,
+        "local_relief": 0.871823
+      },
+      "topographic_priority": 90.49,
+      "literature": {
+        "status": "known_analogue_overlap",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "contains_published_sampling_coordinate",
+            "points": [
+              "AT01-16, AT02-16"
+            ]
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "rejected_precedent_overlap",
+      "decision_reason": "Contiene coordenadas de muestreo o un área de estudio publicadas; se conserva como antecedente, no como candidato.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2540-w06970",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,4° S, 69,7° O",
+      "center": [
+        -69.7,
+        -25.4
+      ],
+      "bbox": [
+        -69.8,
+        -25.5,
+        -69.6,
+        -25.3
+      ],
+      "area_km2": 445.9,
+      "nasadem": {
+        "tiles": [
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 470.3,
+        "median_slope_degree": 1.338,
+        "median_neighbor_difference_meter": 7.275,
+        "median_3x3_relief_meter": 27.43
+      },
+      "topographic_similarities": {
+        "slope": 0.601078,
+        "terrain_roughness": 0.661364,
+        "local_relief": 0.583617
+      },
+      "topographic_priority": 61.74,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "proximity_heuristic",
+            "nearest_point": "AT01-16, AT02-16",
+            "distance_km": 17.8
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2540-w06950",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,4° S, 69,5° O",
+      "center": [
+        -69.5,
+        -25.4
+      ],
+      "bbox": [
+        -69.6,
+        -25.5,
+        -69.4,
+        -25.3
+      ],
+      "area_km2": 445.9,
+      "nasadem": {
+        "tiles": [
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 470.3,
+        "median_slope_degree": 2.42,
+        "median_neighbor_difference_meter": 12.637,
+        "median_3x3_relief_meter": 48.598
+      },
+      "topographic_similarities": {
+        "slope": 0.919835,
+        "terrain_roughness": 0.87046,
+        "local_relief": 0.967118
+      },
+      "topographic_priority": 91.4,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2540-w06930",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,4° S, 69,3° O",
+      "center": [
+        -69.3,
+        -25.4
+      ],
+      "bbox": [
+        -69.4,
+        -25.5,
+        -69.2,
+        -25.3
+      ],
+      "area_km2": 445.9,
+      "nasadem": {
+        "tiles": [
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 470.3,
+        "median_slope_degree": 3.117,
+        "median_neighbor_difference_meter": 16.092,
+        "median_3x3_relief_meter": 69.199
+      },
+      "topographic_similarities": {
+        "slope": 0.714148,
+        "terrain_roughness": 0.683569,
+        "local_relief": 0.679201
+      },
+      "topographic_priority": 69.33,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2540-w06910",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,4° S, 69,1° O",
+      "center": [
+        -69.1,
+        -25.4
+      ],
+      "bbox": [
+        -69.2,
+        -25.5,
+        -69.0,
+        -25.3
+      ],
+      "area_km2": 445.9,
+      "nasadem": {
+        "tiles": [
+          "s26w069",
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 470.3,
+        "median_slope_degree": 3.811,
+        "median_neighbor_difference_meter": 18.674,
+        "median_3x3_relief_meter": 82.543
+      },
+      "topographic_similarities": {
+        "slope": 0.584099,
+        "terrain_roughness": 0.589054,
+        "local_relief": 0.5694
+      },
+      "topographic_priority": 58.18,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2520-w06990",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,2° S, 69,9° O",
+      "center": [
+        -69.9,
+        -25.2
+      ],
+      "bbox": [
+        -70.0,
+        -25.3,
+        -69.8,
+        -25.1
+      ],
+      "area_km2": 446.6,
+      "nasadem": {
+        "tiles": [
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 470.7,
+        "median_slope_degree": 1.999,
+        "median_neighbor_difference_meter": 10.352,
+        "median_3x3_relief_meter": 42.707
+      },
+      "topographic_similarities": {
+        "slope": 0.898023,
+        "terrain_roughness": 0.941091,
+        "local_relief": 0.90866
+      },
+      "topographic_priority": 91.64,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "proximity_heuristic",
+            "nearest_point": "AT01-16, AT02-16",
+            "distance_km": 13.0
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2520-w06970",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,2° S, 69,7° O",
+      "center": [
+        -69.7,
+        -25.2
+      ],
+      "bbox": [
+        -69.8,
+        -25.3,
+        -69.6,
+        -25.1
+      ],
+      "area_km2": 446.6,
+      "nasadem": {
+        "tiles": [
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 470.7,
+        "median_slope_degree": 2.134,
+        "median_neighbor_difference_meter": 10.926,
+        "median_3x3_relief_meter": 49.641
+      },
+      "topographic_similarities": {
+        "slope": 0.95867,
+        "terrain_roughness": 0.993273,
+        "local_relief": 0.946798
+      },
+      "topographic_priority": 96.78,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "proximity_heuristic",
+            "nearest_point": "AT01-16, AT02-16",
+            "distance_km": 18.4
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_proximity",
+      "decision_reason": "Centro a menos de 25 km de cl-win-s2500-w06970, que tiene mayor prioridad.",
+      "selection_rank": null,
+      "blocked_by": "cl-win-s2500-w06970"
+    },
+    {
+      "window_id": "cl-win-s2520-w06950",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,2° S, 69,5° O",
+      "center": [
+        -69.5,
+        -25.2
+      ],
+      "bbox": [
+        -69.6,
+        -25.3,
+        -69.4,
+        -25.1
+      ],
+      "area_km2": 446.6,
+      "nasadem": {
+        "tiles": [
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 470.7,
+        "median_slope_degree": 2.375,
+        "median_neighbor_difference_meter": 12.242,
+        "median_3x3_relief_meter": 47.68
+      },
+      "topographic_similarities": {
+        "slope": 0.937263,
+        "terrain_roughness": 0.898546,
+        "local_relief": 0.985738
+      },
+      "topographic_priority": 93.58,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "selected",
+      "decision_reason": "Preseleccionada por prioridad topográfica y separación mínima entre centros.",
+      "selection_rank": 3,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2520-w06930",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,2° S, 69,3° O",
+      "center": [
+        -69.3,
+        -25.2
+      ],
+      "bbox": [
+        -69.4,
+        -25.3,
+        -69.2,
+        -25.1
+      ],
+      "area_km2": 446.6,
+      "nasadem": {
+        "tiles": [
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 470.7,
+        "median_slope_degree": 5.442,
+        "median_neighbor_difference_meter": 28.344,
+        "median_3x3_relief_meter": 126.961
+      },
+      "topographic_similarities": {
+        "slope": 0.409041,
+        "terrain_roughness": 0.388089,
+        "local_relief": 0.370192
+      },
+      "topographic_priority": 39.05,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2520-w06910",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,2° S, 69,1° O",
+      "center": [
+        -69.1,
+        -25.2
+      ],
+      "bbox": [
+        -69.2,
+        -25.3,
+        -69.0,
+        -25.1
+      ],
+      "area_km2": 446.6,
+      "nasadem": {
+        "tiles": [
+          "s26w069",
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 470.7,
+        "median_slope_degree": 1.751,
+        "median_neighbor_difference_meter": 8.062,
+        "median_3x3_relief_meter": 35.824
+      },
+      "topographic_similarities": {
+        "slope": 0.786613,
+        "terrain_roughness": 0.732909,
+        "local_relief": 0.762213
+      },
+      "topographic_priority": 76.01,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2500-w06990",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,0° S, 69,9° O",
+      "center": [
+        -69.9,
+        -25.0
+      ],
+      "bbox": [
+        -70.0,
+        -25.1,
+        -69.8,
+        -24.9
+      ],
+      "area_km2": 447.3,
+      "nasadem": {
+        "tiles": [
+          "s25w070",
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 471.0,
+        "median_slope_degree": 2.095,
+        "median_neighbor_difference_meter": 10.887,
+        "median_3x3_relief_meter": 46.461
+      },
+      "topographic_similarities": {
+        "slope": 0.94115,
+        "terrain_roughness": 0.989727,
+        "local_relief": 0.988532
+      },
+      "topographic_priority": 97.15,
+      "literature": {
+        "status": "known_analogue_overlap",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "contains_published_sampling_coordinate",
+            "points": [
+              "AT02-26",
+              "AT02-27"
+            ]
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "rejected_precedent_overlap",
+      "decision_reason": "Contiene coordenadas de muestreo o un área de estudio publicadas; se conserva como antecedente, no como candidato.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2500-w06970",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,0° S, 69,7° O",
+      "center": [
+        -69.7,
+        -25.0
+      ],
+      "bbox": [
+        -69.8,
+        -25.1,
+        -69.6,
+        -24.9
+      ],
+      "area_km2": 447.3,
+      "nasadem": {
+        "tiles": [
+          "s25w070",
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 471.0,
+        "median_slope_degree": 2.169,
+        "median_neighbor_difference_meter": 11.291,
+        "median_3x3_relief_meter": 46.797
+      },
+      "topographic_similarities": {
+        "slope": 0.974394,
+        "terrain_roughness": 0.974227,
+        "local_relief": 0.995681
+      },
+      "topographic_priority": 98.01,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "proximity_heuristic",
+            "nearest_point": "AT02-27",
+            "distance_km": 20.4
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "selected",
+      "decision_reason": "Preseleccionada por prioridad topográfica y separación mínima entre centros.",
+      "selection_rank": 1,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2500-w06950",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,0° S, 69,5° O",
+      "center": [
+        -69.5,
+        -25.0
+      ],
+      "bbox": [
+        -69.6,
+        -25.1,
+        -69.4,
+        -24.9
+      ],
+      "area_km2": 447.3,
+      "nasadem": {
+        "tiles": [
+          "s25w070",
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 471.0,
+        "median_slope_degree": 2.387,
+        "median_neighbor_difference_meter": 12.529,
+        "median_3x3_relief_meter": 52.203
+      },
+      "topographic_similarities": {
+        "slope": 0.932551,
+        "terrain_roughness": 0.877963,
+        "local_relief": 0.900331
+      },
+      "topographic_priority": 90.36,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2500-w06930",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,0° S, 69,3° O",
+      "center": [
+        -69.3,
+        -25.0
+      ],
+      "bbox": [
+        -69.4,
+        -25.1,
+        -69.2,
+        -24.9
+      ],
+      "area_km2": 447.3,
+      "nasadem": {
+        "tiles": [
+          "s25w070",
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 471.0,
+        "median_slope_degree": 3.366,
+        "median_neighbor_difference_meter": 17.502,
+        "median_3x3_relief_meter": 77.445
+      },
+      "topographic_similarities": {
+        "slope": 0.661319,
+        "terrain_roughness": 0.6285,
+        "local_relief": 0.606882
+      },
+      "topographic_priority": 63.42,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2500-w06910",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 25,0° S, 69,1° O",
+      "center": [
+        -69.1,
+        -25.0
+      ],
+      "bbox": [
+        -69.2,
+        -25.1,
+        -69.0,
+        -24.9
+      ],
+      "area_km2": 447.3,
+      "nasadem": {
+        "tiles": [
+          "s25w069",
+          "s25w070",
+          "s26w069",
+          "s26w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 471.0,
+        "median_slope_degree": 3.137,
+        "median_neighbor_difference_meter": 16.141,
+        "median_3x3_relief_meter": 68.438
+      },
+      "topographic_similarities": {
+        "slope": 0.709595,
+        "terrain_roughness": 0.681494,
+        "local_relief": 0.686753
+      },
+      "topographic_priority": 69.3,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2480-w06990",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 24,8° S, 69,9° O",
+      "center": [
+        -69.9,
+        -24.8
+      ],
+      "bbox": [
+        -70.0,
+        -24.9,
+        -69.8,
+        -24.7
+      ],
+      "area_km2": 448.0,
+      "nasadem": {
+        "tiles": [
+          "s25w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 471.4,
+        "median_slope_degree": 1.129,
+        "median_neighbor_difference_meter": 5.281,
+        "median_3x3_relief_meter": 23.266
+      },
+      "topographic_similarities": {
+        "slope": 0.507188,
+        "terrain_roughness": 0.480091,
+        "local_relief": 0.495021
+      },
+      "topographic_priority": 49.39,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "proximity_heuristic",
+            "nearest_point": "AT02-26",
+            "distance_km": 11.6
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2480-w06970",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 24,8° S, 69,7° O",
+      "center": [
+        -69.7,
+        -24.8
+      ],
+      "bbox": [
+        -69.8,
+        -24.9,
+        -69.6,
+        -24.7
+      ],
+      "area_km2": 448.0,
+      "nasadem": {
+        "tiles": [
+          "s25w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 471.4,
+        "median_slope_degree": 2.131,
+        "median_neighbor_difference_meter": 11.592,
+        "median_3x3_relief_meter": 46.789
+      },
+      "topographic_similarities": {
+        "slope": 0.957323,
+        "terrain_roughness": 0.94893,
+        "local_relief": 0.995511
+      },
+      "topographic_priority": 96.45,
+      "literature": {
+        "status": "known_analogue_overlap",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "contains_published_sampling_coordinate",
+            "points": [
+              "AT02-28"
+            ]
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "rejected_precedent_overlap",
+      "decision_reason": "Contiene coordenadas de muestreo o un área de estudio publicadas; se conserva como antecedente, no como candidato.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2480-w06950",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 24,8° S, 69,5° O",
+      "center": [
+        -69.5,
+        -24.8
+      ],
+      "bbox": [
+        -69.6,
+        -24.9,
+        -69.4,
+        -24.7
+      ],
+      "area_km2": 448.0,
+      "nasadem": {
+        "tiles": [
+          "s25w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 471.4,
+        "median_slope_degree": 2.388,
+        "median_neighbor_difference_meter": 10.992,
+        "median_3x3_relief_meter": 49.348
+      },
+      "topographic_similarities": {
+        "slope": 0.932161,
+        "terrain_roughness": 0.999273,
+        "local_relief": 0.95242
+      },
+      "topographic_priority": 96.16,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "selected",
+      "decision_reason": "Preseleccionada por prioridad topográfica y separación mínima entre centros.",
+      "selection_rank": 2,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2480-w06930",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 24,8° S, 69,3° O",
+      "center": [
+        -69.3,
+        -24.8
+      ],
+      "bbox": [
+        -69.4,
+        -24.9,
+        -69.2,
+        -24.7
+      ],
+      "area_km2": 448.0,
+      "nasadem": {
+        "tiles": [
+          "s25w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 471.4,
+        "median_slope_degree": 3.958,
+        "median_neighbor_difference_meter": 17.887,
+        "median_3x3_relief_meter": 73.641
+      },
+      "topographic_similarities": {
+        "slope": 0.562405,
+        "terrain_roughness": 0.614972,
+        "local_relief": 0.638231
+      },
+      "topographic_priority": 60.14,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2480-w06910",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 24,8° S, 69,1° O",
+      "center": [
+        -69.1,
+        -24.8
+      ],
+      "bbox": [
+        -69.2,
+        -24.9,
+        -69.0,
+        -24.7
+      ],
+      "area_km2": 448.0,
+      "nasadem": {
+        "tiles": [
+          "s25w069",
+          "s25w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 471.4,
+        "median_slope_degree": 4.731,
+        "median_neighbor_difference_meter": 21.104,
+        "median_3x3_relief_meter": 100.285
+      },
+      "topographic_similarities": {
+        "slope": 0.470514,
+        "terrain_roughness": 0.521228,
+        "local_relief": 0.468664
+      },
+      "topographic_priority": 48.78,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2460-w06990",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 24,6° S, 69,9° O",
+      "center": [
+        -69.9,
+        -24.6
+      ],
+      "bbox": [
+        -70.0,
+        -24.7,
+        -69.8,
+        -24.5
+      ],
+      "area_km2": 448.7,
+      "nasadem": {
+        "tiles": [
+          "s25w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 471.8,
+        "median_slope_degree": 2.584,
+        "median_neighbor_difference_meter": 14.148,
+        "median_3x3_relief_meter": 58.359
+      },
+      "topographic_similarities": {
+        "slope": 0.861455,
+        "terrain_roughness": 0.777495,
+        "local_relief": 0.80536
+      },
+      "topographic_priority": 81.48,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "proximity_heuristic",
+            "nearest_point": "AT02-29",
+            "distance_km": 10.9
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2460-w06970",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 24,6° S, 69,7° O",
+      "center": [
+        -69.7,
+        -24.6
+      ],
+      "bbox": [
+        -69.8,
+        -24.7,
+        -69.6,
+        -24.5
+      ],
+      "area_km2": 448.7,
+      "nasadem": {
+        "tiles": [
+          "s25w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 471.8,
+        "median_slope_degree": 1.065,
+        "median_neighbor_difference_meter": 5.74,
+        "median_3x3_relief_meter": 23.785
+      },
+      "topographic_similarities": {
+        "slope": 0.478437,
+        "terrain_roughness": 0.521818,
+        "local_relief": 0.506064
+      },
+      "topographic_priority": 50.14,
+      "literature": {
+        "status": "known_analogue_overlap",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "contains_published_sampling_coordinate",
+            "points": [
+              "AT02-29"
+            ]
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "rejected_precedent_overlap",
+      "decision_reason": "Contiene coordenadas de muestreo o un área de estudio publicadas; se conserva como antecedente, no como candidato.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2460-w06950",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 24,6° S, 69,5° O",
+      "center": [
+        -69.5,
+        -24.6
+      ],
+      "bbox": [
+        -69.6,
+        -24.7,
+        -69.4,
+        -24.5
+      ],
+      "area_km2": 448.7,
+      "nasadem": {
+        "tiles": [
+          "s25w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.00176785,
+        "analysis_spacing_meter": 471.8,
+        "median_slope_degree": 1.735,
+        "median_neighbor_difference_meter": 7.938,
+        "median_3x3_relief_meter": 38.348
+      },
+      "topographic_similarities": {
+        "slope": 0.779425,
+        "terrain_roughness": 0.721636,
+        "local_relief": 0.815915
+      },
+      "topographic_priority": 76.74,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2460-w06930",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 24,6° S, 69,3° O",
+      "center": [
+        -69.3,
+        -24.6
+      ],
+      "bbox": [
+        -69.4,
+        -24.7,
+        -69.2,
+        -24.5
+      ],
+      "area_km2": 448.7,
+      "nasadem": {
+        "tiles": [
+          "s25w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 471.8,
+        "median_slope_degree": 5.306,
+        "median_neighbor_difference_meter": 26.104,
+        "median_3x3_relief_meter": 111.051
+      },
+      "topographic_similarities": {
+        "slope": 0.419525,
+        "terrain_roughness": 0.421391,
+        "local_relief": 0.423229
+      },
+      "topographic_priority": 42.12,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "cl-win-s2460-w06910",
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta · 24,6° S, 69,1° O",
+      "center": [
+        -69.1,
+        -24.6
+      ],
+      "bbox": [
+        -69.2,
+        -24.7,
+        -69.0,
+        -24.5
+      ],
+      "area_km2": 448.7,
+      "nasadem": {
+        "tiles": [
+          "s25w069",
+          "s25w070"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 471.8,
+        "median_slope_degree": 2.554,
+        "median_neighbor_difference_meter": 12.391,
+        "median_3x3_relief_meter": 52.543
+      },
+      "topographic_similarities": {
+        "slope": 0.871574,
+        "terrain_roughness": 0.887741,
+        "local_relief": 0.894505
+      },
+      "topographic_priority": 88.37,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          },
+          {
+            "precedent_id": "cl-atacama-rover-field-tests-astep",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2640-w06770",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,4° S, 67,7° O",
+      "center": [
+        -67.7,
+        -26.4
+      ],
+      "bbox": [
+        -67.8,
+        -26.5,
+        -67.6,
+        -26.3
+      ],
+      "area_km2": 442.2,
+      "nasadem": {
+        "tiles": [
+          "s27w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 468.4,
+        "median_slope_degree": 8.005,
+        "median_neighbor_difference_meter": 36.746,
+        "median_3x3_relief_meter": 175.945
+      },
+      "topographic_similarities": {
+        "slope": 0.278076,
+        "terrain_roughness": 0.299352,
+        "local_relief": 0.267129
+      },
+      "topographic_priority": 28.25,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2640-w06750",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,4° S, 67,5° O",
+      "center": [
+        -67.5,
+        -26.4
+      ],
+      "bbox": [
+        -67.6,
+        -26.5,
+        -67.4,
+        -26.3
+      ],
+      "area_km2": 442.2,
+      "nasadem": {
+        "tiles": [
+          "s27w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.00753692,
+        "analysis_spacing_meter": 468.4,
+        "median_slope_degree": 0.809,
+        "median_neighbor_difference_meter": 3.686,
+        "median_3x3_relief_meter": 15.184
+      },
+      "topographic_similarities": {
+        "slope": 0.363432,
+        "terrain_roughness": 0.335091,
+        "local_relief": 0.323064
+      },
+      "topographic_priority": 34.17,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2640-w06730",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,4° S, 67,3° O",
+      "center": [
+        -67.3,
+        -26.4
+      ],
+      "bbox": [
+        -67.4,
+        -26.5,
+        -67.2,
+        -26.3
+      ],
+      "area_km2": 442.2,
+      "nasadem": {
+        "tiles": [
+          "s27w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 468.4,
+        "median_slope_degree": 3.433,
+        "median_neighbor_difference_meter": 16.697,
+        "median_3x3_relief_meter": 75.355
+      },
+      "topographic_similarities": {
+        "slope": 0.648412,
+        "terrain_roughness": 0.658801,
+        "local_relief": 0.623714
+      },
+      "topographic_priority": 64.53,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "selected",
+      "decision_reason": "Preseleccionada por prioridad topográfica y separación mínima entre centros.",
+      "selection_rank": 5,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2640-w06710",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,4° S, 67,1° O",
+      "center": [
+        -67.1,
+        -26.4
+      ],
+      "bbox": [
+        -67.2,
+        -26.5,
+        -67.0,
+        -26.3
+      ],
+      "area_km2": 442.2,
+      "nasadem": {
+        "tiles": [
+          "s27w067",
+          "s27w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 5.579e-05,
+        "analysis_spacing_meter": 468.4,
+        "median_slope_degree": 8.814,
+        "median_neighbor_difference_meter": 37.957,
+        "median_3x3_relief_meter": 196.621
+      },
+      "topographic_similarities": {
+        "slope": 0.252553,
+        "terrain_roughness": 0.289802,
+        "local_relief": 0.239039
+      },
+      "topographic_priority": 26.16,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2640-w06690",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,4° S, 66,9° O",
+      "center": [
+        -66.9,
+        -26.4
+      ],
+      "bbox": [
+        -67.0,
+        -26.5,
+        -66.8,
+        -26.3
+      ],
+      "area_km2": 442.2,
+      "nasadem": {
+        "tiles": [
+          "s27w067"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.00064828,
+        "analysis_spacing_meter": 468.4,
+        "median_slope_degree": 6.786,
+        "median_neighbor_difference_meter": 34.959,
+        "median_3x3_relief_meter": 153.461
+      },
+      "topographic_similarities": {
+        "slope": 0.328028,
+        "terrain_roughness": 0.314654,
+        "local_relief": 0.306267
+      },
+      "topographic_priority": 31.71,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2620-w06770",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,2° S, 67,7° O",
+      "center": [
+        -67.7,
+        -26.2
+      ],
+      "bbox": [
+        -67.8,
+        -26.3,
+        -67.6,
+        -26.1
+      ],
+      "area_km2": 442.9,
+      "nasadem": {
+        "tiles": [
+          "s27w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.00114073,
+        "analysis_spacing_meter": 468.8,
+        "median_slope_degree": 6.261,
+        "median_neighbor_difference_meter": 29.145,
+        "median_3x3_relief_meter": 146.531
+      },
+      "topographic_similarities": {
+        "slope": 0.355534,
+        "terrain_roughness": 0.377423,
+        "local_relief": 0.320751
+      },
+      "topographic_priority": 35.33,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2620-w06750",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,2° S, 67,5° O",
+      "center": [
+        -67.5,
+        -26.2
+      ],
+      "bbox": [
+        -67.6,
+        -26.3,
+        -67.4,
+        -26.1
+      ],
+      "area_km2": 442.9,
+      "nasadem": {
+        "tiles": [
+          "s27w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.00095991,
+        "analysis_spacing_meter": 468.8,
+        "median_slope_degree": 2.568,
+        "median_neighbor_difference_meter": 12.654,
+        "median_3x3_relief_meter": 55.867
+      },
+      "topographic_similarities": {
+        "slope": 0.866822,
+        "terrain_roughness": 0.86929,
+        "local_relief": 0.841284
+      },
+      "topographic_priority": 86.07,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "selected",
+      "decision_reason": "Preseleccionada por prioridad topográfica y separación mínima entre centros.",
+      "selection_rank": 4,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2620-w06730",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,2° S, 67,3° O",
+      "center": [
+        -67.3,
+        -26.2
+      ],
+      "bbox": [
+        -67.4,
+        -26.3,
+        -67.2,
+        -26.1
+      ],
+      "area_km2": 442.9,
+      "nasadem": {
+        "tiles": [
+          "s27w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.00085795,
+        "analysis_spacing_meter": 468.8,
+        "median_slope_degree": 3.914,
+        "median_neighbor_difference_meter": 18.105,
+        "median_3x3_relief_meter": 88.0
+      },
+      "topographic_similarities": {
+        "slope": 0.568728,
+        "terrain_roughness": 0.607567,
+        "local_relief": 0.534091
+      },
+      "topographic_priority": 57.27,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2620-w06710",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,2° S, 67,1° O",
+      "center": [
+        -67.1,
+        -26.2
+      ],
+      "bbox": [
+        -67.2,
+        -26.3,
+        -67.0,
+        -26.1
+      ],
+      "area_km2": 442.9,
+      "nasadem": {
+        "tiles": [
+          "s27w067",
+          "s27w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.01154007,
+        "analysis_spacing_meter": 468.8,
+        "median_slope_degree": 5.637,
+        "median_neighbor_difference_meter": 28.814,
+        "median_3x3_relief_meter": 128.207
+      },
+      "topographic_similarities": {
+        "slope": 0.394891,
+        "terrain_roughness": 0.381759,
+        "local_relief": 0.366595
+      },
+      "topographic_priority": 38.22,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2620-w06690",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,2° S, 66,9° O",
+      "center": [
+        -66.9,
+        -26.2
+      ],
+      "bbox": [
+        -67.0,
+        -26.3,
+        -66.8,
+        -26.1
+      ],
+      "area_km2": 442.9,
+      "nasadem": {
+        "tiles": [
+          "s27w067"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.00834101,
+        "analysis_spacing_meter": 468.8,
+        "median_slope_degree": 3.985,
+        "median_neighbor_difference_meter": 20.521,
+        "median_3x3_relief_meter": 89.746
+      },
+      "topographic_similarities": {
+        "slope": 0.558595,
+        "terrain_roughness": 0.536036,
+        "local_relief": 0.5237
+      },
+      "topographic_priority": 54.07,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2600-w06770",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,0° S, 67,7° O",
+      "center": [
+        -67.7,
+        -26.0
+      ],
+      "bbox": [
+        -67.8,
+        -26.1,
+        -67.6,
+        -25.9
+      ],
+      "area_km2": 443.7,
+      "nasadem": {
+        "tiles": [
+          "s26w068",
+          "s27w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 469.2,
+        "median_slope_degree": 6.235,
+        "median_neighbor_difference_meter": 31.473,
+        "median_3x3_relief_meter": 139.113
+      },
+      "topographic_similarities": {
+        "slope": 0.357017,
+        "terrain_roughness": 0.349506,
+        "local_relief": 0.337855
+      },
+      "topographic_priority": 34.9,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2600-w06750",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,0° S, 67,5° O",
+      "center": [
+        -67.5,
+        -26.0
+      ],
+      "bbox": [
+        -67.6,
+        -26.1,
+        -67.4,
+        -25.9
+      ],
+      "area_km2": 443.7,
+      "nasadem": {
+        "tiles": [
+          "s26w068",
+          "s27w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 469.2,
+        "median_slope_degree": 3.598,
+        "median_neighbor_difference_meter": 17.201,
+        "median_3x3_relief_meter": 76.238
+      },
+      "topographic_similarities": {
+        "slope": 0.618677,
+        "terrain_roughness": 0.639498,
+        "local_relief": 0.61649
+      },
+      "topographic_priority": 62.56,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_proximity",
+      "decision_reason": "Centro a menos de 25 km de ar-win-s2620-w06750, que tiene mayor prioridad.",
+      "selection_rank": null,
+      "blocked_by": "ar-win-s2620-w06750"
+    },
+    {
+      "window_id": "ar-win-s2600-w06730",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,0° S, 67,3° O",
+      "center": [
+        -67.3,
+        -26.0
+      ],
+      "bbox": [
+        -67.4,
+        -26.1,
+        -67.2,
+        -25.9
+      ],
+      "area_km2": 443.7,
+      "nasadem": {
+        "tiles": [
+          "s26w068",
+          "s27w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 469.2,
+        "median_slope_degree": 4.521,
+        "median_neighbor_difference_meter": 23.174,
+        "median_3x3_relief_meter": 97.844
+      },
+      "topographic_similarities": {
+        "slope": 0.492369,
+        "terrain_roughness": 0.47467,
+        "local_relief": 0.480356
+      },
+      "topographic_priority": 48.26,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2600-w06710",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,0° S, 67,1° O",
+      "center": [
+        -67.1,
+        -26.0
+      ],
+      "bbox": [
+        -67.2,
+        -26.1,
+        -67.0,
+        -25.9
+      ],
+      "area_km2": 443.7,
+      "nasadem": {
+        "tiles": [
+          "s26w067",
+          "s26w068",
+          "s27w067",
+          "s27w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.02783736,
+        "analysis_spacing_meter": 469.2,
+        "median_slope_degree": 6.253,
+        "median_neighbor_difference_meter": 30.479,
+        "median_3x3_relief_meter": 148.977
+      },
+      "topographic_similarities": {
+        "slope": 0.355989,
+        "terrain_roughness": 0.360904,
+        "local_relief": 0.315485
+      },
+      "topographic_priority": 34.62,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2600-w06690",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 26,0° S, 66,9° O",
+      "center": [
+        -66.9,
+        -26.0
+      ],
+      "bbox": [
+        -67.0,
+        -26.1,
+        -66.8,
+        -25.9
+      ],
+      "area_km2": 443.7,
+      "nasadem": {
+        "tiles": [
+          "s26w067",
+          "s27w067"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.00029817,
+        "analysis_spacing_meter": 469.2,
+        "median_slope_degree": 6.219,
+        "median_neighbor_difference_meter": 31.787,
+        "median_3x3_relief_meter": 147.094
+      },
+      "topographic_similarities": {
+        "slope": 0.357935,
+        "terrain_roughness": 0.346053,
+        "local_relief": 0.319524
+      },
+      "topographic_priority": 34.28,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2580-w06770",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 25,8° S, 67,7° O",
+      "center": [
+        -67.7,
+        -25.8
+      ],
+      "bbox": [
+        -67.8,
+        -25.9,
+        -67.6,
+        -25.7
+      ],
+      "area_km2": 444.4,
+      "nasadem": {
+        "tiles": [
+          "s26w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.000504,
+        "analysis_spacing_meter": 469.6,
+        "median_slope_degree": 4.498,
+        "median_neighbor_difference_meter": 18.027,
+        "median_3x3_relief_meter": 103.477
+      },
+      "topographic_similarities": {
+        "slope": 0.494887,
+        "terrain_roughness": 0.610196,
+        "local_relief": 0.454207
+      },
+      "topographic_priority": 52.17,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2580-w06750",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 25,8° S, 67,5° O",
+      "center": [
+        -67.5,
+        -25.8
+      ],
+      "bbox": [
+        -67.6,
+        -25.9,
+        -67.4,
+        -25.7
+      ],
+      "area_km2": 444.4,
+      "nasadem": {
+        "tiles": [
+          "s26w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 469.6,
+        "median_slope_degree": 6.763,
+        "median_neighbor_difference_meter": 35.012,
+        "median_3x3_relief_meter": 151.672
+      },
+      "topographic_similarities": {
+        "slope": 0.329144,
+        "terrain_roughness": 0.314178,
+        "local_relief": 0.309879
+      },
+      "topographic_priority": 31.83,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2580-w06730",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 25,8° S, 67,3° O",
+      "center": [
+        -67.3,
+        -25.8
+      ],
+      "bbox": [
+        -67.4,
+        -25.9,
+        -67.2,
+        -25.7
+      ],
+      "area_km2": 444.4,
+      "nasadem": {
+        "tiles": [
+          "s26w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 469.6,
+        "median_slope_degree": 4.114,
+        "median_neighbor_difference_meter": 22.17,
+        "median_3x3_relief_meter": 96.234
+      },
+      "topographic_similarities": {
+        "slope": 0.541079,
+        "terrain_roughness": 0.496166,
+        "local_relief": 0.488393
+      },
+      "topographic_priority": 50.98,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2580-w06710",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 25,8° S, 67,1° O",
+      "center": [
+        -67.1,
+        -25.8
+      ],
+      "bbox": [
+        -67.2,
+        -25.9,
+        -67.0,
+        -25.7
+      ],
+      "area_km2": 444.4,
+      "nasadem": {
+        "tiles": [
+          "s26w067",
+          "s26w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 469.6,
+        "median_slope_degree": 3.563,
+        "median_neighbor_difference_meter": 19.812,
+        "median_3x3_relief_meter": 78.023
+      },
+      "topographic_similarities": {
+        "slope": 0.624754,
+        "terrain_roughness": 0.555219,
+        "local_relief": 0.602386
+      },
+      "topographic_priority": 59.26,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "selected",
+      "decision_reason": "Preseleccionada por prioridad topográfica y separación mínima entre centros.",
+      "selection_rank": 6,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2580-w06690",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 25,8° S, 66,9° O",
+      "center": [
+        -66.9,
+        -25.8
+      ],
+      "bbox": [
+        -67.0,
+        -25.9,
+        -66.8,
+        -25.7
+      ],
+      "area_km2": 444.4,
+      "nasadem": {
+        "tiles": [
+          "s26w067"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.00088873,
+        "analysis_spacing_meter": 469.6,
+        "median_slope_degree": 4.102,
+        "median_neighbor_difference_meter": 21.93,
+        "median_3x3_relief_meter": 92.742
+      },
+      "topographic_similarities": {
+        "slope": 0.542662,
+        "terrain_roughness": 0.501596,
+        "local_relief": 0.506782
+      },
+      "topographic_priority": 51.76,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2560-w06770",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 25,6° S, 67,7° O",
+      "center": [
+        -67.7,
+        -25.6
+      ],
+      "bbox": [
+        -67.8,
+        -25.7,
+        -67.6,
+        -25.5
+      ],
+      "area_km2": 445.1,
+      "nasadem": {
+        "tiles": [
+          "s26w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 469.9,
+        "median_slope_degree": 5.418,
+        "median_neighbor_difference_meter": 21.055,
+        "median_3x3_relief_meter": 133.355
+      },
+      "topographic_similarities": {
+        "slope": 0.410853,
+        "terrain_roughness": 0.522441,
+        "local_relief": 0.352443
+      },
+      "topographic_priority": 43.0,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2560-w06750",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 25,6° S, 67,5° O",
+      "center": [
+        -67.5,
+        -25.6
+      ],
+      "bbox": [
+        -67.6,
+        -25.7,
+        -67.4,
+        -25.5
+      ],
+      "area_km2": 445.1,
+      "nasadem": {
+        "tiles": [
+          "s26w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0,
+        "analysis_spacing_meter": 469.9,
+        "median_slope_degree": 7.299,
+        "median_neighbor_difference_meter": 34.764,
+        "median_3x3_relief_meter": 166.441
+      },
+      "topographic_similarities": {
+        "slope": 0.304973,
+        "terrain_roughness": 0.316419,
+        "local_relief": 0.282382
+      },
+      "topographic_priority": 30.27,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2560-w06730",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 25,6° S, 67,3° O",
+      "center": [
+        -67.3,
+        -25.6
+      ],
+      "bbox": [
+        -67.4,
+        -25.7,
+        -67.2,
+        -25.5
+      ],
+      "area_km2": 445.1,
+      "nasadem": {
+        "tiles": [
+          "s26w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.01193634,
+        "analysis_spacing_meter": 469.9,
+        "median_slope_degree": 6.118,
+        "median_neighbor_difference_meter": 28.537,
+        "median_3x3_relief_meter": 136.625
+      },
+      "topographic_similarities": {
+        "slope": 0.363844,
+        "terrain_roughness": 0.385464,
+        "local_relief": 0.344007
+      },
+      "topographic_priority": 36.59,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2560-w06710",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 25,6° S, 67,1° O",
+      "center": [
+        -67.1,
+        -25.6
+      ],
+      "bbox": [
+        -67.2,
+        -25.7,
+        -67.0,
+        -25.5
+      ],
+      "area_km2": 445.1,
+      "nasadem": {
+        "tiles": [
+          "s26w067",
+          "s26w068"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.00125231,
+        "analysis_spacing_meter": 469.9,
+        "median_slope_degree": 5.262,
+        "median_neighbor_difference_meter": 24.793,
+        "median_3x3_relief_meter": 116.969
+      },
+      "topographic_similarities": {
+        "slope": 0.423033,
+        "terrain_roughness": 0.443674,
+        "local_relief": 0.401816
+      },
+      "topographic_priority": 42.44,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    },
+    {
+      "window_id": "ar-win-s2560-w06690",
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta · 25,6° S, 66,9° O",
+      "center": [
+        -66.9,
+        -25.6
+      ],
+      "bbox": [
+        -67.0,
+        -25.7,
+        -66.8,
+        -25.5
+      ],
+      "area_km2": 445.1,
+      "nasadem": {
+        "tiles": [
+          "s26w067"
+        ],
+        "source_valid_fraction": 1.0,
+        "permanent_water_fraction": 0.0003174,
+        "analysis_spacing_meter": 469.9,
+        "median_slope_degree": 4.143,
+        "median_neighbor_difference_meter": 19.031,
+        "median_3x3_relief_meter": 89.629
+      },
+      "topographic_similarities": {
+        "slope": 0.537292,
+        "terrain_roughness": 0.578004,
+        "local_relief": 0.524384
+      },
+      "topographic_priority": 54.81,
+      "literature": {
+        "status": "regional_precedent",
+        "matches": [
+          {
+            "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+            "in_region_with_precedent": true,
+            "relation": "regional_precedent"
+          }
+        ]
+      },
+      "decision": "not_selected_quota",
+      "decision_reason": "El país ya tiene 3 ventanas con mayor prioridad topográfica.",
+      "selection_rank": null,
+      "blocked_by": null
+    }
+  ]
+}

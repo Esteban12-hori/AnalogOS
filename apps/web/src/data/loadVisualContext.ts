@@ -52,9 +52,14 @@ export type VisualSelection =
 
 const IMAGE_NAME = /^[a-z0-9-]+\.png$/
 
+/** Cada snapshot tiene su paquete visual: el v3 no reutiliza el índice del v2. */
+export const VISUAL_CONTEXT_DIR = (import.meta.env.VITE_SNAPSHOT_PATH ?? 'science-v3') === 'science-v3'
+  ? 'visual-context-v3'
+  : 'visual-context'
+
 /** Ruta local de un archivo del paquete visual; funciona en "/", "./" y "/AnalogOS/". */
-export function visualContextUrl(baseUrl: string, file: string): string {
-  return `${baseUrl}visual-context/${file}`
+export function visualContextUrl(baseUrl: string, file: string, directory: string = VISUAL_CONTEXT_DIR): string {
+  return `${baseUrl}${directory}/${file}`
 }
 
 function invalid(detail: string): never {

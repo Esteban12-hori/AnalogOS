@@ -1,0 +1,18 @@
+{
+  "observed_at": "2026-11-14",
+  "observers": [
+    "Codex",
+    "Claude Code"
+  ],
+  "source": "artifacts/visual-context-v3: mosaicos Sentinel-2 L2A de diciembre de 2025, ~29 m por píxel",
+  "note": "Descripciones de apariencia hechas tras ver cada imagen. No identifican instalaciones, propietarios ni permisos, no cambian ningún score y no producen exclusiones. Una ventana de ~440 km² no es un terreno íntegramente libre ni apto.",
+  "sites": {
+    "cl-win-s2500-w06970": "numerosas trazas lineales y una red sinuosa y ramificada de tono claro en el noreste",
+    "cl-win-s2480-w06950": "relieve con abanicos, una franja clara ancha y sinuosa que cruza la ventana y trazas lineales",
+    "cl-win-s2520-w06950": "trazas rectilíneas y concentraciones geométricas de tono claro en el norte",
+    "ar-win-s2620-w06750": "campos oscuros en el centro y el este y una franja verde u oscura en el borde noreste",
+    "ar-win-s2640-w06730": "una concentración densa de estructuras claras en el sur con una franja verde u oscura adyacente, compatible con intervención humana a contrastar",
+    "ar-win-s2580-w06710": "franjas verdes u oscuras ramificadas en el norte y el oeste",
+    "cl-pampa-yungay-screening": "trazas rectilíneas y un conjunto de parches brillantes de contorno rectangular en el sureste"
+  }
+}

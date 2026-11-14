@@ -1,5 +1,6 @@
-import type { CandidateSite, DataManifest, MissionProfile } from '../domain/contracts'
+import type { CandidateSite, DataManifest, MissionProfile, PrecedentCatalog, SearchResults } from '../domain/contracts'
 import type { VisualContextState } from '../data/loadVisualContext'
+import { buildExport, countryLabels, isReference, literatureLabels, matchDetails, relationLabels } from '../domain/discovery'
 import { VisualContext } from './VisualContext'
 import {
   criterionLabels,
@@ -16,6 +17,8 @@ interface CandidateDetailsProps {
   manifest: DataManifest
   profile: MissionProfile
   visual: VisualContextState
+  search: SearchResults | null
+  precedents: PrecedentCatalog | null
 }
 
 function Metric({ label, value, hint, muted = false }: { label: string; value: string; hint: string; muted?: boolean }) {
@@ -28,10 +31,18 @@ function Metric({ label, value, hint, muted = false }: { label: string; value: s
   )
 }
 
-export function CandidateDetails({ candidate, manifest, profile, visual }: CandidateDetailsProps) {
-  const statusLabel = candidate.status === 'fixture' ? 'Fixture' : candidate.status === 'candidate' ? 'Screening' : candidate.status
+export function CandidateDetails({ candidate, manifest, profile, visual, search, precedents }: CandidateDetailsProps) {
+  const reference = isReference(candidate)
+  const statusLabel = candidate.status === 'fixture' ? 'Fixture'
+    : reference ? 'Referencia conocida'
+    : candidate.role === 'candidate' ? 'Candidato de la búsqueda'
+    : candidate.status === 'candidate' ? 'Screening' : candidate.status
+  const discovery = candidate.discovery
+  const review = candidate.literature_review
+  const matches = matchDetails(candidate, precedents)
   const downloadCandidate = () => {
-    const blob = new Blob([JSON.stringify(candidate, null, 2)], { type: 'application/json' })
+    // La exportación conserva rol, origen y revisión bibliográfica, y añade el alcance de la búsqueda.
+    const blob = new Blob([JSON.stringify(buildExport(candidate, search), null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
@@ -70,6 +81,7 @@ export function CandidateDetails({ candidate, manifest, profile, visual }: Candi
       </div>
 
       <div className="detail-meta">
+        {candidate.country && <span><small>País</small><strong>{countryLabels[candidate.country]}</strong></span>}
         <span><small>Área aproximada</small><strong>{formatArea(candidate.area_km2)}</strong></span>
         <span><small>Snapshot</small><strong>{manifest.snapshot_version}</strong></span>
         <span><small>Perfil</small><strong>{profile.version}</strong></span>
@@ -86,6 +98,52 @@ export function CandidateDetails({ candidate, manifest, profile, visual }: Candi
             </details>
           )}
         </div>
+      )}
+
+      {discovery && review && (
+        <section className="details-section origin-section" aria-labelledby="origin-heading">
+          <div className="subheading-row">
+            <h3 id="origin-heading">Origen y antecedentes</h3>
+            <span>{literatureLabels[review.status]}</span>
+          </div>
+          <dl className="origin-list">
+            <div>
+              <dt>Origen</dt>
+              <dd>
+                {reference
+                  ? `Referencia conocida, tomada del snapshot ${discovery.source_snapshot ?? 'anterior'}. No sale de la búsqueda.`
+                  : `Búsqueda por rejilla: ventana ${discovery.window_id}, preselección n.º ${discovery.selection_rank}.`}
+              </dd>
+            </div>
+            {discovery.topographic_priority !== null && (
+              <div>
+                <dt>Prioridad topográfica</dt>
+                <dd>{formatScore(discovery.topographic_priority)} / 100 · solo ordena la preselección; no es el score ni la confianza.</dd>
+              </div>
+            )}
+            <div><dt>Nota</dt><dd>{discovery.note}</dd></div>
+            <div>
+              <dt>Revisión bibliográfica</dt>
+              <dd>{review.note} Catálogo {review.catalog_version}, revisado el {review.reviewed_at}.</dd>
+            </div>
+          </dl>
+          {matches.length > 0 && (
+            <ul className="precedent-list">
+              {matches.map((match) => (
+                <li key={match.precedent_id}>
+                  <strong>{match.name}</strong>
+                  <span>
+                    {relationLabels[match.relation]}
+                    {match.points ? `: ${match.points.length} punto(s)` : ''}
+                    {match.distance_km !== undefined ? `: ${formatScore(match.distance_km)} km al centro (${match.nearest_point})` : ''}.
+                  </span>
+                  <small>{match.spatialPrecision}</small>
+                  <a href={match.sourceUrl} target="_blank" rel="noreferrer">{match.sourceTitle} ↗</a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       )}
 
       <VisualContext candidate={candidate} state={visual} />
