@@ -1,7 +1,7 @@
 import type { ErrorObject } from 'ajv'
 // Validadores precompilados desde contracts/*.schema.json (scripts/build-validators.mjs):
 // misma validación en el límite del sistema, sin el compilador de Ajv en el navegador.
-import { validateCandidate, validateManifest, validateProfile } from './validators.generated.js'
+import { validateCandidate, validateManifest, validateProfile, validateReferenceAnalogs } from './validators.generated.js'
 
 export type Position = [number, number]
 
@@ -129,7 +129,72 @@ export interface GeoJsonFeatureCollection {
   }>
 }
 
-function errorSummary(errors: ErrorObject[] | null | undefined): string {
+/** Identificadores de los 7 criterios del perfil base (orden canónico del snapshot v2). */
+export const CRITERION_IDS = [
+  'slope',
+  'terrain_roughness',
+  'local_relief',
+  'bare_ground_fraction',
+  'aridity_context',
+  'surface_temperature_variability',
+  'geologic_relevance',
+] as const
+
+export type CriterionId = (typeof CRITERION_IDS)[number]
+
+export function isCriterionId(value: unknown): value is CriterionId {
+  return typeof value === 'string' && (CRITERION_IDS as readonly string[]).includes(value)
+}
+
+// ---------------------------------------------------------------------------
+// Análogos de referencia (◆): contracts/reference-analog.schema.json
+// No tienen similitud, confianza ni ranking: el contrato no ofrece dónde ponerlos.
+// ---------------------------------------------------------------------------
+
+export interface ReferenceAnalogSource {
+  title: string
+  url: string
+  publisher?: string
+}
+
+/** Punto citado con radio de incertidumbre: se dibuja como «zona aproximada», nunca como pin. */
+export interface ApproximatePointLocation {
+  kind: 'approximate_point'
+  lon: number
+  lat: number
+  radius_km: number
+}
+
+/** Región extensa como caja [oeste, sur, este, norte]. */
+export interface RegionLocation {
+  kind: 'region'
+  bbox: [number, number, number, number]
+}
+
+export interface ReferenceAnalog {
+  id: string
+  name: string
+  country: string
+  status: 'por_calcular'
+  location: ApproximatePointLocation | RegionLocation
+  summary?: string
+  sources: ReferenceAnalogSource[]
+}
+
+export interface ReferenceAnalogCatalog {
+  schema: 'reference-analogs/1'
+  analogs: ReferenceAnalog[]
+}
+
+/** Valida config/reference_analogs.json en el límite del sistema; lanza con un resumen legible. */
+export function parseReferenceAnalogs(data: unknown): ReferenceAnalog[] {
+  if (!validateReferenceAnalogs(data)) {
+    throw new Error(`Catálogo de análogos inválido: ${errorSummary(validateReferenceAnalogs.errors)}`)
+  }
+  return (data as ReferenceAnalogCatalog).analogs
+}
+
+export function errorSummary(errors: ErrorObject[] | null | undefined): string {
   if (!errors?.length) return 'error de contrato desconocido'
   return errors.map((error) => `${error.instancePath || '/'} ${error.message ?? ''}`.trim()).join('; ')
 }

@@ -1,0 +1,46 @@
+{
+  "schema": "reference-analogs/1",
+  "analogs": [
+    {
+      "id": "fixture-analogo-punto",
+      "name": "FIXTURE · análogo con punto aproximado",
+      "country": "Ninguno (fixture)",
+      "status": "por_calcular",
+      "location": {
+        "kind": "approximate_point",
+        "lon": -110.79,
+        "lat": 38.41,
+        "radius_km": 25
+      },
+      "summary": "Fixture de contrato: no es un análogo real ni una ubicación citada.",
+      "sources": [
+        {
+          "title": "Fuente FIXTURE (no real)",
+          "url": "https://example.org/fixture-analogo-punto",
+          "publisher": "fixture"
+        }
+      ]
+    },
+    {
+      "id": "fixture-analogo-region",
+      "name": "FIXTURE · análogo regional",
+      "country": "Ninguno (fixture)",
+      "status": "por_calcular",
+      "location": {
+        "kind": "region",
+        "bbox": [
+          -70.6,
+          -27.0,
+          -68.5,
+          -21.5
+        ]
+      },
+      "sources": [
+        {
+          "title": "Fuente FIXTURE (no real)",
+          "url": "http://example.org/inseguro"
+        }
+      ]
+    }
+  ]
+}

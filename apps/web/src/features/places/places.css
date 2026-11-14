@@ -1,0 +1,15 @@
+/* STUB de features/places: estilos mínimos de la lista provisional. El incremento 3 los reemplaza. */
+.place-stub { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; height: 100%; align-content: start; }
+.place-stub-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0; color: var(--muted); font-family: var(--mono); font-size: var(--fs-caps); letter-spacing: var(--caps-tracking); text-transform: uppercase; }
+.place-stub-head small { font-size: var(--fs-min); }
+.place-stub-note { margin: 0; color: var(--muted); font-size: var(--fs-12); }
+.place-stub-list { display: flex; gap: 8px; margin: 0; padding: 0 0 4px; list-style: none; overflow-x: auto; scrollbar-width: thin; }
+.place-stub[data-placement="sheet"] .place-stub-list { flex-direction: column; overflow: visible; }
+.place-stub-list button { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: baseline; gap: 2px 8px; min-width: 220px; min-height: 44px; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 14px; background: var(--marker-bg); color: var(--text); cursor: pointer; text-align: left; font-size: var(--fs-13); }
+.place-stub[data-placement="sheet"] .place-stub-list button { width: 100%; min-width: 0; }
+.place-stub-list button:hover { border-color: var(--sel-line); }
+.place-stub-list button[aria-pressed="true"] { border-color: var(--sel-line); box-shadow: inset 0 2px 0 var(--sel-accent), 0 0 0 1px var(--sel-ring); }
+.place-stub-list button > span:first-child { color: var(--earth-bright); }
+.place-stub-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.place-stub-list b { color: var(--earth-bright); font-variant-numeric: tabular-nums; }
+.place-stub-list small { grid-column: 3; color: var(--muted); font-size: var(--fs-min); text-align: right; }

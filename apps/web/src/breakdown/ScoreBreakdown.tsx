@@ -6,7 +6,7 @@
  */
 import type { CSSProperties, ReactNode } from 'react'
 import type { ScoreBreakdownItem } from '../domain/contracts'
-import { criterionStatusLabels, formatScore } from '../domain/formatting'
+import { criterionStatusLabels, formatDecimal, formatWhole } from '../domain/formatting'
 import type { MarsReference } from '../domain/marsReference'
 import './score-breakdown.css'
 
@@ -55,7 +55,7 @@ function Ring({ value }: { value: number | null }) {
         <circle className="sb-ring-track" cx="22" cy="22" r="18" pathLength={1} />
         {value !== null && <circle className="sb-ring-fill" cx="22" cy="22" r="18" pathLength={1} style={{ strokeDashoffset: 1 - v }} />}
       </svg>
-      <span>{value === null ? '—' : formatScore(v * 100)}</span>
+      <span>{value === null ? '—' : formatWhole(v * 100)}</span>
     </div>
   )
 }
@@ -193,7 +193,7 @@ function explain(item: ScoreBreakdownItem, mars?: number): string {
     case 'bare_ground_fraction':
       return `${fmt1(v * 100)} de cada 100 píxeles válidos son suelo sin vegetación (SCL clase 5). La similitud es esa misma fracción.`
     case 'aridity_context':
-      return `Menos lluvia, más análogo: a 25 mm/año la similitud cae a 50; con ${fmt1(v)} mm/año queda en ${formatScore((item.normalized_similarity ?? 0) * 100)}.`
+      return `Menos lluvia, más análogo: a 25 mm/año la similitud cae a 50; con ${fmt1(v)} mm/año queda en ${formatWhole((item.normalized_similarity ?? 0) * 100)}.`
     case 'surface_temperature_variability':
       return v >= 45
         ? `La amplitud supera los 45 K en que el perfil satura, así que este criterio alcanza su máximo.`
@@ -254,8 +254,8 @@ function CriterionCard({ item, index, mars }: { item: ScoreBreakdownItem; index:
       )}
 
       <footer className="sb-foot">
-        <span>Peso <b>{formatScore(item.weight * 100)} %</b><i><em style={{ width: `${item.weight * 100}%` }} /></i></span>
-        <span>Calidad del dato <b>{formatScore(item.quality * 100)} %</b><i><em style={{ width: `${item.quality * 100}%` }} /></i></span>
+        <span>Peso <b>{formatDecimal(item.weight * 100)} %</b><i><em style={{ width: `${item.weight * 100}%` }} /></i></span>
+        <span>Calidad del dato <b>{formatDecimal(item.quality * 100)} %</b><i><em style={{ width: `${item.quality * 100}%` }} /></i></span>
       </footer>
     </article>
   )

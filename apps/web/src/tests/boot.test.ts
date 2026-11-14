@@ -1,17 +1,25 @@
 import { describe, expect, it } from 'vitest'
 import { posterLayout } from '../boot/posterLayout.js'
-import { globeScreenRadius } from '../domain/mapZoom'
+import { globeScreenCenter, globeScreenRadius } from '../domain/mapZoom'
+import { baseStageInsets } from '../shell/stageGeometry.js'
 
 describe('posición del póster previo a React', () => {
-  it('coincide con el radio del globo 3D en móvil, laptop y monitores grandes', () => {
-    for (const [w, h] of [[390, 844], [1024, 768], [1440, 900], [1920, 1080], [3840, 2160]]) {
-      const inset = w >= 1100 ? 520 : 0
-      const radius = globeScreenRadius(w, h, inset)
-      const layout = posterLayout(w, h)
+  it('coincide al píxel con el globo 3D en el área libre base (móvil, laptop y monitores grandes)', () => {
+    for (const [w, h] of [[390, 844], [844, 390], [1024, 768], [1280, 720], [1440, 900], [1920, 1080], [3840, 2160]] as const) {
+      const insets = baseStageInsets(w, h)
+      const radius = globeScreenRadius(w, h, insets)
+      const center = globeScreenCenter(w, h, insets)
+      const layout = posterLayout(w, h, insets)
       expect(layout.size).toBeCloseTo(2 * radius * (445 / 396.5), 6)
-      expect(layout.left + layout.size / 2).toBeCloseTo((w - inset) / 2, 6)
-      expect(layout.top + layout.size / 2).toBeCloseTo(h / 2, 6)
+      expect(layout.left + layout.size / 2).toBeCloseTo(center.x, 6)
+      expect(layout.top + layout.size / 2).toBeCloseTo(center.y, 6)
     }
+  })
+
+  it('sin márgenes conserva la fórmula original (globo centrado en el viewport)', () => {
+    const layout = posterLayout(1440, 900)
+    expect(layout.size).toBeCloseTo(2 * globeScreenRadius(1440, 900) * (445 / 396.5), 6)
+    expect(layout.left + layout.size / 2).toBeCloseTo(720, 6)
   })
 })
 

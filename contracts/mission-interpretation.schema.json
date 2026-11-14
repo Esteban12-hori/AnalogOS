@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analogos.cl/schemas/mission-interpretation.schema.json",
+  "title": "AnalogOS · interpretación de una misión (mission-interpretation/1)",
+  "description": "Lo que la IA (lktron) o el matcher DEMO por palabras clave devuelven al interpretar el texto de una misión: niveles 0–3 por criterio, supuestos y lo pedido sin datos. No hay campo para porcentajes, confianza ni ranking: los calcula el motor determinista del cliente (ADR-009, ADR-010, docs/UX_REDESIGN.md §5.2). Reglas que el esquema no puede expresar (ids sin repetir, filtro de números escritos) las comprueba el cliente.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "engine", "model", "prompt_version", "base_profile", "status", "mission_summary", "criteria", "assumptions", "unsupported"],
+  "properties": {
+    "schema": {"const": "mission-interpretation/1"},
+    "engine": {
+      "description": "lktron = IA opcional (ADR-010); demo = coincidencia por palabras clave, sin red, rotulada «DEMO · sin IA».",
+      "enum": ["lktron", "demo"]
+    },
+    "model": {"type": "string", "minLength": 1, "maxLength": 120},
+    "prompt_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"},
+    "base_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "version": {"type": "string", "minLength": 1, "maxLength": 40}
+      }
+    },
+    "status": {"enum": ["ok", "no_terrain_criteria"]},
+    "mission_summary": {"$ref": "#/$defs/plainText"},
+    "criteria": {
+      "type": "array",
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "level", "rationale"],
+        "properties": {
+          "id": {"$ref": "#/$defs/criterionId"},
+          "level": {
+            "description": "Clave 3 · Importante 2 · Menor 1 · Excluir 0. El peso es nivel ÷ suma de niveles y lo calcula el cliente.",
+            "enum": [0, 1, 2, 3]
+          },
+          "rationale": {"$ref": "#/$defs/plainText"}
+        }
+      }
+    },
+    "assumptions": {"type": "array", "maxItems": 8, "items": {"$ref": "#/$defs/plainText"}},
+    "unsupported": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["phrase", "reason"],
+        "properties": {
+          "phrase": {"type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[^0-9%]*$"},
+          "reason": {"enum": ["not_measured", "out_of_scope", "ambiguous"]}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "criterionId": {
+      "enum": ["slope", "terrain_roughness", "local_relief", "bare_ground_fraction", "aridity_context", "surface_temperature_variability", "geologic_relevance"]
+    },
+    "plainText": {
+      "description": "Texto de la IA: sin dígitos ni %, 280 caracteres como máximo.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 280,
+      "pattern": "^[^0-9%]*$"
+    }
+  }
+}

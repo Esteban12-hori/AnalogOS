@@ -1,0 +1,12 @@
+{"type": "meta", "schema": "ai-analysis/1", "engine": "pregenerated", "model": "fixture-model", "prompt_version": "0.1.0-fixture", "packet_hash": "fnv1a64:0123456789abcdef"}
+{"type": "stage", "stage": "selecting_facts"}
+{"type": "stage", "stage": "writing"}
+{"type": "summary", "site_id": "cl-pampa-yungay-screening", "text": "Más exigente que Jezero en pendiente: {{site:cl-pampa-yungay-screening:slope:ratio}}.", "refs": ["site:cl-pampa-yungay-screening:slope:ratio"]}
+{"type": "insight", "id": "i1", "site_id": "cl-pampa-yungay-screening", "criterion_id": "terrain_roughness", "fact_kind": "limiting_factor", "text": "La rugosidad es el factor que más resta en este sector.", "refs": []}
+{"type": "test_suggestion", "site_id": "cl-pampa-yungay-screening", "text": "Probar la percepción de obstáculos en la pendiente {{site:cl-pampa-yungay-screening:slope:raw}}.", "refs": ["site:cl-pampa-yungay-screening:slope:raw"]}
+{"type": "tradeoff", "site_ids": ["cl-pampa-yungay-screening", "cl-domeyko-interior-screening"], "text": "Uno es más exigente en relieve y el otro más parecido en pendiente.", "refs": []}
+{"type": "robustness_note", "text": "La brecha entre los primeros lugares es {{rank:gap:1:2}}.", "refs": ["rank:gap:1:2", "sens:flips"]}
+{"type": "uncertainty", "text": "La geología está por calcular y no entra al orden.", "refs": [], "resolves_check": "check:cl-pampa-yungay-screening:1"}
+{"type": "field_priority", "site_id": "cl-pampa-yungay-screening", "check_ref": "check:cl-pampa-yungay-screening:1", "why": "Sin permisos no hay prueba posible.", "refs": []}
+{"type": "analog_note", "analog_id": "fixture-analogo-punto", "status": "por_calcular", "text": "Análogo de referencia sin cálculo en este snapshot."}
+{"type": "done", "counts": {"summary": 1, "insight": 1, "tradeoff": 1}}

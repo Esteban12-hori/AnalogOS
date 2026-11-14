@@ -1,0 +1,95 @@
+/*
+ * Tokens del sistema único (docs/UX_REDESIGN.md §2.2 y §2.4).
+ * Se carga antes que styles.css. Archivo del integrador: los constructores los USAN, no los editan.
+ *
+ * Reglas de movimiento:
+ *  1. Solo se animan transform y opacity (en SVG pequeños también stroke-dashoffset y clip-path).
+ *  2. Ningún bucle dura más de 4,8 s.  3. Ninguna cifra se anima.
+ *  4. La manipulación directa (hoja, rotación) no lleva transición.
+ *  5. prefers-reduced-motion: sin translate/scale/rotate, opacidad ≤150 ms, sin bucles ni halos.
+ */
+:root {
+  /* Curvas */
+  --ease-standard: cubic-bezier(.2, 0, 0, 1);    /* estado, hover, pestañas, atenuación */
+  --ease-enter: cubic-bezier(.2, .8, .2, 1);     /* entradas de UI */
+  --ease-emph: cubic-bezier(.05, .7, .1, 1);     /* arranque, aterrizaje, líneas */
+  --ease-exit: cubic-bezier(.4, 0, 1, 1);        /* salidas */
+  --ease-sheet: cubic-bezier(.32, .72, 0, 1);    /* hoja, ficha 380→520, popovers */
+  --ease-spring: cubic-bezier(.3, 1.4, .5, 1);   /* solo el pop de selección */
+  /* cámara (en JS): easeInOutCubic ≡ cubic-bezier(.65, 0, .35, 1) */
+
+  /* Duraciones */
+  --dur-1: 120ms;  /* micro: hover, press */
+  --dur-2: 200ms;  /* estado: fundidos, chips, colapsos, pulgar del modo */
+  --dur-3: 280ms;  /* paneles, tarjetas, acordeón, cambio de modo */
+  --dur-4: 400ms;  /* hoja, dock, FLIP, pop de selección */
+  --dur-5: 700ms;  /* coreografía: onda de la órbita, líneas completas */
+  --dur-6: 900ms;  /* revelado: halo, anillo de similitud, atmósfera */
+  --stagger-list: 50ms;   /* listas de 7 elementos como máximo */
+  --stagger-rank: 120ms;  /* aterrizaje 1→2→3 */
+  --loop-orbit: 2400ms;   /* 2 vueltas como máximo (4,8 s) */
+  --loop-max-iterations: 2;
+  --o-busy: .45;          /* resultados previos durante la espera (aria-busy, sin inert) */
+  --o-dim: .5;            /* lugares no seleccionados */
+
+  /* Color con significado fijo (§2.4) */
+  --earth: var(--blue, #0297DE);                 /* Tierra / sector / similitud / líneas */
+  --earth-bright: var(--blue-bright, #3FB4EC);
+  --mars: var(--orange, #FC734D);                /* Marte como dato (Jezero, MOLA): trazos */
+  --mars-text: var(--orange-bright, #FF9A7C);    /* Marte como dato: texto. Nunca selección ni error */
+  --confidence: var(--ice, #CFE9F7);             /* barra de confianza */
+  --sel-ring: #EAF4FA;                           /* selección: anillo + borde azul + acento superior 2 px */
+  --sel-line: var(--blue-line, rgba(2, 151, 222, .45));
+  --sel-accent: var(--blue-bright, #3FB4EC);
+  --pending: var(--muted-2, #6F889A);            /* por calcular / sin datos / zona aproximada: trazo discontinuo */
+  --pending-dash: 4px;
+  --error-text: var(--text, #EEF6FB);            /* error = neutro + ✕ + texto, role=alert */
+  --error-line: var(--muted, #94AABA);
+  --ai-rule: rgba(207, 233, 247, .5);            /* ✦ regla lateral de 2 px (hielo al 50 %) */
+  --marker-bg: rgba(2, 7, 10, .88);              /* marcadores, etiquetas, tarjetas y chips: sin blur */
+
+  /* Tipografía */
+  --fs-min: 10px;   /* mínimo en escritorio (11 en móvil) */
+  --fs-caps: 11px;  /* versalitas +0,08em */
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-body: 15px;
+  --fs-metric: 18px;
+  --fs-place: 23px;
+  --caps-tracking: .08em;
+
+  /* Vidrio: ≤3 superficies con blur en escritorio (panel izquierdo, riel, dock), 1 en móvil (hoja) */
+  --glass-blur: blur(18px) saturate(1.35);
+  --glass-tint: rgba(4, 12, 18, .74);
+  --glass-edge: rgba(190, 225, 245, .12);
+  --surface-solid: rgba(2, 7, 10, .9);
+
+  /* Foco: se mantiene el token real del sitio */
+  --focus-ring: 2px solid var(--blue-bright, #3FB4EC);
+  --focus-offset: 3px;
+}
+
+@media (max-width: 1099px) {
+  :root {
+    --fs-min: 11px;
+    --glass-blur: blur(12px) saturate(1.2);
+    --glass-tint: rgba(4, 12, 18, .88);
+  }
+}
+
+/* Gama baja: tinte sólido sin blur. */
+:root[data-lowfx] { --glass-blur: none; --glass-tint: rgba(4, 12, 18, .96); }
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-1: 0ms;
+    --dur-2: 150ms;
+    --dur-3: 150ms;
+    --dur-4: 150ms;
+    --dur-5: 150ms;
+    --dur-6: 150ms;
+    --stagger-list: 0ms;
+    --stagger-rank: 0ms;
+    --loop-max-iterations: 0;
+  }
+}

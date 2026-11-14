@@ -1,0 +1,62 @@
+/**
+ * Decide el detent de destino al soltar la hoja (ADR-008). Función pura.
+ *
+ * - Cancelación: pointercancel, entrada no finita o movimiento menor que el umbral de arrastre
+ *   (DETENT_SLOP_PX sin velocidad) → vuelve al detent de origen.
+ * - Umbral de velocidad: con |vy| ≥ DETENT_FLICK_VELOCITY se va al siguiente detent en la
+ *   dirección del gesto, contado desde la posición actual (un gesto rápido nunca retrocede).
+ * - Histéresis: sin velocidad, gana el detent más cercano, pero el de origen se considera
+ *   DETENT_HYSTERESIS_PX más cerca. Cerca del punto medio la hoja se queda donde estaba, en
+ *   ambos sentidos, y no salta al soltar un arrastre indeciso.
+ */
+
+/** px/ms; ~450 px/s. */
+export const DETENT_FLICK_VELOCITY = 0.45
+/** Ventaja del detent de origen al resolver por distancia. */
+export const DETENT_HYSTERESIS_PX = 48
+/** Por debajo de esto, soltar sin velocidad es un toque y no mueve la hoja. */
+export const DETENT_SLOP_PX = 8
+
+export interface ResolveDetentOptions {
+  /** Índice del detent donde empezó el arrastre. */
+  from: number
+  /** pointercancel o gesto abortado. */
+  cancelled?: boolean
+}
+
+/**
+ * @param y altura visible de la hoja al soltar (px desde el borde inferior)
+ * @param vy velocidad en px/ms; positiva = la hoja crece (dedo hacia arriba)
+ * @param detents alturas visibles de cada detent, en orden ascendente
+ * @returns índice del detent de destino
+ */
+export function resolveDetent(y: number, vy: number, detents: readonly number[], { from, cancelled = false }: ResolveDetentOptions): number {
+  const last = detents.length - 1
+  if (last < 0) return 0
+  const origin = Math.min(Math.max(Math.round(from), 0), last)
+  const start = detents[origin] ?? 0
+  if (cancelled || !Number.isFinite(y) || !Number.isFinite(vy)) return origin
+  if (Math.abs(vy) < DETENT_FLICK_VELOCITY && Math.abs(y - start) < DETENT_SLOP_PX) return origin
+
+  if (vy >= DETENT_FLICK_VELOCITY) {
+    const above = detents.findIndex((height) => height > y + DETENT_SLOP_PX)
+    return above === -1 ? last : above
+  }
+  if (vy <= -DETENT_FLICK_VELOCITY) {
+    for (let index = last; index >= 0; index -= 1) {
+      if ((detents[index] ?? 0) < y - DETENT_SLOP_PX) return index
+    }
+    return 0
+  }
+
+  let best = origin
+  let bestDistance = Number.POSITIVE_INFINITY
+  detents.forEach((height, index) => {
+    const distance = Math.abs(y - height) - (index === origin ? DETENT_HYSTERESIS_PX : 0)
+    if (distance < bestDistance) {
+      best = index
+      bestDistance = distance
+    }
+  })
+  return best
+}

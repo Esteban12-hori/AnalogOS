@@ -7,6 +7,7 @@ import earthPreviewUrl from '../assets/globe/earth-blue-marble-1k.webp'
 import earthTexture2kUrl from '../assets/globe/earth-blue-marble-2k.webp'
 import earthTexture4kUrl from '../assets/globe/earth-blue-marble-4k.webp'
 import { globeScreenRadius } from '../domain/mapZoom'
+import { baseStageInsets } from '../shell/stageGeometry.js'
 import earthBumpUrl from '../assets/globe/earth-topology-2k.jpg'
 import globePosterUrl from '../assets/globe/globe-poster.webp'
 // Solo la URL del worker de MapLibre (no ejecuta MapLibre): se descarga en segundo plano.
@@ -22,8 +23,7 @@ export function neededTextureWidth(radiusCssPx: number, devicePixelRatio: number
 
 /** 2K (~170 KB) basta en teléfonos y pantallas normales; 4K (~585 KB) solo donde se nota. */
 export function pickGlobeTexture(width: number, height: number, dpr: number): '2k' | '4k' {
-  const inset = width >= 1100 ? 520 : 0
-  return neededTextureWidth(globeScreenRadius(width, height, inset), dpr) > 2048 * 1.25 ? '4k' : '2k'
+  return neededTextureWidth(globeScreenRadius(width, height, baseStageInsets(width, height)), dpr) > 2048 * 1.25 ? '4k' : '2k'
 }
 
 const chosen = typeof window === 'undefined'

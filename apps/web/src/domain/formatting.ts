@@ -2,6 +2,8 @@ import type { CandidateSite, CriterionStatus, ScoreBreakdownItem } from './contr
 
 const number = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
 const integer = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 })
+/** Similitud, confianza y estabilidad del lugar: 1 decimal FIJO (49,99 → «50,0», no «50»). */
+const score = new Intl.NumberFormat('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 
 export const criterionLabels: Record<string, string> = {
   slope: 'Pendiente',
@@ -37,8 +39,19 @@ export const feasibilityLabels: Record<CandidateSite['feasibility'], string> = {
   excluded: 'Excluido',
 }
 
+/** Puntaje 0–100 del lugar (similitud, confianza, estabilidad) con 1 decimal fijo, formato es-CL. */
 export function formatScore(value: number | null): string {
-  return value === null ? '—' : number.format(value)
+  return value === null ? '—' : score.format(value)
+}
+
+/** Número con hasta 1 decimal (sin ceros finales), formato es-CL: pesos, calidad, magnitudes. */
+export function formatDecimal(value: number): string {
+  return number.format(value)
+}
+
+/** Entero es-CL: similitud por criterio (el valor exacto solo en «Método»). */
+export function formatWhole(value: number): string {
+  return integer.format(value)
 }
 
 export function formatArea(value: number): string {

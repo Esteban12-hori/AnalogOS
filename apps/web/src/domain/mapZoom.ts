@@ -31,6 +31,42 @@ export function fitDistanceRatio(aspect: number, fovDegrees = GLOBE_FOV_DEGREES)
   return GLOBE_FIT_MARGIN / Math.sin(Math.min(vertical, horizontal) / 2)
 }
 
+/** Márgenes de UI sobre el escenario (px). Un número equivale al margen derecho (compatibilidad). */
+export interface ViewInsets {
+  top: number
+  right: number
+  bottom: number
+  left: number
+}
+export type InsetArg = number | Partial<ViewInsets>
+
+export function normalizeInsets(insets: InsetArg = 0): ViewInsets {
+  if (typeof insets === 'number') return { top: 0, right: insets, bottom: 0, left: 0 }
+  return { top: insets.top ?? 0, right: insets.right ?? 0, bottom: insets.bottom ?? 0, left: insets.left ?? 0 }
+}
+
+/**
+ * Como `fitDistanceRatio`, pero para el área libre entre márgenes. La cámara conserva su campo
+ * de visión sobre el canvas completo (alto `height`); el área libre lo reduce en ambos ejes.
+ * Sin márgenes verticales coincide con `fitDistanceRatio(anchoLibre / alto)`.
+ */
+export function fitDistanceRatioForInsets(width: number, height: number, insets: InsetArg = 0, fovDegrees = GLOBE_FOV_DEGREES): number {
+  const { top, right, bottom, left } = normalizeInsets(insets)
+  const tall = Math.max(height, 1)
+  const usableWidth = Math.max(width - left - right, 1)
+  const usableHeight = Math.max(height - top - bottom, 1)
+  const tanHalf = Math.tan((fovDegrees * DEG) / 2)
+  const vertical = 2 * Math.atan(tanHalf * (usableHeight / tall))
+  const horizontal = 2 * Math.atan(tanHalf * (usableWidth / tall))
+  return GLOBE_FIT_MARGIN / Math.sin(Math.min(vertical, horizontal) / 2)
+}
+
+/** Centro del área libre en píxeles CSS: ahí queda el centro del globo con setViewOffset. */
+export function globeScreenCenter(width: number, height: number, insets: InsetArg = 0): { x: number; y: number } {
+  const { top, right, bottom, left } = normalizeInsets(insets)
+  return { x: left + Math.max(width - left - right, 1) / 2, y: top + Math.max(height - top - bottom, 1) / 2 }
+}
+
 export interface FlatThresholds {
   /** Zoom Mercator equivalente de la vista global en este panel. */
   global: number
@@ -44,9 +80,8 @@ export interface FlatThresholds {
  * Umbrales del paso globo ↔ mapa 2D relativos a la vista global del panel visible,
  * para que funcionen igual en una pantalla baja o en un monitor 4K.
  */
-export function flatThresholds(width: number, height: number, rightInset = 0): FlatThresholds {
-  const usableWidth = Math.max(width - rightInset, 1)
-  const ratio = fitDistanceRatio(usableWidth / Math.max(height, 1))
+export function flatThresholds(width: number, height: number, insets: InsetArg = 0): FlatThresholds {
+  const ratio = fitDistanceRatioForInsets(width, height, insets)
   // El radio es arbitrario: el zoom depende solo de altitud/radio.
   const global = zoomForAltitude(ratio - 1, 1, GLOBE_FOV_DEGREES, Math.max(height, 1), THRESHOLD_LATITUDE)
   return { global, enter: global + ENTER_FLAT_OVER_GLOBAL, exit: global + EXIT_FLAT_OVER_GLOBAL }
@@ -101,9 +136,8 @@ export function lonLatFromDirection(x: number, y: number, z: number): [number, n
  * Radio en píxeles CSS del disco del globo (sin atmósfera) en la vista global.
  * Sirve para colocar el póster estático exactamente donde aparecerá el globo 3D.
  */
-export function globeScreenRadius(width: number, height: number, rightInset = 0, fovDegrees = GLOBE_FOV_DEGREES): number {
-  const usableWidth = Math.max(width - rightInset, 1)
-  const ratio = fitDistanceRatio(usableWidth / Math.max(height, 1), fovDegrees)
+export function globeScreenRadius(width: number, height: number, insets: InsetArg = 0, fovDegrees = GLOBE_FOV_DEGREES): number {
+  const ratio = fitDistanceRatioForInsets(width, height, insets, fovDegrees)
   const angular = Math.asin(1 / ratio)
   return (Math.tan(angular) / Math.tan((fovDegrees * DEG) / 2)) * (Math.max(height, 1) / 2)
 }

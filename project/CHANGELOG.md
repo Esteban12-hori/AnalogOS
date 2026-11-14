@@ -1,5 +1,32 @@
 # Changelog de trabajo
 
+## 2026-11-14 Claude Code · rediseño Explorar / Misión: incrementos 0–2 y contrato del paralelo (rama feature/mision-redesign)
+
+- Incremento 0:
+  - ADR-008 (escenario fijo y hoja), ADR-009 (recálculo determinista en cliente) y ADR-010 (IA opcional), en estado propuesto.
+  - Esquemas `reference-analog`, `mission-interpretation`, `evidence-packet` y `ai-analysis` con 30 fixtures válidos e inválidos (`tests/fixtures/contracts/`), probados con Ajv precompilado (Vitest) y con jsonschema (pytest).
+  - Segundo módulo de validadores diferido (`validators.mission.generated.js`), con `--check` en el build.
+- Incremento 1:
+  - Tokens de movimiento, color y glifos (`shell/tokens.css`, `shell/glyphs.ts`).
+  - Store `ui` y store `mission` con `useSyncExternalStore`.
+  - `useReducedMotion` con listener.
+  - `formatScore` con 1 decimal fijo (49,99 → «50,0»).
+- Incremento 2: armazón de escenario fijo 100dvh sin scroll del documento.
+  - Pestañas APG Explorar | Misión con `?modo=`.
+  - Dock inferior, riel derecho con «Ver ficha completa» (520 px, pestañas Métricas · Lectura IA · Señal · Comparar · Método · Fuentes) y panel izquierdo ≥1440.
+  - Hoja S0/S1/S2 <1100 con `resolveDetent` (umbral, histéresis y cancelación), `useKeyboardInset`, `pushState`/Esc e `inert`.
+  - `MapStage` recibe `insets`/`baseInsets` (`setViewOffset` x/y y `setPadding`).
+  - El póster previo a React se alinea con los nuevos márgenes base.
+  - Se retiran el hero, la ficha flotante, `LiquidNav` y `LazySection`.
+- Contrato del paralelo:
+  - 8 features con `index.ts` estable y stubs honestos montados en sus slots (`data-slot`).
+  - `docs/BUILD_CONTRACTS.md` con la propiedad de archivos.
+  - Guardia `featureContracts.test.ts`.
+- Verificación:
+  - 141 tests web, 165 Python (1 omitido) y build en verde.
+  - Navegador a 1440×900, 1280×800 y 390×844 sin errores de consola.
+  - Chunk principal +2,6 KB gz de JS y +1,0 KB gz de CSS.
+
 ## 2026-11-14 Claude Code · rediseño fusionado en dev
 
 - `redesign/planeta-3d` fusionada en `dev` (fast-forward) por decisión directa del equipo humano, sin revisión de Codex: liquid glass global, globo de fondo con paso a 2D, ficha flotante, desglose del score con magnitudes y series Sentinel-2.

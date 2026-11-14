@@ -1,7 +1,14 @@
 // Precompila los validadores Ajv de los contratos a código JS estándar.
 // La web valida igual que antes en el límite del sistema, pero sin cargar el
 // compilador de Ajv ni compilar esquemas en el navegador (menos bytes y CPU).
-// Uso: node scripts/build-validators.mjs [--check]   (--check falla si el archivo está desfasado)
+//
+// Genera dos módulos:
+// - validators.generated.js: snapshot (candidato, manifiesto, perfil) y catálogo de
+//   análogos de referencia. Va en el chunk principal.
+// - validators.mission.generated.js: interpretación de misión, paquete de evidencia y
+//   eventos de análisis IA (UX_REDESIGN §5). Solo lo importan chunks diferidos.
+//
+// Uso: node scripts/build-validators.mjs [--check]   (--check falla si algún archivo está desfasado)
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -11,21 +18,34 @@ import standaloneCode from 'ajv/dist/standalone/index.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const contracts = resolve(here, '../../../contracts')
-const out = resolve(here, '../src/domain/validators.generated.js')
+const domain = resolve(here, '../src/domain')
 const schema = (name) => JSON.parse(readFileSync(resolve(contracts, name), 'utf8'))
 
-export function generate() {
+/** Archivo de salida → { nombre exportado: esquema }. */
+const OUTPUTS = {
+  'validators.generated.js': {
+    validateCandidate: 'candidate-site.schema.json',
+    validateManifest: 'data-manifest.schema.json',
+    validateProfile: 'mission-profile.schema.json',
+    validateReferenceAnalogs: 'reference-analog.schema.json',
+  },
+  'validators.mission.generated.js': {
+    validateMissionInterpretation: 'mission-interpretation.schema.json',
+    validateEvidencePacket: 'evidence-packet.schema.json',
+    validateAiAnalysisEvent: 'ai-analysis.schema.json',
+  },
+}
+
+export function generate(exportsToFiles) {
   const ajv = new Ajv2020({ allErrors: true, strict: false, code: { source: true, esm: true, lines: true } })
   addFormats(ajv)
-  const candidate = schema('candidate-site.schema.json')
-  const manifest = schema('data-manifest.schema.json')
-  const profile = schema('mission-profile.schema.json')
-  ajv.addSchema(candidate).addSchema(manifest).addSchema(profile)
-  const code = standaloneCode(ajv, {
-    validateCandidate: candidate.$id,
-    validateManifest: manifest.$id,
-    validateProfile: profile.$id,
-  })
+  const refs = {}
+  for (const [name, file] of Object.entries(exportsToFiles)) {
+    const loaded = schema(file)
+    ajv.addSchema(loaded)
+    refs[name] = loaded.$id
+  }
+  const code = standaloneCode(ajv, refs)
   // Ajv emite require() para dos dependencias de runtime; se convierten a import ESM.
   const imports = new Map()
   const esm = code
@@ -46,12 +66,24 @@ export function generate() {
   return `/* eslint-disable */\n// GENERADO por scripts/build-validators.mjs desde contracts/*.schema.json. No editar a mano.\n${header}\n${esm}\n`
 }
 
-const code = generate()
-if (process.argv.includes('--check')) {
-  if (readFileSync(out, 'utf8') !== code) {
-    console.error('validators.generated.js está desfasado: ejecuta node scripts/build-validators.mjs')
-    process.exit(1)
+const check = process.argv.includes('--check')
+let stale = false
+for (const [file, entries] of Object.entries(OUTPUTS)) {
+  const out = resolve(domain, file)
+  const code = generate(entries)
+  if (!check) {
+    writeFileSync(out, code)
+    continue
   }
-} else {
-  writeFileSync(out, code)
+  let current = ''
+  try {
+    current = readFileSync(out, 'utf8')
+  } catch {
+    current = ''
+  }
+  if (current !== code) {
+    console.error(`${file} está desfasado: ejecuta node scripts/build-validators.mjs`)
+    stale = true
+  }
 }
+if (stale) process.exit(1)

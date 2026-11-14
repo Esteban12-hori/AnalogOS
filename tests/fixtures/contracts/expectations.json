@@ -1,0 +1,144 @@
+{
+  "reference-analog": {
+    "valid.catalog.json": {
+      "valid": true
+    },
+    "valid.empty.json": {
+      "valid": true
+    },
+    "invalid.with-similarity.json": {
+      "valid": false,
+      "path": "/analogs/0",
+      "keyword": "additionalProperties"
+    },
+    "invalid.no-source.json": {
+      "valid": false,
+      "path": "/analogs/0/sources",
+      "keyword": "minItems"
+    },
+    "invalid.exact-pin.json": {
+      "valid": false,
+      "path": "/analogs/0/location",
+      "keyword": "oneOf"
+    },
+    "invalid.http-source.json": {
+      "valid": false,
+      "path": "/analogs/1/sources/0/url",
+      "keyword": "pattern"
+    },
+    "invalid.scored-status.json": {
+      "valid": false,
+      "path": "/analogs/1/status",
+      "keyword": "const"
+    }
+  },
+  "mission-interpretation": {
+    "valid.rover-rocky.json": {
+      "valid": true
+    },
+    "valid.demo-no-terrain.json": {
+      "valid": true
+    },
+    "invalid.digits-in-rationale.json": {
+      "valid": false,
+      "path": "/criteria/0/rationale",
+      "keyword": "pattern"
+    },
+    "invalid.level-out-of-range.json": {
+      "valid": false,
+      "path": "/criteria/1/level",
+      "keyword": "enum"
+    },
+    "invalid.unknown-criterion.json": {
+      "valid": false,
+      "path": "/criteria/2/id",
+      "keyword": "enum"
+    },
+    "invalid.with-score-field.json": {
+      "valid": false,
+      "path": "/",
+      "keyword": "additionalProperties"
+    },
+    "invalid.summary-too-long.json": {
+      "valid": false,
+      "path": "/mission_summary",
+      "keyword": "maxLength"
+    },
+    "invalid.unknown-engine.json": {
+      "valid": false,
+      "path": "/engine",
+      "keyword": "enum"
+    }
+  },
+  "evidence-packet": {
+    "valid.mission-profile.json": {
+      "valid": true
+    },
+    "valid.snapshot-profile.json": {
+      "valid": true
+    },
+    "invalid.bad-hash.json": {
+      "valid": false,
+      "path": "/packet_hash",
+      "keyword": "pattern"
+    },
+    "invalid.unknown-fact-id.json": {
+      "valid": false,
+      "path": "/facts",
+      "keyword": "pattern"
+    },
+    "invalid.direction-without-mars.json": {
+      "valid": false,
+      "path": "/fact_kinds/3",
+      "keyword": "oneOf"
+    },
+    "invalid.weight-out-of-range.json": {
+      "valid": false,
+      "path": "/profile/weights/slope",
+      "keyword": "maximum"
+    },
+    "invalid.no-sites.json": {
+      "valid": false,
+      "path": "/sites",
+      "keyword": "minItems"
+    }
+  },
+  "ai-analysis": {
+    "valid.stream.ndjson": {
+      "valid": true
+    },
+    "valid.error.json": {
+      "valid": true
+    },
+    "invalid.digit-outside-marker.json": {
+      "valid": false,
+      "path": "/text",
+      "keyword": "pattern"
+    },
+    "invalid.percent-outside-marker.json": {
+      "valid": false,
+      "path": "/text",
+      "keyword": "pattern"
+    },
+    "invalid.unknown-type.json": {
+      "valid": false,
+      "path": "/type",
+      "keyword": "const"
+    },
+    "invalid.analog-with-score.json": {
+      "valid": false,
+      "path": "/",
+      "keyword": "additionalProperties"
+    },
+    "invalid.bad-ref.json": {
+      "valid": false,
+      "path": "/refs/0",
+      "keyword": "pattern"
+    },
+    "invalid.text-too-long.json": {
+      "valid": false,
+      "path": "/text",
+      "keyword": "maxLength"
+    }
+  }
+}

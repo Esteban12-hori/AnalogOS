@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analogos.cl/schemas/evidence-packet.schema.json",
+  "title": "AnalogOS · paquete de evidencia (evidence-packet/1)",
+  "description": "Única fuente de la que la IA puede citar (docs/UX_REDESIGN.md §5.3). Lo arma el cliente con cifras ya formateadas por el motor determinista; la IA solo puede referirse a ellas con marcadores {{id}}. La huella es FNV-1a de 64 bits sobre la forma canónica del paquete.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "packet_hash", "snapshot", "profile", "mission_summary", "sites", "facts", "fact_kinds", "checks", "unsupported"],
+  "properties": {
+    "schema": {"const": "evidence-packet/1"},
+    "packet_hash": {"type": "string", "pattern": "^fnv1a64:[0-9a-f]{16}$"},
+    "snapshot": {"type": "string", "pattern": "^[a-z0-9.-]+$", "maxLength": 80},
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "origin", "status", "weights"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^(mission:[0-9a-f]{8,16}|[a-z0-9-]+)$"},
+        "origin": {"enum": ["snapshot", "preset", "mission"]},
+        "status": {"enum": ["needs_calibration", "validated"]},
+        "weights": {
+          "type": "object",
+          "propertyNames": {"$ref": "#/$defs/criterionId"},
+          "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}
+        }
+      }
+    },
+    "mission_summary": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "string", "minLength": 1, "maxLength": 280, "pattern": "^[^0-9%]*$"}
+      ]
+    },
+    "sites": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/siteId"}
+    },
+    "facts": {
+      "description": "Hecho citable → texto ya formateado (es-CL) por el cliente. Las cifras viven solo aquí.",
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/factId"},
+      "additionalProperties": {"type": "string", "minLength": 1, "maxLength": 80}
+    },
+    "fact_kinds": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "site_id", "criterion_id"],
+            "properties": {
+              "kind": {"enum": ["limiting_factor", "best_of_n", "saturates_rule"]},
+              "site_id": {"$ref": "#/$defs/siteId"},
+              "criterion_id": {"$ref": "#/$defs/criterionId"}
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "criterion_id"],
+            "properties": {
+              "kind": {"const": "no_discrimination"},
+              "criterion_id": {"$ref": "#/$defs/criterionId"}
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "criterion_id", "site_ids"],
+            "properties": {
+              "kind": {"const": "shared_regional_value"},
+              "criterion_id": {"$ref": "#/$defs/criterionId"},
+              "site_ids": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"$ref": "#/$defs/siteId"}}
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "site_id", "criterion_id", "direction"],
+            "properties": {
+              "kind": {"const": "direction_vs_mars"},
+              "site_id": {"$ref": "#/$defs/siteId"},
+              "criterion_id": {"enum": ["slope", "terrain_roughness", "local_relief"]},
+              "direction": {"enum": ["more_demanding", "less_demanding", "similar"]}
+            }
+          }
+        ]
+      }
+    },
+    "checks": {
+      "description": "Verificaciones de terreno del snapshot (field_checks), citables por la IA para ordenar la checklist.",
+      "type": "object",
+      "propertyNames": {"pattern": "^check:cl-[a-z0-9-]+:[0-9]{1,2}$"},
+      "additionalProperties": {"type": "string", "minLength": 1, "maxLength": 400}
+    },
+    "unsupported": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["phrase", "reason"],
+        "properties": {
+          "phrase": {"type": "string", "minLength": 1, "maxLength": 120},
+          "reason": {"enum": ["not_measured", "out_of_scope", "ambiguous"]}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "siteId": {"type": "string", "pattern": "^cl-[a-z0-9-]+$"},
+    "criterionId": {
+      "enum": ["slope", "terrain_roughness", "local_relief", "bare_ground_fraction", "aridity_context", "surface_temperature_variability", "geologic_relevance"]
+    },
+    "factId": {
+      "description": "site:<id>:<criterio>:(raw|sim|ratio|vs_mars) · site:<id>:(similarity|confidence|stability|feasibility|rank) · mars:<criterio> · coverage:<id> · rank:gap:<a>:<b> · sens:<clave>",
+      "type": "string",
+      "pattern": "^(site:cl-[a-z0-9-]+:([a-z_]+:(raw|sim|ratio|vs_mars)|similarity|confidence|stability|feasibility|rank)|mars:[a-z_]+|coverage:cl-[a-z0-9-]+|rank:gap:[0-9]{1,2}:[0-9]{1,2}|sens:[a-z_]+)$"
+    }
+  }
+}

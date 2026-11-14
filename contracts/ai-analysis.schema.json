@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analogos.cl/schemas/ai-analysis.schema.json",
+  "title": "AnalogOS · evento de análisis de IA (ai-analysis/1, una línea NDJSON)",
+  "description": "Cada línea del stream de /analyze (o del análisis pregenerado) es un objeto completo que valida contra este esquema. La IA escribe marcadores {{id}} en lugar de cifras: fuera de ellos no hay dígitos ni %. El cliente comprueba además que cada {{id}} exista en el paquete y esté en refs, la huella, los números escritos y el vocabulario prohibido (docs/UX_REDESIGN.md §5.4–§5.5).",
+  "oneOf": [
+    {"$ref": "#/$defs/meta"},
+    {"$ref": "#/$defs/stage"},
+    {"$ref": "#/$defs/summary"},
+    {"$ref": "#/$defs/insight"},
+    {"$ref": "#/$defs/testSuggestion"},
+    {"$ref": "#/$defs/tradeoff"},
+    {"$ref": "#/$defs/robustnessNote"},
+    {"$ref": "#/$defs/uncertainty"},
+    {"$ref": "#/$defs/fieldPriority"},
+    {"$ref": "#/$defs/analogNote"},
+    {"$ref": "#/$defs/done"},
+    {"$ref": "#/$defs/error"}
+  ],
+  "$defs": {
+    "siteId": {"type": "string", "pattern": "^cl-[a-z0-9-]+$"},
+    "criterionId": {
+      "enum": ["slope", "terrain_roughness", "local_relief", "bare_ground_fraction", "aridity_context", "surface_temperature_variability", "geologic_relevance"]
+    },
+    "refId": {
+      "type": "string",
+      "pattern": "^(site:cl-[a-z0-9-]+:([a-z_]+:(raw|sim|ratio|vs_mars)|similarity|confidence|stability|feasibility|rank)|mars:[a-z_]+|coverage:cl-[a-z0-9-]+|rank:gap:[0-9]{1,2}:[0-9]{1,2}|sens:[a-z_]+|check:cl-[a-z0-9-]+:[0-9]{1,2})$"
+    },
+    "checkRef": {"type": "string", "pattern": "^check:cl-[a-z0-9-]+:[0-9]{1,2}$"},
+    "refs": {"type": "array", "maxItems": 12, "uniqueItems": true, "items": {"$ref": "#/$defs/refId"}},
+    "tokenText": {
+      "description": "Texto con marcadores {{id}}: sin dígitos ni % fuera de ellos; 280 caracteres como máximo.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 280,
+      "pattern": "^(?:[^0-9%{}]|\\{\\{[a-z0-9_:.-]+\\}\\})*$"
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "schema", "engine", "model", "prompt_version", "packet_hash"],
+      "properties": {
+        "type": {"const": "meta"},
+        "schema": {"const": "ai-analysis/1"},
+        "engine": {"enum": ["lktron", "pregenerated"]},
+        "model": {"type": "string", "minLength": 1, "maxLength": 120},
+        "prompt_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"},
+        "packet_hash": {"type": "string", "pattern": "^fnv1a64:[0-9a-f]{16}$"}
+      }
+    },
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "stage"],
+      "properties": {
+        "type": {"const": "stage"},
+        "stage": {"enum": ["selecting_facts", "writing"]}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "site_id", "text", "refs"],
+      "properties": {
+        "type": {"const": "summary"},
+        "site_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/siteId"}]},
+        "text": {"$ref": "#/$defs/tokenText"},
+        "refs": {"$ref": "#/$defs/refs"}
+      }
+    },
+    "insight": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id", "site_id", "criterion_id", "fact_kind", "text", "refs"],
+      "properties": {
+        "type": {"const": "insight"},
+        "id": {"type": "string", "pattern": "^i[0-9]{1,3}$"},
+        "site_id": {"$ref": "#/$defs/siteId"},
+        "criterion_id": {"$ref": "#/$defs/criterionId"},
+        "fact_kind": {"enum": ["limiting_factor", "no_discrimination", "shared_regional_value", "direction_vs_mars", "best_of_n", "saturates_rule"]},
+        "text": {"$ref": "#/$defs/tokenText"},
+        "refs": {"$ref": "#/$defs/refs"}
+      }
+    },
+    "testSuggestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "site_id", "text", "refs"],
+      "properties": {
+        "type": {"const": "test_suggestion"},
+        "site_id": {"$ref": "#/$defs/siteId"},
+        "text": {"$ref": "#/$defs/tokenText"},
+        "refs": {"$ref": "#/$defs/refs"}
+      }
+    },
+    "tradeoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "site_ids", "text", "refs"],
+      "properties": {
+        "type": {"const": "tradeoff"},
+        "site_ids": {"type": "array", "minItems": 2, "maxItems": 3, "uniqueItems": true, "items": {"$ref": "#/$defs/siteId"}},
+        "text": {"$ref": "#/$defs/tokenText"},
+        "refs": {"$ref": "#/$defs/refs"}
+      }
+    },
+    "robustnessNote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "text", "refs"],
+      "properties": {
+        "type": {"const": "robustness_note"},
+        "text": {"$ref": "#/$defs/tokenText"},
+        "refs": {"$ref": "#/$defs/refs"}
+      }
+    },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "text", "refs"],
+      "properties": {
+        "type": {"const": "uncertainty"},
+        "text": {"$ref": "#/$defs/tokenText"},
+        "refs": {"$ref": "#/$defs/refs"},
+        "resolves_check": {"$ref": "#/$defs/checkRef"}
+      }
+    },
+    "fieldPriority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "site_id", "check_ref", "why", "refs"],
+      "properties": {
+        "type": {"const": "field_priority"},
+        "site_id": {"$ref": "#/$defs/siteId"},
+        "check_ref": {"$ref": "#/$defs/checkRef"},
+        "why": {"$ref": "#/$defs/tokenText"},
+        "refs": {"$ref": "#/$defs/refs"}
+      }
+    },
+    "analogNote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "analog_id", "status", "text"],
+      "properties": {
+        "type": {"const": "analog_note"},
+        "analog_id": {"type": "string", "pattern": "^[a-z0-9-]+$", "maxLength": 64},
+        "status": {"const": "por_calcular"},
+        "text": {"$ref": "#/$defs/tokenText"}
+      }
+    },
+    "done": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "counts"],
+      "properties": {
+        "type": {"const": "done"},
+        "counts": {
+          "type": "object",
+          "propertyNames": {"enum": ["summary", "insight", "test_suggestion", "tradeoff", "robustness_note", "uncertainty", "field_priority", "analog_note"]},
+          "additionalProperties": {"type": "integer", "minimum": 0, "maximum": 64}
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "code", "message"],
+      "properties": {
+        "type": {"const": "error"},
+        "code": {"enum": ["timeout", "invalid", "unavailable"]},
+        "message": {"type": "string", "minLength": 1, "maxLength": 280}
+      }
+    }
+  }
+}

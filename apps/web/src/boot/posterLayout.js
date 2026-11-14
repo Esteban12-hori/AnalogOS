@@ -1,14 +1,20 @@
-// Posición del póster del globo antes de que cargue React. Se incrusta en index.html
-// (vite.config.ts) y debe coincidir con domain/mapZoom.ts: lo verifica tests/boot.test.ts.
-export function posterLayout(width, height) {
+// Posición del póster del globo antes de que cargue React. Se incrusta en index.html junto con
+// shell/stageGeometry.js (features/boot/loadingHints.ts) y debe coincidir con domain/mapZoom.ts:
+// lo verifica tests/boot.test.ts. `insets` = márgenes base del tramo (baseStageInsets).
+export function posterLayout(width, height, insets) {
   var HALF_OVER_RADIUS = 445 / 396.5
-  var inset = width >= 1100 ? 520 : 0
-  var fov = (40 * Math.PI) / 180
-  var usable = Math.max(width - inset, 1)
+  var t = insets ? insets.top : 0
+  var r = insets ? insets.right : 0
+  var b = insets ? insets.bottom : 0
+  var l = insets ? insets.left : 0
+  var tanHalf = Math.tan((40 * Math.PI) / 360)
   var tall = Math.max(height, 1)
-  var horizontal = 2 * Math.atan(Math.tan(fov / 2) * (usable / tall))
-  var ratio = 1.12 / Math.sin(Math.min(fov, horizontal) / 2)
-  var radius = (Math.tan(Math.asin(1 / ratio)) / Math.tan(fov / 2)) * (tall / 2)
+  var usableWidth = Math.max(width - l - r, 1)
+  var usableHeight = Math.max(height - t - b, 1)
+  var vertical = 2 * Math.atan(tanHalf * (usableHeight / tall))
+  var horizontal = 2 * Math.atan(tanHalf * (usableWidth / tall))
+  var ratio = 1.12 / Math.sin(Math.min(vertical, horizontal) / 2)
+  var radius = (Math.tan(Math.asin(1 / ratio)) / tanHalf) * (tall / 2)
   var size = 2 * radius * HALF_OVER_RADIUS
-  return { size: size, left: usable / 2 - size / 2, top: tall / 2 - size / 2 }
+  return { size: size, left: l + usableWidth / 2 - size / 2, top: t + usableHeight / 2 - size / 2 }
 }

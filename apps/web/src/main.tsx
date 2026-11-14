@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import './shell/tokens.css'
 import './styles.css'
 import './liquid/liquid-glass.css'
 

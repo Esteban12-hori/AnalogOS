@@ -1,0 +1,9 @@
+/* STUB de features/analysis: estilos mínimos. El incremento 10 los reemplaza. */
+.reading-stub { display: grid; gap: 6px; padding-left: 10px; border-left: 2px solid var(--ai-rule); }
+.reading-stub h2 { margin: 0; color: var(--muted); font-family: var(--mono); font-size: var(--fs-caps); letter-spacing: var(--caps-tracking); text-transform: uppercase; }
+.reading-stub p { margin: 0; font-size: var(--fs-13); line-height: 1.45; }
+.reading-stub-label { color: var(--ice); }
+.reading-stub-pending { color: var(--pending); }
+.reading-stub-foot { color: var(--muted); font-size: var(--fs-min) !important; }
+.reading-pill-stub { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 12px; border: 1px dashed var(--pending); border-radius: 999px; background: var(--marker-bg); color: var(--muted); font-size: var(--fs-12); }
+.reading-pill-stub > span { color: var(--ice); }

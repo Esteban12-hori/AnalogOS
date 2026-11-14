@@ -1,0 +1,20 @@
+{
+  "schema": "mission-interpretation/1",
+  "engine": "demo",
+  "model": "keywords",
+  "prompt_version": "1.0.0",
+  "base_profile": {
+    "id": "mars-rover-screening-v2",
+    "version": "2.0.1-preliminary"
+  },
+  "status": "no_terrain_criteria",
+  "mission_summary": "Texto sin criterios de terreno reconocibles",
+  "criteria": [],
+  "assumptions": [],
+  "unsupported": [
+    {
+      "phrase": "medir radiación",
+      "reason": "not_measured"
+    }
+  ]
+}

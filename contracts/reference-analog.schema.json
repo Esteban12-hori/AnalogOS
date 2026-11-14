@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analogos.cl/schemas/reference-analog.schema.json",
+  "title": "AnalogOS · análogos de referencia (◆, por calcular)",
+  "description": "Catálogo de análogos emblemáticos del mundo (config/reference_analogs.json). No tienen similitud, confianza ni ranking: el esquema no ofrece dónde ponerlos (additionalProperties: false). Cada análogo exige ubicación aproximada o región y al menos una fuente citada; lo que no tenga fuente no se publica (docs/UX_REDESIGN.md §3.5, §7.2).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "analogs"],
+  "properties": {
+    "schema": {"const": "reference-analogs/1"},
+    "analogs": {
+      "type": "array",
+      "maxItems": 24,
+      "items": {"$ref": "#/$defs/analog"}
+    }
+  },
+  "$defs": {
+    "analog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "country", "status", "location", "sources"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9-]+$", "maxLength": 64},
+        "name": {"type": "string", "minLength": 2, "maxLength": 80},
+        "country": {"type": "string", "minLength": 2, "maxLength": 60},
+        "status": {
+          "description": "Un análogo de referencia nunca se puntúa en este snapshot.",
+          "const": "por_calcular"
+        },
+        "location": {
+          "oneOf": [
+            {"$ref": "#/$defs/approximatePoint"},
+            {"$ref": "#/$defs/region"}
+          ]
+        },
+        "summary": {"type": "string", "maxLength": 280},
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {"$ref": "#/$defs/source"}
+        }
+      }
+    },
+    "approximatePoint": {
+      "description": "Punto citado por la fuente con su radio de incertidumbre: se dibuja como «zona aproximada», nunca como pin exacto.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "lon", "lat", "radius_km"],
+      "properties": {
+        "kind": {"const": "approximate_point"},
+        "lon": {"type": "number", "minimum": -180, "maximum": 180},
+        "lat": {"type": "number", "minimum": -90, "maximum": 90},
+        "radius_km": {"type": "number", "exclusiveMinimum": 0, "maximum": 500}
+      }
+    },
+    "region": {
+      "description": "Región extensa (por ejemplo, un desierto completo) como caja [oeste, sur, este, norte] en grados WGS84.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "bbox"],
+      "properties": {
+        "kind": {"const": "region"},
+        "bbox": {
+          "type": "array",
+          "prefixItems": [
+            {"type": "number", "minimum": -180, "maximum": 180},
+            {"type": "number", "minimum": -90, "maximum": 90},
+            {"type": "number", "minimum": -180, "maximum": 180},
+            {"type": "number", "minimum": -90, "maximum": 90}
+          ],
+          "minItems": 4,
+          "maxItems": 4
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "url"],
+      "properties": {
+        "title": {"type": "string", "minLength": 3, "maxLength": 200},
+        "url": {"type": "string", "format": "uri", "pattern": "^https://"},
+        "publisher": {"type": "string", "maxLength": 120}
+      }
+    }
+  }
+}

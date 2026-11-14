@@ -1,10 +1,68 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14 14:15 America/Santiago
+**Última actualización:** 2026-11-14 18:30 America/Santiago (rediseño Explorar / Misión, incrementos 0–2)
 **Responsable del checkpoint:** Codex
 **Milestone activo:** M6 — empaquetado y entrega
 **Estado general:** producto funcional y presentable con snapshot científico v2 autenticado. NASADEM corrige el mosaico de borde y Sentinel-2 completa superficie no vegetada. Faltan acciones humanas/externas: video, URLs públicas, integrantes, capas territoriales y revisión experta.
 
+
+## Rediseño Explorar / Misión — incrementos 0–2 (2026-11-14, Claude, rama `feature/mision-redesign`)
+
+Especificación: `docs/UX_REDESIGN.md`. El trabajo en paralelo se reparte según `docs/BUILD_CONTRACTS.md`.
+
+### Qué funciona
+
+**Escenario fijo (sin scroll del documento):**
+- Globo con paso a 2D y datos reales del snapshot v2.
+- Pestañas Explorar | Misión.
+- Dock con lugares y composer.
+- Riel derecho al seleccionar, con «Ver ficha completa»: Métricas · Lectura IA · Señal · Comparar · Método · Fuentes.
+- Panel izquierdo en Misión ≥1440.
+- Hoja S0/S1/S2 en <1100: manija con teclado, arrastre, Atrás/Esc y `inert` en S2.
+- La tecla «/» abre el composer.
+- El globo se centra en el área libre (`insets`).
+
+**Contratos:** cuatro esquemas nuevos con validadores precompilados (`validators.mission.generated.js` va diferido). Tipos en `domain/aiContracts.ts`.
+
+**Stubs honestos de las 8 features**, montados en sus slots:
+- places: lista simple;
+- metrics: ficha existente;
+- composer: píldora y textarea sin envío;
+- analysis y boot: rótulos «por calcular»;
+- engine: sectores «por calcular»;
+- leaders: no dibuja.
+
+### Cómo ejecutarlo
+
+- `npm run dev`, o `npm run build && node /tmp/claude-srv/serve.mjs apps/web/dist 4390`.
+- Tests: `npm run test` y `/tmp/claude-venv314/bin/python -m pytest -q`.
+
+### Pruebas
+
+- 141 web (16 archivos), 165 Python con 1 omitido, y build con `--check` de validadores en verde.
+- Navegador (Chromium con GPU) a 1440×900, 1280×800 y 390×844:
+  - 0 errores de consola;
+  - selección → riel o S1; ficha completa y pestañas; Esc;
+  - «/» → `?modo=mision` con foco en el textarea;
+  - rueda → mapa 2D, también con el panel izquierdo abierto;
+  - S2 con escenario `inert` y Atrás → S1; arrastre de la manija → S0;
+  - un dedo sobre el globo no desplaza el documento.
+- Avisos previos, sin cambio: `THREE.Clock` obsoleto y preload de texturas con distinto modo de credenciales.
+
+### Decisiones nuevas
+
+ADR-008, ADR-009 y ADR-010, en estado **propuesto**.
+
+### Pendiente
+
+- `SignalCard` (pestaña Señal) aún interpola cifras: §2.2 lo prohíbe; lo corrige el integrador.
+- Las etiquetas del globo siguen en naranja al seleccionar (incremento 4).
+
+### Próximos 3 pasos
+
+1. Lanzar los 8 constructores en worktrees según `docs/BUILD_CONTRACTS.md` (engine primero en el orden de fusión).
+2. Aceptación humana de ADR-008/009/010.
+3. Integrar rama por rama: tests, build, navegador y Lighthouse contra `857b05f`.
 
 ## Fusión en `dev` (2026-11-14, Claude, decisión directa del equipo)
 

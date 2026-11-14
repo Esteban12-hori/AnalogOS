@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { contextLayers } from '../components/MapStage'
+import { contextLayers } from '../features/globe/MapStage'
 import type { VisualContextState } from '../data/loadVisualContext'
 
 describe('contextLayers', () => {
