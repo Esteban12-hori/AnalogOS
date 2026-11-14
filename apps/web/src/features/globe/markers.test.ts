@@ -1,0 +1,256 @@
+import { describe, expect, it } from 'vitest'
+import type { CandidateSite, Position, ReferenceAnalog } from '../../domain/contracts'
+import { latLngToVec3 } from '../../domain/globe'
+import type { MissionScoring } from '../engine'
+import {
+  assignLabels,
+  buildMarkerModels,
+  clusterAriaLabel,
+  clusterMarkers,
+  clusterSignature,
+  clusterStack,
+  clusterText,
+  CLUSTER_MIN_VISIBLE,
+  CLUSTER_RADIUS_PX,
+  estimateLabelWidth,
+  HIDDEN_BELOW,
+  horizonFacing,
+  markerAriaLabel,
+  markerVisibility,
+  NEAR_SELECTION_PX,
+  placeNearSelection,
+  ringRadius,
+  RING_MIN_PX,
+  smoothstep,
+  type ScreenMarker,
+} from './markers'
+
+// FIXTURE: sectores sintéticos con la geometría de los tres sectores del snapshot v2 y cifras
+// de prueba. No son resultados científicos.
+function box(west: number, south: number, size = 0.2): Position[] {
+  return [[west, south], [west + size, south], [west + size, south + size], [west, south + size], [west, south]]
+}
+
+function site(id: string, name: string, similarity: number | null, ring: Position[]): CandidateSite {
+  return {
+    site_id: id,
+    name,
+    similarity,
+    status: similarity === null ? 'insufficient_data' : 'candidate',
+    geometry: { type: 'Polygon', coordinates: [ring] },
+  } as unknown as CandidateSite
+}
+
+const FIXTURE_CANDIDATES: CandidateSite[] = [
+  site('cl-maria-elena', 'Pampa María Elena — sector de screening', 49.99, box(-69.75, -22.45)),
+  site('cl-yungay', 'Pampa Yungay — sector de screening', 75.67, box(-70.05, -24.18)),
+  site('cl-sin-datos', 'Sector sin datos — sector de screening', null, box(-70.6, -26)),
+  site('cl-domeyko', 'Cordón de Domeyko — sector interior', 71.6, box(-68.95, -23.4)),
+]
+
+function analog(id: string, name: string, country: string, location: ReferenceAnalog['location']): ReferenceAnalog {
+  return { id, name, country, status: 'por_calcular', location, sources: [{ title: 'FIXTURE', url: 'https://example.org/fixture' }] }
+}
+
+const FIXTURE_ANALOGS: ReferenceAnalog[] = [
+  analog('utah-mdrs', 'MDRS Utah', 'Estados Unidos', { kind: 'approximate_point', lon: -110.79, lat: 38.41, radius_km: 10 }),
+  analog('atacama-yungay', 'Atacama (Yungay)', 'Chile', { kind: 'approximate_point', lon: -69.95, lat: -24.08, radius_km: 5 }),
+  analog('atacama-desierto', 'Desierto de Atacama', 'Chile', { kind: 'region', bbox: [-71, -25, -68.5, -22] }),
+  analog('devon', 'Devon Island', 'Canadá', { kind: 'region', bbox: [-95, 74.5, -80, 77] }),
+]
+
+describe('smoothstep y visibilidad continua', () => {
+  it('vale 0 bajo el primer borde, 1 sobre el segundo y es suave entre ambos', () => {
+    expect(smoothstep(0.05, 0.25, 0)).toBe(0)
+    expect(smoothstep(0.05, 0.25, 0.05)).toBe(0)
+    expect(smoothstep(0.05, 0.25, 0.15)).toBeCloseTo(0.5, 12)
+    expect(smoothstep(0.05, 0.25, 0.25)).toBe(1)
+    expect(smoothstep(0.05, 0.25, 1)).toBe(1)
+    let previous = 0
+    for (let x = 0; x <= 0.3; x += 0.01) {
+      expect(smoothstep(0.05, 0.25, x)).toBeGreaterThanOrEqual(previous)
+      previous = smoothstep(0.05, 0.25, x)
+    }
+    expect(smoothstep(0.2, 0.2, 0.1)).toBe(0)
+    expect(smoothstep(0.2, 0.2, 0.3)).toBe(1)
+  })
+
+  it('markerVisibility usa smoothstep(.05, .25)', () => {
+    expect(markerVisibility(0.04)).toBe(0)
+    expect(markerVisibility(0.15)).toBeCloseTo(0.5, 12)
+    expect(markerVisibility(0.3)).toBe(1)
+  })
+
+  it('horizonFacing es 1 bajo la cámara, 0 en el limbo y negativo detrás', () => {
+    const radius = 2
+    const camera = latLngToVec3(-24, -69.5, 10)
+    expect(horizonFacing(latLngToVec3(-24, -69.5, radius), camera, radius)).toBeCloseTo(1, 9)
+    // Limbo: ángulo central con cos = r/d.
+    const limbAngle = (Math.acos(radius / 10) * 180) / Math.PI
+    expect(horizonFacing(latLngToVec3(-24 + limbAngle, -69.5, radius), camera, radius)).toBeCloseTo(0, 6)
+    expect(horizonFacing(latLngToVec3(24, 110.5, radius), camera, radius)).toBeLessThan(0)
+    expect(markerVisibility(horizonFacing(latLngToVec3(24, 110.5, radius), camera, radius))).toBe(0)
+  })
+})
+
+describe('buildMarkerModels', () => {
+  const models = buildMarkerModels({ candidates: FIXTURE_CANDIDATES, analogs: FIXTURE_ANALOGS, scoring: null })
+  const byId = new Map(models.map((model) => [model.id, model]))
+
+  it('ordena ● por puesto, ○ al final de los sectores y ◆ en orden alfabético', () => {
+    expect(models.map((model) => model.id)).toEqual(['cl-yungay', 'cl-domeyko', 'cl-maria-elena', 'cl-sin-datos', 'atacama-desierto', 'devon', 'utah-mdrs'])
+    expect(models.map((model) => model.order)).toEqual([0, 1, 2, 3, 4, 5, 6])
+    expect(models.slice(0, 3).map((model) => model.rank)).toEqual([1, 2, 3])
+  })
+
+  it('○ = datos insuficientes: sin puesto ni %', () => {
+    expect(byId.get('cl-sin-datos')).toMatchObject({ kind: 'insufficient', rank: null, score: null, scoreSource: null })
+  })
+
+  it('un ◆ nunca lleva %, puesto ni ranking', () => {
+    for (const model of models.filter((item) => item.kind === 'reference')) {
+      expect(model).toMatchObject({ rank: null, score: null, scoreSource: null, selectionKind: 'reference' })
+      expect(markerAriaLabel(model)).not.toMatch(/%|\d+,\d/)
+      expect(markerAriaLabel(model)).toContain('por calcular')
+    }
+  })
+
+  it('un punto citado dentro de un sector es insignia «coincide con», no ◆ propio', () => {
+    expect(byId.has('atacama-yungay')).toBe(false)
+    expect(byId.get('cl-yungay')?.coincides).toEqual(['Atacama (Yungay)'])
+    expect(markerAriaLabel(byId.get('cl-yungay')!)).toContain('coincide con Atacama (Yungay)')
+  })
+
+  it('«contiene N sectores» solo si el test punto-en-polígono lo respalda', () => {
+    // La región cubre Yungay, Domeyko y María Elena; el sector sin datos queda fuera (−70,6; −26).
+    expect(byId.get('atacama-desierto')?.contains).toBe(3)
+    expect(markerAriaLabel(byId.get('atacama-desierto')!)).toContain('contiene 3 sectores evaluados')
+    expect(byId.get('devon')?.contains).toBeNull()
+    expect(byId.get('utah-mdrs')?.contains).toBeNull()
+  })
+
+  it('con perfil de misión usa los puestos y % del motor', () => {
+    const scoring = {
+      profileId: 'mission:fixture',
+      engineVersion: 'fixture',
+      sites: [
+        { siteId: 'cl-maria-elena', similarity: 80.04, rank: 1, status: 'scored', coverage: 1, confidence: null, contributions: {}, limitingCriterionId: null },
+        { siteId: 'cl-domeyko', similarity: 60, rank: 2, status: 'scored', coverage: 1, confidence: null, contributions: {}, limitingCriterionId: null },
+        { siteId: 'cl-yungay', similarity: null, rank: null, status: 'por_calcular', coverage: 0, confidence: null, contributions: {}, limitingCriterionId: null },
+        { siteId: 'cl-sin-datos', similarity: null, rank: null, status: 'insufficient_data', coverage: 0.4, confidence: null, contributions: {}, limitingCriterionId: null },
+      ],
+    } as unknown as MissionScoring
+    const mission = buildMarkerModels({ candidates: FIXTURE_CANDIDATES, analogs: [], scoring })
+    expect(mission.map((model) => [model.id, model.kind, model.rank, model.score, model.scoreSource])).toEqual([
+      ['cl-maria-elena', 'evaluated', 1, 80.04, 'mission'],
+      ['cl-domeyko', 'evaluated', 2, 60, 'mission'],
+      ['cl-yungay', 'evaluated', null, null, null],
+      ['cl-sin-datos', 'insufficient', null, null, null],
+    ])
+    expect(markerAriaLabel(mission[0]!)).toBe('Pampa María Elena, puesto 1, similitud 80,0 % con tu perfil')
+    expect(markerAriaLabel(mission[2]!)).toBe('Pampa Yungay, por calcular con tu perfil')
+  })
+})
+
+describe('agrupación a menos de 36 px', () => {
+  const at = (id: string, x: number, y: number, order: number, kind: ScreenMarker['kind'] = 'evaluated', visible = 1, group = 'Chile'): ScreenMarker => ({ id, kind, x, y, visible, order, group })
+
+  it('agrupa a 35 px y no a 36 px', () => {
+    expect(CLUSTER_RADIUS_PX).toBe(36)
+    expect(clusterMarkers([at('a', 0, 0, 0), at('b', 35, 0, 1)]).clusters).toHaveLength(1)
+    expect(clusterMarkers([at('a', 0, 0, 0), at('b', 36, 0, 1)]).clusters).toHaveLength(0)
+  })
+
+  it('cuenta por tipo, nunca promedia, y ubica el grupo en el centroide', () => {
+    const result = clusterMarkers([at('a', 0, 0, 0), at('b', 10, 0, 1), at('c', 0, 20, 2, 'reference', 1, 'Chile'), at('d', 5, 5, 3, 'insufficient')])
+    expect(result.clusters).toHaveLength(1)
+    const [cluster] = result.clusters
+    expect(cluster).toMatchObject({ key: 'a|b|c|d', members: ['a', 'b', 'c', 'd'], counts: { evaluated: 2, insufficient: 1, reference: 1 }, group: 'Chile' })
+    expect(cluster?.x).toBeCloseTo(3.75)
+    expect(cluster?.y).toBeCloseTo(6.25)
+    expect(Object.keys(cluster ?? {})).not.toContain('similarity')
+    expect(clusterText(cluster!.counts, cluster!.group)).toBe('Chile · 2 ● · 1 ○ · 1 ◆')
+    expect(clusterText(cluster!.counts, cluster!.group)).not.toMatch(/%|\d+,\d/)
+  })
+
+  it('el grupo pierde el país si los miembros no lo comparten', () => {
+    const [cluster] = clusterMarkers([at('a', 0, 0, 0), at('b', 10, 0, 1, 'reference', 1, 'Perú')]).clusters
+    expect(cluster?.group).toBe('')
+    expect(clusterText(cluster!.counts, '')).toBe('1 ● · 1 ◆')
+  })
+
+  it('la selección y el hover nunca se agrupan; tampoco lo oculto tras el globo', () => {
+    expect(CLUSTER_MIN_VISIBLE).toBe(HIDDEN_BELOW)
+    const markers = [at('a', 0, 0, 0), at('b', 10, 0, 1), at('c', 20, 0, 2), at('d', 5, 0, 3, 'evaluated', 0.01)]
+    const result = clusterMarkers(markers, { exclude: ['a', null] })
+    expect(result.clusters.map((cluster) => cluster.key)).toEqual(['b|c'])
+    expect(result.clustered.has('a')).toBe(false)
+    expect(result.clustered.has('d')).toBe(false)
+  })
+
+  it('es determinista: el orden de entrada no cambia la partición', () => {
+    const markers = [at('a', 0, 0, 0), at('b', 30, 0, 1), at('c', 60, 0, 2), at('d', 200, 0, 3), at('e', 220, 0, 4)]
+    const forward = clusterMarkers(markers)
+    const backward = clusterMarkers([...markers].reverse())
+    expect(clusterSignature(forward)).toBe(clusterSignature(backward))
+    // Siembra por prioridad: «a» toma a «b»; «c» queda suelto (a 60 px de «a»).
+    expect(clusterSignature(forward)).toBe('a|b;d|e')
+  })
+
+  it('apila hasta 4 glifos en orden de prioridad', () => {
+    expect(clusterStack(['evaluated', 'evaluated', 'reference'])).toBe('●●◆')
+    expect(clusterStack(['evaluated', 'evaluated', 'evaluated', 'insufficient', 'reference'])).toBe('●●●○')
+  })
+
+  it('la etiqueta accesible del grupo enumera los tipos', () => {
+    expect(clusterAriaLabel({ evaluated: 3, insufficient: 0, reference: 1 }, 'Chile', false)).toBe(
+      'Grupo de 4 lugares en Chile: 3 evaluados, 1 análogo por calcular. Mostrar lista',
+    )
+  })
+})
+
+describe('rótulos sin encimarse', () => {
+  it('un rótulo que chocaría con otro ya ubicado queda solo con su glifo', () => {
+    const near: ScreenMarker[] = [
+      { id: 'a', kind: 'evaluated', x: 100, y: 100, visible: 1, order: 0, group: '', labelWidth: 160 },
+      { id: 'b', kind: 'evaluated', x: 120, y: 110, visible: 1, order: 1, group: '', labelWidth: 160 },
+      { id: 'c', kind: 'evaluated', x: 100, y: 140, visible: 1, order: 2, group: '', labelWidth: 160 },
+    ]
+    expect([...assignLabels(near, { budget: 5, clustered: new Set(), selectedId: null, hoverId: null })]).toEqual(['a', 'c'])
+    // La selección se ubica primero: es «a» la que cede; «c» queda más abajo y no choca.
+    expect([...assignLabels(near, { budget: 5, clustered: new Set(), selectedId: 'b', hoverId: null })]).toEqual(['b', 'c'])
+    expect(estimateLabelWidth('#1  Pampa Yungay  75,7 %')).toBeGreaterThan(150)
+  })
+})
+
+describe('presupuesto de rótulos', () => {
+  const marker = (id: string, order: number, visible = 1): ScreenMarker => ({ id, kind: 'reference', x: order * 200, y: 0, visible, order, group: '' })
+  const markers = [marker('a', 0), marker('b', 1), marker('c', 2), marker('d', 3, 0.2), marker('e', 4)]
+
+  it('respeta el presupuesto, da prioridad a selección y hover y omite lo agrupado o casi oculto', () => {
+    expect([...assignLabels(markers, { budget: 2, clustered: new Set(), selectedId: null, hoverId: null })]).toEqual(['a', 'b'])
+    expect([...assignLabels(markers, { budget: 2, clustered: new Set(), selectedId: 'e', hoverId: 'c' })]).toEqual(['e', 'c'])
+    expect([...assignLabels(markers, { budget: 5, clustered: new Set(['a']), selectedId: null, hoverId: null })]).toEqual(['b', 'c', 'e'])
+  })
+})
+
+describe('anillo del lugar', () => {
+  it('cubre el polígono proyectado y nunca baja de 14 px', () => {
+    expect(ringRadius({ x: 0, y: 0 }, [{ x: 1, y: 1 }])).toBe(RING_MIN_PX)
+    expect(ringRadius({ x: 0, y: 0 }, [{ x: 30, y: 40 }, { x: -10, y: 0 }])).toBe(54)
+  })
+})
+
+describe('grupo junto al lugar seleccionado', () => {
+  const selected = { x: 500, y: 300, radius: 14 }
+
+  it('a menos de 44 px se corre bajo el anillo y queda compacto', () => {
+    expect(placeNearSelection({ x: 505, y: 296 }, selected)).toEqual({ x: 500, y: 330, compact: true })
+    expect(placeNearSelection({ x: 500 + NEAR_SELECTION_PX - 1, y: 300 }, selected).compact).toBe(true)
+  })
+
+  it('lejos o sin selección no se mueve', () => {
+    expect(placeNearSelection({ x: 500 + NEAR_SELECTION_PX, y: 300 }, selected)).toEqual({ x: 544, y: 300, compact: false })
+    expect(placeNearSelection({ x: 505, y: 296 }, null)).toEqual({ x: 505, y: 296, compact: false })
+  })
+})
