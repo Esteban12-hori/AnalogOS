@@ -1,24 +1,37 @@
-/** STUB del panel «Lectura de la comparativa» y su píldora (incremento 10). */
+/**
+ * Panel «Lectura de la comparativa» (slots `left.reading`, `rail.reading`, `full.reading`).
+ * En el chunk principal solo vive este envoltorio: la vista (ReadingView) y su CSS se descargan
+ * al montarse. Mientras tanto se muestra un esqueleto estático (sin barrido: §2.2 regla 2).
+ */
+import { lazy, Suspense, useEffect } from 'react'
 import { GLYPH } from '../../shell/public'
-import type { ReadingPanelProps, ReadingPillProps } from './index'
-import './analysis.css'
+import { registerSnapshot } from './controller'
+import type { ReadingPanelProps } from './index'
+import './pill.css'
 
-export function ReadingPanel({ placement }: ReadingPanelProps) {
+const ReadingView = lazy(() => import('./deferred'))
+
+/** Entrega al controlador el snapshot que ya cargó la app. */
+export function useRegisterSnapshot(data: ReadingPanelProps['data']): void {
+  useEffect(() => registerSnapshot(data.snapshot), [data.snapshot])
+}
+
+export function ReadingSkeleton({ placement, label = 'Preparando la lectura…' }: { placement: ReadingPanelProps['placement']; label?: string }) {
   return (
-    <section className="reading-stub" data-placement={placement} aria-labelledby={`reading-title-${placement}`}>
-      <h2 id={`reading-title-${placement}`}>Lectura de la comparativa</h2>
-      <p className="reading-stub-label"><span aria-hidden="true">{GLYPH.ai}</span> Interpretación de IA · interpreta, no puntúa</p>
-      <p className="reading-stub-pending">Capa de hechos y análisis pregenerado: por calcular.</p>
-      <p className="reading-stub-foot">Cifras: motor · Redacción: IA</p>
+    <section className="analysis-skeleton" data-placement={placement} aria-busy="true" aria-label="Lectura de la comparativa">
+      <p className="analysis-skeleton-title">Lectura de la comparativa</p>
+      <p className="analysis-skeleton-label"><span aria-hidden="true">{GLYPH.ai}</span> {label}</p>
+      <span className="analysis-skeleton-bar" aria-hidden="true" />
+      <span className="analysis-skeleton-bar is-short" aria-hidden="true" />
     </section>
   )
 }
 
-export function ReadingPill(props: ReadingPillProps) {
-  void props
+export function ReadingPanel({ data, placement }: ReadingPanelProps) {
+  useRegisterSnapshot(data)
   return (
-    <span className="reading-pill-stub" title="Lectura de la comparativa: por calcular">
-      <span aria-hidden="true">{GLYPH.ai}</span> Lectura · por calcular
-    </span>
+    <Suspense fallback={<ReadingSkeleton placement={placement} />}>
+      <ReadingView data={data} placement={placement} />
+    </Suspense>
   )
 }
