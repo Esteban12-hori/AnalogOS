@@ -1,5 +1,6 @@
 import hashlib
 import importlib.util
+import json
 import os
 import zipfile
 from pathlib import Path
@@ -17,7 +18,19 @@ INDEX = (
     '<link rel="stylesheet" crossorigin href="./assets/index-def456.css">'
     '</head><body><div id="root"></div></body></html>'
 )
-EXPECTED = sorted(["index.html", "assets/index-abc123.js", "assets/index-def456.css", *release.SCIENCE_FILES])
+EXPECTED = sorted([
+    "index.html", "assets/index-abc123.js", "assets/index-def456.css",
+    *release.SCIENCE_FILES, release.VISUAL_INDEX, *release.VISUAL_IMAGES,
+])
+
+
+def write_visual_index(root: Path, images: tuple[str, ...] = release.VISUAL_IMAGES) -> None:
+    """Índice sintético coherente con los archivos de prueba (no son imágenes reales)."""
+    sites = [
+        {"image": Path(name).name, "sha256": hashlib.sha256((root / name).read_bytes()).hexdigest()}
+        for name in images
+    ]
+    (root / release.VISUAL_INDEX).write_text(json.dumps({"kind": "FIXTURE-DE-TEST", "sites": sites}), encoding="utf-8")
 
 
 @pytest.fixture
@@ -26,8 +39,9 @@ def dist(tmp_path: Path) -> Path:
     for name in EXPECTED:
         path = root / name
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(f"contenido de {name}\n".encode())
+        path.write_bytes(f"FIXTURE DE TEST, no es contenido real: {name}\n".encode())
     (root / "index.html").write_text(INDEX, encoding="utf-8")
+    write_visual_index(root)
     return root
 
 
@@ -62,6 +76,8 @@ def test_zip_contains_exactly_the_allowed_files_with_dist_bytes(dist: Path, tmp_
     "index.html",
     "science-v2/manifest.json",
     "assets/index-abc123.js",  # referencia de index.html sin archivo
+    "visual-context/index.json",
+    "visual-context/cl-pampa-yungay-screening.png",
 ])
 def test_missing_required_or_referenced_file_is_rejected(dist: Path, tmp_path: Path, missing: str):
     (dist / missing).unlink()
@@ -75,12 +91,38 @@ def test_missing_required_or_referenced_file_is_rejected(dist: Path, tmp_path: P
     "assets/index-abc123.js.map",
     "assets/otro-chunk.js",
     ".env",
+    "visual-context/otra-imagen.png",  # ningún PNG o JSON extra entra por extensión
+    "visual-context/request.json",
+    "visual-context/cl-pampa-yungay-screening.png.bak",
 ])
 def test_unexpected_file_is_rejected(dist: Path, tmp_path: Path, extra: str):
     path = dist / extra
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("no publicable", encoding="utf-8")
     with pytest.raises(release.ReleaseError, match="inesperado"):
+        run(dist, tmp_path / "out")
+
+
+def test_visual_image_changed_after_indexing_is_rejected(dist: Path, tmp_path: Path):
+    (dist / release.VISUAL_IMAGES[0]).write_bytes(b"imagen sustituida")
+    with pytest.raises(release.ReleaseError, match="SHA-256 de visual-context/.+ no coincide"):
+        run(dist, tmp_path / "out")
+
+
+@pytest.mark.parametrize("index_text", [
+    "esto no es JSON",
+    json.dumps({"sites": [{"image": "cl-pampa-yungay-screening.png"}]}),  # sin sha256
+    json.dumps([]),
+])
+def test_unreadable_visual_index_is_rejected(dist: Path, tmp_path: Path, index_text: str):
+    (dist / release.VISUAL_INDEX).write_text(index_text, encoding="utf-8")
+    with pytest.raises(release.ReleaseError, match="no es un índice de contexto visual legible"):
+        run(dist, tmp_path / "out")
+
+
+def test_visual_index_must_declare_exactly_the_three_allowed_images(dist: Path, tmp_path: Path):
+    write_visual_index(dist, release.VISUAL_IMAGES[:2])
+    with pytest.raises(release.ReleaseError, match="exactamente las tres imágenes"):
         run(dist, tmp_path / "out")
 
 

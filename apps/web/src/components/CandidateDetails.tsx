@@ -1,4 +1,6 @@
 import type { CandidateSite, DataManifest, MissionProfile } from '../domain/contracts'
+import type { VisualContextState } from '../data/loadVisualContext'
+import { VisualContext } from './VisualContext'
 import {
   criterionLabels,
   criterionStatusLabels,
@@ -13,6 +15,7 @@ interface CandidateDetailsProps {
   candidate: CandidateSite
   manifest: DataManifest
   profile: MissionProfile
+  visual: VisualContextState
 }
 
 function Metric({ label, value, hint, muted = false }: { label: string; value: string; hint: string; muted?: boolean }) {
@@ -25,7 +28,7 @@ function Metric({ label, value, hint, muted = false }: { label: string; value: s
   )
 }
 
-export function CandidateDetails({ candidate, manifest, profile }: CandidateDetailsProps) {
+export function CandidateDetails({ candidate, manifest, profile, visual }: CandidateDetailsProps) {
   const statusLabel = candidate.status === 'fixture' ? 'Fixture' : candidate.status === 'candidate' ? 'Screening' : candidate.status
   const downloadCandidate = () => {
     const blob = new Blob([JSON.stringify(candidate, null, 2)], { type: 'application/json' })
@@ -84,6 +87,8 @@ export function CandidateDetails({ candidate, manifest, profile }: CandidateDeta
           )}
         </div>
       )}
+
+      <VisualContext candidate={candidate} state={visual} />
 
       <section className="details-section" aria-labelledby="breakdown-heading">
         <div className="subheading-row">

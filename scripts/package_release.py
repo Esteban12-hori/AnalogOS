@@ -4,7 +4,9 @@ Uso: ``npm run release:package`` (construye antes) o, con el build ya hecho,
 ``python scripts/package_release.py``.
 
 Solo entra al ZIP una lista explícita: ``index.html``, los JS/CSS compilados
-que ese HTML referencia de forma relativa y los cinco archivos ``science-v2/``.
+que ese HTML referencia de forma relativa, los cinco archivos ``science-v2/``
+y el contexto visual (``visual-context/index.json`` más sus tres PNG, cuyo
+SHA-256 debe coincidir con el declarado en ese índice).
 Cualquier archivo adicional, enlace simbólico, referencia no portable,
 archivo requerido ausente o destino solapado con el build detiene el
 empaquetado antes de escribir nada.
@@ -20,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -40,6 +43,13 @@ SCIENCE_FILES = (
     "science-v2/chile-outline.geojson",
     "science-v2/manifest.json",
     "science-v2/mission-profile.json",
+)
+# Contexto visual: el índice y exactamente estas tres imágenes; ningún otro PNG o JSON.
+VISUAL_INDEX = "visual-context/index.json"
+VISUAL_IMAGES = (
+    "visual-context/cl-domeyko-interior-screening.png",
+    "visual-context/cl-pampa-maria-elena-screening.png",
+    "visual-context/cl-pampa-yungay-screening.png",
 )
 # Referencia relativa a un JS/CSS compilado: carga igual en "/" y en "/AnalogOS/".
 # ponytail: cubre el build de una sola entrada; si Vite emite más chunks o
@@ -87,7 +97,7 @@ def allowed_files(dist: Path) -> list[str]:
     if not any(name.endswith(".js") for name in assets):
         raise ReleaseError("index.html no referencia ningún JavaScript compilado en assets/.")
 
-    allowed = sorted({"index.html", *assets, *SCIENCE_FILES})
+    allowed = sorted({"index.html", *assets, *SCIENCE_FILES, VISUAL_INDEX, *VISUAL_IMAGES})
     found = set()
     for folder, folders, files in os.walk(dist):
         for name in folders + files:
@@ -102,7 +112,22 @@ def allowed_files(dist: Path) -> list[str]:
     missing = [name for name in allowed if name not in found]
     if missing:
         raise ReleaseError("Faltan archivos requeridos o referenciados: " + ", ".join(missing))
+    _check_visual_hashes(dist)
     return allowed
+
+
+def _check_visual_hashes(dist: Path) -> None:
+    """Las tres imágenes deben ser las que declara el índice, con su mismo SHA-256."""
+    try:
+        sites = json.loads((dist / VISUAL_INDEX).read_text(encoding="utf-8"))["sites"]
+        declared = {f"visual-context/{site['image']}": site["sha256"] for site in sites}
+    except (ValueError, KeyError, TypeError) as error:
+        raise ReleaseError(f"{VISUAL_INDEX} no es un índice de contexto visual legible ({type(error).__name__}).") from None
+    if sorted(declared) != sorted(VISUAL_IMAGES):
+        raise ReleaseError(f"{VISUAL_INDEX} no declara exactamente las tres imágenes permitidas.")
+    for name, expected in declared.items():
+        if hashlib.sha256((dist / name).read_bytes()).hexdigest() != expected:
+            raise ReleaseError(f"El SHA-256 de {name} no coincide con el declarado en {VISUAL_INDEX}.")
 
 
 def _same_target(first: Path, second: Path) -> bool:
@@ -137,7 +162,7 @@ def _write_zip(dist: Path, names: list[str], target: Path) -> None:
             info = zipfile.ZipInfo(name, FIXED_TIME)
             info.create_system = 3  # Unix, también si se empaqueta en Windows
             info.external_attr = 0o644 << 16
-            # Sin compresión: los bytes no dependen de la versión de zlib (~0,5 MB).
+            # Sin compresión: los bytes no dependen de la versión de zlib (los PNG ya vienen comprimidos).
             info.compress_type = zipfile.ZIP_STORED
             bundle.writestr(info, (dist / name).read_bytes())
 

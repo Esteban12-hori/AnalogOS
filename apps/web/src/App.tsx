@@ -4,6 +4,7 @@ import { CandidateComparison } from './components/CandidateComparison'
 import { CandidateMap } from './components/CandidateMap'
 import { CandidateRanking } from './components/CandidateRanking'
 import { loadDemoSnapshot, type DemoSnapshot } from './data/loadDemoSnapshot'
+import { loadVisualContext, type VisualContextState } from './data/loadVisualContext'
 import { rankCandidates } from './domain/scoring'
 
 type LoadState =
@@ -14,6 +15,18 @@ type LoadState =
 function App() {
   const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' })
   const [selectedId, setSelectedId] = useState('')
+  const [visual, setVisual] = useState<VisualContextState>({ status: 'loading' })
+
+  // El contexto visual es opcional: se carga aparte y nunca bloquea ni rompe el snapshot.
+  useEffect(() => {
+    let active = true
+    void loadVisualContext().then((state) => {
+      if (active) setVisual(state)
+    })
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -124,7 +137,7 @@ function App() {
           selectedId={selected.site_id}
           onSelect={setSelectedId}
         />
-        <CandidateDetails candidate={selected} manifest={snapshot.manifest} profile={snapshot.profile} />
+        <CandidateDetails candidate={selected} manifest={snapshot.manifest} profile={snapshot.profile} visual={visual} />
       </main>
 
       <CandidateComparison

@@ -131,3 +131,30 @@
 - Integrados por avance directo `6516743` y `3c1a014` desde `origin/dev`: configuración de Vercel e ignorado de `.vercel`; sin conflictos con la entrega local.
 - El checkpoint reúne el empaquetador portable aceptado, su documentación y pruebas, la coordinación Codex/Claude y el ajuste de mapa y capturas ya revisados.
 - Antes del commit se repitió `npm run verify`: 60 pruebas Python, 14 web, contratos, TypeScript y compilación correctos.
+
+## 2026-11-14 Claude Code — M4-VISUAL-EVIDENCE (entregado en `review`, sin commit)
+
+- Nuevo `pipelines/fetch_visual_context.py`: una petición por candidato a la Process API de Copernicus Sentinel Hub (`sentinel-2-l2a`, B04/B03/B02, ventana 2025-12-01 a 2026-01-01, `leastCC`, nubosidad máxima 40 % por escena). Resultado en `artifacts/visual-context/`: tres PNG reales de 705–714 × 768 px y un `index.json` con petición, evalscript, metadata devuelta, hora de consulta y SHA-256.
+- La primera ejecución falló por red al pedir el token (tres intentos, sin escribir nada); la segunda funcionó. Cada vista salió de una sola órbita con 100 % de píxeles válidos: Yungay y María Elena, 2025-12-21; Domeyko, 2025-12-03.
+- Un paquete local válido se reutiliza sin red ni credenciales; `--refresh` consulta de nuevo. Las generaciones no se mezclan y ante error se conserva la anterior.
+- Tras la revisión de Codex: el validador exige que toda la metadata presentada (bbox, periodo, colección, transformación, identidad, snapshot, dimensiones, escenas) coincida con el candidato, la petición, el PNG o la metadata devuelta; `_swap` informa el estado real y conserva el respaldo si no puede restaurar o limpiar; la web valida cada elemento de `scenes_used`, exige `image === site_id + ".png"` y `site_id` únicos.
+- Web: panel «Contexto satelital» en la ficha (`VisualContext.tsx`, `loadVisualContext.ts`) con imagen local, periodo, atribución, nota preliminar, enlace a la imagen y procedencia. Cae a «no disponible» con fixtures, índice ausente o inválido e imagen fallida. No toca score, confianza ni factibilidad; el navegador solo pide archivos locales.
+- Empaquetador: lista explícita ampliada con `visual-context/index.json` y tres PNG de nombre fijo, con verificación de su SHA-256 contra el índice. ZIP de 12 archivos y 4.084.880 bytes.
+- Verificado: `python -m pipelines.fetch_visual_context` (reutiliza sin red), `npm run verify` (119 tests Python, 24 web, build), `npm run release:package`, `shasum -a 256 -c`, `git diff --check`. En navegador: imagen por candidato, cambio de candidato, procedencia, error de imagen, vista móvil y `/AnalogOS/` por HTTP, sin errores de consola.
+- Documentado en `docs/VISUAL_REVIEW.md`, ADR-005 (`proposed`), `README.md`, `submission/README.md`, `submission/ATTRIBUTIONS.md`, `submission/JUDGING_CHECKLIST.md` y `project/BACKLOG.md` (avance parcial de M4).
+- Sin cambios en `artifacts/science-v2/`, perfil, contratos, score, ranking ni dependencias. Las credenciales Copernicus se usaron solo desde el programa y contra los hosts oficiales; no aparecen en artefactos ni registros.
+
+## 2026-11-14 Codex — aceptación de M4-VISUAL-EVIDENCE
+
+- Supervisada la sesión existente de Claude hasta su devolución en `review`, incluido un reintento tras fallo de conexión.
+- Inspeccionados los tres PNG reales y su procedencia. Las trazas rectilíneas y formas geométricas observadas quedan como pistas para contraste territorial; no cambian factibilidad ni autorizan acceso.
+- Devueltos y comprobados los defectos de validación de bbox/periodo, escenas malformadas en la web y mensajes incorrectos ante fallo de restauración.
+- Verificación propia: 119 pruebas Python, 24 web, contratos, TypeScript, build, empaquetado, checksum y diff correctos. Cache demostrado sin red; 12 entradas del ZIP idénticas al build y empaquetado determinista.
+- Navegador: selección de tres candidatos, procedencia, ZIP bajo `/AnalogOS/`, PNG ausente e índice inválido sin romper ranking/ficha. Los seis hashes científicos permanecen intactos.
+- ADR-005 y tarea aceptados. M4 sigue parcial por imágenes recientes, revisión territorial y experta. Cambios locales sobre `dev`, sin commit ni push; Claude devuelve el control.
+
+## 2026-11-14 Codex — checkpoint de contexto visual para dev
+
+- Dan autorizó commit y push de M4-VISUAL-EVIDENCE a `dev`.
+- El checkpoint incorpora los tres PNG reales y su procedencia, el panel offline, validadores y pruebas, documentación, ZIP y checksum revisados.
+- Verificación previa al commit: `npm run verify` (119 pruebas Python, 24 web y build), checksum del ZIP y `git diff --check`.

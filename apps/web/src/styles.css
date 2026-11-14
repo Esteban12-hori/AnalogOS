@@ -215,6 +215,23 @@ a { color: inherit; }
 .criterion-caption { color: var(--muted-2); font-size: 7px; }
 .status-missing .criterion-topline span, .status-needs_calibration .criterion-topline span { color: var(--muted); }
 .status-missing .criterion-track i, .status-needs_calibration .criterion-track i { background: var(--muted-2); }
+.visual-context figure { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: #081310; }
+.visual-context figure a { display: block; }
+.visual-context figure a:focus-visible, .visual-provenance summary:focus-visible, .visual-provenance > a:focus-visible { outline: 2px solid var(--sand); outline-offset: 2px; }
+.visual-context img { display: block; width: 100%; height: auto; }
+.visual-context figcaption { display: grid; gap: 3px; padding: 9px 11px; border-top: 1px solid var(--line); }
+.visual-context figcaption strong { font-size: 10px; }
+.visual-context figcaption span, .visual-context figcaption small { color: var(--muted); font-size: 8px; line-height: 1.4; }
+.visual-note, .visual-unavailable { margin: 8px 0 0; color: var(--muted); font-size: 8px; line-height: 1.5; }
+.visual-unavailable { padding: 11px 12px; border: 1px dashed var(--line-strong); border-radius: 10px; }
+.visual-provenance { margin-top: 8px; color: var(--muted); font-size: 8px; line-height: 1.5; }
+.visual-provenance summary { cursor: pointer; color: var(--mint); }
+.visual-provenance dl { display: grid; gap: 5px; margin: 8px 0; }
+.visual-provenance dl div { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 8px; }
+.visual-provenance dt { color: var(--muted-2); }
+.visual-provenance dd { margin: 0; overflow-wrap: anywhere; }
+.visual-provenance code { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 7px; }
+.visual-provenance > a { color: var(--sand); text-decoration: none; }
 .two-column-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .two-column-notes > div { padding: 11px; border: 1px solid var(--line); border-radius: 10px; }
 .two-column-notes ul { margin: 8px 0 0; padding-left: 14px; color: var(--muted); font-size: 8px; line-height: 1.5; }

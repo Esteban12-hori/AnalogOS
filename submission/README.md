@@ -44,7 +44,7 @@ npm run release:package
 (cd submission && shasum -a 256 -c SHA256SUMS.txt)
 ```
 
-El ZIP contiene únicamente `index.html`, el JS/CSS compilado y los cinco archivos `science-v2/`; es determinista para un mismo build. Prueba por HTTP local en un subdirectorio:
+El ZIP contiene únicamente `index.html`, el JS/CSS compilado, los cinco archivos `science-v2/` y el contexto visual (`visual-context/index.json` y tres PNG Sentinel-2, uno por candidato); son 12 archivos y unos 4,1 MB. Es determinista para un mismo build. Las imágenes son contexto preliminar de diciembre de 2025: no validan los sitios ni cambian el ranking. Prueba por HTTP local en un subdirectorio:
 
 ```bash
 mkdir -p /tmp/analogos-demo/AnalogOS

@@ -1,6 +1,6 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14 12:48 America/Santiago
+**Última actualización:** 2026-11-14 14:15 America/Santiago
 **Responsable del checkpoint:** Codex
 **Milestone activo:** M6 — empaquetado y entrega
 **Estado general:** producto funcional y presentable con snapshot científico v2 autenticado. NASADEM corrige el mosaico de borde y Sentinel-2 completa superficie no vegetada. Faltan acciones humanas/externas: video, URLs públicas, integrantes, capas territoriales y revisión experta.
@@ -12,6 +12,8 @@
 - La rama de implementación es `dev`; `main` queda reservada para entregas revisadas.
 - Encargo `M6-RELEASE-REVIEW`: aceptado por Codex.
 - Encargo `M6-PORTABLE-RELEASE`: implementado por Claude, corregido tras revisión y aceptado por Codex (12:44). Dan autorizó su commit y push a `dev` (12:48); Claude espera una nueva asignación.
+
+- Encargo `M4-VISUAL-EVIDENCE`: implementado por Claude, corregido tras revisión y aceptado por Codex (13:54). Dan autorizó su commit y push a `dev` (14:15); Claude espera una nueva asignación.
 
 ## Resultado disponible
 
@@ -43,6 +45,8 @@ Interpretación obligatoria: es un screening de escritorio para ordenar investig
 
 ## Cambios recientes
 
+- Aceptado por Codex (13:54): contexto visual Sentinel-2 offline por candidato, tres PNG reales de diciembre de 2025 y procedencia completa. Verificados imágenes, selección, datos inválidos, archivo ausente y ZIP en subcarpeta. No cambia ciencia, score ni factibilidad. Detalle en `docs/VISUAL_REVIEW.md` y ADR-005 (`accepted`).
+
 - Perfil v2 en `2.0.1-preliminary`: limitaciones nuevas sobre calidad asignada por fuente, significado de `validated` y razón de medianas. Los scores no cambian.
 - Web: orden único con `rankCandidates`, área con dos cifras significativas y decimales con coma.
 - `submission/analogos-chile-static.zip` y `SHA256SUMS.txt` regenerados; las capturas de `submission/assets/` ya reflejan los rótulos nuevos.
@@ -67,24 +71,25 @@ Interpretación obligatoria: es un screening de escritorio para ordenar investig
 - Geología sigue fuera del score por falta de revisión experta.
 - No se intersectaron capas oficiales de urbano, áreas sensibles, propiedad o acceso; agua sí está screenada.
 - La resolución ~460–480 m no evalúa obstáculos o tracción a escala de rueda.
-- Falta inspección Worldview/imagen reciente y revisión experta, si el tiempo lo permite.
+- Falta inspección Worldview/imagen reciente y revisión experta, si el tiempo lo permite. El contexto Sentinel-2 de diciembre de 2025 es un avance parcial: muestra trazas rectilíneas y estructuras geométricas en Yungay y María Elena que son hipótesis a contrastar con capas oficiales, no hechos comprobados.
 - La estabilidad mide cambio de score por un peso a la vez; no es incertidumbre científica total.
 
 ## Verificación ejecutada
 
 | Comando | Resultado |
 |---|---|
-| `.venv/bin/python -m pytest -q` | 60 tests verdes (31 previos + 29 del empaquetador); en un clon sin `data/raw/` se omite 1 integración NASADEM |
+| `.venv/bin/python -m pytest -q` | 119 tests verdes (31 de ciencia y contratos, 39 del empaquetador, 49 del contexto visual); en un clon sin `data/raw/` se omite 1 integración NASADEM |
+| `python -m pipelines.fetch_visual_context` | reutiliza el paquete visual local sin red ni credenciales |
 | `npm run release:package` | build + validación + ZIP determinista; `shasum -a 256 -c SHA256SUMS.txt` OK; mismo SHA-256 en tres ejecuciones |
 | HTTP local en `/AnalogOS/` y `/` | Claude comprobó respuestas HTTP; Codex verificó el ZIP extraído en navegador, ranking, mapa, selección, advertencia de agua y consola sin errores |
-| `npm run test` | 14 tests verdes |
+| `npm run test` | 24 tests verdes (10 del contexto visual) |
 | `npm run build` | contratos + TypeScript + Vite verdes |
 | revisión manual | snapshot v2, ranking, mapa, evidencia, layout y consola sin errores verificados |
 | `npm audit` | 0 vulnerabilidades |
 
-El build estático queda en `apps/web/dist/` (~520 KiB), incluye solo `science-v2/` y no hace llamadas externas.
+El build estático queda en `apps/web/dist/` (~4,1 MB), incluye `science-v2/` y `visual-context/`, sin llamadas externas obligatorias.
 
-Codex repitió la suite y el empaquetado durante la aceptación de M6-PORTABLE-RELEASE. Verificó las ocho entradas del ZIP contra dist y los seis hashes de snapshot/perfil contra la línea base; sin cambios científicos. El ZIP pesa 513.994 bytes y su SHA-256 es `beb83736ea9508808ce832c6e707e96c5103935ff03330ff9b15b4301468ac14`.
+Codex repitió la suite y el empaquetado durante la aceptación de M4-VISUAL-EVIDENCE. Verificó las 12 entradas del ZIP contra dist, su determinismo y los seis hashes de snapshot/perfil contra la línea base; sin cambios científicos. El ZIP pesa 4.084.880 bytes y su SHA-256 es `97dc819efb7e0511e2b4a6e388eab5cf113db442006b3b01b415ae0db9f25f81`. También probó en navegador un PNG ausente y un índice con escenas inválidas: ambos conservan ranking y ficha.
 
 ## Comandos de reproducción
 
@@ -118,6 +123,7 @@ npm run verify
 - `docs/decisions/ADR-002-science-screening-v1.md`
 - `docs/decisions/ADR-003-authenticated-precision-snapshot-v2.md`
 - `docs/decisions/ADR-004-portable-static-release.md`
+- `docs/decisions/ADR-005-offline-visual-context.md`
 
 ## Acciones humanas antes de enviar
 

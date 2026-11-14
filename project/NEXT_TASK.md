@@ -1,54 +1,61 @@
 # Encargo vigente
 
-Este archivo es la única cola autorizada para trabajo de implementación entre Codex y Claude. Codex asigna; Claude ejecuta; Codex acepta.
+Codex asigna, Claude implementa y devuelve `review`, Codex revisa y acepta. M6-PORTABLE-RELEASE está aceptado y publicado en `dev` en `15398a8`; su reporte permanece en Git.
 
 ## Estado
 
-- **Task ID:** M6-PORTABLE-RELEASE
+- **Task ID:** M4-VISUAL-EVIDENCE
 - **Owner:** Codex
 - **Status:** accepted
 - **Branch:** `dev`
-- **Base commit:** `92053ead92ebd526f8c01e1c75a6bd97cb0da6da`
+- **Base commit:** `15398a83a798e762df5452a05e1880488c480403`
 
-## Objetivo
+## Objetivo y decisión de producto de Codex
 
-Implementar un empaquetado repetible de la demo estática. Un único comando debe reconstruir el frontend, validar el contenido permitido, producir `submission/analogos-chile-static.zip` y actualizar su SHA-256. La misma demo debe cargar desde `/` o desde un subdirectorio como `/AnalogOS/` sin pedir credenciales.
+Añadir contexto satelital real, trazable y offline a los tres candidatos actuales. Al seleccionar un candidato se debe ver su sector en una imagen Sentinel-2, conocer el periodo y sus límites. Avanza la inspección visual de M4; NO cierra revisión experta, restricciones territoriales ni validación de campo.
 
-## Alcance autorizado por Codex
+## Corte vertical autorizado
 
-1. Añadir `npm run release:package`, encadenando el build actual con un empaquetador local sin dependencias nuevas (Python estándar es aceptable).
-2. Cambiar `base` de Vite a relativo si hace falta. Revisar la carga de JSON y el enlace al análisis auditable para que el build funcione en raíz y subdirectorio.
-3. Empaquetar mediante una lista explícita de archivos permitidos: `index.html`, assets compilados JS/CSS y los cinco archivos `science-v2/` actuales. Rechazar archivos adicionales, enlaces simbólicos, referencias ausentes o archivos requeridos faltantes. No publicar demo, science-v1, secretos, mapas fuente, data/raw ni fuentes del proyecto.
-4. El ZIP debe ser determinista para un mismo dist (orden y timestamps internos fijos), y checksum coherente. Una validación fallida debe preservar el ZIP/checksum anterior y terminar con error explicativo. Escribir primero en archivos temporales junto al destino y reemplazar solo tras validación.
-5. Añadir tests reales del empaquetador: determinismo, conjunto exacto, faltantes, archivo inesperado/symlink y preservación de entrega previa ante error. Usar directorios temporales; nunca renombrar/borrar data/raw del equipo para probar.
-6. Documentar comandos de instalación, empaquetado y prueba por HTTP local; aclarar que no se garantiza abrir index.html por file://. No publicar a ningún hosting.
-7. Regenerar ZIP/checksum con el comando nuevo y devolver la tarea en `review` para revisión independiente de Codex.
+1. Crear `pipelines/fetch_visual_context.py` que consulte Copernicus Sentinel Hub Process API y genere tres PNG RGB reales y un índice público bajo `artifacts/visual-context/`. No modificar ni regenerar `artifacts/science-v2/` ni el perfil.
+2. Usar las credenciales Copernicus existentes solo mediante dotenv/variables de entorno y exclusivamente contra endpoints oficiales. No imprimir ni leer manualmente .env, no guardar tokens/cabeceras ni cuerpos de error que los expongan. No usar Earthdata para este encargo. Sin dependencias nuevas.
+3. Bbox derivada de la geometría versionada de cada candidato, consistente con `config/science_snapshot_v2.json`. Colección sentinel-2-l2a, RGB B04/B03/B02, dataMask y alpha para zonas sin datos. Ventana fija diciembre 2025 (`2025-12-01T00:00:00Z` a `2026-01-01T00:00:00Z`), leastCC, nubosidad máxima 40 %. Rotular mosaico del periodo, no una única fecha ni imagen actual de 2026. Si no sirve la cobertura, informar antes de ampliar la ventana.
+4. Vista previa de 512–768 px por lado, proporción espacial razonable para la latitud. Documentar CRS, bbox, dimensiones y escala aproximada sin atribuir resolución nativa a la vista reducida. Transformación de reflectancia sencilla y explícita, sin imágenes generadas. Obtener metadata de escenas mediante userdata/evalscript; distinguir consideradas de efectivamente usadas. No inventar identificadores ni fechas.
+5. Procedencia verificable: site_id, snapshot_version asociado, colección, endpoint oficial, ventana, bbox/CRS, dimensiones, bandas/transformación, mosaico, metadata devuelta, hora real de consulta UTC, SHA-256 por PNG, limitaciones y atribución Copernicus. Guardar request/evalscript públicos sin secretos para reproducir. Reutilizar paquete local válido sin llamar API; --refresh explícito. Ante error conservar el paquete anterior sin mezclar generaciones. No extraer rutas arbitrarias de un TAR remoto.
+6. Integrar panel pequeño y cuidado en ficha (`VisualContext.tsx`): imagen local, periodo, atribución, nota de contexto preliminar, enlace local para abrir imagen y procedencia legible. Cambiar candidato cambia su imagen. No cerrar advertencias ni modificar score/confianza/factibilidad. En fixtures, evidencia ausente o fallida, estado no disponible sin romper ranking/ficha. BASE_URL para raíz/subcarpeta; nunca API Copernicus en navegador. Responsive, teclado y alt.
+7. Extender empaquetador con lista explícita para índice y tres imágenes exactas, más request/evalscript público si la UI lo consume. Mantener verificación de hashes y garantías de rollback. No admitir cualquier PNG/JSON por extensión. Actualizar tests y documentación del ZIP.
+8. Tests proporcionales: identidad/bbox/hashes de tres PNG reales; petición sin red; errores preservan paquete previo; rutas/estados del loader/panel usando funciones puras o render estático con herramientas existentes; regresión de empaquetado. Suite sin credenciales ni red. Fixtures inequívocos y nunca sustituyen imágenes reales.
+9. ADR-005 propuesto y `docs/VISUAL_REVIEW.md`: fuente, reproducción, qué inspeccionar y pendientes. Observaciones solo tras ver imágenes, separadas de hipótesis. Codex inspeccionará las tres antes de aceptar. No marcar revisión experta ni M4 completo.
 
-## Archivos permitidos
+## Fuentes oficiales
 
-- `package.json` (scripts únicamente)
-- `apps/web/vite.config.ts` (base relativa únicamente)
-- `apps/web/src/data/loadDemoSnapshot.ts` y `apps/web/src/App.tsx` (solo rutas de recursos si hace falta)
-- nuevo `scripts/package_release.py` y `tests/test_release_package.py`
-- `README.md`, `submission/README.md`, `submission/SHA256SUMS.txt`, `submission/analogos-chile-static.zip`
-- `project/NEXT_TASK.md` (estado/reporte), `project/STATUS.md`, `project/CHANGELOG.md`
-- `docs/decisions/ADR-004-portable-static-release.md` en estado `proposed` si documentas la decisión de empaquetado.
+- https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Process.html
+- https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Process/Examples/S2L2A.html
+- https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html
+- Autenticación local: `pipelines/fetch_precision_data.py` (leer código, no mostrar secretos).
 
-Hay cambios locales previos de Codex y Claude. Respétalos; solo modifica los segmentos relevantes. No hacer commits ni incluir cambios ajenos. Codex no editará estos archivos mientras trabajes.
+## Archivos autorizados
 
-## Restricciones activas
+- Nuevos `pipelines/fetch_visual_context.py`, `tests/test_visual_context.py`, `artifacts/visual-context/`, `docs/VISUAL_REVIEW.md`, `docs/decisions/ADR-005-offline-visual-context.md`.
+- Nuevos `apps/web/src/components/VisualContext.tsx`, `apps/web/src/data/loadVisualContext.ts`, `apps/web/src/tests/visualContext.test.ts` (o .tsx).
+- Integración mínima en `CandidateDetails.tsx`, `App.tsx` y CSS existentes de apps/web/src; sin rediseñar el resto.
+- `scripts/package_release.py`, `tests/test_release_package.py`, `apps/web/scripts/prune-build.mjs` solo si necesario, `package.json` solo scripts.
+- `README.md`, `submission/README.md`, `submission/ATTRIBUTIONS.md`, `submission/JUDGING_CHECKLIST.md`, ZIP y SHA256SUMS de submission.
+- `project/NEXT_TASK.md` estado/reporte, `STATUS.md`, `CHANGELOG.md`, `BACKLOG.md` solo avance parcial correspondiente.
 
-- No alterar ciencia, contratos, perfil, snapshot ni ranking.
-- No añadir dependencias o infraestructura.
-- No hacer push, merge, tag o release.
-- Preservar los cambios locales visibles en `git status`.
-- No leer ni transmitir `.env`, credenciales, cookies ni datos crudos. Esta tarea usa únicamente artefactos públicos procesados.
-- No cambiar `AGENTS.md`, `CLAUDE.md`, remotos o ramas. No lanzar otros agentes ni procesos persistentes.
+## Límites y coordinación
 
-## Aceptación y comandos exactos
+- Preservar ciencia, contratos, candidatos, ranking, dependencias y SVG. Sin backend, IA, SAR ni nuevo perfil.
+- No AGENTS/CLAUDE, remotos, ramas, Vercel ni cuentas. No commit/push/publicación en este encargo; Codex decidirá tras revisar.
+- No otros agentes. Servidores HTTP temporales permitidos, cerrarlos al acabar sin detener procesos ajenos.
+- Tres imágenes, una solicitud inicial por sector, reintentos acotados por fallo transitorio. No barrido nacional/temporal ni red en cada build.
+- Si API bloqueada por credenciales/cuota, reportar; no usar imágenes ficticias ni ocultar el fallo.
+- Codex no edita tu alcance mientras trabajas; revisa y devuelve fallos. Claude implementa, Codex acepta.
+
+## Aceptación
 
 ```bash
 source .venv/bin/activate
+python -m pipelines.fetch_visual_context
 npm run verify
 npm run release:package
 (cd submission && shasum -a 256 -c SHA256SUMS.txt)
@@ -56,70 +63,81 @@ git diff --check
 git status --short
 ```
 
-Comprueba dos ejecuciones del empaquetador sobre el mismo dist. Demuestra que el ZIP solo contiene la lista permitida y que sus bytes coinciden con dist. Codex hará la prueba visual por HTTP en `/AnalogOS/` y revisará la implementación y la preservación del trabajo previo.
+Reportar archivos propios, comandos/resultados, tamaño/contenido ZIP, cache sin red, límites y hashes científicos intactos. Codex repetirá checks, verá tres imágenes y probará selección, metadata, error de imagen y /AnalogOS/ en navegador. Terminar con **Status: review**.
 
 ## Reporte de Claude
 
-Entregado en `review` el 2026-11-14 a las 12:41 (America/Santiago). Solo Codex puede aceptar.
+Entregado en `review` el 2026-11-14 a las 13:40 (America/Santiago). Solo Codex puede aceptar. Sin commit, push ni publicación.
 
-### Archivos propios de este encargo
+### Archivos propios
 
-- Nuevos: `scripts/package_release.py`, `tests/test_release_package.py`, `docs/decisions/ADR-004-portable-static-release.md` (estado `proposed`).
-- Modificados: `package.json` (script `release:package`), `apps/web/vite.config.ts` (`base: './'`), `README.md` y `submission/README.md` (solo las secciones de empaquetado y prueba), `submission/analogos-chile-static.zip`, `submission/SHA256SUMS.txt`, `project/NEXT_TASK.md`, `project/STATUS.md`, `project/CHANGELOG.md`.
-- No hizo falta tocar `apps/web/src/data/loadDemoSnapshot.ts` ni `apps/web/src/App.tsx`: ya resolvían JSON y el enlace al análisis con `import.meta.env.BASE_URL`.
-- No se modificó ningún otro archivo; los cambios locales previos de Codex y Claude siguen en el árbol de trabajo.
+- Nuevos: `pipelines/fetch_visual_context.py`, `tests/test_visual_context.py`, `artifacts/visual-context/` (`index.json` y tres PNG), `docs/VISUAL_REVIEW.md`, `docs/decisions/ADR-005-offline-visual-context.md`, `apps/web/src/components/VisualContext.tsx`, `apps/web/src/data/loadVisualContext.ts`, `apps/web/src/tests/visualContext.test.tsx`.
+- Modificados: `apps/web/src/components/CandidateDetails.tsx` y `apps/web/src/App.tsx` (integración mínima), `apps/web/src/styles.css` (reglas del panel), `scripts/package_release.py`, `tests/test_release_package.py`, `README.md`, `submission/README.md`, `submission/ATTRIBUTIONS.md`, `submission/JUDGING_CHECKLIST.md`, `submission/analogos-chile-static.zip`, `submission/SHA256SUMS.txt`, `project/NEXT_TASK.md`, `project/STATUS.md`, `project/CHANGELOG.md`, `project/BACKLOG.md`.
+- No hizo falta tocar `apps/web/scripts/prune-build.mjs` ni `package.json`.
 
-### Comandos ejecutados y resultados
+### Imágenes reales
+
+Consulta del 2026-11-14 entre las 16:16 y las 16:18 UTC, una petición por sector. La primera ejecución del comando falló por red al pedir el token (tres intentos, `ConnectionError`, sin escribir nada); la segunda funcionó.
+
+| Sitio | Tamaño | Bytes | Órbitas consideradas | Órbita usada | SHA-256 |
+|---|---|---:|---:|---|---|
+| `cl-pampa-yungay-screening` | 705×768 | 1.205.517 | 15 | 2025-12-21, 100 % | `24f6a7b94f3f4f04989634723e68f189938b84b01d0e8a9fe5051012d8d4a9d0` |
+| `cl-pampa-maria-elena-screening` | 714×768 | 1.220.784 | 15 | 2025-12-21, 100 % | `97a2c13e05eb38ab3f9daff006859ae82d9d771790a9e205cafacf6f9394d879` |
+| `cl-domeyko-interior-screening` | 709×768 | 1.079.769 | 8 | 2025-12-03, 100 % | `697f1b809b8d6cae55bf92239b28488ae68e6cd020ac8cf80ee2d443c97df359` |
+
+Las órbitas «usadas» salen de contadores del evalscript (patrón de variable global documentado en la guía oficial de metadata). Solo se publican porque suman exactamente ancho × alto en los tres casos; si no cuadraran, el índice dejaría `scenes_used: null`.
+
+### Comandos y resultados
 
 | Comando | Resultado |
 |---|---|
-| `npm run verify` | 60 tests Python, 14 tests web, contratos + TypeScript + Vite verdes |
-| `npm run release:package` | ZIP escrito; sha256 `beb83736ea9508808ce832c6e707e96c5103935ff03330ff9b15b4301468ac14` |
+| `python -m pipelines.fetch_visual_context` | «reutilizado sin red»; no lee credenciales ni llama a la API |
+| `npm run verify` | 119 tests Python, 24 tests web, contratos + TypeScript + Vite verdes |
+| `npm run release:package` | sha256 `97dc819efb7e0511e2b4a6e388eab5cf113db442006b3b01b415ae0db9f25f81`; repetido, mismo valor |
 | `(cd submission && shasum -a 256 -c SHA256SUMS.txt)` | `analogos-chile-static.zip: OK` |
-| `python scripts/package_release.py` dos veces más sobre el mismo dist | mismo SHA-256 las tres veces |
 | `git diff --check` | sin salida, código 0 |
-| `git status --short` | solo archivos del alcance, más los cambios previos ya presentes |
+| `git diff --quiet HEAD -- artifacts/science-v2 config contracts pipelines/scoring.py pipelines/build_precision_snapshot.py pipelines/constraints.py` | código 0: ciencia, perfil, contratos y score idénticos al commit base |
 
-Contenido del ZIP (8 archivos, 513.994 bytes, sin compresión, fecha interna 1980-01-01): `assets/index-BCA2TVIl.js`, `assets/index-DwJK4FAQ.css`, `index.html` y los cinco `science-v2/`. La lista coincide con los archivos de `apps/web/dist/` y cada entrada es idéntica byte a byte a su archivo.
-
-Errores reales por línea de comandos, todos con código 1, mensaje explicativo y entrega previa intacta: archivo extra en una copia de dist (`science-v2/extra.json`), `--zip` igual a `--checksum`, y `--zip` dentro de `apps/web/dist/`.
+ZIP: 12 archivos, 4.084.880 bytes: `index.html`, un JS, un CSS, los cinco `science-v2/`, `visual-context/index.json` y los tres PNG.
 
 ### Revisión de Codex atendida
 
-- Fallo del segundo `os.replace`: ahora se restaura el ZIP anterior (o se elimina el nuevo si no había entrega previa). Tests: `test_checksum_replace_failure_rolls_back_to_the_previous_pair` y `test_checksum_replace_failure_without_previous_delivery_leaves_nothing`.
-- Si además falla la restauración, se lanza `InconsistentDelivery`, el mensaje no afirma que la entrega se conserva e indica dónde quedó la copia del ZIP anterior. Test: `test_failed_rollback_is_reported_as_inconsistent_and_keeps_the_backup`.
-- Temporales únicos con `tempfile.mkstemp` en la carpeta del destino; ya no hay nombres fijos `.tmp`. Test: `test_temporaries_are_unique_and_do_not_clobber_existing_tmp_files`.
-- Destinos rechazados antes de escribir: `--zip` igual a `--checksum` (misma ruta, distinta capitalización o enlace duro), destino dentro del build, destino que es el build o una carpeta que lo contiene. Tests: `test_zip_and_checksum_must_be_different_files`, `test_checksum_linked_to_the_zip_is_rejected`, `test_destinations_overlapping_dist_are_rejected_before_writing`.
+- Validador del paquete: ahora compara cabecera (`kind`, `status`, `snapshot_version`, `source`, `product`, `limitations`) y campos de cada sitio (identidad, nombre, imagen, dimensiones, bbox, extensión, escala, petición, escenas) con el candidato, la petición vigente, el PNG y la metadata devuelta. 24 alteraciones parametrizadas, incluidas bbox `[0,0,1,1]` y periodo de noviembre de 2026, se rechazan sin llamar a la API.
+- `_swap`: si falla la instalación y también la restauración, o si falla la limpieza posterior, lanza `PackageStateError` con el estado real y conserva el respaldo; `main` solo afirma que el paquete anterior no se modificó cuando es cierto. Cuatro tests.
+- Web: `parseVisualContext` valida cada elemento de `scenes_used` y tipos y rangos de lo que el panel muestra, exige `image === site_id + ".png"` y `site_id` únicos. 18 casos de metadata malformada terminan en «no disponible» sin romper la ficha.
+- Observaciones visuales: registradas en `docs/VISUAL_REVIEW.md` como apariencia a contrastar, separadas de las hipótesis; sin identidad, propiedad ni exclusión.
 
-### Prueba por HTTP (adicional a la visual de Codex)
+### Pruebas en navegador
 
-ZIP descomprimido en un directorio temporal y servido con `python3 -m http.server` en un puerto libre, cargado con Chrome sin interfaz. En `/AnalogOS/` y en `/` la app renderiza el ranking; `index.html`, JS, CSS y los JSON de `science-v2/` responden 200, incluido `analysis-summary.json` desde el enlace relativo. Solo `favicon.ico` da 404, como antes. Los servidores temporales quedaron detenidos.
+Build servido por HTTP local: el panel muestra la imagen del candidato seleccionado; al elegir María Elena cambia la imagen y no cambian score ni advertencias; la procedencia es legible; un error de carga de imagen deja «no disponible» con ranking y ficha intactos; vista móvil sin desbordes; consola sin errores; todas las peticiones son locales. ZIP descomprimido en `/AnalogOS/` y cargado con Chrome sin interfaz: índice e imagen responden 200 con rutas relativas. Servidores temporales detenidos.
 
 ### Límites y decisiones para revisar
 
-- ZIP sin compresión (`ZIP_STORED`): pesa ~514 kB en vez de ~146 kB, a cambio de que los bytes no dependan de la versión de zlib. Si se prefiere tamaño, es una línea.
-- Sin atomicidad frente a un corte de energía o `kill` entre los dos renombrados; `shasum -c` detecta el desajuste. Un proceso interrumpido puede dejar temporales `.analogos-chile-static.zip.*.tmp` en `submission/`.
-- La lista permitida cubre el build de una sola entrada. Si Vite emite más chunks, imágenes o fuentes, el empaquetador falla a propósito y hay que ampliarla.
-- La URL en subdirectorio debe terminar en barra. No se garantiza `file://`.
-- `npm run release:package` usa `python`, así que requiere el entorno `.venv` activo, igual que `npm run verify`.
-- Incidencia: en la primera prueba HTTP el puerto 8765 ya estaba ocupado por un proceso Python ajeno (PID 40963). No lo toqué; repetí la prueba en un puerto libre.
+- Ganancia 2,0 elegida antes de consultar para no repetir peticiones; las vistas no se ven saturadas salvo en parches muy brillantes.
+- Cada PNG pesa 1,1–1,2 MB; el ZIP sube de ~0,5 MB a ~4,1 MB.
+- El validador es estricto: cambiar periodo, transformación, limitaciones o evalscript invalida el paquete y exige `--refresh` con credenciales.
+- Un corte abrupto durante el intercambio puede dejar un directorio `.visual-context.*` en `artifacts/`; el empaquetador lo rechazaría como archivo inesperado.
+- `scenes_used` depende de contadores globales del evalscript; se documenta como derivado y se omite si no cuadra.
+- No se marcó revisión experta ni M4 completo.
 
-### Permisos bloqueados
+### Credenciales y permisos
 
-Ninguno. No hubo commit, push, publicación, cambios de remotos o ramas, ni lectura de `.env` o datos crudos durante este encargo.
+Las credenciales Copernicus se leyeron solo desde el programa (`.env` vía dotenv) y se enviaron únicamente a `identity.dataspace.copernicus.eu`; el token, solo a `sh.dataspace.copernicus.eu`. No se imprimieron ni guardaron valores, tokens, cabeceras ni cuerpos de error. No se usó Earthdata. Ningún permiso bloqueado.
 
 ## Aceptación independiente de Codex
 
-Aceptado el 2026-11-14 a las 12:44 (America/Santiago), después del handoff de Claude. El encargo queda cerrado; Claude espera una nueva asignación antes de editar más archivos.
+Aceptado el 2026-11-14 a las 13:54 America/Santiago, tras revisar código, fuentes, imágenes y comportamiento del ZIP. Claude espera nueva asignación.
 
-- Revisados implementación, tests, diff y ADR-004. La primera implementación fue devuelta por dejar ZIP/checksum desincronizados si fallaba el segundo reemplazo; la corrección y sus pruebas quedaron aceptadas.
-- Reejecutados por Codex `npm run verify` (60 Python + 14 web, contratos, TypeScript y build), `npm run release:package`, checksum y `git diff --check`: correctos.
-- Repetido el empaquetado: mismo SHA-256 `beb83736ea9508808ce832c6e707e96c5103935ff03330ff9b15b4301468ac14`. Las ocho entradas coinciden byte a byte con dist y con la copia probada en navegador.
-- Verificada la copia extraída del ZIP por HTTP en `/` y `/AnalogOS/`: ranking, mapa, selección de María Elena, advertencia de agua del 0,15 % y enlace relativo al análisis. Sin errores o advertencias de consola observados.
-- Los cinco archivos del snapshot v2 y el perfil de configuración conservan sus seis hashes de la línea base. Sin cambios nuevos en ciencia, contratos ni dependencias; preservados los cambios previos del equipo.
-- ADR-004 aceptado con sus límites: ZIP sin compresión (~514 kB), HTTP requerido y sin atomicidad ante interrupciones abruptas. Esta aceptación corresponde al empaquetado, no a una validación científica de campo.
-- HEAD permanece en `92053ea`, rama `dev`; no hubo commit, push, merge ni publicación.
+- Inspeccionados los tres PNG a tamaño completo y contrastados con sus bbox, fechas de adquisición devueltas, dimensiones y procedencia. Las observaciones geométricas permanecen como pistas a contrastar, no identificaciones de infraestructura ni permisos.
+- Reproducidos y devueltos a Claude dos defectos: el validador aceptaba bbox/periodo incoherentes y el panel aceptaba escenas malformadas que podían romper la ficha. Correcciones y pruebas de regresión revisadas; también corregido el mensaje ante fallo de restauración del paquete.
+- Reejecutados `npm run verify`: 119 tests Python y 24 web, contratos, TypeScript y build correctos. `npm run release:package`, checksum y `git diff --check` correctos.
+- Verificada reutilización con un callback que falla ante cualquier intento de red; el paquete válido se reutiliza sin invocarlo. Confirmado rechazo de bbox y periodo adulterados, sin nuevas llamadas a la API.
+- Comprobadas las 12 entradas del ZIP byte a byte contra dist; repetir empaquetado produce el mismo SHA-256 `97dc819efb7e0511e2b4a6e388eab5cf113db442006b3b01b415ae0db9f25f81` (4.084.880 bytes).
+- Navegador: tres selecciones con su imagen, procedencia y raíz; ZIP extraído bajo `/AnalogOS/`; copias temporales con PNG ausente y `scenes_used: [null]` muestran no disponible y conservan ranking/ficha. Sin errores de consola en la vista normal; el 404 provocado pertenece solo a la prueba de fallo.
+- Los cinco archivos de `science-v2` y el perfil de configuración conservan los seis SHA-256 de la línea base. Sin cambios de ciencia, ranking ni dependencias.
+- ADR-005 aceptado como contexto visual histórico de diciembre de 2025. M4 continúa parcial: quedan imágenes recientes, restricciones territoriales y revisión experta.
+- Cambios locales sobre `dev`/`15398a8`; sin commit, push ni publicación de este encargo.
 
 ## Autorización posterior de Git
 
-El 2026-11-14, Dan pidió explícitamente «subelos a dev». Codex queda autorizado para versionar y subir los cambios aceptados a `origin/dev`; esta instrucción sustituye la restricción de commit/push de la fase de implementación. Se integraron antes por avance directo los commits remotos `6516743` y `3c1a014` (Vercel), sin conflictos. La tarea sigue aceptada y Claude no tiene un nuevo encargo de implementación.
+El 2026-11-14, Dan pidió «subela» en respuesta a la entrega aprobada de M4-VISUAL-EVIDENCE. Codex queda autorizado para hacer commit y push de esta mejora a `origin/dev`, sustituyendo la restricción de la fase de implementación. La tarea sigue aceptada; Claude espera una nueva asignación.

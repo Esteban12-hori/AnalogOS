@@ -43,7 +43,7 @@ npm run release:package
 (cd submission && shasum -a 256 -c SHA256SUMS.txt)
 ```
 
-El comando reconstruye el frontend, comprueba que el build contenga solo `index.html`, el JS/CSS compilado y los cinco archivos `science-v2/`, y escribe `submission/analogos-chile-static.zip` con su SHA-256. El ZIP es determinista para un mismo build. Si la validación falla, la entrega anterior no se toca.
+El comando reconstruye el frontend, comprueba que el build contenga solo `index.html`, el JS/CSS compilado, los cinco archivos `science-v2/` y el contexto visual (`visual-context/index.json` más sus tres PNG, con el SHA-256 que declara ese índice), y escribe `submission/analogos-chile-static.zip` con su SHA-256. El ZIP es determinista para un mismo build. Si la validación falla, la entrega anterior no se toca.
 
 El build usa rutas relativas: carga igual en la raíz o en un subdirectorio. Para probarlo por HTTP local en `/AnalogOS/`:
 
@@ -54,6 +54,17 @@ python3 -m http.server 8080 --bind 127.0.0.1 --directory /tmp/analogos-demo
 ```
 
 Abrir `http://127.0.0.1:8080/AnalogOS/` (con la barra final). No se garantiza abrir `index.html` directamente con `file://`: ahí los navegadores bloquean los módulos y la lectura de JSON.
+
+### Contexto visual Sentinel-2
+
+La ficha de cada candidato muestra una vista Sentinel-2 L2A en color natural (mosaico de diciembre de 2025) guardada en `artifacts/visual-context/` con su procedencia. Es contexto preliminar para inspección: no cambia ningún score ni cierra verificaciones. La web la sirve como archivo local; nunca llama a Copernicus.
+
+```bash
+python -m pipelines.fetch_visual_context            # reutiliza el paquete local; sin red ni credenciales
+python -m pipelines.fetch_visual_context --refresh  # consulta de nuevo; requiere credenciales Copernicus en .env
+```
+
+Qué mirar, qué se observó y qué falta está en `docs/VISUAL_REVIEW.md`; la decisión, en `docs/decisions/ADR-005-offline-visual-context.md`.
 
 ## Reproducir la ciencia v2 desde las fuentes
 
@@ -153,6 +164,7 @@ npm run build      # valida el snapshot contra contracts/ y construye apps/web/d
 npm run test
 npm run preview    # sirve el build estático ya construido
 npm run release:package   # build + validación + ZIP determinista + SHA-256 (con .venv activo)
+python -m pipelines.fetch_visual_context   # contexto visual Sentinel-2; reutiliza el paquete local sin red
 
 python3 -m venv .venv
 source .venv/bin/activate
