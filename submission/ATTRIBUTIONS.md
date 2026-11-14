@@ -31,6 +31,16 @@
 - Uso: superficie no vegetada, vegetación, agua, NDVI y BSI mensual de 2025.
 - Atribución: Modified Copernicus Sentinel data 2025 / Sentinel Hub.
 
+### Copernicus Sentinel-2 — contexto visual
+
+- Proveedor: Copernicus Data Space Ecosystem — Sentinel Hub.
+- Producto: Sentinel-2 L2A mediante Process API; tres vistas RGB (B04/B03/B02) en `visual-context/`, una por candidato.
+- Fuente: https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Process.html
+- Periodo: mosaico de diciembre de 2025 (2025-12-01 a 2026-01-01 UTC), nubosidad máxima 40 % por escena.
+- Uso: contexto visual preliminar en la ficha; no participa en el score ni cierra verificaciones.
+- Atribución: contiene datos modificados de Copernicus Sentinel (2025), procesados con Sentinel Hub en Copernicus Data Space Ecosystem.
+- Procedencia por imagen (petición, escenas, hora de consulta y SHA-256): `visual-context/index.json`.
+
 ### NASA POWER
 
 - Proveedor: NASA Prediction Of Worldwide Energy Resources.

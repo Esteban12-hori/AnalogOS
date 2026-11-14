@@ -5,12 +5,18 @@ import {
   type GeoJsonFeatureCollection,
   type MissionProfile,
 } from '../domain/contracts'
+import { parseMarsReference, type MarsReference } from '../domain/marsReference'
+import { parseSurfaceSeries, type SurfaceSeriesBySite } from '../domain/surfaceSeries'
 
 export interface DemoSnapshot {
   candidates: CandidateSite[]
   manifest: DataManifest
   profile: MissionProfile
   chileOutline: GeoJsonFeatureCollection
+  /** Series mensuales Sentinel-2; vacío si el snapshot no las trae (p. ej. el fixture demo). */
+  surfaceSeries: SurfaceSeriesBySite
+  /** Medianas MOLA de Jezero; null si el snapshot no las trae. */
+  marsReference: MarsReference | null
 }
 
 async function fetchJson(path: string): Promise<unknown> {
@@ -29,6 +35,8 @@ export async function loadDemoSnapshot(): Promise<DemoSnapshot> {
     fetchJson('mission-profile.json'),
     fetchJson('chile-outline.geojson'),
   ])
+  // Opcional: un snapshot sin analysis-summary.json sigue siendo válido.
+  const summaryData = await fetchJson('analysis-summary.json').catch(() => null)
 
   assertSnapshotContracts(candidateData, manifestData, profileData)
 
@@ -42,5 +50,7 @@ export async function loadDemoSnapshot(): Promise<DemoSnapshot> {
     manifest: manifestData as DataManifest,
     profile: profileData as MissionProfile,
     chileOutline: outline,
+    surfaceSeries: parseSurfaceSeries(summaryData),
+    marsReference: parseMarsReference(summaryData),
   }
 }

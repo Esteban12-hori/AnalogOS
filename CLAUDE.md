@@ -1,81 +1,79 @@
 # Instrucciones para Claude Code
 
-Eres el ingeniero principal temporal de AnalogOS Chile. Debes producir software ejecutable, no solo planes. Trabaja dentro de esta carpeta y conserva la posibilidad de que otro agente continúe sin contexto de conversación.
+Claude es el ingeniero de implementación de AnalogOS Chile. Codex dirige producto, ciencia, arquitectura, prioridades y release. El equipo humano conserva la autoridad final.
 
-## Tu misión inmediata
+## Cadena de trabajo
 
-Implementa el corte vertical definido como M0 y M1 en `project/BACKLOG.md`. No empieces perfiles lunares, SAR avanzado, IA generativa ni un backend.
+1. Codex define el encargo vigente en `project/NEXT_TASK.md`.
+2. Claude implementa únicamente ese alcance sobre la rama indicada, normalmente `dev`.
+3. Claude ejecuta los criterios de aceptación, documenta evidencia y deja el estado en `review`.
+4. Codex revisa diff, ciencia, contratos, tests y presentación; acepta o devuelve observaciones.
+5. Solo Codex o una persona del equipo autoriza promoción a `main`, tags, publicación o cambios de alcance.
+
+Si `project/NEXT_TASK.md` no contiene una tarea con propietario `Claude` y estado `ready` o `in_progress`, no inicies trabajo nuevo.
 
 ## Lectura obligatoria antes de editar
 
-1. `README.md`
-2. `docs/PRODUCT_AND_SCIENCE.md`
-3. `docs/ARCHITECTURE.md`
-4. `docs/DATA_AND_SCORING.md`
-5. `docs/SOURCE_CATALOG.md`
-6. `contracts/*.schema.json`
-7. `config/mission_profiles/mars-rover-mobility-v1.json`
-8. `project/BACKLOG.md`
-9. `project/STATUS.md`
+1. `AGENTS.md`
+2. `project/NEXT_TASK.md`
+3. `project/STATUS.md`
+4. último bloque de `project/CHANGELOG.md`
+5. ADR relevantes en `docs/decisions/`
+6. archivos y contratos nombrados por la tarea
 
-## Reglas que no puedes romper
+Antes de modificar archivos, ejecuta `git status --short`, confirma la rama y preserva cambios ajenos. Si existen cambios no relacionados con tu encargo, no los reescribas ni los incluyas en tu commit.
 
-- No cambies el perfil P0 ni el stack congelado sin ADR.
-- No presentes fixtures, mocks o datos sintéticos como resultados científicos.
-- No uses IA, embeddings ni LLMs para puntuar candidatos.
-- No mezcles similitud, confianza y factibilidad en un solo número.
-- No uses pins exactos cuando la resolución solo permite polígonos o celdas.
-- No dependas de APIs externas en el flujo central de la demo.
-- No inventes rangos planetarios. Si falta calibración, deja `status: needs_calibration` y haz visible la limitación.
-- No agregues autenticación, cuentas, PostGIS, microservicios ni infraestructura innecesaria.
-- No subas claves, tokens, cookies, datos con acceso restringido ni descargas masivas al repositorio.
-- No cambies el contrato de salida sin actualizar schemas, tests, documentación y `project/STATUS.md`.
+## Estado actual que no debes revertir
 
-## Stack obligatorio P0
+- Milestone: M6, empaquetado y entrega.
+- Rama de implementación: `dev`.
+- Snapshot final: `artifacts/science-v2/`.
+- Perfil: `mars-rover-screening-v2`, versión `2.0.1-preliminary`.
+- Frontend: Vite + React + TypeScript con mapa SVG local; no MapLibre ni WebGL.
+- Ciencia: MOLA + NASADEM multitesela + Sentinel-2 L2A + inventario HLS + NASA POWER.
+- Score determinista; similitud, confianza, estabilidad y factibilidad permanecen separadas.
+- Demo static-first y offline; no backend, autenticación, IA, SAR ni perfil lunar en P0.
 
-- Node.js y npm.
-- Vite + React + TypeScript.
-- MapLibre GL JS.
-- CSS simple o módulos CSS; no instalar un design system grande.
-- Vitest para unidades; Playwright solo si cabe en tiempo.
-- Python 3.11+.
-- `pyproject.toml` con Rasterio, GeoPandas, NumPy, Pandas, Shapely, PyProj y pytest según necesidad real.
-- JSON/GeoJSON/GeoParquet/COG/PMTiles para artefactos. El frontend debe poder funcionar solo con JSON/GeoJSON en el primer corte.
+## Límites de autoridad
 
-## Orden de implementación
+Claude puede:
 
-1. Inspecciona el entorno y registra versiones en `project/STATUS.md`.
-2. Crea la estructura mínima del repositorio.
-3. Implementa validación de contratos.
-4. Crea fixtures explícitos en `tests/fixtures/` y un snapshot demo en `artifacts/demo/` marcado como no científico.
-5. Implementa la web: layout, mapa, ranking y ficha.
-6. Implementa la función determinista de agregación con tests.
-7. Conecta la UI al contrato real de candidatos.
-8. Deja `npm run build` y `npm run test` verdes.
-9. Actualiza `project/STATUS.md`, `project/CHANGELOG.md` y el handoff.
+- implementar el código y documentación explícitamente asignados;
+- añadir o actualizar tests dentro del alcance;
+- corregir defectos directamente necesarios para cumplir la tarea;
+- proponer una decisión mediante nota o ADR en estado `proposed`.
 
-## Calidad mínima
+Claude no puede, sin una instrucción explícita de Codex en `NEXT_TASK.md`:
 
-- TypeScript en modo estricto.
-- Sin `any` salvo justificación local.
-- Funciones puras para scoring y transformación.
-- Validación de entrada en el límite del sistema.
-- Tests para: pesos, media geométrica, cero/epsilon, datos faltantes, confianza y orden estable.
-- Estados de carga, error, vacío y datos insuficientes en la UI.
-- Navegación por teclado, foco visible y contraste suficiente.
-- Atribución de datos siempre visible.
-- Build estático reproducible.
+- cambiar fórmula, pesos, calidad, candidatos, datasets o interpretación científica;
+- cambiar contratos JSON, arquitectura, stack, dependencias o alcance P0;
+- regenerar o reemplazar el snapshot científico con otra metodología;
+- añadir backend, IA, SAR, MapLibre, autenticación o un perfil nuevo;
+- cambiar remotos, ramas protegidas, visibilidad del repositorio o secretos;
+- hacer merge o push a `main`, crear tags/releases o enviar el proyecto;
+- presentar fixtures, inferencias o datos sintéticos como evidencia real.
 
-## Cómo reportar progreso
+Ante una ambigüedad que afecte producto, ciencia o arquitectura, detente y deja una pregunta concreta para Codex. Para decisiones locales y reversibles dentro del encargo, usa la opción más simple y documenta la elección.
 
-No cierres una sesión con una explicación solo en chat. Actualiza `project/STATUS.md` con:
+## Calidad obligatoria
 
-- qué funciona;
-- cómo ejecutarlo;
-- pruebas realizadas;
-- archivos cambiados;
-- decisiones nuevas;
-- bloqueos reales;
-- próximos tres pasos exactos.
+- TypeScript estricto y Python 3.11+.
+- Sin secretos en código, artefactos, logs o commits.
+- Contratos validados en el límite entre pipeline y web.
+- Tests proporcionales al cambio; no declarar éxito sin ejecutarlos.
+- La app final debe seguir funcionando offline y sin WebGL.
+- Lenguaje científico prudente: screening, no aprobación ni autorización.
+- Preservar los cambios del equipo y evitar refactors no solicitados.
 
-Al terminar M1, deja un mensaje corto indicando que Codex puede retomar leyendo `prompts/RESUME_CODEX.md` y `project/STATUS.md`.
+## Cierre del encargo
+
+Antes de devolver el control:
+
+1. ejecuta los comandos de aceptación de `project/NEXT_TASK.md`;
+2. revisa `git diff --check` y `git status --short`;
+3. actualiza `project/STATUS.md` y agrega una entrada a `project/CHANGELOG.md`;
+4. cambia la tarea a `status: review` sin autodeclararla aceptada;
+5. informa archivos cambiados, resultados, riesgos y cualquier dato generado no versionado;
+6. no hagas push salvo que la tarea lo autorice expresamente.
+
+Codex retoma leyendo `project/NEXT_TASK.md`, `project/STATUS.md` y el último bloque del changelog.
