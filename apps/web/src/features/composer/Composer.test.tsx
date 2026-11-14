@@ -79,7 +79,7 @@ describe('composer · vista (SSR)', () => {
     composerStore.setState({ wait: 'busy' })
     const busy = renderToStaticMarkup(<MissionComposer data={ready} placement="dock" />)
     expect(busy).toContain('composer-light')
-    expect(busy).toContain('orbit-stub')
+    expect(busy).toContain('boot-inline')
   })
 
   it('a los 10 s: «tardando más de lo normal» con Cancelar y Usar perfil base', () => {

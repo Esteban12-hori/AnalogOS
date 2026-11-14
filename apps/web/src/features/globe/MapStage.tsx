@@ -471,13 +471,13 @@ export function MapStage({
         </button>
       )}
 
-      <div className="stage-controls" role="group" aria-label="Cámara del escenario">
+      <div className="stage-controls" role="group" aria-label="Cámara del escenario" data-obstacle="">
         <button type="button" aria-label="Acercar" title="Acercar (+)" onClick={() => zoomBy(ZOOM_STEP)}>+</button>
         <button type="button" aria-label="Alejar" title="Alejar (−)" onClick={() => zoomBy(-ZOOM_STEP)}>−</button>
         <button type="button" aria-label="Vista global" title="Vista global (Inicio)" onClick={goHome}>⌂</button>
       </div>
 
-      <div className="stage-dock" aria-label="Leyenda y fuente del mapa">
+      <div className="stage-dock" aria-label="Leyenda y fuente del mapa" data-obstacle="">
         <div className="stage-legend">
           <span><b aria-hidden="true">{GLYPH.evaluated}</b> {fixtureMode ? 'fixture con score' : 'evaluado'}</span>
           <span><b className="is-reference" aria-hidden="true">{GLYPH.reference}</b> referencia por calcular</span>

@@ -1,5 +1,35 @@
 # Changelog de trabajo
 
+## 2026-11-14 Claude Code · rediseño Explorar / Misión: integración de los incrementos 3–10 (rama feature/mision-redesign)
+
+- **Fusiones** con `--no-ff`, sin conflictos de texto, en este orden:
+  - `build/engine`: motor 1.0.0 con paridad ≤1e-6 con `pipelines/scoring.py`, perfiles, matcher DEMO y fases;
+  - `build/places`: PlaceRail y `config/reference_analogs.json` con 7 ◆ y fuentes;
+  - `build/globe`: marcadores ● ◆ ○, vuelo, agrupación y teclado;
+  - `build/metrics`: MetricRail, `buildMetricViews` y S1; retira `breakdown/`;
+  - `build/leaders`: líneas Tesla;
+  - `build/boot`: «Órbita honesta» con hitos reales;
+  - `build/composer`: composer, «Tu misión», historial y coreografía de resultados;
+  - `build/analysis`: evidencia, filtro de la IA, robustez, Lectura, pregenerado y lktron NDJSON.
+- **Integración:**
+  - «Ver lista» en la hoja abre S1 con `sheet.list` (`onListViewChange`).
+  - `data-obstacle` en `pill.reading`, `.stage-dock` y `.stage-controls`.
+  - Los obstáculos se vuelven a medir después de aplicar los márgenes asentados.
+  - Si las líneas van a la derecha, se oculta el rótulo del pin seleccionado.
+  - El DEMO recibe el id y la versión del perfil cargado.
+  - La franja «Refinar» tiene fondo sólido.
+- **Bundler:** un único chunk inicial (`codeSplitting` con `$initial`): −5,7 KB gz de JS, −0,5 KB gz de CSS y ~18 `modulepreload` menos en la ruta crítica.
+- **Empaquetador:** admite `analysis/ai-analysis.default.json` (opcional, nombre fijo), con un test.
+- **Tests:**
+  - El test del stub del motor pasa a ser la regla honesta sin condición.
+  - Se retira el caso del composer que solo corría con el stub.
+  - La integración de analysis ya no se salta sola.
+- **Limpieza:** reglas muertas `.globe-label` y `.globe-callout` en `liquid/`.
+- **Verificación:**
+  - 817 tests web (56 archivos), pytest en verde y build en verde.
+  - Recorrido en navegador a 1440×900 y 390×844 (Explorar, selección, Misión DEMO → Lectura, 2D y vuelta) con 0 errores de consola.
+- **Pendiente:** el JS inicial está +17,8 KB gz sobre `857b05f` (límite +12) y varios chunks diferidos superan su línea de §6.1. El detalle está en `project/STATUS.md`.
+
 ## 2026-11-14 Claude Code · rediseño Explorar / Misión: incrementos 0–2 y contrato del paralelo (rama feature/mision-redesign)
 
 - Incremento 0:

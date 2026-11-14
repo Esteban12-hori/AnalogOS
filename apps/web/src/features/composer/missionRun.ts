@@ -46,7 +46,7 @@ export interface MissionSnapshotData {
 
 /** Subconjunto de la interfaz estable de `features/engine` que usa el composer. */
 export interface EngineApi {
-  matchMissionDemo(text: string): DemoMatch | null
+  matchMissionDemo(text: string, base?: { id: string; version: string }): DemoMatch | null
   profileFromLevels(levels: Levels, base: { id: string; version: string }, label?: string): MissionProfileDraft
   scoreMission(input: ScoreMissionInput): MissionScoring
   readonly MISSION_PRESETS: readonly MissionPreset[]
@@ -321,7 +321,7 @@ export function createMissionController(deps: RunDeps): MissionController {
       }
 
       if (!interpretation) {
-        const match = attempt(() => deps.engine.matchMissionDemo(trimmed))
+        const match = attempt(() => deps.engine.matchMissionDemo(trimmed, { id: snapshot.profile.id, version: snapshot.profile.version }))
         if (!match) return fail(current, DEMO_PENDING)
         interpretation = match.interpretation
         highlights = match.highlights.map((item) => ({ start: item.start, end: item.end, criterionId: item.criterionId }))

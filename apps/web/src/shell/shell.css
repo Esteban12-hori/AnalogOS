@@ -275,3 +275,9 @@ body { min-height: 0; }
 /* ---- Armazón estático previo a React (content/shell.ts): mismas cajas, sin contenido ------ */
 @media (max-width: 1099px) { .app[data-static] .dock { display: none; } }
 @media (min-width: 1100px) { .app[data-static] .sheet { display: none; } }
+
+/* ---- Integración globe ↔ leaders ------------------------------------------------------------
+   El globo dibuja el rótulo del lugar seleccionado a la derecha del pin. Si la columna de líneas
+   Tesla también queda a la derecha, sus etiquetas lo taparían: mientras se ven las líneas, el pin
+   seleccionado queda solo con su anillo (nombre y % siguen en el riel o la hoja). */
+.app:has(.leaders-layer[data-mode="lines"][data-side="right"]) .globe-pin.is-selected .globe-pin-label { opacity: 0; }

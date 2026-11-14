@@ -300,16 +300,8 @@ describe('composer · con el motor real de features/engine', () => {
     MISSION_PRESETS: engine.MISSION_PRESETS,
     PHASE_THRESHOLDS: engine.PHASE_THRESHOLDS,
   }
-  const stub = engine.ENGINE_VERSION.endsWith('-stub')
 
-  it.runIf(stub)('motor stub: la misión queda «por calcular» con un error honesto', async () => {
-    const h = harness(real, { validate: checkMissionInterpretation })
-    await createMissionController(h.deps).submit('probar navegación autónoma de un rover en terreno rocoso', snapshot)
-    expect(h.mission.getState()).toMatchObject({ scoring: null, revision: 0, error: { code: 'unavailable' } })
-    expect(h.selections).toEqual([])
-  })
-
-  it.runIf(!stub)('motor real: DEMO sin red → resultados con el orden del motor y un solo anuncio', async () => {
+  it('motor real: DEMO sin red → resultados con el orden del motor y un solo anuncio', async () => {
     const h = harness(real, { validate: checkMissionInterpretation })
     const text = 'probar navegación autónoma de un rover en terreno rocoso'
     await createMissionController(h.deps).submit(text, snapshot)

@@ -46,8 +46,11 @@ describe('contrato de las features', () => {
     })
   }
 
-  it('los stubs nunca inventan cifras: el motor deja cada sector «por calcular»', async () => {
+  it('el motor nunca inventa cifras: sin perfil usable cada sector queda «por calcular»', async () => {
     const engine = await import('../features/engine')
+    // La paridad con pipelines/scoring.py vive en features/engine/parity.test.ts; aquí solo se
+    // fija la regla honesta del contrato: perfil vacío + perfil base inutilizable → sin números.
+    expect(engine.ENGINE_VERSION.endsWith('-stub')).toBe(false)
     const scoring = engine.scoreMission({
       profile: {
         id: 'mission:00000000',
@@ -62,12 +65,9 @@ describe('contrato de las features', () => {
       candidates: [{ site_id: 'cl-b' }, { site_id: 'cl-a' }] as never,
       base: {} as never,
     })
-    // Si el motor ya está implementado, este test debe reemplazarse por la paridad con Python.
-    if (engine.ENGINE_VERSION.endsWith('-stub')) {
-      expect(scoring.sites.map((site) => [site.siteId, site.similarity, site.status])).toEqual([
-        ['cl-a', null, 'por_calcular'],
-        ['cl-b', null, 'por_calcular'],
-      ])
-    }
+    expect(scoring.sites.map((site) => [site.siteId, site.similarity, site.status])).toEqual([
+      ['cl-a', null, 'por_calcular'],
+      ['cl-b', null, 'por_calcular'],
+    ])
   })
 })

@@ -2,6 +2,7 @@
 
 Este documento reparte los incrementos 3 a 10 de `docs/UX_REDESIGN.md` §7.1 entre **8 constructores que trabajan a la vez en worktrees separados**. Cada uno edita solo su carpeta y los archivos que se le asignan aquí. Lo demás pertenece al **integrador**.
 
+- **Estado (2026-11-14):** las 8 ramas `build/*` quedaron fusionadas en `feature/mision-redesign`. Los ajustes del integrador y lo que sigue pendiente están en `project/STATUS.md`.
 - **Base:** rama `feature/mision-redesign`, en el commit que introduce este documento (`git log -1 -- docs/BUILD_CONTRACTS.md`). Ese commit trae los incrementos 0, 1 y 2: contratos, tokens, store, armazón y slots con stubs.
 - **Especificación:** `docs/UX_REDESIGN.md`. Decisiones: ADR-008, ADR-009 y ADR-010 (`docs/decisions/`, en estado propuesto).
 - **Reglas del proyecto:** `CLAUDE.md` y `AGENTS.md`. Las más sensibles aquí:

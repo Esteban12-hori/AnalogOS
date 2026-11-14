@@ -11,6 +11,8 @@ Si el build trae ``.vite/manifest.json``, también entran los chunks diferidos,
 CSS y assets (worker, texturas) alcanzables desde la entrada que referencia
 ``index.html``; nada que el manifiesto no alcance. El manifiesto no entra al ZIP.
 Los mapas base 2D (``basemaps/``) son opcionales, pero solo con nombres fijos.
+También es opcional el análisis pregenerado no científico
+(``analysis/ai-analysis.default.json``), que la app carga en diferido.
 Cualquier archivo adicional, enlace simbólico, referencia no portable,
 archivo requerido ausente o destino solapado con el build detiene el
 empaquetado antes de escribir nada.
@@ -67,6 +69,8 @@ BASEMAP_FILES = (
     "basemaps/s2-cl-pampa-yungay-screening.webp",
     "basemaps/world.webp",
 )
+# Análisis pregenerado (incremento 10): opcional, rotulado no científico, fuera de science-v2.
+ANALYSIS_FILES = ("analysis/ai-analysis.default.json",)
 # Datos que index.html puede precargar (rel=preload): solo estos, ya permitidos arriba.
 DATA_REFERENCES = frozenset({*SCIENCE_FILES, VISUAL_INDEX, BASEMAP_FILES[0]})
 # Referencia relativa a un JS/CSS compilado: carga igual en "/" y en "/AnalogOS/".
@@ -161,7 +165,9 @@ def allowed_files(dist: Path) -> list[str]:
     if not any(name.endswith(".js") for name in assets):
         raise ReleaseError("index.html no referencia ningún JavaScript compilado en assets/.")
 
-    optional = [name for name in BASEMAP_FILES if (dist / name).exists() or (dist / name).is_symlink()]
+    optional = [
+        name for name in (*BASEMAP_FILES, *ANALYSIS_FILES) if (dist / name).exists() or (dist / name).is_symlink()
+    ]
     allowed = sorted({
         "index.html", *assets, *_manifest_assets(dist, assets), *SCIENCE_FILES, VISUAL_INDEX, *VISUAL_IMAGES,
         *optional, *preloaded,

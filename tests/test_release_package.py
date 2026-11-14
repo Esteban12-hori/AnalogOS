@@ -340,6 +340,19 @@ def test_manifest_for_another_build_is_rejected(lazy_dist: Path, tmp_path: Path)
         run(lazy_dist, tmp_path / "out")
 
 
+def test_pregenerated_analysis_is_admitted_only_under_its_fixed_name(lazy_dist: Path, tmp_path: Path):
+    for name in release.ANALYSIS_FILES:
+        (lazy_dist / name).parent.mkdir(parents=True, exist_ok=True)
+        (lazy_dist / name).write_text("FIXTURE DE TEST: análisis pregenerado\n", encoding="utf-8")
+    zip_path, _, _ = run(lazy_dist, tmp_path / "out")
+    with zipfile.ZipFile(zip_path) as archive:
+        names = sorted(archive.namelist())
+    assert names == sorted([*EXPECTED, *LAZY, *release.BASEMAP_FILES, *release.ANALYSIS_FILES])
+    (lazy_dist / "analysis" / "otro.json").write_text("{}", encoding="utf-8")
+    with pytest.raises(release.ReleaseError, match="Archivo inesperado"):
+        run(lazy_dist, tmp_path / "out2")
+
+
 def test_unknown_basemap_file_is_rejected(lazy_dist: Path, tmp_path: Path):
     (lazy_dist / "basemaps" / "extra.webp").write_bytes(b"x")
     with pytest.raises(release.ReleaseError, match="Archivo inesperado"):

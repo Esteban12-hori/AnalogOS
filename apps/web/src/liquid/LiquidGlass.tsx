@@ -21,7 +21,6 @@ export const LIQUID_SURFACES = [
   '.two-column-notes > div',
   '.detail-actions button',
   '.view-switch',
-  '.globe-label',
   '.map-legend',
   '.map-heading > div',
   '.offline-chip',

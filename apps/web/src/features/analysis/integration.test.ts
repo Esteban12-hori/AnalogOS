@@ -1,7 +1,7 @@
 // Integración con las implementaciones reales de features/metrics (buildMetricViews) y
-// features/engine (sensitivity). Mientras alguna siga siendo un stub, estas pruebas se saltan
-// solas; tras la integración, verifican cifras reales del snapshot v2 y que el análisis
-// pregenerado corresponde EXACTAMENTE al paquete del perfil base (misma huella, cero descartes).
+// features/engine (sensitivity). Ya integradas en feature/mision-redesign: verifican cifras
+// reales del snapshot v2 y que el análisis pregenerado corresponde EXACTAMENTE al paquete del
+// perfil base (misma huella, cero descartes). Si alguna volviera a ser un stub, fallan.
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -19,7 +19,11 @@ const metricsReal = yungay !== undefined && buildMetricViews({ site: yungay, sit
 const engineReal = !ENGINE_VERSION.endsWith('-stub')
 const integrated = metricsReal && engineReal
 
-describe.skipIf(!integrated)('integración con metrics y engine reales', () => {
+describe('integración con metrics y engine reales', () => {
+  it('metrics y engine son las implementaciones reales, no stubs', () => {
+    expect(integrated).toBe(true)
+  })
+
   const reading = buildReading({ snapshot, context: 'base', mission: null })
   const { packet, facts } = reading
 

@@ -143,13 +143,13 @@ export function AppShell({ data }: { data: AppData }) {
   )
   const baseInsets = useMemo(() => baseStageInsets(width, height), [width, height])
   const lastSize = useRef<{ width: number; height: number } | null>(null)
+  const measureObstacles = useCallback(() => {
+    const panels = root.current?.querySelectorAll<HTMLElement>('[data-obstacle]') ?? []
+    uiActions.setObstacles([...panels].map((panel) => panel.getBoundingClientRect()))
+  }, [])
   useLayoutEffect(() => {
     const resized = !lastSize.current || lastSize.current.width !== width || lastSize.current.height !== height
     lastSize.current = { width, height }
-    const measureObstacles = () => {
-      const panels = root.current?.querySelectorAll<HTMLElement>('[data-obstacle]') ?? []
-      uiActions.setObstacles([...panels].map((panel) => panel.getBoundingClientRect()))
-    }
     if (resized) {
       uiActions.setStageInsets(target)
       measureObstacles()
@@ -160,7 +160,10 @@ export function AppShell({ data }: { data: AppData }) {
       measureObstacles()
     }, prefersReducedMotion() ? SETTLE_REDUCED_MS : SETTLE_MS)
     return () => window.clearTimeout(timer)
-  }, [target, width, height])
+  }, [target, width, height, measureObstacles])
+  // La franja del HUD y los controles + − ⌂ del escenario se ubican con los márgenes asentados:
+  // se vuelven a medir después de que el escenario los aplica (obstáculos para las líneas Tesla).
+  useLayoutEffect(measureObstacles, [settledInsets, mode, measureObstacles])
 
   // ---- Hitos del escenario para la bitácora de arranque --------------------------------------
   useEffect(() => {
@@ -174,6 +177,9 @@ export function AppShell({ data }: { data: AppData }) {
     setFocusSignal((value) => value + 1)
     if (narrow) changeDetent('S1')
   }, [narrow, changeDetent])
+
+  // «Ver lista» del carrusel en la hoja: S1 sin selección dibuja sheet.list; cerrarla vuelve a S0.
+  const openList = useCallback((open: boolean) => changeDetent(open ? 'S1' : 'S0'), [changeDetent])
 
   const fixture = isFixtureSnapshot(snapshot)
   const heights = sheetDetentHeights(width, height)
@@ -234,7 +240,7 @@ export function AppShell({ data }: { data: AppData }) {
       </header>
 
       {!narrow && mode === 'explorar' && (
-        <div className="reading-pill-slot" data-slot="pill.reading"><ReadingPill data={data} /></div>
+        <div className="reading-pill-slot" data-slot="pill.reading" data-obstacle=""><ReadingPill data={data} /></div>
       )}
 
       {tramo === 'wide' && mode === 'mision' && (
@@ -273,7 +279,7 @@ export function AppShell({ data }: { data: AppData }) {
           keyboardOpen={keyboardInset > 0}
           head={sheetHead({ detent, data, siteName: site ? placeLabel(site.name) : null, hasSelection: selection !== null, onDetent: changeDetent })}
         >
-          {sheetBody({ detent, data, site, selection, onShowOnMap: showOnMap })}
+          {sheetBody({ detent, data, site, selection, onShowOnMap: showOnMap, onListView: openList })}
         </Sheet>
       )}
 
@@ -337,13 +343,14 @@ interface SheetBodyArgs {
   site: NonNullable<AppData['snapshot']>['candidates'][number] | null
   selection: { siteId: string; kind: 'evaluated' | 'reference' } | null
   onShowOnMap: () => void
+  onListView: (open: boolean) => void
 }
 
-function sheetBody({ detent, data, site, selection, onShowOnMap }: SheetBodyArgs): ReactNode {
+function sheetBody({ detent, data, site, selection, onShowOnMap, onListView }: SheetBodyArgs): ReactNode {
   if (detent === 'S0') {
     return (
       <div className="sheet-tray">
-        <div className="sheet-tray-places" data-slot="sheet.tray.places"><PlaceRail data={data} placement="sheet" /></div>
+        <div className="sheet-tray-places" data-slot="sheet.tray.places"><PlaceRail data={data} placement="sheet" onListViewChange={onListView} /></div>
         <div className="sheet-tray-composer" data-slot="sheet.tray.composer"><Composer data={data} placement="sheet" /></div>
       </div>
     )
@@ -351,5 +358,5 @@ function sheetBody({ detent, data, site, selection, onShowOnMap }: SheetBodyArgs
   if (selection?.kind === 'reference') return <div data-slot="sheet.reference"><ReferenceCard data={data} analogId={selection.siteId} /></div>
   if (site && detent === 'S1') return <div data-slot="sheet.s1"><MetricRail data={data} site={site} variant="sheet" onShowOnMap={onShowOnMap} /></div>
   if (site) return <FullDetail data={data} site={site} placement="sheet" onShowOnMap={onShowOnMap} />
-  return <div data-slot="sheet.list"><PlaceRail data={data} placement="sheet" listView /></div>
+  return <div data-slot="sheet.list"><PlaceRail data={data} placement="sheet" listView onListViewChange={onListView} /></div>
 }

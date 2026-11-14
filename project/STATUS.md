@@ -1,10 +1,120 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14 18:30 America/Santiago (rediseño Explorar / Misión, incrementos 0–2)
+**Última actualización:** 2026-11-14 20:30 America/Santiago (rediseño Explorar / Misión, integración de los incrementos 3–10)
 **Responsable del checkpoint:** Codex
 **Milestone activo:** M6 — empaquetado y entrega
 **Estado general:** producto funcional y presentable con snapshot científico v2 autenticado. NASADEM corrige el mosaico de borde y Sentinel-2 completa superficie no vegetada. Faltan acciones humanas/externas: video, URLs públicas, integrantes, capas territoriales y revisión experta.
 
+
+## Rediseño Explorar / Misión — integración de los incrementos 3–10 (2026-11-14, Claude, rama `feature/mision-redesign`)
+
+Los 8 constructores trabajaron en paralelo según `docs/BUILD_CONTRACTS.md`. El integrador fusionó sus ramas con `--no-ff`, en este orden: engine, places, globe, metrics, leaders, boot, composer y analysis. No hubo conflictos de texto: cada rama tocó solo su carpeta. Después de cada fusión se corrió `npm run test`.
+
+### Qué funciona
+
+- **Explorar.**
+  - Arranque «Órbita honesta» con hitos reales que se pliegan en el chip «Snapshot v2 · 3 evaluados · 8 por calcular».
+  - Globo con marcadores ● ◆ ○, agrupación «Chile · 3 ●», vuelo y teclado.
+  - Carrusel con 3 sectores evaluados y 7 ◆ con fuente citada, sin % ni ranking.
+  - Píldora «✦ Lectura de la comparativa».
+- **Lugar seleccionado.**
+  - Riel de métricas ordenado por peso. El limitante sale de `contribution`, ■ Jezero aparece solo en la topografía y el riel marca «satura» y el valor regional compartido.
+  - Líneas Tesla con 4 etiquetas, sin cruces y fuera de los paneles.
+  - En móvil, S1 con pestañas y una sola línea hacia la hoja.
+- **Misión DEMO, sin red.**
+  - El composer interpreta con el matcher «DEMO · sin IA».
+  - `profileFromLevels` arma el perfil y `scoreMission` (motor 1.0.0, paridad ≤1e-6 con `pipelines/scoring.py`) da el orden. Resultado: Yungay 72,6 · Domeyko 68,4 · María Elena 44,6.
+  - Un solo anuncio, el #1 en vista previa, «Tu misión» con niveles, Deshacer, historial y presets.
+  - La Lectura se arma desde los hechos del motor. El análisis pregenerado solo se muestra si coincide su huella FNV (perfil base); con un perfil de misión, la Lectura queda en «Solo hechos del motor · sin IA».
+- **Paso a 2D y vuelta**, en el globo y en el mapa.
+
+### Integración: cambios del integrador
+
+- **Slots y obstáculos** (`shell/AppShell.tsx`, `features/globe/MapStage.tsx`):
+  - `onListViewChange` cableado: «Ver lista» en la bandeja abre S1 con `sheet.list`, y cerrarla vuelve a S0.
+  - `data-obstacle` en la píldora `pill.reading`, la franja del HUD (`.stage-dock`) y los controles + − ⌂ (`.stage-controls`).
+  - Los obstáculos se vuelven a medir después de que el escenario aplica los márgenes asentados. Antes se medían un render antes y la franja del HUD quedaba en su posición vieja.
+  - Resultado: en Misión a 1440 las etiquetas ya no tapan + − ⌂.
+- **Globo ↔ líneas** (`shell/shell.css`): si la columna de líneas va a la derecha, se oculta el rótulo del pin seleccionado, que el globo dibuja a la derecha. El nombre y el % siguen en el riel.
+- **Composer:**
+  - `matchMissionDemo` recibe `{ id, version }` del perfil cargado, como pide engine.
+  - La franja «Refinar» tiene fondo sólido; antes se mezclaba con las tarjetas del carrusel.
+- **Tests:**
+  - El test del stub del motor en `featureContracts.test.ts` ahora fija la regla honesta sin condición: perfil vacío y perfil base inutilizable → «por calcular».
+  - Se retiró el caso «solo stub» del composer.
+  - `analysis/integration.test.ts` ya no se salta: falla si metrics o engine vuelven a ser stubs.
+  - La aserción del composer usa el `OrbitLoader` real (`boot-inline`).
+- **Bundler** (`vite.config.ts`): `codeSplitting.groups = [{ tags: ['$initial'] }]`. Todo lo que la entrada importa de forma estática va en un único chunk inicial. Sin esto, Rolldown partía la ruta crítica en ~18 `modulepreload`, incluido código diferido de analysis. Ahorro: −5,7 KB gz de JS y −0,5 KB gz de CSS. Los chunks diferidos no cambian.
+- **Empaquetador** (`scripts/package_release.py`): admite `analysis/ai-analysis.default.json` como opcional y con nombre fijo, más un test.
+- **Limpieza:** se quitaron de `liquid/` las reglas muertas `.globe-label` y `.globe-callout`.
+
+### Cómo ejecutarlo
+
+- `npm run dev`, o `npm run build && node /tmp/claude-srv/serve.mjs apps/web/dist 4395`.
+- Para probar Misión: pestaña Misión, escribir p. ej. «probar navegación autónoma de un rover en terreno rocoso» y pulsar Enter.
+- lktron es opcional: `VITE_LKTRON_URL`, ver `features/analysis/README.md`.
+
+### Pruebas
+
+- `npm run test`: 56 archivos y 817 tests en verde, sin omitidos.
+- `npm run build`: verde (validate 9/9, validadores `--check`, tsc estricto, vite y prune).
+- `/tmp/claude-venv314/bin/python -m pytest -q`: PYTEST_RESULT.
+- `scripts/package_release.py` contra el build integrado, con destino en `/tmp`: el ZIP incluye `analysis/ai-analysis.default.json`. `submission/` no se tocó.
+- Navegador (build servido en :4395, Chrome for Testing con GPU Metal; script `/tmp/claude-pw/integ-4395.mjs`): 34/34 comprobaciones OK.
+  - **1440×900:** Explorar (globo, 10 marcadores, carrusel 3 ● + 7 ◆, chip, píldora); selección (riel con 7 criterios, líneas en modo `lines`); Misión DEMO (orden del motor, un anuncio, «Tu misión», Lectura con hechos y rótulos, % del motor en el riel, etiquetas sin tapar + − ⌂); 2D con «Acercar» y vuelta con «Vista global»; 0 errores de consola.
+  - **390×844 táctil:** S0 con carrusel; «Ver lista» → S1; tocar una tarjeta → S1 con métricas y una línea; Misión DEMO con anuncio; S2 «Lectura IA» con hechos; 2D y vuelta; sin scroll horizontal; 0 errores de consola.
+  - Avisos previos, sin cambio: `THREE.Clock` obsoleto y preload de texturas con distinto modo de credenciales.
+- Peso de la carga inicial, contado desde el manifiesto (`/tmp/initial-size.cjs`, gzip -9):
+  - JS: 116,6 KB gz, contra 98,8 en `857b05f` y 101,4 en `ffd9ce0` (+17,8 KB respecto de `857b05f`).
+  - CSS: 14,6 KB gz, contra 10,8 en `857b05f` (+3,8 KB).
+  - Antes del ajuste del bundler eran 122,3 KB de JS y 15,1 KB de CSS.
+- Lighthouse, mediana de corridas intercaladas contra el build de `857b05f`: LIGHTHOUSE_RESULT.
+
+### Decisiones nuevas
+
+- Un único chunk inicial (`$initial`) en lugar del reparto automático de Rolldown. Es reversible: es una línea de `vite.config.ts`.
+- Si las líneas Tesla van a la derecha del anillo, manda la columna sobre el rótulo del pin seleccionado.
+- ADR-008, ADR-009 y ADR-010 siguen en estado **propuesto**.
+
+### Bloqueos y pendientes reales
+
+- **Presupuesto §6.1 excedido.** Cada constructor gastó una parte y la suma supera el límite:
+  - JS inicial: +17,8 KB gz contra +≤12. Sobran ~5,8 KB.
+  - Peso por feature en el chunk inicial:
+    - places: PlaceRail + modelo, ≈ 6–8 KB;
+    - composer: formulario, ≈ 5 KB;
+    - metrics: MetricRail + `buildMetricViews`, ≈ 6 KB;
+    - boot: ≈ 4 KB;
+    - analysis: controlador + píldora, ≈ 3 KB;
+    - leaders: `layoutLeaders`, ≈ 3 KB.
+  - Candidatos para diferir: el controlador de analysis (cargarlo al entrar en fase `analysis`), `layoutLeaders`/`pickPrincipalMetrics` (solo los usa el chunk diferido) y `buildMetricViews` junto con el riel.
+  - Diferidos, contra su presupuesto:
+
+    | Chunk | Peso (gz) | Presupuesto |
+    |---|---|---|
+    | Marcadores (MarkerLayer) | 5,6 KB | ≤4 |
+    | Líneas (LeaderCanvas) | 5,1 KB | ≤4 |
+    | Misión (missionRun 5,0 + MissionPanel 3,3 + motor 6,1, sin los validadores) | ≈ 14 KB | ≤8 |
+    | Lectura (deferred 13,8 + lktronClient 3,2) | 17 KB | ≤10 con validadores |
+
+  - Validadores de misión: ≈ 9,4 KB, compartidos entre misión y lectura.
+  - El riel (MetricDetails, 7,2 KB) sí cumple.
+- **Pestaña Señal:** `SignalCard` todavía interpola cifras (odómetro), y §2.2 lo prohíbe. Sigue pendiente del integrador: es un componente de 1.200 líneas anterior al rediseño.
+- **Sin cablear, opcionales:**
+  - «¿Por qué este orden?» del composer: falta un hook `onOpenReading` para abrir la Lectura bajo 1440.
+  - `ReadingSnippet` de analysis en las tarjetas del riel de métricas (§3.6, «✦ Lectura para tu misión»).
+  - `MapStage.onSelectReference`: sin ese prop, el globo escribe `ui.selection` con `kind: 'reference'`, que es lo esperado.
+- **Contenido pendiente de revisión:**
+  - El análisis pregenerado está atado a la huella del paquete base `fnv1a64:a6e090bf523550de`. Si cambian metrics, engine o el snapshot, `integration.test.ts` falla y hay que regenerar el texto. El generador está fuera del repo: `/tmp/analysis-exp/make_pregenerated.py`.
+  - El vocabulario DEMO y las descripciones de los presets son decisiones de producto por revisar.
+  - ADR-009 necesita la aceptación del equipo científico.
+- **Sin probar en navegador:** lktron real (solo con el mock NDJSON de analysis) y VoiceOver/TalkBack (incremento 11).
+
+### Próximos 3 pasos
+
+1. Bajar el JS inicial a +≤12 KB gz: diferir el controlador de analysis, `layoutLeaders` y `buildMetricViews`, y medir con `/tmp/initial-size.cjs`.
+2. Incremento 11 (QA): VoiceOver y TalkBack, reduced transparency, CPU ×4 en el arrastre de la hoja, ZIP sin conexión, y `docs/` y `DEMO_ACCEPTANCE`.
+3. Aceptación humana de ADR-008, ADR-009 y ADR-010, y retirar la interpolación de `SignalCard`.
 
 ## Rediseño Explorar / Misión — incrementos 0–2 (2026-11-14, Claude, rama `feature/mision-redesign`)
 

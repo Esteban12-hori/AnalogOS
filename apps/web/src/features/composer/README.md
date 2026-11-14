@@ -41,10 +41,12 @@ guarda niveles, no cifras: al restaurar, el motor vuelve a calcular.
 
 Chunk principal: `Composer`, `MissionComposer`, `MissionCard` (enlace diferido), store privado y
 rótulos. Chunk de misión: `missionRun` (motor, contratos), `MissionPanel`, `ComposerExtras`.
-Un formulario diferido hace que rolldown parta React y el armazón en chunks comunes (más
-peticiones y más bytes al arrancar), por eso el formulario va en el chunk principal.
+Un formulario diferido hacía que rolldown partiera React y el armazón en chunks comunes (más
+peticiones y más bytes al arrancar), por eso el formulario va en el chunk principal. Desde la
+integración, `vite.config.ts` agrupa todo lo estático en un único chunk inicial (`$initial`), así
+que ese reparto ya no ocurre; diferir el formulario volvería a ser una opción para ahorrar peso.
 
 ## Pruebas
 
 `model.test.ts`, `history.test.ts`, `missionRun.test.ts` (dobles del motor y de lktron con reloj
-falso; con el motor real si `ENGINE_VERSION` no termina en `-stub`) y `Composer.test.tsx` (SSR).
+falso, más un caso con el motor real de `features/engine`) y `Composer.test.tsx` (SSR).
