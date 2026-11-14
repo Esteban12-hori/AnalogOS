@@ -1,18 +1,17 @@
 /**
- * features/boot — Loading WOW «Órbita honesta» (incremento 7): anillo y bitácora de hitos
- * reales en el HTML (plugin loadingHints), revelado del arranque, chip de estado y la órbita
- * reutilizable para la espera de la IA.
+ * features/boot — Loading WOW «Órbita honesta» (incremento 7): póster/silueta, anillo, satélite y
+ * bitácora de hitos reales ya en el HTML (plugin loadingHints + content/shell.ts), revelado del
+ * arranque, chip de estado y la órbita reutilizable para la espera de la IA.
  * Slots: `stage.overlay` (BootLayer), `topbar.status` (StatusChip). Exporta OrbitLoader para
  * composer y analysis. El plugin de Vite vive en ./loadingHints.ts (código de Node: no lo
  * importes desde la app).
  *
- * INTERFAZ ESTABLE: tipos y firmas de este archivo. Implementación actual: STUB (sin
- * coreografía; el chip muestra el estado real del snapshot; introPhase pasa a 'done').
+ * INTERFAZ ESTABLE: tipos y firmas de este archivo. Exports añadidos (compatibles):
+ * ORBIT_DELAY_MS y ORBIT_LOOP_MS, para que la luz del composer vaya en fase con la órbita.
  */
 import type { AppData } from '../../shell/public'
 
-export type BootMilestone = 'snapshot' | 'globe' | 'texture'
-export type MilestoneStatus = 'pending' | 'ok' | 'error'
+export type { BootMilestone, MilestoneStatus } from './bootModel'
 
 export interface BootLayerProps {
   data: AppData
@@ -35,3 +34,4 @@ export { BootLayer } from './BootLayer'
 export { OrbitLoader } from './OrbitLoader'
 export { StatusChip } from './StatusChip'
 export { getBootMilestones, reportBootMilestone, useBootMilestones } from './milestones'
+export { ORBIT_DELAY_MS, ORBIT_LOOP_MS } from './bootModel'

@@ -1,9 +1,13 @@
 /**
  * Armazón estático de la primera pantalla. Lo escribe en index.html el plugin loadingHints
- * (features/boot/loadingHints.ts) para que barra, dock y bandeja se pinten antes de que
- * cargue la app; React lo reemplaza al montar con las mismas cajas (CLS 0).
- * Debe reflejar shell/AppShell.tsx: mismas clases y alturas reservadas (shell/shell.css).
+ * (features/boot/loadingHints.ts) para que barra, dock, bandeja y la capa de arranque se pinten
+ * antes de que cargue la app; React lo reemplaza al montar con las mismas cajas (CLS 0).
+ * Debe reflejar shell/AppShell.tsx (mismas clases y alturas reservadas, shell/shell.css) y la capa
+ * de arranque debe reflejar features/boot/BootLayer.tsx (lo verifica tests/boot.test.ts).
+ * Este módulo corre también en Node (configuración de Vite): sin DOM.
  */
+import { bootLines, INITIAL_MILESTONES, LINE_GLYPH } from '../features/boot/bootModel'
+
 export const SHELL_TEXT = {
   brand: 'AnalogOS Chile',
   brandTagline: 'Earth analog decision system',
@@ -13,16 +17,41 @@ export const SHELL_TEXT = {
   composerPrompt: 'Describe el trabajo que quieres probar para Marte…',
 } as const
 
-const escape = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+const escape = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+export interface StaticShellOptions {
+  /** URL del póster del globo (solo ≥1100 px, vía <source media>). Sin ella no hay póster. */
+  posterUrl?: string
+}
+
+/**
+ * Capa de arranque previa a React (slot stage.overlay): póster (escritorio) o silueta CSS (móvil),
+ * anillo orbital con satélite y bitácora con los hitos en su estado inicial real. Se posiciona con
+ * las variables --boot-* que escribe el script en línea del <head>.
+ */
+export function staticBootHtml({ posterUrl }: StaticShellOptions = {}): string {
+  const poster = posterUrl
+    ? `<picture><source media="(min-width: 1100px)" srcset="${escape(posterUrl)}"><img class="boot-poster" alt="" fetchpriority="high" decoding="async"></picture>`
+    : ''
+  const lines = bootLines(INITIAL_MILESTONES)
+    .map((line) => `<li data-s="${line.state}"><span>${LINE_GLYPH[line.state]}</span>${escape(line.text)}</li>`)
+    .join('')
+  return (
+    `<div class="boot" data-phase="orbit" aria-hidden="true">${poster}<span class="boot-disc"></span>` +
+    '<span class="boot-orbit"><span class="boot-wave"><span class="boot-ring"><span class="boot-sat"></span></span></span></span>' +
+    `<ul class="boot-log">${lines}</ul></div>`
+  )
+}
 
 /** Marcado estático equivalente al primer render de AppShell (sin datos ni interacción). */
-export function staticShellHtml(): string {
+export function staticShellHtml(options: StaticShellOptions = {}): string {
   const t = SHELL_TEXT
   const loading = `<div class="place-stub" aria-busy="true"><p class="place-stub-note">${escape(t.statusLoading)}</p></div>`
   const pill = `<span class="composer-pill"><span aria-hidden="true">✦</span><span class="composer-pill-text">${escape(t.composerPrompt)}</span><kbd aria-hidden="true">/</kbd></span>`
   return (
     '<div class="app" data-static="" data-mode="explorar">' +
     '<div class="stage"><div class="map-stage" aria-hidden="true"></div></div>' +
+    `<div class="stage-overlay" data-slot="stage.overlay">${staticBootHtml(options)}</div>` +
     '<header class="topbar">' +
     `<div class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><strong>${escape(t.brand)}</strong><small>${escape(t.brandTagline)}</small></span></div>` +
     '<div class="mode-tabs" aria-hidden="true"><span class="mode-thumb" data-mode="explorar"></span>' +

@@ -1,22 +1,25 @@
 /**
- * STUB del chip de estado de la barra superior (incremento 7: la bitácora se pliega aquí).
- * Muestra el estado real del snapshot; los ◆ «por calcular» se sumarán con el catálogo.
+ * Chip de estado de la barra superior (slot `topbar.status`): «● Snapshot v2 · 3 evaluados ·
+ * 8 por calcular». Al terminar el arranque, la bitácora se pliega aquí. Los ◆ «por calcular» solo
+ * se cuentan si el catálogo publicado está disponible; nunca se inventan.
  */
 import { GLYPH } from '../../shell/public'
+import { useReferenceAnalogs } from '../places'
+import { chipText } from './bootModel'
 import type { StatusChipProps } from './index'
 
 export function StatusChip({ data }: StatusChipProps) {
-  if (data.status === 'loading') {
-    return <span className="status-chip" data-state="loading"><span className="status-dot" />Cargando snapshot validado…</span>
-  }
-  if (data.status === 'error' || !data.snapshot) {
-    return <span className="status-chip" data-state="error"><span aria-hidden="true">{GLYPH.fail}</span>Snapshot no disponible</span>
-  }
-  const evaluated = data.snapshot.candidates.length
+  const analogs = useReferenceAnalogs()
+  const status = data.status === 'loading' ? 'loading' : data.snapshot ? 'ready' : 'error'
   return (
-    <span className="status-chip" data-state="ready">
-      <span className="status-dot" />
-      Snapshot {data.snapshot.manifest.snapshot_version} · {evaluated} evaluados
+    <span className="status-chip" data-state={status}>
+      {status === 'error' ? <span aria-hidden="true">{GLYPH.fail}</span> : <span className="status-dot" />}
+      {chipText({
+        status,
+        version: data.snapshot?.manifest.snapshot_version ?? null,
+        evaluated: data.snapshot?.candidates.length ?? 0,
+        pendingAnalogs: analogs.status === 'ready' ? analogs.analogs.length : null,
+      })}
     </span>
   )
 }

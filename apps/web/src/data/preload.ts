@@ -8,6 +8,7 @@ import earthTexture2kUrl from '../assets/globe/earth-blue-marble-2k.webp'
 import earthTexture4kUrl from '../assets/globe/earth-blue-marble-4k.webp'
 import { globeScreenRadius } from '../domain/mapZoom'
 import { baseStageInsets } from '../shell/stageGeometry.js'
+import { createStore } from '../state/store'
 import earthBumpUrl from '../assets/globe/earth-topology-2k.jpg'
 import globePosterUrl from '../assets/globe/globe-poster.webp'
 // Solo la URL del worker de MapLibre (no ejecuta MapLibre): se descarga en segundo plano.
@@ -86,15 +87,17 @@ export function prefetchToCache(href: string): void {
 export const MAPLIBRE_WORKER_URL = maplibreWorkerUrl
 
 /**
- * Retira el póster estático de index.html (desvanecido). Se llama cuando el globo 3D
- * ya tiene su textura nítida, cuando el usuario interactúa o si se usa otro modo.
+ * Estado del póster del globo. El póster vive en la capa de arranque (features/boot,
+ * slot `stage.overlay`): en el HTML estático y luego en React, bajo los paneles.
+ */
+export const bootPoster = createStore<{ hidden: boolean }>({ hidden: false })
+
+/**
+ * Retira el póster (desvanecido de 450 ms). Se llama cuando el globo 3D ya tiene su
+ * textura nítida, cuando el usuario interactúa o si se usa otro modo (2D, SVG).
  */
 export function hideBootStage(): void {
-  if (typeof document === 'undefined') return
-  const stage = document.getElementById('boot-stage')
-  if (!stage || stage.classList.contains('is-hidden')) return
-  stage.classList.add('is-hidden')
-  window.setTimeout(() => stage.remove(), 600)
+  bootPoster.setState({ hidden: true })
 }
 
 /** Ejecuta `task` cuando el navegador esté ocioso (o tras `timeout` ms como máximo). */

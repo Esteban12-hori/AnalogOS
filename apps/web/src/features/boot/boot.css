@@ -1,0 +1,152 @@
+/*
+ * features/boot · «Órbita honesta» (docs/UX_REDESIGN.md §2.3 A, §3.3, §4.3, §4.4).
+ * Vive en el slot stage.overlay: sobre el globo y bajo los paneles. Solo se animan transform y
+ * opacity; ningún bucle supera 4,8 s (2 vueltas de --loop-orbit); sin blur.
+ * Posición: --boot-x / --boot-y (centro del globo), --boot-s (lado del póster) y --boot-fb (borde
+ * inferior del área libre). Antes de React las escribe el script en línea de index.html sobre
+ * <html>; después, BootLayer sobre .boot.
+ * Modo en <html data-boot="full|normal|quiet">.
+ */
+.boot {
+  --boot-delay: 300ms;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+:root[data-boot="full"] .boot { --boot-delay: 0ms; }
+/* Ya vista en la sesión: el arranque solo aterriza (la órbita de la espera de la IA no lleva data-phase). */
+:root[data-boot="quiet"] .boot[data-phase] .boot-orbit,
+:root[data-boot="quiet"] .boot-log { display: none; }
+
+/* Póster del globo (≥1100): se funde con el globo 3D cuando este ya se ve nítido. */
+.boot-poster {
+  position: absolute;
+  top: calc(var(--boot-y) - var(--boot-s) / 2);
+  left: calc(var(--boot-x) - var(--boot-s) / 2);
+  width: var(--boot-s);
+  height: var(--boot-s);
+  max-width: none;
+  user-select: none;
+  transition: opacity .45s ease;
+}
+/* Silueta CSS del disco (<1100, 0 bytes): diámetro = lado del póster · 396,5/445. */
+.boot-disc {
+  position: absolute;
+  top: calc(var(--boot-y) - var(--boot-s) * .4455);
+  left: calc(var(--boot-x) - var(--boot-s) * .4455);
+  width: calc(var(--boot-s) * .891);
+  height: calc(var(--boot-s) * .891);
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 30%, #15405D 0%, #0A2536 46%, #051521 76%, #04111B 100%);
+  box-shadow: inset 0 0 0 1px rgba(63, 180, 236, .32), 0 0 calc(var(--boot-s) * .05) rgba(63, 180, 236, .22);
+  transition: opacity .45s ease;
+}
+.boot-poster[data-hidden], .boot-disc[data-hidden] { opacity: 0; }
+@media (max-width: 1099px) { .boot-poster { display: none; } }
+@media (min-width: 1100px) { .boot-disc { display: none; } }
+
+/*
+ * Anillo orbital (1 px, #3FB4EC al 55 %) y satélite: 2 vueltas de 2,4 s, luego quieto.
+ * Diámetro = 0,94 · póster (justo fuera del disco, dentro de la atmósfera). Desde 1100 px la órbita
+ * se inclina (−12°) y se abre en horizontal (×1,32): sigue dentro del área libre (bootModel.ts).
+ */
+.boot { --boot-tilt: scale(1); }
+@media (min-width: 1100px) { .boot { --boot-tilt: rotate(-12deg) scaleX(1.32); } }
+.boot-orbit {
+  position: absolute;
+  top: calc(var(--boot-y) - var(--boot-s) * .47);
+  left: calc(var(--boot-x) - var(--boot-s) * .47);
+  width: calc(var(--boot-s) * .94);
+  height: calc(var(--boot-s) * .94);
+  animation: boot-in 600ms var(--ease-emph) calc(var(--boot-delay) + var(--boot-shift, 0ms)) both;
+}
+/* Inclinación y onda al revelar (escala 1→1,06 y se apaga), en su propio envoltorio: compone con la entrada. */
+.boot-wave { position: absolute; inset: 0; transform: var(--boot-tilt); }
+.boot[data-phase="reveal"] .boot-wave { animation: boot-wave var(--dur-5) var(--ease-emph) forwards; }
+.boot-ring {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(63, 180, 236, .55);
+  border-radius: 50%;
+  animation: boot-spin var(--loop-orbit) linear calc(var(--boot-delay) + var(--boot-shift, 0ms)) var(--loop-max-iterations) both;
+}
+.boot-sat {
+  position: absolute;
+  top: -4px;
+  left: calc(50% - 4px);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sel-ring);
+  box-shadow: 0 0 10px 2px rgba(63, 180, 236, .8);
+}
+
+/* Bitácora de hitos reales: aria-hidden (anuncia la región role=status del armazón). */
+.boot-log {
+  /* Bajo el centro del globo, pero siempre sobre la franja de leyenda del escenario (1–2 filas). */
+  --log-top: min(calc(var(--boot-y) + var(--boot-s) * .2), calc(var(--boot-fb, 100vh) - 140px));
+  /* Pliegue hacia el chip de la barra superior (≈ centro del chip; sin chip visible, sube). */
+  --fold-x: calc(100vw - 150px - var(--boot-x));
+  --fold-y: calc(-4px - var(--log-top));
+  --fold-s: .4;
+  position: absolute;
+  top: var(--log-top);
+  left: var(--boot-x);
+  display: grid;
+  gap: 3px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  margin: 0;
+  padding: 8px 12px;
+  list-style: none;
+  border: 1px solid var(--glass-edge);
+  border-radius: 12px;
+  background: var(--marker-bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: var(--fs-caps);
+  line-height: 1.45;
+  transform: translate(-50%, 0) scale(1);
+  animation: boot-fade 600ms var(--ease-emph) calc(var(--boot-delay) + var(--boot-shift, 0ms)) both;
+}
+.boot[data-phase="fold"] .boot-log { animation: boot-fold var(--dur-3) var(--ease-standard) forwards; }
+@media (max-width: 760px) { .boot-log { --fold-x: 0px; --fold-y: -24px; --fold-s: .92; } }
+.boot-log li { display: flex; gap: 8px; min-width: 0; }
+@media (min-width: 480px) { .boot-log li { white-space: nowrap; } }
+.boot-log li > span { flex: none; width: 1em; color: var(--muted-2); text-align: center; }
+.boot-log li[data-s="ok"] > span { color: var(--earth-bright); }
+.boot-log li[data-s="run"] > span { color: var(--confidence); }
+.boot-log li[data-s="fail"] > span { color: var(--text); }
+.boot-log li[data-s="wait"] { color: var(--muted); }
+
+/* Espera de la IA: la misma órbita alrededor del globo (solo con la vista global en pantalla). */
+.boot-wait { transition: opacity var(--dur-2) var(--ease-standard); }
+.boot-wait[data-offview], .boot-wait[data-closing] { opacity: 0; }
+
+/* OrbitLoader en línea: anillo de 14 px + fase real. Entra a los 300 ms (anti-parpadeo). */
+.boot-inline {
+  --boot-delay: 300ms;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: var(--fs-12);
+  animation: boot-fade var(--dur-2) var(--ease-standard) var(--boot-delay) both;
+}
+.boot-mini { position: relative; flex: none; width: 14px; height: 14px; }
+.boot-mini .boot-sat { top: -3px; left: calc(50% - 2.5px); width: 5px; height: 5px; box-shadow: 0 0 4px rgba(63, 180, 236, .9); }
+
+@keyframes boot-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes boot-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes boot-out { to { opacity: 0; } }
+@keyframes boot-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes boot-wave { to { opacity: 0; transform: var(--boot-tilt) scale(1.06); } }
+@keyframes boot-fold { to { opacity: 0; transform: translate(calc(-50% + var(--fold-x)), var(--fold-y)) scale(var(--fold-s)); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-orbit, .boot-log, .boot-inline { animation-name: boot-fade; animation-duration: 150ms; }
+  .boot-ring { animation: none; }
+  .boot[data-phase="reveal"] .boot-wave, .boot[data-phase="fold"] .boot-log { animation: boot-out 150ms linear forwards; }
+  .boot-poster, .boot-disc, .boot-wait { transition-duration: 150ms; }
+}

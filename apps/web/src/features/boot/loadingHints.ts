@@ -1,23 +1,53 @@
 /**
  * Plugin de Vite (código de Node, NO importar desde la app): pistas de carga en index.html
- * para cortar la cascada de red y pintar el armazón antes de React.
+ * para cortar la cascada de red y pintar el armazón y el arranque antes de React.
  * - preload de los JSON del snapshot y de los índices de imágenes;
  * - prefetch del chunk del mapa 2D: se descarga en baja prioridad, sin ejecutarse;
  * - favicon en línea: evita una petición 404;
- * - póster del globo (≥1100 px) ubicado con la misma fórmula del globo 3D y los márgenes base
- *   del escenario (shell/stageGeometry.js + boot/posterLayout.js, incrustados);
- * - armazón estático dentro de #root (content/shell.ts).
- * Propiedad de features/boot (incremento 7: anillo orbital, satélite y bitácora).
+ * - script mínimo tras <title> (antes del CSS y del módulo): centro y tamaño del globo y borde del
+ *   área libre (shell/stageGeometry.js + boot/posterLayout.js, incrustados) como variables
+ *   --boot-* y modo de intro en <html data-boot>, antes del primer cuadro;
+ * - armazón estático dentro de #root (content/shell.ts), con la capa de arranque en
+ *   stage.overlay: póster ≥1100 px (<picture>, el móvil no lo descarga) o silueta CSS, anillo
+ *   orbital, satélite y bitácora de hitos reales. Queda bajo los paneles, como en React.
  */
 import { readFileSync } from 'node:fs'
 import type { HtmlTagDescriptor, Plugin } from 'vite'
 import { staticShellHtml } from '../../content/shell'
+import { INTRO_SESSION_KEY } from './bootModel'
 
-/** Quita comentarios de línea y `export` para incrustar un módulo JS plano en un <script>. */
-function inlineModule(url: URL): string {
-  return readFileSync(url, 'utf8')
+/**
+ * Compacta un módulo JS plano para incrustarlo en un <script>: quita comentarios, sangría y
+ * `export`. Conserva los saltos de línea (los módulos no usan punto y coma).
+ */
+export function inlineModule(source: string): string {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/^\s*\/\/.*$/gm, '')
     .replace(/^export /gm, '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join('\n')
+}
+
+const readModule = (path: string) => inlineModule(readFileSync(new URL(path, import.meta.url), 'utf8'))
+
+/**
+ * Script en línea del arranque. Misma fórmula que domain/mapZoom.ts y BootLayer: lo verifica
+ * tests/boot.test.ts ejecutándolo. Modo: ?intro=full fuerza la intro; si ya se vio en la sesión,
+ * solo el aterrizaje (debe coincidir con resolveIntroMode).
+ */
+export function bootHeadScript(geometrySource: string, layoutSource: string): string {
+  return (
+    `(function(){${geometrySource}\n${layoutSource}\n` +
+    'var d=document.documentElement,m="normal";' +
+    'function p(){var w=innerWidth,h=innerHeight,i=baseStageInsets(w,h),l=posterLayout(w,h,i),s=d.style;' +
+    's.setProperty("--boot-x",l.left+l.size/2+"px");s.setProperty("--boot-y",l.top+l.size/2+"px");s.setProperty("--boot-s",l.size+"px");s.setProperty("--boot-fb",h-i.bottom+"px")}' +
+    'p();addEventListener("resize",p);' +
+    `try{if(new URLSearchParams(location.search).get("intro")==="full")m="full";else if(sessionStorage.getItem(${JSON.stringify(INTRO_SESSION_KEY)})!==null)m="quiet"}catch(e){}` +
+    'd.setAttribute("data-boot",m)})()'
+  )
 }
 
 export function loadingHints(): Plugin {
@@ -50,44 +80,28 @@ export function loadingHints(): Plugin {
             injectTo: 'head',
           })),
         ]
-        // Póster del globo en el HTML estático: se pinta antes de que corra React (mejora LCP
-        // y Speed Index). Un script en línea lo ubica con la misma fórmula del globo 3D.
+        // Póster del globo en el HTML estático (≥1100 px): se pinta antes de que corra React (LCP y
+        // Speed Index). En móvil sería el LCP y llegaría después del texto: allí va la silueta CSS.
         const poster = Object.values(ctx.bundle ?? {}).find(
           (item) => item.type === 'asset' && /globe-poster-[\w-]+\.webp$/.test(item.fileName),
         )
-        if (poster) {
-          const geometry = inlineModule(new URL('../../shell/stageGeometry.js', import.meta.url))
-          const layout = inlineModule(new URL('../../boot/posterLayout.js', import.meta.url))
-          tags.push(
-            // Solo en pantallas anchas: en móvil el póster sería el LCP y llegaría después del texto.
-            { tag: 'link', attrs: { rel: 'preload', as: 'image', fetchpriority: 'high', media: '(min-width: 1100px)', href: `./${poster.fileName}` }, injectTo: 'head' },
-            {
-              tag: 'style',
-              children:
-                '#boot-stage{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(circle at 50% 50%,#0A2236 0%,#04111B 55%,#02070A 100%);transition:opacity .45s ease}' +
-                '#boot-stage.is-hidden{opacity:0}#boot-poster{position:absolute;max-width:none}',
-              injectTo: 'head',
-            },
-            {
-              tag: 'div',
-              attrs: { id: 'boot-stage', 'aria-hidden': 'true' },
-              children: [{ tag: 'img', attrs: { id: 'boot-poster', 'data-src': `./${poster.fileName}`, alt: '', fetchpriority: 'high', decoding: 'async' } }],
-              injectTo: 'body-prepend',
-            },
-            {
-              tag: 'script',
-              children: `(function(){${geometry}${layout}var img=document.getElementById('boot-poster');if(!matchMedia('(min-width: 1100px)').matches){img.remove();return}function place(){var w=innerWidth,h=innerHeight,l=posterLayout(w,h,baseStageInsets(w,h));img.style.width=img.style.height=l.size+'px';img.style.left=l.left+'px';img.style.top=l.top+'px'}place();img.src=img.getAttribute('data-src');addEventListener('resize',place)})()`,
-              injectTo: 'body-prepend',
-            },
-          )
+        const posterUrl = poster ? `./${poster.fileName}` : undefined
+        if (posterUrl) {
+          tags.push({ tag: 'link', attrs: { rel: 'preload', as: 'image', fetchpriority: 'high', media: '(min-width: 1100px)', href: posterUrl }, injectTo: 'head' })
         }
         const flat = Object.values(ctx.bundle ?? {}).find(
           (chunk) => chunk.type === 'chunk' && chunk.facadeModuleId?.endsWith('CandidateFlatMap.tsx'),
         )
         if (flat) tags.push({ tag: 'link', attrs: { rel: 'prefetch', href: `./${flat.fileName}` }, injectTo: 'head' })
-        // Armazón estático dentro de #root: barra, dock y hoja se pintan con el HTML, antes del
-        // JavaScript; React lo reemplaza al montar con el mismo marcado.
-        return { html: html.replace('<div id="root"></div>', `<div id="root">${staticShellHtml()}</div>`), tags }
+        // Script del arranque tras <title> (el charset queda en los primeros 1024 bytes) y antes del
+        // CSS y del módulo: no espera a la hoja de estilos y fija las variables del primer cuadro.
+        const head = `<script>${bootHeadScript(readModule('../../shell/stageGeometry.js'), readModule('../../boot/posterLayout.js'))}</script>`
+        // Armazón estático dentro de #root: barra, dock, hoja y arranque se pintan con el HTML, antes
+        // del JavaScript; React lo reemplaza al montar con el mismo marcado.
+        const out = html
+          .replace('</title>', `</title>\n    ${head}`)
+          .replace('<div id="root"></div>', `<div id="root">${staticShellHtml({ posterUrl })}</div>`)
+        return { html: out, tags }
       },
     },
   }
