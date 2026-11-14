@@ -1,25 +1,21 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14, M8 aceptado localmente (America/Santiago)
+**Última actualización:** 2026-11-14, M8 publicado e IA verificada en dev (America/Santiago)
 **Responsable del checkpoint:** Codex
+**Milestone activo:** M8 aceptado y entregado. Claude espera nueva asignación.
+**Estado general:** planificador de ensayo/sector con motor determinista, snapshot científico v3 y Anthropic opcional funcionando en dev. Siete áreas con evidencia; faltan capas territoriales, contraste local y revisión experta de campo.
 
-**Entrega M8 autorizada:** Dan pidió subir a dev y verificar la IA allí. Codex prepara commit/push y seguirá el despliegue hasta probar borrador y explicación reales. La clave se configura como GitHub Secret y se inyecta solo en runtime del deploy dev; no se incluye en build ni ZIP. Verificación previa repetida: 177 Python, 196 web, typecheck y build correctos. La aceptación local de abajo permanece como evidencia; publicación remota aún en curso.
+## Entrega vigente — dev e IA real comprobados
 
-**Corrección de runtime:** `707d4b1` se desplegó (Actions 43639120488), pero la IA falló por incompatibilidad CommonJS/ESM detectada en navegador y logs. El núcleo se extrae a `shared/` sin duplicarlo; se añade comprobación de arranque de la función empaquetada. La IA remota no se da por aprobada hasta completar ambas operaciones.
-**Milestone activo:** M8 — implementación local aceptada; entrega remota pendiente. Claude espera nueva asignación.
-**Estado general:** producto funcional con snapshot científico v3: 50 ventanas evaluadas, seis candidatos y Yungay como referencia. Faltan capas territoriales, revisión bibliográfica completa y experta, contraste climático local y acciones de entrega humana.
-
-**Sincronización:** M7 y el rediseño se publicaron previamente en `origin/dev`. M8 está revisado en el working tree local sobre `4d197e1`, sin commit ni push. La autorización de publicación y los cortes anteriores de abajo son históricos; la verificación vigente de M8 es la siguiente.
-
-**Publicación anterior en dev:** integración y corrección de alias aceptadas en la base `4d197e1`. M8 no modifica workflows, autenticación ni secretos remotos; su función de IA debe verificarse al desplegarla.
-
-## M8 — aceptado por Codex, pendiente de entrega remota
-
-- Owner Codex, status accepted. Claude implementó y corrigió ambos recorridos; Codex revisó motor, contratos, IA, interfaz y paquete. Incluye editor de requisitos, sectores/coordenadas/bbox, confirmación, evaluación, detalle por criterio, informe imprimible, JSON validado y Anthropic opcional solo en servidor.
-- Verificación independiente: `npm run verify` → 177 Python, 196 web (+2 omitidas de IA real), typecheck y build; auditoría adicional 10/10. ZIP repetido idéntico, 30 entradas, 12.987.711 bytes, SHA-256 `440b295e936613eea74e43e74cd2f978defd2e8c01b72e7bedcdd359b8d2b5da`; 38 hashes de baseline intactos.
-- Probados desde navegador: borrador y explicación reales con `claude-sonnet-5-5`, JSON con procedencia, cambios de umbral/resultado, cero priorizados, punto con selección explícita de ventana, fuera de cobertura, móvil 390 px y teclado. ZIP bajo `/AnalogOS/` funciona manualmente sin API ni red externa. Captura `submission/assets/analogos-m8-review.png`.
-- Límites: función en Vercel aún no publicada/verificada; impresión nativa pendiente de inspección visual (contenido y CSS comprobados). Siete ventanas con evidencia, perfil rover/Jezero; ninguna nueva adquisición ni aprobación de terreno.
-- Informe vigente y reproducción: `docs/CODEX_M8_REVIEW.md`. Handoff histórico: `project/M8_PROGRESS.md`; configuración: `docs/AI_SETUP.md`. Vista local: `http://127.0.0.1:4187/` mientras siga activo el servidor. Claude espera nueva asignación.
+- URL: https://analogos-dev.vercel.app/. Código desplegado `9060970ecf71e3c68f7b11a8d220e37e49057dc8`; Actions 43639834860 correcto. El checkpoint posterior solo agrega documentación/evidencia con `[skip ci]` y conserva ese despliegue verificado. Main no se publica.
+- Dan autorizó subir a dev y verificar la IA. La clave está en GitHub Secrets, inyectada solo en runtime del deploy dev. Protección de Vercel conservada; clave ausente del código, bundle, ZIP y evidencia.
+- Prueba real desde navegador: Anthropic propuso tres requisitos editables y explicó la evaluación confirmada. Ejemplo: pendiente regional ≤ 2,3°, superficie no vegetada ≥ 95 %, permisos pendientes. Resultado: una ventana priorizada y seis descartadas. JSON descargado validado y evaluación idéntica al recálculo local.
+- Corregido fallo del primer deploy (`707d4b1`, `ERR_REQUIRE_ESM`): núcleo puro movido a `shared/`, web con reexports, servidor con imports directos y NodeNext. CI prueba el arranque de la función realmente empaquetada antes de desplegar.
+- Verificación tras la corrección: 177 Python, 196 web (+2 pruebas reales opt-in omitidas por defecto), typecheck/build y arranque Node correctos. Los 38 hashes de baseline permanecen intactos.
+- ZIP final: 30 entradas, 12.987.707 bytes, SHA-256 `eacf5dce441763b2c5e21d2aa2d75fe88130cccfeafb098c72e73bba1f2bd32f`, repetido idéntico y cotejado con dist.
+- Informe vigente: `docs/DEV_AI_VERIFICATION.md`. Evidencia: `submission/evidence/m8-dev-ai-export.json`, captura `submission/assets/analogos-m8-dev-ai.png`. Configuración/rotación en `docs/AI_SETUP.md`.
+- Pendientes delimitados: impresión nativa (contenido/CSS comprobados), territorio, bibliografía, contraste climático y validación con usuarios. No se certifica aptitud de campo ni se adquirieron datos para nuevas geometrías.
+- La aceptación local y las dos devoluciones a Claude permanecen como historia en `docs/CODEX_M8_REVIEW.md` y `project/M8_PROGRESS.md`. Las secciones siguientes documentan M7 y entregas anteriores.
 
 ## Integración revisada por Codex para dev
 

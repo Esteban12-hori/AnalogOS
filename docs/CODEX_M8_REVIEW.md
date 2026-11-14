@@ -1,5 +1,7 @@
 # Revisión y aceptación M8 — Codex
 
+**Actualización de entrega:** M8 se publicó en dev y ambas operaciones de IA se verificaron realmente el 2026-11-14. Evidencia vigente, corrección de runtime y checksum final en `docs/DEV_AI_VERIFICATION.md`. El resto de este documento conserva el checkpoint de aceptación local previo a la publicación.
+
 Fecha: 2026-11-14. Implementación: Claude Code, supervisada por Codex con dos devoluciones y correcciones verificadas. Base: `4d197e17893dc4eef2dc5c9771c79813c909b657`, rama local `dev`. Sin commit, push ni publicación de M8.
 
 ## Decisión

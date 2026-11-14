@@ -25,7 +25,7 @@ Antes de modificar archivos, ejecuta `git status --short`, confirma la rama y pr
 
 ## Estado actual que no debes revertir
 
-- M8 aceptado localmente por Codex: recomendación guiada por prueba y sector con IA Anthropic. Ver `docs/CODEX_M8_REVIEW.md`; sin nueva asignación a Claude ni publicación remota de M8.
+- M8 aceptado y publicado en dev por Codex, con ambas operaciones de Anthropic verificadas realmente. Ver `docs/DEV_AI_VERIFICATION.md`; núcleo compartido en `shared/`, reexports en web. Sin nueva asignación a Claude.
 - Rama de implementación: `dev`.
 - Snapshot activo: `artifacts/science-v3/`; v2 se conserva como histórico, byte a byte.
 - Perfil: `mars-rover-screening-v3`, versión `3.0.0-preliminary`; fórmulas y pesos v2.

@@ -1,5 +1,13 @@
 # Changelog de trabajo
 
+## 2026-11-14 Codex — dev e IA real verificados
+
+- Publicación corregida `9060970`, Actions 43639834860 correcto, alias `https://analogos-dev.vercel.app/`. Main y protección de acceso sin cambios.
+- Prueba real desde navegador: borrador de tres requisitos (`req_011Ch3V9sX8XWfnCFHCehTem`) y explicación (`req_011Ch3VD7AVeY7uEpeKT9i9e`), ambos con `claude-sonnet-5-5`. Un área priorizada y seis descartadas; permisos siguen pendientes.
+- JSON descargado validado contra contrato y recálculo local idéntico. Exportación sintética y captura en `submission/evidence/m8-dev-ai-export.json` y `submission/assets/analogos-m8-dev-ai.png`.
+- Evidencia y operación en `docs/DEV_AI_VERIFICATION.md`. ZIP final determinista: 30 entradas, 12.987.707 bytes, SHA-256 `eacf5dce441763b2c5e21d2aa2d75fe88130cccfeafb098c72e73bba1f2bd32f`; 38 hashes de baseline intactos. 177 Python y 196 web correctos, más arranque del paquete real en CI.
+- Este checkpoint solo agrega documentación y evidencia, con `[skip ci]`; conserva el código desplegado y ya verificado. Claude queda sin nueva asignación.
+
 ## 2026-11-14 Codex — corrección de ejecución en Vercel
 
 - El primer deploy de M8 (`707d4b1`, Actions 43639120488) compiló y publicó, pero la prueba de IA en navegador reveló `ERR_REQUIRE_ESM`: la función Node requería módulos dentro del paquete ESM de la web.

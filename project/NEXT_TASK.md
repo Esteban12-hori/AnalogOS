@@ -5,6 +5,7 @@
 - **Task ID:** M8-MISSION-RECOMMENDATION
 - **Owner:** Codex
 - **Status:** accepted
+- **Entrega:** publicada en dev y ambas operaciones de Anthropic verificadas por Codex; ver `docs/DEV_AI_VERIFICATION.md`. Código desplegado `9060970`; Claude espera una nueva asignación.
 - **Branch:** dev
 - **Base commit:** 4d197e17893dc4eef2dc5c9771c79813c909b657
 - **Dirección, supervisión y aceptación:** Codex. Dan autorizó esta implementación el 2026-11-14 y eligió Anthropic para la IA.
