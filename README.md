@@ -175,7 +175,7 @@ python -m pipelines.build_demo --profile config/mission_profiles/mars-rover-mobi
 
 `build_demo` regenera `artifacts/demo/` para pruebas sintéticas. `build_precision_snapshot` regenera `artifacts/science-v2/`, que es lo que lee la web final. La demo no requiere internet porque el snapshot está incluido; solo la reproducción científica requiere credenciales.
 
-## Ventana del evento
+## Ventana del evento .
 
 NASA Space Apps Challenge 2026 se realiza el 14 y 15 de noviembre de 2026. La plataforma global indica cierre el 15 de noviembre a las 23:59 hora local. Confirmar cualquier deadline interno anterior con la sede de Santiago.
 
