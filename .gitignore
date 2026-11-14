@@ -26,3 +26,4 @@ artifacts/tmp/
 *.log
 *.egg-info/
 .claude/
+.vercel
