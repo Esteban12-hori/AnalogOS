@@ -1,0 +1,77 @@
+/*
+ * Tarjeta «Tu misión» (chunk de misión). Prefijo .composer-*. Sin blur: vive dentro del panel
+ * izquierdo, de la hoja S2 o del popover del composer. Texto de IA con ✦ + regla lateral de
+ * 2 px en hielo al 50 %. Error neutro con ✕. Pendiente = gris con trazo discontinuo.
+ */
+.composer-card:focus-visible { outline: var(--focus-ring); outline-offset: -2px; border-radius: 12px; }
+.composer-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.composer-card-source { color: var(--ice); font-family: var(--mono); font-size: var(--fs-min); letter-spacing: .02em; }
+.composer-card-source[data-source="preset"] { color: var(--muted); }
+.composer-card-phase { margin: 0; color: var(--text); font-size: var(--fs-12); }
+.composer-card-phase > span:first-child { color: var(--ice); }
+.composer-card-error { margin: 0; padding: 8px 10px; border: 1px solid var(--error-line); border-radius: 10px; color: var(--error-text); font-size: var(--fs-12); }
+.composer-card-lead { margin: 0; color: var(--text); }
+.composer-card-lead > span:first-child { color: var(--ice); }
+.composer-card-hint { margin: -4px 0 0; color: var(--muted); font-size: var(--fs-min); }
+
+.composer-quote { margin: 0; padding: 0; color: var(--text); font-size: var(--fs-13); font-style: italic; line-height: 1.5; overflow-wrap: anywhere; }
+.composer-quote mark, .composer-card-hint mark { padding: 0 1px; border-bottom: 1px solid var(--earth-bright); background: rgba(2, 151, 222, .16); color: inherit; font-style: inherit; }
+
+.composer-ai { display: grid; gap: 2px; margin: 0; padding-left: 10px; border-left: 2px solid var(--ai-rule); color: var(--text); font-size: var(--fs-12); }
+.composer-ai-label { color: var(--ice); font-family: var(--mono); font-size: var(--fs-min); letter-spacing: .02em; }
+
+.composer-card-profile { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0; font-weight: 650; }
+.composer-status-chip { padding: 1px 8px; border: 1px dashed var(--pending); border-radius: 999px; color: var(--muted); font-family: var(--mono); font-size: var(--fs-min); font-weight: 500; }
+.composer-card-actions { display: inline-flex; gap: 6px; margin-left: auto; }
+.composer-btn { min-height: 28px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255, 255, 255, .04); color: var(--text); cursor: pointer; font-size: var(--fs-12); font-weight: 600; }
+.composer-btn:hover:not(:disabled) { border-color: var(--sel-line); }
+.composer-btn:disabled { color: var(--muted); cursor: not-allowed; opacity: .6; }
+.composer-btn[aria-pressed="true"] { border-color: var(--sel-line); box-shadow: inset 0 2px 0 var(--sel-accent); }
+.composer-btn-quiet { justify-self: start; border-color: transparent; background: none; color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+
+.composer-rows { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.composer-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 64px; align-items: center; gap: 8px; min-height: 36px; padding: 4px 0; border-top: 1px solid var(--line); }
+.composer-row:first-child { border-top: 0; }
+.composer-row[data-excluded] .composer-row-label, .composer-row[data-excluded] .composer-row-weight { color: var(--muted); }
+.composer-row-label { display: grid; min-width: 0; font-size: var(--fs-13); }
+.composer-row-edited { color: var(--ice); font-size: var(--fs-min); }
+.composer-row-note { color: var(--pending); font-size: var(--fs-min); }
+.composer-row[data-pending] .composer-row-note { text-decoration: underline dashed var(--pending); text-underline-offset: 3px; }
+.composer-row-level { color: var(--text); font-size: var(--fs-12); }
+.composer-row-weight { display: grid; justify-items: end; font-size: var(--fs-13); font-variant-numeric: tabular-nums; font-weight: 650; white-space: nowrap; }
+/* Editando: nombre y peso en la primera línea; el control de niveles debajo, a todo el ancho. */
+.composer-row[data-editing] { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "label weight" "levels levels"; row-gap: 4px; padding: 6px 0; }
+.composer-row[data-editing] .composer-row-label { grid-area: label; }
+.composer-row[data-editing] .composer-row-weight { grid-area: weight; }
+.composer-row[data-editing] .composer-levels { grid-area: levels; justify-self: start; }
+.composer-row-dir { color: var(--earth-bright); font-size: var(--fs-min); }
+.composer-row-base { color: var(--muted); font-size: var(--fs-min); font-weight: 500; }
+
+/* Control segmentado de niveles: radios nativos (flechas = cambiar nivel). */
+.composer-levels { display: inline-flex; margin: 0; padding: 2px; border: 1px solid var(--line-strong); border-radius: 999px; }
+.composer-level { position: relative; display: grid; place-items: center; min-width: 40px; min-height: 26px; padding: 0 6px; border-radius: 999px; color: var(--muted); cursor: pointer; font-size: var(--fs-min); font-weight: 650; }
+.composer-level input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.composer-level[data-checked] { background: var(--sel-ring); color: var(--navy, #02070A); }
+.composer-level:has(input:focus-visible) { outline: var(--focus-ring); outline-offset: 1px; }
+
+.composer-card-block { display: grid; gap: 6px; }
+.composer-card-block h3 { margin: 0; color: var(--muted); font-family: var(--mono); font-size: var(--fs-caps); font-weight: 600; letter-spacing: var(--caps-tracking); text-transform: uppercase; }
+.composer-plain { display: grid; gap: 4px; margin: 0; padding: 0 0 0 14px; font-size: var(--fs-12); }
+.composer-plain small { color: var(--muted); }
+.composer-ai-list { padding-left: 10px; border-left: 2px solid var(--ai-rule); list-style: none; }
+
+.composer-details { display: grid; gap: 8px; }
+.composer-details > summary { min-height: 28px; color: var(--text); cursor: pointer; font-size: var(--fs-12); font-weight: 650; line-height: 28px; }
+.composer-details > summary:focus-visible { outline: var(--focus-ring); outline-offset: 2px; border-radius: 6px; }
+.composer-card-foot { margin: 0; color: var(--muted); font-size: var(--fs-min); line-height: 1.5; }
+
+.composer-presets, .composer-history { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.composer-preset, .composer-history-item { display: grid; gap: 2px; width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--text); cursor: pointer; font-size: var(--fs-12); text-align: left; }
+.composer-preset small, .composer-history-item small { color: var(--muted); font-size: var(--fs-min); line-height: 1.4; }
+.composer-preset:hover, .composer-history-item:hover { border-color: var(--sel-line); }
+.composer-preset[aria-pressed="true"] { border-color: var(--sel-line); box-shadow: inset 0 2px 0 var(--sel-accent); }
+.composer-history-item > span { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.composer-btn:focus-visible, .composer-preset:focus-visible, .composer-history-item:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+.composer-card[data-placement="popover"] .composer-row:not([data-editing]) { grid-template-columns: minmax(0, 1fr) auto 58px; }
+.composer-card[data-placement="sheet"] { font-size: var(--fs-body); }

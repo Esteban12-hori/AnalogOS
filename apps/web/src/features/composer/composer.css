@@ -1,17 +1,27 @@
-/* STUB de features/composer: estilos mínimos. El incremento 9 los reemplaza. */
+/*
+ * Composer de misión (incremento 9): la píldora (la misma caja que pinta el HTML estático: no
+ * se anima al montar), la caja del formulario, el botón «✦ Refinar» de S1 y la base de «Tu
+ * misión» mientras llega su chunk. El formulario sigue en composer-form.css; recientes y chips
+ * (extras.css) y la tarjeta (mission.css) viajan con el chunk de misión. Prefijo .composer-*.
+ */
 .composer-pill { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255, 255, 255, .04); color: var(--muted); cursor: text; font-size: var(--fs-13); text-align: left; }
 .composer-pill:hover { border-color: var(--sel-line); color: var(--text); }
-.composer-pill > span:first-child, .composer-glyph { color: var(--ice); }
-.composer-pill-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.composer-pill > span:first-child, .composer-glyph, .composer-refine > span:first-child { color: var(--ice); }
+.composer-pill-text { flex: 1; min-width: 0; overflow: hidden; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; }
 .composer-pill kbd { padding: 1px 7px; border: 1px solid var(--line-strong); border-radius: 6px; font-family: var(--mono); font-size: var(--fs-min); }
-.composer-form { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 10px; padding: 6px 6px 6px 14px; border: 1px solid var(--line-strong); border-radius: 22px; background: rgba(255, 255, 255, .04); }
-.composer-form textarea { min-height: 32px; max-height: 96px; padding: 6px 0; border: 0; background: transparent; color: var(--text); font: inherit; font-size: var(--fs-13); line-height: 1.4; resize: none; field-sizing: content; }
-.composer-form textarea:focus { outline: none; }
-.composer-form:focus-within { border-color: var(--sel-line); box-shadow: 0 0 0 1px var(--sel-line); }
-.composer-form button { min-height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--line-strong); color: var(--muted); font-weight: 650; }
-.composer-note { grid-column: 1 / -1; color: var(--muted); font-size: var(--fs-min); }
+
+/* Caja del formulario de Misión. */
+.composer { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; min-width: 0; }
+.composer-form { position: relative; display: flex; align-items: flex-end; gap: 8px; min-height: 44px; padding: 5px 5px 5px 12px; border: 1px solid var(--line-strong); border-radius: 22px; background: rgba(255, 255, 255, .04); }
+.composer-glyph { flex: none; align-self: center; line-height: 1; }
+.composer-status { display: flex; align-items: center; gap: 10px; min-width: 0; height: 18px; margin: 0; padding: 0 12px; overflow: hidden; color: var(--muted); font-size: var(--fs-min); line-height: 18px; white-space: nowrap; }
+
+/* S1: botón «✦ Refinar» de la cabecera de la hoja. */
 .composer-refine { min-height: 32px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 999px; background: transparent; color: var(--text); cursor: pointer; font-size: var(--fs-12); }
-.mission-stub { display: grid; gap: 6px; }
-.mission-stub h2 { margin: 0; color: var(--muted); font-family: var(--mono); font-size: var(--fs-caps); letter-spacing: var(--caps-tracking); text-transform: uppercase; }
-.mission-stub p { margin: 0; color: var(--text); font-size: var(--fs-13); line-height: 1.45; }
-.mission-stub-pending { color: var(--pending) !important; }
+
+.composer-pill:focus-visible, .composer-refine:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+/* Tarjeta «Tu misión»: base mínima mientras llega su chunk (mission.css). */
+.composer-card { display: grid; gap: 10px; min-width: 0; color: var(--text); font-size: var(--fs-13); line-height: 1.45; }
+.composer-card-title { margin: 0; color: var(--muted); font-family: var(--mono); font-size: var(--fs-caps); font-weight: 600; letter-spacing: var(--caps-tracking); text-transform: uppercase; }
+.composer-card-note { margin: 0; color: var(--muted); font-size: var(--fs-12); }

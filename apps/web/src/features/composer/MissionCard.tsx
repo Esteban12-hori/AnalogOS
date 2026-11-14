@@ -1,16 +1,24 @@
-/** STUB de «Tu misión» (incremento 9): sin perfil todavía; nada inventado. */
+/**
+ * «Tu misión» (incremento 9): niveles por criterio, Deshacer e historial. Slots `left.mission`
+ * (panel ≥1440 en Misión) y `full.mission` (pestaña de S2). La tarjeta completa se descarga
+ * con el chunk de misión; mientras tanto se ve un encabezado estático, sin cifras.
+ */
+import { Suspense } from 'react'
 import { GLYPH } from '../../shell/public'
 import type { MissionCardProps } from './index'
+import { LazyMissionPanel } from './panel'
 
-export function MissionCard({ placement }: MissionCardProps) {
+export function MissionCard({ data, placement }: MissionCardProps) {
   return (
-    <section className="mission-stub" data-placement={placement} aria-labelledby={`mission-title-${placement}`}>
-      <h2 id={`mission-title-${placement}`}>Tu misión</h2>
-      <p>
-        <span aria-hidden="true">{GLYPH.ai}</span> Describe el trabajo que quieres probar. La IA solo propondrá niveles por criterio;
-        el % lo calculará el motor determinista.
-      </p>
-      <p className="mission-stub-pending">Perfil de misión: por calcular.</p>
-    </section>
+    <Suspense
+      fallback={
+        <section className="composer-card" data-placement={placement} aria-busy="true" aria-label="Tu misión">
+          <h2 className="composer-card-title">Tu misión</h2>
+          <p className="composer-card-note"><span aria-hidden="true">{GLYPH.ai}</span> Cargando la tarjeta de misión…</p>
+        </section>
+      }
+    >
+      <LazyMissionPanel data={data} placement={placement} />
+    </Suspense>
   )
 }
