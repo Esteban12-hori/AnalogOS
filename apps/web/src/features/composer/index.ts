@@ -2,13 +2,14 @@
  * features/composer — composer de misión, tarjeta «Tu misión» (niveles, Deshacer, historial)
  * y coreografía de resultados (incremento 9). Orquesta: interpretar (analysis.interpretWithLktron
  * o engine.matchMissionDemo) → perfil (engine) → motor (engine.scoreMission) → escribe
- * state/mission y ui.missionPhase.
+ * state/mission y ui.missionPhase. Es el ÚNICO escritor de `state/mission.ts`.
  * Slots: `dock.composer` (≥1100), `sheet.tray.composer` (S0), `sheet.head` (botón «✦ Refinar»
  * en S1), `left.mission` (panel ≥1440 en Misión), `full.mission` (pestaña «Tu misión» en S2).
- * El popover de 1100–1439 lo abre el propio Composer.
+ * El popover de 1100–1439 (y de la bandeja <1100) lo abre el propio Composer.
  *
- * INTERFAZ ESTABLE: tipos y firmas de este archivo. Implementación actual: STUB (píldora en
- * Explorar, textarea sin envío en Misión; la tecla «/» abre el composer).
+ * INTERFAZ ESTABLE: tipos y firmas de este archivo. Implementación: composer en el chunk
+ * principal; orquestador, motor y tarjeta «Tu misión» en el chunk diferido de misión
+ * (`missionRun.ts`, `MissionPanel.tsx`), que se precarga al entrar a Misión.
  */
 import type { AppData } from '../../shell/public'
 

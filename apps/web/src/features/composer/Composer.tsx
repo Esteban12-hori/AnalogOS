@@ -1,76 +1,74 @@
 /**
- * STUB del composer (incremento 9). En Explorar es una píldora que también abre la tecla «/».
- * En Misión muestra el textarea, pero el envío queda desactivado hasta que existan el motor
- * (incremento 8) y la orquestación (incremento 9): el texto no se envía a ningún servicio.
+ * Composer de misión (incremento 9, docs/UX_REDESIGN.md §3.2 y §2.3 C/D).
+ *
+ * - Explorar: píldora «✦ Describe el trabajo…» (la misma caja que pinta el HTML estático).
+ * - Misión: el formulario (`MissionComposer`).
+ * - S1: botón «✦ Refinar» que pide volver a la bandeja.
+ * - Teclas: «/» abre el composer desde fuera de un campo de texto; Esc cancela la espera.
+ *
+ * El chunk principal lleva solo la vista: orquestador, motor, contratos, tarjeta «Tu misión»,
+ * recientes y chips viajan en el chunk de misión, que se precarga al entrar a Misión.
  */
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { useEffect } from 'react'
 import { GLYPH } from '../../shell/public'
 import { uiActions, useUi } from '../../state/ui'
-import { COMPOSER_FOCUS_EVENT } from './focus'
+import { useComposer } from './composerStore'
+import { focusComposer } from './focus'
+import { isWaitingPhase, phaseLabel } from './labels'
+import { GlobeOrbit, MissionComposer, PROMPT } from './MissionComposer'
+import { anyPopoverOpen } from './popover'
+import { withController } from './runLoader'
 import type { ComposerProps } from './index'
 import './composer.css'
-
-const PROMPT = 'Describe el trabajo que quieres probar para Marte…'
 
 function isEditable(target: EventTarget | null): boolean {
   return target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
 }
 
-export function Composer({ placement, onRequestTray }: ComposerProps) {
-  const mode = useUi((state) => state.mode)
-  const [text, setText] = useState('')
-  const field = useRef<HTMLTextAreaElement>(null)
-  const pendingFocus = useRef(false)
+function openMission(): void {
+  uiActions.setMode('mision')
+  focusComposer()
+}
 
-  // «/» abre el composer desde cualquier lugar que no sea un campo de texto.
+export function Composer({ data, placement, onRequestTray }: ComposerProps) {
+  const mode = useUi((state) => state.mode)
+  const phase = useUi((state) => state.missionPhase)
+  const run = useComposer((state) => state.run)
+  const wait = useComposer((state) => state.wait)
+  const waiting = run !== null && isWaitingPhase(phase)
+
   useEffect(() => {
-    if (placement === 'sheet-head') return
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== '/' || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey || isEditable(event.target)) return
-      event.preventDefault()
-      pendingFocus.current = true
-      uiActions.setMode('mision')
-      field.current?.focus()
-    }
-    const onFocusRequest = () => {
-      pendingFocus.current = true
-      field.current?.focus()
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return
+      if (event.key === 'Escape') {
+        // Un popover abierto se cierra primero; la misión solo se cancela si se está esperando.
+        if (!waiting || anyPopoverOpen()) return
+        event.preventDefault()
+        withController((mission) => mission.cancel())
+      } else if (event.key === '/' && !isEditable(event.target)) {
+        event.preventDefault()
+        if (placement === 'sheet-head') onRequestTray?.()
+        else openMission()
+      }
     }
     window.addEventListener('keydown', onKey)
-    window.addEventListener(COMPOSER_FOCUS_EVENT, onFocusRequest)
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      window.removeEventListener(COMPOSER_FOCUS_EVENT, onFocusRequest)
-    }
-  }, [placement])
-
-  useEffect(() => {
-    if (mode === 'mision' && pendingFocus.current) {
-      pendingFocus.current = false
-      field.current?.focus()
-    }
-  }, [mode])
+    return () => window.removeEventListener('keydown', onKey)
+  }, [placement, waiting, onRequestTray])
 
   if (placement === 'sheet-head') {
     return (
-      <button type="button" className="composer-refine" onClick={() => onRequestTray?.()}>
-        <span aria-hidden="true">{GLYPH.ai}</span> Refinar
-      </button>
+      <>
+        <button type="button" className="composer-refine" aria-busy={waiting || undefined} onClick={() => onRequestTray?.()}>
+          <span aria-hidden="true">{GLYPH.ai}</span> {waiting ? 'Interpretando…' : 'Refinar'}
+        </button>
+        <GlobeOrbit active={waiting && wait !== 'quiet'} label={phaseLabel(phase, run?.interpreter ?? null)} />
+      </>
     )
   }
 
   if (mode === 'explorar') {
     return (
-      <button
-        type="button"
-        className="composer-pill"
-        data-placement={placement}
-        aria-keyshortcuts="/"
-        onClick={() => {
-          pendingFocus.current = true
-          uiActions.setMode('mision')
-        }}
-      >
+      <button type="button" className="composer-pill" data-placement={placement} aria-keyshortcuts="/" onClick={openMission}>
         <span aria-hidden="true">{GLYPH.ai}</span>
         <span className="composer-pill-text">{PROMPT}</span>
         <kbd aria-hidden="true">/</kbd>
@@ -78,32 +76,5 @@ export function Composer({ placement, onRequestTray }: ComposerProps) {
     )
   }
 
-  const onKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === 'Escape') {
-      event.currentTarget.blur()
-      event.preventDefault()
-    }
-  }
-
-  return (
-    <form className="composer-form" data-placement={placement} onSubmit={(event) => event.preventDefault()}>
-      <label className="sr-only" htmlFor={`composer-${placement}`}>Tu misión</label>
-      <span aria-hidden="true" className="composer-glyph">{GLYPH.ai}</span>
-      <textarea
-        id={`composer-${placement}`}
-        ref={field}
-        rows={1}
-        maxLength={600}
-        value={text}
-        placeholder={PROMPT}
-        aria-describedby={`composer-note-${placement}`}
-        onChange={(event) => setText(event.target.value)}
-        onKeyDown={onKeyDown}
-      />
-      <button type="submit" disabled aria-disabled="true">Enviar</button>
-      <small id={`composer-note-${placement}`} className="composer-note">
-        Motor de misión por calcular: el envío se activa con los perfiles y el matcher DEMO · sin IA.
-      </small>
-    </form>
-  )
+  return <MissionComposer data={data} placement={placement} />
 }
