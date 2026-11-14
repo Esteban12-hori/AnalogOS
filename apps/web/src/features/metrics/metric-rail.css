@@ -1,0 +1,62 @@
+/*
+ * Riel de métricas · parte del chunk principal (.metrics-*): cifras del lugar, cambio de lugar
+ * en S1 y estados. El detalle por criterio trae su propio CSS en diferido (metrics.css).
+ * Similitud = azul (Tierra); confianza = hielo; nada en naranja (solo Marte como dato).
+ */
+.metrics { display: grid; gap: 14px; min-width: 0; color: var(--text); font-size: var(--fs-13); }
+.metrics[data-busy] .metrics-summary,
+.metrics[data-busy] .metrics-meta-weight,
+.metrics[data-busy] .metrics-row-values { opacity: var(--o-busy); transition: opacity var(--dur-2) var(--ease-standard); }
+
+.metrics-num { display: inline-block; }
+.metrics-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.metrics button:focus-visible,
+.metrics summary:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+/* Cifras del lugar */
+.metrics-summary { display: grid; gap: 8px; min-width: 0; }
+.metrics-score { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.metrics-score-glyph { color: var(--earth-bright); font-size: var(--fs-13); }
+.metrics-score-value { color: var(--earth-bright); font-size: var(--fs-place); font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.metrics-score-value small { color: var(--earth-bright); font-size: var(--fs-13); font-weight: 600; }
+.metrics-score-value.is-empty { color: var(--muted); font-size: var(--fs-body); }
+.metrics-score-label { color: var(--muted); font-size: var(--fs-12); }
+.metrics-profile { margin: 0; color: var(--muted); font-size: var(--fs-min); line-height: 1.4; }
+
+.metrics-figures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; border-block: 1px solid var(--line); }
+.metrics-fig { display: grid; align-content: start; gap: 4px; min-width: 0; padding: 9px 8px 10px; border-right: 1px solid var(--line); }
+.metrics-fig:first-child { padding-left: 0; }
+.metrics-fig:last-child { border-right: 0; }
+.metrics-fig dt { color: var(--muted-2); font-size: var(--fs-min); letter-spacing: var(--caps-tracking); text-transform: uppercase; }
+.metrics-fig dd { margin: 0; color: #DCE9F1; font-size: var(--fs-13); font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.3; }
+.metrics-fig-pending { color: var(--pending); font-size: var(--fs-min); font-weight: 500; }
+.metrics-confidence-bar { display: block; height: 3px; overflow: hidden; border-radius: 3px; background: rgba(255, 255, 255, .07); }
+.metrics-confidence-bar em { display: block; height: 100%; border-radius: inherit; background: var(--confidence); opacity: .8; transform-origin: 0 50%; transition: transform var(--dur-3) var(--ease-standard); }
+.metrics-coverage { margin: 0; color: var(--muted-2); font-size: var(--fs-min); font-variant-numeric: tabular-nums; }
+
+/* S1: ‹ % › */
+.metrics-sitenav { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 6px; }
+.metrics-sitenav-score { display: grid; gap: 2px; margin: 0; text-align: center; }
+.metrics-sitenav-score strong { color: var(--earth-bright); font-size: var(--fs-metric); font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.metrics-sitenav-score small { color: var(--muted); font-size: var(--fs-min); }
+.metrics-rank { color: var(--text); font-weight: 600; }
+.metrics-figline { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 12px; margin: 0; color: var(--muted); font-size: var(--fs-min); font-variant-numeric: tabular-nums; }
+
+.metrics-step {
+  display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; padding: 0;
+  border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255, 255, 255, .04);
+  color: var(--text); cursor: pointer; font: inherit; font-size: var(--fs-body); line-height: 1;
+  transition: border-color var(--dur-1) var(--ease-standard), opacity var(--dur-1) var(--ease-standard);
+}
+.metrics-step:hover { border-color: var(--sel-line); }
+.metrics-step[aria-disabled="true"] { cursor: default; opacity: .35; }
+
+/* Estados */
+.metrics-note { margin: 0; color: var(--muted); font-size: var(--fs-min); line-height: 1.45; }
+.metrics-pending { min-height: 120px; padding: 12px; border: 1px dashed var(--line-strong); border-radius: 14px; color: var(--pending); }
+.metrics-error { padding: 10px 12px; border: 1px solid var(--error-line); border-radius: 12px; color: var(--error-text); }
+
+@media (max-width: 1099px) {
+  .metrics { font-size: var(--fs-13); }
+}
