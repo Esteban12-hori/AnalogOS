@@ -64,6 +64,20 @@
   font-weight: 600;
   line-height: 1.3;
 }
+/*
+ * El rótulo termina antes del borde derecho del área libre (riel o pantalla). --pin-x lo escribe
+ * el globo por cuadro y --inset-right viene del escenario. Se acorta con «…» la insignia
+ * «◆ coincide con…». Con hoja (<1100 px) no hay sitio: la insignia se omite y, si hace falta,
+ * se acorta el nombre. El % y el puesto no se cortan. El texto completo sigue en el nombre
+ * accesible del pin y en la tarjeta del carrusel.
+ */
+.globe-pin-label { max-width: max(96px, calc(100vw - var(--inset-right, 0px) - var(--pin-x, 0px) - 31px)); }
+.globe-pin-label > * { flex-shrink: 0; }
+.globe-pin-label > .globe-pin-badge { flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 1099px) {
+  .globe-pin-label > .globe-pin-badge { display: none; }
+  .globe-pin-label > .globe-pin-name { flex-shrink: 1; min-width: 4ch; overflow: hidden; text-overflow: ellipsis; }
+}
 /* Rótulo de ranking con línea sólida (§3.1). */
 .globe-pin-label::before { content: ''; position: absolute; top: 50%; right: 100%; width: 12px; border-top: 1px solid rgba(63, 180, 236, .7); }
 .globe-pin[data-label] .globe-pin-label, .globe-pin.is-selected .globe-pin-label, .globe-pin.is-hover .globe-pin-label, .globe-pin-button:focus-visible .globe-pin-label { display: inline-flex; }

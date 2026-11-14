@@ -1,6 +1,6 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14 20:30 America/Santiago (rediseño Explorar / Misión, integración de los incrementos 3–10)
+**Última actualización:** 2026-11-14 20:40 America/Santiago (rediseño Explorar / Misión, integración de los incrementos 3–10, cerrada)
 **Responsable del checkpoint:** Codex
 **Milestone activo:** M6 — empaquetado y entrega
 **Estado general:** producto funcional y presentable con snapshot científico v2 autenticado. NASADEM corrige el mosaico de borde y Sentinel-2 completa superficie no vegetada. Faltan acciones humanas/externas: video, URLs públicas, integrantes, capas territoriales y revisión experta.
@@ -36,6 +36,11 @@ Los 8 constructores trabajaron en paralelo según `docs/BUILD_CONTRACTS.md`. El 
   - Los obstáculos se vuelven a medir después de que el escenario aplica los márgenes asentados. Antes se medían un render antes y la franja del HUD quedaba en su posición vieja.
   - Resultado: en Misión a 1440 las etiquetas ya no tapan + − ⌂.
 - **Globo ↔ líneas** (`shell/shell.css`): si la columna de líneas va a la derecha, se oculta el rótulo del pin seleccionado, que el globo dibuja a la derecha. El nombre y el % siguen en el riel.
+- **Rótulo del pin ↔ paneles** (`features/globe/MarkerLayer.tsx`, `markers.css`):
+  - En Misión a 1440, el panel izquierdo desplaza el globo y la cola del rótulo («◆ coincide con Desierto de Atacama · Yungay») quedaba bajo el riel derecho. A 390 se cortaba en el borde de la pantalla.
+  - Ahora `applyPinFrame` escribe `--pin-x` en el mismo paso por cuadro que la posición, sin estado de React. El rótulo tiene `max-width` hasta el borde del área libre (`--inset-right`).
+  - Se acorta con «…» primero la insignia. Con hoja (<1100 px) la insignia se omite y, si hace falta, se acorta el nombre. El % y el puesto nunca se cortan.
+  - El texto completo sigue en el nombre accesible del pin y en la tarjeta del carrusel. En Explorar a 1440 el rótulo se ve entero, como antes.
 - **Composer:**
   - `matchMissionDemo` recibe `{ id, version }` del perfil cargado, como pide engine.
   - La franja «Refinar» tiene fondo sólido; antes se mezclaba con las tarjetas del carrusel.
@@ -47,6 +52,8 @@ Los 8 constructores trabajaron en paralelo según `docs/BUILD_CONTRACTS.md`. El 
 - **Bundler** (`vite.config.ts`): `codeSplitting.groups = [{ tags: ['$initial'] }]`. Todo lo que la entrada importa de forma estática va en un único chunk inicial. Sin esto, Rolldown partía la ruta crítica en ~18 `modulepreload`, incluido código diferido de analysis. Ahorro: −5,7 KB gz de JS y −0,5 KB gz de CSS. Los chunks diferidos no cambian.
 - **Empaquetador** (`scripts/package_release.py`): admite `analysis/ai-analysis.default.json` como opcional y con nombre fijo, más un test.
 - **Limpieza:** se quitaron de `liquid/` las reglas muertas `.globe-label` y `.globe-callout`.
+- **Reproducibilidad del pregenerado:** el generador de `artifacts/analysis/ai-analysis.default.json` estaba solo en `/tmp`. Ahora vive en `scripts/make_pregenerated_analysis.py` y reproduce el archivo commiteado byte a byte con `fnv1a64:a6e090bf523550de`. `features/analysis/README.md` explica cómo regenerarlo.
+- **Ramas:** las 8 ramas `build/*` se borraron con `git branch -d`, porque todas están fusionadas. Sus worktrees en `.claude/worktrees/wf_e97c78e8-41a-*` quedaron en HEAD separado, en el último commit de cada rama, y se pueden quitar con `git worktree remove`.
 
 ### Cómo ejecutarlo
 
@@ -58,9 +65,9 @@ Los 8 constructores trabajaron en paralelo según `docs/BUILD_CONTRACTS.md`. El 
 
 - `npm run test`: 56 archivos y 817 tests en verde, sin omitidos.
 - `npm run build`: verde (validate 9/9, validadores `--check`, tsc estricto, vite y prune).
-- `/tmp/claude-venv314/bin/python -m pytest -q`: PYTEST_RESULT.
+- `/tmp/claude-venv314/bin/python -m pytest -q`: 170 passed, 1 skipped. El omitido es el test opcional de NASADEM.
 - `scripts/package_release.py` contra el build integrado, con destino en `/tmp`: el ZIP incluye `analysis/ai-analysis.default.json`. `submission/` no se tocó.
-- Navegador (build servido en :4395, Chrome for Testing con GPU Metal; script `/tmp/claude-pw/integ-4395.mjs`): 34/34 comprobaciones OK.
+- Navegador (build servido en :4395, Chrome for Testing con GPU Metal; script `/tmp/claude-pw/integ-4395.mjs`): 34/34 comprobaciones OK, 21 en escritorio y 13 en móvil. Capturas en `/tmp/claude-pw/shots-4395/`. Incluye que el rótulo del pin seleccionado no pase del área libre: a 1440 en Misión termina en x = 1034 con límite 1042; a 390 en S1, en x = 382 con límite 390.
   - **1440×900:** Explorar (globo, 10 marcadores, carrusel 3 ● + 7 ◆, chip, píldora); selección (riel con 7 criterios, líneas en modo `lines`); Misión DEMO (orden del motor, un anuncio, «Tu misión», Lectura con hechos y rótulos, % del motor en el riel, etiquetas sin tapar + − ⌂); 2D con «Acercar» y vuelta con «Vista global»; 0 errores de consola.
   - **390×844 táctil:** S0 con carrusel; «Ver lista» → S1; tocar una tarjeta → S1 con métricas y una línea; Misión DEMO con anuncio; S2 «Lectura IA» con hechos; 2D y vuelta; sin scroll horizontal; 0 errores de consola.
   - Avisos previos, sin cambio: `THREE.Clock` obsoleto y preload de texturas con distinto modo de credenciales.
@@ -68,7 +75,16 @@ Los 8 constructores trabajaron en paralelo según `docs/BUILD_CONTRACTS.md`. El 
   - JS: 116,6 KB gz, contra 98,8 en `857b05f` y 101,4 en `ffd9ce0` (+17,8 KB respecto de `857b05f`).
   - CSS: 14,6 KB gz, contra 10,8 en `857b05f` (+3,8 KB).
   - Antes del ajuste del bundler eran 122,3 KB de JS y 15,1 KB de CSS.
-- Lighthouse, mediana de corridas intercaladas contra el build de `857b05f`: LIGHTHOUSE_RESULT.
+- Lighthouse 12.6, mediana de 3 corridas intercaladas contra el build de `857b05f` (`/tmp/analogos-boot-base`, servido en :4396; prefijo `INTEG3` en `/tmp/claude-lh/`):
+
+  | | Puntaje | FCP | LCP | TBT | SI |
+  |---|---|---|---|---|---|
+  | Móvil · `857b05f` | 75 | 2,0 s | 5,0 s | 172 ms | 2,9 s |
+  | Móvil · integrado | 75 | 2,1 s | 5,3 s | 196 ms | 2,8 s |
+  | Escritorio · `857b05f` | 98 | 0,4 s | 1,0 s | 24 ms | 0,8 s |
+  | Escritorio · integrado | 98 | 0,5 s | 1,1 s | 0 ms | 0,7 s |
+
+  - En móvil el LCP sube 0,3 s. El LCP es un texto: el composer, antes la pregunta del panel. Lo que sube es el «render delay» (4,56 → 4,83 s), es decir, el JS de arranque. Coincide con el exceso de JS inicial (ver pendientes).
 
 ### Decisiones nuevas
 
@@ -79,7 +95,7 @@ Los 8 constructores trabajaron en paralelo según `docs/BUILD_CONTRACTS.md`. El 
 ### Bloqueos y pendientes reales
 
 - **Presupuesto §6.1 excedido.** Cada constructor gastó una parte y la suma supera el límite:
-  - JS inicial: +17,8 KB gz contra +≤12. Sobran ~5,8 KB.
+  - JS inicial: +17,8 KB gz contra +≤12. Sobran ~5,8 KB. En Lighthouse móvil se nota como +0,3 s de LCP (5,0 → 5,3 s, mediana de 3).
   - Peso por feature en el chunk inicial:
     - places: PlaceRail + modelo, ≈ 6–8 KB;
     - composer: formulario, ≈ 5 KB;
@@ -92,7 +108,7 @@ Los 8 constructores trabajaron en paralelo según `docs/BUILD_CONTRACTS.md`. El 
 
     | Chunk | Peso (gz) | Presupuesto |
     |---|---|---|
-    | Marcadores (MarkerLayer) | 5,6 KB | ≤4 |
+    | Marcadores (MarkerLayer) | 5,7 KB | ≤4 |
     | Líneas (LeaderCanvas) | 5,1 KB | ≤4 |
     | Misión (missionRun 5,0 + MissionPanel 3,3 + motor 6,1, sin los validadores) | ≈ 14 KB | ≤8 |
     | Lectura (deferred 13,8 + lktronClient 3,2) | 17 KB | ≤10 con validadores |
@@ -105,7 +121,7 @@ Los 8 constructores trabajaron en paralelo según `docs/BUILD_CONTRACTS.md`. El 
   - `ReadingSnippet` de analysis en las tarjetas del riel de métricas (§3.6, «✦ Lectura para tu misión»).
   - `MapStage.onSelectReference`: sin ese prop, el globo escribe `ui.selection` con `kind: 'reference'`, que es lo esperado.
 - **Contenido pendiente de revisión:**
-  - El análisis pregenerado está atado a la huella del paquete base `fnv1a64:a6e090bf523550de`. Si cambian metrics, engine o el snapshot, `integration.test.ts` falla y hay que regenerar el texto. El generador está fuera del repo: `/tmp/analysis-exp/make_pregenerated.py`.
+  - El análisis pregenerado está atado a la huella del paquete base `fnv1a64:a6e090bf523550de`. Si cambian metrics, engine o el snapshot, `integration.test.ts` falla y hay que revisar el texto y regenerarlo con `scripts/make_pregenerated_analysis.py`.
   - El vocabulario DEMO y las descripciones de los presets son decisiones de producto por revisar.
   - ADR-009 necesita la aceptación del equipo científico.
 - **Sin probar en navegador:** lktron real (solo con el mock NDJSON de analysis) y VoiceOver/TalkBack (incremento 11).

@@ -62,10 +62,11 @@ VITE_LKTRON_URL=https://lktron.ejemplo.org/api npm run build
 `analysis/ai-analysis.default.json`). Redactado de antemano sobre el paquete del perfil base de
 `science-screening-v2`; se muestra solo si su huella coincide y cada evento pasa la compuerta.
 `integration.test.ts` falla si el paquete cambia (metrics, engine o snapshot): entonces hay que
-rehacer el texto y su `packet_hash`.
+revisar el texto contra el paquete nuevo y regenerarlo con su `packet_hash` usando
+`scripts/make_pregenerated_analysis.py <packet_hash> artifacts/analysis/ai-analysis.default.json`.
 
 ## Tests
 
 `*.test.ts(x)` en esta carpeta. `testSupport.ts` trae un doble FIXTURE de `buildMetricViews`;
-`integration.test.ts` usa las implementaciones reales y se salta mientras metrics o engine sean
-stubs.
+`integration.test.ts` usa las implementaciones reales de metrics y engine, y falla si alguna
+vuelve a ser un stub.

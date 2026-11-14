@@ -18,6 +18,7 @@
   - Si las líneas van a la derecha, se oculta el rótulo del pin seleccionado.
   - El DEMO recibe el id y la versión del perfil cargado.
   - La franja «Refinar» tiene fondo sólido.
+  - El rótulo del pin seleccionado termina en el borde del área libre (`--pin-x` por cuadro y `max-width`): ya no queda bajo el riel en Misión a 1440 ni se corta en el borde a 390.
 - **Bundler:** un único chunk inicial (`codeSplitting` con `$initial`): −5,7 KB gz de JS, −0,5 KB gz de CSS y ~18 `modulepreload` menos en la ruta crítica.
 - **Empaquetador:** admite `analysis/ai-analysis.default.json` (opcional, nombre fijo), con un test.
 - **Tests:**
@@ -25,9 +26,13 @@
   - Se retira el caso del composer que solo corría con el stub.
   - La integración de analysis ya no se salta sola.
 - **Limpieza:** reglas muertas `.globe-label` y `.globe-callout` en `liquid/`.
+- **Reproducibilidad:** el generador del análisis pregenerado pasa de `/tmp` a `scripts/make_pregenerated_analysis.py` y reproduce el JSON commiteado byte a byte.
+- **Ramas:** las 8 ramas `build/*` se borraron porque estaban fusionadas; sus worktrees quedaron en HEAD separado.
 - **Verificación:**
-  - 817 tests web (56 archivos), pytest en verde y build en verde.
-  - Recorrido en navegador a 1440×900 y 390×844 (Explorar, selección, Misión DEMO → Lectura, 2D y vuelta) con 0 errores de consola.
+  - 817 tests web (56 archivos), build en verde y pytest con 170 passed y 1 skipped.
+  - Recorrido en navegador a 1440×900 y 390×844 (Explorar, selección, Misión DEMO → Lectura, 2D y vuelta): 34/34 comprobaciones y 0 errores de consola.
+  - Lighthouse, mediana de 3 contra `857b05f`: en móvil el puntaje queda igual (75) y el LCP pasa de 5,0 a 5,3 s; en escritorio, 98 = 98.
+  - ZIP de entrega generado en `/tmp` con `analysis/ai-analysis.default.json`.
 - **Pendiente:** el JS inicial está +17,8 KB gz sobre `857b05f` (límite +12) y varios chunks diferidos superan su línea de §6.1. El detalle está en `project/STATUS.md`.
 
 ## 2026-11-14 Claude Code · rediseño Explorar / Misión: incrementos 0–2 y contrato del paralelo (rama feature/mision-redesign)

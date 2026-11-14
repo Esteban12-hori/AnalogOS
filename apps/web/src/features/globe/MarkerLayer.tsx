@@ -192,6 +192,9 @@ export function createGlobeMarkerRuntime(): GlobeMarkerRuntime {
 export function applyPinFrame(element: HTMLElement, frame: PinFrame): void {
   const transform = `translate3d(${frame.x.toFixed(1)}px, ${frame.y.toFixed(1)}px, 0)`
   if (element.style.transform !== transform) element.style.transform = transform
+  // El rótulo se acorta para no pasar bajo el riel ni fuera de pantalla (markers.css, max-width).
+  const pinX = `${Math.round(frame.x)}px`
+  if (element.style.getPropertyValue('--pin-x') !== pinX) element.style.setProperty('--pin-x', pinX)
   const opacity = frame.opacity >= 0.999 ? '' : frame.opacity.toFixed(3)
   if (element.style.opacity !== opacity) element.style.opacity = opacity
   setDataFlag(element, 'compact', frame.compact === true)
