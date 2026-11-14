@@ -1,0 +1,14 @@
+/* features/places · tarjeta del riel para un ◆ seleccionado (chunk diferido de ReferenceCardView). */
+.places-ref { display: grid; gap: 8px; min-width: 0; }
+.places-ref-kicker, .places-ref-facts dt, .places-ref-sources-title { margin: 0; color: var(--muted); font-family: var(--mono); font-size: var(--fs-min); letter-spacing: var(--caps-tracking); text-transform: uppercase; }
+.places-ref-kicker { font-size: var(--fs-caps); }
+.places-ref-kicker > span { color: var(--ice); }
+.places-ref-name { margin: 0; font-size: var(--fs-body); }
+.places-ref-meta { margin: 0; color: var(--muted); font-size: var(--fs-12); }
+.places-ref-facts { display: grid; gap: 3px; margin: 0; }
+.places-ref-facts dd { margin: 0 0 6px; font-size: var(--fs-13); line-height: 1.45; }
+.places-ref-facts dd.is-pending { color: var(--pending); }
+.places-ref-sources { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: var(--fs-12); }
+.places-ref-sources a { color: var(--earth-bright); }
+.places-ref-sources a:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+.places-ref-sources small { color: var(--muted); }
