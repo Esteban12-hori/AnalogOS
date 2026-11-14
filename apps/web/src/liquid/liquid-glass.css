@@ -1,0 +1,172 @@
+/* Liquid glass global.
+   Se carga después de styles.css y CandidateGlobe.css: redefine superficies, no layout.
+   Capas de cada superficie:
+   1) tinte translúcido + desenfoque del fondo (backdrop-filter),
+   2) brillo especular que sigue al cursor (--lg-x/--lg-y vía useLiquidPointer; --lg-a se anima al hover),
+   3) borde de luz iridiscente en ::after (máscara de 1px),
+   4) sombras internas: arista superior brillante y cáustica azul en la base.
+   En Chromium los controles sobre el mapa usan además refracción real (filtro SVG #lg-refract). */
+
+@property --lg-a { syntax: "<number>"; inherits: false; initial-value: 0; }
+
+:root {
+  --lg-tint-panel: rgba(9, 24, 37, .42);
+  --lg-tint-card: rgba(255, 255, 255, .035);
+  --lg-tint-float: rgba(6, 18, 28, .46);
+  --lg-blur-panel: blur(26px) saturate(1.7) brightness(1.04);
+  --lg-blur-float: blur(14px) saturate(1.8) brightness(1.1);
+  --lg-rim: linear-gradient(140deg, rgba(255, 255, 255, .55) 0%, rgba(255, 255, 255, .08) 26%, rgba(255, 255, 255, 0) 45%, rgba(63, 180, 236, .22) 70%, rgba(255, 255, 255, .32) 100%);
+  --lg-inner: inset 0 1px 1px rgba(255, 255, 255, .28), inset 0 -1px 1px rgba(255, 255, 255, .06), inset 0 -14px 24px -18px rgba(2, 151, 222, .45);
+  --lg-drop: 0 22px 50px -26px rgba(0, 0, 0, .85), 0 2px 6px rgba(0, 0, 0, .18);
+  --lg-spec: radial-gradient(220px circle at var(--lg-x, 22%) var(--lg-y, -30%), rgba(255, 255, 255, calc(.06 + var(--lg-a) * .12)), transparent 70%);
+  --lg-sheen: linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, .015));
+}
+
+/* Fondo vivo: el vidrio refracta estas manchas. */
+.lg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.lg-backdrop { position: fixed; inset: 0; z-index: -2; overflow: hidden; pointer-events: none; }
+.lg-blob { position: absolute; border-radius: 50%; will-change: transform; }
+.lg-blob-blue { width: 62vmax; height: 62vmax; left: -18vmax; top: -24vmax; background: radial-gradient(circle, rgba(2, 151, 222, .34), rgba(2, 151, 222, 0) 65%); animation: lgDriftA 38s ease-in-out infinite alternate; }
+.lg-blob-orange { width: 48vmax; height: 48vmax; right: -16vmax; top: 30vh; background: radial-gradient(circle, rgba(252, 115, 77, .2), rgba(252, 115, 77, 0) 65%); animation: lgDriftB 46s ease-in-out infinite alternate; }
+.lg-blob-deep { width: 70vmax; height: 70vmax; left: 20vw; bottom: -40vmax; background: radial-gradient(circle, rgba(3, 92, 140, .3), rgba(3, 92, 140, 0) 65%); animation: lgDriftC 52s ease-in-out infinite alternate; }
+@keyframes lgDriftA { to { transform: translate(14vw, 18vh) scale(1.12); } }
+@keyframes lgDriftB { to { transform: translate(-18vw, -14vh) scale(.9); } }
+@keyframes lgDriftC { to { transform: translate(-12vw, -10vh) scale(1.08); } }
+
+/* --- Grupos de superficie ------------------------------------------------------------------ */
+
+/* Todas las superficies: especular animable y borde de luz. */
+.glass, .candidate-card, .comparison-card, .metric, .criterion-row, .method-steps li, .two-column-notes > div,
+.warning-box, .ranking-note, .signals-empty, .detail-actions button, .fixture-pill, .view-switch, .view-note,
+.globe-label, .globe-loading, .map-legend, .map-heading > div, .offline-chip, .error-state button {
+  --lg-a: 0;
+  isolation: isolate;
+  transition: --lg-a .45s ease, border-color .25s ease, transform .3s cubic-bezier(.3, 1.4, .5, 1), box-shadow .3s ease, background-color .25s ease;
+}
+:is(.glass, .candidate-card, .comparison-card, .metric, .criterion-row, .method-steps li, .two-column-notes > div,
+.warning-box, .ranking-note, .signals-empty, .detail-actions button, .fixture-pill, .view-switch, .view-note,
+.globe-label, .globe-loading, .map-legend, .map-heading > div, .offline-chip, .error-state button):hover { --lg-a: 1; }
+
+/* Las que no tienen posición propia necesitan relative para anclar el borde. */
+.glass, .candidate-card, .comparison-card, .metric, .criterion-row, .method-steps li, .two-column-notes > div,
+.warning-box, .ranking-note, .signals-empty, .detail-actions button, .fixture-pill, .view-switch, .view-note,
+.map-heading > div, .offline-chip, .error-state button { position: relative; }
+
+.glass::after, .candidate-card::after, .comparison-card::after, .metric::after, .criterion-row::after,
+.method-steps li::after, .two-column-notes > div::after, .warning-box::after, .ranking-note::after, .signals-empty::after,
+.detail-actions button::after, .fixture-pill::after, .view-switch::after, .view-note::after, .globe-label::after,
+.globe-loading::after, .map-legend::after, .map-heading > div::after, .offline-chip::after, .error-state button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--lg-rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: calc(.7 + var(--lg-a) * .3);
+  pointer-events: none;
+}
+
+/* Paneles grandes */
+.glass {
+  border-color: rgba(255, 255, 255, .05);
+  background: var(--lg-spec), var(--lg-sheen), var(--lg-tint-panel);
+  -webkit-backdrop-filter: var(--lg-blur-panel);
+  backdrop-filter: var(--lg-blur-panel);
+  box-shadow: var(--lg-inner), var(--lg-drop);
+}
+
+/* Tarjetas dentro de paneles: sin backdrop-filter propio (el panel ya desenfoca), solo luz. */
+.candidate-card, .comparison-card, .metric, .criterion-row, .method-steps li, .two-column-notes > div, .signals-empty {
+  border-color: rgba(255, 255, 255, .04);
+  background: var(--lg-spec), var(--lg-sheen), var(--lg-tint-card);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, .16), inset 0 -10px 18px -14px rgba(2, 151, 222, .35), 0 10px 24px -18px rgba(0, 0, 0, .8);
+}
+.candidate-card:hover, .comparison-card:hover { border-color: rgba(63, 180, 236, .3); }
+
+/* Selección = gota de agua azul */
+.candidate-card.selected, .comparison-card.selected {
+  border-color: rgba(120, 205, 245, .5);
+  background:
+    var(--lg-spec),
+    radial-gradient(120% 140% at 25% 0%, rgba(255, 255, 255, .26), transparent 52%),
+    linear-gradient(150deg, rgba(2, 151, 222, .42), rgba(2, 151, 222, .1) 70%, rgba(2, 151, 222, .2));
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, .55), inset 0 -4px 12px rgba(2, 151, 222, .35), inset 0 0 0 1px rgba(255, 255, 255, .12), 0 16px 34px -16px rgba(2, 151, 222, .75);
+}
+.candidate-card.selected::before { opacity: 0; }
+
+/* Avisos: vidrio teñido de naranja */
+.warning-box, .ranking-note {
+  border-color: rgba(252, 115, 77, .18);
+  background: var(--lg-spec), linear-gradient(180deg, rgba(255, 180, 150, .08), rgba(255, 255, 255, 0) 45%), rgba(252, 115, 77, .1);
+  box-shadow: inset 0 1px 1px rgba(255, 210, 190, .25), inset 0 -12px 22px -16px rgba(252, 115, 77, .45);
+}
+.warning-box::after, .ranking-note::after {
+  background: linear-gradient(140deg, rgba(255, 220, 205, .55) 0%, rgba(255, 255, 255, .06) 30%, rgba(255, 255, 255, 0) 50%, rgba(252, 115, 77, .3) 75%, rgba(255, 220, 205, .3) 100%);
+}
+
+/* Flotantes sobre el mapa/globo y controles: desenfoque propio + refracción en Chromium. */
+.map-heading > div, .map-legend, .offline-chip, .view-switch, .view-note, .globe-label, .globe-loading, .fixture-pill, .detail-actions button {
+  border-color: rgba(255, 255, 255, .06);
+  background: var(--lg-spec), var(--lg-sheen), var(--lg-tint-float);
+  -webkit-backdrop-filter: var(--lg-blur-float);
+  backdrop-filter: var(--lg-blur-float);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, .32), inset 0 -8px 16px -12px rgba(2, 151, 222, .5), 0 12px 28px -14px rgba(0, 0, 0, .75);
+}
+.lg-refract :is(.map-heading > div, .map-legend, .offline-chip, .view-switch, .view-note, .globe-label, .detail-actions button) {
+  -webkit-backdrop-filter: url(#lg-refract) blur(3px) saturate(1.8) brightness(1.1);
+  backdrop-filter: url(#lg-refract) blur(3px) saturate(1.8) brightness(1.1);
+}
+.fixture-pill { background: var(--lg-spec), var(--lg-sheen), rgba(252, 115, 77, .16); }
+.fixture-pill::after { background: linear-gradient(140deg, rgba(255, 220, 205, .6), rgba(255, 255, 255, 0) 45%, rgba(252, 115, 77, .4)); }
+
+/* Rótulos del globo seleccionados: gota naranja */
+.globe-callout.selected .globe-label {
+  background: var(--lg-spec), radial-gradient(120% 140% at 25% 0%, rgba(255, 230, 220, .28), transparent 55%), rgba(150, 52, 26, .55);
+  box-shadow: inset 0 1px 1px rgba(255, 230, 220, .55), inset 0 -6px 12px rgba(252, 115, 77, .35), 0 0 22px rgba(252, 115, 77, .35);
+}
+
+/* Segmentos activos de los selectores: gota azul como en la navbar */
+.view-switch button[aria-pressed="true"] {
+  background: radial-gradient(120% 140% at 30% 0%, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 55%), rgba(2, 151, 222, .55);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, .9), inset 0 -2px 6px rgba(2, 151, 222, .4), inset 0 0 0 1px rgba(255, 255, 255, .35), 0 6px 16px -6px rgba(2, 151, 222, .7);
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 40, 70, .5);
+  transition: background .3s ease, box-shadow .3s ease;
+}
+
+.error-state button {
+  background: var(--lg-spec), radial-gradient(120% 140% at 30% 0%, rgba(255, 255, 255, .45), transparent 55%), rgba(2, 151, 222, .7);
+}
+
+/* Física al presionar: la superficie se comprime como una gota. */
+.candidate-card:active, .comparison-card:active, .detail-actions button:active, .view-switch button:active, .globe-label:active, .error-state button:active {
+  transform: scale(.975, .965);
+  transition-duration: .08s;
+}
+
+/* Vidrio también en el banner de estado y el topbar */
+.topbar {
+  background: var(--lg-sheen), rgba(2, 7, 10, .4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  backdrop-filter: blur(20px) saturate(1.8);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, .05), 0 10px 30px -20px rgba(0, 0, 0, .8);
+}
+
+/* El fondo detrás del vidrio es la escena, no un bloque sólido */
+body { background: var(--navy); }
+body::before { z-index: -1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-blob { animation: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass, .map-heading > div, .map-legend, .offline-chip, .view-switch, .view-note, .globe-label, .globe-loading, .fixture-pill, .detail-actions button {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background-color: var(--navy-2);
+  }
+}

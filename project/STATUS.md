@@ -12,6 +12,7 @@ Fusiona dos ramas: el globo 3D (`redesign/planeta-3d`) y el rediseño visual (`r
 - **Qué funciona:**
   - Paleta navy #02070A / azul #0297DE / naranja #FC734D con superficies de vidrio.
   - Navbar líquida (gota WebGL, fallback CSS) con scroll-spy.
+  - Liquid glass global (`apps/web/src/liquid/`): todas las superficies tienen vidrio con borde de luz, brillo que sigue al cursor y refracción SVG en Chromium; fondo con manchas de color en deriva.
   - Globo terrestre 3D (three.js, Blue Marble) con alternador a mapa SVG y fallback automático sin WebGL; huellas en azul y la zona seleccionada en naranja.
   - Sección «Señal de superficie»: BSI y NDVI mensuales Sentinel-2 2025 por sector, animados al cambiar de zona. Solo contexto: no alteran el score.
 - **Cómo ejecutarlo:** `npm run dev`, o `npm run build && npm run preview`.

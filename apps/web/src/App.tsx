@@ -5,6 +5,7 @@ import { CandidateMapView } from './components/CandidateMapView'
 import { CandidateRanking } from './components/CandidateRanking'
 import { LiquidNav, liquidIcons, type LiquidNavItem } from './components/LiquidNav'
 import { SurfaceSignals } from './components/SurfaceSignals'
+import { LiquidBackdrop, useLiquidPointer } from './liquid/LiquidGlass'
 import { loadDemoSnapshot, type DemoSnapshot } from './data/loadDemoSnapshot'
 import { rankCandidates } from './domain/scoring'
 
@@ -82,10 +83,12 @@ function App() {
   }, [loadState, selectedId])
 
   const { active, goTo } = useScrollSpy(NAV_IDS, loadState.status === 'ready')
+  useLiquidPointer()
 
   if (loadState.status === 'loading') {
     return (
       <main className="system-state">
+        <LiquidBackdrop />
         <div className="loader" />
         <p>Cargando snapshot validado…</p>
       </main>
@@ -95,6 +98,7 @@ function App() {
   if (loadState.status === 'error') {
     return (
       <main className="system-state error-state">
+        <LiquidBackdrop />
         <span>Error de datos</span>
         <h1>No pudimos abrir la demostración.</h1>
         <p>{loadState.message}</p>
@@ -107,6 +111,7 @@ function App() {
   if (!selected) {
     return (
       <main className="system-state error-state">
+        <LiquidBackdrop />
         <span>Snapshot vacío</span>
         <h1>No existen candidatos para mostrar.</h1>
         <p>Ejecuta el pipeline demo y verifica el contrato de salida.</p>
@@ -118,6 +123,7 @@ function App() {
 
   return (
     <div className="app-shell">
+      <LiquidBackdrop />
       <div className={`fixture-banner${fixtureMode ? '' : ' science-banner'}`} role="status">
         <span />
         {fixtureMode

@@ -1,5 +1,13 @@
 # Changelog de trabajo
 
+## 2026-11-14 Claude Code · liquid glass global
+
+- `liquid/liquid-glass.css` y `liquid/LiquidGlass.tsx`: el efecto deja de estar solo en la navbar y se aplica a paneles, tarjetas, métricas, criterios, avisos, chips, botones y controles sobre el globo.
+- Capas: tinte translúcido con desenfoque, brillo especular que sigue al cursor (un solo listener con rAF), borde de luz iridiscente, arista y cáustica internas, compresión al presionar.
+- Refracción real con filtro SVG en Chromium para los controles flotantes; el resto de navegadores usa solo desenfoque. Respeta `prefers-reduced-motion` y `prefers-reduced-transparency`.
+- Fondo con manchas azul/naranja en deriva lenta para que el vidrio tenga algo que refractar.
+- Capturas de `submission/assets/`, ZIP y `SHA256SUMS.txt` regenerados.
+
 ## 2026-11-14 Claude Code · rediseño liquid glass (rama redesign/liquid-glass)
 
 - Paleta nueva: navy #02070A, azul #0297DE (interacción, similitud, selección) y naranja #FC734D (advertencias, fixture, énfasis). La confianza usa un tono hielo distinto.
