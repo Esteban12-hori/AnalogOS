@@ -1,8 +1,9 @@
 name: Deploy a Vercel
 
 # Despliega con un token de la cuenta dueña del proyecto, de modo que
-# el autor del commit ya no importa (el plan Hobby bloquea commits de
-# colaboradores sin acceso cuando el deploy lo dispara la integración Git).
+# el autor del commit no importe. URLs fijas y cortas:
+#   main -> produccion -> https://analogos.vercel.app
+#   dev  -> preview    -> https://analogos-dev.vercel.app
 on:
   push:
     branches: [main, dev]
@@ -14,6 +15,7 @@ concurrency:
 env:
   VERCEL_ORG_ID: team_A583nI4RAGtbkFJEUldqWYEy
   VERCEL_PROJECT_ID: prj_212cKp3iwgPNItQuyQrPrzWbjVHJ
+  DEV_ALIAS: analogos-dev.vercel.app
 
 jobs:
   deploy:
@@ -48,4 +50,14 @@ jobs:
         run: vercel build ${{ steps.env.outputs.prod_flag }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Vercel deploy
-        run: vercel deploy --prebuilt ${{ steps.env.outputs.prod_flag }} --token=${{ secrets.VERCEL_TOKEN }}
+        id: deploy
+        run: |
+          URL=$(vercel deploy --prebuilt ${{ steps.env.outputs.prod_flag }} --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Desplegado: $URL"
+
+      - name: Alias fijo para dev
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          vercel alias set "${{ steps.deploy.outputs.url }}" "$DEV_ALIAS" --token=${{ secrets.VERCEL_TOKEN }}
+          echo "dev disponible en https://$DEV_ALIAS"
