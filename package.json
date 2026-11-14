@@ -20,7 +20,9 @@
     "build": "npm run validate && npm -w apps/web run build",
     "preview": "npm -w apps/web run preview --",
     "test": "npm -w apps/web run test",
-    "verify": "python -m pytest -q && npm run test && npm run build",
+    "typecheck:server": "tsc -p tsconfig.server.json",
+    "test:ai-live": "ANALOGOS_LIVE_AI=1 npm -w apps/web run test -- src/tests/aiLive.test.ts",
+    "verify": "python -m pytest -q && npm run typecheck:server && npm run test && npm run build",
     "release:package": "npm run build && python scripts/package_release.py"
   }
 }

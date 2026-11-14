@@ -25,7 +25,7 @@ Antes de modificar archivos, ejecuta `git status --short`, confirma la rama y pr
 
 ## Estado actual que no debes revertir
 
-- Milestone: M7, piloto de búsqueda Chile–Argentina, aceptado por Codex. Consultar NEXT_TASK antes de cualquier tarea nueva.
+- M8 aceptado localmente por Codex: recomendación guiada por prueba y sector con IA Anthropic. Ver `docs/CODEX_M8_REVIEW.md`; sin nueva asignación a Claude ni publicación remota de M8.
 - Rama de implementación: `dev`.
 - Snapshot activo: `artifacts/science-v3/`; v2 se conserva como histórico, byte a byte.
 - Perfil: `mars-rover-screening-v3`, versión `3.0.0-preliminary`; fórmulas y pesos v2.
@@ -34,7 +34,7 @@ Antes de modificar archivos, ejecuta `git status --short`, confirma la rama y pr
 - Frontend: Vite + React + TypeScript; globo three.js y mapa MapLibre del rediseño remoto, con fallback SVG local y sección auditable de búsqueda. ADR-006/007 autorizados por el equipo; piloto científico en ADR-008.
 - Ciencia: MOLA + NASADEM multitesela + Sentinel-2 L2A + inventario HLS + NASA POWER.
 - Score determinista; similitud, confianza, estabilidad y factibilidad permanecen separadas.
-- Demo static-first y offline; no backend, autenticación, IA, SAR ni perfil lunar en P0.
+- Base static-first/offline. M8 autoriza endpoint opcional de IA y servidor local mínimo (ADR-009), conservando el flujo manual offline. No autenticación nueva, SAR ni perfil lunar.
 
 ## Límites de autoridad
 

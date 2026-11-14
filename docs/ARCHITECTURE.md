@@ -114,3 +114,12 @@ apps/web/src/
 - Los artefactos validan contra los schemas.
 - La web funciona sirviendo el directorio construido sin red externa.
 - Un clon limpio puede ejecutar `npm run verify`; la prueba que reprocesa NASADEM crudo se activa únicamente cuando `data/raw/` está disponible.
+
+## M8: planificador y capa de decisión (ADR-009)
+
+- **Núcleo compartido** (`apps/web/src/mission/`, TypeScript estricto, puro y sin red): catálogo de seis métricas medidas, validación Ajv, geometría, motor determinista, explicación por selección, exportación y estado del planificador (`plannerState.ts`, el reductor que usa la UI). La UI y el servidor importan el mismo código.
+- **Contratos aditivos** en `contracts/`: `mission-request`, `mission-evaluation`, `mission-export`, `mission-ai`. Los contratos de ciencia v2/v3 no cambian.
+- **Servidor opcional** (`server/ai/`, `api/ai.ts`): handler agnóstico testeable + adaptador Node para Vercel y para el servidor local (plugin de `apps/web/vite.config.ts`). Hechos siempre desde `artifacts/science-v3` validado. Detalle y límites en `docs/AI_SETUP.md`.
+- **Motor**: críticos primero (incumplido ⇒ no cumple; desconocido o escala inadecuada ⇒ evidencia insuficiente); entre los demás se ordena por preferencias cumplidas, similitud v3 y ID. Sin porcentaje de aptitud nuevo. Geometrías: solo una ventana idéntica (épsilon 1e-9°) o elegida explícitamente hereda estadísticos; punto, subbbox y cobertura parcial no.
+- **UI** (`components/planner/`): dos entradas, pasos (describir, sector, confirmar, resultado), editor de requisitos, esquema SVG local, resultado, informe imprimible (CSS `@media print`) y exportación JSON validada. Cualquier edición invalida confirmación, resultado y llamadas de IA pendientes; las respuestas tardías se ignoran por `requestId` y huellas.
+- **Estático/offline**: nada del planificador requiere red; el ZIP no lleva función ni clave.

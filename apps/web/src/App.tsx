@@ -11,6 +11,7 @@ import { availableCountries, filterByCountry, initialSelection, splitByRole, sum
 import { formatScore } from './domain/formatting'
 import { CandidateRanking } from './components/CandidateRanking'
 import { CandidateMap } from './components/CandidateMap'
+import { PlannerPanel, type PlannerIntent } from './components/planner/PlannerPanel'
 
 type LoadState =
   | { status: 'loading' }
@@ -19,6 +20,7 @@ type LoadState =
 
 const NAV_ITEMS: LiquidNavItem[] = [
   { id: 'workspace', label: 'Explorar', icon: liquidIcons.globe, fx: 'spin' },
+  { id: 'planner', label: 'Planificar', icon: liquidIcons.planner, fx: 'glow' },
   { id: 'discovery', label: 'Búsqueda', icon: liquidIcons.ranking, fx: 'pop' },
   { id: 'signals', label: 'Señal', icon: liquidIcons.signal, fx: 'wave' },
   { id: 'comparison', label: 'Comparar', icon: liquidIcons.compare, fx: 'pop' },
@@ -93,6 +95,12 @@ function App() {
   const [selectedId, setSelectedId] = useState('')
   const [country, setCountry] = useState<CountryFilter>('all')
   const [visual, setVisual] = useState<VisualContextState>({ status: 'loading' })
+  const [intent, setIntent] = useState<PlannerIntent | null>(null)
+
+  const openPlanner = (journey: PlannerIntent['journey'], siteId?: string) => {
+    setIntent({ journey, siteId, nonce: Date.now() })
+    requestAnimationFrame(() => document.getElementById('planner')?.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }))
+  }
 
   // El contexto visual es opcional: se carga aparte y nunca bloquea ni rompe el snapshot.
   useEffect(() => {
@@ -215,7 +223,11 @@ function App() {
         <section className="hero-intro glass" aria-labelledby="hero-title">
           <span className="section-kicker">{fixtureMode ? 'Corte vertical M1' : 'Piloto Chile–Argentina'} · {snapshot.profile.name}</span>
           <h1 id="hero-title">No buscamos un lugar que “parezca Marte”.</h1>
-          <p>¿Qué zona reproduce mejor condiciones relevantes para percepción, tracción, navegación y autonomía de rover? Elige un sector en el mapa.</p>
+          <p>Prioriza qué sectores merecen reconocimiento para un ensayo de rover, con medidas regionales y verificaciones de campo pendientes. No mide tracción ni aprueba terreno. Elige un sector en el mapa o parte de tu prueba.</p>
+          <div className="hero-cta" role="group" aria-label="Empezar">
+            <button type="button" className="hero-cta-main" onClick={() => openPlanner('test')}>Definir una prueba</button>
+            <button type="button" className="hero-cta-alt" onClick={() => openPlanner('sector')}>Evaluar un sector</button>
+          </div>
         </section>
         <CandidateDetails
           key={selected.site_id}
@@ -227,12 +239,15 @@ function App() {
           precedents={snapshot.precedents}
           marsReference={snapshot.marsReference}
           visual={visual}
+          onEvaluate={(siteId) => openPlanner('sector', siteId)}
           onShowOnMap={() => {
             setMapFocus((value) => value + 1)
             window.scrollTo({ top: 0, behavior: 'smooth' })
           }}
         />
       </main>
+
+      <PlannerPanel snapshot={snapshot} intent={intent} />
 
       <section id="discovery" className="discovery-section" aria-label="Búsqueda regional y referencia">
       {summary && snapshot.search && (

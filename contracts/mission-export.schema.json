@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analogos.cl/schemas/mission-export.schema.json",
+  "title": "AnalogOS Mission Export (M8)",
+  "description": "Exportación reproducible: solicitud confirmada, reglas y versiones, snapshot, geometría pedida vs medida (dentro de evaluation.resolution), evaluación, evidencias, límites y provenance de IA si existe. Sin marcas de tiempo propias: la misma entrada produce los mismos bytes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "export_version",
+    "request",
+    "evaluation_fingerprint",
+    "rules",
+    "snapshot",
+    "evaluation",
+    "ai"
+  ],
+  "properties": {
+    "export_version": {
+      "const": "1.0.0"
+    },
+    "request": {
+      "$ref": "https://analogos.cl/schemas/mission-request.schema.json"
+    },
+    "evaluation_fingerprint": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rules_version",
+        "ordering_rule",
+        "status_definitions"
+      ],
+      "properties": {
+        "rules_version": {
+          "type": "string"
+        },
+        "ordering_rule": {
+          "type": "string"
+        },
+        "status_definitions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshot_version",
+        "profile_id",
+        "profile_version",
+        "pipeline_version",
+        "source_datasets"
+      ],
+      "properties": {
+        "snapshot_version": {
+          "type": "string"
+        },
+        "profile_id": {
+          "type": "string"
+        },
+        "profile_version": {
+          "type": "string"
+        },
+        "pipeline_version": {
+          "type": "string"
+        },
+        "source_datasets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "evaluation": {
+      "$ref": "https://analogos.cl/schemas/mission-evaluation.schema.json"
+    },
+    "ai": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "draft",
+        "explanation"
+      ],
+      "properties": {
+        "draft": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "provenance",
+                "brief_fingerprint",
+                "proposal_fingerprint",
+                "proposal",
+                "user_changes"
+              ],
+              "properties": {
+                "provenance": {
+                  "$ref": "https://analogos.cl/schemas/mission-ai.schema.json#/$defs/provenance"
+                },
+                "brief_fingerprint": {
+                  "$ref": "https://analogos.cl/schemas/mission-ai.schema.json#/$defs/fingerprint"
+                },
+                "proposal_fingerprint": {
+                  "$ref": "https://analogos.cl/schemas/mission-ai.schema.json#/$defs/fingerprint"
+                },
+                "proposal": {
+                  "$ref": "https://analogos.cl/schemas/mission-ai.schema.json#/$defs/draftProposal"
+                },
+                "user_changes": {
+                  "$ref": "https://analogos.cl/schemas/mission-ai.schema.json#/$defs/userChanges"
+                }
+              }
+            }
+          ]
+        },
+        "explanation": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "provenance",
+                "selection",
+                "request_fingerprint",
+                "evaluation_fingerprint"
+              ],
+              "properties": {
+                "provenance": {
+                  "$ref": "https://analogos.cl/schemas/mission-ai.schema.json#/$defs/provenance"
+                },
+                "selection": {
+                  "$ref": "https://analogos.cl/schemas/mission-ai.schema.json#/$defs/explanationSelection"
+                },
+                "request_fingerprint": {
+                  "$ref": "https://analogos.cl/schemas/mission-ai.schema.json#/$defs/fingerprint"
+                },
+                "evaluation_fingerprint": {
+                  "$ref": "https://analogos.cl/schemas/mission-ai.schema.json#/$defs/fingerprint"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

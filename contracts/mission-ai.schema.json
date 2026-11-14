@@ -1,0 +1,349 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analogos.cl/schemas/mission-ai.schema.json",
+  "title": "AnalogOS Mission AI contracts (M8)",
+  "description": "Salidas del modelo (acotadas), selección de explicación y registros de procedencia. La IA solo propone borradores y selecciona referencias; nunca produce hechos ni veredictos.",
+  "$defs": {
+    "draftItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric_id",
+        "label",
+        "operator",
+        "numbers",
+        "countries",
+        "unit",
+        "importance",
+        "scale",
+        "source_quote",
+        "detail"
+      ],
+      "properties": {
+        "metric_id": {
+          "enum": [
+            "median_slope_degree",
+            "terrain_roughness_meter",
+            "local_relief_meter",
+            "nonvegetated_fraction",
+            "polygon_area_km2",
+            "country",
+            "max_point_slope",
+            "rock_size",
+            "traction",
+            "loose_soil",
+            "road_access",
+            "cost",
+            "permits",
+            "operational_date",
+            "local_rain",
+            "mobile_coverage",
+            "other_unmeasured"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "operator": {
+          "enum": [
+            "<=",
+            ">=",
+            "between",
+            "in",
+            "none"
+          ]
+        },
+        "numbers": {
+          "type": "array",
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          }
+        },
+        "countries": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "string",
+            "maxLength": 8
+          }
+        },
+        "unit": {
+          "enum": [
+            "degree",
+            "meter",
+            "ratio",
+            "percent",
+            "km2",
+            "iso_alpha2",
+            "none"
+          ]
+        },
+        "importance": {
+          "enum": [
+            "critical",
+            "preference"
+          ]
+        },
+        "scale": {
+          "enum": [
+            "window",
+            "point"
+          ]
+        },
+        "source_quote": {
+          "type": "string",
+          "maxLength": 600
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 600
+        }
+      }
+    },
+    "draftOutput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "activity",
+        "target_kind",
+        "requirements",
+        "open_questions"
+      ],
+      "properties": {
+        "activity": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "target_kind": {
+          "enum": [
+            "mars_rover_terrain",
+            "other_or_unclear"
+          ]
+        },
+        "requirements": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "$ref": "#/$defs/draftItem"
+          }
+        },
+        "open_questions": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "string",
+            "maxLength": 600
+          }
+        }
+      }
+    },
+    "explanationSelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "options",
+        "verification_ids"
+      ],
+      "properties": {
+        "options": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "site_id",
+              "key_requirement_ids",
+              "evidence_ids"
+            ],
+            "properties": {
+              "site_id": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "key_requirement_ids": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "maxLength": 64
+                }
+              },
+              "evidence_ids": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "maxLength": 200
+                }
+              }
+            }
+          }
+        },
+        "verification_ids": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "model",
+        "request_id",
+        "created_at",
+        "usage",
+        "stop_reason"
+      ],
+      "properties": {
+        "provider": {
+          "const": "anthropic"
+        },
+        "model": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "request_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 100
+        },
+        "created_at": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "usage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "input_tokens",
+            "output_tokens"
+          ],
+          "properties": {
+            "input_tokens": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "output_tokens": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            }
+          }
+        },
+        "stop_reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 40
+        }
+      }
+    },
+    "draftProposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "activity",
+        "target_kind",
+        "target_profile_id",
+        "requirements",
+        "open_questions",
+        "warnings"
+      ],
+      "properties": {
+        "activity": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "target_kind": {
+          "enum": [
+            "mars_rover_terrain",
+            "other_or_unclear"
+          ]
+        },
+        "target_profile_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,63}$"
+        },
+        "requirements": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "$ref": "https://analogos.cl/schemas/mission-request.schema.json#/$defs/requirement"
+          }
+        },
+        "open_questions": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "maxLength": 300
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "string",
+            "maxLength": 400
+          }
+        }
+      }
+    },
+    "fingerprint": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "userChanges": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edited_requirement_ids",
+        "removed_requirement_ids",
+        "added_requirement_ids"
+      ],
+      "properties": {
+        "edited_requirement_ids": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "removed_requirement_ids": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "added_requirement_ids": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          }
+        }
+      }
+    }
+  }
+}

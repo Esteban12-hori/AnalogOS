@@ -1,13 +1,23 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14, integración final para `dev` (America/Santiago)
+**Última actualización:** 2026-11-14, M8 aceptado localmente (America/Santiago)
 **Responsable del checkpoint:** Codex
-**Milestone activo:** M7 — AnalogOS global, búsqueda regional Chile–Argentina, aceptado e integrado con el rediseño del equipo
+
+**Entrega M8 autorizada:** Dan pidió subir a dev y verificar la IA allí. Codex prepara commit/push y seguirá el despliegue hasta probar borrador y explicación reales. La clave se configura como GitHub Secret y se inyecta solo en runtime del deploy dev; no se incluye en build ni ZIP. Verificación previa repetida: 177 Python, 196 web, typecheck y build correctos. La aceptación local de abajo permanece como evidencia; publicación remota aún en curso.
+**Milestone activo:** M8 — implementación local aceptada; entrega remota pendiente. Claude espera nueva asignación.
 **Estado general:** producto funcional con snapshot científico v3: 50 ventanas evaluadas, seis candidatos y Yungay como referencia. Faltan capas territoriales, revisión bibliográfica completa y experta, contraste climático local y acciones de entrega humana.
 
-**Sincronización autorizada:** Dan pidió «actualiza dev». Este checkpoint integra M7 (`1302ed8`) con el rediseño remoto para su commit y push a `origin/dev`. Las secciones posteriores registran cortes históricos; la verificación vigente es la siguiente.
+**Sincronización:** M7 y el rediseño se publicaron previamente en `origin/dev`. M8 está revisado en el working tree local sobre `4d197e1`, sin commit ni push. La autorización de publicación y los cortes anteriores de abajo son históricos; la verificación vigente de M8 es la siguiente.
 
-**Publicación en dev:** integración subida y verificada en `8df83c0`. El build y deploy de Vercel terminaron correctamente, pero la CLI de alias falló al cargar el usuario («User not found»), incluso pasando el equipo en `6143142`. El paso usa ahora la API oficial de asignación de alias con `teamId`, el mismo token de Actions y validación de respuesta. Validación final mediante GitHub Actions; no altera el build ni el paquete científico.
+**Publicación anterior en dev:** integración y corrección de alias aceptadas en la base `4d197e1`. M8 no modifica workflows, autenticación ni secretos remotos; su función de IA debe verificarse al desplegarla.
+
+## M8 — aceptado por Codex, pendiente de entrega remota
+
+- Owner Codex, status accepted. Claude implementó y corrigió ambos recorridos; Codex revisó motor, contratos, IA, interfaz y paquete. Incluye editor de requisitos, sectores/coordenadas/bbox, confirmación, evaluación, detalle por criterio, informe imprimible, JSON validado y Anthropic opcional solo en servidor.
+- Verificación independiente: `npm run verify` → 177 Python, 196 web (+2 omitidas de IA real), typecheck y build; auditoría adicional 10/10. ZIP repetido idéntico, 30 entradas, 12.987.711 bytes, SHA-256 `440b295e936613eea74e43e74cd2f978defd2e8c01b72e7bedcdd359b8d2b5da`; 38 hashes de baseline intactos.
+- Probados desde navegador: borrador y explicación reales con `claude-sonnet-5-5`, JSON con procedencia, cambios de umbral/resultado, cero priorizados, punto con selección explícita de ventana, fuera de cobertura, móvil 390 px y teclado. ZIP bajo `/AnalogOS/` funciona manualmente sin API ni red externa. Captura `submission/assets/analogos-m8-review.png`.
+- Límites: función en Vercel aún no publicada/verificada; impresión nativa pendiente de inspección visual (contenido y CSS comprobados). Siete ventanas con evidencia, perfil rover/Jezero; ninguna nueva adquisición ni aprobación de terreno.
+- Informe vigente y reproducción: `docs/CODEX_M8_REVIEW.md`. Handoff histórico: `project/M8_PROGRESS.md`; configuración: `docs/AI_SETUP.md`. Vista local: `http://127.0.0.1:4187/` mientras siga activo el servidor. Claude espera nueva asignación.
 
 ## Integración revisada por Codex para dev
 

@@ -1,5 +1,33 @@
 # Changelog de trabajo
 
+## 2026-11-14 Codex — publicación M8 en dev autorizada
+
+- Dan pidió commit/push a dev y comprobación de la IA remota. Preparado despliegue con `ANTHROPIC_API_KEY` como secreto de GitHub, inyectado por `vercel deploy --env` únicamente en runtime de dev. Main y protección de Vercel se conservan.
+- Verificación previa repetida: 177 Python, 196 web (+2 pruebas opt-in omitidas), typecheck y build correctos. Se seguirá Actions y se comprobarán las dos operaciones desde la web protegida.
+
+## 2026-11-14 Codex — aceptación local de M8
+
+- Revisada la implementación de Claude y verificadas las correcciones de geometría, escala, timeout, estado de IA, exportación y presentación. Ajuste final de Codex: umbrales diminutos conservan notación científica y la etiqueta de cobertura sirve para una o siete ventanas.
+- Verificación independiente final: 177 Python, 196 web (+2 de IA real omitidas por defecto), typecheck/build; 10/10 casos adicionales de auditoría. Los 38 hashes de baseline siguen intactos.
+- Navegador: recorridos de prueba/sector, IA real de borrador y explicación, exportación con procedencia, invalidación, cero priorizados, puntos y cobertura, teclado y móvil. ZIP manual bajo `/AnalogOS/` con red externa bloqueada.
+- ZIP final determinista: 30 entradas, 12.987.711 bytes, SHA-256 `440b295e936613eea74e43e74cd2f978defd2e8c01b72e7bedcdd359b8d2b5da`; contenido cotejado con dist y sin clave. Captura `submission/assets/analogos-m8-review.png`.
+- Informe `docs/CODEX_M8_REVIEW.md`; NEXT_TASK y ADR-009 aceptados localmente. Pendientes: despliegue/prueba en Vercel e inspección visual de impresión nativa. No hay commit, push ni nueva tarea a Claude.
+
+## 2026-11-14 Claude Code · M8 revisión B (presentación)
+
+- Formateo compartido (`mission/format.ts`): unidades humanas y números es-CL en razones, tablas, confirmación e informe; JSON con unidad canónica sin cambios.
+- Confirmación con condiciones efectivas y geometría pedida; informe impreso con condición efectiva por requisito y geometría pedida/medida en texto aunque no haya opciones.
+- «Esta versión» en lugar de «M8» en textos de usuario; escala «Ventana completa (~20 km)»; hero sin promesa de tracción.
+- Verificación: 177 Python, 196 web (+2 de IA real omitidas), typecheck del servidor, build; auditoría Codex 9/9; ZIP repetido idéntico (SHA-256 `7b2b30b5…d2ec`); baseline de 38 archivos intacto. Sin llamadas de IA nuevas. Sin commit ni push.
+
+## 2026-11-14 Claude Code · M8 recomendación guiada por prueba y sector (entrega para revisión)
+
+- Corrección de la revisión de A: geometría solo con épsilon 1e-9°, timeout que cubre la lectura del cuerpo, exportación con borrador y explicación de IA separados y validada semánticamente, salida del proveedor validada con Ajv, escala/cifras ancladas al brief, «otro objetivo» no soportado. Auditoría independiente 9/9 (incluye respuesta de IA con huellas ajenas ⇒ error, y reintento fallido que conserva la procedencia).
+- Etapa B: planificador integrado (`components/planner/`), estado puro con invalidación y protección contra respuestas tardías (`mission/plannerState.ts`), esquema SVG local, resultado, informe imprimible y JSON validado; entradas en el hero y botón en la ficha.
+- Servidor opcional de IA (`server/ai/`, `api/ai.ts`) y servidor local en el plugin de Vite; contratos `mission-*`; docs `AI_SETUP`, arquitectura, producto, guía de aceptación y README.
+- Verificación: 177 Python, 196 web (+2 de IA real omitidas), typecheck del servidor, build; ZIP repetido idéntico (SHA-256 `7b2b30b5…d2ec`); baseline de 38 archivos intacto. IA real registrada en `project/M8_PROGRESS.md`.
+- Pendiente: revisión de Codex (CUA, Vercel sin publicar). Sin commit ni push.
+
 ## 2026-11-14 Claude Code · rediseño fusionado en dev
 
 - `redesign/planeta-3d` fusionada en `dev` (fast-forward) por decisión directa del equipo humano, sin revisión de Codex: liquid glass global, globo de fondo con paso a 2D, ficha flotante, desglose del score con magnitudes y series Sentinel-2.
@@ -265,3 +293,10 @@
 
 - Run 43629219568: build/deploy correctos; la CLI de alias sigue intentando cargar un usuario y devuelve 404 incluso con --scope. Sustituido ese paso por POST /v2/deployments/{hostname}/aliases?teamId=... de la API oficial, con el mismo secreto del workflow, timeout y comprobación del alias dev devuelto.
 - Referencia: https://vercel.com/docs/rest-api/aliases/assign-an-alias. No se cambian permisos, secretos ni el destino aprobado. El secreto se usa por variable de entorno y no se imprime.
+
+## 2026-11-14 Codex — encargo M8-MISSION-RECOMMENDATION
+
+- Dan autorizó convertir el producto a definición de ensayo/evaluación de sector, recomendación con datos e IA y supervisión de Claude. Proveedor seleccionado: Anthropic.
+- M7 archivado en project/tasks/M7_GLOBAL_DISCOVERY.md. NEXT_TASK asigna M8 a Claude con checkpoint de plan, criterios verificables y devolución a Codex.
+- ADR-009 autoriza capa determinista de requisitos sobre v3, Yungay como alternativa conocida, geometrías con cobertura explícita y API mínima opcional de IA. Sin nuevos datos ni perfiles; no se traslada evidencia agregada a polígonos distintos.
+- Base 4d197e1 verificada: 177 Python, 69 web, build; 38 hashes de ciencia/config/contratos en /tmp/analogos-m8-baseline-hashes.json. Publicación anterior verificada en Actions y navegador autenticado.

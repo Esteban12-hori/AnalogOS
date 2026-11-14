@@ -1,227 +1,117 @@
-# Encargo vigente — AnalogOS global, piloto Chile–Argentina
+# Encargo vigente — definir una prueba o evaluar un sector
 
 ## Estado
 
-- **Task ID:** M7-GLOBAL-DISCOVERY
+- **Task ID:** M8-MISSION-RECOMMENDATION
 - **Owner:** Codex
 - **Status:** accepted
-- **Branch:** `dev`
-- **Base commit:** `57b3a97bc13b712e98dae64ae28511fb2782c6c3`
-- **Dirección y aceptación:** Codex. Dan autorizó este cambio y su supervisión el 2026-11-14; no autorizó publicación de esta entrega.
+- **Branch:** dev
+- **Base commit:** 4d197e17893dc4eef2dc5c9771c79813c909b657
+- **Dirección, supervisión y aceptación:** Codex. Dan autorizó esta implementación el 2026-11-14 y eligió Anthropic para la IA.
+- M7 aceptado, archivado en project/tasks/M7_GLOBAL_DISCOVERY.md. La versión integrada tiene globo, MapLibre, liquid glass, series y ciencia v3: conservar el trabajo del equipo.
+- La implementación de Claude no autorizaba publicación. Tras la aceptación, Dan autorizó a Codex el 2026-11-14: «súbelo a dev y verifica que la IA funcione ahí también». Esto habilita commit/push, configuración de Anthropic para dev y verificación remota; no promoción a main.
 
-**Autorización posterior:** Dan pidió «actualiza dev» el 2026-11-14. Codex puede crear el commit e integrar/subir este checkpoint a `origin/dev`, preservando el trabajo remoto del equipo. La aceptación anterior describe el piloto antes de esa integración.
+## Resultado de producto
 
-**Integración revisada por Codex:** piloto v3 integrado con ADR-006/007 del equipo (globo, mapa 2D y ficha flotante); ADR de descubrimiento renumerado a 008. 177 Python, 69 web y build correctos; ZIP vigente de 30 entradas, SHA-256 `804184d6015440fa073e451bfea376fc9b1c9ae6b672e133094cd528ac3af12b`. Detalle vigente en STATUS y CODEX_M7_REVIEW. El encargo original y su reporte de 18 entradas quedan como históricos; la restricción inicial «sin WebGL» fue sustituida por las decisiones de rediseño aceptadas por el equipo. Claude sigue esperando una nueva asignación.
+Usuario: responsable de campaña de robótica planetaria en laboratorio, universidad o empresa. Decisión: «Para este ensayo, ¿qué sector merece reconocimiento, por qué, qué lo descarta y qué falta medir?».
 
-**Aceptación de Codex — 2026-11-14 15:33 America/Santiago.** M7 aceptado como piloto regional preliminar. Verificación independiente: 167 tests Python, 39 web y build; rebuild v2/v3 idéntico, puntuaciones y selección recalculadas, cachés sin red, ZIP determinista y demo en `/` y `/AnalogOS/`. Evidencia y límites en `docs/CODEX_M7_REVIEW.md`. Sin commit, push ni publicación. Claude queda a la espera de una nueva tarea; no ampliar regiones ni recalibrar ciencia por iniciativa propia.
+Entregar dos recorridos completos, con datos reales y asistencia opcional Anthropic:
 
-## Objetivo
+1. **Definir una prueba:** describir objetivo, revisar requisitos estructurados editables, confirmarlos, comparar opciones y exportar recomendación reproducible.
+2. **Evaluar un sector:** elegir una de las siete áreas con evidencia o introducir coordenadas/bbox; comprobar qué geometría tiene datos, aplicar la prueba y entregar evaluación o informe explícito de evidencia insuficiente.
 
-Convertir la marca visible a **AnalogOS**, con visión global y un piloto real, acotado y reproducible en Chile y Argentina. Yungay pasa a **referencia conocida**, fuera del ranking de candidatos emergentes. La entrega debe encontrar sectores mediante una búsqueda documentada, caracterizarlos con datos reales y distinguir candidatos de antecedentes publicados. No basta agregar puntos elegidos manualmente ni cambiar el mapa.
+Primer perfil científico soportado: rover marciano/Jezero. Fuera de cobertura debe completarse el diagnóstico y solicitud de datos; no fabricar una recomendación positiva ni anunciar búsqueda global en vivo.
 
-Mantener perfil de rover marciano, referencia regional de Jezero, frontend estático sin WebGL y evidencia offline. No introducir perfil lunar ni afirmar cobertura mundial ejecutada. Rotular «Piloto Chile–Argentina» y área efectivamente explorada.
+## Primer checkpoint obligatorio
 
-## Lectura y propiedad
+Leer AGENTS, CLAUDE, STATUS, ADR-001 a 009, PRODUCT_AND_SCIENCE, DATA_AND_SCORING y contratos. Confirmar rama, HEAD y cambios ajenos. Codex verificó base: 177 Python, 69 web y build; hashes en /tmp/analogos-m8-baseline-hashes.json.
 
-Leer AGENTS.md, CLAUDE.md, STATUS.md, últimos cambios, ADR-001 a ADR-005, docs/PRODUCT_AND_SCIENCE.md, DATA_AND_SCORING.md, contratos, configuración y pipelines v2. La instrucción actual autoriza las ampliaciones de candidatos, contratos y alcance que antes estaban congeladas. Conservar v2 y su perfil byte a byte como baseline histórico; crear v3.
+**Antes de editar implementación, entregar a Codex un plan compacto: archivos, requisitos/estados, resolución espacial, endpoint y pruebas. Esperar su devolución.** Se permite inspeccionar y preparar el plan/ADR. Sin subagentes ni sesiones paralelas. Mientras Claude implementa, Codex revisa sin editar su alcance.
 
-Codex ya comprobó la línea base: 119 pruebas Python, 24 web y build verdes. El árbol estaba limpio en dev. Mientras Claude implemente, Codex revisará sin editar su alcance. No subagentes ni sesiones paralelas de implementación.
+## 1. Experiencia
 
-## Primer checkpoint de supervisión
+- Entrada principal «Definir una prueba» / «Evaluar un sector», explicación del problema y ejemplo. Conservar explorador, búsqueda v3, comparación y método.
+- Flujo progresivo accesible en escritorio, móvil y teclado, integrado en diseño existente. No forzar recorrer fichas largas para comenzar.
+- Brief máximo 3000 caracteres, actividad, destino/referencia, requisitos. Un solo perfil realmente soportado, sin perfiles ficticios para llenar selectores.
+- Requisitos medibles disponibles: mediana de pendiente regional (grados), rugosidad mediana (m), relieve (m), fracción no vegetada (% o 0–1 con conversión explícita), área del polígono completo (~km²), países. Cada uno: operador/rango, unidad, imprescindible o preferencia. Mostrar pocos al inicio y más detalle opcional.
+- Máxima pendiente puntual del rover, tamaño de roca, tracción, suelo suelto, carretera, coste, permisos, fecha operativa, lluvia local y cobertura móvil no están medidos. Conservar estos pedidos como no evaluables; no reinterpretarlos silenciosamente como una métrica disponible.
+- Requisito guarda origen usuario/IA, escala y confirmación. Mostrar lo no estructurado del brief como preguntas/pendientes. Usuario confirma/edita antes de evaluar; ninguna restricción oculta o descartada en silencio.
+- Cambiar brief/requisitos/sector invalida resultados previos. Cancelar/ignorar respuestas tardías mediante fingerprint o request ID. No mezclar dos solicitudes.
+- Mantener texto al volver. Sin almacenar briefs en logs/backend. Persistencia local solo si se explica y permite borrar.
 
-Antes de consultas nuevas masivas o de implementar la UI, entregar en el chat un plan compacto: archivos, configuración de búsqueda, número máximo de ventanas/peticiones, extensiones de contratos y tratamiento de referencias/novedad. Puedes preparar código de búsqueda y bibliografía mientras Codex revisa. Si propones cambiar fórmula, pesos, umbrales de ciencia, datasets o regiones fuera de lo autorizado, espera decisión concreta de Codex.
+## 2. Motor verificable
 
-## 1. Búsqueda reproducible, no una lista manual
+- Módulo puro y contratos aditivos de solicitud/evaluación. Ciencia v2/v3 byte a byte intacta; sin modificar pesos, tolerancias, quality ni perfiles científicos.
+- La IA no elige pesos/score/veredicto. Requisitos del usuario son condiciones de su ensayo, no estándares NASA.
+- Requisitos críticos primero: incumplimiento observado => incompatible; faltante/escala inadecuada => evidencia insuficiente. Un score alto no compensa bloqueos ni desconocidos.
+- Entre opciones con críticos evaluables cumplidos, ordenar por preferencias satisfechas y luego similitud v3, desempate estable por ID. Documentar orden. Sin nuevo porcentaje de aptitud. Preferencias desconocidas conservan comparabilidad parcial, no equivalen a cero ni prueban dominancia.
+- Estados: priorizado para reconocimiento, no cumple requisitos, evidencia insuficiente, objetivo no soportado. Factibilidad territorial independiente y pendiente. Es válido no recomendar ninguno.
+- Por opción: requisito, valor/unidad, cumple/no cumple/no evaluable, razón, fuente/evidence_id y escala/periodo; similitud/confianza originales rotuladas. Incluir límites, verificaciones de campo y qué evidencia cambiaría la decisión.
+- Área es extensión del polígono, no hectáreas libres. SCL no prueba tracción/mineralogía. POWER contextual no aprueba lluvia local ni pronósticos.
+- Yungay evaluable como alternativa conocida, rol referencia visible. No modificar ranking M7 ni aplicar su exclusión de antecedentes al problema de seleccionar campaña.
+- Exportación JSON validada con solicitud confirmada, reglas/versiones, snapshot/perfil, geometría pedida vs medida, evaluación, evidencias, límites y provenance IA cuando exista. Informe legible imprimible (CSS print basta).
 
-Crear configuración versionada de un experimento regional. Propuesta inicial autorizada en CRS84 [oeste,sur,este,norte]:
+## 3. Geometría y cobertura
 
-- Chile, interior de Antofagasta: `[-70.0, -25.5, -69.0, -24.5]`.
-- Argentina, Puna de Catamarca/Salta: `[-67.8, -26.5, -66.8, -25.5]`.
-- Rejilla regular de ventanas no solapadas de 0,2°: 25 por región, 50 en total. Centros derivados algorítmicamente de origen/paso, IDs estables; geometría no dibujada a mano. Documentar estas regiones como selección de prueba, no muestra representativa nacional. Verificar geografía y extensión antes de ejecutar; proponer corrección si falla.
-- Las ventanas no tienen la misma área física: calcular área real y documentar tamaño ~20 km. No llamarlas rejilla de 5 km.
-- Etapa 1: NASADEM multitesela a la escala v2/MOLA, cobertura válida, agua SWB y métricas topográficas por las 50 ventanas. Cachear tiles, no descargarlos por ventana. Excluir de shortlist falta de cobertura (<95 %), agua permanente >5 %, o superposición con referencias documentadas. Mantener registro de cada rechazo. No considerar las restricciones territoriales no evaluadas como resueltas.
-- Orden de preselección: media geométrica de similitudes de pendiente/rugosidad/relieve con pesos relativos v2 0,20/0,20/0,15; nombrarlo **prioridad topográfica**, nunca score final ni confianza final. Desempate por ID. No relajar el mínimo 0,70 del score multifuente para aceptar esta etapa.
-- Diversificación determinista: hasta tres ventanas por país, con centros separados al menos 25 km (distancia geodésica, criterio versionado). Guardar también descartes por proximidad. Si hay menos candidatos elegibles, mostrarlo; nunca forzar resultados ni elegir a mano para mejorar el relato.
-- Etapa 2: caracterizar esas seis ventanas como máximo con NASADEM + Sentinel-2 mensual 2025 + POWER, usando fórmulas y pesos v2. Mantener geología sin calibrar. HLS sigue inventario, sin usar sus píxeles en score. Guardar cada intento fallido y NoData; no sustituir faltantes por datos ficticios.
-- Reutilizar referencia Yungay con misma geometría/métricas/evidencia v2 y recalcularla mediante mismas reglas si se incluye en v3: debe conservar los valores numéricos de baseline. Documentar que la ventana de screening no es el perímetro exacto de cada campaña histórica.
-- Procesar primero preselección y luego fuentes más costosas. Límite inicial: 50 ventanas topográficas, hasta 6 ventanas multifuente nuevas, hasta 20 tiles NASADEM adicionales, hasta 6 imágenes RGB nuevas. Reintentos acotados y caché reanudable, sin barridos extra si una API falla. Reportar bloqueo temprano.
+- Seleccionar siete sectores desde lista/mapa/ficha con país y polígono visibles. Coordenadas y bbox como alternativa accesible; dibujo de rectángulo opcional sin librería nueva si no es necesaria.
+- Validar rangos, orden lon/lat, finitud, bbox y tamaño. Punto dentro de área: «hay evidencia de esta ventana, no del punto exacto», y selección explícita de esa ventana antes de evaluarla. Resolver múltiples coincidencias.
+- Subpolígono o cobertura parcial NO heredan métricas agregadas del polígono completo. Informar cobertura/evidencia faltante; ofrecer evaluar la ventana completa solo por acción explícita.
+- Fuera de piloto: sin evidencia suficiente y solicitud exportable con bbox/requisitos/fuentes previstas. Sin vecino más cercano, fake loading ni consultas satelitales simuladas. No adquisiciones nuevas en M8.
 
-La revisión debe poder reconstruir por qué cada ventana fue evaluada, descartada o seleccionada. Guardar config, métricas de todas las ventanas, ranking preliminar, razones, shortlist, timestamps de adquisición reales y hashes. El área explorada y el número evaluado deben verse en la demo y exportación.
+## 4. Anthropic real y opcional
 
-## 2. Antecedentes y referencia Yungay
+- Proveedor elegido por Dan. Aún no hay clave al asignar; Codex prepara entrada local segura. No leer/imprimir secretos ni pedirlos por chat. Solo entorno/.env ignorado consumido por programa.
+- Dos operaciones: extraer borrador del brief y explicar evaluación calculada. Contexto limitado al catálogo/evidencias suministrados. Sin herramientas, shell, navegación arbitraria, datos externos libres ni agentes.
+- `ANTHROPIC_API_KEY` y `ANTHROPIC_MODEL` solo servidor; modelo configurable y soportado (comprobar docs/cuenta). Host oficial fijo, sin URL arbitraria del cliente.
+- JSON Schema y validación sintáctica/semántica; manejar negativa, salida truncada, citas/IDs ajenos, errores y timeout. Structured outputs no admite citas nativas: usar evidence IDs validados y enlaces aportados por app.
+- El servidor obtiene hechos/scores de artefactos versionados y solicitud validada, no del navegador. Rechazar IDs/fuentes ajenos. La IA nunca cambia el motor ni resultados. Mostrar interpretación separada de métricas.
+- No presentar narración que contradiga los bloqueos; puede seleccionar razones/referencias estructuradas para que el renderizador conserve los hechos. Respaldo determinista siempre rotulado como tal, sin simular IA.
+- Endpoint mínimo `api/` Vercel Node, lógica separada testeable y servidor local equivalente con proxy Vite. Sin DB ni login nuevo. Ningún secreto en VITE_, bundle, ZIP, prompt, respuesta o log.
+- POST/content type, tamaño de cuerpo/brief, timeout, tokens de salida acotados, origen permitido local/preview explícito, llamadas por botón y bloqueo durante llamada, errores sanitizados, protección básica de frecuencia documentada como no distribuida. No generación general abierta.
+- Explicar junto al botón que el texto se envía a Anthropic. El camino manual no transmite datos.
+- Sin clave/offline/proveedor caído: recorrido manual y recomendación funcionan, IA no disponible. Nunca atribuir plantilla o mock a IA real.
+- Para aceptar integración real: un borrador y una explicación con entradas inocuas, registrar modelo/fecha/request ID/uso sin secretos. Si no está la clave, informar bloqueo específico, no afirmar éxito por mocks.
 
-Crear catálogo versionado y revisado de antecedentes, con fuentes, fecha de revisión, coordenadas/geometría cuando la publicación las dé, precisión espacial y actividad probada. Sin coordenadas inventadas ni asignar el punto de un pueblo al área científica.
+## 5. Alcance técnico autorizado
 
-Fuentes iniciales contrastadas por Codex:
+Nuevos contratos/módulo decisión/IA, planificador, App/mapa/fichas, API/local server/proxy, scripts de pruebas, `.env.example`, ADR-009, documentación de producto/arquitectura/presentación. Dependencias mínimas justificadas en checkpoint. Adaptar empaquetador solo con lista explícita de nuevos assets; conservar controles.
 
-- Desafío: https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/
-- NASA, Hyperion en Atacama en 2003 y Zoë posteriormente: https://astrobiology.nasa.gov/news/dry-signs-of-life/ (no prueba ocupación continua del mismo polígono de Yungay).
-- Navarro-González et al. 2003: https://pubmed.ncbi.nlm.nih.gov/14605363/ ; fuente con coordenadas de muestreo: https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/2010JE003599
-- María Elena South, 2015: https://enviromicro-journals.onlinelibrary.wiley.com/doi/abs/10.1111/1758-2229.12261 (no asumir que coincide con Pampa María Elena de v2).
-- Argentina también tiene antecedentes: https://bicyt.conicet.gov.ar/fichas/produccion/12391989 y https://tecno.unca.edu.ar/la-puna-catamarquena-un-sitio-con-similitudes-al-planeta-martela-puna-catamarquena-un-sitio/ (Campo de Piedra Pómez, Dunas Blancas, Carachi Pampa y entorno de Antofagasta de la Sierra).
+Sin tocar datos científicos v2/v3, configs de ciencia, datos crudos, credenciales, protección/auth Vercel, workflows de deploy, remotos ni rediseño ajeno. Sin nuevas regiones, pesos, perfiles científicos, SAR, ML entrenado, documentos privados ni barridos en vivo.
 
-Revisar fuentes primarias y bibliografía para las zonas finalmente seleccionadas; registrar búsquedas/fecha/alcance y hallazgos. Si un área de estudio publicado es más extensa que un punto, no usar solo distancia al punto para declarar independencia. Separar relación espacial exacta, proximidad y región con antecedentes. La ausencia de coincidencia en un catálogo incompleto NO prueba novedad.
+Esta asignación autoriza explícitamente la extensión al antiguo «sin IA/backend». ZIP portable manual; servidor/clave se documentan aparte. No prometer IA offline ni IA disponible sin servicio configurado.
 
-Estados sugeridos: `known_reference`, `known_analogue_overlap`, `regional_precedent`, `literature_review_pending`, `no_match_in_reviewed_sources`. Separar rol del sitio (`reference` / `candidate`) de estado de revisión bibliográfica. Yungay siempre referencia conocida. Un resultado de búsqueda con antecedente debe conservarlo; no ocultarlo para fingir descubrimientos. No ajustar pesos para hacer ganar nuevos candidatos ni afirmar validación científica porque Yungay puntúe alto.
+## 6. Aceptación y entrega
 
-## 3. Snapshot v3 y contratos
+1. Brief -> requisitos editables -> confirmación -> recomendación/exportación; editar invalida resultados. Requisito medible cambia selección, crítico imposible deja cero; no evaluable nunca aprueba.
+2. Objetivos no soportados, pendiente puntual/tracción y preferencias desconocidas conservan límites. Yungay referencia evaluable, Chile/Argentina correctos.
+3. Sectores existentes, punto dentro/fuera, bbox parcial/subpolígono, coordenadas inválidas y salida sin evidencia; sin trasladar métricas a otra geometría.
+4. IA: borrador/explicación reales, sin clave, timeout, negativa, JSON truncado, IDs/citas inventados, texto adversarial y respuestas tardías. Sin red real en tests automatizados por defecto.
+5. Endpoint no confía en hechos cliente, secretos no filtrados, errores sanitizados, restricciones acotadas. Añadir pruebas servidor al comando verify.
+6. `source .venv/bin/activate && npm run verify`; `npm run release:package`; checksum, ZIP repetido idéntico y baseline científico intacto.
+7. Navegador escritorio/móvil, teclado, errores, ambos recorridos, exportación, sin WebGL y modo manual offline; ZIP bajo /AnalogOS/. Codex revisará independientemente.
+8. Actualizar STATUS, CHANGELOG y NEXT_TASK a Owner Codex / Status review. Reportar archivos, tests, pruebas reales IA, límites y comandos exactos. No autoaceptar, commit ni push.
 
-- Crear `artifacts/science-v3/`, configuración de búsqueda y perfil v3 derivado de v2 con mismos pesos/fórmulas/tolerancias. Versionar nueva procedencia y alcance; no mutar archivos científicos v2.
-- Ampliar IDs más allá de `cl-` (prefijo de país coherente y validado, al menos `cl`/`ar`) y añadir metadata tipada de país, rol, origen de búsqueda y revisión bibliográfica. Preferir extensión aditiva compatible con snapshots históricos; validar estrictamente requisitos extra de v3. No colar campos sin contrato.
-- Referencias separadas del ranking de candidatos, pero comparables y exportables con su rol y fuente. No omitir su estado en exportaciones.
-- Manifiesto real de todos los datos, perfil/snapshot sincronizados, métricas y fuentes enlazadas, rechazos y limitaciones explícitos. Guardar timestamps reales, no copiar la fecha de adquisición v2 a datos nuevos.
-- Generalizar autoridades/advertencias por país. No atribuir IDE Chile a Argentina. Mantener áreas sensibles, urbano, propiedad y acceso como pendientes cuando no hay cruce oficial. Puedes integrar una capa oficial verificable si resulta pequeña y necesaria; documentar versión/fecha y no inferir permisos. No inventar datos de límites ni declarar «libre» por ausencia de datos.
-- Corregir en el camino supuestos de calidad que darían confianza falsa a nuevos datos (p. ej. contar 12 meses esperados aunque API devuelva menos, exclusión de NoData), con regresión y sin alterar arbitrariamente calidades/pesos. Si cambia baseline numérica, informar antes de aceptarlo.
+Después de M8: adquisición para geometrías nuevas, territorio y perfiles adicionales, tras validar esta experiencia con usuarios. No iniciar esas tareas automáticamente.
 
-## 4. Aplicación AnalogOS
+## Entrega de Claude (2026-11-14) — para revisión de Codex
 
-- Marca visible «AnalogOS»; subtítulo «Exploración de análogos planetarios · Piloto Chile–Argentina». No renombrar carpeta, remoto, paquetes ni hosting por cosmética.
-- Mapa SVG offline adaptable con ambos países y encuadre útil de las regiones; contornos reales con atribución, sin dibujar países a mano. Países como contexto geográfico, no autoridad legal.
-- Separar visualmente «Candidatos de la búsqueda» de «Referencia conocida: Yungay». Filtro país, ficha, comparación y exportación deben funcionar con ambos roles. El primer seleccionado debe ser candidato, salvo que no los haya; estado vacío honesto.
-- Mostrar extensión y límites de búsqueda, conteos, criterio de preselección, evidencia de antecedentes y estado de revisión. No prometer búsqueda global completa ni análogos nuevos confirmados.
-- Contexto RGB real offline de los seleccionados, con pipeline visual parametrizable y validación ligada a snapshot/config. Preservar paquete visual v2. Fuentes/periodo/NoData y ausencia de imagen deben seguir siendo claros.
-- Mantener contraste, teclado y móvil. Evitar redesign no necesario.
+Etapas A (corregida según la revisión) y B implementadas; ver `project/M8_PROGRESS.md` (archivos, pruebas, IA real, límites) y `docs/AI_SETUP.md`. No autoaceptada: sin commit ni push. Pendiente de Codex: CUA de escritorio/móvil/teclado/impresión, revisión de Vercel sin publicar y decisión de aceptación.
 
-## 5. Entrega y comprobaciones
 
-Ampliar empaquetador a v3 con lista explícita derivada de metadata validada (no glob permisivo), rutas seguras, hashes, sin v2/demo sobrantes ni secretos, y conservando rollback y ZIP determinista. Conservar ZIP v2 histórico; nuevo entregable `submission/analogos-static.zip` con checksum propio. Actualizar narrativa activa de README, docs de producto/ciencia, submission/pitch/guion/atribuciones/checklist y capturas si cambió UI; no reescribir historia de ADR anteriores. Crear ADR-008 como proposed y reporte de búsqueda/bibliografía.
+## Devolución Codex — revisión de interfaz (2026-11-14)
 
-Pruebas necesarias: rejilla y límites; distancias y empate reproducibles; NoData/agua; selección sin intervención manual; separación rol/revisión bibliográfica; exclusión de referencias del ranking; contratos cl/ar e históricos; fuentes/autoridades por país; cobertura temporal incompleta; generación v3 reproducible; exportación conserva rol/origen; mapa y filtros; archivo visual ausente o inválido; empaquetado seguro sin extras y determinista. No inflar tests espejando implementación.
+La implementación aún no está aceptada. Auditoría independiente: 9/9; navegador confirma flujo manual, cero priorizados con crítico imposible, IA real de explicación, exportación JSON, invalidación al editar, punto con selección explícita, fuera de cobertura y móvil 390 px.
 
-Comandos mínimos:
+Claude debe aplicar los puntos 3 a 6 de `/tmp/analogos-m8-review-B.txt` (1 y 2 ya corregidos): informe impreso autosuficiente con umbrales/unidades/escala y geometría pedida/medida explícitas; confirmación con valores reales editados; unidades humanas en interfaz; retirar «M8» del texto del usuario y etiqueta de escala incorrecta para área/país. Ajustar texto hero para no sugerir que se mide tracción. Mantener ciencia intacta. Volver a status review / Owner Codex tras verificación proporcional, build y ZIP determinista. Sin commit/push.
 
-```bash
-source .venv/bin/activate
-# Documentar comandos nuevos exactos: descubrimiento, fetch acotado, build v3, imágenes.
-npm run verify
-npm run release:package
-# Verificar checksum del nuevo ZIP, repetir empaquetado, comparar bytes.
-git diff --check
-git status --short
-```
+### Revisión B aplicada (2026-11-14)
 
-Codex repetirá verificaciones y auditará resultados de búsqueda, al menos un candidato de cada país, referencias, fuentes, imágenes y demo en `/` y `/AnalogOS/`. Mostrar resultado aunque sea negativo. Los tests verdes validan software, no equivalencia planetaria ni aptitud de campo.
+Puntos 3–6 de `/tmp/analogos-m8-review-B.txt` aplicados (formateo humano, confirmación con condiciones efectivas, informe impreso autosuficiente, microcopia «Esta versión», escala genérica y hero). Detalle en `project/M8_PROGRESS.md`. Sin commit ni push; no autoaceptada.
 
-## Archivos y autoridad
+## Aceptación final de Codex (2026-11-14)
 
-Autorizados: nuevos config/contratos/pipelines/artifacts v3/contornos y visuales v3; cambios necesarios en pipelines existentes con compatibilidad v2, tests, apps/web, scripts/packaging, docs, submission y project. Dependencias existentes primero; justificar necesidad antes de añadir nuevas. No .env leído por herramientas, no imprimir secretos. Usar credenciales existentes solo desde programa y endpoints oficiales de Earthdata/Copernicus; límites anteriores. Red de lectura para fuentes primarias autorizada. No AGENTS/CLAUDE, cuentas, remotos, .vercel, main, commits, push ni publicación.
+Implementación local aceptada tras revisión independiente: 177 Python, 196 web (+2 pruebas reales omitidas por defecto), typecheck/build, auditoría adicional 10/10, IA real desde navegador, escritorio/móvil, geometría, exportaciones y ZIP estático sin servicio de IA. Los 38 hashes de baseline siguen intactos. Corrección final de formato para umbrales diminutos incluida y verificada.
 
-Entregar reporte con archivos, comandos, conteos por etapa, resultados por país, evidencia bibliográfica, fallos/NoData, tamaño ZIP, limitaciones y datos crudos no versionados. Actualizar STATUS/CHANGELOG/BACKLOG. Dejar **Owner: Codex / Status: review**; solo Codex acepta.
+Informe vigente: `docs/CODEX_M8_REVIEW.md`. ZIP final: 30 entradas, 12.987.711 bytes, SHA-256 `440b295e936613eea74e43e74cd2f978defd2e8c01b72e7bedcdd359b8d2b5da`. Los apartados de entrega/devolución anteriores son históricos.
 
-## Reporte de Claude
-
-Entregado en `review` el 2026-11-14 a las 15:27 (America/Santiago). Solo Codex acepta. Sin commit, push ni publicación.
-
-### Decisiones del checkpoint aprobadas por Codex
-
-1. `status: reference` además de `role` para la referencia.
-2. Completitud Sentinel-2 contra los 12 meses configurados.
-3. Calidad topográfica multiplicada por la cobertura NASADEM válida.
-4. 25 km al centro como heurística explícita de cercanía, no perímetro del estudio ni prueba de novedad.
-
-Geografía autorizada como piloto limitado. Quedan anotadas en ADR-008.
-
-### Conteos por etapa
-
-| Etapa | Resultado |
-|---|---|
-| Ventanas intentadas / evaluadas | 50 / 50 |
-| Rechazadas por cobertura, agua o fallo de datos | 0 |
-| Excluidas por contener coordenadas de muestreo publicadas | 4 |
-| Descartadas por cercanía | 2 |
-| Elegibles fuera del cupo | 38 |
-| Preseleccionadas (etapa 2 completa) | 6 |
-| Meses Sentinel-2 rechazados / fallos de API | 0 / 0 |
-
-Uso de red frente a los límites: 7 teselas NASADEM nuevas de 20; 6 ventanas multifuente de 6; 6 imágenes RGB nuevas de 6 (Yungay se reutilizó del paquete v2). Además, 7 búsquedas CMR de teselas, 6 inventarios HLS, 6 consultas POWER y 1 descarga de contornos Natural Earth.
-
-### Resultados por país
-
-| Rol | Sitio | Prioridad topográfica | Similitud | Confianza | Estabilidad |
-|---|---|---:|---:|---:|---:|
-| Candidato | `cl-win-s2500-w06970` | 98,01 | 94,87 | 77,45 | 99,33 |
-| Candidato | `cl-win-s2480-w06950` | 96,16 | 91,87 | 77,45 | 99,03 |
-| Candidato | `cl-win-s2520-w06950` | 93,58 | 90,35 | 77,36 | 99,08 |
-| Candidato | `ar-win-s2620-w06750` | 86,07 | 63,85 | 77,00 | 95,88 |
-| Candidato | `ar-win-s2640-w06730` | 64,53 | 53,68 | 77,25 | 96,81 |
-| Candidato | `ar-win-s2580-w06710` | 59,26 | 49,43 | 77,40 | 96,81 |
-| Referencia | `cl-pampa-yungay-screening` | 66,40 | 75,67 | 77,45 | 99,03 |
-
-Los seis scores coinciden con el cálculo independiente de Codex. Yungay conserva exactamente los valores v2 (test dedicado). Todos quedan en `requires_review`.
-
-### Evidencia bibliográfica
-
-- Catálogo `config/analog_precedents_v1.json`: 6 antecedentes, 30 coordenadas transcritas del material suplementario de Navarro-González et al. (2003), 3 búsquedas dirigidas con fecha, alcance y hallazgo.
-- 17 coordenadas caen en la ventana de Yungay y 5 en la región chilena, en las 4 ventanas excluidas.
-- Las fuentes argentinas revisadas no dan coordenadas; no se asignó ninguna a los topónimos.
-- Los seis candidatos quedan como `regional_precedent`. Ninguno se declara nuevo.
-- No se pudo abrir el artículo de JGR 2010 ni el registro ADS del estudio de Icarus 2020 (pidió verificación humana, que no se intentó sortear).
-
-### Archivos propios
-
-- Configuración: `config/discovery_search_v3.json`, `config/analog_precedents_v1.json`, `config/visual_observations_v3.json`, `config/mission_profiles/mars-rover-screening-v3.json`.
-- Contratos: `contracts/candidate-site.schema.json` (extensión aditiva), `contracts/discovery-search.schema.json`, `contracts/precedent-catalog.schema.json`.
-- Pipelines: `discover_candidates.py`, `fetch_discovery_data.py`, `build_discovery_snapshot.py`, `build_context_outline.py`; cambios compatibles en `build_precision_snapshot.py` (`score_inputs`, `TerrainDataError`, `expected_intervals`) y `fetch_visual_context.py` (`--snapshot v3`, reutilización, `post_json`).
-- Artefactos: `artifacts/science-v3/` (7 archivos) y `artifacts/visual-context-v3/` (índice y 7 PNG).
-- Web: `App.tsx`, `index.html`, `styles.css`, `components/CandidateMap.tsx`, `CandidateRanking.tsx`, `CandidateComparison.tsx`, `CandidateDetails.tsx`, `data/loadDemoSnapshot.ts`, `data/loadVisualContext.ts`, `domain/contracts.ts`, nuevo `domain/discovery.ts`, `scripts/prune-build.mjs`, tests `discovery.test.tsx` y `visualContext.test.tsx`.
-- Entrega: `scripts/package_release.py`, `tests/test_release_package.py`, `submission/analogos-static.zip`, `submission/analogos-static.zip.sha256`, `submission/assets/analogos-pilot-overview.jpg`, `package.json` (scripts `discovery:*`).
-- Tests: `tests/test_discovery.py`.
-- Documentación: ADR-008, `docs/DISCOVERY_REPORT.md`, `docs/VISUAL_REVIEW.md`, `docs/PRODUCT_AND_SCIENCE.md`, `docs/DATA_AND_SCORING.md`, `README.md`, y en `submission/`: `README.md`, `PROJECT_PAGE_ES.md`, `PROJECT_PAGE_EN.md`, `PITCH_3_MIN_ES.md`, `DEMO_SCRIPT_2_MIN_ES.md`, `METHODOLOGY.md`, `RESULTS_AND_LIMITATIONS.md`, `ATTRIBUTIONS.md`, `JUDGING_CHECKLIST.md`, `VIDEO_SHOT_LIST.md`.
-- Proyecto: `NEXT_TASK.md`, `STATUS.md`, `CHANGELOG.md`, `BACKLOG.md`.
-- No se tocaron `AGENTS.md`, `CLAUDE.md`, remotos, ramas, `.vercel` ni `vercel.json`.
-
-### Comandos y resultados
-
-```bash
-source .venv/bin/activate
-python -m pipelines.fetch_discovery_data --stage tiles     # 7 teselas nuevas
-python -m pipelines.discover_candidates                    # 50 ventanas, 6 preseleccionadas
-python -m pipelines.fetch_discovery_data --stage sources   # 6 × Sentinel-2, POWER y HLS
-python -m pipelines.build_context_outline
-python -m pipelines.build_discovery_snapshot
-python -m pipelines.fetch_visual_context --snapshot v3     # 6 imágenes nuevas; ahora reutiliza sin red
-npm run verify
-npm run release:package
-(cd submission && shasum -a 256 -c analogos-static.zip.sha256)
-git diff --check
-git status --short
-```
-
-| Comprobación | Resultado |
-|---|---|
-| `npm run verify` | 167 tests Python, 39 tests web, contratos + TypeScript + Vite verdes |
-| `npm run release:package` | sha256 `3b419d770f1a1dce5e01f7345aaafef3f33ca18df4d2f73e6d3fb8c7c9853415` |
-| Segundo empaquetado | bytes idénticos (`cmp`) |
-| ZIP v3 | 18 archivos, 9.012.267 bytes: `index.html`, JS, CSS, 7 de `science-v3/`, índice visual y 7 PNG |
-| ZIP v2 y `SHA256SUMS.txt` | intactos; `shasum -c` OK |
-| `git diff --quiet HEAD` sobre v2, demo, v1, paquete visual v2 y perfil v2 | código 0 |
-| Rebuild v2 en carpeta temporal | idéntico byte a byte en sus 5 archivos |
-| `git diff --check` | limpio |
-| Demo por HTTP en `/AnalogOS/` (Chrome sin interfaz) | 7 tarjetas, 50 ventanas, imagen local; todo responde 200 salvo `favicon.ico` |
-
-Tests nuevos: 37 en `tests/test_discovery.py` y 15 en `discovery.test.tsx`, que cubren rejilla y límites, distancias y empates, NoData y agua, selección sin intervención, fallos por ventana, relaciones con antecedentes, separación rol/revisión, referencia fuera del ranking, contratos `cl`/`ar` e históricos, autoridades por país, cobertura temporal incompleta, filas mal formadas, POWER, identidad de petición, reproducibilidad v3, experimento negativo, exportación, mapa, filtros y paquete visual.
-
-### Fallos y NoData
-
-- Ninguna ventana falló ni quedó bajo el 95 % de cobertura; ninguna superó el 5 % de agua.
-- Los 72 meses Sentinel-2 de la etapa 2 fueron válidos.
-- La primera prueba de red del encargo anterior falló por conexión; en este no hubo fallos de API.
-
-### Limitaciones y decisiones para revisar
-
-- Dos regiones de prueba; no es una búsqueda nacional ni global.
-- POWER en la Puna (562–767 mm/año) proviene de una celda mayor que la ventana y domina la diferencia de los candidatos argentinos. Queda expuesto en ficha, manifiesto y documentación; no se cambió nada para compensarlo.
-- Dos candidatos chilenos tienen valores POWER coincidentes; se rotula como posible celda compartida.
-- El catálogo de antecedentes es incompleto; faltan textos completos de la literatura de la Puna.
-- Las observaciones visuales son apariencia a contrastar; no hubo cruce territorial.
-- El ZIP usa sin compresión y pesa 9,0 MB por las siete imágenes.
-- `__version__` del pipeline sigue en 0.2.0 para no alterar la regeneración de v2 y del snapshot demo.
-- Las capturas `assets/analogos-chile-*.jpg` y el ZIP v2 quedan como históricos.
-
-### Datos crudos no versionados
-
-En `data/raw/`: 7 teselas NASADEM nuevas (~102 MB), `copernicus/sentinel2_stats_2025_v3.json`, `power/climatology_points_v3.json`, `earthdata/cmr_inventory_v3.json`, `discovery/acquisition_v3.json` y `naturalearth/world-atlas-2.0.2-countries-50m.json`.
-
-### Credenciales y permisos
-
-Credenciales Earthdata y Copernicus leídas solo por los programas y enviadas únicamente a hosts oficiales. No se imprimieron ni guardaron valores, tokens ni cabeceras. No se detuvo ningún proceso ajeno. Ningún permiso bloqueado.
+Pendientes delimitados: prueba remota de Vercel y revisión visual de impresión nativa. No se certifica aptitud científica de campo. Sin commit, push ni publicación. Claude espera nueva asignación; no iniciar otra etapa automáticamente.

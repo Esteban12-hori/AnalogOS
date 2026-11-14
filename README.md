@@ -202,3 +202,7 @@ NASA Space Apps Challenge 2026 se realiza el 14 y 15 de noviembre de 2026. La pl
 ## Regla de continuidad
 
 Antes de terminar una sesión, cualquier agente debe actualizar [`project/STATUS.md`](project/STATUS.md) y seguir [`project/HANDOFF_PROTOCOL.md`](project/HANDOFF_PROTOCOL.md). Ese archivo es la fuente de verdad para que Codex tome el control después .
+
+## Planificador de pruebas (M8)
+
+AnalogOS permite definir una prueba o evaluar un sector y obtener una recomendación explicable sobre el snapshot v3, con exportación JSON e informe imprimible. La IA de Anthropic es opcional (borrador de requisitos y selección de motivos) y solo corre en servidor; ver `docs/AI_SETUP.md` y ADR-009. El recorrido manual y el ZIP portable funcionan sin red ni clave.

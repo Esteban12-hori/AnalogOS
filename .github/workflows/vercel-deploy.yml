@@ -51,8 +51,19 @@ jobs:
 
       - name: Vercel deploy
         id: deploy
+        env:
+          # Solo dev recibe la clave, desde GitHub Secrets y en runtime (no en el build).
+          ANTHROPIC_API_KEY: ${{ github.ref == 'refs/heads/dev' && secrets.ANTHROPIC_API_KEY || '' }}
         run: |
-          URL=$(vercel deploy --prebuilt ${{ steps.env.outputs.prod_flag }} --token=${{ secrets.VERCEL_TOKEN }})
+          AI_ARGS=()
+          if [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+            if [ -z "$ANTHROPIC_API_KEY" ]; then
+              echo "Falta el secreto ANTHROPIC_API_KEY para la IA de dev." >&2
+              exit 1
+            fi
+            AI_ARGS=(--env "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" --env "ANTHROPIC_MODEL=claude-sonnet-5-5")
+          fi
+          URL=$(vercel deploy --prebuilt ${{ steps.env.outputs.prod_flag }} "${AI_ARGS[@]}" --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "Desplegado: $URL"
 

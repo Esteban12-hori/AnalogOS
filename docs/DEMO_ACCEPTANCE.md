@@ -48,3 +48,12 @@ El jurado entiende:
 - Links probados en incógnito.
 - README, licencia elegida, atribuciones y limitaciones completos.
 - No hay secretos en el repositorio.
+
+## Recorridos M8 (guía para el equipo)
+
+1. En el primer pantallazo, «Definir una prueba» y «Evaluar un sector» abren el planificador. La ficha de cada sector tiene «Evaluar este sector».
+2. Definir una prueba: «Cargar un ejemplo» (valores de muestra editables) → revisar/editar requisitos → Siguiente (elegir qué comparar) → Confirmar → Evaluar. Probar: pendiente ≤ 0,001 ⇒ ninguna área priorizada; «tracción» imprescindible ⇒ evidencia insuficiente en todas.
+3. Evaluar un sector: elegir un área (Yungay aparece como REF), un punto (-69,7 / -25) o un rectángulo; comprobar que un subrectángulo exige elegir la ventana completa y que un punto fuera de cobertura produce informe exportable.
+4. Cambiar cualquier dato después de evaluar borra el resultado y exige confirmar de nuevo. Descargar JSON e imprimir informe desde el resultado.
+5. IA opcional (requiere `.env`, ver `docs/AI_SETUP.md`): «Proponer requisitos con IA» y «Destacar motivos con IA». Sin clave, o en el ZIP, aparece un mensaje amable y todo lo demás sigue funcionando.
+6. Sin WebGL, móvil de 390 px y teclado: el planificador usa controles nativos y un esquema SVG local.

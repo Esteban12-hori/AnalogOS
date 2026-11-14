@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analogos.cl/schemas/mission-request.schema.json",
+  "title": "AnalogOS Mission Request (M8)",
+  "description": "Solicitud de recomendación: brief, requisitos estructurados y geometría. Contrato aditivo; la validación semántica (unidades, rangos, coordenadas) la hace mission/validate.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "brief", "activity", "target", "requirements", "open_questions", "scope", "confirmed"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "brief": { "type": "string", "maxLength": 3000 },
+    "activity": { "type": "string", "maxLength": 200 },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "stated"],
+      "properties": {
+        "profile_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{0,63}$" },
+        "stated": { "type": "string", "maxLength": 200 }
+      }
+    },
+    "requirements": { "type": "array", "maxItems": 20, "items": { "$ref": "#/$defs/requirement" } },
+    "open_questions": { "type": "array", "maxItems": 20, "items": { "type": "string", "maxLength": 300 } },
+    "scope": { "$ref": "#/$defs/scope" },
+    "confirmed": { "type": "boolean" }
+  },
+  "$defs": {
+    "requirementBase": {
+      "type": "object",
+      "required": ["requirement_id", "label", "importance", "origin", "confirmed", "source_quote"],
+      "properties": {
+        "requirement_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,32}$" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "importance": { "enum": ["critical", "preference"] },
+        "origin": { "enum": ["user", "ai"] },
+        "confirmed": { "type": "boolean" },
+        "source_quote": { "type": ["string", "null"], "maxLength": 300 }
+      }
+    },
+    "requirement": {
+      "oneOf": [
+        {
+          "allOf": [{ "$ref": "#/$defs/requirementBase" }],
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["requirement_id", "label", "importance", "origin", "confirmed", "source_quote", "kind", "metric_id", "operator", "value", "unit", "scale"],
+          "properties": {
+            "requirement_id": true, "label": true, "importance": true, "origin": true, "confirmed": true, "source_quote": true,
+            "kind": { "const": "measurable" },
+            "metric_id": { "enum": ["median_slope_degree", "terrain_roughness_meter", "local_relief_meter", "nonvegetated_fraction", "polygon_area_km2", "country"] },
+            "operator": { "enum": ["<=", ">=", "between", "in"] },
+            "value": {
+              "oneOf": [
+                { "type": "number" },
+                { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } },
+                { "type": "array", "minItems": 1, "maxItems": 10, "items": { "type": "string", "pattern": "^[A-Z]{2}$" } }
+              ]
+            },
+            "unit": { "enum": ["degree", "meter", "ratio", "percent", "km2", "iso_alpha2"] },
+            "scale": { "enum": ["window", "point"] }
+          }
+        },
+        {
+          "allOf": [{ "$ref": "#/$defs/requirementBase" }],
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["requirement_id", "label", "importance", "origin", "confirmed", "source_quote", "kind", "topic_id", "detail"],
+          "properties": {
+            "requirement_id": true, "label": true, "importance": true, "origin": true, "confirmed": true, "source_quote": true,
+            "kind": { "const": "unmeasured" },
+            "topic_id": { "enum": ["max_point_slope", "rock_size", "traction", "loose_soil", "road_access", "cost", "permits", "operational_date", "local_rain", "mobile_coverage", "other_unmeasured"] },
+            "detail": { "type": "string", "maxLength": 300 }
+          }
+        }
+      ]
+    },
+    "scope": {
+      "oneOf": [
+        { "type": "object", "additionalProperties": false, "required": ["mode"], "properties": { "mode": { "const": "catalog" } } },
+        {
+          "type": "object", "additionalProperties": false, "required": ["mode", "site_id"],
+          "properties": { "mode": { "const": "sector" }, "site_id": { "type": "string", "pattern": "^(cl|ar)-[a-z0-9-]+$" } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["mode", "lon", "lat", "window_site_id"],
+          "properties": {
+            "mode": { "const": "point" },
+            "lon": { "type": "number", "minimum": -180, "maximum": 180 },
+            "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+            "window_site_id": { "type": ["string", "null"], "pattern": "^(cl|ar)-[a-z0-9-]+$" }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["mode", "bbox", "window_site_id"],
+          "properties": {
+            "mode": { "const": "bbox" },
+            "bbox": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "type": "number", "minimum": -180, "maximum": 180 } },
+            "window_site_id": { "type": ["string", "null"], "pattern": "^(cl|ar)-[a-z0-9-]+$" }
+          }
+        }
+      ]
+    }
+  }
+}

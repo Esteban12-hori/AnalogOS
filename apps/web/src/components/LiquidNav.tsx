@@ -34,6 +34,7 @@ export const liquidIcons = {
   globe: svg(<><circle cx="12" cy="12" r="8.5" /><path d="M3.5 12h17M12 3.5c2.6 2.4 2.6 14.6 0 17M12 3.5c-2.6 2.4-2.6 14.6 0 17" /></>),
   signal: svg(<path d="M3 15.5c2.2 0 2.6-6 5-6s2.6 8 5 8 2.8-11 5.2-11c1.3 0 2 1.4 2.8 3" />),
   compare: svg(<><rect x="3.5" y="5" width="7" height="14" rx="2" /><rect x="13.5" y="5" width="7" height="14" rx="2" /></>),
+  planner: svg(<><rect x="5" y="4" width="14" height="17" rx="2.5" /><path d="M9 4.5h6M8.5 11l1.6 1.6L13 9.8M8.5 17h7" /></>),
   method: svg(<><path d="M9.5 3.5h5" /><path d="M10.5 3.5v5.2L5 18.2A1.6 1.6 0 0 0 6.4 20.5h11.2a1.6 1.6 0 0 0 1.4-2.3l-5.5-9.5V3.5" /><path d="M7.5 14.5h9" /></>),
 }
 

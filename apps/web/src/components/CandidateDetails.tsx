@@ -23,6 +23,8 @@ interface CandidateDetailsProps {
   precedents: PrecedentCatalog | null
   /** Si existe, la imagen se ve en el mapa 2D y el panel muestra un botón en vez de repetirla. */
   onShowOnMap?: () => void
+  /** Abre el planificador con este sector preseleccionado. */
+  onEvaluate?: (siteId: string) => void
 }
 
 function Metric({ label, value, hint, muted = false }: { label: string; value: string; hint: string; muted?: boolean }) {
@@ -35,7 +37,7 @@ function Metric({ label, value, hint, muted = false }: { label: string; value: s
   )
 }
 
-export function CandidateDetails({ candidate, candidates, onSelect, profile, marsReference, visual, search, precedents, onShowOnMap }: CandidateDetailsProps) {
+export function CandidateDetails({ candidate, candidates, onSelect, profile, marsReference, visual, search, precedents, onShowOnMap, onEvaluate }: CandidateDetailsProps) {
   const { ranked, references } = splitByRole(candidates)
   const reference = isReference(candidate)
   const statusLabel = candidate.status === 'fixture' ? 'Fixture'
@@ -78,6 +80,7 @@ export function CandidateDetails({ candidate, candidates, onSelect, profile, mar
         </div>
         <div className="detail-actions">
           <span className="fixture-pill">{statusLabel}</span>
+          {onEvaluate && <button type="button" onClick={() => onEvaluate(candidate.site_id)}>Evaluar este sector</button>}
           <button type="button" onClick={downloadCandidate}>Descargar ficha</button>
         </div>
       </div>
