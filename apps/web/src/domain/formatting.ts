@@ -42,7 +42,8 @@ export function formatScore(value: number | null): string {
 }
 
 export function formatArea(value: number): string {
-  return `≈ ${integer.format(Math.round(value / 100) * 100)} km²`
+  // ponytail: dos cifras significativas; los polígonos son celdas aproximadas, no deslindes.
+  return `≈ ${integer.format(Number(value.toPrecision(2)))} km²`
 }
 
 export function formatPercent(value: number): string {

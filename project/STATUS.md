@@ -1,7 +1,7 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14 11:45 America/Santiago  
-**Responsable del checkpoint:** Codex  
+**Última actualización:** 2026-11-14 12:15 America/Santiago  
+**Responsable del checkpoint:** Claude Code (publicación y rótulos; el resto es el checkpoint de Codex de las 11:45)  
 **Milestone activo:** M6 — empaquetado y entrega  
 **Estado general:** producto funcional y presentable con snapshot científico v2 autenticado. NASADEM corrige el mosaico de borde y Sentinel-2 completa superficie no vegetada. Faltan acciones humanas/externas: video, URLs públicas, integrantes, capas territoriales y revisión experta.
 
@@ -32,6 +32,13 @@ Interpretación obligatoria: es un screening de escritorio para ordenar investig
 - Snapshot fixture permanece en `artifacts/demo/` solo para probar estados límite y contratos.
 - Paquete de entrega v2 en `submission/`, dos capturas verificadas en `submission/assets/` y checksum SHA-256 actualizado.
 - Cerrado el saneamiento post-Claude: no quedan componentes ni hojas de estilo huérfanas de la implementación descartada.
+
+## Cambios de las 12:15
+
+- Perfil v2 en `2.0.1-preliminary`: limitaciones nuevas sobre calidad asignada por fuente, significado de `validated` y razón de medianas. Los scores no cambian.
+- Web: orden único con `rankCandidates`, área con dos cifras significativas y decimales con coma.
+- `submission/analogos-chile-static.zip` y `SHA256SUMS.txt` regenerados; las capturas de `submission/assets/` son anteriores a estos rótulos.
+- Publicados en `origin/main` en el commit posterior a `becd783` (que conserva el estado de las 11:45).
 
 ## Fuentes reales del snapshot
 

@@ -1,5 +1,6 @@
 import type { CandidateSite } from '../domain/contracts'
 import { feasibilityLabels, formatScore, shortCandidateName } from '../domain/formatting'
+import { rankCandidates } from '../domain/scoring'
 
 interface CandidateComparisonProps {
   candidates: CandidateSite[]
@@ -8,9 +9,7 @@ interface CandidateComparisonProps {
 }
 
 export function CandidateComparison({ candidates, selectedId, onSelect }: CandidateComparisonProps) {
-  const sorted = [...candidates].sort(
-    (a, b) => (b.similarity ?? -1) - (a.similarity ?? -1) || a.site_id.localeCompare(b.site_id),
-  )
+  const sorted = rankCandidates(candidates)
 
   return (
     <section id="comparison" className="comparison-section" aria-labelledby="comparison-title">

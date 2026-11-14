@@ -85,6 +85,10 @@ C = 100 × Σ wᵢ × qᵢ
 
 Los datos faltantes aportan calidad cero. Confianza y similitud nunca se combinan.
 
+Las calidades `qᵢ` son valores asignados por tipo de fuente (ADR-003), no incertidumbres medidas. Por eso la confianza casi no distingue entre los tres sectores (77,41–77,45): indica cuánta evidencia entró al score, no qué sector está mejor medido.
+
+En el perfil, `validated` significa «aprobado para screening por ADR-002 y ADR-003»; no hubo validación experta externa ni de campo. El campo `method: reference_distribution_distance` se implementa en v2 como la razón de medianas descrita arriba, no como una distancia entre distribuciones completas.
+
 ## Factibilidad
 
 Cada restricción declara autoridad, fuente, acción y razón. En v2 se completa el screening de agua permanente con NASADEM SWB y Sentinel-2. Áreas protegidas, urbano, acceso, propiedad y peligros a escala de rueda siguen pendientes; por ello todos los candidatos quedan `requires_review`.

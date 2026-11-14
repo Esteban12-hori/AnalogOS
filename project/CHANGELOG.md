@@ -64,3 +64,14 @@
 - Regenerado `submission/analogos-chile-static.zip`, comprobada su integridad y actualizado `submission/SHA256SUMS.txt`.
 - Excluidos `demo/` y `science-v1/` del build desplegable para mantener `science-v2/` como única fuente de verdad entregada.
 - Confirmado que `.env` y `data/raw/` están ignorados y que ninguna credencial aparece en código o artefactos entregables.
+
+## 2026-11-14 Claude Code — publicación y rótulos
+
+- Inicializado repositorio Git propio (rama `main`) y publicado el commit `becd783` en https://github.com/hori0729/AnalogOS; `.gitignore` suma `*.egg-info/` y `.claude/`.
+- Perfil `mars-rover-screening-v2` pasa a `2.0.1-preliminary`: dos limitaciones nuevas aclaran que la calidad es asignada por fuente (ADR-003), qué significa `validated` y que la comparación topográfica es una razón de medianas. Sin cambios en pesos, criterios ni scores.
+- Regenerado `artifacts/science-v2/`: solo cambian `mission-profile.json` y `candidate-details.json` (versión de perfil, limitaciones y porcentajes con coma decimal). Similitud, confianza, estabilidad, `manifest.json` y `analysis-summary.json` quedan idénticos.
+- Web: un solo orden (`rankCandidates`) en ranking, mapa, comparador y selección inicial; área con dos cifras significativas (≈ 450 km², antes ≈ 500); decimales con coma en el mapa; la confianza se rotula «Calidad asignada por fuente».
+- `submission/METHODOLOGY.md` documenta lo anterior; regenerados `analogos-chile-static.zip` y `SHA256SUMS.txt`.
+- Verificado: 30 tests Python, 14 tests web, build y revisión en navegador sin errores de consola.
+- Publicado en `origin/main` como segundo commit.
+- Pendiente: las dos capturas de `submission/assets/` son anteriores a estos rótulos.

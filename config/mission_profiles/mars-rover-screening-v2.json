@@ -1,7 +1,7 @@
 {
   "$schema": "../../contracts/mission-profile.schema.json",
   "id": "mars-rover-screening-v2",
-  "version": "2.0.0-preliminary",
+  "version": "2.0.1-preliminary",
   "name": "Screening multifuente para movilidad de rover",
   "purpose": "Priorizar sectores de Chile para investigar pruebas de percepción, navegación, tracción y autonomía mediante topografía a escala MOLA y continuidad de superficie no vegetada observada por Sentinel-2.",
   "status": "needs_calibration",
@@ -85,6 +85,8 @@
     "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
     "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
     "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
-    "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada."
+    "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada.",
+    "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+    "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas."
   ]
 }

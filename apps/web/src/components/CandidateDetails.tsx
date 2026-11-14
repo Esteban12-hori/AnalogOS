@@ -56,7 +56,7 @@ export function CandidateDetails({ candidate, manifest, profile }: CandidateDeta
           hint={candidate.similarity === null ? 'Peso válido insuficiente' : 'Ajuste al perfil · 0–100'}
           muted={candidate.similarity === null}
         />
-        <Metric label="Confianza" value={formatScore(candidate.confidence)} hint="Calidad de evidencia · 0–100" />
+        <Metric label="Confianza" value={formatScore(candidate.confidence)} hint="Calidad asignada por fuente · 0–100" />
         <Metric label="Factibilidad" value={feasibilityLabels[candidate.feasibility]} hint="Preliminar · no es permiso" />
         <Metric
           label="Estabilidad"

@@ -41,6 +41,7 @@ describe('formatting', () => {
   it('usa formato chileno y unidades', () => {
     expect(formatScore(77.83)).toBe('77,8');
     expect(formatArea(1945.5)).toBe('≈ 1.900 km²');
+    expect(formatArea(450.5)).toBe('≈ 450 km²');
     expect(formatRawValue({ raw_value: 6.5, unit: 'degree' })).toBe('6,5°');
     expect(formatRawValue({ raw_value: null, unit: 'meter' })).toBe('sin valor bruto');
     expect(formatRawValue({ raw_value: 'clase-x', unit: 'category' })).toBe('clase-x');

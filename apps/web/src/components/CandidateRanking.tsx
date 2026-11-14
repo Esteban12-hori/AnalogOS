@@ -1,5 +1,6 @@
 import type { CandidateSite } from '../domain/contracts'
 import { feasibilityLabels, formatScore, shortCandidateName } from '../domain/formatting'
+import { rankCandidates } from '../domain/scoring'
 
 interface CandidateRankingProps {
   candidates: CandidateSite[]
@@ -8,7 +9,7 @@ interface CandidateRankingProps {
 }
 
 export function CandidateRanking({ candidates, selectedId, onSelect }: CandidateRankingProps) {
-  const sorted = [...candidates].sort((a, b) => (b.similarity ?? -1) - (a.similarity ?? -1))
+  const sorted = rankCandidates(candidates)
 
   return (
     <aside className="ranking-panel" aria-labelledby="ranking-title">

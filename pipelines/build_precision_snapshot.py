@@ -43,6 +43,11 @@ NASADEM_SIDE = 3601
 NASADEM_CELLS = NASADEM_SIDE - 1
 
 
+def _percent(value: float, digits: int) -> str:
+    """Porcentaje con coma decimal, igual que el resto de la interfaz."""
+    return f"{value * 100:.{digits}f}".replace(".", ",") + " %"
+
+
 def _tile_name(latitude_base: int, longitude_base: int) -> str:
     latitude = f"n{latitude_base:02d}" if latitude_base >= 0 else f"s{abs(latitude_base):02d}"
     longitude = f"e{longitude_base:03d}" if longitude_base >= 0 else f"w{abs(longitude_base):03d}"
@@ -194,8 +199,8 @@ def _constraint_checks(earth: dict, sentinel: dict) -> list[dict]:
             "state": "evaluated",
             "triggered": permanent_water > 0.05,
             "reason": (
-                f"NASADEM SWB detectó {permanent_water:.2%} de agua permanente; "
-                f"Sentinel-2 observó hasta {sentinel['maximum_monthly_water_fraction']:.2%} en un mes."
+                f"NASADEM SWB detectó {_percent(permanent_water, 2)} de agua permanente; "
+                f"Sentinel-2 observó hasta {_percent(sentinel['maximum_monthly_water_fraction'], 2)} en un mes."
             ),
         },
         {
@@ -206,7 +211,7 @@ def _constraint_checks(earth: dict, sentinel: dict) -> list[dict]:
             "state": "evaluated",
             "triggered": 0 < permanent_water <= 0.05,
             "reason": (
-                f"NASADEM SWB detectó {permanent_water:.2%} de agua permanente. "
+                f"NASADEM SWB detectó {_percent(permanent_water, 2)} de agua permanente. "
                 "El polígono se conserva, pero el trazado de campaña debe evitar esos píxeles."
             ),
         },
@@ -431,6 +436,9 @@ def build(config_path: Path, profile_path: Path, out_dir: Path) -> dict[str, obj
         earth = _nasadem_metrics(site, config)
         sentinel = _sentinel_metrics(site["site_id"], copernicus_raw)
         climate = _power_metrics(site["site_id"], power_points)
+        # Las calidades fijas (0,93 / 0,91 / 0,60) son valores asignados por
+        # tipo de fuente en ADR-003, no incertidumbres medidas: la confianza
+        # resultante casi no distingue entre sitios.
         inputs = {
             "slope": {
                 "raw_value": earth["median_slope_degree"],
@@ -532,7 +540,7 @@ def build(config_path: Path, profile_path: Path, out_dir: Path) -> dict[str, obj
                 {
                     "evidence_id": f"{site['site_id']}-sentinel2",
                     "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v1",
-                    "claim": f"Superficie: {sentinel['nonvegetated_fraction']:.1%} no vegetada, mediana de {sentinel['valid_intervals']} mosaicos mensuales Sentinel-2 L2A de 2025.",
+                    "claim": f"Superficie: {_percent(sentinel['nonvegetated_fraction'], 1)} no vegetada, mediana de {sentinel['valid_intervals']} mosaicos mensuales Sentinel-2 L2A de 2025.",
                     "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html",
                 },
                 {

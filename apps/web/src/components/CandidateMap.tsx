@@ -1,5 +1,7 @@
 import type { KeyboardEvent } from 'react'
 import type { CandidateGeometry, CandidateSite, GeoJsonFeatureCollection, Position } from '../domain/contracts'
+import { formatScore } from '../domain/formatting'
+import { rankCandidates } from '../domain/scoring'
 
 interface CandidateMapProps {
   candidates: CandidateSite[]
@@ -58,9 +60,7 @@ function handleMarkerKey(event: KeyboardEvent<SVGGElement>, onActivate: () => vo
 export function CandidateMap({ candidates, chileOutline, selectedId, onSelect }: CandidateMapProps) {
   const fixtureMode = candidates.every((candidate) => candidate.status === 'fixture')
   const ranks = new Map(
-    [...candidates]
-      .sort((a, b) => (b.similarity ?? -1) - (a.similarity ?? -1) || a.site_id.localeCompare(b.site_id))
-      .map((candidate, index) => [candidate.site_id, index + 1]),
+    rankCandidates(candidates).map((candidate, index) => [candidate.site_id, index + 1]),
   )
   const projectedCandidates = candidates.map((candidate) => ({
     candidate,
@@ -162,7 +162,7 @@ export function CandidateMap({ candidates, chileOutline, selectedId, onSelect }:
                     <rect width="102" height="31" rx="8" />
                     <text x="10" y="13">RANK {rank}</text>
                     <text className="marker-score" x="10" y="24">
-                      {candidate.similarity === null ? 'SIN SCORE' : `${candidate.similarity.toFixed(1)} / 100`}
+                      {candidate.similarity === null ? 'SIN SCORE' : `${formatScore(candidate.similarity)} / 100`}
                     </text>
                   </g>
                 </g>

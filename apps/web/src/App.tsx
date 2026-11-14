@@ -4,6 +4,7 @@ import { CandidateComparison } from './components/CandidateComparison'
 import { CandidateMap } from './components/CandidateMap'
 import { CandidateRanking } from './components/CandidateRanking'
 import { loadDemoSnapshot, type DemoSnapshot } from './data/loadDemoSnapshot'
+import { rankCandidates } from './domain/scoring'
 
 type LoadState =
   | { status: 'loading' }
@@ -19,7 +20,7 @@ function App() {
     loadDemoSnapshot()
       .then((snapshot) => {
         if (!active) return
-        const first = [...snapshot.candidates].sort((a, b) => (b.similarity ?? -1) - (a.similarity ?? -1))[0]
+        const first = rankCandidates(snapshot.candidates)[0]
         setSelectedId(first?.site_id ?? '')
         setLoadState({ status: 'ready', snapshot })
       })
