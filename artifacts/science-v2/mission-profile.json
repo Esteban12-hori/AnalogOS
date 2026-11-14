@@ -1,0 +1,89 @@
+{
+  "id": "mars-rover-screening-v2",
+  "version": "2.0.0-preliminary",
+  "name": "Screening multifuente para movilidad de rover",
+  "purpose": "Priorizar sectores de Chile para investigar pruebas de percepción, navegación, tracción y autonomía mediante topografía a escala MOLA y continuidad de superficie no vegetada observada por Sentinel-2.",
+  "status": "needs_calibration",
+  "planetary_reference": {
+    "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+    "body": "mars",
+    "notes": "Referencia regional de Jezero derivada de MOLA MEGDR. Sentinel-2 caracteriza la aptitud terrestre para pruebas; no afirma equivalencia espectral con Marte."
+  },
+  "aggregation": {
+    "method": "weighted_geometric_mean",
+    "epsilon": 0.01,
+    "minimum_valid_weight": 0.7
+  },
+  "criteria": [
+    {
+      "id": "slope",
+      "label": "Pendiente a escala equivalente",
+      "weight": 0.2,
+      "unit": "degree",
+      "method": "reference_distribution_distance",
+      "status": "validated"
+    },
+    {
+      "id": "terrain_roughness",
+      "label": "Rugosidad a escala equivalente",
+      "weight": 0.2,
+      "unit": "meter",
+      "method": "reference_distribution_distance",
+      "status": "validated"
+    },
+    {
+      "id": "local_relief",
+      "label": "Relieve local a escala equivalente",
+      "weight": 0.15,
+      "unit": "meter",
+      "method": "reference_distribution_distance",
+      "status": "validated"
+    },
+    {
+      "id": "bare_ground_fraction",
+      "label": "Continuidad de superficie no vegetada",
+      "weight": 0.2,
+      "unit": "ratio",
+      "method": "bounded_preference",
+      "status": "validated"
+    },
+    {
+      "id": "aridity_context",
+      "label": "Contexto de aridez",
+      "weight": 0.1,
+      "unit": "millimeter_per_year",
+      "method": "bounded_preference",
+      "status": "optional"
+    },
+    {
+      "id": "surface_temperature_variability",
+      "label": "Rango térmico superficial climatológico",
+      "weight": 0.05,
+      "unit": "kelvin",
+      "method": "bounded_preference",
+      "status": "optional"
+    },
+    {
+      "id": "geologic_relevance",
+      "label": "Relevancia geológica",
+      "weight": 0.1,
+      "unit": "category",
+      "method": "categorical_compatibility",
+      "status": "needs_expert_review"
+    }
+  ],
+  "hard_constraints": [
+    "protected_or_sensitive_area_not_evaluated",
+    "permanent_water_screened",
+    "urban_area_not_evaluated",
+    "land_access_not_evaluated",
+    "field_scale_slope_not_evaluated"
+  ],
+  "limitations": [
+    "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+    "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+    "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+    "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+    "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada."
+  ]
+}

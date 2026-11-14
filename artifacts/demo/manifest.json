@@ -1,0 +1,55 @@
+{
+  "snapshot_version": "fixture-demo-v0",
+  "created_at": "2026-11-14T12:00:00Z",
+  "pipeline_version": "0.2.0",
+  "datasets": [
+    {
+      "dataset_id": "fixture-synthetic-v0",
+      "provider": "AnalogOS Chile (fixture interno)",
+      "product": "Valores sintéticos de demostración, no científicos",
+      "collection_version": "0",
+      "landing_url": "urn:analogos:fixture:synthetic-v0",
+      "access_url": "urn:analogos:fixture:synthetic-v0",
+      "downloaded_at": "2026-11-14T12:00:00Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "no aplica (sintético)",
+      "temporal_resolution": "no aplica (sintético)",
+      "crs": "EPSG:4326",
+      "units": "no aplica (sintético)",
+      "license": "Sin valor científico; uso interno de demostración",
+      "nodata": null,
+      "quality_notes": [
+        "Datos inventados para probar la interfaz. No usar como evidencia."
+      ],
+      "transformations": [
+        "Escritos a mano en tests/fixtures/demo_snapshot_input.json"
+      ],
+      "checksum": "sha256:d700946119fe5036a58b9ec7d0f69fa035a1be084a9cf2eccde44f34e3d09f7a"
+    },
+    {
+      "dataset_id": "natural-earth-admin0-50m",
+      "provider": "Natural Earth",
+      "product": "Admin 0 – Countries, 1:50m (vía paquete npm world-atlas)",
+      "collection_version": "world-atlas 2.0.2",
+      "landing_url": "https://www.naturalearthdata.com/downloads/50m-cultural-vectors/",
+      "access_url": "https://www.npmjs.com/package/world-atlas",
+      "downloaded_at": "2026-11-14T12:00:00Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "1:50.000.000",
+      "temporal_resolution": "estático",
+      "crs": "EPSG:4326",
+      "units": "grados",
+      "license": "Dominio público (Natural Earth)",
+      "nodata": null,
+      "quality_notes": [
+        "Contorno referencial de contexto; no es un límite oficial ni entra en ningún score."
+      ],
+      "transformations": [
+        "Extraído el país con id ISO numérico 152 de countries-50m.json y convertido de TopoJSON a GeoJSON"
+      ],
+      "checksum": "sha256:2551fd7d1b846eca94aed75e9838191018155ac1c55bb34e0b85eda469fd6d19"
+    }
+  ]
+}

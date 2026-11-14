@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analogos.cl/schemas/mission-profile.schema.json",
+  "title": "AnalogOS Mission Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "version", "name", "purpose", "status", "planetary_reference", "aggregation", "criteria", "hard_constraints", "limitations"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+    "version": {"type": "string"},
+    "name": {"type": "string", "minLength": 3},
+    "purpose": {"type": "string", "minLength": 10},
+    "status": {"enum": ["needs_calibration", "validated", "deprecated"]},
+    "planetary_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dataset_id", "body", "notes"],
+      "properties": {
+        "dataset_id": {"type": "string"},
+        "body": {"enum": ["mars", "moon"]},
+        "notes": {"type": "string"}
+      }
+    },
+    "aggregation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "epsilon", "minimum_valid_weight"],
+      "properties": {
+        "method": {"const": "weighted_geometric_mean"},
+        "epsilon": {"type": "number", "exclusiveMinimum": 0, "maximum": 0.1},
+        "minimum_valid_weight": {"type": "number", "minimum": 0.5, "maximum": 1}
+      }
+    },
+    "criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "weight", "unit", "method", "status"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+          "label": {"type": "string"},
+          "weight": {"type": "number", "minimum": 0, "maximum": 1},
+          "unit": {"type": "string"},
+          "method": {"enum": ["reference_distribution_distance", "bounded_preference", "categorical_compatibility", "hard_constraint"]},
+          "status": {"enum": ["needs_calibration", "needs_expert_review", "optional", "validated"]}
+        }
+      }
+    },
+    "hard_constraints": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+  }
+}

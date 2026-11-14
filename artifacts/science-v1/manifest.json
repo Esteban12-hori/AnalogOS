@@ -1,0 +1,186 @@
+{
+  "snapshot_version": "science-screening-v1",
+  "created_at": "2026-11-14T13:00:00Z",
+  "pipeline_version": "0.1.0",
+  "datasets": [
+    {
+      "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+      "provider": "NASA Planetary Data System — Geosciences Node",
+      "product": "MGS MOLA MEGDR topography, MEGT44N000HB",
+      "collection_version": "MGS-M-MOLA-5-MEGDR-L3-V1 / PDS4 maintained bundle",
+      "landing_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html",
+      "access_url": "https://pds-geosciences.wustl.edu/mgs/urn-nasa-pds-mgs_mola_topography_derived/meg128/megt44n000hb.img",
+      "downloaded_at": "2026-11-14T13:00:00Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "128 píxeles/grado; ~463 m/píxel en latitud",
+      "temporal_resolution": "mosaico de misión",
+      "crs": "Mars simple cylindrical, planetocentric",
+      "units": "metros sobre areoide",
+      "license": "NASA PDS open data; atribución al instrumento MOLA y PDS",
+      "checksum": "sha256:14022166079edafc99650f354e5a634e6eb2c2ea544b444c01cd8ee55437df36",
+      "nodata": -32768,
+      "quality_notes": [
+        "Se usa una ventana regional de 1,6° alrededor de Jezero; no modela obstáculos a escala de rueda."
+      ],
+      "transformations": [
+        "Subconjunto regional",
+        "métricas de pendiente, diferencia vecina y relieve 3×3"
+      ]
+    },
+    {
+      "dataset_id": "nasa-power-climatology-points-v1",
+      "provider": "NASA POWER",
+      "product": "Climatology Point API: PRECTOTCORR, TS, TS_MAX, TS_MIN",
+      "collection_version": "API v2.10.1",
+      "landing_url": "https://power.larc.nasa.gov/docs/services/api/temporal/climatology/",
+      "access_url": "https://power.larc.nasa.gov/api/temporal/climatology/point",
+      "downloaded_at": "2026-11-14T13:00:00Z",
+      "time_start": "2001-01-01T00:00:00Z",
+      "time_end": "2025-12-31T23:59:59Z",
+      "spatial_resolution": "resolución nativa de la fuente POWER; punto = celda más cercana",
+      "temporal_resolution": "climatología mensual y anual de 25 años",
+      "crs": "EPSG:4326",
+      "units": "mm/día y °C",
+      "license": "NASA open data; citar NASA POWER",
+      "checksum": "sha256:b0075b7ce2e0cdb5c422bcc6f09055da22853e7009b039799f3d727cdf831896",
+      "nodata": -999,
+      "quality_notes": [
+        "Contexto regional; no debe interpretarse como medición de sitio."
+      ],
+      "transformations": [
+        "PRECTOTCORR ANN × 365,25",
+        "TS_MAX ANN − TS_MIN ANN"
+      ]
+    },
+    {
+      "dataset_id": "srtm-s25w070-v1",
+      "provider": "NASA SRTM, redistribuido por AWS Terrain Tiles",
+      "product": "SRTM HGT 1 arc-second S25W070",
+      "collection_version": "SRTMGL1 / AWS terrain tiles",
+      "landing_url": "https://www.earthdata.nasa.gov/data/instruments/srtm",
+      "access_url": "https://s3.amazonaws.com/elevation-tiles-prod/skadi/S25/S25W070.hgt.gz",
+      "downloaded_at": "2026-11-14T13:00:00Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "1 arc-second (~30 m)",
+      "temporal_resolution": "mosaico de misión 2000",
+      "crs": "EPSG:4326",
+      "units": "metros",
+      "license": "NASA open data / AWS Open Data",
+      "checksum": "sha256:95e0c4fd70dc4cdcb038a95faf81602c667c50d475125d0223e2fa30268c672c",
+      "nodata": -32768,
+      "quality_notes": [
+        "Resolución agregada 16×16 para análisis comparable con MOLA."
+      ],
+      "transformations": [
+        "Recorte de 0,2°",
+        "media de bloques 16×16",
+        "métricas topográficas"
+      ]
+    },
+    {
+      "dataset_id": "srtm-s23w070-v1",
+      "provider": "NASA SRTM, redistribuido por AWS Terrain Tiles",
+      "product": "SRTM HGT 1 arc-second S23W070",
+      "collection_version": "SRTMGL1 / AWS terrain tiles",
+      "landing_url": "https://www.earthdata.nasa.gov/data/instruments/srtm",
+      "access_url": "https://s3.amazonaws.com/elevation-tiles-prod/skadi/S23/S23W070.hgt.gz",
+      "downloaded_at": "2026-11-14T13:00:00Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "1 arc-second (~30 m)",
+      "temporal_resolution": "mosaico de misión 2000",
+      "crs": "EPSG:4326",
+      "units": "metros",
+      "license": "NASA open data / AWS Open Data",
+      "checksum": "sha256:2a9c346c49aba0e2d9d848b5039e0d7ea3fb25fc33418b73d8b3a5103e409647",
+      "nodata": -32768,
+      "quality_notes": [
+        "Resolución agregada 16×16 para análisis comparable con MOLA."
+      ],
+      "transformations": [
+        "Recorte de 0,2°",
+        "media de bloques 16×16",
+        "métricas topográficas"
+      ]
+    },
+    {
+      "dataset_id": "srtm-s24w069-v1",
+      "provider": "NASA SRTM, redistribuido por AWS Terrain Tiles",
+      "product": "SRTM HGT 1 arc-second S24W069",
+      "collection_version": "SRTMGL1 / AWS terrain tiles",
+      "landing_url": "https://www.earthdata.nasa.gov/data/instruments/srtm",
+      "access_url": "https://s3.amazonaws.com/elevation-tiles-prod/skadi/S24/S24W069.hgt.gz",
+      "downloaded_at": "2026-11-14T13:00:00Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "1 arc-second (~30 m)",
+      "temporal_resolution": "mosaico de misión 2000",
+      "crs": "EPSG:4326",
+      "units": "metros",
+      "license": "NASA open data / AWS Open Data",
+      "checksum": "sha256:fd84907d658248f5e3633d7ac2c87817a9964bb3e8451980d2b9e2446f3c1988",
+      "nodata": -32768,
+      "quality_notes": [
+        "Resolución agregada 16×16 para análisis comparable con MOLA."
+      ],
+      "transformations": [
+        "Recorte de 0,2°",
+        "media de bloques 16×16",
+        "métricas topográficas"
+      ]
+    },
+    {
+      "dataset_id": "natural-earth-admin0-50m",
+      "provider": "Natural Earth",
+      "product": "Admin 0 — Countries 1:50m",
+      "collection_version": "world-atlas 2.0.2",
+      "landing_url": "https://www.naturalearthdata.com/downloads/50m-cultural-vectors/",
+      "access_url": "https://www.npmjs.com/package/world-atlas",
+      "downloaded_at": "2026-11-14T13:00:00Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "1:50.000.000",
+      "temporal_resolution": "estático",
+      "crs": "EPSG:4326",
+      "units": "grados",
+      "license": "Dominio público",
+      "checksum": "sha256:2551fd7d1b846eca94aed75e9838191018155ac1c55bb34e0b85eda469fd6d19",
+      "nodata": null,
+      "quality_notes": [
+        "Solo contexto visual; no es límite oficial ni entra al score."
+      ],
+      "transformations": [
+        "Extracción de Chile desde world-atlas"
+      ]
+    },
+    {
+      "dataset_id": "derived-srtm-mola-scale-matched-v1",
+      "provider": "AnalogOS Chile",
+      "product": "Métricas topográficas y climáticas derivadas",
+      "collection_version": "science-screening-v1",
+      "landing_url": "urn:analogos:science-screening-v1",
+      "access_url": "urn:analogos:science-screening-v1:analysis-summary",
+      "downloaded_at": "2026-11-14T13:00:00Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "~460–480 m para comparación topográfica",
+      "temporal_resolution": "snapshot",
+      "crs": "mixto; ver fuentes",
+      "units": "m, grados, mm/año, °C",
+      "license": "Código MIT; datos conservan licencias de origen",
+      "checksum": "sha256:a9c11ea075736c74a948c140a7baf4ebce859ad241775d9c0f5f2da4ad11325b",
+      "nodata": null,
+      "quality_notes": [
+        "Screening preliminar; dos criterios permanecen fuera del score."
+      ],
+      "transformations": [
+        "Agregación espacial",
+        "estadísticos robustos",
+        "media geométrica ponderada",
+        "sensibilidad ±20 %"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,486 @@
+[
+  {
+    "site_id": "cl-fixture-a",
+    "name": "Fixture A (sintético, ubicación arbitraria)",
+    "profile_id": "mars-rover-mobility-v1",
+    "profile_version": "1.0.0-draft",
+    "data_snapshot_version": "fixture-demo-v0",
+    "pipeline_version": "0.2.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -69.45,
+            -23.8
+          ],
+          [
+            -69.25,
+            -23.65
+          ],
+          [
+            -69.0,
+            -23.75
+          ],
+          [
+            -68.95,
+            -24.0
+          ],
+          [
+            -69.15,
+            -24.15
+          ],
+          [
+            -69.4,
+            -24.05
+          ],
+          [
+            -69.45,
+            -23.8
+          ]
+        ]
+      ]
+    },
+    "area_km2": 1945.5,
+    "status": "fixture",
+    "similarity": 77.83,
+    "confidence": 76.75,
+    "feasibility": "requires_review",
+    "stability": 99.53,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 6.5,
+        "unit": "degree",
+        "normalized_similarity": 0.82,
+        "weight": 0.2,
+        "contribution": -0.0397,
+        "quality": 0.9,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": null,
+        "unit": "dataset_defined",
+        "normalized_similarity": 0.74,
+        "weight": 0.2,
+        "contribution": -0.0602,
+        "quality": 0.85,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 48,
+        "unit": "meter",
+        "normalized_similarity": 0.69,
+        "weight": 0.15,
+        "contribution": -0.0557,
+        "quality": 0.85,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": 0.93,
+        "unit": "ratio",
+        "normalized_similarity": 0.9,
+        "weight": 0.2,
+        "contribution": -0.0211,
+        "quality": 0.8,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": null,
+        "unit": "dataset_defined",
+        "normalized_similarity": 0.88,
+        "weight": 0.1,
+        "contribution": -0.0128,
+        "quality": 0.5,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 31,
+        "unit": "kelvin",
+        "normalized_similarity": 0.6,
+        "weight": 0.05,
+        "contribution": -0.0255,
+        "quality": 0.6,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": "clase-fixture-a",
+        "unit": "category",
+        "normalized_similarity": 0.7,
+        "weight": 0.1,
+        "contribution": -0.0357,
+        "quality": 0.5,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      }
+    ],
+    "warnings": [
+      "FIXTURE: la factibilidad mostrada es un valor de prueba, no una revisión real."
+    ],
+    "limitations": [
+      "FIXTURE: esta zona y sus valores son sintéticos; no es un resultado científico.",
+      "No representa gravedad, atmósfera, presión ni radiación marciana.",
+      "No constituye autorización, evaluación de seguridad ni selección oficial de terreno."
+    ],
+    "field_checks": [
+      "FIXTURE: ninguna verificación de terreno aplica a un candidato sintético.",
+      "En un candidato real: confirmar acceso, propiedad y permisos con la autoridad correspondiente."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "planned-topography",
+        "dataset_id": "fixture-synthetic-v0",
+        "claim": "Fuente prevista para relieve en M3: NASA Earthdata (NASADEM/SRTM). Los valores mostrados NO provienen de ella.",
+        "source_url": "https://search.earthdata.nasa.gov/search"
+      },
+      {
+        "evidence_id": "planned-planetary-reference",
+        "dataset_id": "fixture-synthetic-v0",
+        "claim": "Referencia planetaria prevista: NASA PDS MOLA. Aún no se ha derivado ninguna firma ni rango.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/mola.html"
+      }
+    ]
+  },
+  {
+    "site_id": "cl-fixture-b",
+    "name": "Fixture B (sintético, ubicación arbitraria)",
+    "profile_id": "mars-rover-mobility-v1",
+    "profile_version": "1.0.0-draft",
+    "data_snapshot_version": "fixture-demo-v0",
+    "pipeline_version": "0.2.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -70.75,
+            -30.5
+          ],
+          [
+            -70.55,
+            -30.38
+          ],
+          [
+            -70.32,
+            -30.47
+          ],
+          [
+            -70.3,
+            -30.7
+          ],
+          [
+            -70.5,
+            -30.82
+          ],
+          [
+            -70.72,
+            -30.72
+          ],
+          [
+            -70.75,
+            -30.5
+          ]
+        ]
+      ]
+    },
+    "area_km2": 1512.4,
+    "status": "fixture",
+    "similarity": 63.7,
+    "confidence": 68.75,
+    "feasibility": "unknown",
+    "stability": 99.49,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 11,
+        "unit": "degree",
+        "normalized_similarity": 0.58,
+        "weight": 0.2,
+        "contribution": -0.1282,
+        "quality": 0.9,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": null,
+        "unit": "dataset_defined",
+        "normalized_similarity": 0.66,
+        "weight": 0.2,
+        "contribution": -0.0978,
+        "quality": 0.85,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 95,
+        "unit": "meter",
+        "normalized_similarity": 0.52,
+        "weight": 0.15,
+        "contribution": -0.1154,
+        "quality": 0.85,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": 0.71,
+        "unit": "ratio",
+        "normalized_similarity": 0.75,
+        "weight": 0.2,
+        "contribution": -0.0677,
+        "quality": 0.8,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": null,
+        "unit": "dataset_defined",
+        "normalized_similarity": 0.7,
+        "weight": 0.1,
+        "contribution": -0.042,
+        "quality": 0.5,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": null,
+        "unit": "kelvin",
+        "normalized_similarity": null,
+        "weight": 0.05,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "missing",
+        "explanation": "FIXTURE: criterio dejado sin dato a propósito para ejercitar el estado de datos faltantes."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": "clase-fixture-b",
+        "unit": "category",
+        "normalized_similarity": 0.5,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "needs_calibration",
+        "explanation": "FIXTURE: criterio con valor pero sin calibración aprobada; queda fuera del score."
+      }
+    ],
+    "warnings": [
+      "FIXTURE: dos criterios quedan fuera del score; los pesos válidos se renormalizan y la confianza baja."
+    ],
+    "limitations": [
+      "FIXTURE: esta zona y sus valores son sintéticos; no es un resultado científico.",
+      "No representa gravedad, atmósfera, presión ni radiación marciana.",
+      "No constituye autorización, evaluación de seguridad ni selección oficial de terreno."
+    ],
+    "field_checks": [
+      "FIXTURE: ninguna verificación de terreno aplica a un candidato sintético.",
+      "En un candidato real: confirmar acceso, propiedad y permisos con la autoridad correspondiente."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "planned-topography",
+        "dataset_id": "fixture-synthetic-v0",
+        "claim": "Fuente prevista para relieve en M3: NASA Earthdata (NASADEM/SRTM). Los valores mostrados NO provienen de ella.",
+        "source_url": "https://search.earthdata.nasa.gov/search"
+      },
+      {
+        "evidence_id": "planned-planetary-reference",
+        "dataset_id": "fixture-synthetic-v0",
+        "claim": "Referencia planetaria prevista: NASA PDS MOLA. Aún no se ha derivado ninguna firma ni rango.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/mola.html"
+      }
+    ]
+  },
+  {
+    "site_id": "cl-fixture-c",
+    "name": "Fixture C (sintético, ubicación arbitraria)",
+    "profile_id": "mars-rover-mobility-v1",
+    "profile_version": "1.0.0-draft",
+    "data_snapshot_version": "fixture-demo-v0",
+    "pipeline_version": "0.2.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -70.95,
+            -52.25
+          ],
+          [
+            -70.8,
+            -52.17
+          ],
+          [
+            -70.6,
+            -52.22
+          ],
+          [
+            -70.55,
+            -52.36
+          ],
+          [
+            -70.7,
+            -52.44
+          ],
+          [
+            -70.9,
+            -52.4
+          ],
+          [
+            -70.95,
+            -52.25
+          ]
+        ]
+      ]
+    },
+    "area_km2": 571.1,
+    "status": "fixture",
+    "similarity": null,
+    "confidence": 37.5,
+    "feasibility": "potentially_feasible",
+    "stability": null,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": null,
+        "unit": "degree",
+        "normalized_similarity": null,
+        "weight": 0.2,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "missing",
+        "explanation": "FIXTURE: criterio dejado sin dato a propósito para ejercitar el estado de datos faltantes."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": null,
+        "unit": "dataset_defined",
+        "normalized_similarity": null,
+        "weight": 0.2,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "missing",
+        "explanation": "FIXTURE: criterio dejado sin dato a propósito para ejercitar el estado de datos faltantes."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 20,
+        "unit": "meter",
+        "normalized_similarity": 0.8,
+        "weight": 0.15,
+        "contribution": null,
+        "quality": 0.7,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": 0.55,
+        "unit": "ratio",
+        "normalized_similarity": 0.6,
+        "weight": 0.2,
+        "contribution": null,
+        "quality": 0.7,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": null,
+        "unit": "dataset_defined",
+        "normalized_similarity": 0.3,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.5,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 12,
+        "unit": "kelvin",
+        "normalized_similarity": 0.4,
+        "weight": 0.05,
+        "contribution": null,
+        "quality": 0.6,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": "clase-fixture-c",
+        "unit": "category",
+        "normalized_similarity": 0.6,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.5,
+        "dataset_id": "fixture-synthetic-v0",
+        "status": "valid",
+        "explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración."
+      }
+    ],
+    "warnings": [
+      "FIXTURE: el peso válido queda bajo 0,70, por lo que no se calcula similitud.",
+      "FIXTURE: la factibilidad mostrada es un valor de prueba, no una promesa."
+    ],
+    "limitations": [
+      "FIXTURE: esta zona y sus valores son sintéticos; no es un resultado científico.",
+      "No representa gravedad, atmósfera, presión ni radiación marciana.",
+      "No constituye autorización, evaluación de seguridad ni selección oficial de terreno."
+    ],
+    "field_checks": [
+      "FIXTURE: ninguna verificación de terreno aplica a un candidato sintético.",
+      "En un candidato real: confirmar acceso, propiedad y permisos con la autoridad correspondiente."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "planned-topography",
+        "dataset_id": "fixture-synthetic-v0",
+        "claim": "Fuente prevista para relieve en M3: NASA Earthdata (NASADEM/SRTM). Los valores mostrados NO provienen de ella.",
+        "source_url": "https://search.earthdata.nasa.gov/search"
+      },
+      {
+        "evidence_id": "planned-planetary-reference",
+        "dataset_id": "fixture-synthetic-v0",
+        "claim": "Referencia planetaria prevista: NASA PDS MOLA. Aún no se ha derivado ninguna firma ni rango.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/mola.html"
+      }
+    ]
+  }
+]

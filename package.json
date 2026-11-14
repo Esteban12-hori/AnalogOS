@@ -1,0 +1,18 @@
+{
+  "name": "analogos-chile",
+  "private": true,
+  "version": "0.2.0",
+  "workspaces": ["apps/web"],
+  "scripts": {
+    "dev": "npm -w apps/web run dev --",
+    "science:fetch": "python -m pipelines.fetch_science_data",
+    "science:build": "python -m pipelines.build_science_snapshot",
+    "science:fetch:v2": "python -m pipelines.fetch_precision_data",
+    "science:build:v2": "python -m pipelines.build_precision_snapshot",
+    "validate": "npm -w apps/web run test -- src/tests/snapshot.test.ts",
+    "build": "npm run validate && npm -w apps/web run build",
+    "preview": "npm -w apps/web run preview --",
+    "test": "npm -w apps/web run test",
+    "verify": "python -m pytest -q && npm run test && npm run build"
+  }
+}

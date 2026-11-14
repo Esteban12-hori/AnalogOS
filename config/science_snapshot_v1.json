@@ -1,0 +1,52 @@
+{
+  "snapshot_version": "science-screening-v1",
+  "created_at": "2026-11-14T13:00:00Z",
+  "mola": {
+    "file": "data/raw/mola/megt44n000hb.img",
+    "url": "https://pds-geosciences.wustl.edu/mgs/urn-nasa-pds-mgs_mola_topography_derived/meg128/megt44n000hb.img",
+    "expected_bytes": 129761280,
+    "lines": 5632,
+    "samples": 11520,
+    "pixels_per_degree": 128,
+    "north": 44.0,
+    "west": 0.0,
+    "reference": {
+      "name": "Entorno regional de Jezero, Marte",
+      "latitude": 18.38,
+      "longitude": 77.58,
+      "half_size_degree": 0.8
+    }
+  },
+  "power": {
+    "file": "data/raw/power/climatology_points.json",
+    "endpoint": "https://power.larc.nasa.gov/api/temporal/climatology/point",
+    "parameters": ["PRECTOTCORR", "TS", "TS_MAX", "TS_MIN"],
+    "community": "AG"
+  },
+  "sites": [
+    {
+      "site_id": "cl-pampa-yungay-screening",
+      "name": "Pampa Yungay — sector de screening",
+      "latitude": -24.08,
+      "longitude": -69.95,
+      "half_size_degree": 0.10,
+      "srtm_tile": "S25W070"
+    },
+    {
+      "site_id": "cl-pampa-maria-elena-screening",
+      "name": "Pampa María Elena — sector de screening",
+      "latitude": -22.35,
+      "longitude": -69.65,
+      "half_size_degree": 0.10,
+      "srtm_tile": "S23W070"
+    },
+    {
+      "site_id": "cl-domeyko-interior-screening",
+      "name": "Cordón de Domeyko — sector interior",
+      "latitude": -23.30,
+      "longitude": -68.85,
+      "half_size_degree": 0.10,
+      "srtm_tile": "S24W069"
+    }
+  ]
+}

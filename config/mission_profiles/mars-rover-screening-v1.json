@@ -1,0 +1,90 @@
+{
+  "$schema": "../../contracts/mission-profile.schema.json",
+  "id": "mars-rover-screening-v1",
+  "version": "1.0.0-preliminary",
+  "name": "Screening de terreno para movilidad de rover",
+  "purpose": "Priorizar sectores de Chile para investigar pruebas de percepción, navegación, tracción y autonomía con comparación topográfica MOLA a escala equivalente.",
+  "status": "needs_calibration",
+  "planetary_reference": {
+    "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+    "body": "mars",
+    "notes": "Referencia regional de Jezero derivada de MOLA MEGDR a 128 píxeles/grado. Screening preliminar, no modelo de transitabilidad a escala de rueda."
+  },
+  "aggregation": {
+    "method": "weighted_geometric_mean",
+    "epsilon": 0.01,
+    "minimum_valid_weight": 0.70
+  },
+  "criteria": [
+    {
+      "id": "slope",
+      "label": "Pendiente a escala equivalente",
+      "weight": 0.20,
+      "unit": "degree",
+      "method": "reference_distribution_distance",
+      "status": "validated"
+    },
+    {
+      "id": "terrain_roughness",
+      "label": "Rugosidad a escala equivalente",
+      "weight": 0.20,
+      "unit": "meter",
+      "method": "reference_distribution_distance",
+      "status": "validated"
+    },
+    {
+      "id": "local_relief",
+      "label": "Relieve local a escala equivalente",
+      "weight": 0.15,
+      "unit": "meter",
+      "method": "reference_distribution_distance",
+      "status": "validated"
+    },
+    {
+      "id": "bare_ground_fraction",
+      "label": "Fracción de suelo expuesto",
+      "weight": 0.20,
+      "unit": "ratio",
+      "method": "bounded_preference",
+      "status": "needs_calibration"
+    },
+    {
+      "id": "aridity_context",
+      "label": "Contexto de aridez",
+      "weight": 0.10,
+      "unit": "millimeter_per_year",
+      "method": "bounded_preference",
+      "status": "optional"
+    },
+    {
+      "id": "surface_temperature_variability",
+      "label": "Rango térmico superficial climatológico",
+      "weight": 0.05,
+      "unit": "kelvin",
+      "method": "bounded_preference",
+      "status": "optional"
+    },
+    {
+      "id": "geologic_relevance",
+      "label": "Relevancia geológica",
+      "weight": 0.10,
+      "unit": "category",
+      "method": "categorical_compatibility",
+      "status": "needs_expert_review"
+    }
+  ],
+  "hard_constraints": [
+    "protected_or_sensitive_area_not_evaluated",
+    "permanent_water_not_evaluated",
+    "urban_area_not_evaluated",
+    "land_access_not_evaluated",
+    "field_scale_slope_not_evaluated"
+  ],
+  "limitations": [
+    "Screening preliminar de escritorio: no reemplaza inspección de terreno ni evaluación de seguridad.",
+    "La referencia MOLA y SRTM se comparan cerca de 460–480 m por celda; no describen obstáculos a escala de rueda.",
+    "No representa gravedad, atmósfera, presión, radiación ni mecánica de suelo marcianas.",
+    "Suelo expuesto y geología quedan fuera del score v1 por falta de una derivación defendible durante el evento.",
+    "No constituye autorización, permiso de acceso ni selección oficial de terreno."
+  ]
+}

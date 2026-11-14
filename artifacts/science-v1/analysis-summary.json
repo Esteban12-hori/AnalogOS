@@ -1,0 +1,375 @@
+{
+  "snapshot_version": "science-screening-v1",
+  "method": "SRTM agregado ~480 m vs MOLA MEGDR ~463 m; POWER como contexto regional",
+  "mola_reference": {
+    "name": "Entorno regional de Jezero, Marte",
+    "center": [
+      77.58,
+      18.38
+    ],
+    "window_degree": 1.6,
+    "nominal_spacing_meter": 451.2,
+    "median_slope_degree": 2.226,
+    "median_neighbor_difference_meter": 11.0,
+    "median_3x3_relief_meter": 47.0,
+    "valid_fraction": 1.0,
+    "elevation_p05_meter": -2764.0,
+    "elevation_p95_meter": -1658.0
+  },
+  "sites": [
+    {
+      "site_id": "cl-pampa-yungay-screening",
+      "srtm": {
+        "tile": "S25W070",
+        "center": [
+          -69.95,
+          -24.08
+        ],
+        "window_degree": 0.2,
+        "source_spacing_meter": 29.5,
+        "analysis_spacing_meter": 472.7,
+        "median_slope_degree": 2.982,
+        "median_neighbor_difference_meter": 15.488,
+        "median_3x3_relief_meter": 70.852,
+        "valid_fraction": 1.0,
+        "elevation_p05_meter": 967.5,
+        "elevation_p95_meter": 1331.4
+      },
+      "nasa_power": {
+        "annual_precipitation_mm": 7.3,
+        "skin_temperature_range_c": 47.66,
+        "skin_temperature_mean_c": 18.95,
+        "period": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)",
+        "api_version": "v2.10.1",
+        "request_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-69.95&latitude=-24.08&format=JSON"
+      },
+      "valid_weight": 0.7,
+      "sensitivity": {
+        "stability": 99.65,
+        "max_score_delta": 0.35,
+        "scenarios": [
+          {
+            "criterion_id": "slope",
+            "direction": "minus",
+            "score": 73.59,
+            "delta": -0.06
+          },
+          {
+            "criterion_id": "slope",
+            "direction": "plus",
+            "score": 73.7,
+            "delta": 0.05
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "minus",
+            "score": 73.81,
+            "delta": 0.16
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "plus",
+            "score": 73.51,
+            "delta": -0.14
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "minus",
+            "score": 74.0,
+            "delta": 0.35
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "plus",
+            "score": 73.33,
+            "delta": -0.32
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "minus",
+            "score": 73.65,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "plus",
+            "score": 73.65,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "minus",
+            "score": 73.54,
+            "delta": -0.11
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "plus",
+            "score": 73.75,
+            "delta": 0.1
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "minus",
+            "score": 73.32,
+            "delta": -0.33
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "plus",
+            "score": 73.97,
+            "delta": 0.32
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "minus",
+            "score": 73.65,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "plus",
+            "score": 73.65,
+            "delta": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "site_id": "cl-pampa-maria-elena-screening",
+      "srtm": {
+        "tile": "S23W070",
+        "center": [
+          -69.65,
+          -22.35
+        ],
+        "window_degree": 0.2,
+        "source_spacing_meter": 29.7,
+        "analysis_spacing_meter": 475.6,
+        "median_slope_degree": 0.747,
+        "median_neighbor_difference_meter": 3.709,
+        "median_3x3_relief_meter": 17.59,
+        "valid_fraction": 1.0,
+        "elevation_p05_meter": 1184.0,
+        "elevation_p95_meter": 1488.5
+      },
+      "nasa_power": {
+        "annual_precipitation_mm": 14.61,
+        "skin_temperature_range_c": 52.64,
+        "skin_temperature_mean_c": 19.29,
+        "period": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)",
+        "api_version": "v2.10.1",
+        "request_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-69.65&latitude=-22.35&format=JSON"
+      },
+      "valid_weight": 0.7,
+      "sensitivity": {
+        "stability": 99.47,
+        "max_score_delta": 0.53,
+        "scenarios": [
+          {
+            "criterion_id": "slope",
+            "direction": "minus",
+            "score": 41.18,
+            "delta": 0.48
+          },
+          {
+            "criterion_id": "slope",
+            "direction": "plus",
+            "score": 40.28,
+            "delta": -0.42
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "minus",
+            "score": 41.17,
+            "delta": 0.47
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "plus",
+            "score": 40.29,
+            "delta": -0.41
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "minus",
+            "score": 40.85,
+            "delta": 0.15
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "plus",
+            "score": 40.56,
+            "delta": -0.14
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "minus",
+            "score": 40.7,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "plus",
+            "score": 40.7,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "minus",
+            "score": 40.18,
+            "delta": -0.52
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "plus",
+            "score": 41.2,
+            "delta": 0.5
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "minus",
+            "score": 40.17,
+            "delta": -0.53
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "plus",
+            "score": 41.22,
+            "delta": 0.52
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "minus",
+            "score": 40.7,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "plus",
+            "score": 40.7,
+            "delta": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "site_id": "cl-domeyko-interior-screening",
+      "srtm": {
+        "tile": "S24W069",
+        "center": [
+          -68.85,
+          -23.3
+        ],
+        "window_degree": 0.2,
+        "source_spacing_meter": 29.6,
+        "analysis_spacing_meter": 474.0,
+        "median_slope_degree": 1.471,
+        "median_neighbor_difference_meter": 6.344,
+        "median_3x3_relief_meter": 31.211,
+        "valid_fraction": 1.0,
+        "elevation_p05_meter": 2737.1,
+        "elevation_p95_meter": 2983.6
+      },
+      "nasa_power": {
+        "annual_precipitation_mm": 14.61,
+        "skin_temperature_range_c": 58.15,
+        "skin_temperature_mean_c": 15.77,
+        "period": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)",
+        "api_version": "v2.10.1",
+        "request_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-68.85&latitude=-23.3&format=JSON"
+      },
+      "valid_weight": 0.7,
+      "sensitivity": {
+        "stability": 99.52,
+        "max_score_delta": 0.48,
+        "scenarios": [
+          {
+            "criterion_id": "slope",
+            "direction": "minus",
+            "score": 65.05,
+            "delta": -0.06
+          },
+          {
+            "criterion_id": "slope",
+            "direction": "plus",
+            "score": 65.16,
+            "delta": 0.05
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "minus",
+            "score": 65.59,
+            "delta": 0.48
+          },
+          {
+            "criterion_id": "terrain_roughness",
+            "direction": "plus",
+            "score": 64.69,
+            "delta": -0.42
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "minus",
+            "score": 65.05,
+            "delta": -0.06
+          },
+          {
+            "criterion_id": "local_relief",
+            "direction": "plus",
+            "score": 65.16,
+            "delta": 0.05
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "minus",
+            "score": 65.11,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "bare_ground_fraction",
+            "direction": "plus",
+            "score": 65.11,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "minus",
+            "score": 65.17,
+            "delta": 0.06
+          },
+          {
+            "criterion_id": "aridity_context",
+            "direction": "plus",
+            "score": 65.05,
+            "delta": -0.06
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "minus",
+            "score": 64.71,
+            "delta": -0.4
+          },
+          {
+            "criterion_id": "surface_temperature_variability",
+            "direction": "plus",
+            "score": 65.51,
+            "delta": 0.4
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "minus",
+            "score": 65.11,
+            "delta": 0.0
+          },
+          {
+            "criterion_id": "geologic_relevance",
+            "direction": "plus",
+            "score": 65.11,
+            "delta": 0.0
+          }
+        ]
+      }
+    }
+  ]
+}

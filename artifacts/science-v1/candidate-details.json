@@ -1,0 +1,506 @@
+[
+  {
+    "site_id": "cl-pampa-yungay-screening",
+    "name": "Pampa Yungay — sector de screening",
+    "profile_id": "mars-rover-screening-v1",
+    "profile_version": "1.0.0-preliminary",
+    "data_snapshot_version": "science-screening-v1",
+    "pipeline_version": "0.1.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -70.05,
+            -24.18
+          ],
+          [
+            -69.85000000000001,
+            -24.18
+          ],
+          [
+            -69.85000000000001,
+            -23.979999999999997
+          ],
+          [
+            -70.05,
+            -23.979999999999997
+          ],
+          [
+            -70.05,
+            -24.18
+          ]
+        ]
+      ]
+    },
+    "area_km2": 450.5,
+    "status": "candidate",
+    "similarity": 73.65,
+    "confidence": 57.8,
+    "feasibility": "requires_review",
+    "stability": 99.65,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 2.982,
+        "unit": "degree",
+        "normalized_similarity": 0.746479,
+        "weight": 0.2,
+        "contribution": -0.0835,
+        "quality": 0.9,
+        "dataset_id": "derived-srtm-mola-scale-matched-v1",
+        "status": "valid",
+        "explanation": "Mediana de pendiente SRTM agregada a ~480 m comparada por razón con la mediana MOLA del entorno de Jezero."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": 15.488,
+        "unit": "meter",
+        "normalized_similarity": 0.710227,
+        "weight": 0.2,
+        "contribution": -0.0978,
+        "quality": 0.88,
+        "dataset_id": "derived-srtm-mola-scale-matched-v1",
+        "status": "valid",
+        "explanation": "Diferencia absoluta mediana entre celdas vecinas, calculada a escala aproximadamente equivalente en Tierra y Marte."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 70.852,
+        "unit": "meter",
+        "normalized_similarity": 0.663355,
+        "weight": 0.15,
+        "contribution": -0.088,
+        "quality": 0.88,
+        "dataset_id": "derived-srtm-mola-scale-matched-v1",
+        "status": "valid",
+        "explanation": "Relieve local mediano en ventanas 3×3 a ~480 m, comparado con la referencia MOLA regional."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": null,
+        "unit": "ratio",
+        "normalized_similarity": null,
+        "weight": 0.2,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "missing",
+        "explanation": "No se incorporó una clasificación óptica defendible al snapshot v1; el criterio queda fuera del score."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": 7.3,
+        "unit": "millimeter_per_year",
+        "normalized_similarity": 0.773994,
+        "weight": 0.1,
+        "contribution": -0.0366,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "status": "valid",
+        "explanation": "Precipitación climatológica POWER; preferencia de screening decreciente con escala de 25 mm/año. Es contexto regional, no medición local."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 47.66,
+        "unit": "kelvin",
+        "normalized_similarity": 1,
+        "weight": 0.05,
+        "contribution": 0.0,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "status": "valid",
+        "explanation": "Proxy de estrés térmico: rango climatológico de temperatura de piel POWER, con preferencia saturada a 45 °C."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": null,
+        "unit": "category",
+        "normalized_similarity": null,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "needs_calibration",
+        "explanation": "Requiere cartografía SERNAGEOMIN y revisión geológica experta; queda fuera del score v1."
+      }
+    ],
+    "warnings": [
+      "SCREENING PRELIMINAR: el score prioriza investigación; no aprueba el sitio ni autoriza acceso.",
+      "REVISIÓN PENDIENTE — protected_or_sensitive_area · IDE Chile y autoridad territorial competente: No se intersectó aún con áreas protegidas o sensibles. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — permanent_water · IDE Chile y autoridad territorial competente: No se intersectó aún con cuerpos de agua permanentes. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — urban_area · IDE Chile y autoridad territorial competente: No se intersectó aún con zonas urbanas o infraestructura. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — land_access · IDE Chile y autoridad territorial competente: Propiedad, accesos y permisos requieren verificación humana. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — field_scale_slope · IDE Chile y autoridad territorial competente: SRTM agregado no detecta obstáculos ni pendientes a escala de rueda. Fuente: https://www.ide.cl/"
+    ],
+    "limitations": [
+      "Screening preliminar de escritorio: no reemplaza inspección de terreno ni evaluación de seguridad.",
+      "La referencia MOLA y SRTM se comparan cerca de 460–480 m por celda; no describen obstáculos a escala de rueda.",
+      "No representa gravedad, atmósfera, presión, radiación ni mecánica de suelo marcianas.",
+      "Suelo expuesto y geología quedan fuera del score v1 por falta de una derivación defendible durante el evento.",
+      "No constituye autorización, permiso de acceso ni selección oficial de terreno."
+    ],
+    "field_checks": [
+      "Confirmar límites, propiedad, acceso y permisos con autoridades y propietarios.",
+      "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica en terreno.",
+      "Verificar mecánica de suelo, polvo, cohesión y riesgo de hundimiento para el rover.",
+      "Revisar áreas sensibles, agua, infraestructura y restricciones operacionales antes de planificar una prueba."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "cl-pampa-yungay-screening-mola",
+        "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+        "claim": "Referencia planetaria: topografía MOLA MEGDR del entorno regional de Jezero a 128 píxeles/grado.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      },
+      {
+        "evidence_id": "cl-pampa-yungay-screening-srtm",
+        "dataset_id": "srtm-s25w070-v1",
+        "claim": "Relieve terrestre: SRTM 1 arc-second, tile S25W070, agregado a ~480 m para comparar escalas.",
+        "source_url": "https://www.earthdata.nasa.gov/data/instruments/srtm"
+      },
+      {
+        "evidence_id": "cl-pampa-yungay-screening-power",
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "claim": "Contexto regional: climatología NASA POWER 2001–2025 de precipitación y temperatura superficial.",
+        "source_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-69.95&latitude=-24.08&format=JSON"
+      }
+    ]
+  },
+  {
+    "site_id": "cl-pampa-maria-elena-screening",
+    "name": "Pampa María Elena — sector de screening",
+    "profile_id": "mars-rover-screening-v1",
+    "profile_version": "1.0.0-preliminary",
+    "data_snapshot_version": "science-screening-v1",
+    "pipeline_version": "0.1.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -69.75,
+            -22.450000000000003
+          ],
+          [
+            -69.55000000000001,
+            -22.450000000000003
+          ],
+          [
+            -69.55000000000001,
+            -22.25
+          ],
+          [
+            -69.75,
+            -22.25
+          ],
+          [
+            -69.75,
+            -22.450000000000003
+          ]
+        ]
+      ]
+    },
+    "area_km2": 456.3,
+    "status": "candidate",
+    "similarity": 40.7,
+    "confidence": 57.8,
+    "feasibility": "requires_review",
+    "stability": 99.47,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 0.747,
+        "unit": "degree",
+        "normalized_similarity": 0.33558,
+        "weight": 0.2,
+        "contribution": -0.312,
+        "quality": 0.9,
+        "dataset_id": "derived-srtm-mola-scale-matched-v1",
+        "status": "valid",
+        "explanation": "Mediana de pendiente SRTM agregada a ~480 m comparada por razón con la mediana MOLA del entorno de Jezero."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": 3.709,
+        "unit": "meter",
+        "normalized_similarity": 0.337182,
+        "weight": 0.2,
+        "contribution": -0.3106,
+        "quality": 0.88,
+        "dataset_id": "derived-srtm-mola-scale-matched-v1",
+        "status": "valid",
+        "explanation": "Diferencia absoluta mediana entre celdas vecinas, calculada a escala aproximadamente equivalente en Tierra y Marte."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 17.59,
+        "unit": "meter",
+        "normalized_similarity": 0.374255,
+        "weight": 0.15,
+        "contribution": -0.2106,
+        "quality": 0.88,
+        "dataset_id": "derived-srtm-mola-scale-matched-v1",
+        "status": "valid",
+        "explanation": "Relieve local mediano en ventanas 3×3 a ~480 m, comparado con la referencia MOLA regional."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": null,
+        "unit": "ratio",
+        "normalized_similarity": null,
+        "weight": 0.2,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "missing",
+        "explanation": "No se incorporó una clasificación óptica defendible al snapshot v1; el criterio queda fuera del score."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": 14.61,
+        "unit": "millimeter_per_year",
+        "normalized_similarity": 0.631154,
+        "weight": 0.1,
+        "contribution": -0.0657,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "status": "valid",
+        "explanation": "Precipitación climatológica POWER; preferencia de screening decreciente con escala de 25 mm/año. Es contexto regional, no medición local."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 52.64,
+        "unit": "kelvin",
+        "normalized_similarity": 1,
+        "weight": 0.05,
+        "contribution": 0.0,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "status": "valid",
+        "explanation": "Proxy de estrés térmico: rango climatológico de temperatura de piel POWER, con preferencia saturada a 45 °C."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": null,
+        "unit": "category",
+        "normalized_similarity": null,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "needs_calibration",
+        "explanation": "Requiere cartografía SERNAGEOMIN y revisión geológica experta; queda fuera del score v1."
+      }
+    ],
+    "warnings": [
+      "SCREENING PRELIMINAR: el score prioriza investigación; no aprueba el sitio ni autoriza acceso.",
+      "REVISIÓN PENDIENTE — protected_or_sensitive_area · IDE Chile y autoridad territorial competente: No se intersectó aún con áreas protegidas o sensibles. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — permanent_water · IDE Chile y autoridad territorial competente: No se intersectó aún con cuerpos de agua permanentes. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — urban_area · IDE Chile y autoridad territorial competente: No se intersectó aún con zonas urbanas o infraestructura. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — land_access · IDE Chile y autoridad territorial competente: Propiedad, accesos y permisos requieren verificación humana. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — field_scale_slope · IDE Chile y autoridad territorial competente: SRTM agregado no detecta obstáculos ni pendientes a escala de rueda. Fuente: https://www.ide.cl/"
+    ],
+    "limitations": [
+      "Screening preliminar de escritorio: no reemplaza inspección de terreno ni evaluación de seguridad.",
+      "La referencia MOLA y SRTM se comparan cerca de 460–480 m por celda; no describen obstáculos a escala de rueda.",
+      "No representa gravedad, atmósfera, presión, radiación ni mecánica de suelo marcianas.",
+      "Suelo expuesto y geología quedan fuera del score v1 por falta de una derivación defendible durante el evento.",
+      "No constituye autorización, permiso de acceso ni selección oficial de terreno."
+    ],
+    "field_checks": [
+      "Confirmar límites, propiedad, acceso y permisos con autoridades y propietarios.",
+      "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica en terreno.",
+      "Verificar mecánica de suelo, polvo, cohesión y riesgo de hundimiento para el rover.",
+      "Revisar áreas sensibles, agua, infraestructura y restricciones operacionales antes de planificar una prueba."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "cl-pampa-maria-elena-screening-mola",
+        "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+        "claim": "Referencia planetaria: topografía MOLA MEGDR del entorno regional de Jezero a 128 píxeles/grado.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      },
+      {
+        "evidence_id": "cl-pampa-maria-elena-screening-srtm",
+        "dataset_id": "srtm-s23w070-v1",
+        "claim": "Relieve terrestre: SRTM 1 arc-second, tile S23W070, agregado a ~480 m para comparar escalas.",
+        "source_url": "https://www.earthdata.nasa.gov/data/instruments/srtm"
+      },
+      {
+        "evidence_id": "cl-pampa-maria-elena-screening-power",
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "claim": "Contexto regional: climatología NASA POWER 2001–2025 de precipitación y temperatura superficial.",
+        "source_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-69.65&latitude=-22.35&format=JSON"
+      }
+    ]
+  },
+  {
+    "site_id": "cl-domeyko-interior-screening",
+    "name": "Cordón de Domeyko — sector interior",
+    "profile_id": "mars-rover-screening-v1",
+    "profile_version": "1.0.0-preliminary",
+    "data_snapshot_version": "science-screening-v1",
+    "pipeline_version": "0.1.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -68.94999999999999,
+            -23.400000000000002
+          ],
+          [
+            -68.75,
+            -23.400000000000002
+          ],
+          [
+            -68.75,
+            -23.2
+          ],
+          [
+            -68.94999999999999,
+            -23.2
+          ],
+          [
+            -68.94999999999999,
+            -23.400000000000002
+          ]
+        ]
+      ]
+    },
+    "area_km2": 453.2,
+    "status": "candidate",
+    "similarity": 65.11,
+    "confidence": 57.8,
+    "feasibility": "requires_review",
+    "stability": 99.52,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 1.471,
+        "unit": "degree",
+        "normalized_similarity": 0.660827,
+        "weight": 0.2,
+        "contribution": -0.1184,
+        "quality": 0.9,
+        "dataset_id": "derived-srtm-mola-scale-matched-v1",
+        "status": "valid",
+        "explanation": "Mediana de pendiente SRTM agregada a ~480 m comparada por razón con la mediana MOLA del entorno de Jezero."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": 6.344,
+        "unit": "meter",
+        "normalized_similarity": 0.576727,
+        "weight": 0.2,
+        "contribution": -0.1573,
+        "quality": 0.88,
+        "dataset_id": "derived-srtm-mola-scale-matched-v1",
+        "status": "valid",
+        "explanation": "Diferencia absoluta mediana entre celdas vecinas, calculada a escala aproximadamente equivalente en Tierra y Marte."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 31.211,
+        "unit": "meter",
+        "normalized_similarity": 0.664064,
+        "weight": 0.15,
+        "contribution": -0.0877,
+        "quality": 0.88,
+        "dataset_id": "derived-srtm-mola-scale-matched-v1",
+        "status": "valid",
+        "explanation": "Relieve local mediano en ventanas 3×3 a ~480 m, comparado con la referencia MOLA regional."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": null,
+        "unit": "ratio",
+        "normalized_similarity": null,
+        "weight": 0.2,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "missing",
+        "explanation": "No se incorporó una clasificación óptica defendible al snapshot v1; el criterio queda fuera del score."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": 14.61,
+        "unit": "millimeter_per_year",
+        "normalized_similarity": 0.631154,
+        "weight": 0.1,
+        "contribution": -0.0657,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "status": "valid",
+        "explanation": "Precipitación climatológica POWER; preferencia de screening decreciente con escala de 25 mm/año. Es contexto regional, no medición local."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 58.15,
+        "unit": "kelvin",
+        "normalized_similarity": 1,
+        "weight": 0.05,
+        "contribution": 0.0,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "status": "valid",
+        "explanation": "Proxy de estrés térmico: rango climatológico de temperatura de piel POWER, con preferencia saturada a 45 °C."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": null,
+        "unit": "category",
+        "normalized_similarity": null,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "needs_calibration",
+        "explanation": "Requiere cartografía SERNAGEOMIN y revisión geológica experta; queda fuera del score v1."
+      }
+    ],
+    "warnings": [
+      "SCREENING PRELIMINAR: el score prioriza investigación; no aprueba el sitio ni autoriza acceso.",
+      "REVISIÓN PENDIENTE — protected_or_sensitive_area · IDE Chile y autoridad territorial competente: No se intersectó aún con áreas protegidas o sensibles. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — permanent_water · IDE Chile y autoridad territorial competente: No se intersectó aún con cuerpos de agua permanentes. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — urban_area · IDE Chile y autoridad territorial competente: No se intersectó aún con zonas urbanas o infraestructura. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — land_access · IDE Chile y autoridad territorial competente: Propiedad, accesos y permisos requieren verificación humana. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — field_scale_slope · IDE Chile y autoridad territorial competente: SRTM agregado no detecta obstáculos ni pendientes a escala de rueda. Fuente: https://www.ide.cl/"
+    ],
+    "limitations": [
+      "Screening preliminar de escritorio: no reemplaza inspección de terreno ni evaluación de seguridad.",
+      "La referencia MOLA y SRTM se comparan cerca de 460–480 m por celda; no describen obstáculos a escala de rueda.",
+      "No representa gravedad, atmósfera, presión, radiación ni mecánica de suelo marcianas.",
+      "Suelo expuesto y geología quedan fuera del score v1 por falta de una derivación defendible durante el evento.",
+      "No constituye autorización, permiso de acceso ni selección oficial de terreno."
+    ],
+    "field_checks": [
+      "Confirmar límites, propiedad, acceso y permisos con autoridades y propietarios.",
+      "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica en terreno.",
+      "Verificar mecánica de suelo, polvo, cohesión y riesgo de hundimiento para el rover.",
+      "Revisar áreas sensibles, agua, infraestructura y restricciones operacionales antes de planificar una prueba."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "cl-domeyko-interior-screening-mola",
+        "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+        "claim": "Referencia planetaria: topografía MOLA MEGDR del entorno regional de Jezero a 128 píxeles/grado.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      },
+      {
+        "evidence_id": "cl-domeyko-interior-screening-srtm",
+        "dataset_id": "srtm-s24w069-v1",
+        "claim": "Relieve terrestre: SRTM 1 arc-second, tile S24W069, agregado a ~480 m para comparar escalas.",
+        "source_url": "https://www.earthdata.nasa.gov/data/instruments/srtm"
+      },
+      {
+        "evidence_id": "cl-domeyko-interior-screening-power",
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "claim": "Contexto regional: climatología NASA POWER 2001–2025 de precipitación y temperatura superficial.",
+        "source_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-68.85&latitude=-23.3&format=JSON"
+      }
+    ]
+  }
+]

@@ -1,0 +1,543 @@
+[
+  {
+    "site_id": "cl-pampa-yungay-screening",
+    "name": "Pampa Yungay — sector de screening",
+    "profile_id": "mars-rover-screening-v2",
+    "profile_version": "2.0.0-preliminary",
+    "data_snapshot_version": "science-screening-v2",
+    "pipeline_version": "0.2.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -70.05,
+            -24.18
+          ],
+          [
+            -69.85000000000001,
+            -24.18
+          ],
+          [
+            -69.85000000000001,
+            -23.979999999999997
+          ],
+          [
+            -70.05,
+            -23.979999999999997
+          ],
+          [
+            -70.05,
+            -24.18
+          ]
+        ]
+      ]
+    },
+    "area_km2": 450.5,
+    "status": "candidate",
+    "similarity": 75.67,
+    "confidence": 77.45,
+    "feasibility": "requires_review",
+    "stability": 99.03,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 3.207,
+        "unit": "degree",
+        "normalized_similarity": 0.694107,
+        "weight": 0.2,
+        "contribution": -0.0811,
+        "quality": 0.93,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v2",
+        "status": "valid",
+        "explanation": "Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": 16.564,
+        "unit": "meter",
+        "normalized_similarity": 0.664091,
+        "weight": 0.2,
+        "contribution": -0.091,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v2",
+        "status": "valid",
+        "explanation": "Diferencia absoluta mediana entre celdas vecinas NASADEM y MOLA a escala aproximadamente equivalente."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 75.125,
+        "unit": "meter",
+        "normalized_similarity": 0.625624,
+        "weight": 0.15,
+        "contribution": -0.0782,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v2",
+        "status": "valid",
+        "explanation": "Relieve mediano 3×3 sobre NASADEM agregado comparado con la ventana regional MOLA."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": 1.0,
+        "unit": "ratio",
+        "normalized_similarity": 1.0,
+        "weight": 0.2,
+        "contribution": 0.0,
+        "quality": 0.9,
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v1",
+        "status": "valid",
+        "explanation": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": 7.3,
+        "unit": "millimeter_per_year",
+        "normalized_similarity": 0.773994,
+        "weight": 0.1,
+        "contribution": -0.0285,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "status": "valid",
+        "explanation": "Precipitación climatológica POWER como contexto regional; preferencia decreciente con escala de 25 mm/año heredada del perfil v1."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 47.66,
+        "unit": "kelvin",
+        "normalized_similarity": 1,
+        "weight": 0.05,
+        "contribution": 0.0,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "status": "valid",
+        "explanation": "Proxy regional de estrés térmico: rango climatológico POWER, saturado a 45 °C como en el perfil v1."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": null,
+        "unit": "category",
+        "normalized_similarity": null,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "needs_calibration",
+        "explanation": "Requiere cartografía SERNAGEOMIN y revisión geológica experta; permanece fuera del score v2."
+      }
+    ],
+    "warnings": [
+      "SCREENING CIENTÍFICO: prioriza reconocimiento; no aprueba el sitio, no garantiza seguridad y no autoriza acceso.",
+      "REVISIÓN PENDIENTE — protected_or_sensitive_area · IDE Chile y autoridad territorial competente: No se intersectó aún con el inventario oficial de áreas protegidas o sensibles. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — urban_area · IDE Chile y autoridad territorial competente: No se intersectó aún con límites urbanos e infraestructura oficial. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — land_access · Autoridad territorial, propietarios y operadores: Propiedad, accesos, seguridad y permisos requieren verificación humana. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — field_scale_slope · Equipo de campaña de rover: NASADEM a 30 m no detecta obstáculos ni pendientes a escala de rueda. Fuente: https://lpdaac.usgs.gov/documents/2237/NASADEM_User_Guide_V13.pdf"
+    ],
+    "limitations": [
+      "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+      "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+      "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+      "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+      "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada."
+    ],
+    "field_checks": [
+      "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+      "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+      "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+      "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+      "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "cl-pampa-yungay-screening-mola",
+        "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+        "claim": "Referencia marciana: topografía MOLA MEGDR del entorno regional de Jezero.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      },
+      {
+        "evidence_id": "cl-pampa-yungay-screening-nasadem",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v2",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 4 tile(s), agregado a ~473 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "cl-pampa-yungay-screening-sentinel2",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v1",
+        "claim": "Superficie: 100.0% no vegetada, mediana de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "cl-pampa-yungay-screening-hls-inventory",
+        "dataset_id": "nasa-earthdata-hls-s30-inventory-2025-v1",
+        "claim": "Disponibilidad NASA independiente: 338 granules HLS Sentinel-2 intersectan el AOI en 2025; se registra como inventario, no entra al score.",
+        "source_url": "https://doi.org/10.5067/HLS/HLSS30.002"
+      },
+      {
+        "evidence_id": "cl-pampa-yungay-screening-power",
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "claim": "Contexto regional: climatología NASA POWER 2001–2025 de precipitación y temperatura superficial.",
+        "source_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-69.95&latitude=-24.08&format=JSON"
+      }
+    ]
+  },
+  {
+    "site_id": "cl-pampa-maria-elena-screening",
+    "name": "Pampa María Elena — sector de screening",
+    "profile_id": "mars-rover-screening-v2",
+    "profile_version": "2.0.0-preliminary",
+    "data_snapshot_version": "science-screening-v2",
+    "pipeline_version": "0.2.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -69.75,
+            -22.450000000000003
+          ],
+          [
+            -69.55000000000001,
+            -22.450000000000003
+          ],
+          [
+            -69.55000000000001,
+            -22.25
+          ],
+          [
+            -69.75,
+            -22.25
+          ],
+          [
+            -69.75,
+            -22.450000000000003
+          ]
+        ]
+      ]
+    },
+    "area_km2": 456.3,
+    "status": "candidate",
+    "similarity": 49.99,
+    "confidence": 77.44,
+    "feasibility": "requires_review",
+    "stability": 98.41,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 0.763,
+        "unit": "degree",
+        "normalized_similarity": 0.342767,
+        "weight": 0.2,
+        "contribution": -0.2379,
+        "quality": 0.93,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v2",
+        "status": "valid",
+        "explanation": "Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": 3.723,
+        "unit": "meter",
+        "normalized_similarity": 0.338455,
+        "weight": 0.2,
+        "contribution": -0.2407,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v2",
+        "status": "valid",
+        "explanation": "Diferencia absoluta mediana entre celdas vecinas NASADEM y MOLA a escala aproximadamente equivalente."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 17.652,
+        "unit": "meter",
+        "normalized_similarity": 0.375574,
+        "weight": 0.15,
+        "contribution": -0.1632,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v2",
+        "status": "valid",
+        "explanation": "Relieve mediano 3×3 sobre NASADEM agregado comparado con la ventana regional MOLA."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": 0.998274,
+        "unit": "ratio",
+        "normalized_similarity": 0.998274,
+        "weight": 0.2,
+        "contribution": -0.0004,
+        "quality": 0.8994,
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v1",
+        "status": "valid",
+        "explanation": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": 14.61,
+        "unit": "millimeter_per_year",
+        "normalized_similarity": 0.631154,
+        "weight": 0.1,
+        "contribution": -0.0511,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "status": "valid",
+        "explanation": "Precipitación climatológica POWER como contexto regional; preferencia decreciente con escala de 25 mm/año heredada del perfil v1."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 52.64,
+        "unit": "kelvin",
+        "normalized_similarity": 1,
+        "weight": 0.05,
+        "contribution": 0.0,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "status": "valid",
+        "explanation": "Proxy regional de estrés térmico: rango climatológico POWER, saturado a 45 °C como en el perfil v1."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": null,
+        "unit": "category",
+        "normalized_similarity": null,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "needs_calibration",
+        "explanation": "Requiere cartografía SERNAGEOMIN y revisión geológica experta; permanece fuera del score v2."
+      }
+    ],
+    "warnings": [
+      "SCREENING CIENTÍFICO: prioriza reconocimiento; no aprueba el sitio, no garantiza seguridad y no autoriza acceso.",
+      "REVISIÓN PENDIENTE — protected_or_sensitive_area · IDE Chile y autoridad territorial competente: No se intersectó aún con el inventario oficial de áreas protegidas o sensibles. Fuente: https://www.ide.cl/",
+      "ADVERTENCIA — permanent_water_trace · NASA LP DAAC — NASADEM SWB: NASADEM SWB detectó 0.15% de agua permanente. El polígono se conserva, pero el trazado de campaña debe evitar esos píxeles. Fuente: https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001",
+      "REVISIÓN PENDIENTE — urban_area · IDE Chile y autoridad territorial competente: No se intersectó aún con límites urbanos e infraestructura oficial. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — land_access · Autoridad territorial, propietarios y operadores: Propiedad, accesos, seguridad y permisos requieren verificación humana. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — field_scale_slope · Equipo de campaña de rover: NASADEM a 30 m no detecta obstáculos ni pendientes a escala de rueda. Fuente: https://lpdaac.usgs.gov/documents/2237/NASADEM_User_Guide_V13.pdf"
+    ],
+    "limitations": [
+      "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+      "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+      "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+      "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+      "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada."
+    ],
+    "field_checks": [
+      "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+      "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+      "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+      "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+      "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "cl-pampa-maria-elena-screening-mola",
+        "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+        "claim": "Referencia marciana: topografía MOLA MEGDR del entorno regional de Jezero.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      },
+      {
+        "evidence_id": "cl-pampa-maria-elena-screening-nasadem",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v2",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 1 tile(s), agregado a ~476 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "cl-pampa-maria-elena-screening-sentinel2",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v1",
+        "claim": "Superficie: 99.8% no vegetada, mediana de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "cl-pampa-maria-elena-screening-hls-inventory",
+        "dataset_id": "nasa-earthdata-hls-s30-inventory-2025-v1",
+        "claim": "Disponibilidad NASA independiente: 171 granules HLS Sentinel-2 intersectan el AOI en 2025; se registra como inventario, no entra al score.",
+        "source_url": "https://doi.org/10.5067/HLS/HLSS30.002"
+      },
+      {
+        "evidence_id": "cl-pampa-maria-elena-screening-power",
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "claim": "Contexto regional: climatología NASA POWER 2001–2025 de precipitación y temperatura superficial.",
+        "source_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-69.65&latitude=-22.35&format=JSON"
+      }
+    ]
+  },
+  {
+    "site_id": "cl-domeyko-interior-screening",
+    "name": "Cordón de Domeyko — sector interior",
+    "profile_id": "mars-rover-screening-v2",
+    "profile_version": "2.0.0-preliminary",
+    "data_snapshot_version": "science-screening-v2",
+    "pipeline_version": "0.2.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -68.94999999999999,
+            -23.400000000000002
+          ],
+          [
+            -68.75,
+            -23.400000000000002
+          ],
+          [
+            -68.75,
+            -23.2
+          ],
+          [
+            -68.94999999999999,
+            -23.2
+          ],
+          [
+            -68.94999999999999,
+            -23.400000000000002
+          ]
+        ]
+      ]
+    },
+    "area_km2": 453.2,
+    "status": "candidate",
+    "similarity": 71.6,
+    "confidence": 77.41,
+    "feasibility": "requires_review",
+    "stability": 98.89,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 1.468,
+        "unit": "degree",
+        "normalized_similarity": 0.659479,
+        "weight": 0.2,
+        "contribution": -0.0925,
+        "quality": 0.93,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v2",
+        "status": "valid",
+        "explanation": "Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": 6.34,
+        "unit": "meter",
+        "normalized_similarity": 0.576364,
+        "weight": 0.2,
+        "contribution": -0.1224,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v2",
+        "status": "valid",
+        "explanation": "Diferencia absoluta mediana entre celdas vecinas NASADEM y MOLA a escala aproximadamente equivalente."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 31.254,
+        "unit": "meter",
+        "normalized_similarity": 0.664979,
+        "weight": 0.15,
+        "contribution": -0.068,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v2",
+        "status": "valid",
+        "explanation": "Relieve mediano 3×3 sobre NASADEM agregado comparado con la ventana regional MOLA."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": 1.0,
+        "unit": "ratio",
+        "normalized_similarity": 1.0,
+        "weight": 0.2,
+        "contribution": 0.0,
+        "quality": 0.8979,
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v1",
+        "status": "valid",
+        "explanation": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": 14.61,
+        "unit": "millimeter_per_year",
+        "normalized_similarity": 0.631154,
+        "weight": 0.1,
+        "contribution": -0.0511,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "status": "valid",
+        "explanation": "Precipitación climatológica POWER como contexto regional; preferencia decreciente con escala de 25 mm/año heredada del perfil v1."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 58.15,
+        "unit": "kelvin",
+        "normalized_similarity": 1,
+        "weight": 0.05,
+        "contribution": 0.0,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "status": "valid",
+        "explanation": "Proxy regional de estrés térmico: rango climatológico POWER, saturado a 45 °C como en el perfil v1."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": null,
+        "unit": "category",
+        "normalized_similarity": null,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "needs_calibration",
+        "explanation": "Requiere cartografía SERNAGEOMIN y revisión geológica experta; permanece fuera del score v2."
+      }
+    ],
+    "warnings": [
+      "SCREENING CIENTÍFICO: prioriza reconocimiento; no aprueba el sitio, no garantiza seguridad y no autoriza acceso.",
+      "REVISIÓN PENDIENTE — protected_or_sensitive_area · IDE Chile y autoridad territorial competente: No se intersectó aún con el inventario oficial de áreas protegidas o sensibles. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — urban_area · IDE Chile y autoridad territorial competente: No se intersectó aún con límites urbanos e infraestructura oficial. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — land_access · Autoridad territorial, propietarios y operadores: Propiedad, accesos, seguridad y permisos requieren verificación humana. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — field_scale_slope · Equipo de campaña de rover: NASADEM a 30 m no detecta obstáculos ni pendientes a escala de rueda. Fuente: https://lpdaac.usgs.gov/documents/2237/NASADEM_User_Guide_V13.pdf"
+    ],
+    "limitations": [
+      "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+      "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+      "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+      "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+      "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada."
+    ],
+    "field_checks": [
+      "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+      "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+      "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+      "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+      "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "cl-domeyko-interior-screening-mola",
+        "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+        "claim": "Referencia marciana: topografía MOLA MEGDR del entorno regional de Jezero.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      },
+      {
+        "evidence_id": "cl-domeyko-interior-screening-nasadem",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v2",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 1 tile(s), agregado a ~474 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "cl-domeyko-interior-screening-sentinel2",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v1",
+        "claim": "Superficie: 100.0% no vegetada, mediana de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "cl-domeyko-interior-screening-hls-inventory",
+        "dataset_id": "nasa-earthdata-hls-s30-inventory-2025-v1",
+        "claim": "Disponibilidad NASA independiente: 168 granules HLS Sentinel-2 intersectan el AOI en 2025; se registra como inventario, no entra al score.",
+        "source_url": "https://doi.org/10.5067/HLS/HLSS30.002"
+      },
+      {
+        "evidence_id": "cl-domeyko-interior-screening-power",
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "claim": "Contexto regional: climatología NASA POWER 2001–2025 de precipitación y temperatura superficial.",
+        "source_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-68.85&latitude=-23.3&format=JSON"
+      }
+    ]
+  }
+]

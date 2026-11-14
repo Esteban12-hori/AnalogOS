@@ -1,0 +1,325 @@
+{
+  "snapshot_version": "science-screening-v2",
+  "created_at": "2026-11-14T14:23:28Z",
+  "pipeline_version": "0.2.0",
+  "datasets": [
+    {
+      "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+      "provider": "NASA Planetary Data System — Geosciences Node",
+      "product": "MGS MOLA MEGDR topography, MEGT44N000HB",
+      "collection_version": "MGS-M-MOLA-5-MEGDR-L3-V1 / PDS4 maintained bundle",
+      "landing_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html",
+      "access_url": "https://pds-geosciences.wustl.edu/mgs/urn-nasa-pds-mgs_mola_topography_derived/meg128/megt44n000hb.img",
+      "downloaded_at": "2026-11-14T14:23:28Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "128 píxeles/grado; ~463 m/píxel en latitud",
+      "temporal_resolution": "mosaico de misión",
+      "crs": "Mars simple cylindrical, planetocentric",
+      "units": "metros sobre areoide",
+      "license": "NASA PDS open data; atribución a MOLA y PDS",
+      "checksum": "sha256:14022166079edafc99650f354e5a634e6eb2c2ea544b444c01cd8ee55437df36",
+      "nodata": -32768,
+      "quality_notes": [
+        "Ventana regional alrededor de Jezero; no modela obstáculos a escala de rueda."
+      ],
+      "transformations": [
+        "Subconjunto regional",
+        "métricas topográficas a escala planetaria"
+      ]
+    },
+    {
+      "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v1",
+      "provider": "Copernicus Data Space Ecosystem — Sentinel Hub",
+      "product": "Sentinel-2 L2A Statistical API: SCL, NDVI y BSI",
+      "collection_version": "sentinel-2-l2a / analogos-s2-surface-v1",
+      "landing_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html",
+      "access_url": "https://sh.dataspace.copernicus.eu/statistics/v1",
+      "downloaded_at": "2026-11-14T14:23:28Z",
+      "time_start": "2025-01-01T00:00:00Z",
+      "time_end": "2026-01-01T00:00:00Z",
+      "spatial_resolution": "0,0003° nominal (~30 m)",
+      "temporal_resolution": "mosaicos mensuales de menor nubosidad",
+      "crs": "OGC CRS84",
+      "units": "fracciones 0–1 e índices adimensionales",
+      "license": "Modified Copernicus Sentinel data 2025 / Sentinel Hub",
+      "checksum": "sha256:ada9962ec05c76a3a42edf554fa3d2994f7a197024e1189b6cd6ebb544371f91",
+      "nodata": 0,
+      "quality_notes": [
+        "Se excluyen SCL no-data, saturado, sombra, nubes, cirrus, no clasificado y nieve.",
+        "SCL clase 5 no distingue mineralogía, suelo consolidado ni infraestructura."
+      ],
+      "transformations": [
+        "12 intervalos mensuales",
+        "mediana temporal",
+        "SCL clase 5",
+        "NDVI",
+        "BSI"
+      ]
+    },
+    {
+      "dataset_id": "nasa-earthdata-hls-s30-inventory-2025-v1",
+      "provider": "NASA LP DAAC / Earthdata CMR",
+      "product": "HLS Sentinel-2 Surface Reflectance Daily Global 30m v2.0 — inventario",
+      "collection_version": "HLSS30 v2.0",
+      "landing_url": "https://doi.org/10.5067/HLS/HLSS30.002",
+      "access_url": "https://cmr.earthdata.nasa.gov/search/granules.json?short_name=HLSS30&version=2.0",
+      "downloaded_at": "2026-11-14T14:23:28Z",
+      "time_start": "2025-01-01T00:00:00Z",
+      "time_end": "2025-12-31T23:59:59Z",
+      "spatial_resolution": "30 m",
+      "temporal_resolution": "granules disponibles durante 2025",
+      "crs": "MGRS/UTM por tile",
+      "units": "metadatos de inventario; no entra al score",
+      "license": "NASA open data; citar HLS y LP DAAC",
+      "checksum": "sha256:2b60c9dd1cbb147bf9fa331beea8941b14e371937ad08df5d06f16bb62d9113c",
+      "nodata": null,
+      "quality_notes": [
+        "Se valida disponibilidad de fuente NASA independiente; no se mezclan sus píxeles con Sentinel-2 en v2."
+      ],
+      "transformations": [
+        "Búsqueda CMR por AOI y periodo",
+        "conteo de granules"
+      ]
+    },
+    {
+      "dataset_id": "nasa-power-climatology-points-v1",
+      "provider": "NASA POWER",
+      "product": "Climatology Point API: PRECTOTCORR, TS, TS_MAX, TS_MIN",
+      "collection_version": "API v2.10.1",
+      "landing_url": "https://power.larc.nasa.gov/docs/services/api/temporal/climatology/",
+      "access_url": "https://power.larc.nasa.gov/api/temporal/climatology/point",
+      "downloaded_at": "2026-11-14T14:23:28Z",
+      "time_start": "2001-01-01T00:00:00Z",
+      "time_end": "2025-12-31T23:59:59Z",
+      "spatial_resolution": "celda climática regional más cercana",
+      "temporal_resolution": "climatología mensual y anual de 25 años",
+      "crs": "EPSG:4326",
+      "units": "mm/día y °C",
+      "license": "NASA open data; citar NASA POWER",
+      "checksum": "sha256:a78d5add9d2ad2ca7f521f1b3207c76c5faa99d8eebf2fd8dabc0cb96ea44bab",
+      "nodata": -999,
+      "quality_notes": [
+        "Contexto regional; no es una medición local de terreno."
+      ],
+      "transformations": [
+        "PRECTOTCORR ANN × 365,25",
+        "TS_MAX ANN − TS_MIN ANN"
+      ]
+    },
+    {
+      "dataset_id": "nasadem-s23w070-v1",
+      "provider": "NASA LP DAAC vía Earthdata Login",
+      "product": "NASADEM_HGT_s23w070",
+      "collection_version": "NASADEM_HGT.001",
+      "landing_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001",
+      "access_url": "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/NASADEM_HGT.001/NASADEM_HGT_s23w070/NASADEM_HGT_s23w070.zip",
+      "downloaded_at": "2026-11-14T14:23:28Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "1 arc-second (~30 m)",
+      "temporal_resolution": "mosaico de misión",
+      "crs": "EPSG:4326; alturas EGM96",
+      "units": "metros y máscara agua 0/255",
+      "license": "NASA open data; citar NASADEM y LP DAAC",
+      "checksum": "sha256:69bed8fe67fd6b17fb485a3bf04627aea6d4db36b754b039762901f8f819638b",
+      "nodata": null,
+      "quality_notes": [
+        "DEM void-filled; SWB 0=tierra y 255=agua según el User Guide NASADEM."
+      ],
+      "transformations": [
+        "Mosaico multitesela",
+        "recorte 0,2°",
+        "agregación 16×16",
+        "métricas topográficas"
+      ]
+    },
+    {
+      "dataset_id": "nasadem-s24w069-v1",
+      "provider": "NASA LP DAAC vía Earthdata Login",
+      "product": "NASADEM_HGT_s24w069",
+      "collection_version": "NASADEM_HGT.001",
+      "landing_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001",
+      "access_url": "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/NASADEM_HGT.001/NASADEM_HGT_s24w069/NASADEM_HGT_s24w069.zip",
+      "downloaded_at": "2026-11-14T14:23:28Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "1 arc-second (~30 m)",
+      "temporal_resolution": "mosaico de misión",
+      "crs": "EPSG:4326; alturas EGM96",
+      "units": "metros y máscara agua 0/255",
+      "license": "NASA open data; citar NASADEM y LP DAAC",
+      "checksum": "sha256:1d998d3e48c95caf7b0999c73f7a480b064d71eef96da57687c7f4e30accd838",
+      "nodata": null,
+      "quality_notes": [
+        "DEM void-filled; SWB 0=tierra y 255=agua según el User Guide NASADEM."
+      ],
+      "transformations": [
+        "Mosaico multitesela",
+        "recorte 0,2°",
+        "agregación 16×16",
+        "métricas topográficas"
+      ]
+    },
+    {
+      "dataset_id": "nasadem-s24w070-v1",
+      "provider": "NASA LP DAAC vía Earthdata Login",
+      "product": "NASADEM_HGT_s24w070",
+      "collection_version": "NASADEM_HGT.001",
+      "landing_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001",
+      "access_url": "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/NASADEM_HGT.001/NASADEM_HGT_s24w070/NASADEM_HGT_s24w070.zip",
+      "downloaded_at": "2026-11-14T14:23:28Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "1 arc-second (~30 m)",
+      "temporal_resolution": "mosaico de misión",
+      "crs": "EPSG:4326; alturas EGM96",
+      "units": "metros y máscara agua 0/255",
+      "license": "NASA open data; citar NASADEM y LP DAAC",
+      "checksum": "sha256:99cbd2c8bdb320e7d68e8022e0fbdbfad2b12e05680c9ab18c43c8efa975a12e",
+      "nodata": null,
+      "quality_notes": [
+        "DEM void-filled; SWB 0=tierra y 255=agua según el User Guide NASADEM."
+      ],
+      "transformations": [
+        "Mosaico multitesela",
+        "recorte 0,2°",
+        "agregación 16×16",
+        "métricas topográficas"
+      ]
+    },
+    {
+      "dataset_id": "nasadem-s24w071-v1",
+      "provider": "NASA LP DAAC vía Earthdata Login",
+      "product": "NASADEM_HGT_s24w071",
+      "collection_version": "NASADEM_HGT.001",
+      "landing_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001",
+      "access_url": "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/NASADEM_HGT.001/NASADEM_HGT_s24w071/NASADEM_HGT_s24w071.zip",
+      "downloaded_at": "2026-11-14T14:23:28Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "1 arc-second (~30 m)",
+      "temporal_resolution": "mosaico de misión",
+      "crs": "EPSG:4326; alturas EGM96",
+      "units": "metros y máscara agua 0/255",
+      "license": "NASA open data; citar NASADEM y LP DAAC",
+      "checksum": "sha256:a57be52ff6dee108b8a74d5853112168c042277ed4b904195d9f76c111324827",
+      "nodata": null,
+      "quality_notes": [
+        "DEM void-filled; SWB 0=tierra y 255=agua según el User Guide NASADEM."
+      ],
+      "transformations": [
+        "Mosaico multitesela",
+        "recorte 0,2°",
+        "agregación 16×16",
+        "métricas topográficas"
+      ]
+    },
+    {
+      "dataset_id": "nasadem-s25w070-v1",
+      "provider": "NASA LP DAAC vía Earthdata Login",
+      "product": "NASADEM_HGT_s25w070",
+      "collection_version": "NASADEM_HGT.001",
+      "landing_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001",
+      "access_url": "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/NASADEM_HGT.001/NASADEM_HGT_s25w070/NASADEM_HGT_s25w070.zip",
+      "downloaded_at": "2026-11-14T14:23:28Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "1 arc-second (~30 m)",
+      "temporal_resolution": "mosaico de misión",
+      "crs": "EPSG:4326; alturas EGM96",
+      "units": "metros y máscara agua 0/255",
+      "license": "NASA open data; citar NASADEM y LP DAAC",
+      "checksum": "sha256:900ad34ea8fd8e72afae599e236b39d5bae2d74e2b4a80980106fa3cd90a1244",
+      "nodata": null,
+      "quality_notes": [
+        "DEM void-filled; SWB 0=tierra y 255=agua según el User Guide NASADEM."
+      ],
+      "transformations": [
+        "Mosaico multitesela",
+        "recorte 0,2°",
+        "agregación 16×16",
+        "métricas topográficas"
+      ]
+    },
+    {
+      "dataset_id": "nasadem-s25w071-v1",
+      "provider": "NASA LP DAAC vía Earthdata Login",
+      "product": "NASADEM_HGT_s25w071",
+      "collection_version": "NASADEM_HGT.001",
+      "landing_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001",
+      "access_url": "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/NASADEM_HGT.001/NASADEM_HGT_s25w071/NASADEM_HGT_s25w071.zip",
+      "downloaded_at": "2026-11-14T14:23:28Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "1 arc-second (~30 m)",
+      "temporal_resolution": "mosaico de misión",
+      "crs": "EPSG:4326; alturas EGM96",
+      "units": "metros y máscara agua 0/255",
+      "license": "NASA open data; citar NASADEM y LP DAAC",
+      "checksum": "sha256:4a0a582532579f493e150112b0a4d2163f4c217f0a0881d8e12cfd59de940f59",
+      "nodata": null,
+      "quality_notes": [
+        "DEM void-filled; SWB 0=tierra y 255=agua según el User Guide NASADEM."
+      ],
+      "transformations": [
+        "Mosaico multitesela",
+        "recorte 0,2°",
+        "agregación 16×16",
+        "métricas topográficas"
+      ]
+    },
+    {
+      "dataset_id": "natural-earth-admin0-50m",
+      "provider": "Natural Earth",
+      "product": "Admin 0 — Countries 1:50m",
+      "collection_version": "world-atlas 2.0.2",
+      "landing_url": "https://www.naturalearthdata.com/downloads/50m-cultural-vectors/",
+      "access_url": "https://www.npmjs.com/package/world-atlas",
+      "downloaded_at": "2026-11-14T14:23:28Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "1:50.000.000",
+      "temporal_resolution": "estático",
+      "crs": "EPSG:4326",
+      "units": "grados",
+      "license": "Dominio público",
+      "checksum": "sha256:2551fd7d1b846eca94aed75e9838191018155ac1c55bb34e0b85eda469fd6d19",
+      "nodata": null,
+      "quality_notes": [
+        "Solo contexto visual; no es límite oficial ni entra al score."
+      ],
+      "transformations": [
+        "Extracción de Chile desde world-atlas"
+      ]
+    },
+    {
+      "dataset_id": "derived-mola-nasadem-sentinel2-v2",
+      "provider": "AnalogOS Chile",
+      "product": "Métricas topográficas, espectrales y climáticas derivadas",
+      "collection_version": "science-screening-v2",
+      "landing_url": "urn:analogos:science-screening-v2",
+      "access_url": "urn:analogos:science-screening-v2:analysis-summary",
+      "downloaded_at": "2026-11-14T14:23:28Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "~30 m superficie; ~460–480 m comparación topográfica",
+      "temporal_resolution": "snapshot",
+      "crs": "mixto; ver fuentes",
+      "units": "m, grados, fracciones, índices, mm/año y °C",
+      "license": "Código MIT; datos conservan licencias de origen",
+      "checksum": "sha256:dfa0a5c4dabf018a4d7b1d83b019061c706e4ae7248dc33b750dee84915f5999",
+      "nodata": null,
+      "quality_notes": [
+        "Screening reproducible; geología y tres restricciones territoriales siguen pendientes."
+      ],
+      "transformations": [
+        "Mosaico",
+        "agregación espacial",
+        "medianas temporales",
+        "media geométrica",
+        "sensibilidad ±20 %"
+      ]
+    }
+  ]
+}

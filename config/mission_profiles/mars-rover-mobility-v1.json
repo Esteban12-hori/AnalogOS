@@ -1,0 +1,88 @@
+{
+  "$schema": "../../contracts/mission-profile.schema.json",
+  "id": "mars-rover-mobility-v1",
+  "version": "1.0.0-draft",
+  "name": "Movilidad y autonomía de rover marciano",
+  "purpose": "Priorizar zonas para pruebas terrestres de percepción, navegación, tracción y autonomía.",
+  "status": "needs_calibration",
+  "planetary_reference": {
+    "dataset_id": "nasa-pds-mola-reference-v1",
+    "body": "mars",
+    "notes": "Los rangos numéricos deben derivarse y documentarse durante el evento."
+  },
+  "aggregation": {
+    "method": "weighted_geometric_mean",
+    "epsilon": 0.01,
+    "minimum_valid_weight": 0.7
+  },
+  "criteria": [
+    {
+      "id": "slope",
+      "label": "Pendiente",
+      "weight": 0.2,
+      "unit": "degree",
+      "method": "reference_distribution_distance",
+      "status": "needs_calibration"
+    },
+    {
+      "id": "terrain_roughness",
+      "label": "Rugosidad del terreno",
+      "weight": 0.2,
+      "unit": "dataset_defined",
+      "method": "reference_distribution_distance",
+      "status": "needs_calibration"
+    },
+    {
+      "id": "local_relief",
+      "label": "Variabilidad de relieve",
+      "weight": 0.15,
+      "unit": "meter",
+      "method": "reference_distribution_distance",
+      "status": "needs_calibration"
+    },
+    {
+      "id": "bare_ground_fraction",
+      "label": "Fracción de suelo expuesto",
+      "weight": 0.2,
+      "unit": "ratio",
+      "method": "bounded_preference",
+      "status": "needs_calibration"
+    },
+    {
+      "id": "aridity_context",
+      "label": "Contexto de aridez",
+      "weight": 0.1,
+      "unit": "dataset_defined",
+      "method": "bounded_preference",
+      "status": "needs_calibration"
+    },
+    {
+      "id": "surface_temperature_variability",
+      "label": "Variabilidad térmica superficial",
+      "weight": 0.05,
+      "unit": "kelvin",
+      "method": "bounded_preference",
+      "status": "optional"
+    },
+    {
+      "id": "geologic_relevance",
+      "label": "Relevancia geológica",
+      "weight": 0.1,
+      "unit": "category",
+      "method": "categorical_compatibility",
+      "status": "needs_expert_review"
+    }
+  ],
+  "hard_constraints": [
+    "protected_or_sensitive_area",
+    "permanent_water",
+    "urban_area",
+    "minimum_contiguous_area",
+    "physically_incompatible_slope"
+  ],
+  "limitations": [
+    "No representa gravedad, atmósfera, presión ni radiación marciana.",
+    "No constituye autorización, evaluación de seguridad ni selección oficial de terreno.",
+    "La precisión de la salida está limitada por el dataset de menor resolución."
+  ]
+}

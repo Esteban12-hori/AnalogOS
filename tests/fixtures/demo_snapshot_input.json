@@ -1,0 +1,139 @@
+{
+  "_aviso": "FIXTURE NO CIENTÍFICO. Todos los valores, polígonos y ubicaciones son sintéticos y arbitrarios; existen solo para ejercitar contratos, scoring y UI. No derivan de ningún dataset y no deben citarse como resultado.",
+  "snapshot_version": "fixture-demo-v0",
+  "created_at": "2026-11-14T12:00:00Z",
+  "fixture_dataset": {
+    "dataset_id": "fixture-synthetic-v0",
+    "provider": "AnalogOS Chile (fixture interno)",
+    "product": "Valores sintéticos de demostración, no científicos",
+    "collection_version": "0",
+    "landing_url": "urn:analogos:fixture:synthetic-v0",
+    "access_url": "urn:analogos:fixture:synthetic-v0",
+    "downloaded_at": "2026-11-14T12:00:00Z",
+    "time_start": null,
+    "time_end": null,
+    "spatial_resolution": "no aplica (sintético)",
+    "temporal_resolution": "no aplica (sintético)",
+    "crs": "EPSG:4326",
+    "units": "no aplica (sintético)",
+    "license": "Sin valor científico; uso interno de demostración",
+    "nodata": null,
+    "quality_notes": ["Datos inventados para probar la interfaz. No usar como evidencia."],
+    "transformations": ["Escritos a mano en tests/fixtures/demo_snapshot_input.json"]
+  },
+  "context_datasets": [
+    {
+      "dataset_id": "natural-earth-admin0-50m",
+      "file": "chile-outline.geojson",
+      "provider": "Natural Earth",
+      "product": "Admin 0 – Countries, 1:50m (vía paquete npm world-atlas)",
+      "collection_version": "world-atlas 2.0.2",
+      "landing_url": "https://www.naturalearthdata.com/downloads/50m-cultural-vectors/",
+      "access_url": "https://www.npmjs.com/package/world-atlas",
+      "downloaded_at": "2026-11-14T12:00:00Z",
+      "time_start": null,
+      "time_end": null,
+      "spatial_resolution": "1:50.000.000",
+      "temporal_resolution": "estático",
+      "crs": "EPSG:4326",
+      "units": "grados",
+      "license": "Dominio público (Natural Earth)",
+      "nodata": null,
+      "quality_notes": ["Contorno referencial de contexto; no es un límite oficial ni entra en ningún score."],
+      "transformations": ["Extraído el país con id ISO numérico 152 de countries-50m.json y convertido de TopoJSON a GeoJSON"]
+    }
+  ],
+  "default_dataset_id": "fixture-synthetic-v0",
+  "default_explanation": "FIXTURE: valor sintético para probar la interfaz; no deriva de datos reales ni de una calibración.",
+  "missing_explanation": "FIXTURE: criterio dejado sin dato a propósito para ejercitar el estado de datos faltantes.",
+  "limitations": [
+    "FIXTURE: esta zona y sus valores son sintéticos; no es un resultado científico.",
+    "No representa gravedad, atmósfera, presión ni radiación marciana.",
+    "No constituye autorización, evaluación de seguridad ni selección oficial de terreno."
+  ],
+  "field_checks": [
+    "FIXTURE: ninguna verificación de terreno aplica a un candidato sintético.",
+    "En un candidato real: confirmar acceso, propiedad y permisos con la autoridad correspondiente."
+  ],
+  "evidence": [
+    {
+      "evidence_id": "planned-topography",
+      "dataset_id": "fixture-synthetic-v0",
+      "claim": "Fuente prevista para relieve en M3: NASA Earthdata (NASADEM/SRTM). Los valores mostrados NO provienen de ella.",
+      "source_url": "https://search.earthdata.nasa.gov/search"
+    },
+    {
+      "evidence_id": "planned-planetary-reference",
+      "dataset_id": "fixture-synthetic-v0",
+      "claim": "Referencia planetaria prevista: NASA PDS MOLA. Aún no se ha derivado ninguna firma ni rango.",
+      "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/mola.html"
+    }
+  ],
+  "sites": [
+    {
+      "site_id": "cl-fixture-a",
+      "name": "Fixture A (sintético, ubicación arbitraria)",
+      "feasibility": "requires_review",
+      "warnings": ["FIXTURE: la factibilidad mostrada es un valor de prueba, no una revisión real."],
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-69.45, -23.8], [-69.25, -23.65], [-69.0, -23.75], [-68.95, -24.0], [-69.15, -24.15], [-69.4, -24.05], [-69.45, -23.8]]]
+      },
+      "criteria": {
+        "slope": {"raw_value": 6.5, "similarity": 0.82, "quality": 0.9},
+        "terrain_roughness": {"similarity": 0.74, "quality": 0.85},
+        "local_relief": {"raw_value": 48, "similarity": 0.69, "quality": 0.85},
+        "bare_ground_fraction": {"raw_value": 0.93, "similarity": 0.9, "quality": 0.8},
+        "aridity_context": {"similarity": 0.88, "quality": 0.5},
+        "surface_temperature_variability": {"raw_value": 31, "similarity": 0.6, "quality": 0.6},
+        "geologic_relevance": {"raw_value": "clase-fixture-a", "similarity": 0.7, "quality": 0.5}
+      }
+    },
+    {
+      "site_id": "cl-fixture-b",
+      "name": "Fixture B (sintético, ubicación arbitraria)",
+      "feasibility": "unknown",
+      "warnings": [
+        "FIXTURE: dos criterios quedan fuera del score; los pesos válidos se renormalizan y la confianza baja."
+      ],
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-70.75, -30.5], [-70.55, -30.38], [-70.32, -30.47], [-70.3, -30.7], [-70.5, -30.82], [-70.72, -30.72], [-70.75, -30.5]]]
+      },
+      "criteria": {
+        "slope": {"raw_value": 11, "similarity": 0.58, "quality": 0.9},
+        "terrain_roughness": {"similarity": 0.66, "quality": 0.85},
+        "local_relief": {"raw_value": 95, "similarity": 0.52, "quality": 0.85},
+        "bare_ground_fraction": {"raw_value": 0.71, "similarity": 0.75, "quality": 0.8},
+        "aridity_context": {"similarity": 0.7, "quality": 0.5},
+        "geologic_relevance": {
+          "raw_value": "clase-fixture-b",
+          "similarity": 0.5,
+          "quality": 0.5,
+          "status": "needs_calibration",
+          "explanation": "FIXTURE: criterio con valor pero sin calibración aprobada; queda fuera del score."
+        }
+      }
+    },
+    {
+      "site_id": "cl-fixture-c",
+      "name": "Fixture C (sintético, ubicación arbitraria)",
+      "feasibility": "potentially_feasible",
+      "warnings": [
+        "FIXTURE: el peso válido queda bajo 0,70, por lo que no se calcula similitud.",
+        "FIXTURE: la factibilidad mostrada es un valor de prueba, no una promesa."
+      ],
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-70.95, -52.25], [-70.8, -52.17], [-70.6, -52.22], [-70.55, -52.36], [-70.7, -52.44], [-70.9, -52.4], [-70.95, -52.25]]]
+      },
+      "criteria": {
+        "local_relief": {"raw_value": 20, "similarity": 0.8, "quality": 0.7},
+        "bare_ground_fraction": {"raw_value": 0.55, "similarity": 0.6, "quality": 0.7},
+        "aridity_context": {"similarity": 0.3, "quality": 0.5},
+        "surface_temperature_variability": {"raw_value": 12, "similarity": 0.4, "quality": 0.6},
+        "geologic_relevance": {"raw_value": "clase-fixture-c", "similarity": 0.6, "quality": 0.5}
+      }
+    }
+  ]
+}

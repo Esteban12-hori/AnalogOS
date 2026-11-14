@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "analogos-pipelines"
+version = "0.2.0"
+description = "Pipeline por lotes de AnalogOS Chile (P0)"
+requires-python = ">=3.11"
+dependencies = [
+  "certifi>=2024.0",
+  "earthaccess>=0.19,<1",
+  "jsonschema[format-nongpl]>=4.20",
+  "numpy>=2.0",
+  "python-dotenv>=1,<2",
+  "pyproj>=3.6",
+  "requests>=2.32,<3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools]
+packages = ["pipelines"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,76 @@
+{
+  "snapshot_version": "science-screening-v2",
+  "created_at": "2026-11-14T14:23:28Z",
+  "mola": {
+    "file": "data/raw/mola/megt44n000hb.img",
+    "url": "https://pds-geosciences.wustl.edu/mgs/urn-nasa-pds-mgs_mola_topography_derived/meg128/megt44n000hb.img",
+    "expected_bytes": 129761280,
+    "lines": 5632,
+    "samples": 11520,
+    "pixels_per_degree": 128,
+    "north": 44.0,
+    "west": 0.0,
+    "reference": {
+      "name": "Entorno regional de Jezero, Marte",
+      "latitude": 18.38,
+      "longitude": 77.58,
+      "half_size_degree": 0.8
+    }
+  },
+  "nasadem": {
+    "short_name": "NASADEM_HGT",
+    "version": "001",
+    "directory": "data/raw/nasadem",
+    "inventory_file": "data/raw/earthdata/cmr_inventory_v2.json",
+    "landing_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001",
+    "aggregation_factor": 16
+  },
+  "copernicus": {
+    "file": "data/raw/copernicus/sentinel2_stats_2025.json",
+    "token_url": "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token",
+    "statistics_url": "https://sh.dataspace.copernicus.eu/statistics/v1",
+    "collection": "sentinel-2-l2a",
+    "time_start": "2025-01-01T00:00:00Z",
+    "time_end": "2026-01-01T00:00:00Z",
+    "aggregation_interval": "P1M",
+    "resolution_degree": 0.0003,
+    "nominal_resolution_meter": 30,
+    "max_cloud_coverage": 40,
+    "evalscript_version": "analogos-s2-surface-v1"
+  },
+  "hls_inventory": {
+    "short_name": "HLSS30",
+    "version": "2.0",
+    "time_start": "2025-01-01",
+    "time_end": "2025-12-31"
+  },
+  "power": {
+    "file": "data/raw/power/climatology_points.json",
+    "endpoint": "https://power.larc.nasa.gov/api/temporal/climatology/point",
+    "parameters": ["PRECTOTCORR", "TS", "TS_MAX", "TS_MIN"],
+    "community": "AG"
+  },
+  "sites": [
+    {
+      "site_id": "cl-pampa-yungay-screening",
+      "name": "Pampa Yungay — sector de screening",
+      "latitude": -24.08,
+      "longitude": -69.95,
+      "half_size_degree": 0.10
+    },
+    {
+      "site_id": "cl-pampa-maria-elena-screening",
+      "name": "Pampa María Elena — sector de screening",
+      "latitude": -22.35,
+      "longitude": -69.65,
+      "half_size_degree": 0.10
+    },
+    {
+      "site_id": "cl-domeyko-interior-screening",
+      "name": "Cordón de Domeyko — sector interior",
+      "latitude": -23.30,
+      "longitude": -68.85,
+      "half_size_degree": 0.10
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analogos.cl/schemas/candidate-site.schema.json",
+  "title": "AnalogOS Candidate Site",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["site_id", "name", "profile_id", "profile_version", "data_snapshot_version", "pipeline_version", "geometry", "area_km2", "status", "similarity", "confidence", "feasibility", "stability", "score_breakdown", "warnings", "limitations", "field_checks", "evidence"],
+  "properties": {
+    "site_id": {"type": "string", "pattern": "^cl-[a-z0-9-]+$"},
+    "name": {"type": "string", "minLength": 1},
+    "profile_id": {"type": "string"},
+    "profile_version": {"type": "string"},
+    "data_snapshot_version": {"type": "string"},
+    "pipeline_version": {"type": "string"},
+    "geometry": {"$ref": "#/$defs/polygonGeometry"},
+    "area_km2": {"type": "number", "exclusiveMinimum": 0},
+    "status": {"enum": ["fixture", "candidate", "insufficient_data", "excluded"]},
+    "similarity": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 100},
+    "feasibility": {"enum": ["unknown", "requires_review", "potentially_feasible", "excluded"]},
+    "stability": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+    "score_breakdown": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/scoreItem"}
+    },
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "field_checks": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["evidence_id", "dataset_id", "claim", "source_url"],
+        "properties": {
+          "evidence_id": {"type": "string"},
+          "dataset_id": {"type": "string"},
+          "claim": {"type": "string"},
+          "source_url": {"type": "string", "format": "uri"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "polygonGeometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "coordinates"],
+      "properties": {
+        "type": {"enum": ["Polygon", "MultiPolygon"]},
+        "coordinates": {"type": "array", "minItems": 1}
+      }
+    },
+    "scoreItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["criterion_id", "raw_value", "unit", "normalized_similarity", "weight", "contribution", "quality", "dataset_id", "status", "explanation"],
+      "properties": {
+        "criterion_id": {"type": "string"},
+        "raw_value": {"type": ["number", "string", "null"]},
+        "unit": {"type": "string"},
+        "normalized_similarity": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "weight": {"type": "number", "minimum": 0, "maximum": 1},
+        "contribution": {"type": ["number", "null"]},
+        "quality": {"type": "number", "minimum": 0, "maximum": 1},
+        "dataset_id": {"type": "string"},
+        "status": {"enum": ["valid", "missing", "needs_calibration", "excluded"]},
+        "explanation": {"type": "string"}
+      }
+    }
+  }
+}
