@@ -97,19 +97,19 @@ export function CandidateMap({ candidates, chileOutline, selectedId, onSelect }:
       >
         <defs>
           <linearGradient id="ocean-gradient" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#07110f" />
-            <stop offset="1" stopColor="#0b1b17" />
+            <stop offset="0" stopColor="#02070A" />
+            <stop offset="1" stopColor="#04111B" />
           </linearGradient>
           <linearGradient id="land-gradient" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#17362e" />
-            <stop offset="1" stopColor="#0e241f" />
+            <stop offset="0" stopColor="#0B2333" />
+            <stop offset="1" stopColor="#071725" />
           </linearGradient>
           <filter id="marker-glow" x="-100%" y="-100%" width="300%" height="300%">
             <feGaussianBlur stdDeviation="7" result="blur" />
             <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
           <pattern id="map-grid" width="46" height="46" patternUnits="userSpaceOnUse">
-            <path d="M 46 0 L 0 0 0 46" fill="none" stroke="rgba(164,220,200,.045)" strokeWidth="1" />
+            <path d="M 46 0 L 0 0 0 46" fill="none" stroke="rgba(2,151,222,.06)" strokeWidth="1" />
           </pattern>
         </defs>
 

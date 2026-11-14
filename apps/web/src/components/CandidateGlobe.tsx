@@ -20,10 +20,10 @@ const MIN_DISTANCE = RADIUS * 1.06
 const MAX_DISTANCE = RADIUS * 7
 /** Atacama central: punto de vista inicial. */
 const HOME: Position = [-69.5, -24]
-const ATMOSPHERE_COLOR = '#7cc8ff'
-const FOOTPRINT_COLOR = '#ffbd73'
-const FOOTPRINT_SELECTED_COLOR = '#fff3df'
-const OUTLINE_COLOR = '#a4dcc8'
+const ATMOSPHERE_COLOR = '#3FB4EC'
+const FOOTPRINT_COLOR = '#3FB4EC'
+const FOOTPRINT_SELECTED_COLOR = '#FC734D'
+const OUTLINE_COLOR = '#9FD9F6'
 const CALLOUT_DX = 74
 const CALLOUT_GAP = 46
 

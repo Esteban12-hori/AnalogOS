@@ -5,15 +5,21 @@
 **Milestone activo:** M6 — empaquetado y entrega  
 **Estado general:** producto funcional y presentable con snapshot científico v2 autenticado. NASADEM corrige el mosaico de borde y Sentinel-2 completa superficie no vegetada. Faltan acciones humanas/externas: video, URLs públicas, integrantes, capas territoriales y revisión experta.
 
-## Rediseño en curso — rama `redesign/planeta-3d` (2026-11-14 12:50)
+## Rediseño integrado — rama `redesign/planeta-3d` (2026-11-14 13:10)
 
-- **Qué funciona:** el mapa del explorador pasa a ser un globo terrestre 3D (three.js + React Three Fiber) con textura NASA Blue Marble, relieve, atmósfera, contorno de Chile y los tres sectores dibujados como polígonos con rótulos-botón. Botones «Vista global» y «Acercar a la zona»; la cámara sigue la selección del ranking. Alternador «Globo 3D / Mapa 2D»; fallback automático al SVG si no hay WebGL, si el globo falla o si se pierde el contexto.
-- **Cómo ejecutarlo:** `npm run dev` (o `npm run build && npm run preview`).
-- **Pruebas:** `npm run test` (20, incluye `src/tests/globe.test.ts`), `npm run build` verde, revisión en Chromium headless con SwiftShader (vista global, zoom, cambio de selección, 2D↔3D) sin errores de consola salvo el 404 de `favicon.ico` preexistente.
-- **Archivos:** `apps/web/src/components/CandidateGlobe.tsx`, `CandidateGlobe.css`, `CandidateMapView.tsx`, `src/domain/globe.ts`, `src/assets/globe/*`, `src/tests/globe.test.ts`, `App.tsx` (solo import/uso), `vite.config.ts`, `package.json`.
-- **Decisión nueva:** ADR-004 (propuesto) — amplía el stack con three.js sin retirar ADR-001.
-- **Bloqueos:** ninguno. Coordinado con el rediseño `redesign/liquid-glass`: estilos del globo en archivo propio con variables con fallback.
-- **Próximos pasos:** 1) revisar el globo en el equipo de presentación real; 2) aceptar o rechazar ADR-004; 3) adaptar colores del globo a la paleta navy/azul cuando se integre `redesign/liquid-glass`.
+Fusiona dos ramas: el globo 3D (`redesign/planeta-3d`) y el rediseño visual (`redesign/liquid-glass`).
+
+- **Qué funciona:**
+  - Paleta navy #02070A / azul #0297DE / naranja #FC734D con superficies de vidrio.
+  - Navbar líquida (gota WebGL, fallback CSS) con scroll-spy.
+  - Globo terrestre 3D (three.js, Blue Marble) con alternador a mapa SVG y fallback automático sin WebGL; huellas en azul y la zona seleccionada en naranja.
+  - Sección «Señal de superficie»: BSI y NDVI mensuales Sentinel-2 2025 por sector, animados al cambiar de zona. Solo contexto: no alteran el score.
+- **Cómo ejecutarlo:** `npm run dev`, o `npm run build && npm run preview`.
+- **Pruebas:** ver «Verificación ejecutada». Revisión manual en Chromium headless con SwiftShader a 1440×900 y 390×844: sin desborde horizontal ni errores de consola, salvo el 404 de `favicon.ico` preexistente. Capturas de `submission/assets/`, ZIP y `SHA256SUMS.txt` regenerados desde este build.
+- **Archivos:** `styles.css`, `App.tsx`, `components/{LiquidNav,SignalCard,SurfaceSignals,CandidateGlobe,CandidateMapView}.tsx`, `CandidateGlobe.css`, `domain/{surfaceSeries,globe}.ts`, `data/loadDemoSnapshot.ts`, tests `surfaceSeries` y `globe`, `vite.config.ts`, ADR-004.
+- **Decisiones:** ADR-004 (propuesto) amplía el stack con three.js sin retirar ADR-001. Las series mensuales no entran al score y no se interpolan meses faltantes.
+- **Bloqueos:** ninguno técnico. Abierto: con zoom, el globo se ve pixelado, porque Blue Marble tiene ~10 km por píxel. Propuesta evaluada, pendiente de decisión del usuario: hornear offline parches NASA GIBS, HLS S30 a 30 m por sector y MODIS a 250 m regional.
+- **Próximos pasos:** 1) aceptar o rechazar ADR-004; 2) decidir la mejora de textura con GIBS; 3) revisar en el equipo de presentación real.
 
 ## Resultado disponible
 
@@ -73,12 +79,12 @@ Interpretación obligatoria: es un screening de escritorio para ordenar investig
 | Comando | Resultado |
 |---|---|
 | `.venv/bin/python -m pytest -q` | 31 tests verdes; en un clon sin `data/raw/`, 30 verdes y 1 omitido |
-| `npm run test` | 14 tests verdes |
+| `npm run test` | 24 tests verdes (incluye `surfaceSeries` y `globe`) |
 | `npm run build` | contratos + TypeScript + Vite verdes |
 | revisión manual | snapshot v2, ranking, mapa, evidencia, layout y consola sin errores verificados |
 | `npm audit` | 0 vulnerabilidades |
 
-El build estático queda en `apps/web/dist/` (~520 KiB), incluye solo `science-v2/` y no hace llamadas externas.
+El build estático queda en `apps/web/dist/` (~3,2 MiB; ZIP ~2,2 MiB, casi todo texturas del globo y three.js en chunk diferido), incluye solo `science-v2/` y no hace llamadas externas.
 
 ## Comandos de reproducción
 
