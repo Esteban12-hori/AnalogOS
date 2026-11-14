@@ -1,6 +1,6 @@
-# ADR-004 — Globo terrestre 3D (three.js) con mapa SVG como fallback
+# ADR-007 — Globo terrestre 3D (three.js) con mapa SVG como fallback
 
-- Estado: propuesto (rama `redesign/planeta-3d`)
+- Estado: aceptado por el equipo humano (2026-11-14, decisión directa del usuario, sin revisión de Codex). Renumerado desde ADR-004 para no colisionar con `ADR-004-portable-static-release.md`.
 - Fecha: 2026-11-14
 
 ## Contexto

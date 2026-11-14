@@ -186,7 +186,7 @@
 ## 2026-11-14 Claude Code — rama `redesign/planeta-3d`
 
 - Globo terrestre 3D en el explorador (three.js, R3F, drei) con texturas NASA locales, atmósfera y polígonos de candidatos.
-- Mapa SVG conservado como alternativa y fallback automático sin WebGL (ADR-004, propuesto).
+- Mapa SVG conservado como alternativa y fallback automático sin WebGL (ADR-004, propuesto; renumerado después a ADR-007).
 - Geometría esférica pura en `src/domain/globe.ts` con tests; three.js en chunk diferido.
 
 ## 2026-11-14 Claude Code — rediseño de layout en `redesign/planeta-3d`

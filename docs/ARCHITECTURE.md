@@ -27,7 +27,7 @@ build estático
 ## Frontend
 
 - Vite + React + TypeScript.
-- Globo 3D (three.js, chunk diferido, texturas NASA locales) con mapa SVG local de Natural Earth como alternativa y fallback sin WebGL; sin teselas externas (ADR-004).
+- Globo 3D (three.js, chunk diferido, texturas NASA locales) con mapa SVG local de Natural Earth como alternativa y fallback sin WebGL; sin teselas externas (ADR-007).
 - Estado local; no Redux en P0.
 - Carga final desde `/science-v2/manifest.json` y rutas relativas; `/demo/` se conserva solo para tests.
 - Vista inicial: mapa + panel lateral.

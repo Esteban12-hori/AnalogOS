@@ -1,8 +1,8 @@
 # ADR-006 — Globo de fondo con paso automático a mapa 2D y fuentes oficiales por zoom
 
-- Estado: propuesto (rama `redesign/planeta-3d`; pedido directo del equipo humano). Requiere aceptación de Codex/equipo antes de llegar a `dev`.
+- Estado: aceptado por el equipo humano (2026-11-14, decisión directa del usuario, sin revisión de Codex).
 - Fecha: 2026-11-14
-- Relación: amplía ADR-004 (globo three.js) y reutiliza ADR-005 (contexto Sentinel-2). Contradice la línea «mapa SVG, no MapLibre ni WebGL» de `CLAUDE.md` en `dev`; por eso queda en `proposed`.
+- Relación: amplía ADR-007 (globo three.js) y reutiliza ADR-005 (contexto Sentinel-2). Contradice la línea «mapa SVG, no MapLibre ni WebGL» de `CLAUDE.md`; el equipo humano la acepta igualmente y `CLAUDE.md` queda pendiente de actualizar.
 
 ## Contexto
 

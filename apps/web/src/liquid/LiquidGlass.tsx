@@ -15,6 +15,8 @@ export const LIQUID_SURFACES = [
   '.metric',
   '.criterion-row',
   '.sb-card',
+  '.candidate-switch',
+  '.visual-on-map',
   '.method-steps li',
   '.two-column-notes > div',
   '.detail-actions button',
