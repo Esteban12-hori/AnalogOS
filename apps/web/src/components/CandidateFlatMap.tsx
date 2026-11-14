@@ -83,7 +83,9 @@ function buildStyle(basemaps: Basemap[], outline: GeoJsonFeatureCollection, cand
       ]
     }),
   )
-  const ordered = [...basemaps].sort((a, b) => (a.kind === b.kind ? 0 : a.kind === 'regional' ? -1 : 1))
+  // Orden de abajo hacia arriba por calidad: regional < mediana HLS por sector < Sentinel-2 por candidato.
+  const rank = { regional: 0, sector: 1, context: 2 } as const
+  const ordered = [...basemaps].sort((a, b) => rank[a.kind] - rank[b.kind])
   return {
     version: 8,
     sources: {
@@ -121,12 +123,12 @@ function buildStyle(basemaps: Basemap[], outline: GeoJsonFeatureCollection, cand
         minzoom: ONLINE_HLS_MIN_ZOOM,
         paint: { 'raster-fade-duration': 150 },
       })),
-      ...ordered.filter((basemap) => basemap.kind === 'sector').map((basemap) => ({
+      ...ordered.filter((basemap) => basemap.kind !== 'regional').map((basemap) => ({
         id: `basemap-${basemap.id}`,
         type: 'raster' as const,
         source: `basemap-${basemap.id}`,
         // Los sectores a 30 m entran gradualmente cuando su detalle supera al regional.
-        paint: basemap.kind === 'sector'
+        paint: basemap.kind !== 'regional'
           ? { 'raster-opacity': ['interpolate', ['linear'], ['zoom'], 7.5, 0, 8.5, 1] as unknown as number, 'raster-fade-duration': 0 }
           : { 'raster-fade-duration': 0 },
       })),

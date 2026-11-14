@@ -1,4 +1,5 @@
 import { ScoreBreakdown } from '../breakdown/ScoreBreakdown'
+import { rankCandidates } from '../domain/scoring'
 import type { CandidateSite, MissionProfile } from '../domain/contracts'
 import type { MarsReference } from '../domain/marsReference'
 import type { VisualContextState } from '../data/loadVisualContext'
@@ -12,9 +13,14 @@ import {
 
 interface CandidateDetailsProps {
   candidate: CandidateSite
+  /** Todos los candidatos: el selector compacto reemplaza a la antigua columna de ranking. */
+  candidates: CandidateSite[]
+  onSelect: (siteId: string) => void
   profile: MissionProfile
   marsReference: MarsReference | null
   visual: VisualContextState
+  /** Si existe, la imagen se ve en el mapa 2D y el panel muestra un botón en vez de repetirla. */
+  onShowOnMap?: () => void
 }
 
 function Metric({ label, value, hint, muted = false }: { label: string; value: string; hint: string; muted?: boolean }) {
@@ -27,7 +33,7 @@ function Metric({ label, value, hint, muted = false }: { label: string; value: s
   )
 }
 
-export function CandidateDetails({ candidate, profile, marsReference, visual }: CandidateDetailsProps) {
+export function CandidateDetails({ candidate, candidates, onSelect, profile, marsReference, visual, onShowOnMap }: CandidateDetailsProps) {
   const statusLabel = candidate.status === 'fixture' ? 'Fixture' : candidate.status === 'candidate' ? 'Screening' : candidate.status
   const downloadCandidate = () => {
     const blob = new Blob([JSON.stringify(candidate, null, 2)], { type: 'application/json' })
@@ -39,8 +45,22 @@ export function CandidateDetails({ candidate, profile, marsReference, visual }: 
     URL.revokeObjectURL(url)
   }
   return (
-    <aside className="details-panel glass" aria-live="polite" aria-label="Ficha del candidato seleccionado">
-      <div className="details-header">
+    <aside className="details-panel glass" aria-label="Ficha del candidato seleccionado">
+      <div className="candidate-switch" role="group" aria-label="Elegir candidato por rank">
+        {rankCandidates(candidates).map((item, index) => (
+          <button
+            type="button"
+            key={item.site_id}
+            aria-pressed={item.site_id === candidate.site_id}
+            onClick={() => onSelect(item.site_id)}
+            title={item.name}
+          >
+            <b>{index + 1}</b>
+            <span>{shortCandidateName(item.name).split(' — ')[0]}</span>
+          </button>
+        ))}
+      </div>
+      <div className="details-header" aria-live="polite">
         <div>
           <span className="section-kicker">Ficha de candidato</span>
           <h2>{shortCandidateName(candidate.name)}</h2>
@@ -86,7 +106,7 @@ export function CandidateDetails({ candidate, profile, marsReference, visual }: 
         </div>
       )}
 
-      <VisualContext candidate={candidate} state={visual} />
+      <VisualContext candidate={candidate} state={visual} onShowOnMap={onShowOnMap} />
 
       <ScoreBreakdown items={candidate.score_breakdown} marsReference={marsReference} />
 

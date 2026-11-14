@@ -14,12 +14,14 @@ interface VisualContextViewProps {
   baseUrl: string
   imageFailed: boolean
   onImageError: () => void
+  /** Si existe, la imagen ya se dibuja en el mapa 2D: se ofrece un botón en vez de repetirla. */
+  onShowOnMap?: () => void
 }
 
 const day = (timestamp: string | null) => (timestamp ? timestamp.slice(0, 10) : 'fecha no informada')
 
 /** Vista pura del panel: recibe el estado ya resuelto, para poder probarla sin navegador. */
-export function VisualContextView({ candidateName, selection, baseUrl, imageFailed, onImageError }: VisualContextViewProps) {
+export function VisualContextView({ candidateName, selection, baseUrl, imageFailed, onImageError, onShowOnMap }: VisualContextViewProps) {
   const name = shortCandidateName(candidateName)
   const heading = (
     <div className="subheading-row">
@@ -51,6 +53,14 @@ export function VisualContextView({ candidateName, selection, baseUrl, imageFail
   return (
     <section className="details-section visual-context" aria-labelledby="visual-context-heading">
       {heading}
+      {onShowOnMap ? (
+        <div className="visual-on-map">
+          <button type="button" onClick={onShowOnMap}>Ver el sector en el mapa 2D</button>
+          <span><strong>{index.product.period_label}</strong> · Sentinel-2 L2A · ≈ {formatRatio(site.approx_meters_per_pixel)} m por píxel</span>
+          <small>{index.source.attribution}</small>
+          <a href={imageUrl} target="_blank" rel="noreferrer">Abrir la imagen original ↗</a>
+        </div>
+      ) : (
       <figure>
         <a href={imageUrl} target="_blank" rel="noreferrer" aria-label={`Abrir la imagen Sentinel-2 de ${name} en tamaño completo`}>
           <img
@@ -68,6 +78,7 @@ export function VisualContextView({ candidateName, selection, baseUrl, imageFail
           <small>{index.source.attribution}</small>
         </figcaption>
       </figure>
+      )}
       <p className="visual-note">
         Contexto preliminar para inspección visual. No cambia similitud, confianza ni factibilidad y no cierra ninguna
         verificación pendiente. El límite de nubes se aplica por escena: la vista puede incluir nubes o sombras.
@@ -95,10 +106,11 @@ export function VisualContextView({ candidateName, selection, baseUrl, imageFail
 interface VisualContextProps {
   candidate: CandidateSite
   state: VisualContextState
+  onShowOnMap?: () => void
 }
 
 /** Panel de la ficha: al cambiar de candidato cambia la imagen; si el archivo falla, se informa. */
-export function VisualContext({ candidate, state }: VisualContextProps) {
+export function VisualContext({ candidate, state, onShowOnMap }: VisualContextProps) {
   const [failedSiteId, setFailedSiteId] = useState<string | null>(null)
   return (
     <VisualContextView
@@ -107,6 +119,7 @@ export function VisualContext({ candidate, state }: VisualContextProps) {
       baseUrl={import.meta.env.BASE_URL}
       imageFailed={failedSiteId === candidate.site_id}
       onImageError={() => setFailedSiteId(candidate.site_id)}
+      onShowOnMap={onShowOnMap}
     />
   )
 }

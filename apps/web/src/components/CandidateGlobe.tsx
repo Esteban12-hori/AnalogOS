@@ -348,12 +348,18 @@ function ViewOffset({ inset }: { inset: number }) {
   return null
 }
 
-/** Avisa una vez cuando la cámara supera el zoom de entrada al mapa 2D. */
+/**
+ * Avisa una vez cuando la cámara supera el zoom de entrada al mapa 2D.
+ * Solo se arma después de ver un zoom menor al umbral: al volver con «Vista global»
+ * la cámara parte cerca del umbral y no debe rebotar de inmediato al 2D.
+ */
 function ZoomWatcher({ active, onEnterFlat }: { active: boolean; onEnterFlat: (handoff: FlatHandoff) => void }) {
   const { camera, size } = useThree()
   const fired = useRef(false)
+  const armed = useRef(false)
   useEffect(() => {
     fired.current = false
+    armed.current = false
   }, [active])
   useFrame(() => {
     if (!active || fired.current) return
@@ -361,7 +367,11 @@ function ZoomWatcher({ active, onEnterFlat }: { active: boolean; onEnterFlat: (h
     const [lon, lat] = lonLatFromDirection(x, y, z)
     const fov = camera instanceof THREE.PerspectiveCamera ? camera.fov : 40
     const zoom = zoomForAltitude(camera.position.length() - RADIUS, RADIUS, fov, size.height, lat)
-    if (zoom >= ZOOM_ENTER_FLAT) {
+    if (zoom < ZOOM_ENTER_FLAT - 0.2) {
+      armed.current = true
+      return
+    }
+    if (armed.current && zoom >= ZOOM_ENTER_FLAT) {
       fired.current = true
       onEnterFlat({ lon, lat, zoom })
     }

@@ -54,3 +54,26 @@
   .map-stage .stage-dock { top: auto; bottom: 10px; left: 10px; right: 10px; padding: 10px; }
   .stage-legend { display: none; }
 }
+
+/* Panel de contexto satelital en la ficha cuando la imagen ya se ve en el mapa. */
+.visual-on-map { display: grid; gap: 6px; padding: 12px; border: 1px solid var(--line, rgba(190, 225, 245, .14)); border-radius: 14px; background: rgba(255, 255, 255, .03); }
+.visual-on-map button { justify-self: start; min-height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--blue, #0297DE); color: #fff; cursor: pointer; font-size: 12px; font-weight: 650; }
+.visual-on-map button:focus-visible, .visual-on-map a:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.visual-on-map span { color: var(--text, #EEF6FB); font-size: 11px; }
+.visual-on-map small { color: var(--muted, #94AABA); font-size: 10px; line-height: 1.4; }
+.visual-on-map a { color: var(--blue-bright, #3FB4EC); font-size: 11px; text-decoration: none; }
+
+/* Selector compacto de candidatos en la ficha (sustituye la columna de ranking). */
+.candidate-switch { display: flex; gap: 6px; margin-bottom: 14px; padding: 4px; border: 1px solid var(--line, rgba(190, 225, 245, .14)); border-radius: 999px; background: rgba(255, 255, 255, .03); }
+.candidate-switch button { display: inline-flex; flex: 1; align-items: center; justify-content: center; gap: 6px; min-width: 0; min-height: 32px; padding: 0 10px; border: 0; border-radius: 999px; background: transparent; color: var(--muted, #94AABA); cursor: pointer; font-size: 11px; font-weight: 650; }
+.candidate-switch button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.candidate-switch button b { display: grid; place-items: center; flex: none; width: 20px; height: 20px; border-radius: 50%; background: rgba(2, 151, 222, .25); color: #fff; font-size: 10px; }
+.candidate-switch button:hover { color: var(--text, #EEF6FB); }
+.candidate-switch button[aria-pressed="true"] { background: rgba(252, 115, 77, .18); color: var(--text, #EEF6FB); box-shadow: inset 0 0 0 1px rgba(252, 115, 77, .55); }
+.candidate-switch button[aria-pressed="true"] b { background: var(--orange, #FC734D); color: #2A0D04; }
+.candidate-switch button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.stage-source .source-rest { color: var(--muted-2, #6B8496); font-size: 10px; font-style: normal; line-height: 1.4; }
+
+/* Sobre imágenes claras (desierto) el vidrio necesita un tinte más oscuro para mantener contraste. */
+.hero .hero-intro.glass, .hero .details-panel.glass, .map-stage .stage-dock.glass { background-color: rgba(3, 10, 15, .74); }
+.map-stage[data-mode="flat"] ~ .topbar, .map-stage[data-mode="flat"] ~ .fixture-banner { background-color: rgba(3, 10, 15, .7); }

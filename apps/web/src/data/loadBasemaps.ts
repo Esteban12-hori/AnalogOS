@@ -7,7 +7,8 @@ export type Bounds = [west: number, south: number, east: number, north: number]
 
 export interface Basemap {
   id: string
-  kind: 'regional' | 'sector'
+  /** `context`: vista Sentinel-2 por candidato de ADR-005 (no viene del manifiesto de mapas base). */
+  kind: 'regional' | 'sector' | 'context'
   label: string
   bounds: Bounds
   image: string
@@ -79,7 +80,12 @@ export function activeSources(view: Bounds, zoom: number, basemaps: Basemap[], o
   const visible = basemaps.filter((basemap) => boundsIntersect(view, basemap.bounds))
   const sectors = visible.filter((basemap) => basemap.kind === 'sector' && zoom >= 8)
   const regional = visible.filter((basemap) => basemap.kind === 'regional')
+  const contexts = visible.filter((basemap) => basemap.kind === 'context' && zoom >= 8)
   const sources: ActiveSource[] = []
+  const first = contexts[0]
+  if (first) {
+    sources.push({ id: 'sentinel2-context', label: first.label, detail: `${first.source} · ${contexts.length} sector(es)` })
+  }
   if (sectors.length) {
     const dates = sectors.flatMap((sector) => sector.dates.map((item) => item.split(':')[1] ?? item)).sort()
     sources.push({

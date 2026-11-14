@@ -1,6 +1,7 @@
-import { Component, lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from 'react'
+import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { CandidateSite, GeoJsonFeatureCollection } from '../domain/contracts'
 import { loadBasemaps, type ActiveSource, type Basemap } from '../data/loadBasemaps'
+import type { VisualContextState } from '../data/loadVisualContext'
 import { CandidateMap } from './CandidateMap'
 import type { FlatHandoff, GlobeView } from './CandidateGlobe'
 import './CandidateGlobe.css'
@@ -17,6 +18,28 @@ interface MapStageProps {
   onSelect: (siteId: string) => void
   /** Píxeles que la ficha flotante tapa a la derecha; el globo y el mapa se centran en el resto. */
   rightInset: number
+  /** Vistas Sentinel-2 por candidato (ADR-005): la mejor imagen sobre cada polígono. */
+  visual: VisualContextState
+  /** Cambia para pedir «ver el sector seleccionado en el mapa» desde fuera (ficha). */
+  focusSignal: number
+}
+
+/** Convierte las vistas Sentinel-2 validadas en capas del mapa 2D. */
+export function contextLayers(visual: VisualContextState): Basemap[] {
+  if (visual.status !== 'ready') return []
+  const { index } = visual
+  return index.sites.map((site) => ({
+    id: `s2-${site.site_id}`,
+    kind: 'context' as const,
+    label: `Copernicus Sentinel-2 L2A · ≈${Math.round(site.approx_meters_per_pixel)} m`,
+    bounds: site.bbox,
+    image: `visual-context/${site.image}`,
+    layers: [index.source.collection],
+    dates: [],
+    resolution_m: site.approx_meters_per_pixel,
+    gap_fraction: 0,
+    source: `${index.product.period_label} · contexto revisado (ADR-005)`,
+  }))
 }
 
 type Mode = 'globe' | 'flat'
@@ -66,7 +89,7 @@ function StageLoading({ text }: { text: string }) {
  * a un mapa 2D con imágenes oficiales NASA, y vuelve al globo al alejarse.
  * Sin WebGL (ADR-001) se usa el mapa SVG local.
  */
-export function MapStage({ candidates, chileOutline, selectedId, onSelect, rightInset }: MapStageProps) {
+export function MapStage({ candidates, chileOutline, selectedId, onSelect, rightInset, visual, focusSignal }: MapStageProps) {
   const [webgl] = useState(supportsWebGL)
   const [failed, setFailed] = useState(false)
   const [mode, setMode] = useState<Mode>('globe')
@@ -74,7 +97,7 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
   const [entry, setEntry] = useState<FlatHandoff | null>(null)
   const [focusRequest, setFocusRequest] = useState(0)
   const [pendingFocus, setPendingFocus] = useState(false)
-  const [basemaps, setBasemaps] = useState<Basemap[]>([])
+  const [basemaps, setBasemaps] = useState<Basemap[] | null>(null)
   const [flatSources, setFlatSources] = useState<ActiveSource[]>([])
 
   useEffect(() => {
@@ -100,6 +123,12 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
     }
   }, [mode, pendingFocus])
 
+  // El estilo del mapa 2D se arma una vez: se monta cuando ambos índices están resueltos.
+  const layers = useMemo(
+    () => (basemaps === null || visual.status === 'loading' ? null : [...basemaps, ...contextLayers(visual)]),
+    [basemaps, visual],
+  )
+
   const exitFlat = useCallback((handoff: FlatHandoff) => {
     setView((current) => ({ kind: 'at', nonce: current.nonce + 1, at: handoff }))
     setMode('globe')
@@ -110,14 +139,21 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
     setView((current) => ({ kind: 'global', nonce: current.nonce + 1 }))
   }
 
-  const goClose = () => {
+  const goClose = useCallback(() => {
     if (mode === 'flat') {
       setFocusRequest((value) => value + 1)
       return
     }
     setPendingFocus(true)
     setView((current) => ({ kind: 'close', nonce: current.nonce + 1 }))
-  }
+  }, [mode])
+
+  const lastSignal = useRef(focusSignal)
+  useEffect(() => {
+    if (focusSignal === lastSignal.current) return
+    lastSignal.current = focusSignal
+    goClose()
+  }, [focusSignal, goClose])
 
   const fixtureMode = candidates.every((candidate) => candidate.status === 'fixture')
 
@@ -150,13 +186,14 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
             />
           </Suspense>
         </div>
-        {entry && (
+        {entry && !layers && mode === 'flat' && <StageLoading text="Cargando imágenes del mapa…" />}
+        {entry && layers && (
           <div className="stage-layer stage-flat" hidden={mode !== 'flat'}>
             <Suspense fallback={<StageLoading text="Cargando mapa 2D…" />}>
               <CandidateFlatMap
                 candidates={candidates}
                 chileOutline={chileOutline}
-                basemaps={basemaps}
+                basemaps={layers}
                 selectedId={selectedId}
                 onSelect={onSelect}
                 entry={entry}
@@ -183,13 +220,18 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
         </div>
         <div className="stage-source" aria-live="polite">
           <small>Fuente del mapa</small>
-          {sources.length ? (
-            sources.map((source) => (
-              <span key={source.id}>
-                <strong>{source.label}</strong>
-                <em>{source.detail}</em>
+          {sources[0] ? (
+            <>
+              <span>
+                <strong>{sources[0].label}</strong>
+                <em>{sources[0].detail}</em>
               </span>
-            ))
+              {sources.length > 1 && (
+                <em className="source-rest">
+                  Debajo, donde la anterior no cubre: {sources.slice(1).map((source) => source.label).join(' · ')}
+                </em>
+              )}
+            </>
           ) : (
             <span><strong>Sin imagen disponible</strong><em>Fuera de la cobertura local y sin conexión</em></span>
           )}

@@ -126,6 +126,7 @@ function App() {
 
   const { active, goTo } = useScrollSpy(NAV_IDS, loadState.status === 'ready')
   const rightInset = useRightInset()
+  const [mapFocus, setMapFocus] = useState(0)
   const stagePassive = useStagePassive(loadState.status === 'ready')
   useLiquidPointer()
 
@@ -173,6 +174,8 @@ function App() {
         selectedId={selected.site_id}
         onSelect={setSelectedId}
         rightInset={rightInset}
+        visual={visual}
+        focusSignal={mapFocus}
       />
       <div className="stage-scrim" aria-hidden="true" />
       <div className={`fixture-banner${fixtureMode ? '' : ' science-banner'}`} role="status">
@@ -205,9 +208,15 @@ function App() {
         <CandidateDetails
           key={selected.site_id}
           candidate={selected}
+          candidates={snapshot.candidates}
+          onSelect={setSelectedId}
           profile={snapshot.profile}
           marsReference={snapshot.marsReference}
           visual={visual}
+          onShowOnMap={() => {
+            setMapFocus((value) => value + 1)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }}
         />
       </main>
 
