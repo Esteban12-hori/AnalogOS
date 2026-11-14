@@ -1,0 +1,44 @@
+/* features/analysis · chunk principal: píldora, esqueleto estático y fragmentos ✦. Sin blur (§2.4). */
+.analysis-pill-wrap { position: relative; display: grid; justify-items: start; gap: 8px; }
+.analysis-pill {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px;
+  border: 1px solid var(--line-strong); border-radius: 999px; background: var(--marker-bg);
+  color: var(--text); font: inherit; font-size: var(--fs-12); cursor: pointer;
+}
+.analysis-pill:hover:not(:disabled) { border-color: var(--ai-rule); }
+.analysis-pill:disabled { color: var(--muted); cursor: default; border-style: dashed; }
+.analysis-pill:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+.analysis-pill-star { color: var(--ice); }
+.analysis-pill-suffix { color: var(--muted); }
+.analysis-pill-caret { color: var(--muted); transition: transform var(--dur-2) var(--ease-standard); }
+.analysis-pill[aria-expanded="true"] .analysis-pill-caret { transform: rotate(180deg); }
+.analysis-pop {
+  width: min(360px, calc(100vw - 2 * var(--gap, 12px)));
+  /* Termina sobre el dock: barra superior + píldora (≈40 px) + dock + márgenes. */
+  max-height: min(640px, calc(100dvh - var(--chrome-top, 74px) - var(--dock-h, 256px) - 4 * var(--gap, 12px) - 40px));
+  overflow: auto; overscroll-behavior: contain; padding: 14px 16px;
+  /* Opaco: el texto del escenario no se transparenta bajo la lectura (sin blur, §2.4). */
+  border: 1px solid var(--line-strong); border-radius: 16px; background: var(--navy-2, #050E15);
+  box-shadow: 0 24px 60px -30px rgba(0, 0, 0, .9);
+  animation: analysis-pop-in var(--dur-3) var(--ease-sheet) both;
+}
+.analysis-pop[hidden] { display: none; }
+@keyframes analysis-pop-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+.analysis-skeleton { display: grid; gap: 8px; padding-left: 10px; border-left: 2px solid var(--ai-rule); }
+.analysis-skeleton-title { margin: 0; color: var(--muted); font-family: var(--mono); font-size: var(--fs-caps); letter-spacing: var(--caps-tracking); text-transform: uppercase; }
+.analysis-skeleton-label { margin: 0; color: var(--muted); font-size: var(--fs-13); }
+.analysis-skeleton-label > span { color: var(--ice); }
+/* Esqueleto ESTÁTICO: sin barrido ni bucle (§2.2 regla 2). */
+.analysis-skeleton-bar { display: block; height: 10px; width: 100%; border-radius: 4px; background: var(--line-strong); }
+.analysis-skeleton-bar.is-short { width: 62%; }
+
+.analysis-snippet { margin: 0; padding-left: 8px; border-left: 2px solid var(--ai-rule); font-size: var(--fs-12); line-height: 1.45; color: var(--text); }
+.analysis-snippet-label { color: var(--ice); font-size: var(--fs-min); text-transform: uppercase; letter-spacing: var(--caps-tracking); }
+.analysis-chip.is-static { padding: 0 4px; border-radius: 4px; background: var(--blue-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .analysis-pop { animation: analysis-fade 150ms linear both; }
+  .analysis-pill-caret { transition: none; }
+}
+@keyframes analysis-fade { from { opacity: 0; } to { opacity: 1; } }
