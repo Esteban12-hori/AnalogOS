@@ -260,3 +260,8 @@
 - Integración publicada en origin/dev (8df83c0), árbol local limpio y SHA remoto verificado. Actions 43629101506 completó build/deploy, pero falló al asignar analogos-dev.vercel.app con «User not found», el mismo error del run anterior 43628749578.
 - El paso del alias ahora pasa explícitamente --scope "$VERCEL_ORG_ID", usando el equipo ya configurado en el workflow. Referencia: https://vercel.com/docs/cli/global-options#scope (acepta slug o ID de equipo).
 - Cambio limitado al despliegue y registro de estado; no requiere reconstruir ZIP ni repetir pruebas científicas. Se valida ejecutando el workflow en dev.
+
+## 2026-11-14 Codex — alias mediante API de equipo
+
+- Run 43629219568: build/deploy correctos; la CLI de alias sigue intentando cargar un usuario y devuelve 404 incluso con --scope. Sustituido ese paso por POST /v2/deployments/{hostname}/aliases?teamId=... de la API oficial, con el mismo secreto del workflow, timeout y comprobación del alias dev devuelto.
+- Referencia: https://vercel.com/docs/rest-api/aliases/assign-an-alias. No se cambian permisos, secretos ni el destino aprobado. El secreto se usa por variable de entorno y no se imprime.

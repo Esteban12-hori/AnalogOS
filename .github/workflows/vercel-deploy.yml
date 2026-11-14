@@ -58,6 +58,29 @@ jobs:
 
       - name: Alias fijo para dev
         if: github.ref == 'refs/heads/dev'
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          vercel alias set "${{ steps.deploy.outputs.url }}" "$DEV_ALIAS" --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_TOKEN }}
-          echo "dev disponible en https://$DEV_ALIAS"
+          # La CLI de alias consulta el usuario incluso con scope explícito.
+          # La API asigna directamente en el equipo del despliegue.
+          node --input-type=module <<'JS'
+          const { DEPLOYMENT_URL, DEV_ALIAS, VERCEL_ORG_ID, VERCEL_TOKEN } = process.env;
+          const deployment = new URL(DEPLOYMENT_URL);
+          if (deployment.protocol !== 'https:' || !deployment.hostname.endsWith('.vercel.app')) {
+            throw new Error('URL de despliegue inesperada');
+          }
+          const endpoint = new URL(`https://api.vercel.com/v2/deployments/${encodeURIComponent(deployment.hostname)}/aliases`);
+          endpoint.searchParams.set('teamId', VERCEL_ORG_ID);
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${VERCEL_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ alias: DEV_ALIAS }),
+            signal: AbortSignal.timeout(30000),
+          });
+          const result = await response.json();
+          if (!response.ok || result.alias !== DEV_ALIAS) {
+            throw new Error(`Alias no asignado (${response.status}): ${result.error?.message ?? 'respuesta inesperada'}`);
+          }
+          console.log(`dev disponible en https://${result.alias}`);
+          JS

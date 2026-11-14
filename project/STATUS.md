@@ -7,7 +7,7 @@
 
 **Sincronización autorizada:** Dan pidió «actualiza dev». Este checkpoint integra M7 (`1302ed8`) con el rediseño remoto para su commit y push a `origin/dev`. Las secciones posteriores registran cortes históricos; la verificación vigente es la siguiente.
 
-**Publicación en dev:** integración subida y verificada en `8df83c0`. El build y deploy de Vercel terminaron correctamente, pero el alias fijo falló con «User not found», igual que en el despliegue anterior del equipo. Se añade `--scope "$VERCEL_ORG_ID"` al paso del alias para usar explícitamente el equipo propietario. Validación final mediante GitHub Actions; no altera el build ni el paquete científico.
+**Publicación en dev:** integración subida y verificada en `8df83c0`. El build y deploy de Vercel terminaron correctamente, pero la CLI de alias falló al cargar el usuario («User not found»), incluso pasando el equipo en `6143142`. El paso usa ahora la API oficial de asignación de alias con `teamId`, el mismo token de Actions y validación de respuesta. Validación final mediante GitHub Actions; no altera el build ni el paquete científico.
 
 ## Integración revisada por Codex para dev
 
