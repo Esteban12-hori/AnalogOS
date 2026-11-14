@@ -1,40 +1,76 @@
-import { Suspense, useEffect, useMemo, useRef, useState, type ComponentRef, type RefObject } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ComponentRef, type KeyboardEvent, type MouseEvent, type MutableRefObject, type RefObject } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Html, Line, OrbitControls, useTexture } from '@react-three/drei'
+import { Line, OrbitControls, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import type { CandidateSite, GeoJsonFeatureCollection, Position } from '../../domain/contracts'
-import { formatScore } from '../../domain/formatting'
-import { densifyRing, facingFactor, geometryCenter, latLngToVec3, outerRings, type Vec3 } from '../../domain/globe'
+import { densifyRing, latLngToVec3, outerRings, type Vec3 } from '../../domain/globe'
 import { altitudeForZoom, fitDistanceRatioForInsets, type FlatThresholds, lonLatFromDirection, type ViewInsets, zoomForAltitude } from '../../domain/mapZoom'
-import { rankCandidates } from '../../domain/scoring'
 import { GLOBE_TEXTURES } from '../../data/preload'
+import { prefersReducedMotion } from '../../shell/public'
+import { planFlight, sampleFlight, type FlightPlan } from './flight'
+import { cameraKeyAction, rotateCenter } from './keyboard'
+import {
+  applyPinFrame,
+  createGlobeMarkerRuntime,
+  GlobeMarkerOverlay,
+  playHalos,
+  pulsePin,
+  setDataFlag,
+  type GlobeMarkerRuntime,
+  type IntroState,
+} from './MarkerLayer'
+import {
+  assignLabels,
+  buildMarkerModels,
+  clusterMarkers,
+  clusterSignature,
+  estimateLabelWidth,
+  HIDDEN_BELOW,
+  horizonFacing,
+  labelBudget,
+  markerLabelText,
+  markerVisibility,
+  placeNearSelection,
+  ringRadius,
+  RING_MIN_PX,
+  type MarkerInput,
+  type MarkerModel,
+  type ScreenMarker,
+} from './markers'
+import { publishStageFrame, type StageAnchor, type StageProjection } from './stageBridge'
+import './CandidateGlobe.css'
 
 // ============================================================================
-// Configuración visual (inspirada en Globe3D; adaptada a la paleta de la app)
+// Configuración visual (paleta con significado fijo: selección = hielo + azul)
 // ============================================================================
 
 const RADIUS = 2
-const CLOSE_DISTANCE = RADIUS * 1.22
 const MIN_DISTANCE = RADIUS * 1.06
 const MAX_DISTANCE = RADIUS * 7
-/** Atacama central: punto de vista inicial. */
+/** Atacama central: punto de vista inicial y de «Vista global». */
 const HOME: Position = [-69.5, -24]
 const ATMOSPHERE_COLOR = '#3FB4EC'
+const ATMOSPHERE_REST = 0.6
 const FOOTPRINT_COLOR = '#3FB4EC'
-const FOOTPRINT_SELECTED_COLOR = '#FC734D'
+const FOOTPRINT_SELECTED_COLOR = '#EAF4FA'
+const FOOTPRINT_PENDING_COLOR = '#6F889A'
+const ZONE_COLOR = '#94AABA'
 const OUTLINE_COLOR = '#9FD9F6'
-const CALLOUT_DX = 74
-const CALLOUT_GAP = 46
+/** Margen sobre el umbral de entrada al 2D para que un vuelo de acercamiento lo cruce. */
+const ENTER_MARGIN = 0.05
 
 type ControlsRef = ComponentRef<typeof OrbitControls>
+type LineObject = ComponentRef<typeof Line>
 
-/** `nonce` permite repetir la misma vista después de que el usuario giró el globo. */
-export interface GlobeView {
-  /** `at`: volver desde el mapa 2D al mismo centro y escala. */
-  kind: 'global' | 'close' | 'at'
-  nonce: number
-  at?: { lon: number; lat: number; zoom: number }
-}
+/** Encuadres que pide el escenario. `nonce` permite repetir la misma vista. */
+export type GlobeView =
+  | { kind: 'global'; nonce: number }
+  /** Acercarse al lugar seleccionado hasta ceder al mapa 2D. */
+  | { kind: 'close'; nonce: number }
+  /** Volver desde el mapa 2D al mismo centro y escala (corte). */
+  | { kind: 'at'; nonce: number; at: FlatHandoff }
+  /** Botones + / −: medio nivel de zoom en el centro actual. */
+  | { kind: 'zoom'; nonce: number; delta: number }
 
 export interface FlatHandoff {
   lon: number
@@ -42,13 +78,27 @@ export interface FlatHandoff {
   zoom: number
 }
 
+/** Pedido de centrar un marcador (selección o «Centrar en ‹#1›»); `nonce` lo repite. */
+export interface FlyRequest {
+  id: string
+  nonce: number
+}
+
+export interface StageSelection {
+  id: string
+  kind: 'evaluated' | 'reference'
+}
+
 interface CandidateGlobeProps {
   candidates: CandidateSite[]
   chileOutline: GeoJsonFeatureCollection
-  selectedId: string
-  onSelect: (siteId: string) => void
+  markerInput: MarkerInput
+  selection: StageSelection | null
+  hoverId: string | null
+  onActivate: (model: MarkerModel) => void
   view: GlobeView
-  /** Si es `false` el render se pausa (vista 2D activa). */
+  fly: FlyRequest | null
+  /** Si es `false` el render se pausa (vista 2D activa, S2 o pestaña oculta). */
   active: boolean
   /** Márgenes asentados de la UI: el globo se centra en el área libre (setViewOffset x/y). */
   insets: ViewInsets
@@ -56,32 +106,33 @@ interface CandidateGlobeProps {
   baseInsets: ViewInsets
   /** Umbrales globo ↔ 2D según el panel visible. */
   thresholds: FlatThresholds
-  /** El globo ya tiene su textura: se puede empezar a precargar el resto sin competir. */
+  /** <1100 px: presupuesto de rótulos menor. */
+  narrow: boolean
+  /** Coreografía A (la escribe features/boot). */
+  intro: IntroState
+  /** Aumenta con cada resultado de misión: halos en el orden nuevo (coreografía D). */
+  resultsRevision: number
   onReady?: () => void
-  /** El usuario empezó a acercarse: momento de instanciar el mapa 2D antes del umbral. */
   onApproach?: () => void
-  /** La textura 4K ya está en pantalla. */
   onDetailReady?: () => void
-  /** La cámara cruzó el umbral de zoom: el globo cede al mapa 2D. */
   onEnterFlat: (handoff: FlatHandoff) => void
-  /** Se invoca si el contexto WebGL se pierde, para volver al mapa SVG. */
   onContextLost: () => void
+  /** Cualquier input del usuario sobre la cámara (ui.touchCamera). */
+  onCameraInput: () => void
+  /** Tecla Inicio: vista global. */
+  onHome: () => void
 }
 
 const toVector = ([x, y, z]: Vec3) => new THREE.Vector3(x, y, z)
 const surfacePoint = ([lon, lat]: Position, scale = 1) => toVector(latLngToVec3(lat, lon, RADIUS * scale))
-
-function prefersReducedMotion(): boolean {
-  return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
-}
 
 // ============================================================================
 // Globo texturizado
 // ============================================================================
 
 /**
- * Carga progresiva: la textura 1K (~60 KB) pinta el globo de inmediato y la 4K
- * (nítida en la vista global, incluso en pantallas Retina) la reemplaza al llegar.
+ * Carga progresiva: la textura 1K (~60 KB) pinta el globo de inmediato y la 2K/4K la
+ * reemplaza al llegar.
  */
 function Earth({ onReady, onDetailReady }: { onReady: () => void; onDetailReady?: () => void }) {
   const [previewMap, bumpMap] = useTexture([GLOBE_TEXTURES.preview, GLOBE_TEXTURES.bump])
@@ -110,7 +161,6 @@ function Earth({ onReady, onDetailReady }: { onReady: () => void; onDetailReady?
         material.current.map = texture
         material.current.needsUpdate = true
         invalidate()
-        // Un cuadro después, la textura nítida ya está en pantalla.
         requestAnimationFrame(() => onDetailRef.current?.())
       }
     })
@@ -150,25 +200,22 @@ const atmosphereFragment = /* glsl */ `
   }
 `
 
-function Atmosphere() {
-  const material = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        uniforms: {
-          atmosphereColor: { value: new THREE.Color(ATMOSPHERE_COLOR) },
-          intensity: { value: 0.6 },
-          fresnelPower: { value: 3.2 },
-        },
-        vertexShader: atmosphereVertex,
-        fragmentShader: atmosphereFragment,
-        side: THREE.BackSide,
-        transparent: true,
-        depthWrite: false,
-      }),
-    [],
-  )
-  useEffect(() => () => material.dispose(), [material])
+function createAtmosphereMaterial(): THREE.ShaderMaterial {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      atmosphereColor: { value: new THREE.Color(ATMOSPHERE_COLOR) },
+      intensity: { value: ATMOSPHERE_REST },
+      fresnelPower: { value: 3.2 },
+    },
+    vertexShader: atmosphereVertex,
+    fragmentShader: atmosphereFragment,
+    side: THREE.BackSide,
+    transparent: true,
+    depthWrite: false,
+  })
+}
 
+function Atmosphere({ material }: { material: THREE.ShaderMaterial }) {
   return (
     <mesh scale={1.07}>
       <sphereGeometry args={[RADIUS, 64, 32]} />
@@ -178,10 +225,24 @@ function Atmosphere() {
 }
 
 // ============================================================================
-// Contorno de Chile y huellas de candidatos (polígonos, nunca pins exactos)
+// Contorno de Chile (se traza en la coreografía A) y contornos de zonas
 // ============================================================================
 
-function ChileOutline({ outline }: { outline: GeoJsonFeatureCollection }) {
+interface OutlineTrace {
+  /** 0–1: fracción de segmentos visibles. */
+  progress: number
+  lines: Map<number, { object: LineObject; segments: number }>
+}
+
+function applyTrace(trace: OutlineTrace): void {
+  for (const { object, segments } of trace.lines.values()) {
+    // Siempre `visible`: así los búferes del contorno se suben en el primer cuadro, junto con el
+    // globo (una sola tarea larga), y el trazo solo limita cuántos segmentos se dibujan.
+    object.geometry.instanceCount = trace.progress >= 1 ? Infinity : Math.ceil(segments * trace.progress)
+  }
+}
+
+function ChileOutline({ outline, trace }: { outline: GeoJsonFeatureCollection; trace: MutableRefObject<OutlineTrace> }) {
   const rings = useMemo(
     () =>
       outline.features.flatMap((feature) =>
@@ -193,167 +254,165 @@ function ChileOutline({ outline }: { outline: GeoJsonFeatureCollection }) {
   )
   return (
     <>
-        {rings.map((points, index) => (
-          <Line key={index} points={points} color={OUTLINE_COLOR} lineWidth={1} transparent opacity={0.55} />
-        ))}
-    </>
-  )
-}
-
-function Footprint({ candidate, selected }: { candidate: CandidateSite; selected: boolean }) {
-  const rings = useMemo(
-    () =>
-      outerRings(candidate.geometry).map((ring) =>
-        densifyRing(ring, 0.05).map((position) => surfacePoint(position, 1.0025)),
-      ),
-    [candidate.geometry],
-  )
-  return (
-    <>
       {rings.map((points, index) => (
         <Line
           key={index}
+          ref={(object: LineObject | null) => {
+            if (!object) {
+              trace.current.lines.delete(index)
+              return
+            }
+            trace.current.lines.set(index, { object, segments: Math.max(1, points.length - 1) })
+            applyTrace(trace.current)
+          }}
           points={points}
-          color={selected ? FOOTPRINT_SELECTED_COLOR : FOOTPRINT_COLOR}
-          lineWidth={selected ? 2.4 : 1.6}
+          color={OUTLINE_COLOR}
+          lineWidth={1}
+          transparent
+          opacity={0.55}
         />
       ))}
     </>
   )
 }
 
-interface CalloutProps {
-  candidate: CandidateSite
-  rank: number
-  anchor: Position
-  offsetY: number
-  selected: boolean
-  onSelect: (siteId: string) => void
-}
-
-/**
- * Rótulo DOM anclado al centro aproximado del polígono. Es un <button> real
- * (foco, teclado, lector de pantalla). Se oculta cuando la zona queda detrás del globo.
- */
-function Callout({ candidate, rank, anchor, offsetY, selected, onSelect }: CalloutProps) {
-  const wrapperRef = useRef<HTMLDivElement>(null)
-  const hiddenRef = useRef(false)
-  const position = useMemo(() => latLngToVec3(anchor[1], anchor[0], RADIUS * 1.003), [anchor])
-  const { camera } = useThree()
-
-  useFrame(() => {
-    const element = wrapperRef.current
-    if (!element) return
-    const hidden = facingFactor(position, [camera.position.x, camera.position.y, camera.position.z]) < 0.15
-    if (hidden === hiddenRef.current) return
-    hiddenRef.current = hidden
-    element.classList.toggle('is-hidden', hidden)
-    element.toggleAttribute('inert', hidden)
-  })
-
-  const insufficient = candidate.similarity === null
-  const length = Math.hypot(CALLOUT_DX, offsetY)
-  const angle = Math.atan2(offsetY, CALLOUT_DX)
-
-  return (
-    <Html position={position} zIndexRange={[2, 0]} wrapperClass="globe-callout-host">
-      <div
-        ref={wrapperRef}
-        className={`globe-callout${selected ? ' selected' : ''}${insufficient ? ' insufficient' : ''}`}
-      >
-        <span className="globe-anchor" aria-hidden="true" />
-        <span
-          className="globe-leader"
-          aria-hidden="true"
-          style={{ width: `${length}px`, transform: `rotate(${angle}rad)` }}
-        />
-        <button
-          type="button"
-          className="globe-label"
-          style={{ transform: `translate(${CALLOUT_DX}px, ${offsetY}px) translateY(-50%)` }}
-          aria-pressed={selected}
-          aria-label={`Seleccionar ${candidate.name}`}
-          onClick={() => onSelect(candidate.site_id)}
-        >
-          <b>{rank}</b>
-          <span>
-            <small>RANK {rank}</small>
-            {insufficient ? 'SIN SCORE' : `${formatScore(candidate.similarity)} / 100`}
-          </span>
-        </button>
-      </div>
-    </Html>
-  )
+/** Contorno de un sector (polígono, nunca pin) o zona aproximada de un ◆ (siempre discontinua). */
+function ZoneLine({ ring, color, width, dashed }: { ring: Position[]; color: string; width: number; dashed: boolean }) {
+  const { points, dash } = useMemo(() => {
+    const dense = densifyRing(ring, 0.05).map((position) => surfacePoint(position, 1.0025))
+    let length = 0
+    for (let index = 1; index < dense.length; index += 1) length += (dense[index] as THREE.Vector3).distanceTo(dense[index - 1] as THREE.Vector3)
+    return { points: dense, dash: length / 48 }
+  }, [ring])
+  if (points.length < 2) return null
+  return <Line points={points} color={color} lineWidth={width} dashed={dashed} dashSize={dash} gapSize={dash * 0.8} />
 }
 
 // ============================================================================
-// Cámara: enfoca la zona seleccionada y la vista pedida, sin pelear con el usuario
+// Cámara: vuelos con duración por fórmula, arco de altitud y cancelación por input
 // ============================================================================
+
+interface ActiveFlight {
+  plan: FlightPlan
+  start: number
+  pulseId: string | null
+  targetCenter: Position
+  targetDistance: number
+}
+
+interface FlightTarget {
+  /** Centro de destino; por defecto, el centro apuntado (destino del vuelo en curso o actual). */
+  center?: Position
+  /** Distancia explícita (unidades de escena). */
+  distance?: number
+  /** Distancia de la vista global del panel. */
+  global?: boolean
+  /** Zoom Mercator equivalente (vuelta desde el 2D). */
+  zoom?: number
+  /** Justo pasado el umbral del 2D: el globo cede al mapa al aterrizar. */
+  enterFlat?: boolean
+  /** Medio nivel de zoom, etc., relativo a la altitud apuntada. */
+  zoomDelta?: number
+}
+
+interface CameraApi {
+  flyTo(target: FlightTarget, options?: { instant?: boolean; pulseId?: string | null }): void
+  /** Centro y distancia apuntados: destino del vuelo en curso o la pose actual. */
+  aim(): { center: Position; distance: number }
+  /** Punto lon/lat del globo bajo un punto de pantalla (null si cae en el espacio). */
+  pick(clientX: number, clientY: number, rect: DOMRect): Position | null
+}
 
 interface CameraRigProps {
-  focus: Position
-  distance: number
-  zoom?: number
-  nonce: number
-  baseInsets: ViewInsets
+  apiRef: MutableRefObject<CameraApi | null>
+  flightRef: MutableRefObject<ActiveFlight | null>
   controlsRef: RefObject<ControlsRef | null>
+  baseInsets: ViewInsets
+  thresholds: FlatThresholds
+  onApproach?: () => void
+  onFlightEnd: (pulseId: string | null) => void
 }
 
-/** Distancia a la que el globo (con atmósfera) cabe completo en el área libre base. */
-function fitDistance(width: number, height: number, insets: ViewInsets, verticalFovDegrees: number): number {
-  return RADIUS * fitDistanceRatioForInsets(width, height, insets, verticalFovDegrees)
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value))
 }
 
-function CameraRig({ focus, distance: requestedDistance, zoom, nonce, baseInsets, controlsRef }: CameraRigProps) {
+function CameraRig({ apiRef, flightRef, controlsRef, baseInsets, thresholds, onApproach, onFlightEnd }: CameraRigProps) {
   const { camera, size, invalidate } = useThree()
-  const fov = camera instanceof THREE.PerspectiveCamera ? camera.fov : 40
-  // `zoom` (vuelta desde el 2D) manda; `0` significa "vista global" según el aspecto real del panel.
-  const distance = zoom !== undefined
-    ? THREE.MathUtils.clamp(RADIUS + altitudeForZoom(zoom, RADIUS, fov, size.height, focus[1]), MIN_DISTANCE, MAX_DISTANCE)
-    : requestedDistance > 0
-      ? requestedDistance
-      : THREE.MathUtils.clamp(fitDistance(size.width, size.height, baseInsets, fov), MIN_DISTANCE, MAX_DISTANCE)
-  const instant = zoom !== undefined
-  const goal = useRef<{ direction: THREE.Vector3; distance: number } | null>(null)
-  const [lon, lat] = focus
+  const latest = useRef({ size, baseInsets, thresholds, onApproach, onFlightEnd })
+  latest.current = { size, baseInsets, thresholds, onApproach, onFlightEnd }
 
   useEffect(() => {
-    goal.current = { direction: toVector(latLngToVec3(lat, lon, 1)).normalize(), distance }
-    if (instant || prefersReducedMotion()) {
-      camera.position.copy(goal.current.direction.clone().multiplyScalar(distance))
-      camera.lookAt(0, 0, 0)
-      goal.current = null
-    }
-    invalidate()
-  }, [lat, lon, distance, nonce, camera, instant, invalidate])
+    const fov = () => (camera instanceof THREE.PerspectiveCamera ? camera.fov : 40)
+    const centerOf = (): Position => lonLatFromDirection(camera.position.x, camera.position.y, camera.position.z)
+    const zoomAt = (distance: number, lat: number) => zoomForAltitude(distance - RADIUS, RADIUS, fov(), latest.current.size.height, lat)
+    const distanceForZoom = (zoom: number, lat: number) =>
+      clamp(RADIUS + altitudeForZoom(zoom, RADIUS, fov(), latest.current.size.height, lat), MIN_DISTANCE, MAX_DISTANCE)
+    const raycaster = new THREE.Raycaster()
+    const sphere = new THREE.Sphere(new THREE.Vector3(), RADIUS)
+    const hit = new THREE.Vector3()
 
-  useEffect(() => {
-    const controls = controlsRef.current
-    if (!controls) return
-    const cancel = () => {
-      goal.current = null
+    const api: CameraApi = {
+      aim() {
+        const flight = flightRef.current
+        return flight ? { center: flight.targetCenter, distance: flight.targetDistance } : { center: centerOf(), distance: camera.position.length() }
+      },
+      flyTo(target, options = {}) {
+        const { size, baseInsets, thresholds } = latest.current
+        const aim = api.aim()
+        const center = target.center ?? aim.center
+        let distance = aim.distance
+        if (target.distance !== undefined) distance = target.distance
+        else if (target.zoom !== undefined) distance = distanceForZoom(target.zoom, center[1])
+        else if (target.global) distance = RADIUS * fitDistanceRatioForInsets(size.width, size.height, baseInsets, fov())
+        else if (target.enterFlat) distance = distanceForZoom(thresholds.enter + ENTER_MARGIN, center[1])
+        else if (target.zoomDelta !== undefined) {
+          let zoom = zoomAt(aim.distance, center[1]) + target.zoomDelta
+          // Si el paso queda al borde del umbral, se cruza de verdad: el globo cede al 2D al aterrizar.
+          if (target.zoomDelta > 0 && zoom >= thresholds.enter - ENTER_MARGIN) zoom = Math.max(zoom, thresholds.enter + ENTER_MARGIN)
+          distance = distanceForZoom(zoom, center[1])
+        }
+        distance = clamp(distance, MIN_DISTANCE, MAX_DISTANCE)
+        const from = camera.position
+        const plan = planFlight(
+          { direction: [from.x, from.y, from.z], altitude: from.length() - RADIUS },
+          { direction: latLngToVec3(center[1], center[0], 1), altitude: distance - RADIUS },
+          options.instant === true || prefersReducedMotion(),
+        )
+        // Durante el vuelo se suspenden ZoomWatcher y onApproach: si el destino se acerca al 2D,
+        // el mapa se instancia ya, en paralelo con el vuelo.
+        if (zoomAt(distance, center[1]) >= thresholds.global + 0.15) latest.current.onApproach?.()
+        flightRef.current = { plan, start: performance.now(), pulseId: options.pulseId ?? null, targetCenter: center, targetDistance: distance }
+        invalidate()
+      },
+      pick(clientX, clientY, rect) {
+        const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1)
+        raycaster.setFromCamera(ndc, camera)
+        if (!raycaster.ray.intersectSphere(sphere, hit)) return null
+        return lonLatFromDirection(hit.x, hit.y, hit.z)
+      },
     }
-    controls.addEventListener('start', cancel)
-    return () => controls.removeEventListener('start', cancel)
-  }, [controlsRef])
+    apiRef.current = api
+    return () => {
+      if (apiRef.current === api) apiRef.current = null
+    }
+  }, [apiRef, flightRef, camera, invalidate])
 
-  const scratch = useMemo(() => new THREE.Vector3(), [])
-  useFrame((_, delta) => {
-    const controls = controlsRef.current
-    const target = goal.current
-    if (target) {
-      // Con frameloop="demand" la animación pide su siguiente cuadro mientras dure.
-      invalidate()
-      const t = 1 - Math.exp(-Math.min(delta, 0.1) * 3.2)
-      const currentDistance = camera.position.length()
-      scratch.copy(camera.position).normalize().lerp(target.direction, t).normalize()
-      const nextDistance = THREE.MathUtils.lerp(currentDistance, target.distance, t)
-      camera.position.copy(scratch).multiplyScalar(nextDistance)
+  useFrame(() => {
+    const flight = flightRef.current
+    if (flight) {
+      const pose = sampleFlight(flight.plan, performance.now() - flight.start)
+      camera.position.set(...pose.direction).multiplyScalar(RADIUS + pose.altitude)
       camera.lookAt(0, 0, 0)
-      if (scratch.angleTo(target.direction) < 0.0015 && Math.abs(nextDistance - target.distance) < 0.01) {
-        goal.current = null
+      if (pose.done) {
+        flightRef.current = null
+        latest.current.onFlightEnd(flight.pulseId)
+      } else {
+        // Con frameloop="demand" el vuelo pide su siguiente cuadro mientras dure (≤1,8 s).
+        invalidate()
       }
     }
+    const controls = controlsRef.current
     if (controls) {
       // Rotar más lento cuanto más cerca de la superficie.
       controls.rotateSpeed = THREE.MathUtils.clamp((camera.position.length() - RADIUS) / RADIUS, 0.04, 0.45)
@@ -397,18 +456,18 @@ function ViewOffset({ insets }: { insets: ViewInsets }) {
 }
 
 /**
- * Avisa una vez cuando la cámara supera el zoom de entrada al mapa 2D.
- * Solo se arma después de ver un zoom menor al umbral: al volver con «Vista global»
- * la cámara parte cerca del umbral y no debe rebotar de inmediato al 2D.
+ * Avisa una vez cuando la cámara supera el zoom de entrada al mapa 2D. Solo se arma después de
+ * ver un zoom menor al umbral, y se suspende durante los vuelos (§2.2 regla 4).
  */
 interface ZoomWatcherProps {
   active: boolean
   thresholds: FlatThresholds
+  flightRef: MutableRefObject<ActiveFlight | null>
   onEnterFlat: (handoff: FlatHandoff) => void
   onApproach?: () => void
 }
 
-function ZoomWatcher({ active, thresholds, onEnterFlat, onApproach }: ZoomWatcherProps) {
+function ZoomWatcher({ active, thresholds, flightRef, onEnterFlat, onApproach }: ZoomWatcherProps) {
   const { camera, size } = useThree()
   const fired = useRef(false)
   const approached = useRef(false)
@@ -418,7 +477,7 @@ function ZoomWatcher({ active, thresholds, onEnterFlat, onApproach }: ZoomWatche
     armed.current = false
   }, [active])
   useFrame(() => {
-    if (!active || fired.current) return
+    if (!active || fired.current || flightRef.current) return
     const { x, y, z } = camera.position
     const [lon, lat] = lonLatFromDirection(x, y, z)
     const fov = camera instanceof THREE.PerspectiveCamera ? camera.fov : 40
@@ -440,26 +499,234 @@ function ZoomWatcher({ active, thresholds, onEnterFlat, onApproach }: ZoomWatche
 }
 
 // ============================================================================
+// Coreografía A: brillo de atmósfera 0,6→1→0,6 y trazo del contorno de Chile
+// ============================================================================
+
+const GLOW_MS = 900
+const TRACE_DELAY_MS = 150
+const TRACE_MS = 900
+
+function easeOutCubic(t: number): number {
+  return 1 - (1 - t) ** 3
+}
+
+function IntroEffects({ intro, atmosphere, trace }: { intro: IntroState; atmosphere: THREE.ShaderMaterial; trace: MutableRefObject<OutlineTrace> }) {
+  const { invalidate } = useThree()
+  const start = useRef<number | null>(null)
+  const apply = useCallback((progress: number, glow: number) => {
+    const uniform = atmosphere.uniforms.intensity
+    if (uniform) uniform.value = glow
+    trace.current.progress = progress
+    applyTrace(trace.current)
+  }, [atmosphere, trace])
+
+  useEffect(() => {
+    if (intro === 'play' && !prefersReducedMotion()) {
+      start.current = performance.now()
+    } else {
+      // pending: el contorno espera su trazo; done (o reduced motion): estado final.
+      start.current = null
+      apply(intro === 'pending' ? 0 : 1, ATMOSPHERE_REST)
+    }
+    invalidate()
+  }, [intro, apply, invalidate])
+
+  useFrame(() => {
+    if (start.current === null) return
+    const elapsed = performance.now() - start.current
+    const glow = ATMOSPHERE_REST + 0.4 * Math.sin(Math.PI * Math.min(1, elapsed / GLOW_MS))
+    apply(easeOutCubic(clamp((elapsed - TRACE_DELAY_MS) / TRACE_MS, 0, 1)), glow)
+    if (elapsed >= TRACE_DELAY_MS + TRACE_MS) {
+      start.current = null
+      apply(1, ATMOSPHERE_REST)
+    } else {
+      invalidate()
+    }
+  })
+  return null
+}
+
+// ============================================================================
+// Proyector de marcadores: un solo useFrame para todos (frameloop «demand»)
+// ============================================================================
+
+interface MarkerProjectorProps {
+  runtime: GlobeMarkerRuntime
+  models: readonly MarkerModel[]
+  selection: StageSelection | null
+  hoverId: string | null
+  narrow: boolean
+  active: boolean
+}
+
+function MarkerProjector({ runtime, models, selection, hoverId, narrow, active }: MarkerProjectorProps) {
+  const { camera, size, invalidate } = useThree()
+  const sizeRef = useRef(size)
+  sizeRef.current = size
+  const items = useMemo(
+    () =>
+      models.map((model) => ({
+        model,
+        position: toVector(latLngToVec3(model.center[1], model.center[0], RADIUS * 1.003)),
+        outline: (model.outline ?? []).map((position) => surfacePoint(position)),
+        labelWidth: estimateLabelWidth(markerLabelText(model)),
+      })),
+    [models],
+  )
+  const state = useRef({ items, selection, hoverId, narrow, active })
+  state.current = { items, selection, hoverId, narrow, active }
+  const signature = useRef<string | null>(null)
+  const scratch = useMemo(() => new THREE.Vector3(), [])
+
+  const toScreen = useCallback((point: THREE.Vector3) => {
+    scratch.copy(point).project(camera)
+    const { width, height } = sizeRef.current
+    return { x: ((scratch.x + 1) / 2) * width, y: ((1 - scratch.y) / 2) * height }
+  }, [camera, scratch])
+
+  // Proyección viva para las líneas Tesla: lee la cámara en el momento de la llamada.
+  const projection = useMemo<StageProjection>(() => {
+    const point = new THREE.Vector3()
+    return {
+      mode: 'globe',
+      project(lon, lat) {
+        point.fromArray(latLngToVec3(lat, lon, RADIUS))
+        const visible = markerVisibility(horizonFacing([point.x, point.y, point.z], [camera.position.x, camera.position.y, camera.position.z], RADIUS))
+        if (visible <= 0) return null
+        const { x, y } = toScreen(point)
+        const { width, height } = sizeRef.current
+        if (x < 0 || y < 0 || x > width || y > height) return null
+        return { x, y, visible }
+      },
+    }
+  }, [camera, toScreen])
+
+  // Con frameloop «demand», cualquier cambio de datos, selección u hover pide un cuadro.
+  useEffect(() => {
+    if (active) invalidate()
+  }, [items, selection, hoverId, narrow, active, invalidate])
+  useEffect(() => () => publishStageFrame({ projection: null, anchor: null }), [])
+
+  useFrame(() => {
+    const { items, selection, hoverId, narrow, active } = state.current
+    if (!active) return
+    const cameraPosition: Vec3 = [camera.position.x, camera.position.y, camera.position.z]
+    const screen: ScreenMarker[] = []
+    for (const { model, position, labelWidth } of items) {
+      const { x, y } = toScreen(position)
+      const visible = markerVisibility(horizonFacing([position.x, position.y, position.z], cameraPosition, RADIUS))
+      screen.push({ id: model.id, kind: model.kind, x, y, visible, order: model.order, group: model.group, labelWidth })
+    }
+    const selectedId = selection?.id ?? null
+    const result = clusterMarkers(screen, { exclude: [selectedId, hoverId] })
+    const labels = assignLabels(screen, { budget: labelBudget(narrow), clustered: result.clustered, selectedId, hoverId })
+    // Anillo de cada lugar: cubre el polígono (o la zona del ◆ seleccionado) proyectado.
+    const radii = screen.map((marker, index) => {
+      const item = items[index]
+      const ringed = item !== undefined && marker.visible >= HIDDEN_BELOW && item.outline.length > 0 && (item.model.kind !== 'reference' || marker.id === selectedId)
+      return ringed ? ringRadius(marker, item.outline.map(toScreen)) : RING_MIN_PX
+    })
+    const selectedIndex = screen.findIndex((marker) => marker.id === selectedId && marker.visible >= HIDDEN_BELOW)
+    const selectedScreen = screen[selectedIndex]
+    const selectedRing = selectedScreen ? { x: selectedScreen.x, y: selectedScreen.y, radius: radii[selectedIndex] ?? RING_MIN_PX } : null
+
+    for (const cluster of result.clusters) {
+      const placed = placeNearSelection(cluster, selectedRing)
+      const frame = { x: placed.x, y: placed.y, opacity: cluster.visible, compact: placed.compact }
+      runtime.lastCluster.set(cluster.key, frame)
+      const element = runtime.clusters.get(cluster.key)
+      if (element) applyPinFrame(element, frame)
+    }
+    const nextSignature = clusterSignature(result)
+    if (nextSignature !== signature.current) {
+      // Solo al cambiar la partición se vuelve a pintar la lista de grupos (no por cuadro).
+      signature.current = nextSignature
+      runtime.clusterList = result.clusters
+      const keys = new Set(result.clusters.map((cluster) => cluster.key))
+      for (const key of runtime.lastCluster.keys()) if (!keys.has(key)) runtime.lastCluster.delete(key)
+      runtime.setClusters?.(result.clusters)
+    }
+
+    let anchor: StageAnchor | null = null
+    for (let index = 0; index < screen.length; index += 1) {
+      const marker = screen[index] as ScreenMarker
+      const item = items[index]
+      if (!item) continue
+      const hidden = marker.visible < HIDDEN_BELOW
+      const clustered = result.clustered.has(marker.id)
+      const radius = radii[index] ?? RING_MIN_PX
+      const frame = { x: marker.x, y: marker.y, opacity: marker.visible }
+      runtime.lastPin.set(marker.id, frame)
+      const element = runtime.pins.get(marker.id)
+      if (element) {
+        applyPinFrame(element, frame)
+        setDataFlag(element, 'hidden', hidden)
+        setDataFlag(element, 'clustered', clustered)
+        setDataFlag(element, 'label', labels.has(marker.id))
+        const inert = hidden || clustered
+        if (element.inert !== inert) element.inert = inert
+        const ring = `${radius.toFixed(1)}px`
+        if (element.style.getPropertyValue('--ring-r') !== ring) element.style.setProperty('--ring-r', ring)
+      }
+      if (marker.id === selectedId && selection?.kind === 'evaluated' && !hidden) {
+        anchor = { siteId: marker.id, x: marker.x, y: marker.y, radius, visible: marker.visible, mode: 'globe' }
+      }
+    }
+    publishStageFrame({ projection, anchor })
+  })
+  return null
+}
+
+/** Entrega `invalidate` del Canvas a la capa DOM, que vive fuera de él. */
+function RuntimeBinder({ runtime }: { runtime: GlobeMarkerRuntime }) {
+  const { invalidate } = useThree()
+  useEffect(() => {
+    runtime.invalidate = invalidate
+    return () => {
+      runtime.invalidate = null
+    }
+  }, [runtime, invalidate])
+  return null
+}
+
+// ============================================================================
 // Componente principal
 // ============================================================================
+
+/** Si la intro no arranca en este tiempo tras el globo listo, se muestra el estado final. */
+const INTRO_PENDING_LIMIT_MS = 1500
 
 export default function CandidateGlobe({
   candidates,
   chileOutline,
-  selectedId,
-  onSelect,
+  markerInput,
+  selection,
+  hoverId,
+  onActivate,
   view,
+  fly,
   active,
   insets,
   baseInsets,
   thresholds,
+  narrow,
+  intro,
+  resultsRevision,
   onReady,
   onApproach,
   onDetailReady,
   onEnterFlat,
   onContextLost,
+  onCameraInput,
+  onHome,
 }: CandidateGlobeProps) {
   const controlsRef = useRef<ControlsRef | null>(null)
+  const apiRef = useRef<CameraApi | null>(null)
+  const flightRef = useRef<ActiveFlight | null>(null)
+  const runtime = useMemo(createGlobeMarkerRuntime, [])
+  const trace = useRef<OutlineTrace>({ progress: intro === 'pending' ? 0 : 1, lines: new Map() })
+  const atmosphere = useMemo(createAtmosphereMaterial, [])
+  useEffect(() => () => atmosphere.dispose(), [atmosphere])
   const [ready, setReady] = useState(false)
   const onReadyRef = useRef(onReady)
   onReadyRef.current = onReady
@@ -468,21 +735,94 @@ export default function CandidateGlobe({
     onReadyRef.current?.()
   }, [])
 
-  const callouts = useMemo(() => {
-    const ranks = new Map(rankCandidates(candidates).map((candidate, index) => [candidate.site_id, index + 1]))
-    const rows = candidates
-      .map((candidate) => ({ candidate, rank: ranks.get(candidate.site_id) ?? 0, anchor: geometryCenter(candidate.geometry) }))
-      .filter((row): row is typeof row & { anchor: Position } => row.anchor !== null)
-      // De norte a sur para que las líneas guía no se crucen.
-      .sort((a, b) => b.anchor[1] - a.anchor[1])
-    return rows.map((row, slot) => ({ ...row, offsetY: (slot - (rows.length - 1) / 2) * CALLOUT_GAP }))
-  }, [candidates])
+  // La intro la escribe boot; si nunca pasa de «pending», no se esconden los datos para siempre.
+  const [pendingExpired, setPendingExpired] = useState(false)
+  useEffect(() => {
+    if (!ready || intro !== 'pending') return
+    const timer = window.setTimeout(() => setPendingExpired(true), INTRO_PENDING_LIMIT_MS)
+    return () => window.clearTimeout(timer)
+  }, [ready, intro])
+  const effectiveIntro: IntroState = intro === 'pending' && pendingExpired ? 'done' : intro
 
-  const selectedAnchor = callouts.find((row) => row.candidate.site_id === selectedId)?.anchor ?? HOME
-  const focus: Position = view.kind === 'at' && view.at ? [view.at.lon, view.at.lat] : view.kind === 'close' ? selectedAnchor : HOME
-  const distance = view.kind === 'close' ? CLOSE_DISTANCE : 0
-  // La cámara nace ya en el encuadre global del panel: sin animación inicial de alejamiento
-  // (que además se confundiría con un acercamiento y precargaría el 2D antes de tiempo).
+  const models = useMemo(() => buildMarkerModels(markerInput), [markerInput])
+  const byId = useMemo(() => new Map(models.map((model) => [model.id, model])), [models])
+  const modelsRef = useRef(byId)
+  modelsRef.current = byId
+
+  const selectedSector = selection?.kind === 'evaluated' ? selection.id : null
+  const selectedZone = selection?.kind === 'reference' ? byId.get(selection.id)?.outline ?? null : null
+  const footprints = useMemo(
+    () => candidates.map((candidate) => ({ id: candidate.site_id, rings: outerRings(candidate.geometry), pending: candidate.similarity === null })),
+    [candidates],
+  )
+
+  // ---- Encuadres pedidos por el escenario ----------------------------------------------------
+  const onFlightEnd = useCallback((pulseId: string | null) => {
+    const element = pulseId ? runtime.pins.get(pulseId) : undefined
+    if (element && !prefersReducedMotion()) pulsePin(element)
+  }, [runtime])
+
+  const lastView = useRef(view.nonce)
+  useEffect(() => {
+    if (view.nonce === lastView.current) return
+    lastView.current = view.nonce
+    const api = apiRef.current
+    if (!api) return
+    if (view.kind === 'global') api.flyTo({ center: HOME, global: true })
+    else if (view.kind === 'at') api.flyTo({ center: [view.at.lon, view.at.lat], zoom: view.at.zoom }, { instant: true })
+    else if (view.kind === 'zoom') api.flyTo({ zoomDelta: view.delta })
+    else {
+      const target = selection ? modelsRef.current.get(selection.id)?.center : undefined
+      api.flyTo({ center: target ?? api.aim().center, enterFlat: true })
+    }
+    // Solo reacciona a pedidos nuevos (nonce).
+  }, [view]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const lastFly = useRef(fly?.nonce ?? 0)
+  useEffect(() => {
+    if (!fly || fly.nonce === lastFly.current) return
+    lastFly.current = fly.nonce
+    const model = modelsRef.current.get(fly.id)
+    if (!active || !model) return
+    apiRef.current?.flyTo({ center: model.center }, { pulseId: model.id })
+  }, [fly, active])
+
+  // ---- Coreografía D: halos en el orden nuevo, cada 120 ms --------------------------------------
+  const lastRevision = useRef(resultsRevision)
+  useEffect(() => {
+    if (resultsRevision === lastRevision.current) return
+    lastRevision.current = resultsRevision
+    if (!active || prefersReducedMotion()) return
+    playHalos(runtime.pins, models.filter((model) => model.kind === 'evaluated' && model.rank !== null).map((model) => model.id), 120)
+  }, [resultsRevision, models, active, runtime])
+
+  // ---- Input directo: cualquier gesto cancela el vuelo y cuenta como «tocó la cámara» -------------
+  const onControlsStart = () => {
+    flightRef.current = null
+    onCameraInput()
+  }
+
+  // ---- Teclado y doble clic ---------------------------------------------------------------------
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.altKey || event.ctrlKey || event.metaKey) return
+    const action = cameraKeyAction(event.key, event.shiftKey)
+    const api = apiRef.current
+    if (!action || !api) return
+    event.preventDefault()
+    onCameraInput()
+    if (action.kind === 'home') onHome()
+    else if (action.kind === 'zoom') api.flyTo({ zoomDelta: action.delta })
+    else api.flyTo({ center: rotateCenter(api.aim().center, action.dLon, action.dLat) })
+  }
+  const onDoubleClick = (event: MouseEvent<HTMLDivElement>) => {
+    const api = apiRef.current
+    const point = api?.pick(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect())
+    if (!api || !point) return
+    onCameraInput()
+    api.flyTo({ center: point, zoomDelta: 0.5 })
+  }
+
+  // La cámara nace ya en el encuadre global del panel: sin animación inicial (el póster coincide).
   const [initialPosition] = useState(() => {
     const width = typeof window === 'undefined' ? 1600 : window.innerWidth
     const height = typeof window === 'undefined' ? 1000 : window.innerHeight
@@ -492,67 +832,83 @@ export default function CandidateGlobe({
 
   return (
     <>
-    <Canvas
-      className="globe-canvas"
-      gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-      // Dibujo a demanda: sin interacción ni animación no se redibuja, y el vidrio encima no se recalcula.
-      dpr={[1, 1.5]}
-      frameloop={active ? 'demand' : 'never'}
-      camera={{ fov: 40, near: 0.01, far: 100, position: initialPosition }}
-      onCreated={({ gl }) => {
-        gl.domElement.addEventListener('webglcontextlost', onContextLost, { once: true })
-      }}
-      aria-label={`Globo terrestre 3D con ${candidates.length} zonas candidatas en Chile`}
-    >
-      <ambientLight intensity={0.55} />
-      <SunLight />
-      {/* Fallback nulo: un <Html> de drei como fallback falla al retirarse con React 19. */}
-      <Suspense fallback={null}>
-        <Earth onReady={markReady} onDetailReady={onDetailReady} />
-        <ChileOutline outline={chileOutline} />
-        {callouts.map((row) => (
-          <Footprint key={row.candidate.site_id} candidate={row.candidate} selected={row.candidate.site_id === selectedId} />
-        ))}
-        {callouts.map((row) => (
-          <Callout
-            key={row.candidate.site_id}
-            candidate={row.candidate}
-            rank={row.rank}
-            anchor={row.anchor}
-            offsetY={row.offsetY}
-            selected={row.candidate.site_id === selectedId}
-            onSelect={onSelect}
+      <div
+        className="globe-surface"
+        tabIndex={0}
+        role="application"
+        aria-roledescription="globo 3D"
+        aria-label={`Globo terrestre con ${candidates.length} sectores evaluados. Flechas: girar 10°, con Mayús 30°. Más y menos: acercar o alejar. Inicio: vista global.`}
+        onKeyDown={onKeyDown}
+        onDoubleClick={onDoubleClick}
+      >
+        <Canvas
+          className="globe-canvas"
+          gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+          dpr={[1, 1.5]}
+          // Dibujo a demanda: sin interacción ni animación no se redibuja (0 dibujos en reposo).
+          frameloop={active ? 'demand' : 'never'}
+          camera={{ fov: 40, near: 0.01, far: 100, position: initialPosition }}
+          onCreated={({ gl }) => {
+            gl.domElement.addEventListener('webglcontextlost', onContextLost, { once: true })
+          }}
+        >
+          <ambientLight intensity={0.55} />
+          <SunLight />
+          {/* Fallback nulo: un <Html> de drei como fallback falla al retirarse con React 19. */}
+          <Suspense fallback={null}>
+            <Earth onReady={markReady} onDetailReady={onDetailReady} />
+            <ChileOutline outline={chileOutline} trace={trace} />
+            {footprints.map(({ id, rings, pending }) =>
+              rings.map((ring, index) => (
+                <ZoneLine
+                  key={`${id}-${index}`}
+                  ring={ring}
+                  color={id === selectedSector ? FOOTPRINT_SELECTED_COLOR : pending ? FOOTPRINT_PENDING_COLOR : FOOTPRINT_COLOR}
+                  width={id === selectedSector ? 2.4 : 1.4}
+                  dashed={pending}
+                />
+              )),
+            )}
+            {selectedZone && <ZoneLine key={selection?.id} ring={selectedZone} color={ZONE_COLOR} width={1.6} dashed />}
+          </Suspense>
+          <Atmosphere material={atmosphere} />
+          <OrbitControls
+            ref={controlsRef}
+            makeDefault
+            enablePan={false}
+            enableZoom
+            minDistance={MIN_DISTANCE}
+            maxDistance={MAX_DISTANCE}
+            enableDamping
+            dampingFactor={0.1}
+            onStart={onControlsStart}
           />
-        ))}
-      </Suspense>
-      <Atmosphere />
-      <OrbitControls
-        ref={controlsRef}
-        makeDefault
-        enablePan={false}
-        enableZoom
-        minDistance={MIN_DISTANCE}
-        maxDistance={MAX_DISTANCE}
-        enableDamping
-        dampingFactor={0.1}
-      />
-      <CameraRig
-        focus={focus}
-        distance={distance}
-        zoom={view.kind === 'at' ? view.at?.zoom : undefined}
-        nonce={view.nonce}
-        baseInsets={baseInsets}
-        controlsRef={controlsRef}
-      />
-      <ViewOffset insets={insets} />
-      <ZoomWatcher active={active} thresholds={thresholds} onEnterFlat={onEnterFlat} onApproach={onApproach} />
-    </Canvas>
-    {!ready && (
-      <div className="globe-loading globe-loading-page" role="status">
-        <span className="loader" />
-        Cargando texturas locales…
+          <CameraRig
+            apiRef={apiRef}
+            flightRef={flightRef}
+            controlsRef={controlsRef}
+            baseInsets={baseInsets}
+            thresholds={thresholds}
+            onApproach={onApproach}
+            onFlightEnd={onFlightEnd}
+          />
+          <ViewOffset insets={insets} />
+          <ZoomWatcher active={active} thresholds={thresholds} flightRef={flightRef} onEnterFlat={onEnterFlat} onApproach={onApproach} />
+          <IntroEffects intro={effectiveIntro} atmosphere={atmosphere} trace={trace} />
+          {/* Después de la cámara: los marcadores se proyectan con la pose final del cuadro. */}
+          <MarkerProjector runtime={runtime} models={models} selection={selection} hoverId={hoverId} narrow={narrow} active={active} />
+          <RuntimeBinder runtime={runtime} />
+        </Canvas>
       </div>
-    )}
+      {ready && (
+        <GlobeMarkerOverlay runtime={runtime} models={models} selectedId={selection?.id ?? null} hoverId={hoverId} intro={effectiveIntro} onActivate={onActivate} />
+      )}
+      {!ready && (
+        <div className="globe-loading globe-loading-page" role="status">
+          <span className="loader" />
+          Cargando texturas locales…
+        </div>
+      )}
     </>
   )
 }

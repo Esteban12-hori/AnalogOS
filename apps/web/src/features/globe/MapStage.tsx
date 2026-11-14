@@ -1,10 +1,18 @@
 import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import type { CandidateSite, GeoJsonFeatureCollection } from '../../domain/contracts'
+import type { CandidateSite, GeoJsonFeatureCollection, ReferenceAnalog } from '../../domain/contracts'
+import { shortCandidateName } from '../../domain/formatting'
 import { loadBasemaps, type ActiveSource, type Basemap, type BasemapManifest, type ContextPreview } from '../../data/loadBasemaps'
 import type { VisualContextState } from '../../data/loadVisualContext'
+import { announce, GLYPH } from '../../shell/public'
+import { useMission } from '../../state/mission'
+import { uiActions, useUi } from '../../state/ui'
+import { useReferenceAnalogs } from '../places'
 import { CandidateMap } from './CandidateMap'
-import type { FlatHandoff, GlobeView } from './CandidateGlobe'
-import './CandidateGlobe.css'
+import type { FlatCommand } from './CandidateFlatMap'
+import type { FlatHandoff, FlyRequest, GlobeView, StageSelection } from './CandidateGlobe'
+import type { MarkerInput, MarkerModel } from './markers'
+import { selectionCamera } from './selectionCamera'
+import { publishStageFrame } from './stageBridge'
 import './MapStage.css'
 
 import { GLOBE_TEXTURE_KM, hideBootStage, MAPLIBRE_WORKER_URL, prefetchToCache, whenIdle } from '../../data/preload'
@@ -23,6 +31,9 @@ const CandidateFlatMap = lazy(loadFlat)
 
 /** Centro con que se monta el mapa 2D invisible antes de usarlo (Atacama central). */
 const PREWARM_CENTER = { lon: -69.5, lat: -24 }
+/** Paso de los botones + / − (niveles de zoom): el mismo del teclado. */
+const ZOOM_STEP = 0.5
+const NO_ANALOGS: readonly ReferenceAnalog[] = []
 
 function useViewport() {
   const read = () => ({ width: window.innerWidth, height: window.innerHeight })
@@ -40,7 +51,7 @@ export type StageMilestone = 'globe' | 'texture'
 export interface MapStageProps {
   candidates: CandidateSite[]
   chileOutline: GeoJsonFeatureCollection
-  /** null = sin selección (Explorar arranca así). */
+  /** null = sin selección (Explorar arranca así). Solo sectores evaluados (● ○). */
   selectedId: string | null
   onSelect: (siteId: string) => void
   /**
@@ -60,6 +71,11 @@ export interface MapStageProps {
   onMilestone?: (milestone: StageMilestone, status: 'ok' | 'error') => void
   /** Controles extra en la franja de leyenda (p. ej. el interruptor «Líneas»). */
   hudSlot?: ReactNode
+  /**
+   * Selección de un análogo ◆ desde el escenario. Opcional: por defecto escribe
+   * `ui.selection` con `kind: 'reference'`.
+   */
+  onSelectReference?: (analogId: string) => void
 }
 
 /** Convierte las vistas Sentinel-2 validadas en capas del mapa 2D. */
@@ -126,7 +142,7 @@ function StageLoading({ text }: { text: string }) {
   )
 }
 
-/** Márgenes como variables CSS: la leyenda y el fondo se ubican en el área libre. */
+/** Márgenes como variables CSS: la leyenda, los controles y el foco se ubican en el área libre. */
 function insetVars(insets: ViewInsets): CSSProperties {
   return {
     ['--inset-top' as string]: `${insets.top}px`,
@@ -136,9 +152,18 @@ function insetVars(insets: ViewInsets): CSSProperties {
   }
 }
 
+/** Nombre corto del lugar para el chip «Centrar en ‹#1›». */
+function shortName(name: string): string {
+  return shortCandidateName(name).split(' — ')[0] ?? name
+}
+
+const selectReference = (analogId: string) => uiActions.select(analogId, 'reference')
+const touchCamera = () => uiActions.touchCamera()
+
 /**
- * Escenario de fondo del sitio: globo 3D que, al acercarse, cede automáticamente
- * a un mapa 2D con imágenes oficiales NASA, y vuelve al globo al alejarse.
+ * Escenario de fondo del sitio: globo 3D que, al acercarse, cede automáticamente a un mapa 2D
+ * con imágenes oficiales NASA, y vuelve al globo al alejarse. Marcadores ●◆○ con agrupación,
+ * vuelo de cámara, teclado y canal por cuadro para las líneas Tesla (incremento 4).
  * Sin WebGL (ADR-001) se usa el mapa SVG local.
  */
 export function MapStage({
@@ -153,12 +178,15 @@ export function MapStage({
   paused = false,
   onMilestone,
   hudSlot,
+  onSelectReference = selectReference,
 }: MapStageProps) {
-  const selected = selectedId ?? ''
   const [webgl] = useState(supportsWebGL)
   const [failed, setFailed] = useState(false)
   const [mode, setMode] = useState<Mode>('globe')
   const [view, setView] = useState<GlobeView>({ kind: 'global', nonce: 0 })
+  const [flatCommand, setFlatCommand] = useState<FlatCommand | null>(null)
+  const [fly, setFly] = useState<FlyRequest | null>(null)
+  const [centerChip, setCenterChip] = useState<string | null>(null)
   const [entry, setEntry] = useState<FlatHandoff | null>(null)
   const [focusRequest, setFocusRequest] = useState(0)
   const [pendingFocus, setPendingFocus] = useState(false)
@@ -170,9 +198,36 @@ export function MapStage({
     () => flatThresholds(viewport.width, viewport.height, baseInsets),
     [viewport.width, viewport.height, baseInsets],
   )
+  const narrow = viewport.width < 1100
   const milestone = useRef(onMilestone)
   milestone.current = onMilestone
   const prewarmEntry = useMemo<FlatHandoff>(() => ({ ...PREWARM_CENTER, zoom: thresholds.enter }), [thresholds.enter])
+
+  // ---- Estado compartido que consume el escenario (docs/BUILD_CONTRACTS.md §2.2) --------------
+  const storeSelection = useUi((state) => state.selection)
+  const hoverId = useUi((state) => state.hoverSiteId)
+  const intro = useUi((state) => state.introPhase)
+  const uiMode = useUi((state) => state.mode)
+  const cameraTouched = useUi((state) => state.cameraTouchedAt !== null)
+  const scoring = useMission((state) => state.scoring)
+  const revision = useMission((state) => state.revision)
+  const analogsState = useReferenceAnalogs()
+  const analogs = analogsState.status === 'ready' ? analogsState.analogs : NO_ANALOGS
+  // En Misión, puestos y % los pone el motor; en Explorar, el snapshot (perfil base).
+  const missionScoring = uiMode === 'mision' ? scoring : null
+  const markerInput = useMemo<MarkerInput>(() => ({ candidates, analogs, scoring: missionScoring }), [candidates, analogs, missionScoring])
+
+  const referenceId = storeSelection?.kind === 'reference' ? storeSelection.siteId : null
+  const selection = useMemo<StageSelection | null>(
+    () => (selectedId !== null ? { id: selectedId, kind: 'evaluated' } : referenceId !== null ? { id: referenceId, kind: 'reference' } : null),
+    [selectedId, referenceId],
+  )
+  const preview = storeSelection !== null && selection !== null && storeSelection.siteId === selection.id && storeSelection.preview
+
+  const onActivate = useCallback((model: MarkerModel) => {
+    if (model.selectionKind === 'reference') onSelectReference(model.id)
+    else onSelect(model.id)
+  }, [onSelect, onSelectReference])
 
   // Precarga en dos tiempos, sin competir con el globo:
   // 1) con el globo listo y el navegador ocioso: código, worker e imágenes a la caché
@@ -239,9 +294,20 @@ export function MapStage({
     setMode('globe')
   }, [])
 
-  const goGlobal = () => {
+  const goGlobal = useCallback(() => {
     setMode('globe')
     setView((current) => ({ kind: 'global', nonce: current.nonce + 1 }))
+  }, [])
+
+  const goHome = useCallback(() => {
+    touchCamera()
+    goGlobal()
+  }, [goGlobal])
+
+  const zoomBy = (delta: number) => {
+    touchCamera()
+    if (mode === 'flat') setFlatCommand((current) => ({ kind: 'zoom', delta, nonce: (current?.nonce ?? 0) + 1 }))
+    else setView((current) => ({ kind: 'zoom', delta, nonce: current.nonce + 1 }))
   }
 
   const goClose = useCallback(() => {
@@ -260,6 +326,40 @@ export function MapStage({
     lastSignal.current = focusSignal
     goClose()
   }, [focusSignal, goClose])
+
+  // ---- Selección → vuelo (coreografías B y D) ------------------------------------------------
+  // Selección manual: la cámara vuela en paralelo. Vista previa del #1 (resultados): solo si el
+  // usuario no tocó la cámara durante la espera; si la tocó, aparece «Centrar en ‹#1›».
+  const touchedRef = useRef(cameraTouched)
+  touchedRef.current = cameraTouched
+  const selectionKey = selection ? `${selection.kind}:${selection.id}:${preview ? 'preview' : 'manual'}` : ''
+  useEffect(() => {
+    if (!selection) {
+      setCenterChip(null)
+      return
+    }
+    if (selectionCamera(preview, touchedRef.current) === 'chip') {
+      setCenterChip(selection.id)
+      return
+    }
+    setCenterChip(null)
+    setFly((current) => ({ id: selection.id, nonce: (current?.nonce ?? 0) + 1 }))
+    // Solo reacciona a cambios de selección (selectionKey resume selection y preview).
+  }, [selectionKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  const chipSite = centerChip ? candidates.find((candidate) => candidate.site_id === centerChip) ?? null : null
+  const centerOnChip = () => {
+    if (!centerChip) return
+    setFly((current) => ({ id: centerChip, nonce: (current?.nonce ?? 0) + 1 }))
+    setCenterChip(null)
+  }
+
+  // ---- Paso globo ↔ 2D: un aviso por la región global (sin aria-live propia) -------------------
+  const lastMode = useRef(mode)
+  useEffect(() => {
+    if (lastMode.current === mode) return
+    lastMode.current = mode
+    announce(mode === 'flat' ? 'Mapa 2D con imágenes oficiales NASA' : 'Globo 3D')
+  }, [mode])
 
   const fixtureMode = candidates.every((candidate) => candidate.status === 'fixture')
 
@@ -287,10 +387,15 @@ export function MapStage({
     }
   }, [webgl, failed, mode])
 
+  // Sin WebGL no hay proyección para las líneas Tesla.
+  useEffect(() => {
+    if (!webgl || failed) publishStageFrame({ projection: null, anchor: null })
+  }, [webgl, failed])
+
   if (!webgl || failed) {
     return (
       <div className="map-stage map-stage-fallback">
-        <CandidateMap candidates={candidates} chileOutline={chileOutline} selectedId={selected} onSelect={onSelect} />
+        <CandidateMap candidates={candidates} chileOutline={chileOutline} selectedId={selectedId ?? ''} onSelect={onSelect} />
         <p className="view-note stage-note">Sin WebGL: se muestra el mapa SVG local (sin imágenes satelitales).</p>
       </div>
     )
@@ -306,18 +411,26 @@ export function MapStage({
             <CandidateGlobe
               candidates={candidates}
               chileOutline={chileOutline}
-              selectedId={selected}
-              onSelect={onSelect}
+              markerInput={markerInput}
+              selection={selection}
+              hoverId={hoverId}
+              onActivate={onActivate}
               view={view}
+              fly={fly}
               active={mode === 'globe' && !paused}
               insets={insets}
               baseInsets={baseInsets}
               thresholds={thresholds}
+              narrow={narrow}
+              intro={intro}
+              resultsRevision={revision}
               onReady={markGlobeReady}
               onApproach={mountFlat}
               onDetailReady={markDetailReady}
               onEnterFlat={enterFlat}
               onContextLost={markFailed}
+              onCameraInput={touchCamera}
+              onHome={goHome}
             />
           </Suspense>
         </div>
@@ -329,33 +442,49 @@ export function MapStage({
                 candidates={candidates}
                 chileOutline={chileOutline}
                 basemaps={layers}
-                selectedId={selected}
-                onSelect={onSelect}
+                markerInput={markerInput}
+                selection={selection}
+                hoverId={hoverId}
+                onActivate={onActivate}
+                fly={fly}
+                command={flatCommand}
                 entry={entry ?? prewarmEntry}
                 focusRequest={focusRequest}
                 active={mode === 'flat'}
                 insets={insets}
                 thresholds={thresholds}
+                narrow={narrow}
+                resultsRevision={revision}
                 onExit={exitFlat}
                 onSourcesChange={setFlatSources}
+                onCameraInput={touchCamera}
+                onHome={goHome}
               />
             </Suspense>
           </div>
         )}
       </StageErrorBoundary>
 
-      <div className="stage-dock glass" aria-label="Leyenda y fuente del mapa">
-        <div className="stage-dock-row" role="group" aria-label="Encuadre">
-          <button type="button" className="dock-button" aria-pressed={mode === 'globe' && view.kind === 'global'} onClick={goGlobal}>
-            Vista global
-          </button>
-          <button type="button" className="dock-button" onClick={goClose}>
-            Acercar a la zona
-          </button>
-          <span className="dock-mode" aria-live="polite">{mode === 'globe' ? 'Globo 3D' : 'Mapa 2D'}</span>
+      {chipSite && (
+        <button type="button" className="stage-center-chip" onClick={centerOnChip}>
+          Centrar en {shortName(chipSite.name)}
+        </button>
+      )}
+
+      <div className="stage-controls" role="group" aria-label="Cámara del escenario">
+        <button type="button" aria-label="Acercar" title="Acercar (+)" onClick={() => zoomBy(ZOOM_STEP)}>+</button>
+        <button type="button" aria-label="Alejar" title="Alejar (−)" onClick={() => zoomBy(-ZOOM_STEP)}>−</button>
+        <button type="button" aria-label="Vista global" title="Vista global (Inicio)" onClick={goHome}>⌂</button>
+      </div>
+
+      <div className="stage-dock" aria-label="Leyenda y fuente del mapa">
+        <div className="stage-legend">
+          <span><b aria-hidden="true">{GLYPH.evaluated}</b> {fixtureMode ? 'fixture con score' : 'evaluado'}</span>
+          <span><b className="is-reference" aria-hidden="true">{GLYPH.reference}</b> referencia por calcular</span>
+          <span><b className="is-insufficient" aria-hidden="true">{GLYPH.insufficient}</b> datos insuficientes</span>
         </div>
-        <div className="stage-source" aria-live="polite">
-          <small>Fuente del mapa</small>
+        <div className="stage-source">
+          <small>{mode === 'globe' ? 'Globo' : 'Mapa 2D'}</small>
           {sources[0] ? (
             <>
               <span>
@@ -371,12 +500,7 @@ export function MapStage({
           ) : (
             <span><strong>Sin imagen disponible</strong><em>Fuera de la cobertura local y sin conexión</em></span>
           )}
-        </div>
-        <div className="stage-legend">
-          <span><i className="legend-swatch candidate" /> {fixtureMode ? 'Fixture con score' : 'Polígono candidato'}</span>
-          <span><i className="legend-swatch insufficient" /> Datos insuficientes</span>
-          <span><i className="legend-swatch outline globe-outline" /> Contorno referencial</span>
-          <span className="legend-credit">Imágenes: contexto visual, no entran al score</span>
+          <em className="legend-credit">Imágenes = contexto, no entran al score</em>
         </div>
         {hudSlot}
       </div>

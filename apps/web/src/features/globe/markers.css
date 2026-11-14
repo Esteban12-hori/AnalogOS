@@ -1,0 +1,203 @@
+/*
+ * Marcadores ●◆○ y chips de grupo (incremento 4). Mismo estilo en el globo y en el mapa 2D.
+ * Fondo de marcador sin blur (--marker-bg). Selección = hielo + azul; nunca naranja (Marte).
+ * Solo se animan transform y opacity; con reduced motion: sin escala, halos ni pulsos.
+ * Lo que cambia por cuadro llega como atributos data-* que escribe el globo:
+ *   data-hidden (detrás del globo) · data-clustered (dentro de un grupo) · data-label (rótulo
+ *   dentro del presupuesto) · data-halo / data-pulse (coreografías, una sola vez).
+ */
+.globe-pins { position: absolute; inset: 0; z-index: 2; overflow: hidden; pointer-events: none; }
+
+.globe-pin, .globe-cluster { position: absolute; top: 0; left: 0; width: 0; height: 0; }
+.globe-pin[data-hidden], .globe-cluster[data-hidden] { visibility: hidden; }
+.globe-pin-body { position: relative; opacity: 1; transition: opacity var(--dur-2, 200ms) var(--ease-standard, ease); }
+
+/* Marcador: disco de 22 px centrado en el ancla; el rótulo sale a la derecha con línea sólida. */
+.globe-pin-button, .globe-cluster-chip {
+  position: absolute;
+  top: -11px;
+  left: -11px;
+  display: flex;
+  align-items: center;
+  min-height: 22px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--text, #EEF6FB);
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.globe-pin-button:focus-visible, .globe-cluster-chip:focus-visible, .globe-cluster-item:focus-visible { outline: var(--focus-ring, 2px solid #3FB4EC); outline-offset: var(--focus-offset, 3px); }
+.globe-pin-glyph {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(190, 225, 245, .28);
+  border-radius: 50%;
+  background: var(--marker-bg, rgba(2, 7, 10, .88));
+  color: var(--earth-bright, #3FB4EC);
+  font-size: 12px;
+  line-height: 1;
+  transition: transform var(--dur-1, 120ms) var(--ease-standard, ease);
+}
+.globe-pin.is-insufficient .globe-pin-glyph { border-style: dashed; color: var(--pending, #6F889A); }
+.globe-pin.is-reference .globe-pin-glyph { border-style: dashed; border-color: rgba(148, 170, 186, .55); color: var(--muted, #94AABA); font-size: 11px; }
+
+.globe-pin-label {
+  position: relative;
+  display: none;
+  align-items: baseline;
+  gap: 6px;
+  margin-left: 12px;
+  padding: 3px 9px;
+  border: 1px solid var(--glass-edge, rgba(190, 225, 245, .12));
+  border-radius: 999px;
+  background: var(--marker-bg, rgba(2, 7, 10, .88));
+  font-size: var(--fs-12, 12px);
+  font-weight: 600;
+  line-height: 1.3;
+}
+/* Rótulo de ranking con línea sólida (§3.1). */
+.globe-pin-label::before { content: ''; position: absolute; top: 50%; right: 100%; width: 12px; border-top: 1px solid rgba(63, 180, 236, .7); }
+.globe-pin[data-label] .globe-pin-label, .globe-pin.is-selected .globe-pin-label, .globe-pin.is-hover .globe-pin-label, .globe-pin-button:focus-visible .globe-pin-label { display: inline-flex; }
+.globe-pin.is-reference .globe-pin-label, .globe-pin.is-insufficient .globe-pin-label { border-style: dashed; border-color: rgba(111, 136, 154, .6); }
+.globe-pin.is-reference .globe-pin-label::before, .globe-pin.is-insufficient .globe-pin-label::before { border-top-color: rgba(148, 170, 186, .6); }
+.globe-pin-rank { color: var(--muted, #94AABA); font-family: var(--mono, ui-monospace, monospace); font-size: var(--fs-caps, 11px); font-weight: 700; }
+.globe-pin-score { color: var(--earth-bright, #3FB4EC); font-variant-numeric: tabular-nums; font-weight: 700; }
+.globe-pin-status { color: var(--muted, #94AABA); font-size: var(--fs-caps, 11px); font-weight: 500; }
+.globe-pin-badge { color: var(--muted, #94AABA); font-size: var(--fs-caps, 11px); font-weight: 500; }
+
+/* Hover desde el carrusel: escala 1,2, sin pulso. */
+.globe-pin.is-hover .globe-pin-glyph, .globe-pin-button:hover .globe-pin-glyph { transform: scale(1.2); }
+
+/* Anillo del lugar: radio = polígono proyectado (≥14 px), lo fija el escenario en --ring-r. */
+.globe-pin-ring, .globe-pin-halo {
+  position: absolute;
+  top: calc(-1 * var(--ring-r, 14px));
+  left: calc(-1 * var(--ring-r, 14px));
+  width: calc(2 * var(--ring-r, 14px));
+  height: calc(2 * var(--ring-r, 14px));
+  border-radius: 50%;
+  pointer-events: none;
+}
+.globe-pin-ring { border: 2px solid var(--sel-ring, #EAF4FA); box-shadow: 0 0 0 1px var(--sel-line, rgba(2, 151, 222, .45)); opacity: 0; transition: opacity var(--dur-2, 200ms) var(--ease-standard, ease); }
+.globe-pin.is-selected .globe-pin-ring { opacity: 1; }
+.globe-pin.is-selected .globe-pin-glyph { border-color: var(--sel-accent, #3FB4EC); color: var(--sel-ring, #EAF4FA); }
+.globe-pin.is-selected .globe-pin-label { border-color: var(--sel-line, rgba(2, 151, 222, .45)); box-shadow: inset 0 2px 0 var(--sel-accent, #3FB4EC); }
+/* ◆ seleccionado: anillo discontinuo «zona aproximada». */
+.globe-pin.is-reference .globe-pin-ring { border: 2px dashed var(--muted, #94AABA); box-shadow: none; }
+.globe-pin-ring::after { content: ''; position: absolute; inset: -2px; border: 2px solid var(--sel-ring, #EAF4FA); border-radius: 50%; opacity: 0; }
+.globe-pin[data-pulse] .globe-pin-ring::after { animation: globe-pin-pulse var(--dur-6, 900ms) var(--ease-emph, ease-out) 1; }
+
+/* Halo de zona: aterrizaje (coreografía A) y orden nuevo de resultados (coreografía D). */
+.globe-pin-halo { border: 1.5px solid var(--earth-bright, #3FB4EC); opacity: 0; }
+.globe-pin[data-halo] .globe-pin-halo { animation: globe-pin-halo var(--dur-6, 900ms) var(--ease-emph, ease-out) var(--halo-delay, 0ms) 1 backwards; }
+
+/* Otros lugares a --o-dim mientras hay uno seleccionado. */
+:is(.globe-pins, .flat-map)[data-selection] .globe-pin:not(.is-selected):not(.is-hover) > .globe-pin-body,
+:is(.globe-pins, .flat-map)[data-selection] .globe-cluster:not(.is-open):not(.is-hover) > .globe-pin-body { opacity: var(--o-dim, .5); }
+
+/* En el 2D cada marcador vive en un Marker de MapLibre: el grupo abierto queda por encima. */
+.globe-flat-host { width: 0; height: 0; }
+.maplibregl-marker:has(.globe-cluster.is-open), .maplibregl-marker:has(.globe-pin.is-selected) { z-index: 3; }
+
+/* Agrupado: el disco y el rótulo ceden al chip; el halo de zona sigue en su sitio. */
+.globe-pin[data-clustered] .globe-pin-button, .globe-pin[data-clustered] .globe-pin-ring { visibility: hidden; }
+
+/* Chip de grupo: glifos apilados en el ancla + conteos por tipo. */
+.globe-cluster-stack {
+  display: grid;
+  flex: none;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border: 1px solid rgba(190, 225, 245, .28);
+  border-radius: 999px;
+  background: var(--marker-bg, rgba(2, 7, 10, .88));
+  color: var(--earth-bright, #3FB4EC);
+  font-size: 9px;
+  letter-spacing: -.5px;
+  transition: transform var(--dur-1, 120ms) var(--ease-standard, ease);
+}
+.globe-cluster-text {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-left: 12px;
+  padding: 3px 9px;
+  border: 1px solid var(--glass-edge, rgba(190, 225, 245, .12));
+  border-radius: 999px;
+  background: var(--marker-bg, rgba(2, 7, 10, .88));
+  font-size: var(--fs-12, 12px);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.globe-cluster-text::before { content: ''; position: absolute; top: 50%; right: 100%; width: 12px; border-top: 1px solid rgba(63, 180, 236, .7); }
+/* Separador «·» entre país y conteos, y glifo con el color de su tipo. */
+.globe-cluster-text > span + span:not(.globe-cluster-caret)::before { content: '·'; margin-right: 6px; color: var(--muted, #94AABA); }
+.globe-cluster-count i { color: var(--earth-bright, #3FB4EC); font-size: 10px; font-style: normal; }
+.globe-cluster-count.is-insufficient i { color: var(--pending, #6F889A); }
+.globe-cluster-count.is-reference i { color: var(--muted, #94AABA); }
+/* Grupo corrido bajo el lugar seleccionado: solo glifos (el texto vuelve al enfocarlo o abrirlo). */
+.globe-cluster[data-compact]:not(.is-open) .globe-cluster-text { display: none; }
+.globe-cluster[data-compact] .globe-cluster-chip:is(:hover, :focus-visible) .globe-cluster-text { display: inline-flex; }
+.globe-cluster-caret { display: inline-block; color: var(--muted, #94AABA); transition: transform var(--dur-2, 200ms) var(--ease-standard, ease); }
+.globe-cluster.is-open .globe-cluster-caret { transform: rotate(90deg); }
+.globe-cluster.is-hover .globe-cluster-stack, .globe-cluster-chip:hover .globe-cluster-stack { transform: scale(1.2); }
+.globe-cluster-list {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  display: grid;
+  gap: 2px;
+  width: max-content;
+  min-width: 200px;
+  max-width: min(340px, 86vw);
+  margin: 0;
+  padding: 4px;
+  border: 1px solid var(--glass-edge, rgba(190, 225, 245, .12));
+  border-radius: 12px;
+  background: var(--surface-solid, rgba(2, 7, 10, .9));
+  list-style: none;
+  pointer-events: auto;
+}
+.globe-cluster-item { display: flex; align-items: center; gap: 8px; width: 100%; white-space: nowrap; min-height: 32px; padding: 4px 8px; border: 0; border-radius: 8px; background: none; color: var(--text, #EEF6FB); font: inherit; font-size: var(--fs-12, 12px); text-align: left; cursor: pointer; }
+.globe-cluster-item:hover { background: rgba(255, 255, 255, .06); }
+.globe-cluster-item em { color: var(--muted, #94AABA); font-style: normal; font-variant-numeric: tabular-nums; }
+.globe-cluster-item .globe-pin-glyph { width: 18px; height: 18px; font-size: 10px; }
+.globe-cluster-item.is-insufficient .globe-pin-glyph { border-style: dashed; color: var(--pending, #6F889A); }
+.globe-cluster-item.is-reference .globe-pin-glyph { border-style: dashed; color: var(--muted, #94AABA); }
+.globe-cluster-wait { padding: 6px 8px; color: var(--muted, #94AABA); font-size: var(--fs-caps, 11px); }
+
+/* Coreografía A (aterrizaje): espera oculto; 1→2→3 cada 120 ms con su halo; luego ◆ y grupos. */
+.globe-pins[data-intro="pending"] .globe-pin-body { opacity: 0; transition: none; }
+.globe-pins[data-intro="play"] .globe-pin-body { animation: globe-pin-land 320ms var(--ease-emph, ease-out) var(--land-delay, 0ms) 1 backwards; }
+.globe-pins[data-intro="play"] .globe-pin:not(.is-reference) .globe-pin-halo { animation: globe-pin-halo var(--dur-6, 900ms) var(--ease-emph, ease-out) var(--land-delay, 0ms) 1 backwards; }
+
+@keyframes globe-pin-land { from { opacity: 0; transform: translateY(-6px) scale(.6); } to { opacity: 1; transform: none; } }
+@keyframes globe-pin-halo { from { opacity: .75; transform: scale(.5); } to { opacity: 0; transform: scale(2.4); } }
+@keyframes globe-pin-pulse { from { opacity: .85; transform: scale(1); } to { opacity: 0; transform: scale(1.7); } }
+@keyframes globe-pin-fade { from { opacity: 0; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .globe-pin-glyph, .globe-cluster-stack, .globe-cluster-caret { transition: none; }
+  .globe-pin.is-hover .globe-pin-glyph, .globe-pin-button:hover .globe-pin-glyph,
+  .globe-cluster.is-hover .globe-cluster-stack, .globe-cluster-chip:hover .globe-cluster-stack { transform: none; border-color: var(--sel-accent, #3FB4EC); }
+  .globe-cluster.is-open .globe-cluster-caret { transform: none; }
+  .globe-pin[data-halo] .globe-pin-halo, .globe-pin[data-pulse] .globe-pin-ring::after,
+  .globe-pins[data-intro="play"] .globe-pin:not(.is-reference) .globe-pin-halo { animation: none; }
+  .globe-pins[data-intro="play"] .globe-pin-body { animation: globe-pin-fade 150ms linear 1 backwards; }
+}
+
+@media (max-width: 1099px) {
+  .globe-pin-label, .globe-cluster-text { font-size: var(--fs-caps, 11px); }
+}

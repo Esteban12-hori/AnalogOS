@@ -2,8 +2,13 @@
  * Canal por cuadro del escenario (globo o mapa 2D) hacia capas en espacio de pantalla
  * (líneas Tesla). NO pasa por el store ni por React: cambia en cada cuadro de cámara.
  *
- * STUB: el globo y el mapa 2D aún no publican; `getStageProjection()` devuelve null y
- * los suscriptores no reciben cuadros. El incremento 4 (globe) lo implementa.
+ * Publica solo features/globe:
+ *  - el globo, desde su único useFrame (MarkerProjector), en cada cuadro que dibuja: con
+ *    frameloop «demand» eso es solo durante vuelos, gestos, intro o cambios de datos;
+ *  - el mapa 2D, en cada evento `move`/`resize` de MapLibre y al cambiar la selección;
+ *  - sin WebGL (mapa SVG) o al desmontarse el globo: { projection: null, anchor: null }.
+ * El ancla solo existe para un sector evaluado seleccionado y visible (nunca para un ◆).
+ * Coordenadas en píxeles CSS del viewport (el escenario es fijo y ocupa todo el viewport).
  */
 
 export interface ScreenPoint {
