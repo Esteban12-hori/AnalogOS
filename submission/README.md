@@ -33,4 +33,23 @@ npm install
 npm run dev
 ```
 
-Abrir `http://127.0.0.1:5173/`. Para una demo sin herramientas de desarrollo, descomprimir `analogos-chile-static.zip` en cualquier hosting estático.
+Abrir `http://127.0.0.1:5173/`. Para una demo sin herramientas de desarrollo, descomprimir `analogos-chile-static.zip` en cualquier hosting estático, en la raíz o en un subdirectorio como `/AnalogOS/`: el build usa rutas relativas.
+
+## Regenerar y comprobar el ZIP
+
+Desde la raíz del repositorio, con `npm install` hecho y el entorno Python activo:
+
+```bash
+npm run release:package
+(cd submission && shasum -a 256 -c SHA256SUMS.txt)
+```
+
+El ZIP contiene únicamente `index.html`, el JS/CSS compilado y los cinco archivos `science-v2/`; es determinista para un mismo build. Prueba por HTTP local en un subdirectorio:
+
+```bash
+mkdir -p /tmp/analogos-demo/AnalogOS
+unzip -o -q submission/analogos-chile-static.zip -d /tmp/analogos-demo/AnalogOS
+python3 -m http.server 8080 --bind 127.0.0.1 --directory /tmp/analogos-demo
+```
+
+Abrir `http://127.0.0.1:8080/AnalogOS/`. No se garantiza abrir `index.html` con `file://`; la demo necesita un servidor HTTP, aunque sea local.

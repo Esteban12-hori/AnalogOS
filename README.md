@@ -34,6 +34,27 @@ npm run preview
 
 La carpeta desplegable queda en `apps/web/dist/` y no realiza llamadas externas.
 
+### Empaquetar y probar la demo portable
+
+Instalación previa, una sola vez: `npm install`, y el entorno Python de la sección siguiente (`python3 -m venv .venv`, `source .venv/bin/activate`, `python -m pip install -e '.[dev]'`). Con el entorno activo:
+
+```bash
+npm run release:package
+(cd submission && shasum -a 256 -c SHA256SUMS.txt)
+```
+
+El comando reconstruye el frontend, comprueba que el build contenga solo `index.html`, el JS/CSS compilado y los cinco archivos `science-v2/`, y escribe `submission/analogos-chile-static.zip` con su SHA-256. El ZIP es determinista para un mismo build. Si la validación falla, la entrega anterior no se toca.
+
+El build usa rutas relativas: carga igual en la raíz o en un subdirectorio. Para probarlo por HTTP local en `/AnalogOS/`:
+
+```bash
+mkdir -p /tmp/analogos-demo/AnalogOS
+unzip -o -q submission/analogos-chile-static.zip -d /tmp/analogos-demo/AnalogOS
+python3 -m http.server 8080 --bind 127.0.0.1 --directory /tmp/analogos-demo
+```
+
+Abrir `http://127.0.0.1:8080/AnalogOS/` (con la barra final). No se garantiza abrir `index.html` directamente con `file://`: ahí los navegadores bloquean los módulos y la lectura de JSON.
+
 ## Reproducir la ciencia v2 desde las fuentes
 
 Requiere cuentas gratuitas Earthdata y Copernicus. Copia `.env.example` a `.env` y configura las cuatro variables sin compartirlas ni subirlas a Git:
@@ -57,12 +78,14 @@ Si trabajarás con Claude Code, abre esta carpeta como proyecto y usa el prompt 
 
 Orden de lectura obligatorio:
 
-1. [`CLAUDE.md`](CLAUDE.md)
-2. [`docs/PRODUCT_AND_SCIENCE.md`](docs/PRODUCT_AND_SCIENCE.md)
-3. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-4. [`docs/DATA_AND_SCORING.md`](docs/DATA_AND_SCORING.md)
-5. [`project/BACKLOG.md`](project/BACKLOG.md)
-6. [`project/STATUS.md`](project/STATUS.md)
+1. [`AGENTS.md`](AGENTS.md)
+2. [`CLAUDE.md`](CLAUDE.md)
+3. [`project/NEXT_TASK.md`](project/NEXT_TASK.md)
+4. [`project/STATUS.md`](project/STATUS.md)
+5. [`docs/PRODUCT_AND_SCIENCE.md`](docs/PRODUCT_AND_SCIENCE.md)
+6. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+7. [`docs/DATA_AND_SCORING.md`](docs/DATA_AND_SCORING.md)
+8. [`project/BACKLOG.md`](project/BACKLOG.md)
 
 Los documentos completos del proyecto están en:
 
@@ -129,6 +152,7 @@ npm run dev        # servidor de desarrollo
 npm run build      # valida el snapshot contra contracts/ y construye apps/web/dist
 npm run test
 npm run preview    # sirve el build estático ya construido
+npm run release:package   # build + validación + ZIP determinista + SHA-256 (con .venv activo)
 
 python3 -m venv .venv
 source .venv/bin/activate

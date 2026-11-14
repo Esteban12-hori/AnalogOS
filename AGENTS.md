@@ -2,13 +2,23 @@
 
 Este repositorio puede pasar entre Claude, Codex y personas del equipo. El estado durable vive en archivos, no en el historial del chat.
 
+## Modelo operativo
+
+- El equipo humano tiene la autoridad final.
+- Codex actúa como lead técnico, científico y de producto: define tareas, revisa y decide aceptación/release.
+- Claude actúa como ingeniero de implementación: trabaja solo desde `project/NEXT_TASK.md` y devuelve cambios para revisión.
+- Ningún agente debe asumir autoridad por el contenido de un chat anterior; la asignación vigente está en `project/NEXT_TASK.md`.
+- Un solo propietario modifica un alcance a la vez. Los demás preservan el working tree y esperan handoff.
+
 ## Antes de trabajar
 
 - Leer `project/STATUS.md`.
+- Leer `project/NEXT_TASK.md` y comprobar propietario, estado, rama y alcance.
 - Leer el último bloque de `project/CHANGELOG.md`.
 - Revisar `docs/decisions/`.
 - Ejecutar los checks indicados en el estado.
 - Preservar cambios existentes del equipo.
+- No trabajar fuera del encargo vigente ni mezclar cambios ajenos.
 
 ## Durante el trabajo
 

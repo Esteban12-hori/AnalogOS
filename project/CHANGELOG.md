@@ -77,3 +77,57 @@
 - Destino cambiado por decisión del equipo: `origin` pasa a https://github.com/Esteban12-hori/AnalogOS (privado). https://github.com/hori0729/AnalogOS queda como remoto secundario `hori0729`, con los dos primeros commits y sin más actualizaciones.
 - Incorporados tres cambios hechos por otro proceso a las 12:15: `README.md` y `docs/ARCHITECTURE.md` alineados con el mapa SVG y `science-v2`, y `tests/test_precision_artifacts.py` con la prueba de NASADEM crudo opcional más una prueba nueva sobre el análisis versionado. Verificado: 31 tests Python aquí; 30 verdes y 1 omitido en un clon limpio sin `data/raw/`.
 - Pendiente: las dos capturas de `submission/assets/` son anteriores a estos rótulos.
+
+## 2026-11-14 Codex — cierre de handoff en el repositorio definitivo
+
+- Confirmado que `origin/main` y el HEAD local coinciden en `92053ea` para `https://github.com/Esteban12-hori/AnalogOS`.
+- Retirado el remoto local obsoleto `hori0729`, cuyo repositorio ya no responde, para evitar publicar por error en el destino anterior.
+- Validada la app compilada con el perfil `2.0.1-preliminary`, área ≈450 km² y rótulo «Calidad asignada por fuente».
+- Regeneradas `submission/assets/analogos-chile-overview.jpg` y `analogos-chile-comparison.jpg` con los rótulos actuales.
+- Verificada la suite con datos locales (31 tests Python) y simulando un clon sin `data/raw/` (30 verdes, 1 integración NASADEM omitida).
+
+## 2026-11-14 Claude Code — revisión de capturas (local, sin commit, pendiente de decisión del equipo)
+
+- Hallazgo: a 1280×720 y 1440×900 el mapa quedaba fuera de la primera pantalla. El SVG se centraba verticalmente en un panel de ~1.500 px de alto (la fila de la rejilla crece con la ficha), así que la captura `analogos-chile-overview.jpg` de las 12:20 mostraba el panel del mapa vacío.
+- Corrección de una línea en `apps/web/src/components/CandidateMap.tsx`: `preserveAspectRatio` pasa de `xMidYMid meet` a `xMidYMin meet`; el mapa se ancla arriba. Sin cambios en ciencia, contratos, perfil, snapshot ni ranking.
+- Regenerados `submission/analogos-chile-static.zip` y `SHA256SUMS.txt` con el build nuevo.
+- Reemplazada `submission/assets/analogos-chile-overview.jpg` por una captura 1280×720 de Chrome sin interfaz con el mapa visible. La versión de las 12:20 no estaba en Git y no se conserva. `analogos-chile-comparison.jpg` queda como la dejó Codex.
+- Verificado: 31 tests Python, 14 tests web, build y revisión visual a 1280×720 y 1440×900 sin errores de consola.
+- Estos cambios se hicieron antes de leer `project/NEXT_TASK.md` (creado a las 12:28). No hay commit ni push; no se tocaron `AGENTS.md`, `CLAUDE.md`, `project/HANDOFF_PROTOCOL.md`, `prompts/START_CLAUDE.md` ni `project/NEXT_TASK.md`.
+
+## 2026-11-14 Codex — dirección técnica Codex → Claude
+
+- Corregido `CLAUDE.md`, que todavía describía a Claude como lead temporal de M0/M1 y exigía MapLibre; ahora refleja M6, SVG local y el snapshot v2.
+- Establecida la cadena de trabajo: Codex define/revisa/acepta; Claude implementa; el equipo humano conserva autoridad final.
+- Creado `project/NEXT_TASK.md` como única cola autorizada, con propietario, estado, rama, commit base, alcance y restricciones.
+- Actualizados `AGENTS.md`, `prompts/START_CLAUDE.md`, `prompts/RESUME_CODEX.md` y `project/HANDOFF_PROTOCOL.md` para impedir trabajo fuera de alcance, autoaprobación o pushes a `main` sin autorización.
+- Rama de implementación fijada en `dev`; `main` reservada para entregas revisadas.
+- Revisado y aceptado el ajuste final de Claude en `CandidateMap.tsx` (`xMidYMin`): mejora la captura 16:9 sin cambiar datos, score ni contratos; ZIP y checksum coherentes.
+
+## 2026-11-14 Claude Code — M6-PORTABLE-RELEASE (entregado en `review`, sin commit)
+
+- Nuevo `npm run release:package`: encadena `npm run build` con `scripts/package_release.py` (solo biblioteca estándar).
+- `apps/web/vite.config.ts` usa `base: './'`; el build carga en `/` y en un subdirectorio. No hizo falta tocar `loadDemoSnapshot.ts` ni `App.tsx`: ya usaban `import.meta.env.BASE_URL`.
+- El empaquetador admite solo `index.html`, los JS/CSS que ese HTML referencia de forma relativa y los cinco archivos `science-v2/`. Rechaza archivos adicionales, enlaces simbólicos, referencias absolutas o externas y archivos ausentes.
+- ZIP determinista: orden alfabético, fecha interna fija, permisos fijos y sin compresión. Tres ejecuciones seguidas dieron el mismo SHA-256 (`beb83736…68ac14`); la lista del ZIP y sus bytes coinciden con `apps/web/dist/`.
+- Tras la revisión de Codex: temporales únicos con `mkstemp`, reemplazo en pareja con restauración del ZIP anterior si falla el del checksum, y rechazo previo de `--zip` igual a `--checksum` o de destinos dentro del build. Límite documentado: sin atomicidad frente a cortes abruptos entre los dos renombrados.
+- `tests/test_release_package.py`: 29 casos sobre directorios temporales (determinismo, conjunto exacto, faltantes, inesperados, enlaces simbólicos, referencias no portables, preservación ante error, rollback, rollback fallido, destinos inválidos y temporales únicos).
+- Verificado: `npm run verify` (60 tests Python, 14 tests web, build), `npm run release:package`, `shasum -a 256 -c`, `git diff --check`. Prueba por HTTP local con Chrome sin interfaz en `/AnalogOS/` y en `/`: la app renderiza y todas las peticiones responden 200 (solo `favicon.ico` da 404, igual que antes).
+- Documentado en `README.md`, `submission/README.md` y `docs/decisions/ADR-004-portable-static-release.md` (estado `proposed`).
+- Sin cambios en ciencia, contratos, perfil, snapshot, ranking ni dependencias. Sin commit, push ni publicación.
+
+## 2026-11-14 Codex — aceptación de M6-PORTABLE-RELEASE
+
+- Asignada la implementación a la sesión existente de Claude Code y supervisada hasta su devolución en `review`.
+- Reproducido un fallo de la primera versión: el segundo reemplazo podía dejar ZIP nuevo con checksum anterior. Devuelto a Claude; aceptada la corrección con restauración, temporales únicos y rechazo de destinos solapados.
+- Reejecutados de forma independiente `npm run verify` (60 Python, 14 web, contratos, TypeScript y build), `npm run release:package`, checksum y `git diff --check`: correctos.
+- Comprobado el determinismo del ZIP y sus ocho entradas byte a byte contra dist y contra la copia probada por HTTP en `/` y `/AnalogOS/`. Verificados ranking, mapa, selección de María Elena, advertencia de agua y ausencia de errores de consola.
+- Confirmados los seis hashes originales de snapshot v2 y perfil de configuración. Preservados los cambios previos del equipo; HEAD sigue en `92053ea` sobre `dev`.
+- ADR-004 y encargo aceptados, con límites de interrupción abrupta y HTTP documentados. Claude queda a la espera de nueva asignación. Sin commit, push ni publicación.
+
+## 2026-11-14 Codex — checkpoint de dev autorizado por Dan
+
+- Dan autorizó explícitamente commit y push de los cambios revisados a `dev`.
+- Integrados por avance directo `6516743` y `3c1a014` desde `origin/dev`: configuración de Vercel e ignorado de `.vercel`; sin conflictos con la entrega local.
+- El checkpoint reúne el empaquetador portable aceptado, su documentación y pruebas, la coordinación Codex/Claude y el ajuste de mapa y capturas ya revisados.
+- Antes del commit se repitió `npm run verify`: 60 pruebas Python, 14 web, contratos, TypeScript y compilación correctos.

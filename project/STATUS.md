@@ -1,9 +1,17 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14 12:15 America/Santiago  
-**Responsable del checkpoint:** Claude Code (publicación y rótulos; el resto es el checkpoint de Codex de las 11:45)  
-**Milestone activo:** M6 — empaquetado y entrega  
+**Última actualización:** 2026-11-14 12:48 America/Santiago
+**Responsable del checkpoint:** Codex
+**Milestone activo:** M6 — empaquetado y entrega
 **Estado general:** producto funcional y presentable con snapshot científico v2 autenticado. NASADEM corrige el mosaico de borde y Sentinel-2 completa superficie no vegetada. Faltan acciones humanas/externas: video, URLs públicas, integrantes, capas territoriales y revisión experta.
+
+## Modelo de trabajo activo
+
+- Codex dirige producto, ciencia, arquitectura, prioridades, revisión y release.
+- Claude implementa solo tareas asignadas en `project/NEXT_TASK.md` y entrega en estado `review`.
+- La rama de implementación es `dev`; `main` queda reservada para entregas revisadas.
+- Encargo `M6-RELEASE-REVIEW`: aceptado por Codex.
+- Encargo `M6-PORTABLE-RELEASE`: implementado por Claude, corregido tras revisión y aceptado por Codex (12:44). Dan autorizó su commit y push a `dev` (12:48); Claude espera una nueva asignación.
 
 ## Resultado disponible
 
@@ -33,12 +41,16 @@ Interpretación obligatoria: es un screening de escritorio para ordenar investig
 - Paquete de entrega v2 en `submission/`, dos capturas verificadas en `submission/assets/` y checksum SHA-256 actualizado.
 - Cerrado el saneamiento post-Claude: no quedan componentes ni hojas de estilo huérfanas de la implementación descartada.
 
-## Cambios de las 12:15
+## Cambios recientes
 
 - Perfil v2 en `2.0.1-preliminary`: limitaciones nuevas sobre calidad asignada por fuente, significado de `validated` y razón de medianas. Los scores no cambian.
 - Web: orden único con `rankCandidates`, área con dos cifras significativas y decimales con coma.
-- `submission/analogos-chile-static.zip` y `SHA256SUMS.txt` regenerados; las capturas de `submission/assets/` son anteriores a estos rótulos.
-- Publicados en `origin/main` en el commit posterior a `becd783` (que conserva el estado de las 11:45).
+- `submission/analogos-chile-static.zip` y `SHA256SUMS.txt` regenerados; las capturas de `submission/assets/` ya reflejan los rótulos nuevos.
+- `origin/main` apunta a `https://github.com/Esteban12-hori/AnalogOS`; el remoto local obsoleto fue retirado.
+- La verificación reproducible pasa también sin `data/raw/`: 30 tests verdes y una integración NASADEM explícitamente omitida.
+- Aceptado por Codex (12:44): `npm run release:package` genera el ZIP con lista explícita de archivos, bytes deterministas y SHA-256; el build carga en `/` o en `/AnalogOS/`. ADR-004 aceptado. Corregido un fallo de restauración detectado durante la revisión; pruebas independientes verdes.
+- Ajuste visual final de Claude aceptado: el mapa SVG se alinea arriba en 16:9; captura principal, ZIP y checksum fueron regenerados.
+- Integrados por avance directo los cambios remotos `6516743` y `3c1a014`: configuración de Vercel e ignorado de `.vercel`. Conservados junto con la entrega revisada.
 
 ## Fuentes reales del snapshot
 
@@ -62,13 +74,17 @@ Interpretación obligatoria: es un screening de escritorio para ordenar investig
 
 | Comando | Resultado |
 |---|---|
-| `.venv/bin/python -m pytest -q` | 31 tests verdes; en un clon sin `data/raw/`, 30 verdes y 1 omitido |
+| `.venv/bin/python -m pytest -q` | 60 tests verdes (31 previos + 29 del empaquetador); en un clon sin `data/raw/` se omite 1 integración NASADEM |
+| `npm run release:package` | build + validación + ZIP determinista; `shasum -a 256 -c SHA256SUMS.txt` OK; mismo SHA-256 en tres ejecuciones |
+| HTTP local en `/AnalogOS/` y `/` | Claude comprobó respuestas HTTP; Codex verificó el ZIP extraído en navegador, ranking, mapa, selección, advertencia de agua y consola sin errores |
 | `npm run test` | 14 tests verdes |
 | `npm run build` | contratos + TypeScript + Vite verdes |
 | revisión manual | snapshot v2, ranking, mapa, evidencia, layout y consola sin errores verificados |
 | `npm audit` | 0 vulnerabilidades |
 
 El build estático queda en `apps/web/dist/` (~520 KiB), incluye solo `science-v2/` y no hace llamadas externas.
+
+Codex repitió la suite y el empaquetado durante la aceptación de M6-PORTABLE-RELEASE. Verificó las ocho entradas del ZIP contra dist y los seis hashes de snapshot/perfil contra la línea base; sin cambios científicos. El ZIP pesa 513.994 bytes y su SHA-256 es `beb83736ea9508808ce832c6e707e96c5103935ff03330ff9b15b4301468ac14`.
 
 ## Comandos de reproducción
 
@@ -101,6 +117,7 @@ npm run verify
 - `docs/decisions/ADR-001-offline-svg-map.md`
 - `docs/decisions/ADR-002-science-screening-v1.md`
 - `docs/decisions/ADR-003-authenticated-precision-snapshot-v2.md`
+- `docs/decisions/ADR-004-portable-static-release.md`
 
 ## Acciones humanas antes de enviar
 
@@ -112,4 +129,4 @@ npm run verify
 
 ## Aviso de Git
 
-La carpeta tiene repositorio Git propio desde 2026-11-14 (rama `main`), con remoto `origin` en https://github.com/Esteban12-hori/AnalogOS (privado: para la entrega debe hacerse público o dar acceso a los jueces). El remoto secundario `hori0729` (https://github.com/hori0729/AnalogOS, público) conserva solo los dos primeros commits y ya no se actualiza. `.env`, `data/raw/`, `node_modules/`, `dist/`, `.venv/`, `*.egg-info/` y `.claude/` quedan fuera por `.gitignore`. En un clon nuevo, la prueba que reprocesa NASADEM crudo se omite hasta ejecutar `python -m pipelines.fetch_precision_data`; el resto pasa sin `data/raw/` (comprobado en un clon limpio).
+La carpeta tiene repositorio Git propio desde 2026-11-14 (ramas `main` y `dev`; el trabajo continúa en `dev`, creada desde `main` en `92053ea`), con único remoto `origin` en https://github.com/Esteban12-hori/AnalogOS (privado: para la entrega debe hacerse público o dar acceso a los jueces). `.env`, `data/raw/`, `node_modules/`, `dist/`, `.venv/`, `*.egg-info/` y `.claude/` quedan fuera por `.gitignore`. En un clon nuevo, la prueba que reprocesa NASADEM crudo se omite hasta ejecutar `python -m pipelines.fetch_precision_data`; el resto pasa sin `data/raw/` (comprobado en un clon limpio).

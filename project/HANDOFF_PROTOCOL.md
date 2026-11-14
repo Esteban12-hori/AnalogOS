@@ -4,16 +4,24 @@
 
 Permitir que otro agente retome el proyecto sin depender del chat anterior.
 
+## Responsabilidades
+
+- Codex define el encargo en `project/NEXT_TASK.md`, revisa el resultado y decide aceptación.
+- Claude implementa el encargo asignado y lo entrega con estado `review`; no se autoaprueba.
+- El equipo humano autoriza decisiones de negocio y acciones externas definitivas.
+- `dev` es la rama normal de implementación; `main` se reserva para cambios revisados y entregables aprobados.
+
 ## Antes de transferir control
 
 1. Detenerse en un estado coherente; no dejar archivos parcialmente escritos.
-2. Ejecutar todos los tests y builds disponibles.
-3. Actualizar `project/STATUS.md`.
-4. Agregar una entrada a `project/CHANGELOG.md`.
-5. Crear ADR si cambió producto, ciencia, datos, contrato o arquitectura.
-6. Enumerar archivos grandes/no versionados y cómo regenerarlos.
-7. Registrar variables de entorno necesarias sin copiar secretos.
-8. Dejar los próximos tres pasos en orden.
+2. Actualizar el estado del encargo en `project/NEXT_TASK.md`.
+3. Ejecutar todos los tests y builds disponibles.
+4. Actualizar `project/STATUS.md`.
+5. Agregar una entrada a `project/CHANGELOG.md`.
+6. Crear ADR si cambió producto, ciencia, datos, contrato o arquitectura.
+7. Enumerar archivos grandes/no versionados y cómo regenerarlos.
+8. Registrar variables de entorno necesarias sin copiar secretos.
+9. Dejar los próximos tres pasos en orden.
 
 ## Formato obligatorio de STATUS
 
@@ -62,4 +70,4 @@ Crear `docs/decisions/ADR-NNN-titulo.md`:
 
 ## Handoff hacia Codex
 
-Cuando Claude termine, el usuario puede pedir a Codex que abra esta carpeta y use `prompts/RESUME_CODEX.md`. Codex debe verificar el estado con evidencia antes de continuar.
+Cuando Claude termine, debe dejar `project/NEXT_TASK.md` en `review`. Codex abre la carpeta, lee `prompts/RESUME_CODEX.md`, verifica el diff y la evidencia, y decide entre `accepted`, `changes_requested` o una nueva tarea. Claude no cambia el estado a `accepted`.
