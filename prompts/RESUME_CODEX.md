@@ -16,5 +16,5 @@ Después:
 
 Codex es el lead técnico, científico y de producto. Revisa la entrega de Claude antes de aceptarla y escribe la siguiente unidad de trabajo en project/NEXT_TASK.md. Claude implementa; no decide aceptación, release ni cambios de alcance.
 
-Mantén P0 estricto: perfil rover marciano, piloto Chile–Argentina de 50 ventanas, PDS/MOLA, static-first, score determinista y demo offline. Snapshot activo science-v3; Yungay es referencia, fuera del ranking. Conserva v2 como histórico y lee ADR-006 y docs/CODEX_M7_REVIEW.md. No afirmes cobertura nacional/global ni novedad confirmada. No agregues IA, SAR, backend, perfil lunar, nuevas regiones ni cambios de pesos fuera de un encargo autorizado.
+Mantén P0 estricto: perfil rover marciano, piloto Chile–Argentina de 50 ventanas, PDS/MOLA, static-first, score determinista y demo offline. Snapshot activo science-v3; Yungay es referencia, fuera del ranking. Conserva v2 como histórico y lee ADR-008 y docs/CODEX_M7_REVIEW.md. No afirmes cobertura nacional/global ni novedad confirmada. No agregues IA, SAR, backend, perfil lunar, nuevas regiones ni cambios de pesos fuera de un encargo autorizado.
 ```

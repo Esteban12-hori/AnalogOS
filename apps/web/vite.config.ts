@@ -16,5 +16,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    // El empaquetador de entrega toma de aquí los chunks diferidos y assets permitidos.
+    manifest: true,
+    // El chunk del globo (three.js) se carga de forma diferida; ver ADR-007.
+    chunkSizeWarningLimit: 1100,
   },
 })

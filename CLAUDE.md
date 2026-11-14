@@ -31,7 +31,7 @@ Antes de modificar archivos, ejecuta `git status --short`, confirma la rama y pr
 - Perfil: `mars-rover-screening-v3`, versión `3.0.0-preliminary`; fórmulas y pesos v2.
 - Alcance ejecutado: 50 ventanas en dos regiones, seis candidatos y Yungay como referencia fuera del ranking. Visión global; sin cobertura nacional o mundial ejecutada ni novedad confirmada.
 - Contexto visual: `artifacts/visual-context-v3/`; entrega `submission/analogos-static.zip` y checksum propio. Conservar paquete visual y ZIP v2.
-- Frontend: Vite + React + TypeScript con mapa SVG local; no MapLibre ni WebGL.
+- Frontend: Vite + React + TypeScript; globo three.js y mapa MapLibre del rediseño remoto, con fallback SVG local y sección auditable de búsqueda. ADR-006/007 autorizados por el equipo; piloto científico en ADR-008.
 - Ciencia: MOLA + NASADEM multitesela + Sentinel-2 L2A + inventario HLS + NASA POWER.
 - Score determinista; similitud, confianza, estabilidad y factibilidad permanecen separadas.
 - Demo static-first y offline; no backend, autenticación, IA, SAR ni perfil lunar en P0.
@@ -50,7 +50,7 @@ Claude no puede, sin una instrucción explícita de Codex en `NEXT_TASK.md`:
 - cambiar fórmula, pesos, calidad, candidatos, datasets o interpretación científica;
 - cambiar contratos JSON, arquitectura, stack, dependencias o alcance P0;
 - regenerar o reemplazar el snapshot científico con otra metodología;
-- añadir backend, IA, SAR, MapLibre, autenticación o un perfil nuevo;
+- añadir backend, IA, SAR, autenticación, otro motor de mapas o un perfil nuevo;
 - cambiar remotos, ramas protegidas, visibilidad del repositorio o secretos;
 - hacer merge o push a `main`, crear tags/releases o enviar el proyecto;
 - presentar fixtures, inferencias o datos sintéticos como evidencia real.

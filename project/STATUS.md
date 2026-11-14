@@ -1,15 +1,33 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14 15:33 America/Santiago
+**Última actualización:** 2026-11-14, integración final para `dev` (America/Santiago)
 **Responsable del checkpoint:** Codex
-**Milestone activo:** M7 — AnalogOS global, búsqueda regional Chile–Argentina (implementado por Claude y aceptado por Codex; sin commit ni push)
+**Milestone activo:** M7 — AnalogOS global, búsqueda regional Chile–Argentina, aceptado e integrado con el rediseño del equipo
 **Estado general:** producto funcional con snapshot científico v3: 50 ventanas evaluadas, seis candidatos y Yungay como referencia. Faltan capas territoriales, revisión bibliográfica completa y experta, contraste climático local y acciones de entrega humana.
 
-**Sincronización autorizada:** Dan pidió actualizar `dev`. Codex prepara el checkpoint aceptado e integra el avance remoto del equipo antes del push; los resultados de aceptación de abajo corresponden al corte anterior a esa integración.
+**Sincronización autorizada:** Dan pidió «actualiza dev». Este checkpoint integra M7 (`1302ed8`) con el rediseño remoto para su commit y push a `origin/dev`. Las secciones posteriores registran cortes históricos; la verificación vigente es la siguiente.
+
+## Integración revisada por Codex para dev
+
+- Conservados el globo 3D, paso automático a mapa 2D, liquid glass, ficha flotante, desglose de magnitudes, series mensuales y despliegue del equipo. La aplicación carga v3 y sus siete imágenes; Yungay aparece como REF, fuera de los seis puestos, también en globo, mapa y selector.
+- La sección Búsqueda mantiene el alcance de 50 ventanas, los descartes, filtro por país y mapa SVG auditable. Las series Sentinel-2 cubren los siete sitios; no intervienen en los scores. Sin modificar fórmulas, pesos ni artefactos científicos v2/v3.
+- ADR-006/007 conservados del rediseño; el ADR de descubrimiento pasa a ADR-008. `CLAUDE.md` refleja el stack actual. El ZIP v2 actualizado por el equipo se conserva como histórico; los once hashes del baseline científico v2 siguen intactos.
+- Verificación: `source .venv/bin/activate && npm run verify` → 177 Python, 69 web y build correctos. `npm run release:package` → 30 archivos, 12.865.983 bytes, SHA-256 `804184d6015440fa073e451bfea376fc9b1c9ae6b672e133094cd528ac3af12b`. Empaquetado repetido idéntico y entradas cotejadas con dist.
+- Revisión del ZIP bajo `/AnalogOS/`: candidato argentino y su imagen Sentinel-2 real en mapa 2D, referencia Yungay, filtro Argentina, vista de escritorio y móvil de 390 px sin desborde horizontal. Sin errores de aplicación registrados en el servidor de producción local. Captura: `submission/assets/analogos-integrated-dev.jpg`.
+- Archivos grandes versionados: ZIP v3, siete PNG de contexto y basemaps/texturas del equipo. Datos crudos y credenciales permanecen locales e ignorados. El mapa puede usar GIBS público como mejora opcional; el núcleo y las imágenes están empaquetados.
+- La autorización incluye `dev`; no cambia el alcance científico ni inicia una nueva tarea a Claude. Próximos pasos: cruce territorial oficial, bibliografía completa de la Puna y contraste climático local.
+
+
+## Fusión en `dev` (2026-11-14, Claude, decisión directa del equipo)
+
+- El rediseño completo (liquid glass, globo de fondo con paso a 2D, ficha flotante, desglose del score, series Sentinel-2) está en `dev`. Commit de cierre y push a `origin/dev`.
+- Verificación: `npm run verify` → 128 Python pasan y 1 se omite, 52 web y build en verde; `npm run release:package` → ZIP de 24 archivos, SHA-256 OK. Python 3.11+ requerido: el `python` del sistema (3.10) no sirve; usar un venv con `pip install -e .[dev] pillow`.
+- Decisiones: ADR-006 y ADR-007 (globo, antes ADR-004) aceptados por el equipo humano sin revisión de Codex.
+- Pendiente: actualizar en `CLAUDE.md` la línea «mapa SVG local; no MapLibre ni WebGL», que ya no refleja el producto.
 
 ## Modelo de trabajo activo
 
-- Dan autorizó ampliar la visión a AnalogOS global, buscar candidatos en Chile y Argentina y mantener Yungay como referencia conocida. Encargo `M7-GLOBAL-DISCOVERY` aceptado; Claude espera una nueva asignación. La entrega v2 de abajo es histórica. Sin publicación autorizada en este corte.
+- Dan autorizó ampliar la visión a AnalogOS global, buscar candidatos en Chile y Argentina y mantener Yungay como referencia conocida. Encargo `M7-GLOBAL-DISCOVERY` aceptado; Claude espera una nueva asignación. La entrega v2 de abajo es histórica. La autorización posterior permite actualizar `dev`.
 
 - Codex dirige producto, ciencia, arquitectura, prioridades, revisión y release.
 - Claude implementa solo tareas asignadas en `project/NEXT_TASK.md` y entrega en estado `review`.
@@ -21,7 +39,7 @@
 
 ## Entrega M7 aceptada (Codex, 15:33)
 
-Revisión independiente en `docs/CODEX_M7_REVIEW.md`: 167 pruebas Python, 39 web y build; scores y selección recalculados, rebuild v2/v3 byte a byte, cachés sin red, ZIP determinista y navegador en raíz/subcarpeta. ADR-006 aceptado. La aceptación del software no certifica novedad ni aptitud de campo.
+Revisión independiente en `docs/CODEX_M7_REVIEW.md`: 167 pruebas Python, 39 web y build; scores y selección recalculados, rebuild v2/v3 byte a byte, cachés sin red, ZIP determinista y navegador en raíz/subcarpeta. ADR-008 aceptado. La aceptación del software no certifica novedad ni aptitud de campo.
 
 AnalogOS con piloto Chile–Argentina. Búsqueda real sobre 50 ventanas de ~20 km en dos regiones de prueba; seis candidatos preseleccionados y Yungay como referencia conocida, fuera del ranking.
 
@@ -42,9 +60,51 @@ AnalogOS con piloto Chile–Argentina. Búsqueda real sobre 50 ventanas de ~20 k
 - Snapshot v2, paquete visual v2 y ZIP v2 intactos (`git diff --quiet HEAD` sobre ellos devuelve 0).
 - Entregable nuevo: `submission/analogos-static.zip` (18 archivos, 9.012.267 bytes, sha256 `3b419d770f1a1dce5e01f7345aaafef3f33ca18df4d2f73e6d3fb8c7c9853415`).
 - Verificado: 167 tests Python, 39 tests web, build, empaquetado repetido idéntico, demo por HTTP en `/AnalogOS/`.
-- Detalle: `docs/DISCOVERY_REPORT.md`, ADR-006 (`accepted`) y el reporte en `project/NEXT_TASK.md`.
+- Detalle: `docs/DISCOVERY_REPORT.md`, ADR-008 (`accepted`) y el reporte en `project/NEXT_TASK.md`.
 
 Próximos tres pasos: cruce territorial con capas oficiales de IDE Chile e IDERA; revisión bibliográfica con textos completos y coordenadas de la Puna; contraste local del clima. Requieren una nueva asignación, sin ampliar automáticamente regiones ni pesos.
+
+## Rediseño integrado — rama `redesign/planeta-3d` (2026-11-14 13:10)
+
+Fusiona dos ramas: el globo 3D (`redesign/planeta-3d`) y el rediseño visual (`redesign/liquid-glass`).
+
+- **Qué funciona:**
+  - Paleta navy #02070A / azul #0297DE / naranja #FC734D con superficies de vidrio.
+  - Navbar líquida (gota WebGL, fallback CSS) con scroll-spy.
+  - Liquid glass global (`apps/web/src/liquid/`): todas las superficies tienen vidrio con borde de luz, brillo que sigue al cursor y refracción SVG en Chromium; fondo con manchas de color en deriva.
+  - Globo terrestre 3D (three.js, Blue Marble) con alternador a mapa SVG y fallback automático sin WebGL; huellas en azul y la zona seleccionada en naranja.
+  - Sección «Señal de superficie»: BSI y NDVI mensuales Sentinel-2 2025 por sector, animados al cambiar de zona. Solo contexto: no alteran el score.
+- **Cómo ejecutarlo:** `npm run dev`, o `npm run build && npm run preview`.
+- **Pruebas:** ver «Verificación ejecutada». Revisión manual en Chromium headless con SwiftShader a 1440×900 y 390×844: sin desborde horizontal ni errores de consola, salvo el 404 de `favicon.ico` preexistente. Capturas de `submission/assets/`, ZIP y `SHA256SUMS.txt` regenerados desde este build.
+- **Archivos:** `styles.css`, `App.tsx`, `components/{LiquidNav,SignalCard,SurfaceSignals,CandidateGlobe,CandidateMapView}.tsx`, `CandidateGlobe.css`, `domain/{surfaceSeries,globe}.ts`, `data/loadDemoSnapshot.ts`, tests `surfaceSeries` y `globe`, `vite.config.ts`, ADR-004.
+- **Decisiones:** ADR-007 (antes ADR-004) amplía el stack con three.js sin retirar ADR-001. Las series mensuales no entran al score y no se interpolan meses faltantes.
+- **Bloqueos:** ninguno técnico. Abierto: con zoom, el globo se ve pixelado, porque Blue Marble tiene ~10 km por píxel. Propuesta evaluada, pendiente de decisión del usuario: hornear offline parches NASA GIBS, HLS S30 a 30 m por sector y MODIS a 250 m regional.
+- **Próximos pasos:** 1) ~~aceptar ADR-007~~ aceptado por el equipo; 2) decidir la mejora de textura con GIBS; 3) revisar en el equipo de presentación real.
+
+## Rendimiento y precarga — rama `redesign/planeta-3d` (2026-11-14 14:55, Claude)
+
+- **Qué cambió:**
+  - El globo se dibuja a demanda: 0 dibujos WebGL en reposo, contra ~360 cada 3 s antes.
+  - El agua de la navbar baja a ~15 fps cuando no hay interacción.
+  - Texturas 2K/1K: de 1,84 MB a 0,38 MB.
+  - Globo, texturas y mapa 2D se piden al cargar la página; el 2D se monta oculto cuando el navegador queda ocioso, así que el paso desde el globo es instantáneo.
+  - Caché inmutable en Vercel para `/assets/*` (`vercel.json`).
+- **Mediciones** (Chromium con GPU Metal, red simulada de 8 Mbps): globo con rótulos de 3,2 s a 1,7 s; imagen 2D inmediata al cruzar el umbral (antes 273 ms y solo la capa regional).
+- **Empaquetador:** `scripts/package_release.py` admite los chunks diferidos y assets alcanzables según `.vite/manifest.json`, que no entra al ZIP, y `basemaps/` con nombres fijos. Lo que el manifiesto no alcanza se sigue rechazando.
+- **Pruebas:**
+  - Python: 128 pasan y 1 se omite, incluidas las de lktron (contexto visual y empaquetador, más 7 nuevas).
+  - Web: 52 pasan; build y `git diff --check` limpios.
+  - `package_release.py` produce un ZIP de 24 archivos con checksum OK.
+  - El ZIP descomprimido bajo `/AnalogOS/`, sin red externa, funciona sin fallas: globo, 2D, panel de lktron y cambio de candidato.
+
+## Rediseño de layout — rama `redesign/planeta-3d` (2026-11-14 15:30, Claude, pedido directo del equipo)
+
+- **Qué funciona:** el globo es el fondo del sitio. Al acercarse pasa solo a un mapa 2D con imágenes oficiales y vuelve al alejarse; no hay selector 3D/2D. La leyenda indica la fuente visible. Ya no hay columna de candidatos: un selector 1·2·3 en la ficha, que flota en liquid glass. La Sentinel-2 de ADR-005 se dibuja sobre cada polígono en el 2D. Sin WebGL se usa el SVG.
+- **Cómo ejecutarlo:** `npm run dev`. Regenerar mapas base: `python -m pipelines.fetch_basemaps` (sin credenciales; requiere certifi, numpy y pillow).
+- **Pruebas:** 52 web y 3 nuevas de Python (`tests/test_basemaps.py`) en verde, `npm run build` y `git diff --check` limpios. Recorrido en Chromium headless a 1440×900 y 390×844: globo → «Acercar» → 2D con Sentinel-2 → cambio de candidato → «Vista global» → «Ver el sector en el mapa 2D» → rueda hacia afuera vuelve al globo. Sin desborde en móvil. En consola, solo el 404 de favicon y 500 intermitentes de teselas HLS en línea de GIBS.
+- **Decisión nueva:** ADR-006 (propuesto).
+- **Bloqueos:** 1) `CLAUDE.md` en `dev` dice «mapa SVG, no MapLibre ni WebGL»; resuelto: el equipo aceptó ADR-006 y ADR-007 y la rama se fusionó en `dev`. 2) `scripts/package_release.py` rechaza el build: falta admitir los chunks diferidos, las texturas, el worker de MapLibre y `basemaps/`.
+- **Próximos pasos:** 1) ~~revisar ADR-006/007~~ aceptados; 2) extender la lista del empaquetador; 3) probar en el equipo de presentación real con y sin conexión.
 
 ## Resultado disponible
 
@@ -118,6 +178,9 @@ La revisión actual de M7 está en `docs/CODEX_M7_REVIEW.md`. Los resultados sig
 | `npm run release:package` | build + validación + ZIP determinista; `shasum -a 256 -c SHA256SUMS.txt` OK; mismo SHA-256 en tres ejecuciones |
 | HTTP local en `/AnalogOS/` y `/` | Claude comprobó respuestas HTTP; Codex verificó el ZIP extraído en navegador, ranking, mapa, selección, advertencia de agua y consola sin errores |
 | `npm run test` | 24 tests verdes (10 del contexto visual) |
+
+| `.venv/bin/python -m pytest -q` | 31 tests verdes; en un clon sin `data/raw/`, 30 verdes y 1 omitido |
+| `npm run test` | 24 tests verdes (incluye `surfaceSeries` y `globe`) |
 | `npm run build` | contratos + TypeScript + Vite verdes |
 | revisión manual | snapshot v2, ranking, mapa, evidencia, layout y consola sin errores verificados |
 | `npm audit` | 0 vulnerabilidades |
@@ -125,6 +188,8 @@ La revisión actual de M7 está en `docs/CODEX_M7_REVIEW.md`. Los resultados sig
 El build estático queda en `apps/web/dist/` (~4,1 MB), incluye `science-v2/` y `visual-context/`, sin llamadas externas obligatorias.
 
 Codex repitió la suite y el empaquetado durante la aceptación de M4-VISUAL-EVIDENCE. Verificó las 12 entradas del ZIP contra dist, su determinismo y los seis hashes de snapshot/perfil contra la línea base; sin cambios científicos. El ZIP pesa 4.084.880 bytes y su SHA-256 es `97dc819efb7e0511e2b4a6e388eab5cf113db442006b3b01b415ae0db9f25f81`. También probó en navegador un PNG ausente y un índice con escenas inválidas: ambos conservan ranking y ficha.
+
+El build estático queda en `apps/web/dist/` (~3,2 MiB; ZIP ~2,2 MiB, casi todo texturas del globo y three.js en chunk diferido), incluye solo `science-v2/` y no hace llamadas externas.
 
 ## Comandos de reproducción
 

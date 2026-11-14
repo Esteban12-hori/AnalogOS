@@ -1,24 +1,28 @@
-import type { CandidateSite, DataManifest, MissionProfile, PrecedentCatalog, SearchResults } from '../domain/contracts'
+import type { CandidateSite, MissionProfile, PrecedentCatalog, SearchResults } from '../domain/contracts'
+import { ScoreBreakdown } from '../breakdown/ScoreBreakdown'
+import type { MarsReference } from '../domain/marsReference'
 import type { VisualContextState } from '../data/loadVisualContext'
-import { buildExport, countryLabels, isReference, literatureLabels, matchDetails, relationLabels } from '../domain/discovery'
+import { buildExport, splitByRole, countryLabels, isReference, literatureLabels, matchDetails, relationLabels } from '../domain/discovery'
 import { VisualContext } from './VisualContext'
 import {
-  criterionLabels,
-  criterionStatusLabels,
   feasibilityLabels,
   formatArea,
-  formatRawValue,
   formatScore,
   shortCandidateName,
 } from '../domain/formatting'
 
 interface CandidateDetailsProps {
   candidate: CandidateSite
-  manifest: DataManifest
+  /** Todos los candidatos: el selector compacto reemplaza a la antigua columna de ranking. */
+  candidates: CandidateSite[]
+  onSelect: (siteId: string) => void
   profile: MissionProfile
+  marsReference: MarsReference | null
   visual: VisualContextState
   search: SearchResults | null
   precedents: PrecedentCatalog | null
+  /** Si existe, la imagen se ve en el mapa 2D y el panel muestra un botón en vez de repetirla. */
+  onShowOnMap?: () => void
 }
 
 function Metric({ label, value, hint, muted = false }: { label: string; value: string; hint: string; muted?: boolean }) {
@@ -31,7 +35,8 @@ function Metric({ label, value, hint, muted = false }: { label: string; value: s
   )
 }
 
-export function CandidateDetails({ candidate, manifest, profile, visual, search, precedents }: CandidateDetailsProps) {
+export function CandidateDetails({ candidate, candidates, onSelect, profile, marsReference, visual, search, precedents, onShowOnMap }: CandidateDetailsProps) {
+  const { ranked, references } = splitByRole(candidates)
   const reference = isReference(candidate)
   const statusLabel = candidate.status === 'fixture' ? 'Fixture'
     : reference ? 'Referencia conocida'
@@ -51,8 +56,22 @@ export function CandidateDetails({ candidate, manifest, profile, visual, search,
     URL.revokeObjectURL(url)
   }
   return (
-    <aside className="details-panel" aria-live="polite">
-      <div className="details-header">
+    <aside className="details-panel glass" aria-label="Ficha del candidato seleccionado">
+      <div className="candidate-switch" role="group" aria-label="Elegir candidato o referencia">
+        {[...ranked, ...references].map((item, index) => (
+          <button
+            type="button"
+            key={item.site_id}
+            aria-pressed={item.site_id === candidate.site_id}
+            onClick={() => onSelect(item.site_id)}
+            title={item.name}
+          >
+            <b>{isReference(item) ? 'REF' : index + 1}</b>
+            <span>{shortCandidateName(item.name).split(' — ')[0]}</span>
+          </button>
+        ))}
+      </div>
+      <div className="details-header" aria-live="polite">
         <div>
           <span className="section-kicker">Ficha de candidato</span>
           <h2>{shortCandidateName(candidate.name)}</h2>
@@ -83,7 +102,6 @@ export function CandidateDetails({ candidate, manifest, profile, visual, search,
       <div className="detail-meta">
         {candidate.country && <span><small>País</small><strong>{countryLabels[candidate.country]}</strong></span>}
         <span><small>Área aproximada</small><strong>{formatArea(candidate.area_km2)}</strong></span>
-        <span><small>Snapshot</small><strong>{manifest.snapshot_version}</strong></span>
         <span><small>Perfil</small><strong>{profile.version}</strong></span>
       </div>
 
@@ -146,33 +164,9 @@ export function CandidateDetails({ candidate, manifest, profile, visual, search,
         </section>
       )}
 
-      <VisualContext candidate={candidate} state={visual} />
+      <VisualContext candidate={candidate} state={visual} onShowOnMap={onShowOnMap} />
 
-      <section className="details-section" aria-labelledby="breakdown-heading">
-        <div className="subheading-row">
-          <h3 id="breakdown-heading">Desglose del score</h3>
-          <span>{candidate.score_breakdown.filter((item) => item.status === 'valid').length}/{candidate.score_breakdown.length} criterios válidos</span>
-        </div>
-        <div className="criteria-list">
-          {candidate.score_breakdown.map((item) => {
-            const percentage = item.normalized_similarity === null ? 0 : item.normalized_similarity * 100
-            return (
-              <div className={`criterion-row status-${item.status}`} key={item.criterion_id}>
-                <div className="criterion-topline">
-                  <strong>{criterionLabels[item.criterion_id] ?? item.criterion_id}</strong>
-                  <span>{item.normalized_similarity === null ? criterionStatusLabels[item.status] : `${formatScore(percentage)} %`}</span>
-                </div>
-                <div className="criterion-track" aria-hidden="true"><i style={{ width: `${percentage}%` }} /></div>
-                <div className="criterion-caption">
-                  <span>{formatRawValue(item.raw_value, item.unit)}</span>
-                  <span>Peso {formatScore(item.weight * 100)} %</span>
-                  <span>Calidad {formatScore(item.quality * 100)} %</span>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </section>
+      <ScoreBreakdown items={candidate.score_breakdown} marsReference={marsReference} />
 
       <section className="details-section two-column-notes">
         <div>

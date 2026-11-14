@@ -13,7 +13,7 @@ interface CandidateComparisonProps {
 
 export function CandidateComparison({ ranked, references, rankOf, selectedId, onSelect }: CandidateComparisonProps) {
   return (
-    <section id="comparison" className="comparison-section" aria-labelledby="comparison-title">
+    <section id="comparison" className="comparison-section glass" aria-labelledby="comparison-title">
       <div className="comparison-heading">
         <div>
           <span className="section-kicker">Comparación rápida</span>

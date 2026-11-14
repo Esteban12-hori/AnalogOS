@@ -191,7 +191,7 @@ describe('ranking y ficha', () => {
   })
 
   const details = (candidate: CandidateSite, withSearch = true) => renderToStaticMarkup(
-    <CandidateDetails candidate={candidate} manifest={manifest} profile={profile} visual={loading}
+    <CandidateDetails candidate={candidate} candidates={candidates} onSelect={() => undefined} marsReference={null} profile={profile} visual={loading}
       search={withSearch ? search : null} precedents={withSearch ? precedents : null} />,
   )
 
@@ -208,6 +208,8 @@ describe('ranking y ficha', () => {
 
   it('la ficha de Yungay la rotula como referencia conocida y la de un fixture no inventa metadata', () => {
     const reference = details(references[0])
+    expect(reference).toContain('<b>REF</b>')
+    expect(reference).not.toContain('<b>7</b>')
     expect(reference).toContain('Referencia conocida')
     expect(reference).toContain('No sale de la búsqueda')
     expect(reference).toContain('La ventana contiene coordenadas de muestreo publicadas')

@@ -101,4 +101,4 @@ Desde el snapshot v3 la marca visible es **AnalogOS** y el producto busca en lug
 - **Novedad:** el criterio ya no es «encontrar un sitio nuevo». El sistema registra antecedentes y nunca declara una ventana como nueva; el estado de revisión bibliográfica va separado del rol.
 - **Lo que no representa:** una búsqueda nacional o global, un terreno libre o apto, ni una comparación de calidad entre un candidato y un sitio con décadas de trabajo de campo.
 
-Decisión en `docs/decisions/ADR-006-global-discovery-pilot.md`; resultados en `docs/DISCOVERY_REPORT.md`.
+Decisión en `docs/decisions/ADR-008-global-discovery-pilot.md`; resultados en `docs/DISCOVERY_REPORT.md`.

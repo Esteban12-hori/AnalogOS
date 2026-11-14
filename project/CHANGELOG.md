@@ -1,5 +1,36 @@
 # Changelog de trabajo
 
+## 2026-11-14 Claude Code · rediseño fusionado en dev
+
+- `redesign/planeta-3d` fusionada en `dev` (fast-forward) por decisión directa del equipo humano, sin revisión de Codex: liquid glass global, globo de fondo con paso a 2D, ficha flotante, desglose del score con magnitudes y series Sentinel-2.
+- ADR del globo renumerado a ADR-007; ADR-006 y ADR-007 aceptados por el equipo.
+- `npm run verify` (128 Python, 1 omitido; 52 web; build) y `npm run release:package` en verde; ZIP de 24 archivos con SHA-256 verificado.
+- Pendiente: `CLAUDE.md` aún dice «mapa SVG, no MapLibre ni WebGL»; debe actualizarlo el equipo o Codex.
+
+## 2026-11-14 Claude Code · desglose del score con magnitudes reales
+
+- `breakdown/ScoreBreakdown.tsx`: cada criterio se dibuja con su magnitud y unidad; la topografía se dibuja frente a Jezero (MOLA). Hay rampa de pendiente (exageración ×5 rotulada), perfiles de rugosidad a escala, montañas de relieve, cuadrícula de 100 píxeles Sentinel-2, pluviómetro y termómetro con las marcas del perfil (25 mm/año, saturación en 45 K).
+- El anillo muestra `normalized_similarity` del pipeline sin recalcularla; el texto explica cómo sale del valor (razón de medianas, 1/(1+mm/25), saturación, fracción), verificado contra los tres sectores.
+- `domain/marsReference.ts` lee `mola_reference` de `analysis-summary.json` (opcional); 2 tests nuevos.
+- Liquid glass: los paneles con scroll interno dibujan el borde con sombras para que no se desplace con el contenido.
+
+## 2026-11-14 Claude Code · liquid glass global
+
+- `liquid/liquid-glass.css` y `liquid/LiquidGlass.tsx`: el efecto deja de estar solo en la navbar y se aplica a paneles, tarjetas, métricas, criterios, avisos, chips, botones y controles sobre el globo.
+- Capas: tinte translúcido con desenfoque, brillo especular que sigue al cursor (un solo listener con rAF), borde de luz iridiscente, arista y cáustica internas, compresión al presionar.
+- Refracción real con filtro SVG en Chromium para los controles flotantes; el resto de navegadores usa solo desenfoque. Respeta `prefers-reduced-motion` y `prefers-reduced-transparency`.
+- Fondo con manchas azul/naranja en deriva lenta para que el vidrio tenga algo que refractar.
+- Capturas de `submission/assets/`, ZIP y `SHA256SUMS.txt` regenerados.
+
+## 2026-11-14 Claude Code · rediseño liquid glass (rama redesign/liquid-glass)
+
+- Paleta nueva: navy #02070A, azul #0297DE (interacción, similitud, selección) y naranja #FC734D (advertencias, fixture, énfasis). La confianza usa un tono hielo distinto.
+- Superficies de vidrio (`.glass`) con desenfoque y bordes de luz; alias `--accent/--sand/--mint` para compatibilidad con los estilos del globo.
+- `LiquidNav`: navbar con gota WebGL (adaptada de Nimbus UI "Waterline"), fallback CSS sin WebGL y scroll-spy de secciones.
+- `SignalCard` + `SurfaceSignals`: series mensuales Sentinel-2 2025 (BSI y NDVI) por sector, adaptadas de "Market Card" (Louis Studios). Al cambiar de zona la tarjeta anima su salida y repite la entrada con la serie nueva. Solo visualización: no alteran el score.
+- `parseSurfaceSeries` valida `analysis-summary.json` (opcional) sin interpolar meses faltantes; 4 tests nuevos.
+- Ficha con entrada animada al seleccionar zona; marcador seleccionado con pulso; workspace con altura fija y scroll interno en escritorio (el mapa quedaba fuera de vista con fichas largas).
+
 ## 2026-11-14 Codex
 
 - Creado paquete de handoff para Claude Code.
@@ -159,6 +190,29 @@
 - El checkpoint incorpora los tres PNG reales y su procedencia, el panel offline, validadores y pruebas, documentación, ZIP y checksum revisados.
 - Verificación previa al commit: `npm run verify` (119 pruebas Python, 24 web y build), checksum del ZIP y `git diff --check`.
 
+## 2026-11-14 Claude Code — rama `redesign/planeta-3d`
+
+- Globo terrestre 3D en el explorador (three.js, R3F, drei) con texturas NASA locales, atmósfera y polígonos de candidatos.
+- Mapa SVG conservado como alternativa y fallback automático sin WebGL (ADR-004, propuesto; renumerado después a ADR-007).
+- Geometría esférica pura en `src/domain/globe.ts` con tests; three.js en chunk diferido.
+
+## 2026-11-14 Claude Code — rediseño de layout en `redesign/planeta-3d`
+
+- Merge de `dev` (contexto visual ADR-005, entrega portable, Vercel); `submission/` toma la versión de `dev`.
+- Globo como fondo; paso automático a mapa 2D (MapLibre) por zoom con histéresis; leyenda de fuente activa.
+- `pipelines/fetch_basemaps.py`: Blue Marble regional y medianas HLS por sector desde NASA GIBS, en Web Mercator y sin huecos.
+- Sentinel-2 de ADR-005 encima de cada polígono en el 2D; en la ficha, botón «Ver el sector en el mapa 2D» en lugar de la miniatura.
+- Se elimina la columna de candidatos (selector 1·2·3 en la ficha) y el rótulo de snapshot repetido en la ficha; integrado `ScoreBreakdown`.
+- ADR-006 propuesto. Pendiente: aceptación frente a `CLAUDE.md` de `dev` y lista del empaquetador.
+
+## 2026-11-14 Claude Code — rendimiento, precarga y empaquetado en `redesign/planeta-3d`
+
+- Globo con `frameloop="demand"`, sin objetos nuevos por cuadro y `dpr` limitado a 1,5. Agua de la navbar a ~15 fps cuando no hay interacción.
+- Texturas del globo 2K/1K; `data/preload.ts` precarga texturas y chunks; el mapa 2D se monta oculto cuando el navegador queda ocioso.
+- `vercel.json`: caché inmutable en assets con hash y corta en JSON.
+- `package_release.py` lee `.vite/manifest.json` para los chunks diferidos y admite `basemaps/` explícitos; 7 tests nuevos.
+
+
 ## 2026-11-14 Codex — asignación M7-GLOBAL-DISCOVERY
 
 - Dan autorizó AnalogOS con visión global y primer piloto de búsqueda Chile–Argentina, usando Yungay como referencia conocida.
@@ -192,3 +246,11 @@
 - ZIP determinista: 18 entradas, 9.012.267 bytes, SHA-256 3b419d770f1a1dce5e01f7345aaafef3f33ca18df4d2f73e6d3fb8c7c9853415. Baseline v2 intacto.
 - ADR-006 y NEXT_TASK aceptados; informe independiente en docs/CODEX_M7_REVIEW.md. Actualizados STATUS, BACKLOG, instrucciones de continuidad y referencias activas de producto/ciencia para evitar volver a v2.
 - Pendientes explícitos: territorio, bibliografía completa de la Puna y contraste climático local. Claude espera nueva asignación. Sin commit, push ni publicación.
+
+## 2026-11-14 Codex — integración revisada y autorizada para dev
+
+- Dan pidió «actualiza dev». Checkpoint científico M7 guardado en 1302ed8 e integrado con el rediseño remoto del equipo, preservando sus decisiones y despliegue. ADR de descubrimiento renumerado a 008; ADR-006/007 del equipo conservados.
+- Conectado v3 a globo/2D, ficha flotante, series y desglose. Yungay REF queda fuera del ranking en todas las vistas. La sección Búsqueda conserva alcance, rejilla y filtro por país. Corregidas rutas de imágenes v3, propagación de rankings y encaje de nombres largos.
+- 177 pruebas Python, 69 web y build correctos. ZIP repetido idéntico: 30 entradas, 12.865.983 bytes, SHA-256 804184d6015440fa073e451bfea376fc9b1c9ae6b672e133094cd528ac3af12b. Once hashes de baseline científico v2 y artefactos v3 sin cambios.
+- Revisado el ZIP servido en /AnalogOS/: globo, Argentina y Sentinel-2 en 2D, Yungay como referencia, filtro por país, escritorio y móvil sin desborde horizontal. Captura submission/assets/analogos-integrated-dev.jpg. Actualizadas instrucciones del stack, entrega e informe de revisión.
+- Comandos: source .venv/bin/activate && npm run verify; npm run release:package. No nuevas adquisiciones de datos ni cambios de pesos. Pendientes científicos: territorio, bibliografía de la Puna y clima local. Claude espera nueva asignación.

@@ -15,9 +15,9 @@ La app final consume `science-screening-v3`: una búsqueda real y reproducible s
 | 5 | Puna de Catamarca y Salta · 26,4° S, 67,3° O | 53,68 | 77,25 | requiere revisión |
 | 6 | Puna de Catamarca y Salta · 25,8° S, 67,1° O | 49,43 | 77,40 | requiere revisión |
 
-Pampa Yungay se recalcula con las mismas reglas como referencia conocida (75,67) y queda fuera del ranking. Ningún candidato se declara nuevo ni validado: ambas regiones tienen antecedentes publicados, el contexto climático de los argentinos es de resolución gruesa y todas las ventanas necesitan cruce territorial. El detalle está en `docs/DISCOVERY_REPORT.md` y la decisión, en `docs/decisions/ADR-006-global-discovery-pilot.md`. El snapshot v2 (Yungay, Domeyko, María Elena) se conserva como histórico.
+Pampa Yungay se recalcula con las mismas reglas como referencia conocida (75,67) y queda fuera del ranking. Ningún candidato se declara nuevo ni validado: ambas regiones tienen antecedentes publicados, el contexto climático de los argentinos es de resolución gruesa y todas las ventanas necesitan cruce territorial. El detalle está en `docs/DISCOVERY_REPORT.md` y la decisión, en `docs/decisions/ADR-008-global-discovery-pilot.md`. El snapshot v2 (Yungay, Domeyko, María Elena) se conserva como histórico.
 
-![Vista del piloto](submission/assets/analogos-pilot-overview.jpg)
+![AnalogOS integrado: piloto Chile–Argentina con globo y ficha](submission/assets/analogos-integrated-dev.jpg)
 
 ## Demo rápida
 
@@ -35,7 +35,7 @@ npm run build
 npm run preview
 ```
 
-La carpeta desplegable queda en `apps/web/dist/` y no realiza llamadas externas.
+La carpeta desplegable queda en `apps/web/dist/`. El núcleo funciona con archivos locales; el mapa 2D puede solicitar teselas públicas NASA GIBS como mejora opcional, sin credenciales.
 
 ### Empaquetar y probar la demo portable
 
@@ -46,7 +46,7 @@ npm run release:package
 (cd submission && shasum -a 256 -c analogos-static.zip.sha256)
 ```
 
-El comando reconstruye el frontend, comprueba que el build contenga solo `index.html`, el JS/CSS compilado, los siete archivos `science-v3/` y el contexto visual (`visual-context-v3/index.json` más una imagen por sitio del snapshot, con el SHA-256 que declara ese índice), y escribe `submission/analogos-static.zip` con su SHA-256. La lista de imágenes se deriva de la metadata validada, no de un patrón por extensión. El ZIP v2 (`analogos-chile-static.zip`) se conserva como histórico y no se regenera. El ZIP es determinista para un mismo build. Si la validación falla, la entrega anterior no se toca.
+El comando reconstruye el frontend, comprueba que el build contenga solo `index.html`, el JS/CSS y assets alcanzables desde el manifiesto de Vite, los mapas base locales permitidos, los siete archivos `science-v3/` y el contexto visual (`visual-context-v3/index.json` más una imagen por sitio del snapshot, con el SHA-256 que declara ese índice), y escribe `submission/analogos-static.zip` con su SHA-256. La lista de imágenes se deriva de la metadata validada, no de un patrón por extensión. El ZIP v2 (`analogos-chile-static.zip`) se conserva como histórico y no se regenera. El ZIP es determinista para un mismo build. Si la validación falla, la entrega anterior no se toca.
 
 El build usa rutas relativas: carga igual en la raíz o en un subdirectorio. Para probarlo por HTTP local en `/AnalogOS/`:
 
@@ -130,7 +130,7 @@ Los documentos completos del proyecto están en:
 - Cobertura: screening de Chile completo y refinamiento de 3–5 zonas.
 - Referencia planetaria: NASA PDS/MOLA.
 - Atacama: benchmark de plausibilidad, no respuesta predeterminada.
-- Frontend: Vite, React, TypeScript y mapa SVG local sin WebGL.
+- Frontend: Vite, React, TypeScript, globo 3D con three.js y mapa SVG local como fallback sin WebGL.
 - Pipeline: Python por lotes con `earthaccess` y Statistical API de Copernicus.
 - Entrega P0: archivos estáticos versionados; no backend obligatorio.
 - Score: determinista, explicable y separado de confianza y factibilidad.
@@ -143,10 +143,11 @@ Cambiar cualquiera de estas decisiones requiere un ADR en `docs/decisions/` y ac
 
 ```text
 analogos-chile/
-├── apps/web/                    # React + TypeScript + mapa SVG local
+├── apps/web/                    # React + TypeScript + globo 3D / mapa SVG
 ├── pipelines/                   # ingesta, features, scoring y candidatos
 ├── artifacts/demo/              # fixtures sintéticos para contratos y estados límite
-├── artifacts/science-v2/        # snapshot científico consumido por la web final
+├── artifacts/science-v2/        # histórico científico preservado
+├── artifacts/science-v3/        # piloto Chile–Argentina consumido por la web
 ├── config/mission_profiles/     # perfil versionado
 ├── contracts/                   # JSON Schema
 ├── docs/                        # decisiones, ciencia y arquitectura
@@ -192,9 +193,9 @@ python -m pytest
 python -m pipelines.build_demo --profile config/mission_profiles/mars-rover-mobility-v1.json
 ```
 
-`build_demo` regenera `artifacts/demo/` para pruebas sintéticas. `build_precision_snapshot` regenera `artifacts/science-v2/`, que es lo que lee la web final. La demo no requiere internet porque el snapshot está incluido; solo la reproducción científica requiere credenciales.
+`build_demo` regenera `artifacts/demo/` para pruebas sintéticas. `build_precision_snapshot` regenera el histórico `artifacts/science-v2/`; `build_discovery_snapshot` genera `artifacts/science-v3/`, que lee la web actual. La demo no requiere internet porque el snapshot está incluido; solo la reproducción científica requiere credenciales.
 
-## Ventana del evento
+## Ventana del evento .
 
 NASA Space Apps Challenge 2026 se realiza el 14 y 15 de noviembre de 2026. La plataforma global indica cierre el 15 de noviembre a las 23:59 hora local. Confirmar cualquier deadline interno anterior con la sede de Santiago.
 

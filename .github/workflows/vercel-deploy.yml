@@ -1,0 +1,51 @@
+name: Deploy a Vercel
+
+# Despliega con un token de la cuenta dueña del proyecto, de modo que
+# el autor del commit ya no importa (el plan Hobby bloquea commits de
+# colaboradores sin acceso cuando el deploy lo dispara la integración Git).
+on:
+  push:
+    branches: [main, dev]
+
+concurrency:
+  group: vercel-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VERCEL_ORG_ID: team_A583nI4RAGtbkFJEUldqWYEy
+  VERCEL_PROJECT_ID: prj_212cKp3iwgPNItQuyQrPrzWbjVHJ
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Determinar entorno
+        id: env
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "target=production" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=--prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "target=preview" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Vercel pull
+        run: vercel pull --yes --environment=${{ steps.env.outputs.target }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Vercel build
+        run: vercel build ${{ steps.env.outputs.prod_flag }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Vercel deploy
+        run: vercel deploy --prebuilt ${{ steps.env.outputs.prod_flag }} --token=${{ secrets.VERCEL_TOKEN }}

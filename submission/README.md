@@ -12,7 +12,8 @@
 - `TEAM.md`: plantilla para integrantes, contribuciones y declaración de IA.
 - `VIDEO_SHOT_LIST.md`: plan de grabación de respaldo.
 - `JUDGING_CHECKLIST.md`: auditoría antes de enviar.
-- `assets/analogos-pilot-overview.jpg`: captura del piloto (alcance, ranking, mapa y ficha).
+- `assets/analogos-integrated-dev.jpg`: captura vigente del piloto integrado con el rediseño.
+- `assets/analogos-pilot-overview.jpg`: captura histórica de la primera revisión científica del piloto.
 - `analogos-static.zip`: build estático v3 listo para publicar.
 - `analogos-static.zip.sha256`: checksum del ZIP v3.
 - Históricos v2, que no se regeneran: `analogos-chile-static.zip`, `SHA256SUMS.txt` y las capturas `assets/analogos-chile-*.jpg`.
@@ -46,7 +47,7 @@ npm run release:package
 (cd submission && shasum -a 256 -c analogos-static.zip.sha256)
 ```
 
-El ZIP contiene únicamente `index.html`, el JS/CSS compilado, los siete archivos `science-v3/` y el contexto visual (`visual-context-v3/index.json` y siete PNG Sentinel-2, uno por sitio); son 18 archivos y unos 9,0 MB. Es determinista para un mismo build. Las imágenes son contexto preliminar de diciembre de 2025: no validan los sitios ni cambian el ranking. Descomprimir `analogos-static.zip` sirve para una demo sin herramientas de desarrollo. Prueba por HTTP local en un subdirectorio:
+El ZIP vigente contiene `index.html`, JS/CSS y chunks compilados, texturas del globo, basemaps locales, siete archivos `science-v3/` y el contexto visual (`visual-context-v3/index.json` y siete PNG Sentinel-2, uno por sitio): 30 archivos y 12.865.983 bytes. Es determinista para un mismo build. Las imágenes son contexto preliminar de diciembre de 2025: no validan los sitios ni cambian el ranking. El mapa 2D puede solicitar GIBS público como mejora opcional. Descomprimir `analogos-static.zip` sirve para una demo sin herramientas de desarrollo. Prueba por HTTP local en un subdirectorio:
 
 ```bash
 mkdir -p /tmp/analogos-demo/AnalogOS

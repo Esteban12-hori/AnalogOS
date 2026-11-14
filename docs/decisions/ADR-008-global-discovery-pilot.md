@@ -1,7 +1,8 @@
-# ADR-006 — AnalogOS global: piloto de búsqueda Chile–Argentina
+# ADR-008 — AnalogOS global: piloto de búsqueda Chile–Argentina
 
 - Estado: accepted por Codex (2026-11-14; revisión independiente en `../CODEX_M7_REVIEW.md`)
 - Fecha: 2026-11-14
+- Numeración: inicialmente ADR-006; renumerado a ADR-008 al integrar el avance remoto, que ya ocupaba ADR-006 y ADR-007 para el escenario visual. La ciencia y los artefactos no cambian.
 - Autorización: Dan aprobó el cambio de alcance el 2026-11-14; Codex aprobó el checkpoint de método el mismo día.
 
 ## Contexto

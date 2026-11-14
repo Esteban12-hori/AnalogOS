@@ -11,6 +11,8 @@
 
 **Autorización posterior:** Dan pidió «actualiza dev» el 2026-11-14. Codex puede crear el commit e integrar/subir este checkpoint a `origin/dev`, preservando el trabajo remoto del equipo. La aceptación anterior describe el piloto antes de esa integración.
 
+**Integración revisada por Codex:** piloto v3 integrado con ADR-006/007 del equipo (globo, mapa 2D y ficha flotante); ADR de descubrimiento renumerado a 008. 177 Python, 69 web y build correctos; ZIP vigente de 30 entradas, SHA-256 `804184d6015440fa073e451bfea376fc9b1c9ae6b672e133094cd528ac3af12b`. Detalle vigente en STATUS y CODEX_M7_REVIEW. El encargo original y su reporte de 18 entradas quedan como históricos; la restricción inicial «sin WebGL» fue sustituida por las decisiones de rediseño aceptadas por el equipo. Claude sigue esperando una nueva asignación.
+
 **Aceptación de Codex — 2026-11-14 15:33 America/Santiago.** M7 aceptado como piloto regional preliminar. Verificación independiente: 167 tests Python, 39 web y build; rebuild v2/v3 idéntico, puntuaciones y selección recalculadas, cachés sin red, ZIP determinista y demo en `/` y `/AnalogOS/`. Evidencia y límites en `docs/CODEX_M7_REVIEW.md`. Sin commit, push ni publicación. Claude queda a la espera de una nueva tarea; no ampliar regiones ni recalibrar ciencia por iniciativa propia.
 
 ## Objetivo
@@ -82,7 +84,7 @@ Estados sugeridos: `known_reference`, `known_analogue_overlap`, `regional_preced
 
 ## 5. Entrega y comprobaciones
 
-Ampliar empaquetador a v3 con lista explícita derivada de metadata validada (no glob permisivo), rutas seguras, hashes, sin v2/demo sobrantes ni secretos, y conservando rollback y ZIP determinista. Conservar ZIP v2 histórico; nuevo entregable `submission/analogos-static.zip` con checksum propio. Actualizar narrativa activa de README, docs de producto/ciencia, submission/pitch/guion/atribuciones/checklist y capturas si cambió UI; no reescribir historia de ADR anteriores. Crear ADR-006 como proposed y reporte de búsqueda/bibliografía.
+Ampliar empaquetador a v3 con lista explícita derivada de metadata validada (no glob permisivo), rutas seguras, hashes, sin v2/demo sobrantes ni secretos, y conservando rollback y ZIP determinista. Conservar ZIP v2 histórico; nuevo entregable `submission/analogos-static.zip` con checksum propio. Actualizar narrativa activa de README, docs de producto/ciencia, submission/pitch/guion/atribuciones/checklist y capturas si cambió UI; no reescribir historia de ADR anteriores. Crear ADR-008 como proposed y reporte de búsqueda/bibliografía.
 
 Pruebas necesarias: rejilla y límites; distancias y empate reproducibles; NoData/agua; selección sin intervención manual; separación rol/revisión bibliográfica; exclusión de referencias del ranking; contratos cl/ar e históricos; fuentes/autoridades por país; cobertura temporal incompleta; generación v3 reproducible; exportación conserva rol/origen; mapa y filtros; archivo visual ausente o inválido; empaquetado seguro sin extras y determinista. No inflar tests espejando implementación.
 
@@ -117,7 +119,7 @@ Entregado en `review` el 2026-11-14 a las 15:27 (America/Santiago). Solo Codex a
 3. Calidad topográfica multiplicada por la cobertura NASADEM válida.
 4. 25 km al centro como heurística explícita de cercanía, no perímetro del estudio ni prueba de novedad.
 
-Geografía autorizada como piloto limitado. Quedan anotadas en ADR-006.
+Geografía autorizada como piloto limitado. Quedan anotadas en ADR-008.
 
 ### Conteos por etapa
 
@@ -164,7 +166,7 @@ Los seis scores coinciden con el cálculo independiente de Codex. Yungay conserv
 - Web: `App.tsx`, `index.html`, `styles.css`, `components/CandidateMap.tsx`, `CandidateRanking.tsx`, `CandidateComparison.tsx`, `CandidateDetails.tsx`, `data/loadDemoSnapshot.ts`, `data/loadVisualContext.ts`, `domain/contracts.ts`, nuevo `domain/discovery.ts`, `scripts/prune-build.mjs`, tests `discovery.test.tsx` y `visualContext.test.tsx`.
 - Entrega: `scripts/package_release.py`, `tests/test_release_package.py`, `submission/analogos-static.zip`, `submission/analogos-static.zip.sha256`, `submission/assets/analogos-pilot-overview.jpg`, `package.json` (scripts `discovery:*`).
 - Tests: `tests/test_discovery.py`.
-- Documentación: ADR-006, `docs/DISCOVERY_REPORT.md`, `docs/VISUAL_REVIEW.md`, `docs/PRODUCT_AND_SCIENCE.md`, `docs/DATA_AND_SCORING.md`, `README.md`, y en `submission/`: `README.md`, `PROJECT_PAGE_ES.md`, `PROJECT_PAGE_EN.md`, `PITCH_3_MIN_ES.md`, `DEMO_SCRIPT_2_MIN_ES.md`, `METHODOLOGY.md`, `RESULTS_AND_LIMITATIONS.md`, `ATTRIBUTIONS.md`, `JUDGING_CHECKLIST.md`, `VIDEO_SHOT_LIST.md`.
+- Documentación: ADR-008, `docs/DISCOVERY_REPORT.md`, `docs/VISUAL_REVIEW.md`, `docs/PRODUCT_AND_SCIENCE.md`, `docs/DATA_AND_SCORING.md`, `README.md`, y en `submission/`: `README.md`, `PROJECT_PAGE_ES.md`, `PROJECT_PAGE_EN.md`, `PITCH_3_MIN_ES.md`, `DEMO_SCRIPT_2_MIN_ES.md`, `METHODOLOGY.md`, `RESULTS_AND_LIMITATIONS.md`, `ATTRIBUTIONS.md`, `JUDGING_CHECKLIST.md`, `VIDEO_SHOT_LIST.md`.
 - Proyecto: `NEXT_TASK.md`, `STATUS.md`, `CHANGELOG.md`, `BACKLOG.md`.
 - No se tocaron `AGENTS.md`, `CLAUDE.md`, remotos, ramas, `.vercel` ni `vercel.json`.
 

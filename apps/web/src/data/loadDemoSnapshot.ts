@@ -8,6 +8,8 @@ import {
   type PrecedentCatalog,
   type SearchResults,
 } from '../domain/contracts'
+import { parseMarsReference, type MarsReference } from '../domain/marsReference'
+import { parseSurfaceSeries, type SurfaceSeriesBySite } from '../domain/surfaceSeries'
 
 export const SNAPSHOT_PATH: string = import.meta.env.VITE_SNAPSHOT_PATH ?? 'science-v3'
 /** El snapshot v3 trae búsqueda, antecedentes y contornos de ambos países; los históricos, no. */
@@ -20,6 +22,10 @@ export interface DemoSnapshot {
   outline: GeoJsonFeatureCollection
   search: SearchResults | null
   precedents: PrecedentCatalog | null
+  /** Series mensuales Sentinel-2; vacío si el snapshot no las trae (p. ej. el fixture demo). */
+  surfaceSeries: SurfaceSeriesBySite
+  /** Medianas MOLA de Jezero; null si el snapshot no las trae. */
+  marsReference: MarsReference | null
 }
 
 async function fetchJson(path: string): Promise<unknown> {
@@ -39,6 +45,8 @@ export async function loadDemoSnapshot(): Promise<DemoSnapshot> {
     IS_DISCOVERY_SNAPSHOT ? fetchJson('search-results.json') : null,
     IS_DISCOVERY_SNAPSHOT ? fetchJson('precedents.json') : null,
   ])
+  // Opcional: un snapshot sin analysis-summary.json sigue siendo válido.
+  const summaryData = await fetchJson('analysis-summary.json').catch(() => null)
 
   assertSnapshotContracts(candidateData, manifestData, profileData)
   if (IS_DISCOVERY_SNAPSHOT) assertDiscoveryContracts(searchData, precedentData)
@@ -55,5 +63,7 @@ export async function loadDemoSnapshot(): Promise<DemoSnapshot> {
     outline,
     search: IS_DISCOVERY_SNAPSHOT ? (searchData as SearchResults) : null,
     precedents: IS_DISCOVERY_SNAPSHOT ? (precedentData as PrecedentCatalog) : null,
+    surfaceSeries: parseSurfaceSeries(summaryData),
+    marsReference: parseMarsReference(summaryData),
   }
 }

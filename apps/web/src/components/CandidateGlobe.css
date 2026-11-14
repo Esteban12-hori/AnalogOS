@@ -1,0 +1,29 @@
+/*
+ * Globo 3D y mapa 2D: rótulos de candidatos, carga y leyenda.
+ * Archivo propio para no acoplarse a styles.css (rediseño en paralelo).
+ * Cada variable tiene fallback por si la paleta global cambia de nombres.
+ */
+.globe-canvas { position: absolute !important; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.globe-canvas:active { cursor: grabbing; }
+.globe-loading { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid var(--line, rgba(191, 219, 207, .13)); border-radius: 10px; background: var(--glass-strong, rgba(6, 15, 23, .78)); color: var(--muted, #91a39c); font-size: 10px; white-space: nowrap; }
+.globe-loading .loader { width: 16px; height: 16px; }
+.globe-loading-page { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+.globe-callout-host { pointer-events: none; }
+.globe-callout { position: relative; width: 0; height: 0; transition: opacity .15s ease-out; }
+.globe-callout.is-hidden { opacity: 0; }
+.globe-callout.is-hidden .globe-label { pointer-events: none; }
+.globe-anchor { position: absolute; top: -5px; left: -5px; width: 10px; height: 10px; border: 1.5px solid var(--blue-bright, #3FB4EC); border-radius: 50%; background: rgba(2, 151, 222, .2); box-shadow: 0 0 10px rgba(2, 151, 222, .55); }
+.globe-leader { position: absolute; top: 0; left: 0; height: 0; border-top: 1px dashed rgba(63, 180, 236, .55); transform-origin: 0 0; }
+.globe-label { position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; border: 1px solid rgba(190, 225, 245, .2); border-radius: 999px; background: rgba(5, 14, 21, .9); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1); color: #E3EFF6; cursor: pointer; pointer-events: auto; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 9px; font-weight: 600; text-align: left; white-space: nowrap; backdrop-filter: blur(8px); transition: border-color .18s ease, background .18s ease; }
+.globe-label b { display: grid; place-items: center; width: 22px; height: 22px; border: 2px solid var(--blue-bright, #3FB4EC); border-radius: 50%; background: #0B5E8A; color: #fff; font-family: Inter, ui-sans-serif, sans-serif; font-size: 11px; }
+.globe-label span { display: grid; gap: 1px; color: var(--blue-bright, #3FB4EC); }
+.globe-label small { color: #E3EFF6; font-size: 8px; font-weight: 700; letter-spacing: .08em; }
+.globe-label:hover { border-color: var(--blue-line, rgba(2, 151, 222, .45)); }
+.globe-callout.selected .globe-label { border-color: var(--orange, #FC734D); background: rgba(38, 16, 10, .92); box-shadow: 0 0 18px rgba(252, 115, 77, .3); }
+.globe-callout.selected .globe-label span { color: var(--orange-bright, #FF9A7C); }
+.globe-callout.selected .globe-label b { border-color: #FFE1D7; background: var(--orange, #FC734D); color: #2A0D04; }
+.globe-callout.selected .globe-anchor { border-color: var(--orange, #FC734D); background: rgba(252, 115, 77, .3); box-shadow: 0 0 12px rgba(252, 115, 77, .6); }
+.globe-callout.insufficient .globe-label b { border-color: #8EA4B3; background: #3D5363; }
+.legend-swatch.globe-outline { border: 1px solid #9FD9F6; background: transparent; }
+.legend-credit { color: var(--muted-2, #687c74); }

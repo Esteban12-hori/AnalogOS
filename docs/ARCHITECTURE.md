@@ -17,7 +17,7 @@ pipelines/scoring
   ↓ similitud, confianza y restricciones
 pipelines/candidates
   ↓ clustering y generalización
-artifacts/science-v2
+artifacts/science-v3
   ↓ JSON + GeoJSON + metadatos
 apps/web
   ↓ mapa, ranking, ficha, comparación y metodología
@@ -27,9 +27,9 @@ build estático
 ## Frontend
 
 - Vite + React + TypeScript.
-- Mapa SVG local derivado del GeoJSON de Natural Earth; sin WebGL ni teselas externas.
+- Globo 3D (three.js, chunk diferido, texturas NASA locales) con mapa SVG local de Natural Earth como alternativa y fallback sin WebGL; con paso a mapa 2D MapLibre y teselas NASA GIBS opcionales (ADR-006/007).
 - Estado local; no Redux en P0.
-- Carga final desde `/science-v2/manifest.json` y rutas relativas; `/demo/` se conserva solo para tests.
+- Carga final desde `/science-v3/manifest.json` y rutas relativas; `/demo/` se conserva solo para tests.
 - Vista inicial: mapa + panel lateral.
 - Rutas opcionales: `/`, `/methodology`, `/about`.
 - Sin login.
@@ -50,7 +50,8 @@ El frontend no conoce Rasterio, CRS internos ni lógica de descarga. Solo consum
 - `manifest.json`;
 - `mission-profile.json`;
 - `candidate-details.json`;
-- `chile-outline.geojson`;
+- `context-outline.geojson`;
+- `search-results.json` y `precedents.json`;
 - `analysis-summary.json`.
 
 Los archivos deben validar contra `contracts/` antes del build.
