@@ -12,7 +12,7 @@ export function CandidateComparison({ candidates, selectedId, onSelect }: Candid
   const sorted = rankCandidates(candidates)
 
   return (
-    <section id="comparison" className="comparison-section" aria-labelledby="comparison-title">
+    <section id="comparison" className="comparison-section glass" aria-labelledby="comparison-title">
       <div className="comparison-heading">
         <div>
           <span className="section-kicker">Comparación rápida</span>

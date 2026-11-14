@@ -5,6 +5,16 @@
 **Milestone activo:** M6 — empaquetado y entrega  
 **Estado general:** producto funcional y presentable con snapshot científico v2 autenticado. NASADEM corrige el mosaico de borde y Sentinel-2 completa superficie no vegetada. Faltan acciones humanas/externas: video, URLs públicas, integrantes, capas territoriales y revisión experta.
 
+## Rediseño liquid glass (12:50, rama `redesign/liquid-glass`)
+
+- Qué funciona: paleta navy/azul/naranja, vidrio, navbar líquida con scroll-spy y sección "Señal de superficie" con series Sentinel-2 mensuales (BSI, NDVI) animadas al seleccionar zona.
+- Cómo ejecutarlo: `npm run dev` y abrir la URL local; la sección Señal aparece entre el workspace y la comparación.
+- Pruebas: `npm run build` (incluye validate) y `npm run test` verdes (18 tests); capturas manuales en 1440×900 y 390×844 sin desbordes ni errores de consola salvo un 404 preexistente de recurso estático.
+- Archivos: `apps/web/src/styles.css`, `App.tsx`, `components/{LiquidNav,SignalCard,SurfaceSignals}.tsx`, `components/CandidateMap.tsx` (colores), `components/CandidateComparison.tsx` (clase), `domain/surfaceSeries.ts`, `data/loadDemoSnapshot.ts`, `tests/surfaceSeries.test.ts`.
+- Decisiones: las series son contexto observacional y no entran al score; los extremos de la curva son entrada visual y no se seleccionan; sin dependencias nuevas.
+- Integración pendiente: la rama `redesign/planeta-3d` (globo 3D) reemplaza `<CandidateMap>` por `<CandidateMapView>` en `App.tsx`; al fusionar, conservar ambos cambios. Sus estilos viven en `CandidateGlobe.css` y heredan la paleta vía alias.
+- Próximos pasos: 1) fusionar `redesign/planeta-3d` sobre esta rama y resolver `App.tsx`/`STATUS.md`; 2) ajustar colores del globo (`FOOTPRINT_COLOR`, `OUTLINE_COLOR`) a la paleta; 3) regenerar capturas de `submission/assets/`.
+
 ## Resultado disponible
 
 La vista final consume `artifacts/science-v2/`, no fixtures.

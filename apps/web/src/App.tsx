@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CandidateDetails } from './components/CandidateDetails'
 import { CandidateComparison } from './components/CandidateComparison'
 import { CandidateMap } from './components/CandidateMap'
 import { CandidateRanking } from './components/CandidateRanking'
+import { LiquidNav, liquidIcons, type LiquidNavItem } from './components/LiquidNav'
+import { SurfaceSignals } from './components/SurfaceSignals'
 import { loadDemoSnapshot, type DemoSnapshot } from './data/loadDemoSnapshot'
 import { rankCandidates } from './domain/scoring'
 
@@ -10,6 +12,44 @@ type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'ready'; snapshot: DemoSnapshot }
+
+const NAV_ITEMS: LiquidNavItem[] = [
+  { id: 'workspace', label: 'Explorar', icon: liquidIcons.globe, fx: 'spin' },
+  { id: 'signals', label: 'Señal', icon: liquidIcons.signal, fx: 'wave' },
+  { id: 'comparison', label: 'Comparar', icon: liquidIcons.compare, fx: 'pop' },
+  { id: 'method', label: 'Método', icon: liquidIcons.method, fx: 'drop' },
+]
+
+/** Sección visible para la navbar; se pausa mientras dura un desplazamiento pedido por clic. */
+function useScrollSpy(ids: readonly string[], enabled: boolean) {
+  const [active, setActive] = useState(0)
+  const lockUntil = useRef(0)
+  useEffect(() => {
+    if (!enabled) return
+    const onScroll = () => {
+      if (performance.now() < lockUntil.current) return
+      const line = window.innerHeight * 0.35
+      let current = 0
+      ids.forEach((id, index) => {
+        const el = document.getElementById(id)
+        if (el && el.getBoundingClientRect().top <= line) current = index
+      })
+      setActive(current)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [ids, enabled])
+  const goTo = (index: number) => {
+    setActive(index)
+    lockUntil.current = performance.now() + 900
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
+    document.getElementById(ids[index] ?? '')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
+  }
+  return { active, goTo }
+}
+
+const NAV_IDS = NAV_ITEMS.map((item) => item.id)
 
 function App() {
   const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' })
@@ -40,6 +80,8 @@ function App() {
       ?? loadState.snapshot.candidates[0]
       ?? null
   }, [loadState, selectedId])
+
+  const { active, goTo } = useScrollSpy(NAV_IDS, loadState.status === 'ready')
 
   if (loadState.status === 'loading') {
     return (
@@ -90,10 +132,7 @@ function App() {
             <small>Earth analog decision system</small>
           </div>
         </div>
-        <div className="mission-block">
-          <span>Perfil activo</span>
-          <strong>{snapshot.profile.name}</strong>
-        </div>
+        <LiquidNav items={NAV_ITEMS} active={active} onSelect={goTo} />
         <div className="version-block">
           <span className="status-dot" />
           Snapshot {snapshot.manifest.snapshot_version}
@@ -106,13 +145,13 @@ function App() {
           <h1>No buscamos un lugar que “parezca Marte”.</h1>
           <p>Priorizamos dónde conviene investigar para una prueba concreta, con evidencia, incertidumbre y límites visibles.</p>
         </div>
-        <div className="mission-question">
-          <small>Pregunta de misión</small>
+        <div className="mission-question glass">
+          <small>Perfil activo · {snapshot.profile.name}</small>
           <p>¿Qué zona reproduce mejor condiciones relevantes para percepción, tracción, navegación y autonomía de rover?</p>
         </div>
       </section>
 
-      <main className="workspace">
+      <main id="workspace" className="workspace glass">
         <CandidateRanking
           candidates={snapshot.candidates}
           selectedId={selected.site_id}
@@ -124,8 +163,10 @@ function App() {
           selectedId={selected.site_id}
           onSelect={setSelectedId}
         />
-        <CandidateDetails candidate={selected} manifest={snapshot.manifest} profile={snapshot.profile} />
+        <CandidateDetails key={selected.site_id} candidate={selected} manifest={snapshot.manifest} profile={snapshot.profile} />
       </main>
+
+      <SurfaceSignals candidates={snapshot.candidates} selectedId={selected.site_id} series={snapshot.surfaceSeries} />
 
       <CandidateComparison
         candidates={snapshot.candidates}
@@ -133,7 +174,7 @@ function App() {
         onSelect={setSelectedId}
       />
 
-      <section id="method" className="method-section" aria-labelledby="method-title">
+      <section id="method" className="method-section glass" aria-labelledby="method-title">
         <div className="method-intro">
           <span className="section-kicker">Método reproducible</span>
           <h2 id="method-title">La comparación ocurre a la misma escala.</h2>
