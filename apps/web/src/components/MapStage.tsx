@@ -7,7 +7,7 @@ import type { FlatHandoff, GlobeView } from './CandidateGlobe'
 import './CandidateGlobe.css'
 import './MapStage.css'
 
-import { whenIdle } from '../data/preload'
+import { GLOBE_TEXTURE_KM, hideBootStage, MAPLIBRE_WORKER_URL, prefetchToCache, whenIdle } from '../data/preload'
 import { flatThresholds } from '../domain/mapZoom'
 
 // three.js y MapLibre van en chunks aparte, pero se piden de inmediato: el globo al evaluar
@@ -74,7 +74,7 @@ type Mode = 'globe' | 'flat'
 
 const GLOBE_SOURCE: ActiveSource = {
   id: 'globe',
-  label: 'NASA Blue Marble · ~10 km',
+  label: `NASA Blue Marble · ~${GLOBE_TEXTURE_KM} km`,
   detail: 'Textura local del globo · relieve NASA',
 }
 
@@ -135,17 +135,17 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
   )
   const prewarmEntry = useMemo<FlatHandoff>(() => ({ ...PREWARM_CENTER, zoom: thresholds.enter }), [thresholds.enter])
 
-  // Cuando el globo ya dibujó su textura (y el navegador está ocioso) se monta el 2D oculto:
-  // chunk, worker, estilo, imágenes locales y teselas quedan listos sin competir con el globo.
+  // Precarga en dos tiempos, sin competir con el globo:
+  // 1) con el globo listo y el navegador ocioso: código, worker e imágenes a la caché
+  //    HTTP, sin ejecutar ni decodificar (index.html ya hizo prefetch del chunk);
+  // 2) cuando el usuario empieza a acercarse: se instancia MapLibre oculto, de modo que
+  //    al cruzar el umbral el 2D ya está dibujado.
   const [globeReady, setGlobeReady] = useState(false)
   const markGlobeReady = useCallback(() => setGlobeReady(true), [])
-  useEffect(() => {
-    if (!globeReady) return
-    whenIdle(() => {
-      void loadFlat()
-      setPrewarm(true)
-    }, 1500)
-  }, [globeReady])
+  const mountFlat = useCallback(() => {
+    void loadFlat()
+    setPrewarm(true)
+  }, [])
 
   useEffect(() => {
     let alive = true
@@ -176,6 +176,14 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
     [manifest, visual],
   )
 
+  useEffect(() => {
+    if (!globeReady || !layers) return
+    whenIdle(() => {
+      prefetchToCache(MAPLIBRE_WORKER_URL)
+      for (const layer of layers) prefetchToCache(`${import.meta.env.BASE_URL}${layer.image}`)
+    }, 2000)
+  }, [globeReady, layers])
+
   const exitFlat = useCallback((handoff: FlatHandoff) => {
     setView((current) => ({ kind: 'at', nonce: current.nonce + 1, at: handoff }))
     setMode('globe')
@@ -191,9 +199,10 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
       setFocusRequest((value) => value + 1)
       return
     }
+    mountFlat()
     setPendingFocus(true)
     setView((current) => ({ kind: 'close', nonce: current.nonce + 1 }))
-  }, [mode])
+  }, [mode, mountFlat])
 
   const lastSignal = useRef(focusSignal)
   useEffect(() => {
@@ -203,6 +212,26 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
   }, [focusSignal, goClose])
 
   const fixtureMode = candidates.every((candidate) => candidate.status === 'fixture')
+
+  // El póster estático cubre el escenario hasta que el globo nítido está listo; se retira
+  // antes si el usuario interactúa, si pasa al 2D o si no hay globo (SVG o error).
+  useEffect(() => {
+    if (!webgl || failed || mode === 'flat') {
+      hideBootStage()
+      return
+    }
+    const onInteract = () => hideBootStage()
+    window.addEventListener('pointerdown', onInteract, { once: true, capture: true })
+    window.addEventListener('wheel', onInteract, { once: true, capture: true, passive: true })
+    window.addEventListener('keydown', onInteract, { once: true, capture: true })
+    const fallback = window.setTimeout(hideBootStage, 8000)
+    return () => {
+      window.removeEventListener('pointerdown', onInteract, { capture: true })
+      window.removeEventListener('wheel', onInteract, { capture: true })
+      window.removeEventListener('keydown', onInteract, { capture: true })
+      window.clearTimeout(fallback)
+    }
+  }, [webgl, failed, mode])
 
   if (!webgl || failed) {
     return (
@@ -230,6 +259,8 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
               rightInset={rightInset}
               thresholds={thresholds}
               onReady={markGlobeReady}
+              onApproach={mountFlat}
+              onDetailReady={hideBootStage}
               onEnterFlat={enterFlat}
               onContextLost={() => setFailed(true)}
             />

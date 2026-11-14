@@ -1,9 +1,7 @@
-import { type ErrorObject, type ValidateFunction } from 'ajv'
-import Ajv2020 from 'ajv/dist/2020'
-import addFormats from 'ajv-formats'
-import candidateSchema from '../../../../contracts/candidate-site.schema.json'
-import manifestSchema from '../../../../contracts/data-manifest.schema.json'
-import profileSchema from '../../../../contracts/mission-profile.schema.json'
+import type { ErrorObject } from 'ajv'
+// Validadores precompilados desde contracts/*.schema.json (scripts/build-validators.mjs):
+// misma validación en el límite del sistema, sin el compilador de Ajv en el navegador.
+import { validateCandidate, validateManifest, validateProfile } from './validators.generated.js'
 
 export type Position = [number, number]
 
@@ -130,13 +128,6 @@ export interface GeoJsonFeatureCollection {
     geometry: CandidateGeometry
   }>
 }
-
-const ajv = new Ajv2020({ allErrors: true, strict: false })
-addFormats(ajv)
-
-const validateCandidate = ajv.compile(candidateSchema) as ValidateFunction<CandidateSite>
-const validateManifest = ajv.compile(manifestSchema) as ValidateFunction<DataManifest>
-const validateProfile = ajv.compile(profileSchema) as ValidateFunction<MissionProfile>
 
 function errorSummary(errors: ErrorObject[] | null | undefined): string {
   if (!errors?.length) return 'error de contrato desconocido'

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build && node scripts/prune-build.mjs",
+    "validators": "node scripts/build-validators.mjs",
+    "build": "node scripts/build-validators.mjs --check && tsc --noEmit && vite build && node scripts/prune-build.mjs",
     "preview": "vite preview",
     "test": "vitest run"
   },

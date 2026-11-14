@@ -96,3 +96,14 @@ export function lonLatFromDirection(x: number, y: number, z: number): [number, n
   if (longitude < -180) longitude += 360
   return [longitude, latitude]
 }
+
+/**
+ * Radio en píxeles CSS del disco del globo (sin atmósfera) en la vista global.
+ * Sirve para colocar el póster estático exactamente donde aparecerá el globo 3D.
+ */
+export function globeScreenRadius(width: number, height: number, rightInset = 0, fovDegrees = GLOBE_FOV_DEGREES): number {
+  const usableWidth = Math.max(width - rightInset, 1)
+  const ratio = fitDistanceRatio(usableWidth / Math.max(height, 1), fovDegrees)
+  const angular = Math.asin(1 / ratio)
+  return (Math.tan(angular) / Math.tan((fovDegrees * DEG) / 2)) * (Math.max(height, 1) / 2)
+}

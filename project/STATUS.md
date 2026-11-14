@@ -40,6 +40,21 @@ Fusiona dos ramas: el globo 3D (`redesign/planeta-3d`) y el rediseño visual (`r
 - **Bloqueos:** ninguno técnico. Abierto: con zoom, el globo se ve pixelado, porque Blue Marble tiene ~10 km por píxel. Propuesta evaluada, pendiente de decisión del usuario: hornear offline parches NASA GIBS, HLS S30 a 30 m por sector y MODIS a 250 m regional.
 - **Próximos pasos:** 1) ~~aceptar ADR-007~~ aceptado por el equipo; 2) decidir la mejora de textura con GIBS; 3) revisar en el equipo de presentación real.
 
+## Optimización máxima — `dev` (2026-11-14 17:15, Claude, pedido directo del equipo)
+
+- **Qué cambió:**
+  - Validadores Ajv precompilados.
+  - Armazón estático en `index.html` y armazón inmediato en React.
+  - Precarga de datos desde el HTML.
+  - Secciones bajo el pliegue diferidas.
+  - Mapa 2D instanciado al empezar a acercarse.
+  - Póster del globo en escritorio.
+  - Textura 2K/4K adaptativa.
+  - Detalle en `docs/PERFORMANCE.md`.
+- **Mediciones** (mediana de 5, mismo servidor): escritorio 99 en `dev` y en `main`, con Speed Index de 0,7 s contra 0,8 s. Móvil: TBT de 148 ms contra 222 ms y LCP observado de 140 ms contra 482 ms. El LCP móvil simulado por Lighthouse empata (~5 s en ambas).
+- **Pruebas:** web, Python, build, `package_release.py`, flujo completo en navegador y ZIP sin conexión (ver CHANGELOG).
+- **Pendiente:** medir en producción después de desplegar; `.fixture-banner` en móvil salta ~5 px al llegar los datos (la regla de `styles.css` pisa la altura reservada).
+
 ## Nitidez y carga — `dev` (2026-11-14 15:45, Claude, pedido directo del equipo)
 
 - **Problema reportado:** el globo Blue Marble se pixelaba al hacer zoom (la textura 2K de la iteración anterior era insuficiente) y la carga era lenta.

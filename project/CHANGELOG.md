@@ -219,3 +219,13 @@
 - La precarga del 2D espera al globo; el empaquetador admite los nuevos `basemaps/` con nombres fijos.
 - `docs/PERFORMANCE.md`: mediciones y evaluación de Rust (descartado con datos).
 
+## 2026-11-14 Claude Code — optimización máxima en `dev`
+
+- Validadores Ajv precompilados (`apps/web/scripts/build-validators.mjs`, con `--check` en el build y tests).
+- Armazón estático en `index.html` (`src/content/shell.ts`) y armazón inmediato en React; Señal y Comparar diferidas por scroll.
+- Plugin de Vite: precarga de datos, `prefetch` del chunk 2D, favicon en línea y póster del globo solo en escritorio, posicionado por `src/boot/posterLayout.js` (test de paridad con `mapZoom`).
+- Mapa 2D instanciado al empezar a acercarse; código, worker e imágenes a la caché en reposo.
+- Textura del globo 2K/4K según pantalla; cámara inicial en el encuadre final.
+- `package_release.py` acepta precargas de archivos listados, favicon `data:` y el póster WebP; 5 tests nuevos.
+- Verificado: 134 pruebas Python, 66 web, build, ZIP sin conexión bajo `/AnalogOS/` y flujo completo en navegador sin errores.
+

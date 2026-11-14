@@ -82,3 +82,19 @@
 .stage-layer.is-dormant { visibility: hidden; pointer-events: none; }
 /* La refracción SVG sobre rótulos que se mueven con el mapa es costosa: aquí basta el desenfoque. */
 .lg-refract .map-stage .globe-label { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+
+/* Ficha mientras llegan los datos: mismo lugar y tamaño, sin saltos de layout. */
+.hero .details-panel.details-loading { display: grid; place-content: center; justify-items: center; gap: 12px; color: var(--muted, #94AABA); font-size: 12px; }
+@media (max-width: 1099px) { .hero .details-panel.details-loading { min-height: 320px; } }
+.lazy-placeholder { visibility: hidden; }
+
+/* Póster del globo: visible al instante, se funde con el globo 3D cuando este está listo. */
+.globe-poster { position: absolute; z-index: 0; max-width: none; pointer-events: none; user-select: none; transition: opacity .45s ease; }
+.globe-poster.is-hidden { opacity: 0; }
+.stage-layer { z-index: 1; }
+
+/* Marcador de la navbar en el armazón estático de index.html: misma altura, sin saltos. */
+.lq-nav-placeholder { height: 54px; }
+@media (max-width: 760px) { .lq-nav-placeholder { height: 50px; } }
+/* En móvil el aviso final ocupa dos líneas: se reserva desde el armazón inicial. */
+@media (max-width: 760px) { .fixture-banner { min-height: 35px; } }

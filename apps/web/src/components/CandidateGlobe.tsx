@@ -14,7 +14,6 @@ import { GLOBE_TEXTURES } from '../data/preload'
 // ============================================================================
 
 const RADIUS = 2
-const GLOBAL_DISTANCE = RADIUS * 3.3
 const CLOSE_DISTANCE = RADIUS * 1.22
 const MIN_DISTANCE = RADIUS * 1.06
 const MAX_DISTANCE = RADIUS * 7
@@ -57,6 +56,10 @@ interface CandidateGlobeProps {
   thresholds: FlatThresholds
   /** El globo ya tiene su textura: se puede empezar a precargar el resto sin competir. */
   onReady?: () => void
+  /** El usuario empezó a acercarse: momento de instanciar el mapa 2D antes del umbral. */
+  onApproach?: () => void
+  /** La textura 4K ya está en pantalla. */
+  onDetailReady?: () => void
   /** La cámara cruzó el umbral de zoom: el globo cede al mapa 2D. */
   onEnterFlat: (handoff: FlatHandoff) => void
   /** Se invoca si el contexto WebGL se pierde, para volver al mapa SVG. */
@@ -78,9 +81,11 @@ function prefersReducedMotion(): boolean {
  * Carga progresiva: la textura 1K (~60 KB) pinta el globo de inmediato y la 4K
  * (nítida en la vista global, incluso en pantallas Retina) la reemplaza al llegar.
  */
-function Earth({ onReady }: { onReady: () => void }) {
+function Earth({ onReady, onDetailReady }: { onReady: () => void; onDetailReady?: () => void }) {
   const [previewMap, bumpMap] = useTexture([GLOBE_TEXTURES.preview, GLOBE_TEXTURES.bump])
   const material = useRef<THREE.MeshStandardMaterial>(null)
+  const onDetailRef = useRef(onDetailReady)
+  onDetailRef.current = onDetailReady
   const { invalidate, gl } = useThree()
   useEffect(onReady, [onReady])
   useMemo(() => {
@@ -103,6 +108,8 @@ function Earth({ onReady }: { onReady: () => void }) {
         material.current.map = texture
         material.current.needsUpdate = true
         invalidate()
+        // Un cuadro después, la textura nítida ya está en pantalla.
+        requestAnimationFrame(() => onDetailRef.current?.())
       }
     })
     return () => {
@@ -387,9 +394,17 @@ function ViewOffset({ inset }: { inset: number }) {
  * Solo se arma después de ver un zoom menor al umbral: al volver con «Vista global»
  * la cámara parte cerca del umbral y no debe rebotar de inmediato al 2D.
  */
-function ZoomWatcher({ active, thresholds, onEnterFlat }: { active: boolean; thresholds: FlatThresholds; onEnterFlat: (handoff: FlatHandoff) => void }) {
+interface ZoomWatcherProps {
+  active: boolean
+  thresholds: FlatThresholds
+  onEnterFlat: (handoff: FlatHandoff) => void
+  onApproach?: () => void
+}
+
+function ZoomWatcher({ active, thresholds, onEnterFlat, onApproach }: ZoomWatcherProps) {
   const { camera, size } = useThree()
   const fired = useRef(false)
+  const approached = useRef(false)
   const armed = useRef(false)
   useEffect(() => {
     fired.current = false
@@ -401,6 +416,10 @@ function ZoomWatcher({ active, thresholds, onEnterFlat }: { active: boolean; thr
     const [lon, lat] = lonLatFromDirection(x, y, z)
     const fov = camera instanceof THREE.PerspectiveCamera ? camera.fov : 40
     const zoom = zoomForAltitude(camera.position.length() - RADIUS, RADIUS, fov, size.height, lat)
+    if (!approached.current && zoom >= thresholds.global + 0.15) {
+      approached.current = true
+      onApproach?.()
+    }
     if (zoom < thresholds.enter - 0.15) {
       armed.current = true
       return
@@ -427,6 +446,8 @@ export default function CandidateGlobe({
   rightInset,
   thresholds,
   onReady,
+  onApproach,
+  onDetailReady,
   onEnterFlat,
   onContextLost,
 }: CandidateGlobeProps) {
@@ -452,7 +473,13 @@ export default function CandidateGlobe({
   const selectedAnchor = callouts.find((row) => row.candidate.site_id === selectedId)?.anchor ?? HOME
   const focus: Position = view.kind === 'at' && view.at ? [view.at.lon, view.at.lat] : view.kind === 'close' ? selectedAnchor : HOME
   const distance = view.kind === 'close' ? CLOSE_DISTANCE : 0
-  const initialPosition = latLngToVec3(HOME[1], HOME[0], GLOBAL_DISTANCE)
+  // La cámara nace ya en el encuadre global del panel: sin animación inicial de alejamiento
+  // (que además se confundiría con un acercamiento y precargaría el 2D antes de tiempo).
+  const [initialPosition] = useState(() => {
+    const aspect = typeof window === 'undefined' ? 1.6 : Math.max(window.innerWidth - rightInset, 1) / Math.max(window.innerHeight, 1)
+    const distance = THREE.MathUtils.clamp(RADIUS * fitDistanceRatio(aspect), MIN_DISTANCE, MAX_DISTANCE)
+    return latLngToVec3(HOME[1], HOME[0], distance)
+  })
 
   return (
     <>
@@ -472,7 +499,7 @@ export default function CandidateGlobe({
       <SunLight />
       {/* Fallback nulo: un <Html> de drei como fallback falla al retirarse con React 19. */}
       <Suspense fallback={null}>
-        <Earth onReady={markReady} />
+        <Earth onReady={markReady} onDetailReady={onDetailReady} />
         <ChileOutline outline={chileOutline} />
         {callouts.map((row) => (
           <Footprint key={row.candidate.site_id} candidate={row.candidate} selected={row.candidate.site_id === selectedId} />
@@ -509,7 +536,7 @@ export default function CandidateGlobe({
         controlsRef={controlsRef}
       />
       <ViewOffset inset={rightInset} />
-      <ZoomWatcher active={active} thresholds={thresholds} onEnterFlat={onEnterFlat} />
+      <ZoomWatcher active={active} thresholds={thresholds} onEnterFlat={onEnterFlat} onApproach={onApproach} />
     </Canvas>
     {!ready && (
       <div className="globe-loading globe-loading-page" role="status">

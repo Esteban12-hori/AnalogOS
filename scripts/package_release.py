@@ -67,8 +67,11 @@ BASEMAP_FILES = (
     "basemaps/s2-cl-pampa-yungay-screening.webp",
     "basemaps/world.webp",
 )
+# Datos que index.html puede precargar (rel=preload): solo estos, ya permitidos arriba.
+DATA_REFERENCES = frozenset({*SCIENCE_FILES, VISUAL_INDEX, BASEMAP_FILES[0]})
 # Referencia relativa a un JS/CSS compilado: carga igual en "/" y en "/AnalogOS/".
-ASSET_REFERENCE = re.compile(r"^(?:\./)?(assets/[A-Za-z0-9._-]+\.(?:js|css))$")
+# También el póster WebP del globo que index.html pinta antes de que cargue la app.
+ASSET_REFERENCE = re.compile(r"^(?:\./)?(assets/[A-Za-z0-9._-]+\.(?:js|css|webp))$")
 # Los chunks y assets que Vite emite (imports diferidos, worker, texturas) se toman de
 # su manifiesto, alcanzables desde la entrada, en vez de relajar el patrón anterior.
 VITE_MANIFEST = ".vite/manifest.json"
@@ -139,12 +142,20 @@ def allowed_files(dist: Path) -> list[str]:
     parser = _References()
     parser.feed(index.read_text(encoding="utf-8"))
     assets = []
+    preloaded = []
     for reference in parser.found:
+        # Favicon en línea: no es un archivo y no sale del documento.
+        if reference.startswith("data:"):
+            continue
+        # Precarga de datos: solo archivos que ya están en la lista explícita.
+        if reference.startswith("./") and reference[2:] in DATA_REFERENCES:
+            preloaded.append(reference[2:])
+            continue
         match = ASSET_REFERENCE.match(reference)
         if not match:
             raise ReleaseError(
                 f"Referencia no permitida en index.html: {reference!r}. "
-                "Solo se aceptan rutas relativas a assets/*.js o assets/*.css (base './' en Vite)."
+                "Solo se aceptan rutas relativas a assets/*.js, *.css o *.webp (base './' en Vite)."
             )
         assets.append(match.group(1))
     if not any(name.endswith(".js") for name in assets):
@@ -152,7 +163,8 @@ def allowed_files(dist: Path) -> list[str]:
 
     optional = [name for name in BASEMAP_FILES if (dist / name).exists() or (dist / name).is_symlink()]
     allowed = sorted({
-        "index.html", *assets, *_manifest_assets(dist, assets), *SCIENCE_FILES, VISUAL_INDEX, *VISUAL_IMAGES, *optional,
+        "index.html", *assets, *_manifest_assets(dist, assets), *SCIENCE_FILES, VISUAL_INDEX, *VISUAL_IMAGES,
+        *optional, *preloaded,
     })
     found = set()
     for folder, folders, files in os.walk(dist):

@@ -29,14 +29,15 @@ async function fetchJson(path: string): Promise<unknown> {
 }
 
 export async function loadDemoSnapshot(): Promise<DemoSnapshot> {
-  const [candidateData, manifestData, profileData, outlineData] = await Promise.all([
+  // Todo en paralelo (index.html ya los precarga). analysis-summary.json es opcional:
+  // un snapshot sin él sigue siendo válido.
+  const [candidateData, manifestData, profileData, outlineData, summaryData] = await Promise.all([
     fetchJson('candidate-details.json'),
     fetchJson('manifest.json'),
     fetchJson('mission-profile.json'),
     fetchJson('chile-outline.geojson'),
+    fetchJson('analysis-summary.json').catch(() => null),
   ])
-  // Opcional: un snapshot sin analysis-summary.json sigue siendo válido.
-  const summaryData = await fetchJson('analysis-summary.json').catch(() => null)
 
   assertSnapshotContracts(candidateData, manifestData, profileData)
 

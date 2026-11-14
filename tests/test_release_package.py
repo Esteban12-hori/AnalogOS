@@ -344,3 +344,29 @@ def test_unknown_basemap_file_is_rejected(lazy_dist: Path, tmp_path: Path):
     (lazy_dist / "basemaps" / "extra.webp").write_bytes(b"x")
     with pytest.raises(release.ReleaseError, match="Archivo inesperado"):
         run(lazy_dist, tmp_path / "out")
+
+
+def test_index_may_preload_listed_data_and_inline_favicon(dist: Path, tmp_path: Path):
+    hints = ('<link rel="icon" href="data:,">'
+             '<link rel="preload" as="fetch" crossorigin href="./science-v2/manifest.json">'
+             '<link rel="preload" as="fetch" crossorigin href="./visual-context/index.json">')
+    (dist / "index.html").write_text(INDEX.replace("</head>", hints + "</head>"), encoding="utf-8")
+    zip_path, _, _ = run(dist, tmp_path / "out")
+    with zipfile.ZipFile(zip_path) as archive:
+        assert sorted(archive.namelist()) == EXPECTED
+
+
+@pytest.mark.parametrize("href", ["./science-v2/otro.json", "./basemaps/../secreto.json", "./visual-context/x.png"])
+def test_index_preload_of_unlisted_file_is_rejected(dist: Path, tmp_path: Path, href: str):
+    (dist / "index.html").write_text(INDEX.replace("</head>", f'<link rel="preload" href="{href}"></head>'), encoding="utf-8")
+    with pytest.raises(release.ReleaseError, match="Referencia no permitida"):
+        run(dist, tmp_path / "out")
+
+
+def test_index_may_reference_a_webp_poster_that_exists(dist: Path, tmp_path: Path):
+    (dist / "assets" / "globe-poster-abc.webp").write_bytes(b"FIXTURE")
+    html = INDEX.replace("</head>", '<link rel="preload" as="image" href="./assets/globe-poster-abc.webp"></head>')
+    (dist / "index.html").write_text(html.replace("<body>", '<body><img src="./assets/globe-poster-abc.webp">'), encoding="utf-8")
+    zip_path, _, _ = run(dist, tmp_path / "out")
+    with zipfile.ZipFile(zip_path) as archive:
+        assert "assets/globe-poster-abc.webp" in archive.namelist()

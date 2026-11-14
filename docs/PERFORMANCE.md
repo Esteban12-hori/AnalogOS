@@ -39,3 +39,34 @@ Lo que sí sigue moviendo la aguja:
 1. Bytes: dividir three.js, servir texturas KTX2/Basis o reducir MapLibre (por ejemplo, cargar el worker solo al acercarse).
 2. Verificar en producción que Vercel aplique la caché de `vercel.json` y Brotli.
 3. Alternativa de arquitectura, no de lenguaje: usar la proyección `globe` de MapLibre con teselas Blue Marble. Un solo motor y sin textura que se pixele, a cambio de rehacer el aspecto del globo (atmósfera, luz) y de agregar teselas locales para el modo sin conexión.
+
+## Segunda ronda: optimización contra producción (https://analogos.vercel.app)
+
+Producción ya sirve todo desde la CDN de Vercel con Brotli, caché inmutable en `/assets` y `HIT`; el cuello de botella no es el servidor.
+
+Cambios:
+- **Validadores precompilados:** Ajv standalone (`scripts/build-validators.mjs`). Misma validación, sin compilar esquemas en el navegador; el JS principal baja de 458 a 353 KB (≈144 → 99 KB comprimido). El build falla si el archivo generado no coincide con `contracts/`.
+- **Armazón inmediato:**
+  - `index.html` trae la barra y el hero como HTML estático (`src/content/shell.ts`), así que el texto se pinta antes del JavaScript.
+  - La app dibuja el armazón sin esperar los datos.
+  - Las secciones bajo el pliegue se cargan al acercarse con el scroll.
+- **Sin cascada de red:** los JSON del snapshot y los índices de imágenes se precargan desde el HTML, en baja prioridad, y `analysis-summary.json` va en paralelo.
+- **Mapa 2D bajo demanda:** chunk, worker e imágenes se descargan en reposo sin ejecutarse; MapLibre se instancia cuando el usuario empieza a acercarse, un paso antes del umbral.
+- **Póster del globo en escritorio:** imagen de 64 KB renderizada desde la app, colocada con la misma fórmula del 3D (verificado al píxel) y retirada cuando la textura nítida está lista. En móvil no se descarga: allí sería el LCP y llegaría después del texto.
+- **Textura adaptativa:** 2K en teléfonos y pantallas comunes, 4K solo donde se nota (2π·radio·dpr texeles).
+- **Cámara en el encuadre final desde el primer cuadro** (evita precargas falsas) y favicon en línea (sin 404).
+
+Lighthouse, mediana de 5 corridas, mismo servidor local (Brotli precomprimido) para `main` y `dev`:
+
+| Perfil | Versión | Puntaje | FCP | LCP | TBT | Speed Index |
+|---|---|---|---|---|---|---|
+| Móvil (4G lenta, CPU ×4) | `main` | 81 | 2,2 s | 4,1 s | 222 ms | 2,8 s |
+| Móvil | `dev` | 75 | 2,0 s | 5,0 s | 148 ms | 3,2 s |
+| Escritorio | `main` | 99 | 0,5 s | 0,8 s | 0 ms | 0,8 s |
+| Escritorio | `dev` | 99 | 0,4 s | 1,0 s | 18 ms | 0,7 s |
+
+Las métricas observadas (sin simular) del mismo análisis móvil: LCP de 482 ms en `main` contra 136–144 ms en `dev`, y FCP de 152 ms contra 110–130 ms. El LCP móvil simulado por Lighthouse (Lantern) le asigna ~5 s al texto del hero en ambas versiones; es una estimación ruidosa para este grafo. Lo medido en el navegador es ~3,4 veces más rápido.
+
+Advertencias de método:
+- Un servidor local que comprime en cada petición sesga mucho los resultados. Hay que precomprimir, como una CDN.
+- Hay que verificar que la app cargue en cada build: un `index.html` cacheado dio una vez un «100» falso con la app rota.

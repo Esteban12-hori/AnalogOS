@@ -1,9 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { CandidateDetails } from './components/CandidateDetails'
-import { CandidateComparison } from './components/CandidateComparison'
+import { LazySection } from './components/LazySection'
 import { MapStage } from './components/MapStage'
+import { SHELL_TEXT } from './content/shell'
 import { LiquidNav, liquidIcons, type LiquidNavItem } from './components/LiquidNav'
-import { SurfaceSignals } from './components/SurfaceSignals'
+
+// Secciones bajo el pliegue: su código se descarga al acercarse con el scroll.
+const SurfaceSignals = lazy(() => import('./components/SurfaceSignals').then((m) => ({ default: m.SurfaceSignals })))
+const CandidateComparison = lazy(() => import('./components/CandidateComparison').then((m) => ({ default: m.CandidateComparison })))
 import { LiquidBackdrop, useLiquidPointer } from './liquid/LiquidGlass'
 import { loadDemoSnapshot, type DemoSnapshot } from './data/loadDemoSnapshot'
 import { loadVisualContext, type VisualContextState } from './data/loadVisualContext'
@@ -130,16 +134,6 @@ function App() {
   const stagePassive = useStagePassive(loadState.status === 'ready')
   useLiquidPointer()
 
-  if (loadState.status === 'loading') {
-    return (
-      <main className="system-state">
-        <LiquidBackdrop />
-        <div className="loader" />
-        <p>Cargando snapshot validado…</p>
-      </main>
-    )
-  }
-
   if (loadState.status === 'error') {
     return (
       <main className="system-state error-state">
@@ -152,8 +146,8 @@ function App() {
     )
   }
 
-  const { snapshot } = loadState
-  if (!selected) {
+  const snapshot = loadState.status === 'ready' ? loadState.snapshot : null
+  if (snapshot && !selected) {
     return (
       <main className="system-state error-state">
         <LiquidBackdrop />
@@ -164,47 +158,58 @@ function App() {
     )
   }
 
-  const fixtureMode = snapshot.candidates.every((candidate) => candidate.status === 'fixture')
+  // El armazón (barra, hero, fondo) se dibuja sin esperar los datos: el texto del hero es
+  // el contenido más grande de la primera pantalla y no depende del snapshot.
+  const fixtureMode = snapshot?.candidates.every((candidate) => candidate.status === 'fixture') ?? false
 
   return (
     <div className={`app-shell${stagePassive ? ' stage-passive' : ''}`}>
-      <MapStage
-        candidates={snapshot.candidates}
-        chileOutline={snapshot.chileOutline}
-        selectedId={selected.site_id}
-        onSelect={setSelectedId}
-        rightInset={rightInset}
-        visual={visual}
-        focusSignal={mapFocus}
-      />
+      {snapshot && selected ? (
+        <MapStage
+          candidates={snapshot.candidates}
+          chileOutline={snapshot.chileOutline}
+          selectedId={selected.site_id}
+          onSelect={setSelectedId}
+          rightInset={rightInset}
+          visual={visual}
+          focusSignal={mapFocus}
+        />
+      ) : (
+        <div className="map-stage" aria-hidden="true" />
+      )}
       <div className="stage-scrim" aria-hidden="true" />
       <div className={`fixture-banner${fixtureMode ? '' : ' science-banner'}`} role="status">
         <span />
-        {fixtureMode
-          ? 'DEMOSTRACIÓN TÉCNICA · DATOS SINTÉTICOS · NO ES UN RESULTADO CIENTÍFICO'
-          : 'SCREENING CIENTÍFICO PRELIMINAR · DATOS REALES · NO ES AUTORIZACIÓN DE TERRENO'}
+        {!snapshot
+          ? SHELL_TEXT.bannerLoading
+          : fixtureMode
+            ? 'DEMOSTRACIÓN TÉCNICA · DATOS SINTÉTICOS · NO ES UN RESULTADO CIENTÍFICO'
+            : 'SCREENING CIENTÍFICO PRELIMINAR · DATOS REALES · NO ES AUTORIZACIÓN DE TERRENO'}
       </div>
       <header className="topbar">
         <div className="brand-block">
           <div className="brand-mark" aria-hidden="true" />
           <div>
-            <strong>AnalogOS Chile</strong>
-            <small>Earth analog decision system</small>
+            <strong>{SHELL_TEXT.brand}</strong>
+            <small>{SHELL_TEXT.brandTagline}</small>
           </div>
         </div>
         <LiquidNav items={NAV_ITEMS} active={active} onSelect={goTo} />
         <div className="version-block">
           <span className="status-dot" />
-          Snapshot {snapshot.manifest.snapshot_version}
+          {snapshot ? `Snapshot ${snapshot.manifest.snapshot_version}` : SHELL_TEXT.versionLoading}
         </div>
       </header>
 
       <main id="workspace" className="hero">
         <section className="hero-intro glass" aria-labelledby="hero-title">
-          <span className="section-kicker">{fixtureMode ? 'Corte vertical M1' : 'Snapshot científico v2'} · {snapshot.profile.name}</span>
-          <h1 id="hero-title">No buscamos un lugar que “parezca Marte”.</h1>
-          <p>¿Qué zona reproduce mejor condiciones relevantes para percepción, tracción, navegación y autonomía de rover? Elige un sector en el mapa.</p>
+          <span className="section-kicker">
+            {snapshot ? `${fixtureMode ? 'Corte vertical M1' : 'Snapshot científico v2'} · ${snapshot.profile.name}` : SHELL_TEXT.heroKicker}
+          </span>
+          <h1 id="hero-title">{SHELL_TEXT.heroTitle}</h1>
+          <p>{SHELL_TEXT.heroLead}</p>
         </section>
+        {snapshot && selected ? (
         <CandidateDetails
           key={selected.site_id}
           candidate={selected}
@@ -218,15 +223,24 @@ function App() {
             window.scrollTo({ top: 0, behavior: 'smooth' })
           }}
         />
+        ) : (
+          <aside className="details-panel glass details-loading" aria-busy="true" aria-label="Ficha del candidato">
+            <span className="loader" />
+            <p>Cargando snapshot validado…</p>
+          </aside>
+        )}
       </main>
 
-      <SurfaceSignals candidates={snapshot.candidates} selectedId={selected.site_id} series={snapshot.surfaceSeries} />
-
-      <CandidateComparison
-        candidates={snapshot.candidates}
-        selectedId={selected.site_id}
-        onSelect={setSelectedId}
-      />
+      {snapshot && selected && (
+        <>
+          <LazySection id="signals" className="signals-section glass" minHeight={620}>
+            <SurfaceSignals candidates={snapshot.candidates} selectedId={selected.site_id} series={snapshot.surfaceSeries} />
+          </LazySection>
+          <LazySection id="comparison" className="comparison-section glass" minHeight={360}>
+            <CandidateComparison candidates={snapshot.candidates} selectedId={selected.site_id} onSelect={setSelectedId} />
+          </LazySection>
+        </>
+      )}
 
       <section id="method" className="method-section glass" aria-labelledby="method-title">
         <div className="method-intro">
@@ -246,7 +260,7 @@ function App() {
       <footer className="app-footer">
         <span>NASA Space Apps Challenge 2026</span>
         <span>Static-first · contratos validados · snapshot reproducible</span>
-        <span>Pipeline {snapshot.manifest.pipeline_version}</span>
+        <span>{snapshot ? `Pipeline ${snapshot.manifest.pipeline_version}` : ''}</span>
       </footer>
     </div>
   )

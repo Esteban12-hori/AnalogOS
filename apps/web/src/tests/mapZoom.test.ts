@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { latLngToVec3 } from '../domain/globe'
-import { altitudeForZoom, fitDistanceRatio, flatThresholds, lonLatFromDirection, zoomForAltitude } from '../domain/mapZoom'
+import { altitudeForZoom, fitDistanceRatio, flatThresholds, globeScreenRadius, lonLatFromDirection, zoomForAltitude } from '../domain/mapZoom'
 
 describe('zoomForAltitude / altitudeForZoom', () => {
   it('son inversas entre sí', () => {
@@ -52,5 +52,17 @@ describe('lonLatFromDirection', () => {
       expect(latitude).toBeCloseTo(lat, 6)
       expect(longitude).toBeCloseTo(lon, 6)
     }
+  })
+})
+
+describe('globeScreenRadius', () => {
+  it('el globo cabe en el lado limitante del panel visible', () => {
+    const r = globeScreenRadius(1440, 900, 520)
+    expect(2 * r).toBeLessThan(Math.min(1440 - 520, 900))
+    expect(2 * r).toBeGreaterThan(Math.min(1440 - 520, 900) * 0.7)
+  })
+
+  it('escala con el panel', () => {
+    expect(globeScreenRadius(2880, 1800, 1040)).toBeCloseTo(2 * globeScreenRadius(1440, 900, 520), 6)
   })
 })
