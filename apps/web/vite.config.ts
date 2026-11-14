@@ -14,5 +14,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    // El chunk del globo (three.js) se carga de forma diferida; ver ADR-004.
+    chunkSizeWarningLimit: 1000,
   },
 })

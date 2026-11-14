@@ -77,7 +77,7 @@ Los documentos completos del proyecto están en:
 - Cobertura: screening de Chile completo y refinamiento de 3–5 zonas.
 - Referencia planetaria: NASA PDS/MOLA.
 - Atacama: benchmark de plausibilidad, no respuesta predeterminada.
-- Frontend: Vite, React, TypeScript y mapa SVG local sin WebGL.
+- Frontend: Vite, React, TypeScript, globo 3D con three.js y mapa SVG local como fallback sin WebGL.
 - Pipeline: Python por lotes con `earthaccess` y Statistical API de Copernicus.
 - Entrega P0: archivos estáticos versionados; no backend obligatorio.
 - Score: determinista, explicable y separado de confianza y factibilidad.
@@ -90,7 +90,7 @@ Cambiar cualquiera de estas decisiones requiere un ADR en `docs/decisions/` y ac
 
 ```text
 analogos-chile/
-├── apps/web/                    # React + TypeScript + mapa SVG local
+├── apps/web/                    # React + TypeScript + globo 3D / mapa SVG
 ├── pipelines/                   # ingesta, features, scoring y candidatos
 ├── artifacts/demo/              # fixtures sintéticos para contratos y estados límite
 ├── artifacts/science-v2/        # snapshot científico consumido por la web final

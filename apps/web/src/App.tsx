@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CandidateDetails } from './components/CandidateDetails'
 import { CandidateComparison } from './components/CandidateComparison'
-import { CandidateMap } from './components/CandidateMap'
+import { CandidateMapView } from './components/CandidateMapView'
 import { CandidateRanking } from './components/CandidateRanking'
 import { loadDemoSnapshot, type DemoSnapshot } from './data/loadDemoSnapshot'
 import { rankCandidates } from './domain/scoring'
@@ -118,7 +118,7 @@ function App() {
           selectedId={selected.site_id}
           onSelect={setSelectedId}
         />
-        <CandidateMap
+        <CandidateMapView
           candidates={snapshot.candidates}
           chileOutline={snapshot.chileOutline}
           selectedId={selected.site_id}

@@ -77,3 +77,9 @@
 - Destino cambiado por decisión del equipo: `origin` pasa a https://github.com/Esteban12-hori/AnalogOS (privado). https://github.com/hori0729/AnalogOS queda como remoto secundario `hori0729`, con los dos primeros commits y sin más actualizaciones.
 - Incorporados tres cambios hechos por otro proceso a las 12:15: `README.md` y `docs/ARCHITECTURE.md` alineados con el mapa SVG y `science-v2`, y `tests/test_precision_artifacts.py` con la prueba de NASADEM crudo opcional más una prueba nueva sobre el análisis versionado. Verificado: 31 tests Python aquí; 30 verdes y 1 omitido en un clon limpio sin `data/raw/`.
 - Pendiente: las dos capturas de `submission/assets/` son anteriores a estos rótulos.
+
+## 2026-11-14 Claude Code — rama `redesign/planeta-3d`
+
+- Globo terrestre 3D en el explorador (three.js, R3F, drei) con texturas NASA locales, atmósfera y polígonos de candidatos.
+- Mapa SVG conservado como alternativa y fallback automático sin WebGL (ADR-004, propuesto).
+- Geometría esférica pura en `src/domain/globe.ts` con tests; three.js en chunk diferido.

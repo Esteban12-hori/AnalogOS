@@ -5,6 +5,16 @@
 **Milestone activo:** M6 — empaquetado y entrega  
 **Estado general:** producto funcional y presentable con snapshot científico v2 autenticado. NASADEM corrige el mosaico de borde y Sentinel-2 completa superficie no vegetada. Faltan acciones humanas/externas: video, URLs públicas, integrantes, capas territoriales y revisión experta.
 
+## Rediseño en curso — rama `redesign/planeta-3d` (2026-11-14 12:50)
+
+- **Qué funciona:** el mapa del explorador pasa a ser un globo terrestre 3D (three.js + React Three Fiber) con textura NASA Blue Marble, relieve, atmósfera, contorno de Chile y los tres sectores dibujados como polígonos con rótulos-botón. Botones «Vista global» y «Acercar a la zona»; la cámara sigue la selección del ranking. Alternador «Globo 3D / Mapa 2D»; fallback automático al SVG si no hay WebGL, si el globo falla o si se pierde el contexto.
+- **Cómo ejecutarlo:** `npm run dev` (o `npm run build && npm run preview`).
+- **Pruebas:** `npm run test` (20, incluye `src/tests/globe.test.ts`), `npm run build` verde, revisión en Chromium headless con SwiftShader (vista global, zoom, cambio de selección, 2D↔3D) sin errores de consola salvo el 404 de `favicon.ico` preexistente.
+- **Archivos:** `apps/web/src/components/CandidateGlobe.tsx`, `CandidateGlobe.css`, `CandidateMapView.tsx`, `src/domain/globe.ts`, `src/assets/globe/*`, `src/tests/globe.test.ts`, `App.tsx` (solo import/uso), `vite.config.ts`, `package.json`.
+- **Decisión nueva:** ADR-004 (propuesto) — amplía el stack con three.js sin retirar ADR-001.
+- **Bloqueos:** ninguno. Coordinado con el rediseño `redesign/liquid-glass`: estilos del globo en archivo propio con variables con fallback.
+- **Próximos pasos:** 1) revisar el globo en el equipo de presentación real; 2) aceptar o rechazar ADR-004; 3) adaptar colores del globo a la paleta navy/azul cuando se integre `redesign/liquid-glass`.
+
 ## Resultado disponible
 
 La vista final consume `artifacts/science-v2/`, no fixtures.
