@@ -22,4 +22,19 @@ describe('contextLayers', () => {
     expect(layer).toMatchObject({ id: 's2-cl-a', kind: 'context', image: 'visual-context/cl-a.png', bounds: [-70.05, -24.18, -69.85, -23.98] })
     expect(layer?.label).toContain('≈29 m')
   })
+
+  it('usa la vista previa WebP solo si el SHA-256 coincide con el PNG del índice', () => {
+    const state = {
+      status: 'ready',
+      index: {
+        source: { collection: 'sentinel-2-l2a', attribution: 'Copernicus' },
+        product: { period_label: 'Mosaico', time_range: { from: 'a', to: 'b' }, mosaicking: 'ORBIT', max_cloud_coverage_percent: 40, transformation: 'x2' },
+        sites: [{ site_id: 'cl-a', image: 'cl-a.png', sha256: 'b'.repeat(64), bbox: [0, 0, 1, 1], approx_meters_per_pixel: 29 }],
+      },
+    } as unknown as VisualContextState
+    const good = [{ site_id: 'cl-a', image: 'basemaps/s2-cl-a.webp', source_sha256: 'b'.repeat(64) }]
+    const stale = [{ site_id: 'cl-a', image: 'basemaps/s2-cl-a.webp', source_sha256: 'c'.repeat(64) }]
+    expect(contextLayers(state, good)[0]?.image).toBe('basemaps/s2-cl-a.webp')
+    expect(contextLayers(state, stale)[0]?.image).toBe('visual-context/cl-a.png')
+  })
 })

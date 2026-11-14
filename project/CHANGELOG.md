@@ -212,3 +212,10 @@
 - `vercel.json`: caché inmutable en assets con hash y corta en JSON.
 - `package_release.py` lee `.vite/manifest.json` para los chunks diferidos y admite `basemaps/` explícitos; 7 tests nuevos.
 
+## 2026-11-14 Claude Code — nitidez del globo y carga en `dev`
+
+- Textura del globo progresiva (1K inmediata, 4K WebP nítida); paso al 2D relativo a la vista global (`flatThresholds`).
+- `fetch_basemaps.py --only-derived`: mundo Blue Marble en Mercator y vistas previas WebP de las Sentinel-2 de ADR-005, verificadas por SHA-256.
+- La precarga del 2D espera al globo; el empaquetador admite los nuevos `basemaps/` con nombres fijos.
+- `docs/PERFORMANCE.md`: mediciones y evaluación de Rust (descartado con datos).
+

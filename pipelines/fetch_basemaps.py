@@ -31,6 +31,8 @@ from urllib.request import Request, urlopen
 import numpy as np
 from PIL import Image
 
+import hashlib
+
 from pipelines.contracts import ROOT
 
 WMS = "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi"
@@ -64,6 +66,16 @@ PROBE_MONTHS = [1, 4, 7, 10]
 PROBE_PIXELS = 64
 MIN_COVERAGE = 0.9
 MAX_DATES = 14
+VISUAL_INDEX = ROOT / "artifacts" / "visual-context" / "index.json"
+MERCATOR_MAX_LAT = 85.0511287798
+WORLD = {
+    "id": "world",
+    "layer": "BlueMarble_NextGeneration",
+    "width": 4096,
+    "height": 2048,
+    "out_size": 2048,
+    "source": "NASA Blue Marble: Next Generation (MODIS, 2004) vía NASA GIBS · mundo de respaldo sin conexión",
+}
 SECTOR_MARGIN_DEG = 0.12
 SECTOR_PIXELS = 1536
 
@@ -198,6 +210,59 @@ def select_hls_dates(bounds: list[float]) -> list[tuple[str, str]]:
     return [covered[int(index * step)] for index in range(MAX_DATES)]
 
 
+def build_world() -> dict:
+    """Mundo completo en Web Mercator (±85,05°) para el mapa 2D cuando no hay conexión."""
+    rgba = _wms_png(WORLD["layer"], [-180.0, -90.0, 180.0, 90.0], WORLD["width"], WORLD["height"], None)
+    # Recorte a la banda Mercator y remuestreo por filas a una imagen cuadrada.
+    height = rgba.shape[0]
+    top = round((90 - MERCATOR_MAX_LAT) / 180 * height)
+    band = rgba[top: height - top]
+    warped = warp_rows_to_mercator(band, -MERCATOR_MAX_LAT, MERCATOR_MAX_LAT)
+    image = Image.fromarray(np.clip(warped, 0, 255).astype(np.uint8), "RGBA").convert("RGB")
+    image = image.resize((WORLD["out_size"], WORLD["out_size"]), Image.LANCZOS)
+    path = OUT_DIR / "world.webp"
+    image.save(path, "WEBP", quality=80, method=6)
+    return {
+        "id": WORLD["id"],
+        "kind": "world",
+        "label": "Mundo",
+        "bounds": [-180.0, -MERCATOR_MAX_LAT, 180.0, MERCATOR_MAX_LAT],
+        "image": f"basemaps/{path.name}",
+        "layers": [WORLD["layer"]],
+        "dates": [],
+        "resolution_m": 20000,
+        "gap_fraction": 0.0,
+        "source": WORLD["source"],
+    }
+
+
+def build_context_previews() -> list[dict]:
+    """WebP livianos de las vistas Sentinel-2 de ADR-005 para dibujarlas en el mapa.
+
+    El PNG original no se toca: solo se convierte si su SHA-256 coincide con el del
+    índice, y el manifiesto guarda ese SHA para que la web descarte una copia desfasada.
+    """
+    if not VISUAL_INDEX.is_file():
+        return []
+    index = json.loads(VISUAL_INDEX.read_text())
+    previews = []
+    for site in index.get("sites", []):
+        source = VISUAL_INDEX.parent / site["image"]
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
+        if digest != site["sha256"]:
+            raise RuntimeError(f"El PNG de {site['site_id']} no coincide con su índice; no se deriva vista previa.")
+        out = OUT_DIR / f"s2-{site['site_id']}.webp"
+        Image.open(source).convert("RGBA").save(out, "WEBP", quality=82, method=6)
+        previews.append({
+            "site_id": site["site_id"],
+            "image": f"basemaps/{out.name}",
+            "source_image": f"visual-context/{site['image']}",
+            "source_sha256": digest,
+            "transformation": "Recompresión WebP con pérdida (calidad 82) del PNG original, mismas dimensiones y bbox",
+        })
+    return previews
+
+
 def build_sector(candidate: dict) -> dict:
     bounds = _sector_bounds(candidate)
     west, south, east, north = bounds
@@ -235,11 +300,21 @@ def build_sector(candidate: dict) -> dict:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.parse_args(argv)
+    parser.add_argument("--only-derived", action="store_true",
+                        help="Rehace solo el mundo y las vistas previas Sentinel-2; conserva región y sectores.")
+    args = parser.parse_args(argv)
+    if args.only_derived:
+        manifest = json.loads((OUT_DIR / "basemaps.json").read_text())
+        kept = [entry for entry in manifest["basemaps"] if entry["kind"] in ("regional", "sector")]
+        print("Mundo Blue Marble…")
+        manifest["basemaps"] = [build_world(), *kept]
+        manifest["context_previews"] = build_context_previews()
+        (OUT_DIR / "basemaps.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
+        return
     candidates = json.loads(CANDIDATES.read_text())
     candidates = candidates if isinstance(candidates, list) else candidates["candidates"]
-    print("Regional Blue Marble…")
-    entries = [build_region()]
+    print("Mundo y regional Blue Marble…")
+    entries = [build_world(), build_region()]
     for candidate in candidates:
         print(f"Sector {candidate['site_id']}…")
         entries.append(build_sector(candidate))
@@ -251,6 +326,7 @@ def main(argv: list[str] | None = None) -> None:
         "projection": "Web Mercator por filas (EPSG:3857), bounds en grados WGS84",
         "license": "Imágenes NASA GIBS: uso libre con atribución. HLS incluye datos Copernicus Sentinel-2 modificados.",
         "basemaps": entries,
+        "context_previews": build_context_previews(),
     }
     (OUT_DIR / "basemaps.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
     for entry in entries:

@@ -1,6 +1,6 @@
 import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { CandidateSite, GeoJsonFeatureCollection } from '../domain/contracts'
-import { loadBasemaps, type ActiveSource, type Basemap } from '../data/loadBasemaps'
+import { loadBasemaps, type ActiveSource, type Basemap, type BasemapManifest, type ContextPreview } from '../data/loadBasemaps'
 import type { VisualContextState } from '../data/loadVisualContext'
 import { CandidateMap } from './CandidateMap'
 import type { FlatHandoff, GlobeView } from './CandidateGlobe'
@@ -8,7 +8,7 @@ import './CandidateGlobe.css'
 import './MapStage.css'
 
 import { whenIdle } from '../data/preload'
-import { ZOOM_ENTER_FLAT } from '../domain/mapZoom'
+import { flatThresholds } from '../domain/mapZoom'
 
 // three.js y MapLibre van en chunks aparte, pero se piden de inmediato: el globo al evaluar
 // este módulo (en paralelo con el snapshot) y el mapa 2D apenas el navegador queda ocioso.
@@ -21,8 +21,19 @@ const loadFlat = () => (flatModule ??= importFlat())
 const CandidateGlobe = lazy(() => globeModule)
 const CandidateFlatMap = lazy(loadFlat)
 
-/** Encuadre con que se monta el mapa 2D invisible antes de usarlo (Atacama central). */
-const PREWARM_ENTRY: FlatHandoff = { lon: -69.5, lat: -24, zoom: ZOOM_ENTER_FLAT }
+/** Centro con que se monta el mapa 2D invisible antes de usarlo (Atacama central). */
+const PREWARM_CENTER = { lon: -69.5, lat: -24 }
+
+function useViewport() {
+  const read = () => ({ width: window.innerWidth, height: window.innerHeight })
+  const [size, setSize] = useState(read)
+  useEffect(() => {
+    const onResize = () => setSize(read())
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+  return size
+}
 
 interface MapStageProps {
   candidates: CandidateSite[]
@@ -38,21 +49,25 @@ interface MapStageProps {
 }
 
 /** Convierte las vistas Sentinel-2 validadas en capas del mapa 2D. */
-export function contextLayers(visual: VisualContextState): Basemap[] {
+export function contextLayers(visual: VisualContextState, previews: ContextPreview[] = []): Basemap[] {
   if (visual.status !== 'ready') return []
   const { index } = visual
-  return index.sites.map((site) => ({
+  return index.sites.map((site) => {
+    // WebP liviano solo si fue derivado de este mismo PNG (mismo SHA-256); si no, el original.
+    const preview = previews.find((item) => item.site_id === site.site_id && item.source_sha256 === site.sha256)
+    return {
     id: `s2-${site.site_id}`,
     kind: 'context' as const,
     label: `Copernicus Sentinel-2 L2A · ≈${Math.round(site.approx_meters_per_pixel)} m`,
     bounds: site.bbox,
-    image: `visual-context/${site.image}`,
+    image: preview?.image ?? `visual-context/${site.image}`,
     layers: [index.source.collection],
     dates: [],
     resolution_m: site.approx_meters_per_pixel,
     gap_fraction: 0,
     source: `${index.product.period_label} · contexto revisado (ADR-005)`,
-  }))
+    }
+  })
 }
 
 type Mode = 'globe' | 'flat'
@@ -110,23 +125,32 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
   const [entry, setEntry] = useState<FlatHandoff | null>(null)
   const [focusRequest, setFocusRequest] = useState(0)
   const [pendingFocus, setPendingFocus] = useState(false)
-  const [basemaps, setBasemaps] = useState<Basemap[] | null>(null)
+  const [manifest, setManifest] = useState<BasemapManifest | null>(null)
   const [flatSources, setFlatSources] = useState<ActiveSource[]>([])
   const [prewarm, setPrewarm] = useState(false)
+  const viewport = useViewport()
+  const thresholds = useMemo(
+    () => flatThresholds(viewport.width, viewport.height, rightInset),
+    [viewport.width, viewport.height, rightInset],
+  )
+  const prewarmEntry = useMemo<FlatHandoff>(() => ({ ...PREWARM_CENTER, zoom: thresholds.enter }), [thresholds.enter])
 
-  // En cuanto el navegador está ocioso se monta el 2D oculto: chunk, worker, estilo,
-  // imágenes locales y teselas quedan listos y el paso desde el globo es instantáneo.
+  // Cuando el globo ya dibujó su textura (y el navegador está ocioso) se monta el 2D oculto:
+  // chunk, worker, estilo, imágenes locales y teselas quedan listos sin competir con el globo.
+  const [globeReady, setGlobeReady] = useState(false)
+  const markGlobeReady = useCallback(() => setGlobeReady(true), [])
   useEffect(() => {
+    if (!globeReady) return
     whenIdle(() => {
       void loadFlat()
       setPrewarm(true)
-    }, 2500)
-  }, [])
+    }, 1500)
+  }, [globeReady])
 
   useEffect(() => {
     let alive = true
-    void loadBasemaps().then((items) => {
-      if (alive) setBasemaps(items)
+    void loadBasemaps().then((loaded) => {
+      if (alive) setManifest(loaded)
     })
     return () => {
       alive = false
@@ -148,8 +172,8 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
 
   // El estilo del mapa 2D se arma una vez: se monta cuando ambos índices están resueltos.
   const layers = useMemo(
-    () => (basemaps === null || visual.status === 'loading' ? null : [...basemaps, ...contextLayers(visual)]),
-    [basemaps, visual],
+    () => (manifest === null || visual.status === 'loading' ? null : [...manifest.basemaps, ...contextLayers(visual, manifest.previews)]),
+    [manifest, visual],
   )
 
   const exitFlat = useCallback((handoff: FlatHandoff) => {
@@ -204,6 +228,8 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
               view={view}
               active={mode === 'globe'}
               rightInset={rightInset}
+              thresholds={thresholds}
+              onReady={markGlobeReady}
               onEnterFlat={enterFlat}
               onContextLost={() => setFailed(true)}
             />
@@ -219,10 +245,11 @@ export function MapStage({ candidates, chileOutline, selectedId, onSelect, right
                 basemaps={layers}
                 selectedId={selectedId}
                 onSelect={onSelect}
-                entry={entry ?? PREWARM_ENTRY}
+                entry={entry ?? prewarmEntry}
                 focusRequest={focusRequest}
                 active={mode === 'flat'}
                 rightInset={rightInset}
+                thresholds={thresholds}
                 onExit={exitFlat}
                 onSourcesChange={setFlatSources}
               />

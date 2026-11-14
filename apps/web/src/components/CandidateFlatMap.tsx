@@ -8,7 +8,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import type { CandidateSite, GeoJsonFeatureCollection, Position } from '../domain/contracts'
 import { formatScore } from '../domain/formatting'
 import { geometryCenter, outerRings } from '../domain/globe'
-import { ZOOM_EXIT_FLAT } from '../domain/mapZoom'
+import type { FlatThresholds } from '../domain/mapZoom'
 import { rankCandidates } from '../domain/scoring'
 import { activeSources, type ActiveSource, type Basemap, type Bounds } from '../data/loadBasemaps'
 import type { FlatHandoff } from './CandidateGlobe'
@@ -44,6 +44,8 @@ interface CandidateFlatMapProps {
   active: boolean
   /** Píxeles tapados a la derecha por la ficha flotante. */
   rightInset: number
+  /** Umbrales globo ↔ 2D según el panel visible. */
+  thresholds: FlatThresholds
   onExit: (handoff: FlatHandoff) => void
   onSourcesChange: (sources: ActiveSource[]) => void
 }
@@ -84,7 +86,8 @@ function buildStyle(basemaps: Basemap[], outline: GeoJsonFeatureCollection, cand
     }),
   )
   // Orden de abajo hacia arriba por calidad: regional < mediana HLS por sector < Sentinel-2 por candidato.
-  const rank = { regional: 0, sector: 1, context: 2 } as const
+  const rank = { world: 0, regional: 1, sector: 2, context: 3 } as const
+  const detailed = (basemap: Basemap) => basemap.kind === 'sector' || basemap.kind === 'context'
   const ordered = [...basemaps].sort((a, b) => rank[a.kind] - rank[b.kind])
   return {
     version: 8,
@@ -108,6 +111,13 @@ function buildStyle(basemaps: Basemap[], outline: GeoJsonFeatureCollection, cand
     },
     layers: [
       { id: 'background', type: 'background', paint: { 'background-color': '#02070A' } },
+      // Mundo local de respaldo: queda debajo de las teselas en línea, que lo tapan si hay conexión.
+      ...ordered.filter((basemap) => basemap.kind === 'world').map((basemap) => ({
+        id: `basemap-${basemap.id}`,
+        type: 'raster' as const,
+        source: `basemap-${basemap.id}`,
+        paint: { 'raster-fade-duration': 0 },
+      })),
       { id: 'gibs-blue-marble', type: 'raster', source: 'gibs-blue-marble', paint: { 'raster-fade-duration': 150 } },
       ...ordered.filter((basemap) => basemap.kind === 'regional').map((basemap) => ({
         id: `basemap-${basemap.id}`,
@@ -123,14 +133,12 @@ function buildStyle(basemaps: Basemap[], outline: GeoJsonFeatureCollection, cand
         minzoom: ONLINE_HLS_MIN_ZOOM,
         paint: { 'raster-fade-duration': 150 },
       })),
-      ...ordered.filter((basemap) => basemap.kind !== 'regional').map((basemap) => ({
+      ...ordered.filter(detailed).map((basemap) => ({
         id: `basemap-${basemap.id}`,
         type: 'raster' as const,
         source: `basemap-${basemap.id}`,
         // Los sectores a 30 m entran gradualmente cuando su detalle supera al regional.
-        paint: basemap.kind !== 'regional'
-          ? { 'raster-opacity': ['interpolate', ['linear'], ['zoom'], 7.5, 0, 8.5, 1] as unknown as number, 'raster-fade-duration': 0 }
-          : { 'raster-fade-duration': 0 },
+        paint: { 'raster-opacity': ['interpolate', ['linear'], ['zoom'], 7.5, 0, 8.5, 1] as unknown as number, 'raster-fade-duration': 0 },
       })),
       {
         id: 'chile-outline',
@@ -204,6 +212,7 @@ export default function CandidateFlatMap({
   focusRequest,
   active,
   rightInset,
+  thresholds,
   onExit,
   onSourcesChange,
 }: CandidateFlatMapProps) {
@@ -214,8 +223,8 @@ export default function CandidateFlatMap({
   const onlineHlsLoaded = useRef(false)
   const exiting = useRef(false)
   // Las callbacks cambian en cada render del padre; el mapa se crea una sola vez.
-  const latest = useRef({ onSelect, onExit, onSourcesChange, basemaps, active })
-  latest.current = { onSelect, onExit, onSourcesChange, basemaps, active }
+  const latest = useRef({ onSelect, onExit, onSourcesChange, basemaps, active, thresholds })
+  latest.current = { onSelect, onExit, onSourcesChange, basemaps, active, thresholds }
 
   useEffect(() => {
     const container = containerRef.current
@@ -225,7 +234,7 @@ export default function CandidateFlatMap({
       style: buildStyle(basemaps, chileOutline, candidates, selectedId),
       center: [entry.lon, entry.lat],
       zoom: entry.zoom,
-      minZoom: ZOOM_EXIT_FLAT - 0.6,
+      minZoom: thresholds.exit - 0.6,
       maxZoom: 14,
       attributionControl: false,
       dragRotate: false,
@@ -260,7 +269,7 @@ export default function CandidateFlatMap({
     map.on('moveend', () => {
       reportSources()
       if (!latest.current.active || exiting.current) return
-      if (map.getZoom() < ZOOM_EXIT_FLAT) {
+      if (map.getZoom() < latest.current.thresholds.exit) {
         exiting.current = true
         const center = map.getCenter()
         latest.current.onExit({ lon: center.lng, lat: center.lat, zoom: map.getZoom() })

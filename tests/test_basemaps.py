@@ -53,3 +53,17 @@ def test_manifiesto_versionado_es_coherente():
         if entry["kind"] == "sector":
             assert entry["dates"], "un sector sin fechas no es una mediana trazable"
             assert entry["gap_fraction"] < 0.05
+
+
+def test_vistas_previas_ligadas_al_sha_del_png_original():
+    import hashlib
+
+    manifest = json.loads((ROOT / "artifacts" / "basemaps" / "basemaps.json").read_text())
+    index = json.loads((ROOT / "artifacts" / "visual-context" / "index.json").read_text())
+    shas = {site["site_id"]: site["sha256"] for site in index["sites"]}
+    assert {p["site_id"] for p in manifest["context_previews"]} == set(shas)
+    for preview in manifest["context_previews"]:
+        assert preview["source_sha256"] == shas[preview["site_id"]]
+        original = ROOT / "artifacts" / preview["source_image"]
+        assert hashlib.sha256(original.read_bytes()).hexdigest() == preview["source_sha256"]
+        assert (ROOT / "artifacts" / preview["image"]).is_file()

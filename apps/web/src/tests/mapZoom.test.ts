@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { latLngToVec3 } from '../domain/globe'
-import { altitudeForZoom, lonLatFromDirection, ZOOM_ENTER_FLAT, ZOOM_EXIT_FLAT, zoomForAltitude } from '../domain/mapZoom'
+import { altitudeForZoom, fitDistanceRatio, flatThresholds, lonLatFromDirection, zoomForAltitude } from '../domain/mapZoom'
 
 describe('zoomForAltitude / altitudeForZoom', () => {
   it('son inversas entre sí', () => {
@@ -19,8 +19,28 @@ describe('zoomForAltitude / altitudeForZoom', () => {
     expect(zoomForAltitude(0, 2, 40, 900, 0)).toBe(Number.POSITIVE_INFINITY)
   })
 
-  it('tiene histéresis: se entra al 2D a un zoom mayor del que se sale', () => {
-    expect(ZOOM_ENTER_FLAT).toBeGreaterThan(ZOOM_EXIT_FLAT)
+})
+
+describe('flatThresholds', () => {
+  it('tiene histéresis y ambos umbrales están por encima de la vista global', () => {
+    const t = flatThresholds(1440, 900, 520)
+    expect(t.enter).toBeGreaterThan(t.exit)
+    expect(t.exit).toBeGreaterThan(t.global)
+  })
+
+  it('la vista global no cae en 2D en ninguna pantalla habitual', () => {
+    for (const [w, h, inset] of [[390, 844, 0], [1280, 720, 520], [1440, 900, 520], [2560, 1440, 520], [3840, 2160, 520]]) {
+      const t = flatThresholds(w, h, inset)
+      expect(t.global).toBeLessThan(t.exit)
+    }
+  })
+
+  it('una pantalla más alta tiene la vista global a mayor zoom', () => {
+    expect(flatThresholds(1440, 1400).global).toBeGreaterThan(flatThresholds(1440, 900).global)
+  })
+
+  it('fitDistanceRatio usa el lado limitante del panel', () => {
+    expect(fitDistanceRatio(0.5)).toBeGreaterThan(fitDistanceRatio(1.6))
   })
 })
 

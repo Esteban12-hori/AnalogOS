@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import type { CandidateSite, GeoJsonFeatureCollection, Position } from '../domain/contracts'
 import { formatScore } from '../domain/formatting'
 import { densifyRing, facingFactor, geometryCenter, latLngToVec3, outerRings, type Vec3 } from '../domain/globe'
-import { altitudeForZoom, lonLatFromDirection, ZOOM_ENTER_FLAT, zoomForAltitude } from '../domain/mapZoom'
+import { altitudeForZoom, fitDistanceRatio, type FlatThresholds, lonLatFromDirection, zoomForAltitude } from '../domain/mapZoom'
 import { rankCandidates } from '../domain/scoring'
 import { GLOBE_TEXTURES } from '../data/preload'
 
@@ -53,6 +53,10 @@ interface CandidateGlobeProps {
   active: boolean
   /** Píxeles tapados a la derecha por la ficha; el globo se centra en el espacio restante. */
   rightInset: number
+  /** Umbrales globo ↔ 2D según el panel visible. */
+  thresholds: FlatThresholds
+  /** El globo ya tiene su textura: se puede empezar a precargar el resto sin competir. */
+  onReady?: () => void
   /** La cámara cruzó el umbral de zoom: el globo cede al mapa 2D. */
   onEnterFlat: (handoff: FlatHandoff) => void
   /** Se invoca si el contexto WebGL se pierde, para volver al mapa SVG. */
@@ -70,19 +74,47 @@ function prefersReducedMotion(): boolean {
 // Globo texturizado
 // ============================================================================
 
+/**
+ * Carga progresiva: la textura 1K (~60 KB) pinta el globo de inmediato y la 4K
+ * (nítida en la vista global, incluso en pantallas Retina) la reemplaza al llegar.
+ */
 function Earth({ onReady }: { onReady: () => void }) {
-  const [colorMap, bumpMap] = useTexture([GLOBE_TEXTURES.color, GLOBE_TEXTURES.bump])
+  const [previewMap, bumpMap] = useTexture([GLOBE_TEXTURES.preview, GLOBE_TEXTURES.bump])
+  const material = useRef<THREE.MeshStandardMaterial>(null)
+  const { invalidate, gl } = useThree()
   useEffect(onReady, [onReady])
   useMemo(() => {
-    colorMap.colorSpace = THREE.SRGBColorSpace
-    colorMap.anisotropy = 8
+    previewMap.colorSpace = THREE.SRGBColorSpace
     bumpMap.anisotropy = 4
-  }, [colorMap, bumpMap])
+  }, [previewMap, bumpMap])
+
+  useEffect(() => {
+    let disposed = false
+    let full: THREE.Texture | null = null
+    new THREE.TextureLoader().load(GLOBE_TEXTURES.color, (texture) => {
+      if (disposed) {
+        texture.dispose()
+        return
+      }
+      texture.colorSpace = THREE.SRGBColorSpace
+      texture.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy())
+      full = texture
+      if (material.current) {
+        material.current.map = texture
+        material.current.needsUpdate = true
+        invalidate()
+      }
+    })
+    return () => {
+      disposed = true
+      full?.dispose()
+    }
+  }, [gl, invalidate])
 
   return (
     <mesh>
       <sphereGeometry args={[RADIUS, 96, 96]} />
-      <meshStandardMaterial map={colorMap} bumpMap={bumpMap} bumpScale={0.6} roughness={0.85} metalness={0} />
+      <meshStandardMaterial ref={material} map={previewMap} bumpMap={bumpMap} bumpScale={0.6} roughness={0.85} metalness={0} />
     </mesh>
   )
 }
@@ -260,9 +292,7 @@ interface CameraRigProps {
 
 /** Distancia a la que el globo (con atmósfera) cabe completo en el lado más corto del canvas. */
 function fitDistance(verticalFovDegrees: number, aspect: number): number {
-  const vertical = THREE.MathUtils.degToRad(verticalFovDegrees)
-  const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * aspect)
-  return (RADIUS * 1.12) / Math.sin(Math.min(vertical, horizontal) / 2)
+  return RADIUS * fitDistanceRatio(aspect, verticalFovDegrees)
 }
 
 function CameraRig({ focus, distance: requestedDistance, zoom, nonce, inset, controlsRef }: CameraRigProps) {
@@ -357,7 +387,7 @@ function ViewOffset({ inset }: { inset: number }) {
  * Solo se arma después de ver un zoom menor al umbral: al volver con «Vista global»
  * la cámara parte cerca del umbral y no debe rebotar de inmediato al 2D.
  */
-function ZoomWatcher({ active, onEnterFlat }: { active: boolean; onEnterFlat: (handoff: FlatHandoff) => void }) {
+function ZoomWatcher({ active, thresholds, onEnterFlat }: { active: boolean; thresholds: FlatThresholds; onEnterFlat: (handoff: FlatHandoff) => void }) {
   const { camera, size } = useThree()
   const fired = useRef(false)
   const armed = useRef(false)
@@ -371,11 +401,11 @@ function ZoomWatcher({ active, onEnterFlat }: { active: boolean; onEnterFlat: (h
     const [lon, lat] = lonLatFromDirection(x, y, z)
     const fov = camera instanceof THREE.PerspectiveCamera ? camera.fov : 40
     const zoom = zoomForAltitude(camera.position.length() - RADIUS, RADIUS, fov, size.height, lat)
-    if (zoom < ZOOM_ENTER_FLAT - 0.2) {
+    if (zoom < thresholds.enter - 0.15) {
       armed.current = true
       return
     }
-    if (armed.current && zoom >= ZOOM_ENTER_FLAT) {
+    if (armed.current && zoom >= thresholds.enter) {
       fired.current = true
       onEnterFlat({ lon, lat, zoom })
     }
@@ -395,12 +425,19 @@ export default function CandidateGlobe({
   view,
   active,
   rightInset,
+  thresholds,
+  onReady,
   onEnterFlat,
   onContextLost,
 }: CandidateGlobeProps) {
   const controlsRef = useRef<ControlsRef | null>(null)
   const [ready, setReady] = useState(false)
-  const markReady = useMemo(() => () => setReady(true), [])
+  const onReadyRef = useRef(onReady)
+  onReadyRef.current = onReady
+  const markReady = useMemo(() => () => {
+    setReady(true)
+    onReadyRef.current?.()
+  }, [])
 
   const callouts = useMemo(() => {
     const ranks = new Map(rankCandidates(candidates).map((candidate, index) => [candidate.site_id, index + 1]))
@@ -472,7 +509,7 @@ export default function CandidateGlobe({
         controlsRef={controlsRef}
       />
       <ViewOffset inset={rightInset} />
-      <ZoomWatcher active={active} onEnterFlat={onEnterFlat} />
+      <ZoomWatcher active={active} thresholds={thresholds} onEnterFlat={onEnterFlat} />
     </Canvas>
     {!ready && (
       <div className="globe-loading globe-loading-page" role="status">

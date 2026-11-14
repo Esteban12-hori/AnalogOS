@@ -62,6 +62,10 @@ BASEMAP_FILES = (
     "basemaps/cl-pampa-maria-elena-screening.webp",
     "basemaps/cl-pampa-yungay-screening.webp",
     "basemaps/region-norte-grande.webp",
+    "basemaps/s2-cl-domeyko-interior-screening.webp",
+    "basemaps/s2-cl-pampa-maria-elena-screening.webp",
+    "basemaps/s2-cl-pampa-yungay-screening.webp",
+    "basemaps/world.webp",
 )
 # Referencia relativa a un JS/CSS compilado: carga igual en "/" y en "/AnalogOS/".
 ASSET_REFERENCE = re.compile(r"^(?:\./)?(assets/[A-Za-z0-9._-]+\.(?:js|css))$")

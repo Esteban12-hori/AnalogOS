@@ -3,10 +3,12 @@
  * respondan al instante. Se dispara al cargar el módulo (en paralelo con el snapshot)
  * y, en segundo plano, se calientan el chunk de MapLibre, su worker y las imágenes.
  */
-import earthTextureUrl from '../assets/globe/earth-blue-marble-2k.jpg'
-import earthBumpUrl from '../assets/globe/earth-topology-1k.jpg'
+import earthPreviewUrl from '../assets/globe/earth-blue-marble-1k.webp'
+import earthTextureUrl from '../assets/globe/earth-blue-marble-4k.webp'
+import earthBumpUrl from '../assets/globe/earth-topology-2k.jpg'
 
-export const GLOBE_TEXTURES = { color: earthTextureUrl, bump: earthBumpUrl } as const
+/** `preview` (1K, ~60 KB) pinta el globo de inmediato; `color` (4K) lo reemplaza al llegar. */
+export const GLOBE_TEXTURES = { preview: earthPreviewUrl, color: earthTextureUrl, bump: earthBumpUrl } as const
 
 const requested = new Set<string>()
 
@@ -41,5 +43,6 @@ export function whenIdle(task: () => void, timeout = 1200): void {
   else window.setTimeout(task, Math.min(timeout, 300))
 }
 
-preloadLink(GLOBE_TEXTURES.color, 'image')
+preloadLink(GLOBE_TEXTURES.preview, 'image')
 preloadLink(GLOBE_TEXTURES.bump, 'image')
+preloadLink(GLOBE_TEXTURES.color, 'image')

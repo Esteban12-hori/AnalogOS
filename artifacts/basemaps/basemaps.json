@@ -7,6 +7,25 @@
   "license": "Imágenes NASA GIBS: uso libre con atribución. HLS incluye datos Copernicus Sentinel-2 modificados.",
   "basemaps": [
     {
+      "id": "world",
+      "kind": "world",
+      "label": "Mundo",
+      "bounds": [
+        -180.0,
+        -85.0511287798,
+        180.0,
+        85.0511287798
+      ],
+      "image": "basemaps/world.webp",
+      "layers": [
+        "BlueMarble_NextGeneration"
+      ],
+      "dates": [],
+      "resolution_m": 20000,
+      "gap_fraction": 0.0,
+      "source": "NASA Blue Marble: Next Generation (MODIS, 2004) vía NASA GIBS · mundo de respaldo sin conexión"
+    },
+    {
       "id": "region-norte-grande",
       "kind": "regional",
       "label": "Norte de Chile",
@@ -129,6 +148,29 @@
       "resolution_m": 30,
       "gap_fraction": 0.0,
       "source": "NASA HLS S30/L30 v2.0 · mediana de 14 fechas 2025 vía NASA GIBS"
+    }
+  ],
+  "context_previews": [
+    {
+      "site_id": "cl-pampa-yungay-screening",
+      "image": "basemaps/s2-cl-pampa-yungay-screening.webp",
+      "source_image": "visual-context/cl-pampa-yungay-screening.png",
+      "source_sha256": "24f6a7b94f3f4f04989634723e68f189938b84b01d0e8a9fe5051012d8d4a9d0",
+      "transformation": "Recompresión WebP con pérdida (calidad 82) del PNG original, mismas dimensiones y bbox"
+    },
+    {
+      "site_id": "cl-pampa-maria-elena-screening",
+      "image": "basemaps/s2-cl-pampa-maria-elena-screening.webp",
+      "source_image": "visual-context/cl-pampa-maria-elena-screening.png",
+      "source_sha256": "97a2c13e05eb38ab3f9daff006859ae82d9d771790a9e205cafacf6f9394d879",
+      "transformation": "Recompresión WebP con pérdida (calidad 82) del PNG original, mismas dimensiones y bbox"
+    },
+    {
+      "site_id": "cl-domeyko-interior-screening",
+      "image": "basemaps/s2-cl-domeyko-interior-screening.webp",
+      "source_image": "visual-context/cl-domeyko-interior-screening.png",
+      "source_sha256": "697f1b809b8d6cae55bf92239b28488ae68e6cd020ac8cf80ee2d443c97df359",
+      "transformation": "Recompresión WebP con pérdida (calidad 82) del PNG original, mismas dimensiones y bbox"
     }
   ]
 }

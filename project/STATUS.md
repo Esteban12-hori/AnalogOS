@@ -40,6 +40,20 @@ Fusiona dos ramas: el globo 3D (`redesign/planeta-3d`) y el rediseño visual (`r
 - **Bloqueos:** ninguno técnico. Abierto: con zoom, el globo se ve pixelado, porque Blue Marble tiene ~10 km por píxel. Propuesta evaluada, pendiente de decisión del usuario: hornear offline parches NASA GIBS, HLS S30 a 30 m por sector y MODIS a 250 m regional.
 - **Próximos pasos:** 1) ~~aceptar ADR-007~~ aceptado por el equipo; 2) decidir la mejora de textura con GIBS; 3) revisar en el equipo de presentación real.
 
+## Nitidez y carga — `dev` (2026-11-14 15:45, Claude, pedido directo del equipo)
+
+- **Problema reportado:** el globo Blue Marble se pixelaba al hacer zoom (la textura 2K de la iteración anterior era insuficiente) y la carga era lenta.
+- **Qué cambió:**
+  - Textura progresiva 1K → 4K WebP.
+  - El paso al 2D ocurre al acercarse ~×1,4 desde la vista global (`flatThresholds`, según la pantalla), donde Blue Marble ~500 m ya es nítido.
+  - La precarga del 2D espera a que el globo esté listo.
+  - Sentinel-2 en el mapa como WebP derivado (229 KB contra 3,4 MB), ligado al SHA del PNG original.
+  - Mundo local para el 2D sin conexión.
+- **Mediciones** (`docs/PERFORMANCE.md`; 8 Mbps, gzip): globo de 2,9 s a 1,9 s; bytes de la sesión de 5,6 MB a 3,4 MB.
+- **Rust:** evaluado y descartado con datos. La CPU es ~0,4 s, el render ya va en GPU, no hay backend y lo que domina son los bytes.
+- **Pruebas:** 129 Python pasan y 1 se omite; 58 web; build, `package_release.py` (ZIP de 29 archivos) y ZIP sin conexión bajo `/AnalogOS/` sin fallas.
+- **Próximos pasos:** 1) medir en producción (Vercel) con Brotli y caché; 2) decidir si conviene la proyección globo de MapLibre (ver PERFORMANCE.md); 3) aceptar ADR-006 y ADR-007.
+
 ## Rendimiento y precarga — rama `redesign/planeta-3d` (2026-11-14 14:55, Claude)
 
 - **Qué cambió:**

@@ -8,7 +8,7 @@ export type Bounds = [west: number, south: number, east: number, north: number]
 export interface Basemap {
   id: string
   /** `context`: vista Sentinel-2 por candidato de ADR-005 (no viene del manifiesto de mapas base). */
-  kind: 'regional' | 'sector' | 'context'
+  kind: 'world' | 'regional' | 'sector' | 'context'
   label: string
   bounds: Bounds
   image: string
@@ -31,7 +31,7 @@ export function parseBasemaps(data: unknown): Basemap[] {
     const item = entry as Record<string, unknown>
     return (
       typeof item.id === 'string' &&
-      (item.kind === 'regional' || item.kind === 'sector') &&
+      (item.kind === 'world' || item.kind === 'regional' || item.kind === 'sector') &&
       typeof item.label === 'string' &&
       isBounds(item.bounds) &&
       item.bounds[0] < item.bounds[2] &&
@@ -44,13 +44,42 @@ export function parseBasemaps(data: unknown): Basemap[] {
   })
 }
 
-export async function loadBasemaps(): Promise<Basemap[]> {
+/** Versión WebP liviana de una vista Sentinel-2 de ADR-005, ligada al SHA-256 de su PNG. */
+export interface ContextPreview {
+  site_id: string
+  image: string
+  source_sha256: string
+}
+
+export function parseContextPreviews(data: unknown): ContextPreview[] {
+  const list = (data as { context_previews?: unknown } | null)?.context_previews
+  if (!Array.isArray(list)) return []
+  return list.filter((entry): entry is ContextPreview => {
+    if (typeof entry !== 'object' || entry === null) return false
+    const item = entry as Record<string, unknown>
+    return (
+      typeof item.site_id === 'string' &&
+      typeof item.image === 'string' &&
+      /^basemaps\/[a-z0-9-]+\.webp$/.test(item.image) &&
+      typeof item.source_sha256 === 'string' &&
+      /^[0-9a-f]{64}$/.test(item.source_sha256)
+    )
+  })
+}
+
+export interface BasemapManifest {
+  basemaps: Basemap[]
+  previews: ContextPreview[]
+}
+
+export async function loadBasemaps(): Promise<BasemapManifest> {
   try {
     const response = await fetch(`${import.meta.env.BASE_URL}basemaps/basemaps.json`)
-    if (!response.ok) return []
-    return parseBasemaps(await response.json())
+    if (!response.ok) return { basemaps: [], previews: [] }
+    const data: unknown = await response.json()
+    return { basemaps: parseBasemaps(data), previews: parseContextPreviews(data) }
   } catch {
-    return []
+    return { basemaps: [], previews: [] }
   }
 }
 
@@ -80,6 +109,7 @@ export function activeSources(view: Bounds, zoom: number, basemaps: Basemap[], o
   const visible = basemaps.filter((basemap) => boundsIntersect(view, basemap.bounds))
   const sectors = visible.filter((basemap) => basemap.kind === 'sector' && zoom >= 8)
   const regional = visible.filter((basemap) => basemap.kind === 'regional')
+  const world = visible.filter((basemap) => basemap.kind === 'world')
   const contexts = visible.filter((basemap) => basemap.kind === 'context' && zoom >= 8)
   const sources: ActiveSource[] = []
   const first = contexts[0]
@@ -105,7 +135,9 @@ export function activeSources(view: Bounds, zoom: number, basemaps: Basemap[], o
     sources.push({ id: 'bluemarble-local', label: 'NASA Blue Marble NG · ~500 m', detail: 'Copia local · norte de Chile' })
   }
   if (online.blueMarble) {
-    sources.push({ id: 'gibs-online', label: 'NASA GIBS Blue Marble', detail: 'Teselas en línea · resto del mundo' })
+    sources.push({ id: 'gibs-online', label: 'NASA Blue Marble NG en línea · ~500 m', detail: 'NASA GIBS · resto del mundo' })
+  } else if (world.length) {
+    sources.push({ id: 'world-local', label: 'NASA Blue Marble NG · ~20 km', detail: 'Copia local mundial (sin conexión)' })
   }
   return sources
 }

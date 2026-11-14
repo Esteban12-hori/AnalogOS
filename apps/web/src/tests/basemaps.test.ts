@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activeSources, boundsIntersect, parseBasemaps, type Basemap } from '../data/loadBasemaps'
+import { activeSources, boundsIntersect, parseBasemaps, parseContextPreviews, type Basemap } from '../data/loadBasemaps'
 
 const regional: Basemap = {
   id: 'region', kind: 'regional', label: 'Norte', bounds: [-73, -30, -65, -17], image: 'basemaps/region.webp',
@@ -66,5 +66,28 @@ describe('capa de contexto Sentinel-2 (ADR-005)', () => {
 
   it('parseBasemaps no acepta entradas de contexto desde el manifiesto de mapas base', () => {
     expect(parseBasemaps({ basemaps: [context] })).toEqual([])
+  })
+})
+
+describe('mundo local y vistas previas', () => {
+  const world: Basemap = {
+    id: 'world', kind: 'world', label: 'Mundo', bounds: [-180, -85.05, 180, 85.05], image: 'basemaps/world.webp',
+    layers: [], dates: [], resolution_m: 20000, gap_fraction: 0, source: 'Blue Marble',
+  }
+
+  it('el mundo local solo se informa sin conexión', () => {
+    expect(activeSources([10, 10, 20, 20], 3.5, [world], offline).map((item) => item.id)).toEqual(['world-local'])
+    expect(activeSources([10, 10, 20, 20], 3.5, [world], { blueMarble: true, hls: null }).map((item) => item.id)).toEqual(['gibs-online'])
+  })
+
+  it('acepta solo vistas previas WebP de basemaps/ con SHA-256 válido', () => {
+    const sha = 'a'.repeat(64)
+    const parsed = parseContextPreviews({ context_previews: [
+      { site_id: 'cl-a', image: 'basemaps/s2-cl-a.webp', source_sha256: sha },
+      { site_id: 'cl-b', image: '../x.webp', source_sha256: sha },
+      { site_id: 'cl-c', image: 'basemaps/s2-cl-c.webp', source_sha256: 'corto' },
+    ] })
+    expect(parsed.map((item) => item.site_id)).toEqual(['cl-a'])
+    expect(parseContextPreviews(null)).toEqual([])
   })
 })
