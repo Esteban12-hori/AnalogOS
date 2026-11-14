@@ -1,0 +1,202 @@
+/*
+ * Líneas Tesla (incremento 6, docs/UX_REDESIGN.md §3.4). Chunk diferido.
+ * Sin blur (marcadores, etiquetas y chips: --marker-bg). Solo se animan opacity, transform y
+ * stroke-dashoffset (SVG pequeño). Las posiciones las escribe el controlador por cuadro sin
+ * transición (manipulación directa); los cambios de modo son fundidos de opacidad.
+ */
+.leaders-layer {
+  /*
+   * Coreografía B (§2.3), parametrizada en tokens porque tesla.com no se pudo validar
+   * visualmente (§7.2): se ajusta aquí sin tocar el código.
+   *   cámara llega → anillo del globo (after-ring) → cada línea se traza (line-dur, cada
+   *   line-stagger) → su etiqueta entra cuando la línea la alcanza (label-dur).
+   */
+  --leaders-after-ring: var(--dur-2);          /* el anillo del lugar aparece: 200 ms */
+  --leaders-line-dur: 360ms;                   /* trazo de cada línea (§2.3 B) */
+  --leaders-line-ease: var(--ease-emph);
+  --leaders-line-stagger: var(--stagger-list); /* 50 ms entre líneas */
+  --leaders-label-dur: 220ms;                  /* entrada de cada etiqueta (§2.3 B) */
+  --leaders-label-ease: var(--ease-enter);
+  --leaders-label-shift: 6px;                  /* la etiqueta entra desde su línea */
+  --leaders-fade: var(--dur-2);                /* líneas ↔ acoplado ↔ chip */
+  --leaders-line: var(--earth-bright, #3FB4EC);
+  --leaders-line-width: 1.25px;
+  --leaders-label-from: calc(var(--leaders-label-shift) * -1);
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--text, #EEF6FB);
+  font-variant-numeric: tabular-nums;
+  transition: opacity var(--dur-2) var(--ease-standard);
+}
+.leaders-layer[data-side="left"] { --leaders-label-from: var(--leaders-label-shift); }
+.leaders-layer[data-busy] { opacity: var(--o-busy); }
+/* En vuelo (waiting) o sin escenario que publique (off): nada se ve; el layout sí, para medir. */
+.leaders-layer[data-phase="waiting"],
+.leaders-layer[data-mode="off"] { visibility: hidden; }
+
+.leaders-svg { position: absolute; inset: 0; overflow: visible; }
+
+/* ---- Visibilidad por modo (data-mode lo escribe el controlador) ---------------------------- */
+.leaders-lines,
+.leaders-mobile,
+.leaders-label,
+.leaders-header,
+.leaders-chip { opacity: 0; transition: opacity var(--leaders-fade) var(--ease-standard); }
+.leaders-layer[data-mode="lines"] .leaders-lines,
+.leaders-layer[data-mode="mobile"] .leaders-mobile,
+.leaders-layer:is([data-mode="lines"], [data-mode="docked"]) :is(.leaders-label, .leaders-header)[data-placed="1"],
+.leaders-layer[data-mode="chip"] .leaders-chip[data-placed="1"] { opacity: 1; }
+
+.leaders-label,
+.leaders-header,
+.leaders-chip { position: absolute; top: 0; left: 0; }
+
+/* ---- Líneas ----------------------------------------------------------------------------------- */
+.leaders-path {
+  fill: none;
+  stroke: var(--leaders-line);
+  stroke-width: var(--leaders-line-width);
+  stroke-linejoin: round;
+  /* Con pathLength=1: un solo guion del largo del trazo, que el dashoffset revela. */
+  stroke-dasharray: 1;
+}
+/* Discontinua = sin dato o por calcular (todo el sitio). */
+.leaders-path[data-pending] { stroke: var(--pending, #6F889A); stroke-dasharray: var(--pending-dash, 4px) 3px; }
+.leaders-path[data-active] { stroke: var(--sel-ring, #EAF4FA); stroke-width: 1.75px; }
+.leaders-dot { fill: var(--leaders-line); }
+
+/* ---- Etiquetas ------------------------------------------------------------------------------- */
+.leaders-card {
+  display: grid;
+  gap: 3px;
+  min-width: 136px;
+  max-width: 212px;
+  padding: 6px 9px 7px;
+  border: 1px solid var(--glass-edge, rgba(190, 225, 245, .12));
+  border-radius: 8px;
+  background: var(--marker-bg, rgba(2, 7, 10, .88));
+  font-size: var(--fs-12, 12px);
+  line-height: 1.25;
+}
+.leaders-label[data-active] .leaders-card { border-color: var(--sel-line); box-shadow: inset 0 2px 0 var(--sel-accent); }
+.leaders-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted, #94AABA);
+  font-size: var(--fs-caps, 11px);
+  font-weight: 650;
+  letter-spacing: var(--caps-tracking, .08em);
+  text-transform: uppercase;
+}
+.leaders-tag {
+  padding: 0 5px;
+  border: 1px solid var(--muted, #94AABA);
+  border-radius: 999px;
+  color: var(--text, #EEF6FB);
+  font-size: var(--fs-min, 10px);
+  letter-spacing: .04em;
+}
+.leaders-values { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.leaders-site { font-size: var(--fs-13, 13px); font-weight: 650; }
+.leaders-site-glyph { color: var(--earth-bright, #3FB4EC); }
+.leaders-mars { color: var(--mars-text, #FF9A7C); font-size: var(--fs-13, 13px); }
+.leaders-mars-glyph { color: var(--mars, #FC734D); }
+.leaders-rule,
+.leaders-nomars { color: var(--muted, #94AABA); font-size: var(--fs-min, 10px); }
+.leaders-sim { display: flex; align-items: center; gap: 6px; font-size: var(--fs-caps, 11px); }
+.leaders-bar {
+  position: relative;
+  width: 52px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, .12);
+}
+.leaders-bar > span {
+  position: absolute;
+  inset: 0;
+  background: var(--earth, #0297DE);
+  transform-origin: left center;
+  transition: transform var(--dur-3) var(--ease-standard); /* barras sí transicionan; cifras no */
+}
+.leaders-bar.is-pending { background: none; border: 1px dashed var(--pending, #6F889A); height: 5px; }
+.leaders-pct { font-weight: 650; }
+.leaders-pct.is-pending { color: var(--pending, #6F889A); font-weight: 500; }
+.leaders-sim-word { color: var(--muted, #94AABA); font-size: var(--fs-min, 10px); }
+.leaders-note { max-width: 194px; color: var(--muted, #94AABA); font-size: var(--fs-min, 10px); }
+
+/* Encabezado de honestidad: medianas de todo el sector, no un punto. */
+.leaders-header-text {
+  max-width: 232px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--marker-bg, rgba(2, 7, 10, .88));
+  color: var(--muted, #94AABA);
+  font-size: var(--fs-min, 10px);
+  font-weight: 600;
+  letter-spacing: .04em;
+  line-height: 1.35;
+}
+
+.leaders-chip-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 1px solid var(--glass-edge, rgba(190, 225, 245, .12));
+  border-radius: 999px;
+  background: var(--marker-bg, rgba(2, 7, 10, .88));
+  font-size: var(--fs-12, 12px);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.leaders-chip-arrow { color: var(--earth-bright, #3FB4EC); }
+
+@media (max-height: 859px) {
+  .leaders-card { gap: 2px; padding: 5px 8px 6px; }
+}
+
+/* ---- Coreografía de entrada (data-phase="enter") ------------------------------------------ */
+@keyframes leaders-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes leaders-label-in { from { opacity: 0; transform: translateX(var(--leaders-label-from)); } }
+@keyframes leaders-fade-in { from { opacity: 0; } }
+
+.leaders-layer[data-phase="enter"] .leaders-path:not([data-pending]) {
+  animation: leaders-draw var(--leaders-line-dur) var(--leaders-line-ease) both;
+  animation-delay: calc(var(--leaders-after-ring) + var(--i, 0) * var(--leaders-line-stagger));
+}
+.leaders-layer[data-phase="enter"] .leaders-path[data-pending] {
+  animation: leaders-fade-in var(--leaders-line-dur) linear both;
+  animation-delay: calc(var(--leaders-after-ring) + var(--i, 0) * var(--leaders-line-stagger));
+}
+.leaders-layer[data-phase="enter"] .leaders-dot {
+  animation: leaders-fade-in var(--dur-2) var(--ease-standard) var(--leaders-after-ring) both;
+}
+.leaders-layer[data-phase="enter"] :is(.leaders-card, .leaders-header-text) {
+  animation: leaders-label-in var(--leaders-label-dur) var(--leaders-label-ease) both;
+  animation-delay: calc(var(--leaders-after-ring) + var(--i, 0) * var(--leaders-line-stagger) + var(--leaders-line-dur));
+}
+.leaders-layer[data-phase="enter"] .leaders-chip-card {
+  animation: leaders-fade-in var(--leaders-label-dur) var(--ease-standard) var(--leaders-after-ring) both;
+}
+
+/* Reduced motion: sin trazos progresivos ni desplazamientos; opacidad ≤150 ms (§2.2 regla 7). */
+@media (prefers-reduced-motion: reduce) {
+  .leaders-layer {
+    --leaders-after-ring: 0ms;
+    --leaders-line-dur: 0ms;
+    --leaders-line-stagger: 0ms;
+    --leaders-label-dur: 150ms;
+    --leaders-label-shift: 0px;
+    --leaders-fade: 150ms;
+  }
+  .leaders-layer[data-phase="enter"] :is(.leaders-path, .leaders-path:not([data-pending]), .leaders-dot) { animation: none; }
+  .leaders-layer[data-phase="enter"] :is(.leaders-card, .leaders-header-text, .leaders-chip-card) {
+    animation: leaders-fade-in 150ms linear both;
+  }
+  .leaders-bar > span { transition: none; }
+}

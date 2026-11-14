@@ -1,0 +1,45 @@
+/* Interruptor «Líneas» del HUD del escenario (chunk principal: es lo único de leaders que se ve sin selección). */
+.leaders-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 28px;
+  padding: 0 11px 0 8px;
+  border: 1px solid var(--line, rgba(190, 225, 245, .14));
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .04);
+  color: var(--text, #EEF6FB);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  transition: border-color var(--dur-1) var(--ease-standard);
+}
+.leaders-toggle:hover { border-color: var(--sel-line); }
+.leaders-toggle:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+.leaders-toggle-track {
+  position: relative;
+  width: 22px;
+  height: 12px;
+  border: 1px solid var(--muted, #94AABA);
+  border-radius: 999px;
+  transition: border-color var(--dur-2) var(--ease-standard), background-color var(--dur-2) var(--ease-standard);
+}
+.leaders-toggle-knob {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted, #94AABA);
+  transition: transform var(--dur-2) var(--ease-standard), background-color var(--dur-2) var(--ease-standard);
+}
+.leaders-toggle[aria-checked="true"] .leaders-toggle-track { border-color: var(--earth-bright); background: rgba(63, 180, 236, .18); }
+.leaders-toggle[aria-checked="true"] .leaders-toggle-knob { transform: translateX(10px); background: var(--earth-bright); }
+.leaders-toggle-state { color: var(--muted, #94AABA); font-weight: 500; }
+
+@media (prefers-reduced-motion: reduce) {
+  .leaders-toggle-knob { transition: background-color var(--dur-2) linear; }
+  .leaders-toggle[aria-checked="true"] .leaders-toggle-knob { transform: none; left: 11px; }
+}
