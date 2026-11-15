@@ -194,7 +194,7 @@ describe('standalone geology export', () => {
   })
 })
 
-describe('carga opcional tolerante', () => {
+describe('fault-tolerant optional loading', () => {
   const ok = () => new Response(JSON.stringify(realRaw), { status: 200 })
 
   it('reads only the local file and validates the package', async () => {

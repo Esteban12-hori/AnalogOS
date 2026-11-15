@@ -1,5 +1,12 @@
 # Working changelog
 
+## 2026-11-15 Codex — final English mobile copy and deployed AI checks
+
+- Deployed English code 18b14eb passed dev/production Actions. Both real Anthropic operations worked in dev and production, with three AR6 geological references. The complete dev export reconstructs identically.
+- Mobile QA found the Refine/pending labels and a metric counter still in Spanish. Corrected the real components and strengthened their rendered-state tests; 41 related tests and build passed. Five test-description fragments corrected. No API/science/contract change.
+- Portable archive regenerated and repeated identically; final publication and production screenshot follow. Evidence in CODEX_ENGLISH_REVIEW and submission/evidence/english/.
+
+
 ## 2026-11-15 Codex — English default accepted for publication
 
 - Reviewed Claude's compatibility, UI/AI and code-prose phases; translated public, internal and historical documentation. Complete English README and retained README.es.md; English pitch/demo counterparts.

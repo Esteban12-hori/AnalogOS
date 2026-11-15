@@ -259,7 +259,7 @@ describe('phases and waiting', () => {
   })
 })
 
-describe('historial (formato v2)', () => {
+describe('history (v2 format)', () => {
   it('validates at the limit and ignores the v1 levels key', () => {
     expect(HISTORY_KEY).toBe('analogos.composer.history.v2')
     expect(parseHistory([{ id: 'a', at: 1, text: 'x', source: 'demo', label: 'y', levels: {}, presetId: null }])).toEqual([])

@@ -68,7 +68,7 @@ export function Composer({ data, placement, onRequestTray }: ComposerProps) {
     return (
       <>
         <button type="button" className="composer-refine" aria-busy={waiting || undefined} onClick={() => onRequestTray?.()}>
-          {waiting ? 'Proponiendo…' : 'Refinar'}
+          {waiting ? 'Proposing…' : 'Refine'}
         </button>
         <GlobeOrbit active={waiting && wait !== 'quiet'} label="Proposing requirements…" />
       </>

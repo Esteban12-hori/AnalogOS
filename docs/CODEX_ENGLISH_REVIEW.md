@@ -79,8 +79,16 @@ Desktop and mobile UI, manual evaluation, Reading navigation, real Anthropic dra
 
 ## Portable archive
 
-The regenerated current archive has 74 entries and 14,891,810 bytes. CRC passed and a second packaging produced identical bytes. SHA-256: `f42ef5d84afe13a22fdccab277a33e8e4b91806e834796ba426431d84ef63daa`. The historical v2 archive is unchanged.
+The regenerated current archive has 74 entries and 14,891,807 bytes. CRC passed and a second packaging produced identical bytes. SHA-256: `86a157e08416a3d1b0ea3e1129c9a45f73e850e464b943936d9cb2e2077e6d19`. The historical v2 archive is unchanged.
 
 ## Publication gates
 
 Regenerate/check the portable archive, publish dev, verify deployed English UI and real AI with geology, then promote main and replace the README screenshot from actual English production. Record deployment evidence here and in STATUS. No new field validation, worldwide coverage or suitability guarantee is claimed.
+
+## Deployed checks and final mobile copy correction
+
+Code `18b14eb` deployed successfully: dev Actions `43722897516`, production Actions `43723439158`. Dev retains its existing Vercel authentication; testing used the authorized signed-in browser, with no protection changes. The dev UI produced four English requirements, explicit confirmation, only AR6 evaluated and three geological references. `submission/evidence/english/dev-live-export.json` was downloaded, validated and rebuilt identically against the trusted bundle/context.
+
+Production's real endpoint returned an English three-requirement draft for the shorter synthetic brief and an AR6 explanation with three geological references for the already-confirmed four-requirement reference request. Its request/evaluation fingerprints match the local trusted export. Evidence: `submission/evidence/english/production-live-smoke.json`. No key is in the client or evidence.
+
+Final deployed mobile inspection at 390×844 found three overlooked display strings: the Refine button, its pending label and the metric counter. Codex translated them, corrected the existing assertion and added coverage for the pending state and the actual rendered sheet counter. **41 relevant tests and build passed** after the correction (`/tmp/analogos-english-mobile-final-tests.log`, `/tmp/analogos-english-mobile-final-build.log`). Five remaining test-description fragments were also translated without changing their assertions. The full suite's earlier 898 web count precedes the one additional focused regression test. This patch changes no API, calculation, data or contract; its updated archive was packaged twice with identical bytes and clean CRC.

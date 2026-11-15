@@ -110,7 +110,7 @@ describe('ClusterChip', () => {
     expect(waiting).toContain('Finding the places in the group')
   })
 
-  it('kindsFromCounts ordena ● ○ ◆', () => {
+  it('kindsFromCounts orders ● ○ ◆', () => {
     expect(kindsFromCounts({ evaluated: 1, insufficient: 1, reference: 2 })).toEqual(['evaluated', 'insufficient', 'reference', 'reference'])
   })
 })

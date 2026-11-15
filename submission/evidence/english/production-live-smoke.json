@@ -1,0 +1,129 @@
+{
+  "environment": "https://analogos.vercel.app",
+  "synthetic_input": "Demonstration test: evaluate Mars rover mobility. Required: regional median slope no greater than 9 degrees. Preferred: at least 95 percent non-vegetated surface. Traction must be checked in the field.",
+  "draft": {
+    "ok": true,
+    "operation": "draft",
+    "client_request_id": "english-production-draft-01",
+    "draft": {
+      "activity": "Mars rover mobility demonstration test",
+      "target_kind": "mars_rover_terrain",
+      "target_profile_id": "mars-rover-screening-v3",
+      "requirements": [
+        {
+          "requirement_id": "ai-1",
+          "importance": "preference",
+          "origin": "ai",
+          "confirmed": false,
+          "source_quote": "regional median slope no greater than 9 degrees",
+          "kind": "measurable",
+          "label": "Regional median slope",
+          "metric_id": "median_slope_degree",
+          "operator": "<=",
+          "value": 9,
+          "unit": "degree",
+          "scale": "window"
+        },
+        {
+          "requirement_id": "ai-2",
+          "importance": "preference",
+          "origin": "ai",
+          "confirmed": false,
+          "source_quote": "at least 95 percent non-vegetated surface",
+          "kind": "measurable",
+          "label": "Non-vegetated surface fraction",
+          "metric_id": "nonvegetated_fraction",
+          "operator": ">=",
+          "value": 95,
+          "unit": "percent",
+          "scale": "window"
+        },
+        {
+          "requirement_id": "ai-3",
+          "importance": "critical",
+          "origin": "ai",
+          "confirmed": false,
+          "source_quote": "Traction must be checked in the field.",
+          "kind": "unmeasured",
+          "label": "Traction",
+          "topic_id": "traction",
+          "detail": "Traction is not a measured metric and must be verified in the field. 'Must' implies a critical need."
+        }
+      ],
+      "open_questions": [
+        "Is the regional median slope limit of 9 degrees a mandatory (critical) requirement? The brief says 'Required' but does not state it as essential or mandatory.",
+        "What traction criteria or thresholds should be checked in the field?"
+      ],
+      "warnings": []
+    },
+    "provenance": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-5-5",
+      "request_id": "req_011Ch4rkigzEfhRcA5AM7Gp3",
+      "created_at": "2026-11-15T14:18:39.305Z",
+      "usage": {
+        "input_tokens": 2055,
+        "output_tokens": 532
+      },
+      "stop_reason": "end_turn"
+    }
+  },
+  "explain": {
+    "ok": true,
+    "operation": "explain",
+    "client_request_id": "english-production-explain-01",
+    "request_fingerprint": "5b188d793e0e7446b610782211b87157cb5d8c5d200cd39663efcf6b7d94c1c9",
+    "evaluation_fingerprint": "90c2986f7e0504324c33c896bf571c25618e7912abe3dee027db521a8f35b5cb",
+    "selection": {
+      "options": [
+        {
+          "site_id": "ar-win-s2580-w06710",
+          "key_requirement_ids": [
+            "ai1-3",
+            "ai1-4",
+            "ai1-1"
+          ],
+          "evidence_ids": [
+            "ar-win-s2580-w06710-nasadem",
+            "ar-win-s2580-w06710-sentinel2"
+          ]
+        }
+      ],
+      "verification_ids": [
+        "ar-win-s2580-w06710|req|ai1-3",
+        "ar-win-s2580-w06710|req|ai1-4",
+        "ar-win-s2580-w06710|fc|2",
+        "ar-win-s2580-w06710|fc|4"
+      ]
+    },
+    "provenance": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-5-5",
+      "request_id": "req_011Ch4rm5Lx8yas5DnXpx2Tu",
+      "created_at": "2026-11-15T14:18:42.271Z",
+      "usage": {
+        "input_tokens": 6691,
+        "output_tokens": 333
+      },
+      "stop_reason": "end_turn"
+    },
+    "geology": {
+      "context_fingerprint": "33f4abc0e738e5be076fbee32e16d81c0009d669af59dd6fb8af51c394e4fcb9",
+      "catalog_fingerprint": "22b45def5f88f88a2116cbf2b2123e3a43aa5c42d4243ddd837c40f9914da9ca",
+      "selection": {
+        "ref_ids": [
+          "ar-win-s2580-w06710|geo|unit-5f856fc0c4b4|caracterizar_material_superficial",
+          "ar-win-s2580-w06710|geo|unit-12a6eab4c2ac|caracterizar_material_superficial",
+          "ar-win-s2580-w06710|geo|unit-12a6eab4c2ac|diversidad_litologica_muestreo"
+        ]
+      }
+    }
+  },
+  "verification": {
+    "html_language": "en",
+    "literal_source_quotes": true,
+    "unconfirmed_requirements": true,
+    "unchanged_evaluation_fingerprint": true,
+    "reference_export": "local-ar6-live-export.json"
+  }
+}

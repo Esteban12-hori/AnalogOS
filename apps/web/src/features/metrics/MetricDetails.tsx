@@ -605,7 +605,7 @@ function SheetCarousel({ views, context, site, data, onShowOnMap }: VariantProps
       </div>
       <div className="metrics-stepper is-sheet">
         <button type="button" className="metrics-step" aria-label="Previous metric" aria-disabled={index <= 0} onClick={() => index > 0 && go(index - 1, 'button')}>◀</button>
-        <span className="metrics-position" aria-hidden="true">{index + 1} de {views.length}</span>
+        <span className="metrics-position" aria-hidden="true">{index + 1} of {views.length}</span>
         <button type="button" className="metrics-step" aria-label="Next metric" aria-disabled={index >= views.length - 1} onClick={() => index < views.length - 1 && go(index + 1, 'button')}>▶</button>
       </div>
       {/* Documented exception (BUILD_CONTRACTS §1.8): APG carousel on mobile with its own region. */}

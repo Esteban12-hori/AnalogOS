@@ -146,6 +146,7 @@ describe('review regressions: lazy metric detail, loading surfaces and verificat
         const html = renderToStaticMarkup(<MetricDetails data={readyData} site={site} variant={variant} context={context} onShowOnMap={noop} />)
         expectEnglish(`MetricDetails ${variant} ${site.site_id}`, html)
         if (variant === 'full') expect(html).toContain('Data quality is assigned by the pipeline per source type (ADR-003)')
+        if (variant === 'sheet') expect(html).toMatch(/class="metrics-position"[^>]*>\d+ of 7<\/span>/)
       }
     }
     const bare = renderToStaticMarkup(<MetricDetails data={readyData} site={v3Snapshot.candidates[0]!} variant="full" context={resolveMetricContext({ site: v3Snapshot.candidates[0]!, candidates: v3Snapshot.candidates, profile: v3Snapshot.profile, marsReference: v3Snapshot.marsReference, mode: 'explorar', evaluation: null, request: null, stale: false })} onShowOnMap={noop} />)

@@ -27,7 +27,7 @@ function findButton(node: ReactNode, label: string): ReactElement<{ onClick: () 
 
 afterEach(() => exportSiteJson.mockReset())
 
-describe('Fuentes · «Descargar ficha (JSON)»', () => {
+describe('Sources · “Download record (JSON)”', () => {
   const site = v3Snapshot.candidates[0]!
   const search = v3Snapshot.search
 

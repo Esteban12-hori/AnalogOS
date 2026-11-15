@@ -34,7 +34,7 @@ function mision(): void {
   uiStore.setState({ mode: 'mision' })
 }
 
-describe('composer · vista (SSR)', () => {
+describe('composer · view (SSR)', () => {
   it('Explore: pill with the “/” key, no figures', () => {
     const html = renderToStaticMarkup(<Composer data={readyData} placement="dock" />)
     expect(html).toContain('composer-pill')
@@ -107,7 +107,14 @@ describe('composer · vista (SSR)', () => {
   it('S1: “Refine” button', () => {
     const html = renderToStaticMarkup(<Composer data={readyData} placement="sheet-head" onRequestTray={() => undefined} />)
     expect(html).toContain('composer-refine')
-    expect(text(html)).toContain('Refinar')
+    expect(text(html)).toContain('Refine')
+  })
+
+  it('S1: the pending AI draft uses an English action label', () => {
+    uiStore.setState({ mode: 'mision', missionPhase: 'interpreting' })
+    const html = renderToStaticMarkup(<Composer data={readyData} placement="sheet-head" onRequestTray={() => undefined} />)
+    expect(text(html)).toContain('Proposing…')
+    expect(html).toContain('aria-busy="true"')
   })
 
   it('✦ means “AI only”: neither the pill, nor the form (also with results), nor “Refine”, nor the static HTML carry it', () => {
