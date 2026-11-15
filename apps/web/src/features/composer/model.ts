@@ -5,6 +5,7 @@
  */
 import type { CandidateSite } from '../../domain/contracts'
 import { formatScore, shortCandidateName } from '../../domain/formatting'
+import { prioritizedCount } from '../../domain/missionView'
 import type { MissionEvaluation } from '../../mission/types'
 
 /** Nombre corto del lugar («Pampa Yungay», sin «— sector de screening»). */
@@ -19,8 +20,9 @@ const OUTCOME_TEXT: Readonly<Record<Exclude<MissionEvaluation['outcome'], 'evalu
 }
 
 /**
- * Línea de resultado del composer: «2 priorizados · #1 Puna Norte · similitud v3 82,4 (sin
- * recalcular)», «Ninguna opción priorizada» o el diagnóstico del alcance.
+ * Línea de resultado del composer: «2 de 6 candidatos priorizados · #1 Puna Norte · similitud v3
+ * 82,4 (sin recalcular)», «Ninguna opción priorizada» o el diagnóstico del alcance. La REF no
+ * cuenta en «N de M candidatos»; si quedó priorizada se nombra aparte.
  */
 export function resultLineText(evaluation: MissionEvaluation, candidates: readonly CandidateSite[]): string {
   if (evaluation.outcome !== 'evaluated') return OUTCOME_TEXT[evaluation.outcome]
@@ -30,11 +32,13 @@ export function resultLineText(evaluation: MissionEvaluation, candidates: readon
   const candidate = candidates.find((item) => item.site_id === first.site_id)
   const name = placeName(candidate?.name ?? first.name)
   const similarity = first.snapshot_scores.similarity
+  const count = prioritizedCount(evaluation)
   return [
-    `${prioritized.length} ${prioritized.length === 1 ? 'priorizado' : 'priorizados'} de ${evaluation.options.length}`,
+    count.of > 0 ? `${count.candidates} de ${count.of} ${count.of === 1 ? 'candidato priorizado' : 'candidatos priorizados'}` : '',
+    count.reference ? (count.of > 0 ? 'REF también priorizada' : 'REF priorizada') : '',
     `#1 ${name}${first.role === 'reference' ? ' (REF)' : ''}`,
     similarity === null ? 'sin similitud v3' : `similitud v3 ${formatScore(similarity)} (sin recalcular)`,
-  ].join(' · ')
+  ].filter(Boolean).join(' · ')
 }
 
 /** Anuncio único por evaluación (mismo texto que la línea, con contexto). */

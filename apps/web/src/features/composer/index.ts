@@ -4,7 +4,7 @@
  * Orquesta con el controlador de misión: `plannerReducer` → confirmación explícita →
  * `evaluateMission` (equipo, ADR-009) → escribe state/mission y ui.missionPhase. Es el ÚNICO
  * escritor de `state/mission.ts`. La IA de Anthropic solo se llama con los botones explícitos.
- * Slots: `dock.composer` (≥1100), `sheet.tray.composer` (S0), `sheet.head` (botón «✦ Refinar»
+ * Slots: `dock.composer` (≥1100), `sheet.tray.composer` (S0), `sheet.head` (botón «Refinar»
  * en S1), `left.mission` (panel ≥1440 en Misión), `full.mission` (pestaña «Tu misión» en S2).
  * El popover de 1100–1439 (y de la bandeja <1100) lo abre el propio Composer.
  *
@@ -17,7 +17,7 @@ import type { AppData } from '../../shell/public'
 
 export interface ComposerProps {
   data: AppData
-  /** 'dock' (≥1100) · 'sheet' (bandeja S0) · 'sheet-head' (botón «✦ Refinar» de la cabecera de S1). */
+  /** 'dock' (≥1100) · 'sheet' (bandeja S0) · 'sheet-head' (botón «Refinar» de la cabecera de S1). */
   placement: 'dock' | 'sheet' | 'sheet-head'
   /** Solo 'sheet-head': pide al armazón volver a la bandeja S0 donde vive el composer. */
   onRequestTray?: () => void

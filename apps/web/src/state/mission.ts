@@ -8,6 +8,7 @@
  * La fase visible vive en `ui.missionPhase`, no aquí.
  */
 import type { ExplanationView } from '../mission/explanation'
+import type { AiProvenance } from '../mission/exportReport'
 import type { PlannerState } from '../mission/plannerState'
 import type { MissionEvaluation, MissionRequest } from '../mission/types'
 import { createStore, useStore } from './store'
@@ -32,6 +33,12 @@ export interface MissionState {
   evaluatedRequest: MissionRequest | null
   /** Motivos destacados: plantilla determinista o selección de la IA validada (§5.2). */
   explanation: ExplanationView | null
+  /**
+   * Procedencia de la selección de la IA (modelo, fecha, request_id) que generó `explanation`;
+   * null con la plantilla. Viaja con la vista: si una edición deja la Lectura atenuada, sigue
+   * diciendo de dónde salió.
+   */
+  explanationProvenance: AiProvenance | null
   source: MissionSource | null
   /** Aumenta con cada evaluación aceptada: punto en la pestaña Misión y un solo anuncio. */
   revision: number
@@ -44,6 +51,7 @@ export const INITIAL_MISSION_STATE: MissionState = {
   stale: false,
   evaluatedRequest: null,
   explanation: null,
+  explanationProvenance: null,
   source: null,
   revision: 0,
 }

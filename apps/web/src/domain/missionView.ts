@@ -91,3 +91,16 @@ export function preferencesText(option: Pick<OptionEvaluation, 'preferences'>): 
   if (total === 0) return null
   return `${met} de ${total} ${total === 1 ? 'preferencia' : 'preferencias'}${unknown > 0 ? ` · ${unknown} sin dato` : ''}`
 }
+
+/**
+ * Recuento de priorizados SIN la REF: la referencia conocida no es un candidato de la búsqueda
+ * (ADR-008). Si el motor del equipo la prioriza, se dice aparte («REF también priorizada»).
+ */
+export function prioritizedCount(evaluation: MissionEvaluation): { candidates: number; of: number; reference: boolean } {
+  const prioritized = evaluation.options.filter((option) => option.status === 'priorizado_para_reconocimiento')
+  return {
+    candidates: prioritized.filter((option) => option.role !== 'reference').length,
+    of: evaluation.options.filter((option) => option.role !== 'reference').length,
+    reference: prioritized.some((option) => option.role === 'reference'),
+  }
+}

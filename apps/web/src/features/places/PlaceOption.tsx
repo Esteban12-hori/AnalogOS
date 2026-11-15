@@ -8,14 +8,39 @@
  * ◆ emblemático: sin %, sin ranking y sin confianza; anillo discontinuo «por calcular».
  */
 import type { CSSProperties } from 'react'
+import type { CandidateSite } from '../../domain/contracts'
 import { countryLabels } from '../../domain/discovery'
 import { feasibilityLabels, formatArea, formatScore } from '../../domain/formatting'
-import { MISSION_STATUS_LABEL, preferencesText } from '../../domain/missionView'
+import { MISSION_STATUS_LABEL, preferencesText, type SiteMissionStatus } from '../../domain/missionView'
 import type { MissionEvaluation } from '../../mission/types'
 import { GLYPH } from '../../shell/public'
 import { placeName, type EvaluatedPlace, type ReferencePlace } from './placeModel'
 
 type Vars = CSSProperties & Record<`--${string}`, string | number>
+
+/** Forma corta de la factibilidad para tarjetas angostas (la completa sigue para lectores de pantalla). */
+const FEASIBILITY_SHORT: Readonly<Record<CandidateSite['feasibility'], string>> = {
+  unknown: 'Factib.: sin evaluar',
+  requires_review: 'Factib.: revisión',
+  potentially_feasible: 'Factib.: posible',
+  excluded: 'Factib.: excluido',
+}
+export const TERRITORIAL_PENDING = 'Factibilidad territorial: pendiente'
+/** Textos más largos que esto pasan a la forma corta en cuanto la tarjeta es de carrusel (places.css). */
+const LONG_CHARS = 20
+
+/**
+ * Chip con texto completo y forma corta. En tarjetas angostas (places.css) se ve la corta y la
+ * completa queda solo para lectores de pantalla: la factibilidad nunca se reduce a «R…».
+ */
+function Chip({ full, short, title }: { full: string; short: string; title: string }) {
+  return (
+    <span className="places-chip" title={title} data-long={full.length > LONG_CHARS ? '' : undefined}>
+      <span className="places-chip-full">{full}</span>
+      <span className="places-chip-short" aria-hidden="true">{short}</span>
+    </span>
+  )
+}
 
 /** Anillo de similitud 0–100. El número aparece ya final: solo el trazo se dibuja. */
 export function SimilarityRing({ value, caption, tag }: { value: number | null; caption: string; tag?: string }) {
@@ -41,25 +66,57 @@ interface EvaluatedProps {
   selected: boolean
 }
 
-/** Primera línea: qué es (● ○ ◆) o, si está elegido, «◉ en el globo» (§2.4: selección). */
-function Kicker({ glyph, label, selected }: { glyph: string; label: string; selected: boolean }) {
+/**
+ * Primera línea: qué es (● ○ ◆) o, si está elegido, «◉ en el globo» (§2.4: selección). En
+ * tarjetas angostas se ve la forma corta («#2 · Priorizado»); la completa queda para lectores de
+ * pantalla (places.css), así el estado nunca termina en «PRIORIZADO PAR…».
+ */
+function Kicker({ glyph, label, short = label, selected }: { glyph: string; label: string; short?: string; selected: boolean }) {
+  const full = selected ? `En el globo · ${label}` : label
   return (
-    <span className="places-kicker" data-selected={selected ? '' : undefined}>
-      <span aria-hidden="true">{selected ? GLYPH.onGlobe : glyph}</span> {selected ? `En el globo · ${label}` : label}
+    <span
+      className="places-kicker"
+      data-selected={selected ? '' : undefined}
+      data-short={short !== full ? kickerFit(full) : undefined}
+    >
+      <span aria-hidden="true">{selected ? GLYPH.onGlobe : glyph}</span>{' '}
+      <span className="places-kicker-full">{full}</span>
+      <span className="places-kicker-short" aria-hidden="true">{short}</span>
     </span>
   )
 }
 
-function kickerText(place: EvaluatedPlace, rankedCount: number): string {
+/**
+ * Ancho (px) por debajo del cual la forma completa del encabezado no entra: versalitas mono de
+ * ~7 px por carácter más el glifo (medido en Chrome). places.css pasa a la forma corta cuando el
+ * encabezado mide menos que el primer escalón (cada 20 px) que alcanza ese ancho.
+ */
+export function kickerFit(text: string): string {
+  const need = text.length * 7 + 14
+  for (let step = 120; step <= 300; step += 20) if (need <= step) return String(step)
+  return 'always'
+}
+
+/** Estado de Misión abreviado para la forma corta del encabezado de la tarjeta. */
+const STATUS_SHORT: Readonly<Record<SiteMissionStatus, string>> = {
+  priorizado_para_reconocimiento: 'Priorizado',
+  no_cumple_requisitos: 'No cumple',
+  evidencia_insuficiente: 'Evid. insuficiente',
+  objetivo_no_soportado: 'No soportado',
+  fuera_de_alcance: 'Fuera del alcance',
+}
+
+function kickerText(place: EvaluatedPlace, rankedCount: number): { label: string; short: string } {
   const { mission, role, rank, status } = place
   if (mission) {
-    const label = MISSION_STATUS_LABEL[mission.status]
     const ref = role === 'reference' ? ' · REF' : ''
-    return mission.rank !== null ? `#${mission.rank}${ref} · ${label}` : `${label}${ref}`
+    const head = mission.rank !== null ? `#${mission.rank}${ref} · ` : ''
+    const tail = mission.rank !== null ? '' : ref
+    return { label: `${head}${MISSION_STATUS_LABEL[mission.status]}${tail}`, short: `${head}${STATUS_SHORT[mission.status]}${tail}` }
   }
-  if (role === 'reference') return 'REF · Referencia conocida'
-  if (status === 'insufficient_data') return 'Datos insuficientes'
-  return `Candidato · #${rank ?? '—'} de ${rankedCount}`
+  if (role === 'reference') return { label: 'REF · Referencia conocida', short: 'REF' }
+  if (status === 'insufficient_data') return { label: 'Datos insuficientes', short: 'Datos insuficientes' }
+  return { label: `Candidato · #${rank ?? '—'} de ${rankedCount}`, short: `#${rank ?? '—'} de ${rankedCount}` }
 }
 
 function glyphOf(place: EvaluatedPlace): string {
@@ -74,17 +131,23 @@ export function EvaluatedOption({ place, rankedCount, selected }: EvaluatedProps
   const option = mission?.option ?? null
   const blocker = option?.critical_failed[0] ? option.requirement_results.find((result) => result.requirement_id === option.critical_failed[0]) : null
   const preferences = option ? preferencesText(option) : null
+  // Objetivo no soportado: la similitud v3 es del perfil rover Marte y no aplica a lo pedido (ADR-009 §2).
+  const unsupported = mission?.status === 'objetivo_no_soportado'
   return (
     <>
-      <Kicker glyph={glyphOf(place)} label={kickerText(place, rankedCount)} selected={selected} />
+      <Kicker glyph={glyphOf(place)} {...kickerText(place, rankedCount)} selected={selected} />
       <strong className="places-name">{placeName(candidate.name)}</strong>
       <span className="places-meta">
         {place.country ? `${countryLabels[place.country]} · ` : ''}
         <span aria-hidden="true">{GLYPH.sector}</span> {formatArea(candidate.area_km2)}
         {role === 'reference' && !mission ? ' · no sale de la búsqueda' : ''}
       </span>
-      <SimilarityRing value={similarity} caption={similarity === null ? 'sin %' : 'similitud v3'} tag={mission ? 'sin recalcular' : undefined} />
-      {blocker ? (
+      {unsupported
+        ? <SimilarityRing value={null} caption="no aplica" />
+        : <SimilarityRing value={similarity} caption={similarity === null ? 'sin %' : 'similitud v3'} tag={mission ? 'sin recalcular' : undefined} />}
+      {unsupported ? (
+        <span className="places-badge">Sin % para este objetivo: la similitud v3 es del perfil rover Marte</span>
+      ) : blocker ? (
         <span className="places-badge" data-tone="fail">Lo impide: {blocker.label}</span>
       ) : preferences ? (
         <span className="places-badge">{preferences}</span>
@@ -100,13 +163,14 @@ export function EvaluatedOption({ place, rankedCount, selected }: EvaluatedProps
           <span className="places-conf is-pending">Confianza sin dato</span>
         ) : (
           <span className="places-conf">
-            Confianza <i aria-hidden="true" style={{ '--v': Math.max(0, Math.min(1, confidence / 100)) } as Vars} /> <b>{formatScore(confidence)}</b>
+            <span className="places-conf-word">Confianza</span><span className="places-conf-short" aria-hidden="true">Conf.</span>
+            <i aria-hidden="true" style={{ '--v': Math.max(0, Math.min(1, confidence / 100)) } as Vars} /> <b>{formatScore(confidence)}</b>
           </span>
         )}
         {mission ? (
-          <span className="places-chip" title="Permisos, acceso, áreas protegidas y propiedad: independiente de este resultado">Factibilidad territorial: pendiente</span>
+          <Chip full={TERRITORIAL_PENDING} short="Factib.: pendiente" title="Permisos, acceso, áreas protegidas y propiedad: independiente de este resultado" />
         ) : (
-          <span className="places-chip" title={feasibilityLabels[candidate.feasibility]}>{feasibilityLabels[candidate.feasibility]}</span>
+          <Chip full={feasibilityLabels[candidate.feasibility]} short={FEASIBILITY_SHORT[candidate.feasibility]} title={`Factibilidad: ${feasibilityLabels[candidate.feasibility]}`} />
         )}
       </span>
     </>
@@ -137,7 +201,7 @@ export function ReferenceOption({ place, selected }: { place: ReferencePlace; se
   const { analog, containsSectorIds } = place
   return (
     <>
-      <Kicker glyph={GLYPH.reference} label={selected ? 'emblemático' : 'Análogo emblemático'} selected={selected} />
+      <Kicker glyph={GLYPH.reference} label={selected ? 'emblemático' : 'Análogo emblemático'} short="Emblemático" selected={selected} />
       <strong className="places-name">{analog.name}</strong>
       <span className="places-meta">{analog.country} · {analog.location.kind === 'region' ? 'región aprox.' : 'zona aprox.'}</span>
       <SimilarityRing value={null} caption="por calcular" />

@@ -10,6 +10,7 @@ import { missionStore } from '../../state/mission'
 import { evaluateExample, readyData, v3Snapshot } from '../../tests/v3Support'
 import { uiStore } from '../../state/ui'
 import { loadReferenceAnalogs, PlaceRail, ReferenceCard as ReferenceCardSlot } from './index'
+import { kickerFit } from './PlaceOption'
 // La tarjeta del ◆ vive en un chunk diferido; aquí se prueba su contenido directamente.
 import ReferenceCard from './ReferenceCardView'
 
@@ -140,6 +141,43 @@ describe('PlaceRail', () => {
     expect(cards[0]).toContain('Factibilidad territorial: pendiente')
     expect(cards[0]).toContain('sin recalcular')
     expect(html).not.toMatch(/% de misión|motor determinista v/)
+  })
+
+  it('objetivo no soportado: el anillo no muestra la similitud del perfil rover como si fuera del objetivo', () => {
+    const { evaluation } = evaluateExample(undefined, [{ type: 'set_target', target: { kind: 'other', stated: 'hábitat lunar' } }])
+    expect(evaluation.outcome).toBe('unsupported_target')
+    missionStore.setState({ evaluation, revision: 1 })
+    uiStore.setState({ mode: 'mision', missionPhase: 'done' })
+    const cards = options(renderToStaticMarkup(<PlaceRail data={ready} placement="dock" />)).map(text)
+    const unsupported = cards.filter((card) => card.includes('Objetivo no soportado'))
+    expect(unsupported.length).toBeGreaterThan(0)
+    for (const card of unsupported) {
+      expect(card).toContain('no aplica')
+      expect(card).toContain('Sin % para este objetivo')
+      expect(card).not.toMatch(/\d+,\d\s*similitud v3/)
+    }
+  })
+
+  it('en Misión el rótulo de la cabecera dice de qué reglas salen los estados (no «del equipo»)', () => {
+    const { evaluation } = evaluateExample()
+    missionStore.setState({ evaluation, revision: 1 })
+    uiStore.setState({ mode: 'mision', missionPhase: 'done' })
+    const html = renderToStaticMarkup(<PlaceRail data={ready} placement="dock" />)
+    expect(html).toContain('estado · reglas mission-rules-1.0.0')
+    expect(html).not.toContain('reglas del equipo')
+  })
+
+  it('factibilidad y estado con forma corta para tarjetas angostas; la completa sigue en el árbol accesible', () => {
+    const html = renderToStaticMarkup(<PlaceRail data={ready} placement="dock" />)
+    expect(html).toContain('<span class="places-chip-full">Requiere revisión</span><span class="places-chip-short" aria-hidden="true">Factib.: revisión</span>')
+    const { evaluation } = evaluateExample()
+    missionStore.setState({ evaluation, revision: 1 })
+    uiStore.setState({ mode: 'mision', missionPhase: 'done' })
+    const mission = renderToStaticMarkup(<PlaceRail data={ready} placement="dock" />)
+    expect(mission).toContain('<span class="places-kicker-full">#1 · Priorizado para reconocimiento</span><span class="places-kicker-short" aria-hidden="true">#1 · Priorizado</span>')
+    expect(mission).toContain('<span class="places-chip-full">Factibilidad territorial: pendiente</span><span class="places-chip-short" aria-hidden="true">Factib.: pendiente</span>')
+    expect(kickerFit('#1 · Priorizado para reconocimiento')).toBe('260')
+    expect(kickerFit('Candidato · #1 de 6')).toBe('160')
   })
 
   it('edición tras evaluar: resultados previos con aria-busy, sin inert, hasta reevaluar', () => {

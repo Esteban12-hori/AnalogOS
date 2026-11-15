@@ -86,6 +86,8 @@
 .planner.is-compact button.pl-card { min-height: 0; padding: 10px 12px; border-radius: 14px; }
 .planner.is-compact .pl-card strong { font-size: var(--fs-13); }
 .planner.is-compact .pl-card span { font-size: var(--fs-min); line-height: 1.35; }
+/* Con un recorrido elegido, las dos tarjetas quedan como selector: sin la descripción. */
+.planner.is-compact .pl-entry:has(.pl-card.on) .pl-card span { display: none; }
 .planner.is-compact .pl-steps { gap: 4px; margin: 8px 0 6px; }
 .planner.is-compact .pl-steps button { min-height: 30px; padding: 0 8px; font-size: var(--fs-min); }
 .planner.is-compact .pl-steps button b { width: 18px; height: 18px; margin-right: 4px; font-size: var(--fs-min); }

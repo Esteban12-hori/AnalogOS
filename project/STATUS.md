@@ -1,9 +1,53 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14, integración del rediseño con dev en `feature/mision-redesign` (Claude Code, pedido directo del usuario). Antes: M8 publicado e IA verificada en dev (Codex).
+**Última actualización:** 2026-11-15, revisión de la integración del rediseño con dev: hallazgos corregidos en `feature/mision-redesign` (Claude Code, pedido directo del usuario). Antes: M8 publicado e IA verificada en dev (Codex).
 **Responsable del checkpoint:** Claude Code (integración); Codex (M8).
 **Milestone activo:** M8 aceptado y entregado. Integración del rediseño lista en `feature/mision-redesign`, pendiente de publicar en dev.
 **Estado general:** planificador de ensayo/sector con motor determinista, snapshot científico v3 y Anthropic opcional funcionando en dev. Siete áreas con evidencia; faltan capas territoriales, contraste local y revisión experta de campo.
+
+## Revisión de la integración: hallazgos corregidos (Claude Code, `feature/mision-redesign`, 2026-11-15)
+
+**Pedido:** «fusiona en dev y haz push». Tres revisiones de `e568d9d` (honestidad científica e IA; recorrido visual 1440/1280/390; no regresión del equipo) dejaron 25 hallazgos: 2 altos, 11 medios y 12 bajos. Se corrigieron los altos, los medios y 9 bajos. **Push a `dev`: no se hizo en este paso.**
+
+### Qué cambió (y cómo se comprobó)
+
+- **Alto · Lectura:** «Todos los requisitos se cumplen…» ya no depende de lo que eligió la IA. `explanationToReading` calcula `emptyNote` y `omitted` con la evaluación. Con selección vacía de la IA se lee «La IA no destacó motivos para 7 lugares; los bloqueos del cálculo están en «Resultado»» y los 7 lugares se listan (vitest y Chrome con `/api/ai` simulado).
+- **Alto · «Tu misión» ≥1440:** sin resultado vigente (`data-focus="mission"`), el planificador ocupa el panel y la Lectura una franja de ~22 %. En la variante compacta, ejemplo y texto van arriba, las tarjetas de recorrido pierden la descripción y «Siguiente →» queda fijo al pie. Medido en 1440×900: hueco de 576 px (antes 344); «Cargar un ejemplo» en 271–305, texto en 396–485 y «Siguiente» en 534–568, todo a la vista sin scroll interno. Con resultado vuelve el reparto 45 % / resto.
+- **Medio · orden:** los motivos siguen el orden de la evaluación aunque la IA invierta la selección. En Chrome se probó con la selección invertida: salen #1…#4 y después los no priorizados. Las verificaciones siguen en el orden de la IA, como dice su rótulo.
+- **Medio · REF en Misión:** `shared/mission/evaluate.ts` (sin cambios) puede darle puesto a la REF. Ahora la REF siempre lleva «REF» en el riel, la hoja S1, el carrusel y el globo, y no cuenta en «N de M candidatos priorizados» ni en el título del carrusel («+ REF»). `referenceNeverRanked.test.ts` suma 6 casos de Misión (pendiente ≤ 10° prioriza a Yungay).
+- **Medio · ✦:** se quitó de la píldora, del formulario de Misión (y de su pulso), de «Refinar», del esqueleto de la Lectura y de la carga de «Tu misión». Hay tests que lo comprueban, también sobre el HTML estático.
+- **Medio · «Enviar»:** el foco va al texto cargado aunque el paso ya estuviera abierto, y la línea de estado dice «Texto cargado en «Tu misión»…». En Chrome, en dos envíos seguidos con el panel desplazado, el foco quedó en el textarea, que quedó a la vista. 0 llamadas a la IA.
+- **Medio · espera de la IA:** la fase ya no aparece en la esquina superior izquierda, encima del logo. La órbita sigue alrededor del globo y el composer muestra la fase.
+- **Medio · rótulos y 2D:** nombre y estado se acortan con «…», nunca el puesto ni el %. `CandidateFlatMap` escribe `--pin-x`. En 390 px el rótulo del 2D termina en x=382 (antes 507) y en 1440 no desborda (`scrollWidth == clientWidth`).
+- **Medio · carrusel:** el título ya no encoge. En tarjetas angostas se usan formas cortas («#2 · Priorizado», «Conf. 77,5», «Factib.: pendiente») y la forma completa queda en el árbol accesible. «similitud v3» se ve entero y la cifra cabe en el anillo (medido en 1440, 1280 y 390, sin recortes).
+- **Medio · Fuentes:** «Descargar ficha (JSON)» usa `buildExport`. En Chrome, la descarga trae `exported_from, notice, site, search_context`.
+- **Medio · privacidad:** el `title` de «Borrar todo» en «Tu misión» ya no dice que nada se guarda, porque hay historial local, y explica cómo borrarlo. `PlannerPanel` del equipo conserva su texto.
+- **Bajos corregidos:** «confirmados por usted» tras confirmar requisitos de la IA. La procedencia de la IA sigue visible con la Lectura atenuada y el rótulo lleva un solo ✦. Con objetivo no soportado, el anillo dice «no aplica». El chip «Métricas en el panel →» va bajo el anillo (en Chrome no se superpone con el rótulo). La precarga de texturas usa `crossorigin` (1 descarga por textura y 0 avisos; antes 2). Las sugerencias se ocultan con el popover abierto. «estado · reglas mission-rules-1.0.0» reemplaza a «reglas del equipo» (ahora prohibido en `copy.test.ts`). El ZIP de entrega está regenerado. El guion de demo y «Recorridos M8» están al día.
+
+### Bajos sin corregir (con motivo)
+
+- `aiLive.test.ts` no compara las huellas del servidor: es un test del equipo que necesita una clave real para correr. No se puede ejecutar aquí, así que no se modificó a ciegas. Queda para el equipo: comparar `evaluation_fingerprint` y `request_fingerprint` y pasar la respuesta por `explain_ok`.
+- La línea móvil termina en la leyenda: devolver `null` cuando la recorta un panel la eliminaría siempre en 390 px, porque la leyenda está siempre entre el pin y la hoja. Es una decisión de diseño. Se probó y se revirtió.
+- El 2D sin red sigue pidiendo teselas GIBS: solo genera ruido en consola, la vista funciona con las copias locales.
+
+### Pruebas realizadas (este paso)
+
+- `npm run verify`: **pytest 190 pasan, 4 omitidas**, `typecheck:server` correcto, **vitest 624 pasan, 2 omitidas** (IA real opt-in) en 53 archivos, y build correcto. Chunk de entrada: 122,9 KB gz (+0,7). CSS inicial: 17,4 KB gz.
+- Tests nuevos o ampliados: `explanationToReading`, `ReadingView` (selección vacía, procedencia con la Lectura atenuada, esqueleto sin ✦), `Composer` (✦, popover, «Borrar todo», «confirmados por usted»), `MissionController` (foco al texto), `PlaceRail` (no soportado, rótulo de reglas, formas cortas), `SourcesTab.test.tsx` (nuevo), `referenceNeverRanked` (Misión), `layoutLeaders` (chip bajo el anillo) y `boot`.
+- Chrome (playwright-core, puerto 4631, build de producción): recorrido completo de Explorar y Misión en 1440×900 con red real (Origen, Método con 50 ventanas, exportación de cabecera y de Fuentes, paso a 2D, Misión sin clave con 0 llamadas a la IA, JSON, edición atenuada y diagnóstico fuera de cobertura). Resultado: `ERRORS []`. Además: flujos de Misión offline en 1440 y 1280 (solo el 404 esperado de `/api/ai`), IA simulada (borrador y explicación), y en móvil 390×844 Explorar, Misión, hoja y 2D, sin `pageerror` ni desborde horizontal.
+- Paquete: `npm run build` + `package_release.py` a `/tmp` dos veces, idénticos. Luego `npm run release:package` en `submission/`: **66 entradas, 14.508.759 bytes, SHA-256 `c5904c66c84ca6d8dfc480f4ad1841b09015a343f63e5bea19d822a54d0f99f8`** (`shasum -c` OK). Servido bajo `/AnalogOS/` sin red externa, en 1440 y 390: Explorar y Misión manual funcionan, y el JSON es válido contra `mission-export.schema.json`, con `ai.draft` y `ai.explanation` en `null`.
+- Invariantes: sin diferencias con `origin/dev` en `shared/`, `server/`, `api/`, `apps/web/src/mission/`, `tsconfig.server.json`, `vercel.json`, `.github/`, `check-vercel-function.mjs`, `package.json`, `package-lock.json`, `artifacts/science-v2`, `artifacts/science-v3`, `artifacts/demo`, ni en los tests del equipo (`aiLive`, `aiServer`, `missionEngine`, `plannerState`, `plannerUi`, `test_discovery.py`). Sin secretos en el diff ni en dist.
+
+### Decisiones nuevas
+
+- La REF conserva el puesto que le da el motor del equipo, siempre rotulado. Ordenar solo `role !== 'reference'` en `shared/mission/evaluate.ts` (ADR-008 §6) queda para el equipo y exige actualizar `ORDERING_RULE`, `missionEngine.test` y los fixtures de exportación.
+- Línea del composer: «N de M candidatos priorizados», sin contar la REF. `ResultView` del equipo sigue diciendo «N de 7 áreas», que sí cuenta la REF como área.
+
+### Próximos tres pasos exactos
+
+1. `git fetch origin` y confirmar que `origin/dev` sigue en `92392f1`. Si avanzó, fusionar y repetir `npm run verify`.
+2. `git push origin feature/mision-redesign:dev` (fast-forward, sin `--force`) y seguir `gh run watch` de `vercel-deploy.yml`.
+3. En `analogos-dev.vercel.app` con sesión autorizada: probar la IA real («Proponer requisitos con IA» y «Destacar motivos con IA»), exportar el JSON y decidir la REF en `evaluate.ts`.
 
 ## Integración del rediseño con dev (Claude Code, rama `feature/mision-redesign`, 2026-11-14)
 
@@ -47,7 +91,7 @@
 
 ### Bloqueos reales
 
-- `submission/analogos-static.zip` (`eacf5dce…`) sigue siendo el de la UI de dev (`9060970`): hay que regenerarlo con `npm run release:package` al publicar esta integración.
+- ~~`submission/analogos-static.zip` (`eacf5dce…`) sigue siendo el de la UI de dev (`9060970`)~~ — resuelto en la revisión: regenerado con la interfaz integrada (`c5904c66…`, bloque de arriba).
 - El push a `dev` (que despliega en `analogos-dev.vercel.app` vía Actions) no se ejecutó en esta sesión. La verificación remota de la IA real queda para el equipo o para el paso de publicación.
 - ADR-010 y ADR-013 requieren aceptación humana.
 

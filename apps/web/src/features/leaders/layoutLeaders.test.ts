@@ -273,6 +273,16 @@ describe('layoutLeaders · degradación 4 → 3 → 2 → 0', () => {
     expectInvariants(input(), behind)
   })
 
+  it('con el sector a la vista, el chip va bajo el anillo: no tapa el rótulo del pin («#1 … 94,9 %»)', () => {
+    const data = input({ labels: LABELS.slice(0, 1) })
+    const layout = layoutLeaders(data)
+    expect(layout.mode).toBe('chip')
+    expect(layout.chip).toBeDefined()
+    // El rótulo del pin ocupa la fila del ancla (≈ ±11 px): el chip empieza bajo el anillo.
+    expect(layout.chip!.y).toBeGreaterThanOrEqual(data.anchor.y + data.anchor.radius)
+    expectInvariants(data, layout)
+  })
+
   it('el chip conserva el lado anterior para no saltar al volver', () => {
     const layout = layoutLeaders(input({ anchor: { x: 420, y: 340, radius: 14, visible: 0 }, previousSide: 'left', previousCount: 4 }))
     expect(layout.mode).toBe('chip')

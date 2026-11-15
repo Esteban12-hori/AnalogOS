@@ -4,7 +4,6 @@
  * con el chunk de misión; mientras tanto se ve un encabezado estático, sin cifras.
  */
 import { Suspense } from 'react'
-import { GLYPH } from '../../shell/public'
 import type { MissionCardProps } from './index'
 import { LazyMissionPanel } from './panel'
 
@@ -14,7 +13,7 @@ export function MissionCard({ data, placement, promise }: MissionCardProps) {
       fallback={
         <section className="composer-card" data-placement={placement} aria-busy="true" aria-label="Tu misión">
           <h2 className="composer-card-title">Tu misión</h2>
-          <p className="composer-card-note"><span aria-hidden="true">{GLYPH.ai}</span> Cargando la tarjeta de misión…</p>
+          <p className="composer-card-note">Cargando la tarjeta de misión…</p>
         </section>
       }
     >

@@ -1,26 +1,19 @@
 /** Pestaña «Fuentes»: contexto satelital, evidencias, límites, verificaciones y datasets. */
 import { VisualContext } from '../../components/VisualContext'
-import type { CandidateSite, DataManifest } from '../../domain/contracts'
+import type { CandidateSite, DataManifest, SearchResults } from '../../domain/contracts'
 import type { VisualContextState } from '../../data/loadVisualContext'
+import { exportSiteJson } from '../actions'
 
 interface SourcesTabProps {
   site: CandidateSite
   manifest: DataManifest
+  /** Alcance de la búsqueda v3: la ficha exportada lo incluye (buildExport del equipo). */
+  search: SearchResults | null
   visual: VisualContextState
   onShowOnMap: () => void
 }
 
-function downloadJson(site: CandidateSite) {
-  const blob = new Blob([JSON.stringify(site, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = `${site.site_id}.json`
-  anchor.click()
-  URL.revokeObjectURL(url)
-}
-
-export function SourcesTab({ site, manifest, visual, onShowOnMap }: SourcesTabProps) {
+export function SourcesTab({ site, manifest, search, visual, onShowOnMap }: SourcesTabProps) {
   return (
     <div className="sources-tab">
       <VisualContext candidate={site} state={visual} onShowOnMap={onShowOnMap} />
@@ -61,7 +54,8 @@ export function SourcesTab({ site, manifest, visual, onShowOnMap }: SourcesTabPr
         </ul>
       </section>
       <div className="detail-actions">
-        <button type="button" onClick={() => downloadJson(site)}>Descargar ficha (JSON)</button>
+        {/* Mismo contenido que «Exportar ficha (JSON)» de la cabecera: aviso, sitio y alcance de la búsqueda. */}
+        <button type="button" onClick={() => exportSiteJson(site, search)}>Descargar ficha (JSON)</button>
       </div>
     </div>
   )

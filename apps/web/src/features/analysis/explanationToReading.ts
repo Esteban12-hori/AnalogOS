@@ -15,7 +15,8 @@ import type { MissionEvaluation, OptionStatus, RequirementResult } from '../../m
 
 export const RESULT_LABEL = (rulesVersion: string) => `Cálculo determinista · reglas ${rulesVersion} · similitud v3 sin recalcular`
 export const TEMPLATE_LABEL = 'Plantilla determinista sin IA'
-export const AI_LABEL = '✦ Motivos destacados con IA (Anthropic) · las cifras salen del cálculo determinista'
+/** Sin ✦: la Lectura lo antepone (aria-hidden) en la capa de IA; así no se repite. */
+export const AI_LABEL = 'Motivos destacados con IA (Anthropic) · las cifras salen del cálculo determinista'
 export const AI_SEND_NOTICE = 'Al pulsar el botón se envían a Anthropic los requisitos confirmados y los resultados ya calculados (no el texto completo del brief).'
 export const STALE_AI_MESSAGE = 'La respuesta no corresponde al cálculo vigente: se mantiene la plantilla determinista.'
 
@@ -39,6 +40,15 @@ export interface ReadingOption {
   lines: readonly ReadingLine[]
 }
 
+/** Lugar con requisitos no cumplidos o sin evaluar para el que la selección no destacó nada. */
+export interface OmittedOption {
+  siteId: string
+  name: string
+  role: 'candidate' | 'reference'
+  rank: number | null
+  statusLabel: string
+}
+
 export interface ReadingModel {
   key: string
   result: {
@@ -59,7 +69,18 @@ export interface ReadingModel {
     notice: string
     /** «claude-… · 2026-11-14 · req_…» solo con IA. */
     provenance: string | null
+    /** Lugares en el orden de la evaluación (nunca en el que devolvió la IA). */
     options: readonly ReadingOption[]
+    /**
+     * Lugares con algún requisito distinto de «cumple» sin motivos en la selección (solo puede
+     * pasar con la IA: la plantilla los destaca todos). Se listan para no callarlos.
+     */
+    omitted: readonly OmittedOption[]
+    /**
+     * Nota cuando no hay motivos que mostrar, decidida con la EVALUACIÓN (nunca con lo que eligió
+     * la IA): todo se cumple, el alcance no tiene cálculo por requisito o la selección omitió lugares.
+     */
+    emptyNote: string | null
     verifications: ReadonlyArray<{ id: string; text: string }>
   }
 }
@@ -96,6 +117,23 @@ function provenanceText(provenance: AiProvenance | null): string | null {
   return [provenance.model, provenance.created_at.slice(0, 10), provenance.request_id].filter(Boolean).join(' · ')
 }
 
+/**
+ * Qué decir cuando faltan motivos. Se decide con la evaluación: «todo se cumple» solo si ningún
+ * resultado es distinto de «cumple»; si la IA dejó lugares sin motivos, se dice y se remite a
+ * «Resultado», donde están los bloqueos del cálculo.
+ */
+export function emptyNote(evaluation: MissionEvaluation, shown: number, omitted: number, ai: boolean): string | null {
+  if (evaluation.outcome !== 'evaluated') return shown === 0 ? 'Sin resultados por requisito en este alcance: el diagnóstico está en «Resultado».' : null
+  if (omitted > 0) {
+    const places = omitted === 1 ? '1 lugar' : `${omitted} lugares`
+    return `${ai ? 'La IA no destacó' : 'La plantilla no destacó'} motivos para ${places}; los bloqueos del cálculo están en «Resultado».`
+  }
+  if (shown > 0) return null
+  if (evaluation.options.every((option) => option.requirement_results.length === 0)) return 'La prueba no tiene requisitos: no hay motivos que destacar.'
+  // Sin omitidos ni líneas: ningún resultado es distinto de «cumple».
+  return 'Todos los requisitos se cumplen donde hay evidencia: no hay motivos que destacar.'
+}
+
 export function explanationToReading(
   view: ExplanationView,
   evaluation: MissionEvaluation,
@@ -104,6 +142,32 @@ export function explanationToReading(
 ): ReadingModel {
   const options = new Map(evaluation.options.map((option) => [option.site_id, option]))
   const ai = view.source === 'anthropic'
+  // La IA no ordena: los lugares van en el orden de la evaluación, sea cual sea el de la selección.
+  const position = new Map(evaluation.options.map((option, index) => [option.site_id, index]))
+  const at = (siteId: string) => position.get(siteId) ?? evaluation.options.length
+  const highlighted = [...view.options]
+    .sort((a, b) => at(a.site_id) - at(b.site_id))
+    .map((item) => {
+      const option = options.get(item.site_id)
+      // Solo IDs de la selección: el texto y las cifras se resuelven contra la evaluación.
+      const lines = item.highlighted
+        .map((entry) => option?.requirement_results.find((result) => result.requirement_id === entry.requirement_id))
+        .filter((result): result is RequirementResult => result !== undefined)
+        .map((result) => requirementLine(result, evaluation))
+      return {
+        siteId: item.site_id,
+        name: option?.name ?? item.name,
+        role: option?.role ?? 'candidate',
+        status: option?.status ?? item.status,
+        statusLabel: MISSION_STATUS_LABEL[option?.status ?? item.status],
+        rank: option?.rank ?? null,
+        lines,
+      } satisfies ReadingOption
+    })
+  const withLines = new Set(highlighted.filter((option) => option.lines.length > 0).map((option) => option.siteId))
+  const omitted: OmittedOption[] = evaluation.options
+    .filter((option) => !withLines.has(option.site_id) && option.requirement_results.some((result) => result.status !== 'cumple'))
+    .map((option) => ({ siteId: option.site_id, name: option.name, role: option.role, rank: option.rank, statusLabel: MISSION_STATUS_LABEL[option.status] }))
   return {
     key: readingKey(evaluation, revision),
     result: {
@@ -139,23 +203,9 @@ export function explanationToReading(
       label: ai ? AI_LABEL : TEMPLATE_LABEL,
       notice: view.notice,
       provenance: ai ? provenanceText(provenance) : null,
-      options: view.options.map((item) => {
-        const option = options.get(item.site_id)
-        // Solo IDs de la selección: el texto y las cifras se resuelven contra la evaluación.
-        const lines = item.highlighted
-          .map((highlighted) => option?.requirement_results.find((result) => result.requirement_id === highlighted.requirement_id))
-          .filter((result): result is RequirementResult => result !== undefined)
-          .map((result) => requirementLine(result, evaluation))
-        return {
-          siteId: item.site_id,
-          name: option?.name ?? item.name,
-          role: option?.role ?? 'candidate',
-          status: option?.status ?? item.status,
-          statusLabel: MISSION_STATUS_LABEL[option?.status ?? item.status],
-          rank: option?.rank ?? null,
-          lines,
-        }
-      }),
+      options: highlighted,
+      omitted,
+      emptyNote: emptyNote(evaluation, withLines.size, omitted.length, ai),
       verifications: view.verifications.map((item) => ({ id: item.id, text: item.text })),
     },
   }

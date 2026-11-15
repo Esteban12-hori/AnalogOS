@@ -351,15 +351,22 @@ export default function CandidateFlatMap({
       const onScreen = center.x >= 0 && center.y >= 0 && center.x <= container.clientWidth && center.y <= container.clientHeight
       if (selection?.kind === 'evaluated' && onScreen) anchor = { siteId: model.id, x: center.x, y: center.y, radius, visible: 1, mode: 'flat' }
     }
-    // Un grupo pegado al seleccionado se corre bajo su anillo y queda compacto (como en el globo).
     for (const item of entryList.current) {
-      const host = item.kind === 'cluster' ? hosts.current.get(item.key) : undefined
+      const host = hosts.current.get(item.key)
       if (!host) continue
       const point = map.project(item.at)
-      const placed = placeNearSelection(point, selectedRing)
-      host.marker.setOffset([placed.x - point.x, placed.y - point.y])
-      const root = host.element.firstElementChild
-      if (root instanceof HTMLElement) setDataFlag(root, 'compact', placed.compact)
+      let x = point.x
+      if (item.kind === 'cluster') {
+        // Un grupo pegado al seleccionado se corre bajo su anillo y queda compacto (como en el globo).
+        const placed = placeNearSelection(point, selectedRing)
+        host.marker.setOffset([placed.x - point.x, placed.y - point.y])
+        const root = host.element.firstElementChild
+        if (root instanceof HTMLElement) setDataFlag(root, 'compact', placed.compact)
+        x = placed.x
+      }
+      // Como applyPinFrame en el globo: el rótulo se acorta antes del riel o del borde (markers.css).
+      const pinX = `${Math.round(x)}px`
+      if (host.element.style.getPropertyValue('--pin-x') !== pinX) host.element.style.setProperty('--pin-x', pinX)
     }
     publishStageFrame({ projection, anchor })
   }, [projection])
@@ -397,7 +404,9 @@ export default function CandidateFlatMap({
     }
     entryList.current = next
     setEntries(next)
-  }, [])
+    // Los Marker nuevos reciben su --pin-x sin esperar al próximo movimiento.
+    publishFrame()
+  }, [publishFrame])
 
   useEffect(() => {
     const container = containerRef.current

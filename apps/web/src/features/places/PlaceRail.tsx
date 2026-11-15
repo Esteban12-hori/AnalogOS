@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import type { ReferenceAnalog } from '../../domain/contracts'
 import { countryLabels, type CountryFilter } from '../../domain/discovery'
+import { prioritizedCount } from '../../domain/missionView'
 import { RULES_VERSION } from '../../mission/catalog'
 import { GLYPH, useReducedMotion, type AppData } from '../../shell/public'
 import { useMission } from '../../state/mission'
@@ -276,11 +277,12 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
   const canList = placement === 'dock' || onListViewChange !== undefined
   const toggleList = () => (onListViewChange ? onListViewChange(!listView) : setLocalList(!localList))
   const fromMission = model.source === 'mission' && missionEvaluation !== null
-  const prioritized = missionEvaluation?.options.filter((option) => option.status === 'priorizado_para_reconocimiento').length ?? 0
+  // La REF no cuenta como priorizado: no es un candidato de la búsqueda (se nombra aparte).
+  const prioritized = missionEvaluation ? prioritizedCount(missionEvaluation) : { candidates: 0, of: 0, reference: false }
   // El modo se oculta en contenedores angostos (la hoja ya tiene las pestañas encima); el rótulo
   // de las reglas nunca se oculta: dice de dónde salen los estados.
   const title = fromMission
-    ? `Tu misión · ${prioritized} ${prioritized === 1 ? 'priorizado' : 'priorizados'}`
+    ? `Tu misión · ${prioritized.candidates} ${prioritized.candidates === 1 ? 'priorizado' : 'priorizados'}${prioritized.reference ? ' + REF' : ''}`
     : <>Lugares<span className="places-suffix"> · {mission ? 'Misión' : 'Explorar'}</span></>
   const note = fromMission
     ? `${busy ? 'Editó la prueba: confirme y evalúe de nuevo · ' : ''}Estados del cálculo determinista (${RULES_VERSION}) · similitud v3 sin recalcular · factibilidad territorial pendiente`
@@ -350,9 +352,9 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
       <div className="places-head">
         <p className="places-title">
           <span>{title}</span>
-          <small><span aria-hidden="true">{GLYPH.evaluated}</span> {model.rankedCount} candidatos · 1 REF</small>
-          <small title={catalog.status === 'unavailable' ? catalog.reason : undefined}><span aria-hidden="true">{GLYPH.reference}</span> {catalogNote}</small>
-          <small className="places-profile">{fromMission ? 'estado · reglas del equipo' : 'similitud v3'}</small>
+          <small className="places-counts"><span aria-hidden="true">{GLYPH.evaluated}</span> {model.rankedCount} candidatos · 1 REF</small>
+          <small className="places-catalog" title={catalog.status === 'unavailable' ? catalog.reason : undefined}><span aria-hidden="true">{GLYPH.reference}</span> {catalogNote}</small>
+          <small className="places-profile">{fromMission ? `estado · reglas ${RULES_VERSION}` : 'similitud v3'}</small>
         </p>
         <div className="places-tools">
           {!fromMission && model.countries.length > 1 && (

@@ -181,14 +181,13 @@ describe('hitos y órbita de la espera', () => {
     expect(getBootMilestones()).toBe(before)
   })
 
-  it('OrbitLoader: nada inactivo; en línea con anillo; en el globo solo el texto de la fase', () => {
+  it('OrbitLoader: nada inactivo; en línea con anillo; en el globo nada en el overlay (la fase la dice el composer)', () => {
     expect(renderToStaticMarkup(<OrbitLoader active={false} label="x" />)).toBe('')
     const inline = renderToStaticMarkup(<OrbitLoader active label="Perfil recibido · paso 2 de 4" />)
     expect(inline).toContain('boot-mini')
     expect(inline).toContain('Perfil recibido · paso 2 de 4')
     const globe = renderToStaticMarkup(<OrbitLoader active label="Interpretando" placement="globe" />)
-    expect(globe).not.toContain('boot-mini')
-    expect(globe).toContain('data-placement="globe"')
+    expect(globe).toBe('')
   })
 
   it('las esperas piden y liberan la órbita del escenario (manda la más antigua)', () => {

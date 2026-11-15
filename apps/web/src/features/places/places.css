@@ -6,8 +6,12 @@
 .places { container: places / inline-size; display: flex; flex-direction: column; gap: 6px; height: 100%; min-width: 0; min-height: 0; }
 .places-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
 .places-title { display: flex; align-items: baseline; gap: 10px; min-width: 0; margin: 0; overflow: hidden; color: var(--muted); font-family: var(--mono); font-size: var(--fs-caps); letter-spacing: var(--caps-tracking); text-transform: uppercase; white-space: nowrap; }
-.places-title > span { overflow: hidden; color: var(--text); text-overflow: ellipsis; }
-.places-title small { font-size: var(--fs-min); }
+/* El título («Tu misión · 4 priorizados») es lo último que se pierde: no encoge; los <small>
+   encogen con «…» y, en contenedores angostos, salen primero el catálogo y el perfil. */
+.places-title > span { flex: none; max-width: 100%; overflow: hidden; color: var(--text); text-overflow: ellipsis; }
+.places-title small { flex: 0 1 auto; min-width: 0; overflow: hidden; font-size: var(--fs-min); text-overflow: ellipsis; }
+.places-title .places-catalog { flex-shrink: 1000; }
+.places-title .places-profile { flex-shrink: 100; }
 .places-title small > span:first-child { color: var(--earth-bright); }
 .places-tools { display: flex; flex: none; align-items: center; gap: 6px; }
 .places-count { color: var(--muted); font-size: var(--fs-min); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -62,9 +66,75 @@
 .places-chip { min-width: 0; padding: 0 7px; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--text); font-size: var(--fs-min); text-overflow: ellipsis; white-space: nowrap; }
 .places-source { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .places-profile { display: none; }
+/*
+ * Formas cortas (encabezado y pie) para tarjetas angostas: «#2 · Priorizado», «Factib.: revisión»,
+ * «Conf.». La forma completa sale de la vista pero no del árbol accesible, y sigue en la ficha.
+ * Similitud, confianza y factibilidad quedan visibles y separadas en todos los anchos (§4.2).
+ */
+.places-kicker { container: place-kicker / inline-size; }
+.places-foot { container: place-foot / inline-size; }
+.places-kicker-short, .places-chip-short, .places-conf-short { display: none; }
+/* El encabezado pasa a su forma corta solo cuando la completa no entra (data-short = ancho que
+   necesita, calculado en PlaceOption.kickerFit). */
+.places-kicker[data-short="always"] > .places-kicker-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.places-kicker[data-short="always"] > .places-kicker-short { display: inline; }
+@container place-kicker (max-width: 300px) {
+  .places-kicker[data-short="300"] > .places-kicker-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .places-kicker[data-short="300"] > .places-kicker-short { display: inline; }
+}
+@container place-kicker (max-width: 280px) {
+  .places-kicker[data-short="280"] > .places-kicker-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .places-kicker[data-short="280"] > .places-kicker-short { display: inline; }
+}
+@container place-kicker (max-width: 260px) {
+  .places-kicker[data-short="260"] > .places-kicker-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .places-kicker[data-short="260"] > .places-kicker-short { display: inline; }
+}
+@container place-kicker (max-width: 240px) {
+  .places-kicker[data-short="240"] > .places-kicker-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .places-kicker[data-short="240"] > .places-kicker-short { display: inline; }
+}
+@container place-kicker (max-width: 220px) {
+  .places-kicker[data-short="220"] > .places-kicker-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .places-kicker[data-short="220"] > .places-kicker-short { display: inline; }
+}
+@container place-kicker (max-width: 200px) {
+  .places-kicker[data-short="200"] > .places-kicker-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .places-kicker[data-short="200"] > .places-kicker-short { display: inline; }
+}
+@container place-kicker (max-width: 180px) {
+  .places-kicker[data-short="180"] > .places-kicker-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .places-kicker[data-short="180"] > .places-kicker-short { display: inline; }
+}
+@container place-kicker (max-width: 160px) {
+  .places-kicker[data-short="160"] > .places-kicker-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .places-kicker[data-short="160"] > .places-kicker-short { display: inline; }
+}
+@container place-kicker (max-width: 140px) {
+  .places-kicker[data-short="140"] > .places-kicker-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .places-kicker[data-short="140"] > .places-kicker-short { display: inline; }
+}
+@container place-kicker (max-width: 120px) {
+  .places-kicker[data-short="120"] > .places-kicker-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .places-kicker[data-short="120"] > .places-kicker-short { display: inline; }
+}
+@container place-foot (max-width: 300px) {
+  .places-chip[data-long] > .places-chip-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .places-chip[data-long] > .places-chip-short { display: inline; }
+}
+@container place-foot (max-width: 230px) {
+  .places-chip > .places-chip-full, .places-conf-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .places-chip > .places-chip-short, .places-conf-short { display: inline; }
+  .places-chip { flex: none; }
+}
+@container place-foot (max-width: 175px) {
+  .places-conf i { display: none; }
+}
 
 /* Anillo de similitud: el número aparece ya final; solo el trazo se dibuja (900 ms). */
-.places-ring { position: relative; display: grid; grid-column: 2; grid-row: 1 / span 3; justify-items: center; align-content: start; width: 58px; }
+/* Ancho para «similitud v3» entero (≈5,5 em del texto mínimo; 11 px en móvil): la versión
+   distingue la similitud del snapshot de la evaluación de Misión. */
+.places-ring { position: relative; display: grid; grid-column: 2; grid-row: 1 / span 3; justify-items: center; align-content: start; width: max(58px, calc(var(--fs-min) * 6)); }
 .places-ring svg { width: 42px; height: 42px; transform: rotate(-90deg); }
 .places-ring circle { fill: none; stroke-width: 3; }
 .places-ring-track { stroke: var(--line-strong); }
@@ -81,6 +151,7 @@
 /* ---- Hoja (<1100): una tarjeta y el borde de la siguiente; filas de 44 px en la lista ----- */
 .places[data-placement="sheet"] .places-card { width: min(86cqi, 340px); }
 @container places (max-width: 520px) { .places-title small:not(.places-profile), .places-suffix { display: none; } }
+@container places (max-width: 900px) { .places-title :is(.places-catalog, .places-profile) { display: none; } }
 
 /* ---- Vista de lista («Ver lista»): todas a la vista, filas de 44 px -------------------------- */
 .places[data-view="list"] .places-track { display: block; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: none; }
@@ -99,7 +170,8 @@
 @media (max-height: 859px) {
   .places-card { padding: 7px 10px; row-gap: 1px; }
   .places-ring svg { width: 34px; height: 34px; }
-  .places-ring b { height: 34px; font-size: var(--fs-12); }
+  /* «94,9» a 12 px tocaba el trazo de un anillo de 34 px. */
+  .places-ring b { height: 34px; font-size: var(--fs-min); }
   .places-ring .places-ring-tag { display: none; }
   .places-profile { display: inline; }
 }
@@ -127,9 +199,13 @@
   /* La insignia sale de la vista pero no del árbol accesible. */
   .places-badge { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .places-foot { grid-column: 1; grid-row: 3; }
-  .places-ring { grid-row: 1 / span 3; align-self: center; width: 52px; }
+  /* «similitud v3» entra entero (la versión distingue la similitud de la evaluación). */
+  .places-ring { grid-row: 1 / span 3; align-self: center; width: max(58px, calc(var(--fs-min) * 6)); }
   .places-ring svg { width: 32px; height: 32px; }
-  .places-ring b { height: 32px; font-size: var(--fs-12); }
+  .places-ring b { height: 32px; font-size: var(--fs-min); }
+  /* El pie comparte fila con el anillo: un poco más de ancho para que confianza y factibilidad
+     (formas cortas) entren enteras. */
+  .places-card { width: clamp(256px, calc((100cqi - 40px) / 4.2), 300px); }
 }
 
 /* ---- Piloto v3 y Misión integrada (ADR-008, ADR-013) ------------------------------------- */

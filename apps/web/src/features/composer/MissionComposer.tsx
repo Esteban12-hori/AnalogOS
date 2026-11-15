@@ -53,11 +53,15 @@ export function GlobeOrbit({ active, label }: { active: boolean; label: string }
 
 /**
  * Las sugerencias flotan sobre el dock al enfocar el composer. Con resultados en pantalla
- * taparían las tarjetas recién ordenadas: solo se ofrecen antes de evaluar.
+ * taparían las tarjetas recién ordenadas: solo se ofrecen antes de evaluar. Tampoco con el
+ * popover de «Tu misión» abierto (<1440): se encimarían con él y con las tarjetas.
  */
-export function showSuggestions(phase: MissionPhase, waiting: boolean): boolean {
-  return !waiting && phase !== 'analysis' && phase !== 'done'
+export function showSuggestions(phase: MissionPhase, waiting: boolean, missionPopoverOpen = false): boolean {
+  return !waiting && !missionPopoverOpen && phase !== 'analysis' && phase !== 'done'
 }
+
+/** Línea de estado tras «Enviar»: el texto ya está en «Tu misión» (Enviar nunca llama a la IA). */
+export const SENT_TEXT = 'Texto cargado en «Tu misión»: revise los requisitos, confirme y evalúe.'
 
 /** Último pedido de apertura de «Tu misión» ya atendido (sobrevive al remontaje del composer). */
 let consumedOpenRequest = 0
@@ -75,6 +79,8 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
   const panelInLayout = tramo === 'wide'
   const [text, setText] = useState('')
   const [missionOpen, setMissionOpen] = useState(false)
+  // Último texto enviado: mientras siga siendo el brief del planificador, la línea de estado lo dice.
+  const [sentBrief, setSentBrief] = useState<string | null>(null)
   const field = useRef<HTMLTextAreaElement>(null)
   const missionPopover = useRef<HTMLDivElement>(null)
   const profileButton = useRef<HTMLButtonElement>(null)
@@ -91,8 +97,12 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
   const openMission = useCallback(() => {
     if (panelInLayout) {
       const panel = document.getElementById(MISSION_PANEL_ID)
-      panel?.scrollIntoView({ block: 'nearest' })
-      panel?.focus()
+      if (!panel) return
+      // El planificador ya llevó el foco al paso pedido (o al texto enviado): no se lo quita.
+      const active = document.activeElement
+      if (active && active !== panel && panel.contains(active)) return
+      panel.scrollIntoView({ block: 'nearest' })
+      panel.focus()
       return
     }
     const popover = missionPopover.current
@@ -117,12 +127,13 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
     if (!snapshot || !value) return
     withController((mission) => {
       mission.submitBrief(text)
+      setSentBrief(mission.getState().brief)
       setText('')
     })
   }, [snapshot, text])
   const cancel = () => withController((mission) => mission.cancelDraft())
 
-  // Foco pedido con «/» o «✦ Refinar» (también si llegó antes de montarse) y precarga del planificador.
+  // Foco pedido con «/» o «Refinar» (también si llegó antes de montarse) y precarga del planificador.
   useEffect(() => {
     if (takeFocusRequest()) field.current?.focus()
     const onFocusRequest = () => {
@@ -187,8 +198,12 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
         {resultLineText(evaluation, snapshot.candidates)}
       </span>
     )
-  } else if (draftMessage || notice) {
-    status = <span className="composer-status-text" data-tone="cancelled">{draftMessage ?? notice}</span>
+  } else if (draftMessage) {
+    status = <span className="composer-status-text" data-tone="cancelled">{draftMessage}</span>
+  } else if (sentBrief !== null && planner?.brief === sentBrief) {
+    status = <span className="composer-status-text">{SENT_TEXT}</span>
+  } else if (notice) {
+    status = <span className="composer-status-text" data-tone="cancelled">{notice}</span>
   } else if (stale) {
     status = <span className="composer-status-text">Editó la prueba: confirme y evalúe de nuevo en «Tu misión».</span>
   } else if (phase === 'review') {
@@ -204,7 +219,7 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
 
   return (
     <div className="composer" data-placement={placement}>
-      {showSuggestions(phase, waiting) && snapshot && (
+      {showSuggestions(phase, waiting, missionOpen) && snapshot && (
         <Suspense fallback={null}>
           <SuggestionChips />
         </Suspense>
@@ -224,7 +239,6 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
             <span className="composer-light-beam" />
           </span>
         )}
-        <span aria-hidden="true" className="composer-glyph" data-done={phase === 'done' ? '' : undefined}>{GLYPH.ai}</span>
         <button
           ref={profileButton}
           type="button"

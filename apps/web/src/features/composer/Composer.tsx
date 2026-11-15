@@ -1,16 +1,16 @@
 /**
  * Composer de misión (docs/UX_REDESIGN.md §3.2 y §2.3 C/D, sobre el planificador del equipo, ADR-013).
  *
- * - Explorar: píldora «✦ Describe la prueba…» (la misma caja que pinta el HTML estático).
+ * - Explorar: píldora «Describe la prueba…» (la misma caja que pinta el HTML estático).
  * - Misión: el formulario (`MissionComposer`).
- * - S1: botón «✦ Refinar» que pide volver a la bandeja.
+ * - S1: botón «Refinar» que pide volver a la bandeja.
+ * Ninguno lleva ✦: ese glifo es «solo IA» (shell/glyphs.ts) y «Enviar» nunca llama a la IA.
  * - Teclas: «/» abre el composer desde fuera de un campo de texto; Esc cancela la espera de la IA.
  *
  * El chunk principal lleva solo la vista: controlador, planificador, validadores, cliente de IA,
  * «Tu misión», recientes y sugerencias viajan en el chunk de misión.
  */
 import { useEffect } from 'react'
-import { GLYPH } from '../../shell/public'
 import { uiActions, useUi } from '../../state/ui'
 import { useComposer } from './composerStore'
 import { focusComposer } from './focus'
@@ -68,7 +68,7 @@ export function Composer({ data, placement, onRequestTray }: ComposerProps) {
     return (
       <>
         <button type="button" className="composer-refine" aria-busy={waiting || undefined} onClick={() => onRequestTray?.()}>
-          <span aria-hidden="true">{GLYPH.ai}</span> {waiting ? 'Proponiendo…' : 'Refinar'}
+          {waiting ? 'Proponiendo…' : 'Refinar'}
         </button>
         <GlobeOrbit active={waiting && wait !== 'quiet'} label="Proponiendo requisitos…" />
       </>
@@ -78,7 +78,6 @@ export function Composer({ data, placement, onRequestTray }: ComposerProps) {
   if (mode === 'explorar') {
     return (
       <button type="button" className="composer-pill" data-placement={placement} aria-keyshortcuts="/" onClick={openMission}>
-        <span aria-hidden="true">{GLYPH.ai}</span>
         <span className="composer-pill-text">{PROMPT}</span>
         <kbd aria-hidden="true">/</kbd>
       </button>

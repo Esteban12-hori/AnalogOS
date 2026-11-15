@@ -35,8 +35,13 @@ export interface PlannerViewProps {
    * la vista es idéntica al panel del equipo.
    */
   compact?: boolean
-  /** Pide un paso desde fuera (p. ej. «Enviar» del dock abre los requisitos). */
-  stepRequest?: { step: StepId; nonce: number } | null
+  /**
+   * Pide un paso desde fuera (p. ej. «Enviar» del dock abre los requisitos). Cada pedido nuevo
+   * lleva el foco al paso aunque ya estuviera abierto; con `target: 'brief'`, al texto de la prueba.
+   */
+  stepRequest?: { step: StepId; nonce: number; target?: 'brief' } | null
+  /** title de «Borrar todo»; por defecto, el del equipo (el panel autónomo no guarda nada). */
+  resetHint?: string
   /** Contenido extra al pie (historial y Deshacer en «Tu misión»). */
   footer?: ReactNode
 }
@@ -46,12 +51,24 @@ const ORDER: Record<JourneyId, StepId[]> = {
   sector: ['scope', 'describe', 'confirm', 'result'],
 }
 
-export function PlannerView({ snapshot, api, intent, compact = false, stepRequest = null, footer }: PlannerViewProps) {
+const RESET_HINT = 'El texto vive solo en esta página; nada se guarda en el navegador.'
+
+/**
+ * Último pedido externo que ya movió el foco. Un remontaje (p. ej. volver a la pestaña Misión)
+ * reaplica el paso pedido pero no vuelve a robar el foco con un pedido viejo.
+ */
+let focusedRequestNonce = 0
+
+export function PlannerView({ snapshot, api, intent, compact = false, stepRequest = null, resetHint = RESET_HINT, footer }: PlannerViewProps) {
   const { state, dispatch, built, evaluate, evaluationError, runDraft, runExplain, exportJson, exportError } = api
   const [step, setStep] = useState<StepId>(() => initialStep(state))
   const titleId = `${useId().replace(/[^\w-]/g, '')}-planner-title`
   const [announce, setAnnounce] = useState('')
   const headingRef = useRef<HTMLHeadingElement>(null)
+  const briefRef = useRef<HTMLTextAreaElement>(null)
+  // Cada pedido externo vuelve a llevar el foco, aunque el paso no cambie («Enviar» dos veces).
+  const [focusTick, setFocusTick] = useState(0)
+  const focusBrief = useRef(false)
   const firstRender = useRef(true)
   const journey = state.journey
   const steps = journey ? ORDER[journey] : []
@@ -63,7 +80,12 @@ export function PlannerView({ snapshot, api, intent, compact = false, stepReques
   }, [intent, dispatch])
 
   useEffect(() => {
-    if (stepRequest) setStep(stepRequest.step === 'result' && !state.result ? 'confirm' : stepRequest.step)
+    if (!stepRequest) return
+    setStep(stepRequest.step === 'result' && !state.result ? 'confirm' : stepRequest.step)
+    if (stepRequest.nonce === focusedRequestNonce) return
+    focusedRequestNonce = stepRequest.nonce
+    focusBrief.current = stepRequest.target === 'brief' && stepRequest.step === 'describe'
+    setFocusTick((tick) => tick + 1)
   }, [stepRequest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // El resultado solo existe mientras la solicitud confirmada siga vigente.
@@ -80,9 +102,13 @@ export function PlannerView({ snapshot, api, intent, compact = false, stepReques
     if (!journey) return
     const idx = steps.indexOf(step)
     setAnnounce(`Paso ${idx + 1} de ${steps.length}: ${STEP_LABEL[step]}`)
-    if (step === 'result') document.getElementById('pl-result-title')?.focus()
+    const brief = focusBrief.current && step === 'describe' ? briefRef.current : null
+    focusBrief.current = false
+    // El foco desplaza el panel hasta el paso (o el texto cargado) aunque «Tu misión» sea una franja.
+    if (brief) brief.focus()
+    else if (step === 'result') document.getElementById('pl-result-title')?.focus()
     else headingRef.current?.focus()
-  }, [step, journey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [step, journey, focusTick]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const current = state.scope
   const scopeSummary = (() => {
@@ -102,6 +128,21 @@ export function PlannerView({ snapshot, api, intent, compact = false, stepReques
   const pointReqs = state.requirements.filter((r) => r.kind === 'measurable' && r.scale === 'point').length
   const aiReqs = state.requirements.filter((r) => r.origin === 'ai').length
   const d = state.draft
+  const briefCountId = compact ? `${titleId}-brief-count` : 'pl-brief-count'
+  const briefField = (
+    <label className="pl-field wide">
+      <span>Texto de su prueba (opcional, hasta {MAX_BRIEF_CHARS} caracteres)</span>
+      <textarea ref={briefRef} rows={compact ? 4 : 5} maxLength={MAX_BRIEF_CHARS} value={state.brief} onChange={(e) => dispatch({ type: 'set_brief', brief: e.target.value })}
+        placeholder="Qué quiere probar, qué es imprescindible y qué es preferible…" aria-describedby={briefCountId} />
+      <small id={briefCountId}>{state.brief.length} / {MAX_BRIEF_CHARS}</small>
+    </label>
+  )
+  const exampleActions = (
+    <div className="pl-actions">
+      <button type="button" onClick={() => dispatch({ type: 'load_example', example: exampleState() })}>Cargar un ejemplo</button>
+      <span className="pl-hint">Ejemplo editable con valores de muestra: no es una recomendación ni un estándar.</span>
+    </div>
+  )
 
   return (
     <section id={compact ? undefined : 'planner'} className={`planner${compact ? ' is-compact' : ' glass'}`} aria-labelledby={compact ? titleId : 'planner-title'}>
@@ -150,13 +191,16 @@ export function PlannerView({ snapshot, api, intent, compact = false, stepReques
           <div className="pl-bar">
             <span className="pl-tag">{scopeSummary}</span>
             {step !== 'scope' && step !== 'result' && <button type="button" className="pl-ghost" onClick={() => setStep('scope')}>Cambiar sector</button>}
-            <button type="button" className="pl-ghost" onClick={() => dispatch({ type: 'reset' })} title="El texto vive solo en esta página; nada se guarda en el navegador.">Borrar todo y empezar de nuevo</button>
+            <button type="button" className="pl-ghost" onClick={() => dispatch({ type: 'reset' })} title={resetHint}>Borrar todo y empezar de nuevo</button>
           </div>
 
           <div className="pl-body">
             {step === 'describe' && (
               <>
                 <h3 ref={headingRef} tabIndex={-1}>{idx + 1}. Describa su prueba</h3>
+                {/* En «Tu misión» (franja del panel) el ejemplo y el texto van arriba: a la vista sin desplazar. */}
+                {compact && exampleActions}
+                {compact && briefField}
                 <fieldset className="pl-modes">
                   <legend>Objetivo</legend>
                   <label className={`pl-radio${state.target.kind === 'rover' ? ' on' : ''}`}>
@@ -176,21 +220,13 @@ export function PlannerView({ snapshot, api, intent, compact = false, stepReques
                   {moonHint && <p className="pl-notice">El texto menciona la Luna: el único perfil soportado es rover marciano. Elija «Otro objetivo» si corresponde.</p>}
                 </fieldset>
 
-                <label className="pl-field wide">
-                  <span>Texto de su prueba (opcional, hasta {MAX_BRIEF_CHARS} caracteres)</span>
-                  <textarea rows={5} maxLength={MAX_BRIEF_CHARS} value={state.brief} onChange={(e) => dispatch({ type: 'set_brief', brief: e.target.value })}
-                    placeholder="Qué quiere probar, qué es imprescindible y qué es preferible…" aria-describedby="pl-brief-count" />
-                  <small id="pl-brief-count">{state.brief.length} / {MAX_BRIEF_CHARS}</small>
-                </label>
+                {!compact && briefField}
                 <label className="pl-field wide">
                   <span>Actividad (opcional)</span>
                   <input type="text" maxLength={200} value={state.activity} onChange={(e) => dispatch({ type: 'set_activity', activity: e.target.value })} placeholder="Ej.: navegación autónoma de rover" />
                 </label>
 
-                <div className="pl-actions">
-                  <button type="button" onClick={() => dispatch({ type: 'load_example', example: exampleState() })}>Cargar un ejemplo</button>
-                  <span className="pl-hint">Ejemplo editable con valores de muestra: no es una recomendación ni un estándar.</span>
-                </div>
+                {!compact && exampleActions}
                 <div className="pl-ai-box">
                   <button type="button" onClick={runDraft} disabled={!state.brief.trim() || d.status === 'pending'} aria-busy={d.status === 'pending'}>
                     {d.status === 'pending' ? 'Consultando a la IA…' : 'Proponer requisitos con IA (opcional)'}

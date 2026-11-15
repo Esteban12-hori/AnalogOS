@@ -50,8 +50,12 @@ const requested = new Set<string>()
  */
 export const GLOBE_POSTER = { url: globePosterUrl, halfOverRadius: 445 / 396.5 } as const
 
-/** Inserta un <link rel="preload"> una sola vez por URL. */
-export function preloadLink(href: string, as: 'image' | 'fetch' | 'script', type?: string, high = false): void {
+/**
+ * Inserta un <link rel="preload"> una sola vez por URL. `cors` debe coincidir con la petición
+ * real: las texturas del globo las pide three.js con crossOrigin «anonymous»; sin él, Chrome
+ * descarta la precarga y las baja dos veces. El póster es un <img> sin CORS.
+ */
+export function preloadLink(href: string, as: 'image' | 'fetch' | 'script', type?: string, high = false, cors = as === 'fetch'): void {
   if (typeof document === 'undefined' || requested.has(href)) return
   requested.add(href)
   const link = document.createElement('link')
@@ -60,7 +64,7 @@ export function preloadLink(href: string, as: 'image' | 'fetch' | 'script', type
   link.href = href
   if (type) link.type = type
   if (high) link.setAttribute('fetchpriority', 'high')
-  if (as === 'fetch') link.crossOrigin = 'anonymous'
+  if (cors) link.crossOrigin = 'anonymous'
   document.head.append(link)
 }
 
@@ -109,6 +113,7 @@ export function whenIdle(task: () => void, timeout = 1200): void {
 }
 
 if (typeof window !== 'undefined' && window.matchMedia?.('(min-width: 1100px)').matches) preloadLink(GLOBE_POSTER.url, 'image', undefined, true)
-preloadLink(GLOBE_TEXTURES.preview, 'image')
-preloadLink(GLOBE_TEXTURES.bump, 'image')
-preloadLink(GLOBE_TEXTURES.color, 'image')
+// three.js (TextureLoader/useTexture) pide estas imágenes con crossOrigin «anonymous».
+preloadLink(GLOBE_TEXTURES.preview, 'image', undefined, false, true)
+preloadLink(GLOBE_TEXTURES.bump, 'image', undefined, false, true)
+preloadLink(GLOBE_TEXTURES.color, 'image', undefined, false, true)

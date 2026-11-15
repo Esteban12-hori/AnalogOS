@@ -8,6 +8,7 @@ import type { AppData } from '../../shell/public'
 import { INITIAL_MISSION_STATE, missionStore } from '../../state/mission'
 import { uiStore } from '../../state/ui'
 import { evaluateExample, readyData } from '../../tests/v3Support'
+import { ReadingSkeleton } from './ReadingPanel'
 import { ReadingPill } from './ReadingPill'
 import ReadingView from './ReadingView'
 
@@ -22,7 +23,8 @@ afterEach(() => {
 function publish(state: ReturnType<typeof evaluateExample>['state'], source: 'deterministic_template' | 'anthropic' = 'deterministic_template') {
   const evaluation = state.result!
   const explanation = composeExplanation(evaluation, source === 'anthropic' ? state.explain.record!.selection : deterministicSelection(evaluation), source)
-  missionStore.setState({ ...INITIAL_MISSION_STATE, planner: state, evaluation, explanation, revision: 1 })
+  const explanationProvenance = source === 'anthropic' ? state.explain.record!.provenance : null
+  missionStore.setState({ ...INITIAL_MISSION_STATE, planner: state, evaluation, explanation, explanationProvenance, revision: 1 })
   uiStore.setState({ mode: 'mision', missionPhase: 'done' })
 }
 
@@ -73,6 +75,43 @@ describe('ReadingView', () => {
     expect(html).toContain('Motivos destacados con IA (Anthropic) · las cifras salen del cálculo determinista')
     expect(html).toContain('claude-sonnet-5-5 · 2026-11-14 · req_ui')
     expect(html).toContain('Pedir otra selección a la IA')
+    // Un solo ✦ delante del rótulo (antes salía «✦ ✦ Motivos destacados con IA»).
+    expect(text(html)).not.toMatch(/✦\s*✦/)
+  })
+
+  it('selección de la IA vacía: no dice que todo se cumple y lista los lugares sin motivos', () => {
+    const { state } = evaluateExample()
+    const started = plannerReducer(state, { type: 'explain_start', requestId: 'exp-e' })
+    const accepted = plannerReducer(started, {
+      type: 'explain_ok', requestId: 'exp-e', requestFp: started.explain.requestFp!, evaluationFp: started.explain.evaluationFp!,
+      selection: { options: [], verification_ids: [] },
+      provenance: { provider: 'anthropic', model: 'claude-x', request_id: 'req_ui', created_at: '2026-11-14T00:00:00.000Z', usage: { input_tokens: 1, output_tokens: 1 }, stop_reason: 'end_turn' },
+    })
+    expect(accepted.explain.status).toBe('done')
+    publish(accepted, 'anthropic')
+    const html = text(render())
+    const unmet = state.result!.options.filter((option) => option.requirement_results.some((result) => result.status !== 'cumple'))
+    expect(html).not.toContain('Todos los requisitos se cumplen')
+    expect(html).toContain(`La IA no destacó motivos para ${unmet.length} lugares; los bloqueos del cálculo están en «Resultado».`)
+    expect(html).toContain('sin motivos destacados por la IA')
+  })
+
+  it('tras editar, la Lectura atenuada conserva la procedencia de la IA', () => {
+    const { state } = evaluateExample()
+    const started = plannerReducer(state, { type: 'explain_start', requestId: 'exp-s' })
+    const accepted = plannerReducer(started, {
+      type: 'explain_ok', requestId: 'exp-s', requestFp: started.explain.requestFp!, evaluationFp: started.explain.evaluationFp!,
+      selection: deterministicSelection(state.result!),
+      provenance: { provider: 'anthropic', model: 'claude-y', request_id: 'req_stale', created_at: '2026-11-14T00:00:00.000Z', usage: { input_tokens: 1, output_tokens: 1 }, stop_reason: 'end_turn' },
+    })
+    publish(accepted, 'anthropic')
+    // El reductor invalida el resultado al editar; el controlador deja la vista atenuada (stale).
+    const edited = plannerReducer(accepted, { type: 'set_brief', brief: 'otra prueba' })
+    expect(edited.explain.record).toBeNull()
+    missionStore.setState({ planner: edited, stale: true })
+    const html = render()
+    expect(html).toContain('Editó la prueba')
+    expect(html).toContain('claude-y · 2026-11-14 · req_stale')
   })
 
   it('respuesta que no corresponde al cálculo vigente: se descarta y queda la plantilla', () => {
@@ -108,6 +147,14 @@ describe('ReadingView', () => {
 
   it('sin snapshot: espera neutra, sin cifras', () => {
     expect(render({ status: 'loading', snapshot: null, visual: { status: 'loading' }, error: null })).toContain('Esperando el snapshot validado')
+  })
+})
+
+describe('ReadingSkeleton', () => {
+  it('la espera de la Lectura no lleva ✦ (también se ve antes de la Lectura determinista de Explorar)', () => {
+    const html = renderToStaticMarkup(<ReadingSkeleton placement="panel" />)
+    expect(html).toContain('Preparando la lectura')
+    expect(html).not.toContain('✦')
   })
 })
 

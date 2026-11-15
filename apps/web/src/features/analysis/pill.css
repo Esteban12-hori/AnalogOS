@@ -28,7 +28,6 @@
 .analysis-skeleton { display: grid; gap: 8px; padding-left: 10px; border-left: 2px solid var(--ai-rule); }
 .analysis-skeleton-title { margin: 0; color: var(--muted); font-family: var(--mono); font-size: var(--fs-caps); letter-spacing: var(--caps-tracking); text-transform: uppercase; }
 .analysis-skeleton-label { margin: 0; color: var(--muted); font-size: var(--fs-13); }
-.analysis-skeleton-label > span { color: var(--ice); }
 /* Esqueleto ESTÁTICO: sin barrido ni bucle (§2.2 regla 2). */
 .analysis-skeleton-bar { display: block; height: 10px; width: 100%; border-radius: 4px; background: var(--line-strong); }
 .analysis-skeleton-bar.is-short { width: 62%; }

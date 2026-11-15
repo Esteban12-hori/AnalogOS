@@ -240,9 +240,8 @@ function HighlightsLayer({ model }: { model: ReadingModel['highlights'] }) {
     <Layer title="Motivos destacados" label={model.label} ai={ai}>
       {ai && model.provenance && <p className="analysis-meta">{model.provenance}</p>}
       <p className="analysis-muted">{model.notice}</p>
-      {model.options.filter((option) => option.lines.length > 0).length === 0 && (
-        <p className="analysis-pending-line">Todos los requisitos se cumplen donde hay evidencia: no hay motivos que destacar.</p>
-      )}
+      {/* La nota sale de la evaluación (explanationToReading.emptyNote), no de lo que eligió la IA. */}
+      {model.emptyNote && <p className="analysis-pending-line">{model.emptyNote}</p>}
       {model.options.filter((option) => option.lines.length > 0).map((option) => (
         <div key={option.siteId} className="analysis-group">
           <p className="analysis-kicker">{option.rank !== null ? `#${option.rank} · ` : ''}{option.name}{option.role === 'reference' ? ' · REF' : ''} · {option.statusLabel}</p>
@@ -267,6 +266,16 @@ function HighlightsLayer({ model }: { model: ReadingModel['highlights'] }) {
           </ul>
         </div>
       ))}
+      {model.omitted.length > 0 && (
+        <ul className="analysis-list analysis-omitted" aria-label={ai ? 'Lugares sin motivos destacados por la IA' : 'Lugares sin motivos destacados'}>
+          {model.omitted.map((option) => (
+            <li key={option.siteId}>
+              {option.rank !== null ? `#${option.rank} · ` : ''}{option.name}{option.role === 'reference' ? ' · REF' : ''} · {option.statusLabel}
+              <span className="analysis-muted"> — sin motivos destacados{ai ? ' por la IA' : ''}</span>
+            </li>
+          ))}
+        </ul>
+      )}
       {model.verifications.length > 0 && (
         <details className="analysis-details analysis-checks">
           <summary>Verificaciones {ai ? 'en el orden que sugiere la IA' : 'de campo'} · {model.verifications.length}</summary>
@@ -315,7 +324,8 @@ export default function ReadingView({ data, placement }: ReadingPanelProps) {
   const stale = useMission((state) => state.stale)
   const explanation = useMission((state) => state.explanation)
   const revision = useMission((state) => state.revision)
-  const provenance = useMission((state) => state.planner?.explain.record?.provenance ?? null)
+  // Procedencia guardada junto a la vista: sigue visible si la Lectura queda atenuada tras editar.
+  const provenance = useMission((state) => state.explanationProvenance)
   const snapshot = data.snapshot
   const mission = mode === 'mision' && evaluation !== null && explanation !== null
 

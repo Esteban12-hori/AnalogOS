@@ -3,7 +3,9 @@
  * - 0–300 ms: nada (anti-parpadeo). Desde 300 ms entra con la fase real.
  * - 'inline': anillo de 14 px junto al texto.
  * - 'globe': la misma órbita del arranque vuelve alrededor del globo (la dibuja BootLayer en el
- *   escenario, solo con la vista global en pantalla); aquí queda el texto de la fase.
+ *   escenario, solo con la vista global en pantalla). Aquí no se pinta texto: la fase ya está en la
+ *   línea de estado del composer (o en «Proponiendo…» de S1) y un rótulo suelto en el overlay
+ *   quedaba en la esquina, encima del logo.
  * El satélite da 2 vueltas de 2,4 s como máximo (en fase con la luz del composer si esta usa
  * ORBIT_DELAY_MS y ORBIT_LOOP_MS) y luego queda quieto. No anuncia: el composer llama announce().
  */
@@ -14,14 +16,12 @@ import './boot.css'
 
 export function OrbitLoader({ active, label, placement = 'inline' }: OrbitLoaderProps) {
   useEffect(() => (active && placement === 'globe' ? requestStageOrbit() : undefined), [active, placement])
-  if (!active) return null
+  if (!active || placement === 'globe') return null
   return (
     <span className="boot-inline" data-placement={placement}>
-      {placement === 'inline' && (
-        <span className="boot-mini" aria-hidden="true">
-          <span className="boot-ring"><span className="boot-sat" /></span>
-        </span>
-      )}
+      <span className="boot-mini" aria-hidden="true">
+        <span className="boot-ring"><span className="boot-sat" /></span>
+      </span>
       <span>{label}</span>
     </span>
   )

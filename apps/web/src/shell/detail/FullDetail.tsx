@@ -107,7 +107,7 @@ export function FullDetail({ data, site, placement, onShowOnMap }: FullDetailPro
         )}
         {tab === 'fuentes' && snapshot && (
           <Suspense fallback={<Pending />}>
-            <SourcesTab site={site} manifest={snapshot.manifest} visual={data.visual} onShowOnMap={onShowOnMap} />
+            <SourcesTab site={site} manifest={snapshot.manifest} search={snapshot.search ?? null} visual={data.visual} onShowOnMap={onShowOnMap} />
           </Suspense>
         )}
       </div>

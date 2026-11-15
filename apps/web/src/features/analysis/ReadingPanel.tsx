@@ -4,7 +4,6 @@
  * al montarse. Mientras tanto se muestra un esqueleto estático (sin barrido: §2.2 regla 2).
  */
 import { lazy, Suspense } from 'react'
-import { GLYPH } from '../../shell/public'
 import type { ReadingPanelProps } from './index'
 import './pill.css'
 
@@ -19,7 +18,8 @@ export function ReadingSkeleton({ placement, label = 'Preparando la lectura…' 
   return (
     <section className="analysis-skeleton" data-placement={placement} aria-busy="true" aria-label="Lectura">
       <p className="analysis-skeleton-title">Lectura</p>
-      <p className="analysis-skeleton-label"><span aria-hidden="true">{GLYPH.ai}</span> {label}</p>
+      {/* Sin ✦: la Lectura en espera puede ser la determinista de Explorar (✦ = solo IA). */}
+      <p className="analysis-skeleton-label">{label}</p>
       <span className="analysis-skeleton-bar" aria-hidden="true" />
       <span className="analysis-skeleton-bar is-short" aria-hidden="true" />
     </section>

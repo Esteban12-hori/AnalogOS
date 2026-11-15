@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const SRC = resolve(__dirname, '..')
-const FORBIDDEN = ['% del motor determinista', 'DEMO · sin IA', 'nivel ÷ suma', 'Perfil de tu misión', 'AnalogOS Chile', 'VITE_LKTRON', 'motor determinista v']
+const FORBIDDEN = ['% del motor determinista', 'DEMO · sin IA', 'nivel ÷ suma', 'Perfil de tu misión', 'AnalogOS Chile', 'VITE_LKTRON', 'motor determinista v', 'reglas del equipo']
 
 function sources(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {

@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest'
 import { composeExplanation, deterministicSelection, type ExplanationSelection } from '../../mission'
 import { evaluateExample, YUNGAY } from '../../tests/v3Support'
-import { AI_LABEL, evidenceHref, explanationToReading, readingKey, requirementLine, snippetFor, TEMPLATE_LABEL } from './explanationToReading'
+import { AI_LABEL, emptyNote, evidenceHref, explanationToReading, readingKey, requirementLine, snippetFor, TEMPLATE_LABEL } from './explanationToReading'
 
 const { evaluation } = evaluateExample()
 const template = composeExplanation(evaluation, deterministicSelection(evaluation), 'deterministic_template')
@@ -21,12 +21,47 @@ describe('explanationToReading', () => {
     expect(model.result.orderingRule).toBe(evaluation.ordering_rule)
   })
 
-  it('✦ y procedencia solo cuando la selección viene de Anthropic', () => {
+  it('rótulo de IA y procedencia solo cuando la selección viene de Anthropic (el ✦ lo pone la vista, una vez)', () => {
     const view = composeExplanation(evaluation, deterministicSelection(evaluation), 'anthropic')
     const model = explanationToReading(view, evaluation, 2, provenance)
+    expect(model.highlights.source).toBe('anthropic')
     expect(model.highlights.label).toBe(AI_LABEL)
-    expect(model.highlights.label.startsWith('✦')).toBe(true)
+    expect(model.highlights.label).not.toContain('✦')
     expect(model.highlights.provenance).toBe('claude-sonnet-5-5 · 2026-11-14 · req_fixture')
+  })
+
+  it('la IA no ordena: con la selección invertida, los lugares siguen el orden de la evaluación', () => {
+    const forward = deterministicSelection(evaluation)
+    const inverted: ExplanationSelection = { options: [...forward.options].reverse(), verification_ids: [...forward.verification_ids].reverse() }
+    const model = explanationToReading(composeExplanation(evaluation, inverted, 'anthropic'), evaluation, 2, provenance)
+    const order = evaluation.options.map((option) => option.site_id)
+    expect(model.highlights.options.map((option) => option.siteId)).toEqual(order)
+    // Las verificaciones sí van en el orden de la IA: la vista lo dice («en el orden que sugiere la IA»).
+    expect(model.highlights.verifications.map((item) => item.id)).toEqual(inverted.verification_ids)
+  })
+
+  it('selección vacía de la IA: no afirma que todo se cumple; nombra los lugares omitidos', () => {
+    const unmet = evaluation.options.filter((option) => option.requirement_results.some((result) => result.status !== 'cumple'))
+    expect(unmet.length).toBeGreaterThan(0)
+    const empty: ExplanationSelection = { options: [], verification_ids: [] }
+    const model = explanationToReading(composeExplanation(evaluation, empty, 'anthropic'), evaluation, 2, provenance)
+    expect(model.highlights.emptyNote).toBe(`La IA no destacó motivos para ${unmet.length} lugares; los bloqueos del cálculo están en «Resultado».`)
+    expect(model.highlights.emptyNote).not.toContain('Todos los requisitos se cumplen')
+    expect(model.highlights.omitted.map((option) => option.siteId)).toEqual(unmet.map((option) => option.site_id))
+    // Opciones presentes pero sin requisitos destacados: mismo trato.
+    const noKeys: ExplanationSelection = { options: unmet.map((option) => ({ site_id: option.site_id, key_requirement_ids: [], evidence_ids: [] })), verification_ids: [] }
+    const keyless = explanationToReading(composeExplanation(evaluation, noKeys, 'anthropic'), evaluation, 2, provenance)
+    expect(keyless.highlights.omitted).toHaveLength(unmet.length)
+    expect(keyless.highlights.emptyNote).toContain('La IA no destacó motivos')
+  })
+
+  it('«todos los requisitos se cumplen» solo cuando la evaluación lo dice', () => {
+    expect(explanationToReading(template, evaluation, 1).highlights.emptyNote).toBeNull()
+    expect(explanationToReading(template, evaluation, 1).highlights.omitted).toEqual([])
+    const allMet = { ...evaluation, options: evaluation.options.map((option) => ({ ...option, requirement_results: option.requirement_results.map((result) => ({ ...result, status: 'cumple' as const })) })) }
+    const model = explanationToReading(composeExplanation(allMet, { options: [], verification_ids: [] }, 'anthropic'), allMet, 1, provenance)
+    expect(model.highlights.emptyNote).toBe('Todos los requisitos se cumplen donde hay evidencia: no hay motivos que destacar.')
+    expect(emptyNote({ ...evaluation, outcome: 'insufficient_coverage' }, 0, 0, true)).toContain('el diagnóstico está en «Resultado»')
   })
 
   it('las cifras salen de la evaluación: lo exigido y lo observado son los del motor, nunca de la selección', () => {

@@ -23,7 +23,7 @@ export interface ComposerState {
   evaluationError: string | null
   exportError: string | null
   /** Pedido de paso para la vista del planificador en «Tu misión». */
-  stepRequest: { step: StepId; nonce: number } | null
+  stepRequest: { step: StepId; nonce: number; target?: 'brief' } | null
   /** Aumenta para pedir que «Tu misión» se abra (popover <1440) o reciba el foco (panel ≥1440). */
   openRequest: number
 }

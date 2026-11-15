@@ -339,11 +339,17 @@ body { min-height: 0; }
 /* Hoja lateral (horizontal bajo): la bandeja usa el alto de la hoja, no el de la S0 inferior. */
 .sheet[data-side] .sheet-tray { height: 100%; }
 
-/* Panel izquierdo (≥1440, Misión): dos regiones con scroll propio. «Tu misión» ocupa como máximo
-   ~45 % y la Lectura el resto: el veredicto y el limitante quedan a la vista sin desplazar (§4.2). */
+/* Panel izquierdo (≥1440, Misión): dos regiones con scroll propio. Con un resultado vigente,
+   «Tu misión» (resultado compacto) ocupa como máximo ~45 % y la Lectura el resto: el veredicto y
+   el limitante quedan a la vista sin desplazar (§4.2). Antes de evaluar, o al editar, manda el
+   planificador del equipo: la Lectura (solo hechos del snapshot) queda en una franja de ~22 %. */
 .left-panel { display: flex; flex-direction: column; overflow: hidden; }
 .left-panel > [data-slot="left.mission"] { flex: 0 1 auto; min-height: 0; max-height: 45%; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 .left-panel > [data-slot="left.reading"] { flex: 1 1 0; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.left-panel[data-focus="mission"] > [data-slot="left.mission"] { flex: 1 1 auto; max-height: none; }
+.left-panel[data-focus="mission"] > [data-slot="left.reading"] { flex: 0 1 auto; min-height: 96px; max-height: 22%; }
+/* «Siguiente →» siempre a mano mientras se recorre un paso largo. */
+.left-panel .planner.is-compact .pl-nav { position: sticky; bottom: 0; z-index: 1; margin: 10px 0 0; padding: 8px 0; border-top: 1px solid var(--glass-edge); background: rgb(4, 10, 14); }
 
 /* Informe imprimible de la misión (ADR-013): uno por página, montado en la raíz mientras haya una
    evaluación vigente. En pantalla no se ve; al imprimir es lo único visible. */

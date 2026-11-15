@@ -93,7 +93,11 @@ describe('controlador de misión', () => {
     expect(h.mission.getState().planner).toBe(controller.getState())
     expect(h.phases.at(-1)).toBe('review')
     expect(h.composer.getState().stepRequest?.step).toBe('describe')
+    // El foco va al texto cargado (PlannerView), aunque el paso «describir» ya estuviera abierto.
+    expect(h.composer.getState().stepRequest?.target).toBe('brief')
     expect(h.composer.getState().openRequest).toBe(1)
+    controller.submitBrief('Otra vez')
+    expect(h.composer.getState().stepRequest?.nonce).toBe(2)
   })
 
   it('un solo planificador: evaluar publica la evaluación, sube la revisión, anuncia una vez y previsualiza el #1', () => {
@@ -107,7 +111,7 @@ describe('controlador de misión', () => {
     expect(state.source).toBe('example')
     expect(state.evaluatedRequest?.requirements.map((requirement) => requirement.requirement_id)).toEqual(['ex1', 'ex2', 'ex3'])
     expect(h.announcements).toHaveLength(1)
-    expect(h.announcements[0]).toMatch(/^Evaluación lista\. \d priorizados? de 7/)
+    expect(h.announcements[0]).toMatch(/^Evaluación lista\. \d de 6 candidatos priorizados /)
     expect(h.selections).toEqual([[state.evaluation!.recommended_site_ids[0], 'evaluated', true]])
     expect(h.phases.at(-1)).toBe('done')
     // Ninguna llamada a la IA en todo el recorrido manual.

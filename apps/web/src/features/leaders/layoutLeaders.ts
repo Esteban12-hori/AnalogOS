@@ -201,7 +201,9 @@ function chipLayout(input: LeaderLayoutInput, side: Side): LeaderLayout {
   const seen = (anchor.visible ?? 1) >= G.minVisible && finite(anchor.x, anchor.y, anchor.radius) && containsPoint(input.safeArea, anchor.x, anchor.y)
   const rightEdge = safe.x + safe.width - chip.width
   const x = seen ? clamp(anchor.x + anchor.radius + G.chipGap, safe.x, rightEdge) : rightEdge
-  const desired = (seen ? anchor.y : safe.y + safe.height / 2) - chip.height / 2
+  // Bajo el anillo, no a su altura: a la derecha del ancla está el rótulo del pin seleccionado
+  // («#1 … 94,9 %») y el chip lo tapaba.
+  const desired = seen ? anchor.y + anchor.radius + G.chipGap : safe.y + safe.height / 2 - chip.height / 2
   const intervals = freeIntervals(safe.y, safe.y + safe.height, x, x + chip.width, input.obstacles, G.margin)
   const y = nearestTop(intervals, desired, chip.height, 0)
   return y === null ? base : { ...base, chip: { x, y } }

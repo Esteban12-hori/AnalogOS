@@ -97,13 +97,14 @@ export function RequirementRow({ result }: { result: RequirementResult }) {
 }
 
 /** Estado del lugar en la evaluación y requisitos del sitio (área, país) y no medidos. */
-function MissionSummary({ layer, rank }: { layer: MissionLayer; rank: number | null }) {
+function MissionSummary({ layer, rank, reference }: { layer: MissionLayer; rank: number | null; reference: boolean }) {
   const option = layer.option
   const preferences = option ? preferencesText(option) : null
   return (
     <section className="metrics-mission" aria-label="Resultado de tu misión" data-stale={layer.stale ? '' : undefined}>
       <p className="metrics-mission-status" data-status={layer.status}>
         {rank !== null && <b>#{rank} · </b>}
+        {reference && <b>REF · </b>}
         {MISSION_STATUS_LABEL[layer.status]}
         {preferences && <small> · {preferences}</small>}
       </p>
@@ -133,7 +134,8 @@ function Summary({ context, site }: { context: MetricContext; site: CandidateSit
           {scored && <small> %</small>}
         </strong>
         <span className="metrics-score-label">
-          similitud v3{context.kind === 'base' && context.rank !== null ? ` · #${context.rank} de ${context.rankedCount}` : ''}{context.kind === 'mission' ? ' · sin recalcular' : ''}
+          similitud v3{context.kind === 'base' && context.rank !== null ? ` · #${context.rank} de ${context.rankedCount}` : ''}
+          {context.mission?.status === 'objetivo_no_soportado' ? ' · perfil rover Marte · no aplica a este objetivo' : context.kind === 'mission' ? ' · sin recalcular' : ''}
         </span>
       </div>
       {figures.similarityState === 'insufficient' && (
@@ -143,7 +145,7 @@ function Summary({ context, site }: { context: MetricContext; site: CandidateSit
       )}
       <p className="metrics-profile">{profileLine(context)}</p>
       <RoleLine context={context} />
-      {context.mission && <MissionSummary layer={context.mission} rank={context.rank} />}
+      {context.mission && <MissionSummary layer={context.mission} rank={context.rank} reference={context.role === 'reference'} />}
       <dl className="metrics-figures">
         <div className="metrics-fig metrics-fig-confidence">
           <dt>Confianza</dt>
@@ -197,8 +199,9 @@ function SheetSummary({ context, site, data }: { context: MetricContext; site: C
         </button>
         <p className="metrics-sitenav-score">
           <strong>
-            {context.kind === 'base' && context.role === 'reference' && <span className="metrics-rank">REF · </span>}
             {context.rank !== null && <span className="metrics-rank">#{context.rank}{context.kind === 'base' ? ` de ${context.rankedCount}` : ''} · </span>}
+            {/* La REF nunca aparece sin su rótulo: en Misión el motor del equipo puede darle puesto. */}
+            {context.role === 'reference' && <span className="metrics-rank">REF · </span>}
             <FadeNumber value={figures.similarity}>{siteSimilarityText(figures)}</FadeNumber>
             {figures.similarity !== null && ' %'}
           </strong>

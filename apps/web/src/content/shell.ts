@@ -52,7 +52,7 @@ export function staticBootHtml({ posterUrl }: StaticShellOptions = {}): string {
 export function staticShellHtml(options: StaticShellOptions = {}): string {
   const t = SHELL_TEXT
   const loading = `<div class="place-stub" aria-busy="true"><p class="place-stub-note">${escape(t.statusLoading)}</p></div>`
-  const pill = `<span class="composer-pill"><span aria-hidden="true">✦</span><span class="composer-pill-text">${escape(t.composerPrompt)}</span><kbd aria-hidden="true">/</kbd></span>`
+  const pill = `<span class="composer-pill"><span class="composer-pill-text">${escape(t.composerPrompt)}</span><kbd aria-hidden="true">/</kbd></span>`
   return (
     '<div class="app" data-static="" data-mode="explorar">' +
     `<div class="stage"><div class="map-stage">${options.credit ? `<div class="stage-dock" data-static=""><p class="stage-data-credit">${escape(options.credit)}</p></div>` : ''}</div></div>` +

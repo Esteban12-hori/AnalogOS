@@ -1,4 +1,4 @@
-/** Canal para enfocar el composer desde fuera (tecla «/», botón «✦ Refinar»). */
+/** Canal para enfocar el composer desde fuera (tecla «/», botón «Refinar»). */
 export const COMPOSER_FOCUS_EVENT = 'analogos:focus-composer'
 
 let pending = false

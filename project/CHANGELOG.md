@@ -1,5 +1,23 @@
 # Changelog de trabajo
 
+## 2026-11-15 Claude Code · revisión de la integración: hallazgos corregidos (rama feature/mision-redesign)
+
+Tres revisiones independientes de `e568d9d` (honestidad científica e IA, recorrido visual en 1440/1280/390, no regresión del trabajo del equipo). Se corrigieron los 2 hallazgos altos, los 11 medios y 9 de los 12 bajos; cada uno con prueba o medición en el navegador. Quedan sin corregir 3 bajos (ver STATUS). Sin cambios en `shared/`, `server/`, `api/`, `apps/web/src/mission/`, artefactos científicos, CI ni dependencias.
+
+- **Lectura (IA):** la nota «Todos los requisitos se cumplen…» ahora sale de la evaluación, no de lo que eligió la IA; si la selección omite lugares con bloqueos, dice «La IA no destacó motivos para N lugares» y los lista. Los motivos destacados siguen el orden de la evaluación aunque la IA devuelva otro (la IA no ordena). La procedencia (modelo, fecha, request_id) viaja con la vista y sigue visible con la Lectura atenuada; un solo ✦ en el rótulo.
+- **REF en Misión:** el motor del equipo puede darle puesto a Yungay; la UI lo muestra siempre con «REF» (riel, hoja S1, carrusel, globo) y la REF no cuenta en «N de M candidatos priorizados» ni en el título del carrusel («+ REF»). Ordenar solo candidatos en `shared/mission/evaluate.ts` queda como decisión del equipo.
+- **✦ solo IA:** fuera de la píldora de Explorar, el formulario de Misión (y su pulso tras evaluar), «Refinar», el esqueleto de la Lectura y la carga de «Tu misión».
+- **«Tu misión» (≥1440):** sin resultado vigente, el planificador ocupa el panel y la Lectura queda en una franja de ~22 %; en variante compacta, «Cargar un ejemplo» y el texto van arriba, las tarjetas de recorrido pierden la descripción y «Siguiente →» queda fijo al pie. Medido en 1440×900: ejemplo, texto y «Siguiente» a la vista sin scroll interno.
+- **«Enviar»:** lleva el foco al texto cargado en «Tu misión» aunque el paso ya estuviera abierto, y el composer dice «Texto cargado en «Tu misión»…».
+- **Espera de la IA:** el texto de fase ya no queda en la esquina sobre el logo (la órbita sigue alrededor del globo; la fase la dice el composer).
+- **Rótulos del globo y del 2D:** nombre y estado se acortan con «…» (el puesto y el % no); el mapa 2D escribe `--pin-x` como el globo, así el rótulo no sale de pantalla en 390 px. El chip «Métricas en el panel →» va bajo el anillo y no tapa el rótulo.
+- **Carrusel:** el título («Tu misión · 4 priorizados») ya no es lo primero que se pierde; en tarjetas angostas, formas cortas legibles («#2 · Priorizado», «Conf.», «Factib.: revisión») con la completa en el árbol accesible; «similitud v3» entero y la cifra dentro del anillo. «estado · reglas mission-rules-1.0.0» en vez de «reglas del equipo». Con objetivo no soportado, el anillo dice «no aplica» y no muestra la similitud del perfil rover.
+- **Ficha:** «Descargar ficha (JSON)» de Fuentes usa `buildExport` del equipo (aviso de honestidad y `search_context`), igual que «Exportar ficha (JSON)».
+- **Privacidad:** el `title` de «Borrar todo» en «Tu misión» ya no promete que nada se guarda (hay historial local) y dice cómo borrarlo; el panel autónomo del equipo conserva su texto. «Requisitos propuestos con IA · confirmados por usted» tras confirmar.
+- **Varios:** precarga de texturas con `crossorigin` (cada textura se baja una vez y sin avisos); sugerencias ocultas con el popover de «Tu misión» abierto.
+- **Entrega:** `submission/analogos-static.zip` regenerado con la interfaz integrada (66 entradas, 14.508.759 bytes, SHA-256 `c5904c66…`); guion de demo y «Recorridos M8» actualizados.
+- **Verificación:** `npm run verify` → pytest 190 + 4 omitidas, `typecheck:server`, vitest 624 + 2 omitidas, build. Chunk de entrada 122,9 KB gz (+0,7). Recorrido en Chrome (puerto 4631) 1440×900, 1280×800 y 390×844 sin errores de página.
+
 ## 2026-11-14 Claude Code · integración del rediseño con dev (rama feature/mision-redesign)
 
 Pedido directo del usuario: «fusiona en dev y haz push». Decisión: la UI es la del rediseño y por dentro se usan el planificador, la IA de Anthropic y los datos v3 del equipo (ADR-013, `docs/INTEGRATION_PLAN.md`). El push a `dev` queda como paso aparte.

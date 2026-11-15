@@ -14,8 +14,14 @@ export function evaluateSector(siteId: string): void {
   withController((mission) => mission.startSector(siteId))
 }
 
+/** Texto de la ficha exportada (aviso de honestidad, sitio y alcance de la búsqueda). */
+export function siteExportText(candidate: CandidateSite, search: SearchResults | null): string {
+  return `${JSON.stringify(buildExport(candidate, search), null, 2)}\n`
+}
+
+/** Toda descarga de ficha pasa por aquí (cabecera y pestaña Fuentes): un solo contenido por archivo. */
 export function exportSiteJson(candidate: CandidateSite, search: SearchResults | null): void {
-  const blob = new Blob([`${JSON.stringify(buildExport(candidate, search), null, 2)}\n`], { type: 'application/json' })
+  const blob = new Blob([siteExportText(candidate, search)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   anchor.href = url

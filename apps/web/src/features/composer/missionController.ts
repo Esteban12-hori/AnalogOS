@@ -89,7 +89,7 @@ export interface MissionController {
   addMetricRequirement(metric: MetricId): void
   /** «Evaluar este sector» (con sitio) o «Evaluar un sector…» (sin sitio: elegir en el selector). */
   startSector(siteId?: string): void
-  requestStep(step: StepId): void
+  requestStep(step: StepId, target?: 'brief'): void
   restore(entryId: string): void
   undo(): boolean
   clearHistory(): void
@@ -161,16 +161,18 @@ export function createMissionController(deps: ControllerDeps): MissionController
     const current = deps.mission.getState()
     const built = buildRequest(state)
     const fresh = state.result !== null && state.result !== previous.result
-    let { evaluation, stale, revision, evaluatedRequest, explanation: view } = current
+    let { evaluation, stale, revision, evaluatedRequest, explanation: view, explanationProvenance } = current
     if (action.type === 'reset') {
       evaluation = null
       evaluatedRequest = null
       stale = false
       view = null
+      explanationProvenance = null
     } else if (state.result) {
       evaluation = state.result
       stale = false
       view = explanation(state.result, state.explain.record)
+      explanationProvenance = state.explain.record?.provenance ?? null
       if (fresh) {
         revision += 1
         evaluatedRequest = built.request
@@ -179,7 +181,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
       // El reductor invalidó el resultado (edición): queda como referencia visual atenuada.
       stale = true
     }
-    deps.mission.setState({ planner: state, request: built.request, evaluation, stale, evaluatedRequest, explanation: view, source: missionSource(state), revision })
+    deps.mission.setState({ planner: state, request: built.request, evaluation, stale, evaluatedRequest, explanation: view, explanationProvenance, source: missionSource(state), revision })
     deps.ui.setMissionPhase(phaseFor(state))
 
     // Red: se aborta toda petición que el reductor ya no considera vigente (portado de usePlanner).
@@ -323,7 +325,8 @@ export function createMissionController(deps: ControllerDeps): MissionController
       if (!brief.trim()) return
       if (state.journey !== 'test') dispatch({ type: 'set_journey', journey: 'test' })
       dispatch({ type: 'set_brief', brief })
-      controller.requestStep('describe')
+      // El foco va al texto recién cargado: se ve aunque «Tu misión» sea una franja con scroll.
+      controller.requestStep('describe', 'brief')
     },
 
     loadExample() {
@@ -343,9 +346,9 @@ export function createMissionController(deps: ControllerDeps): MissionController
       controller.requestStep(siteId ? 'describe' : 'scope')
     },
 
-    requestStep(step) {
+    requestStep(step, target) {
       stepNonce += 1
-      deps.composer.setState({ stepRequest: { step, nonce: stepNonce }, openRequest: deps.composer.getState().openRequest + 1 })
+      deps.composer.setState({ stepRequest: target ? { step, nonce: stepNonce, target } : { step, nonce: stepNonce }, openRequest: deps.composer.getState().openRequest + 1 })
     },
 
     restore(entryId) {

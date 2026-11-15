@@ -25,6 +25,17 @@ const SOURCE_LABEL: Readonly<Record<MissionSource, string>> = {
   manual: 'Requisitos escritos por usted',
 }
 
+/** Rótulo de procedencia: con la propuesta de la IA, dice si usted ya la confirmó. */
+export function sourceLabel(source: MissionSource, confirmed: boolean): string {
+  return source === 'anthropic' && confirmed ? 'Requisitos propuestos con IA · confirmados por usted' : SOURCE_LABEL[source]
+}
+
+/**
+ * «Borrar todo» en la interfaz integrada: aquí SÍ hay historial local (las pruebas evaluadas),
+ * a diferencia del panel del equipo, que no guarda nada en el navegador.
+ */
+export const RESET_HINT = 'Borra la prueba en curso. Las pruebas ya evaluadas quedan en el historial de este navegador: bórrelas en «Historial» › «Borrar historial».'
+
 /** Planificador compartido con la misma forma que `usePlanner` del equipo. */
 function useSharedPlanner(controller: MissionController) {
   const state = useSyncExternalStore(controller.subscribe, controller.getState, controller.getState)
@@ -123,7 +134,7 @@ function MissionPanelBody({
         {source && (
           <span className="composer-card-source" data-source={source}>
             {source === 'anthropic' && <span aria-hidden="true">{GLYPH.ai} </span>}
-            {SOURCE_LABEL[source]}
+            {sourceLabel(source, api.state.confirmed)}
           </span>
         )}
       </header>
@@ -135,6 +146,7 @@ function MissionPanelBody({
         intent={null}
         compact
         stepRequest={stepRequest}
+        resetHint={RESET_HINT}
         footer={<HistoryBlock controller={controller} />}
       />
     </section>

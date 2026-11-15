@@ -88,6 +88,8 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
   const selection = useUi((state) => state.selection)
   const settledInsets = useUi((state) => state.stageInsets)
   const revision = useMission((state) => state.revision)
+  // Panel izquierdo (≥1440): sin resultado vigente manda «Tu misión»; con resultado, la Lectura.
+  const missionFocus = useMission((state) => state.evaluation === null || state.stale)
   const [seenRevision, setSeenRevision] = useState(revision)
   const [railFull, setRailFull] = useState(false)
   const [detent, setDetent] = useState<DetentId>('S0')
@@ -344,7 +346,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
       )}
 
       {tramo === 'wide' && mode === 'mision' && (
-        <aside className="left-panel" aria-label="Tu misión y lectura" data-obstacle="">
+        <aside className="left-panel" aria-label="Tu misión y lectura" data-obstacle="" data-focus={missionFocus ? 'mission' : 'reading'}>
           <div data-slot="left.mission"><MissionCard data={data} placement="panel" promise={promise} /></div>
           <div data-slot="left.reading"><ReadingPanel data={data} placement="panel" /></div>
         </aside>
