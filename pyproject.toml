@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "analogos-pipelines"
 version = "0.2.0"
-description = "Pipeline por lotes de AnalogOS Chile (P0)"
+description = "AnalogOS Chile batch pipeline (P0)"
 requires-python = ">=3.11"
 dependencies = [
   "certifi>=2024.0",

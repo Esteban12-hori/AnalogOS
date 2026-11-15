@@ -1,49 +1,49 @@
 /**
- * Layout puro de la columna de etiquetas Tesla (incremento 6, docs/UX_REDESIGN.md §3.4). Los
- * trazos SVG y la línea única de móvil están en leaderPaths.ts.
+ * Pure layout of the Tesla label column (increment 6, docs/UX_REDESIGN.md §3.4). The
+ * SVG paths and the single mobile line are in leaderPaths.ts.
  *
- * Geometría de la columna:
- *   origen único O en el borde del anillo (del lado de la columna) → tronco horizontal hasta
- *   el bus vertical → un tramo horizontal por etiqueta hasta la fila de su título.
- *   Todos los tramos son horizontales o verticales y comparten O, de modo que dos líneas solo
- *   se tocan en el tronco o el bus (nunca se cruzan) y ninguna atraviesa una etiqueta.
+ * Column geometry:
+ *   a single origin O on the edge of the ring (on the column side) → horizontal trunk to
+ *   the vertical bus → one horizontal segment per label to the row of its title.
+ *   All segments are horizontal or vertical and share O, so two lines only
+ *   touch at the trunk or the bus (they never cross) and none passes through a label.
  *
- * Degradación: 4 → 3 → 2 → 0 etiquetas (nunca 1); con 0, chip «Métricas en el panel →».
- * Histéresis: el lado anterior se conserva mientras muestre tantas etiquetas como el otro con
- * holgura; crecer de N a N+1 (o salir del chip) exige `hysteresis` px de holgura extra.
+ * Degradation: 4 → 3 → 2 → 0 labels (never 1); with 0, a chip "Metrics in the panel →".
+ * Hysteresis: the previous side is kept as long as it shows as many labels as the other with
+ * slack; growing from N to N+1 (or leaving the chip) requires `hysteresis` px of extra slack.
  */
 import type { LeaderLayout, LeaderLayoutInput, Rect } from './index'
 
-// Congelado: es interfaz estable (index.ts) y nadie debe mutarlo. Además, la llamada en el nivel
-// superior mantiene este módulo en el chunk principal junto a index.ts: si quedara solo en el
-// chunk diferido, Rolldown sacaría React del principal a chunks compartidos (3 peticiones más).
+// Frozen: it is a stable interface (index.ts) and nobody should mutate it. In addition, the top-level
+// call keeps this module in the main chunk together with index.ts: if it stayed only in the
+// deferred chunk, Rolldown would move React out of the main chunk into shared chunks (3 more requests).
 export const LEADER_GEOMETRY = Object.freeze({
-  /** Separación respecto de los bordes del área segura y de los paneles (px). */
+  /** Separation from the edges of the safe area and from the panels (px). */
   margin: 12,
-  /** Separación vertical entre etiquetas. */
+  /** Vertical separation between labels. */
   gap: 8,
-  /** Separación entre el encabezado y la primera etiqueta. */
+  /** Separation between the header and the first label. */
   headerGap: 6,
-  /** Distancia mínima y preferida entre el borde del anillo y la columna (cabe el bus). */
+  /** Minimum and preferred distance between the edge of the ring and the column (the bus fits). */
   reachMin: 40,
   reachPref: 88,
-  /** Distancia máxima del bus vertical a la columna. */
+  /** Maximum distance from the vertical bus to the column. */
   busInset: 16,
-  /** Polígono más ancho que esta fracción del área libre → modo acoplado sin líneas. */
+  /** Polygon wider than this fraction of the free area → docked mode without lines. */
   dockFraction: 0.45,
-  /** Por debajo de esta visibilidad el lugar no se ve (detrás del globo o fuera): chip. */
+  /** Below this visibility the place is not visible (behind the globe or off-screen): chip. */
   minVisible: 0.5,
-  /** Holgura (px) para crecer de N a N+1 etiquetas, salir del chip o cambiar de lado. */
+  /** Slack (px) to grow from N to N+1 labels, leave the chip or switch sides. */
   hysteresis: 16,
-  /** Las líneas se enganchan a la fila del título de cada etiqueta (px desde su borde superior). */
+  /** Lines attach to the title row of each label (px from its top edge). */
   attachDy: 11,
-  /** Una línea móvil más corta que esto no se dibuja. */
+  /** A mobile line shorter than this is not drawn. */
   mobileMinLength: 24,
-  /** Separación entre el anillo y el chip. */
+  /** Separation between the ring and the chip. */
   chipGap: 14,
 })
 
-/** Cantidades permitidas, de mayor a menor: nunca una sola etiqueta. */
+/** Allowed counts, from highest to lowest: never a single label. */
 const COUNTS = [4, 3, 2] as const
 
 type Side = 'left' | 'right'
@@ -78,12 +78,12 @@ function intersects(a: Rect, b: Rect): boolean {
   return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
 }
 
-/** Engancha la línea en la fila del título, sin pasar de la mitad de la etiqueta. */
+/** Attaches the line at the title row, without going past the middle of the label. */
 export function attachOffset(height: number): number {
   return Math.min(LEADER_GEOMETRY.attachDy, height / 2)
 }
 
-/** Intervalos verticales libres de [top, bottom] para la franja horizontal [left, right]. */
+/** Free vertical intervals of [top, bottom] for the horizontal strip [left, right]. */
 function freeIntervals(top: number, bottom: number, left: number, right: number, obstacles: readonly Rect[], margin: number): Array<[number, number]> {
   let intervals: Array<[number, number]> = [[top, bottom]]
   for (const obstacle of obstacles) {
@@ -105,7 +105,7 @@ function freeIntervals(top: number, bottom: number, left: number, right: number,
   return intervals
 }
 
-/** La posición más cercana a `desired` donde cabe `height` (con `slack` de holgura); null si no hay. */
+/** The position closest to `desired` where `height` fits (with `slack` of slack); null if there is none. */
 function nearestTop(intervals: Array<[number, number]>, desired: number, height: number, slack: number): number | null {
   let best: number | null = null
   for (const [start, end] of intervals) {
@@ -120,7 +120,7 @@ function isDocked(input: LeaderLayoutInput): boolean {
   return Number.isFinite(input.polygonWidthFraction) && input.polygonWidthFraction > LEADER_GEOMETRY.dockFraction
 }
 
-/** Intenta ubicar `count` etiquetas (más el encabezado) del lado `side`; null si no caben. */
+/** Tries to place `count` labels (plus the header) on side `side`; null if they do not fit. */
 function fitColumn(input: LeaderLayoutInput, side: Side, count: number, slack: number): Fit | null {
   const G = LEADER_GEOMETRY
   const labels = input.labels.slice(0, count)
@@ -165,7 +165,7 @@ function fitColumn(input: LeaderLayoutInput, side: Side, count: number, slack: n
   const top = nearestTop(intervals, anchor.y - stackHeight / 2, stackHeight, slack)
   if (top === null) return null
 
-  // Con líneas, la columna se alinea hacia el anillo; acoplada, hacia el borde.
+  // With lines, the column is aligned toward the ring; when docked, toward the edge.
   const alignLeft = docked ? side === 'left' : side === 'right'
   let y = top
   let headerAt: Point | undefined
@@ -180,7 +180,7 @@ function fitColumn(input: LeaderLayoutInput, side: Side, count: number, slack: n
   })
 
   if (origin && busX !== undefined) {
-    // El tronco, el bus y los tramos tampoco pueden pasar por debajo de un panel.
+    // The trunk, the bus and the segments also cannot pass beneath a panel.
     const ys = [origin.y, ...placements.map((placement, index) => placement.y + attachOffset(labels[index]?.height ?? 0))]
     const xs = [origin.x, busX, side === 'right' ? left : right]
     const box = { x: Math.min(...xs), y: Math.min(...ys), width: Math.max(...xs) - Math.min(...xs), height: Math.max(...ys) - Math.min(...ys) }
@@ -189,7 +189,7 @@ function fitColumn(input: LeaderLayoutInput, side: Side, count: number, slack: n
   return { count, placements, header: headerAt, origin, busX }
 }
 
-/** Modo chip: «Métricas en el panel →», junto al anillo del lado del riel o contra el borde derecho. */
+/** Chip mode: "Metrics in the panel →", next to the ring on the rail side or against the right edge. */
 function chipLayout(input: LeaderLayoutInput, side: Side): LeaderLayout {
   const base: LeaderLayout = { mode: 'chip', side, placements: [], count: 0 }
   const chip = input.chip
@@ -201,15 +201,15 @@ function chipLayout(input: LeaderLayoutInput, side: Side): LeaderLayout {
   const seen = (anchor.visible ?? 1) >= G.minVisible && finite(anchor.x, anchor.y, anchor.radius) && containsPoint(input.safeArea, anchor.x, anchor.y)
   const rightEdge = safe.x + safe.width - chip.width
   const x = seen ? clamp(anchor.x + anchor.radius + G.chipGap, safe.x, rightEdge) : rightEdge
-  // Bajo el anillo, no a su altura: a la derecha del ancla está el rótulo del pin seleccionado
-  // («#1 … 94,9 %») y el chip lo tapaba.
+  // Below the ring, not at its height: to the right of the anchor is the label of the selected pin
+  // ("#1 … 94,9 %") and the chip covered it.
   const desired = seen ? anchor.y + anchor.radius + G.chipGap : safe.y + safe.height / 2 - chip.height / 2
   const intervals = freeIntervals(safe.y, safe.y + safe.height, x, x + chip.width, input.obstacles, G.margin)
   const y = nearestTop(intervals, desired, chip.height, 0)
   return y === null ? base : { ...base, chip: { x, y } }
 }
 
-/** Columna de etiquetas sin cruces dentro del área segura, degradando 4→3→2→0 con histéresis. */
+/** Label column without crossings within the safe area, degrading 4→3→2→0 with hysteresis. */
 export function layoutLeaders(input: LeaderLayoutInput): LeaderLayout {
   const G = LEADER_GEOMETRY
   const { anchor, safeArea } = input
@@ -221,7 +221,7 @@ export function layoutLeaders(input: LeaderLayoutInput): LeaderLayout {
     return chipLayout(input, fallbackSide)
   }
   const docked = isDocked(input)
-  // Con líneas, el origen tiene que verse dentro del área segura; acoplada no hay líneas.
+  // With lines, the origin has to be visible within the safe area; when docked there are no lines.
   if (!docked && !containsPoint(safeArea, anchor.x, anchor.y)) return chipLayout(input, fallbackSide)
 
   const best = (side: Side, slack: number, cap = Number.POSITIVE_INFINITY): Fit | null => {
@@ -232,7 +232,7 @@ export function layoutLeaders(input: LeaderLayoutInput): LeaderLayout {
     }
     return null
   }
-  // Con la cantidad anterior, crecer exige holgura (no salta 3↔4 ni chip↔líneas en el borde).
+  // With the previous count, growing requires slack (it does not jump 3↔4 or chip↔lines at the edge).
   const stable = (side: Side): Fit | null => {
     const free = best(side, 0)
     const previous = input.previousCount
@@ -249,7 +249,7 @@ export function layoutLeaders(input: LeaderLayoutInput): LeaderLayout {
   if (input.previousSide) {
     const current = stable(input.previousSide)
     const other: Side = input.previousSide === 'right' ? 'left' : 'right'
-    // Cambiar de lado solo si el otro muestra más etiquetas con holgura (o si el actual no cabe).
+    // Switch sides only if the other shows more labels with slack (or if the current one does not fit).
     const alternative = current ? best(other, G.hysteresis) : stable(other)
     if (alternative && alternative.count > (current?.count ?? 0)) {
       side = other

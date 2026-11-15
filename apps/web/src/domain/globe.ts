@@ -1,14 +1,14 @@
 import type { CandidateGeometry, Position } from './contracts'
 
-/** Vector cartesiano mínimo; evita acoplar el dominio a three.js. */
+/** Minimal Cartesian vector; avoids coupling the domain to three.js. */
 export type Vec3 = [number, number, number]
 
 const DEG = Math.PI / 180
 
 /**
- * Convierte latitud/longitud (grados) a coordenadas cartesianas sobre una esfera.
- * Coincide con el mapeo UV por defecto de `THREE.SphereGeometry` para texturas
- * equirectangulares cuyo borde izquierdo es la longitud -180°.
+ * Converts latitude/longitude (degrees) to Cartesian coordinates on a sphere.
+ * Matches the default UV mapping of `THREE.SphereGeometry` for equirectangular textures
+ * whose left edge is longitude -180°.
  */
 export function latLngToVec3(latitude: number, longitude: number, radius: number): Vec3 {
   const phi = (90 - latitude) * DEG
@@ -26,8 +26,8 @@ export function outerRings(geometry: CandidateGeometry): Position[][] {
 }
 
 /**
- * Centro aproximado (media de vértices del primer anillo exterior) en [lon, lat].
- * Solo se usa para anclar el rótulo; la zona se dibuja siempre como polígono.
+ * Approximate center (mean of the vertices of the first outer ring) in [lon, lat].
+ * Used only to anchor the label; the zone is always drawn as a polygon.
  */
 export function geometryCenter(geometry: CandidateGeometry): Position | null {
   const ring = outerRings(geometry)[0] ?? []
@@ -39,8 +39,8 @@ export function geometryCenter(geometry: CandidateGeometry): Position | null {
 }
 
 /**
- * Densifica un anillo para que sus aristas sigan la curvatura de la esfera
- * (interpolación lineal en grados, suficiente para tramos cortos).
+ * Densifies a ring so that its edges follow the curvature of the sphere
+ * (linear interpolation in degrees, sufficient for short segments).
  */
 export function densifyRing(ring: Position[], maxStepDegrees = 0.5): Position[] {
   if (ring.length < 2) return ring
@@ -58,7 +58,7 @@ export function densifyRing(ring: Position[], maxStepDegrees = 0.5): Position[] 
   return out
 }
 
-/** Producto punto de direcciones normalizadas; > 0 significa hemisferio visible. */
+/** Dot product of normalized directions; > 0 means the hemisphere is visible. */
 export function facingFactor(point: Vec3, camera: Vec3): number {
   const lp = Math.hypot(...point)
   const lc = Math.hypot(...camera)

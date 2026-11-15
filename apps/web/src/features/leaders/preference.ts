@@ -1,6 +1,6 @@
 /**
- * Preferencia «Líneas: sí/no» (interruptor del HUD del escenario). Comodidad por visitante:
- * se recuerda en localStorage si está disponible y la app funciona igual sin él.
+ * "Lines: yes/no" preference (stage HUD toggle). Per-visitor convenience:
+ * it is remembered in localStorage if available, and the app works the same without it.
  */
 import { useSyncExternalStore } from 'react'
 
@@ -27,7 +27,7 @@ export function setLeadersEnabled(next: boolean): void {
   try {
     if (typeof window !== 'undefined') window.localStorage.setItem(STORAGE_KEY, next ? 'on' : 'off')
   } catch {
-    // Sin almacenamiento (privado, file://): la preferencia dura la sesión.
+    // No storage (private mode, file://): the preference lasts for the session.
   }
   for (const listener of [...listeners]) listener()
 }

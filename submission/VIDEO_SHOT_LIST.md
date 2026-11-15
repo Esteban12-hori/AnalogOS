@@ -1,25 +1,25 @@
-# Video de respaldo — 90 segundos
+# Backup video — 90 seconds
 
-## Preparación técnica
+## Technical setup
 
-- Resolución: 1920×1080 o 1440×900.
-- Navegador: modo incógnito, zoom 100 %, sin barra de favoritos.
-- Audio: micrófono cercano, habitación silenciosa.
-- Mantener el cursor quieto mientras se habla.
-- Grabar una toma completa y, si hay tiempo, una segunda sin narración para edición.
+- Resolution: 1920×1080 or 1440×900.
+- Browser: incognito mode, 100 % zoom, no bookmarks bar.
+- Audio: close microphone, quiet room.
+- Keep the cursor still while speaking.
+- Record one complete take and, if time allows, a second one without narration for editing.
 
-## Secuencia
+## Sequence
 
-| Tiempo | Imagen | Narración clave |
+| Time | Image | Key narration |
 |---|---|---|
-| 0:00–0:08 | Título y pregunta de misión | “Parecido a Marte no es una especificación de prueba.” |
-| 0:08–0:20 | Alcance, mapa y ranking | “AnalogOS busca en 50 ventanas de Chile y Argentina con datos NASA y límites visibles.” |
-| 0:20–0:38 | Ficha del candidato 1 | “94,9 de similitud, 77,5 de confianza, antecedentes regionales a la vista y factibilidad pendiente.” |
-| 0:38–0:52 | Desglose | “MOLA y NASADEM se comparan a escala equivalente; Sentinel-2 mide el suelo expuesto durante doce meses.” |
-| 0:52–1:05 | Verificaciones y fuentes | “Cada afirmación conserva fuente, incertidumbre y trabajo de campo pendiente.” |
-| 1:05–1:18 | Comparación rápida y referencia | “Yungay queda como referencia conocida, fuera del ranking; ningún candidato se declara nuevo.” |
-| 1:18–1:30 | Método reproducible | “Un snapshot estático, auditable y offline transforma intuición en una hipótesis medible.” |
+| 0:00–0:08 | Title and mission question | “Mars-like is not a test specification.” |
+| 0:08–0:20 | Scope, map and ranking | “AnalogOS searches 50 windows in Chile and Argentina using NASA data and visible limits.” |
+| 0:20–0:38 | Candidate 1 card | “94,9 similarity, 77,5 confidence, regional background in view and feasibility pending.” |
+| 0:38–0:52 | Breakdown | “MOLA and NASADEM are compared at an equivalent scale; Sentinel-2 measures exposed soil over twelve months.” |
+| 0:52–1:05 | Checks and sources | “Each claim retains its source, uncertainty and pending fieldwork.” |
+| 1:05–1:18 | Quick comparison and reference | “Yungay remains as a known reference, outside the ranking; no candidate is declared new.” |
+| 1:18–1:30 | Reproducible method | “A static, auditable, offline snapshot turns intuition into a measurable hypothesis.” |
 
-## Pantalla final
+## Final screen
 
-Mostrar el logo, el mensaje central y los enlaces de proyecto/demo durante tres segundos. No cerrar con una afirmación de “mejor sitio”; usar “primera prioridad para investigar”.
+Show the logo, the core message and the project/demo links for three seconds. Do not close with a claim of “best site”; use “first priority for investigation”.

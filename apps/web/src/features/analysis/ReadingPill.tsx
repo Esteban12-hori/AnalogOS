@@ -1,10 +1,10 @@
 /**
- * Píldora «Lectura determinista» (slot `pill.reading`, Explorar ≥1100). Es un disclosure: abre los
- * hechos del snapshot debajo, sin desenfoque (marcadores y chips sin blur, §2.4). En Explorar no hay
- * IA: la Lectura es determinista (sin ✦). La vista se precarga al primer hover/foco.
- * Esc cierra y devuelve el foco a la píldora.
- * En Misión (1100–1439, M11) es la superficie de «Ir a la Lectura»: `openSignal` la abre sin tocar la
- * selección, y el rótulo pasa a «Lectura» porque ahí puede incluir la selección pedida a la IA.
+ * "Deterministic Reading" pill (slot `pill.reading`, Explore ≥1100). It is a disclosure: it opens the
+ * snapshot facts below, without blur (markers and chips without blur, §2.4). In Explore there is no
+ * AI: the Reading is deterministic (no ✦). The view is preloaded on first hover/focus.
+ * Esc closes it and returns focus to the pill.
+ * In Mission (1100–1439, M11) it is the "Go to the Reading" surface: `openSignal` opens it without touching the
+ * selection, and the label changes to "Reading" because there it may include the selection requested from the AI.
  */
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { useUi } from '../../state/ui'
@@ -24,7 +24,7 @@ export function ReadingPill({ data, openSignal }: ReadingPillProps) {
     if (!ready) setOpen(false)
   }, [ready])
 
-  // «Ir a la Lectura»: cada pedido nuevo abre la píldora (el armazón lleva el foco al título).
+  // "Go to the Reading": each new request opens the pill (the shell moves focus to the title).
   useEffect(() => {
     if (openSignal === seenSignal.current) return
     seenSignal.current = openSignal
@@ -61,7 +61,7 @@ export function ReadingPill({ data, openSignal }: ReadingPillProps) {
         }}
       >
         <span className="analysis-pill-star" aria-hidden="true">≡</span>
-        <span>{mission ? 'Lectura' : 'Lectura determinista'}</span>
+        <span>{mission ? 'Reading' : 'Deterministic reading'}</span>
         <span className="analysis-pill-caret" aria-hidden="true">⌄</span>
       </button>
       <div id={popId} className="analysis-pop" hidden={!open}>

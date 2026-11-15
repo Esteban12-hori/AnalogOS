@@ -1,8 +1,8 @@
-"""Constantes y reglas PURAS del contexto geológico: sin Shapely, numpy, pyproj ni requests.
+"""PURE geological context constants and rules: no Shapely, numpy, pyproj or requests.
 
-Las comparten el pipeline, el validador del contrato y el empaquetador. Aquí solo hay política (umbrales
-provisionales de ingeniería aprobados por Codex, no un estándar científico), URLs permitidas, el estado de
-disponibilidad derivado de fracciones y dos utilidades triviales (hash de petición y bbox exacta).
+Shared by the pipeline, contract validator and packager. This module contains policy (provisional
+engineering thresholds approved by Codex, not a scientific standard), permitted URLs, availability
+derived from area fractions, and two small utilities: request hashing and exact bounding boxes.
 """
 
 from __future__ import annotations
@@ -11,14 +11,16 @@ import hashlib
 import json
 
 AREA_CRS = "EPSG:6933"
+# Frozen Spanish metadata: these literals are part of the stored geological package.
+# English display translations must not change the canonical source values.
 CLIP_CRS = "Validez y reparación en lon/lat (CRS84); recorte y superposición en el plano EPSG:6933 (aristas rectas en ese plano)"
 
-REPAIR_ENTITY_RELATIVE_LIMIT = 0.001   # 0,1 % del área recortada de la entidad
-REPAIR_TOTAL_AREA_LIMIT = 0.001        # 0,1 % de cambio entre el área TOTAL original y la reparada
-REPAIR_AOI_FRACTION_LIMIT = 0.0005     # 0,05 % del área del sector
-AREA_FLOOR_M2 = 1e-6                   # por debajo es ruido numérico, no intersección positiva
-AVAILABLE_TOLERANCE = 1e-8             # tolerancia numérica para «completo»
-SUM_TOLERANCE = 1e-9                   # tolerancia de cierre de la partición
+REPAIR_ENTITY_RELATIVE_LIMIT = 0.001   # 0.1% of the clipped feature area
+REPAIR_TOTAL_AREA_LIMIT = 0.001        # 0.1% change between the original and repaired TOTAL area
+REPAIR_AOI_FRACTION_LIMIT = 0.0005     # 0.05% of the sector area
+AREA_FLOOR_M2 = 1e-6                   # below this is numerical noise, not a positive intersection
+AVAILABLE_TOLERANCE = 1e-8             # numerical tolerance for complete coverage
+SUM_TOLERANCE = 1e-9                   # tolerance for closure of the area partition
 FRACTION_DECIMALS = 15
 
 POLICY = {
@@ -45,7 +47,7 @@ WFS_MAX_FEATURES = 2000
 
 
 def availability(fractions: dict) -> str:
-    """Estado de evidencia derivado SOLO de las fracciones; nunca de aptitud ni de umbrales de calidad."""
+    """Evidence availability derived ONLY from area fractions; never suitability or quality thresholds."""
     covered, unusable = fractions["covered_total"], fractions["unusable_upper_bound"]
     if covered == 0:
         return "no_coverage" if unusable == 0 else "unavailable"
@@ -63,7 +65,7 @@ def request_digest(request: dict) -> str:
 
 
 def aoi_bounds(geometry: dict) -> list[float]:
-    """Bbox exacta (sin redondeo) del polígono del candidato; las coordenadas se conservan tal cual."""
+    """Exact bounding box of the candidate polygon, without rounding; coordinates are preserved unchanged."""
     xs = [p[0] for ring in geometry["coordinates"] for p in ring]
     ys = [p[1] for ring in geometry["coordinates"] for p in ring]
     return [min(xs), min(ys), max(xs), max(ys)]

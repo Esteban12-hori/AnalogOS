@@ -1,4 +1,4 @@
-/* features/places · tarjeta del riel para un ◆ seleccionado (chunk diferido de ReferenceCardView). */
+/* features/places · rail card for a selected ◆ (deferred chunk of ReferenceCardView). */
 .places-ref { display: grid; gap: 8px; min-width: 0; }
 .places-ref-kicker, .places-ref-facts dt, .places-ref-sources-title { margin: 0; color: var(--muted); font-family: var(--mono); font-size: var(--fs-min); letter-spacing: var(--caps-tracking); text-transform: uppercase; }
 .places-ref-kicker { font-size: var(--fs-caps); }

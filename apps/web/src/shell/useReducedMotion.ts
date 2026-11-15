@@ -1,6 +1,6 @@
 /**
- * prefers-reduced-motion en JS, con listener (§2.2 regla 7): la cámara pasa a corte y se
- * apagan bucles, halos y trazos progresivos. En CSS los tokens ya se acortan solos.
+ * prefers-reduced-motion in JS, with a listener (§2.2 rule 7): the camera switches to a cut and
+ * loops, halos and progressive strokes are turned off. In CSS the tokens already shorten on their own.
  */
 import { useSyncExternalStore } from 'react'
 
@@ -12,12 +12,12 @@ function defaultMatchMedia(): MatchMedia | null {
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia.bind(window) : null
 }
 
-/** Lectura puntual (fuera de React: cámara, animaciones imperativas). */
+/** One-off read (outside React: camera, imperative animations). */
 export function prefersReducedMotion(matchMedia: MatchMedia | null = defaultMatchMedia()): boolean {
   return matchMedia?.(REDUCED_MOTION_QUERY).matches === true
 }
 
-/** Se suscribe a los cambios de la preferencia; devuelve la función para desuscribirse. */
+/** Subscribes to changes in the preference; returns the function to unsubscribe. */
 export function subscribeReducedMotion(listener: () => void, matchMedia: MatchMedia | null = defaultMatchMedia()): () => void {
   const query = matchMedia?.(REDUCED_MOTION_QUERY)
   if (!query) return () => undefined
@@ -25,7 +25,7 @@ export function subscribeReducedMotion(listener: () => void, matchMedia: MatchMe
   return () => query.removeEventListener('change', listener)
 }
 
-/** true si el usuario pidió reducir el movimiento; se actualiza en vivo. En SSR, false. */
+/** true if the user asked to reduce motion; updates live. In SSR, false. */
 export function useReducedMotion(): boolean {
   return useSyncExternalStore(subscribeReducedMotion, () => prefersReducedMotion(), () => false)
 }

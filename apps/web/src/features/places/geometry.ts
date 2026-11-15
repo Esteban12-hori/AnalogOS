@@ -1,12 +1,12 @@
 /**
- * Geometría mínima para la regla §1 #16 de docs/UX_REDESIGN.md: un ◆ citado como punto que cae
- * dentro de un sector evaluado se muestra como insignia «coincide con»; una región solo dice
- * «contiene N sectores» si cada vértice del sector está dentro de su caja. Funciones puras, en
- * grados WGS84 (los sectores de Chile no cruzan el antimeridiano).
+ * Minimal geometry for rule §1 #16 of docs/UX_REDESIGN.md: a ◆ cited as a point that falls
+ * inside an evaluated sector is shown as a "coincides with" badge; a region only says
+ * "contains N sectors" if every vertex of the sector is inside its box. Pure functions, in
+ * WGS84 degrees (Chile's sectors do not cross the antimeridian).
  */
 import type { CandidateGeometry, Position } from '../../domain/contracts'
 
-/** Ray casting par-impar. Un punto exactamente sobre el borde puede dar cualquiera de los dos. */
+/** Even-odd ray casting. A point exactly on the edge may yield either result. */
 export function pointInRing(lon: number, lat: number, ring: readonly Position[]): boolean {
   let inside = false
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
@@ -17,7 +17,7 @@ export function pointInRing(lon: number, lat: number, ring: readonly Position[])
   return inside
 }
 
-/** Dentro del anillo exterior y fuera de todos los huecos. */
+/** Inside the outer ring and outside all holes. */
 export function pointInPolygon(lon: number, lat: number, rings: readonly (readonly Position[])[]): boolean {
   const [outer, ...holes] = rings
   return outer !== undefined && pointInRing(lon, lat, outer) && !holes.some((hole) => pointInRing(lon, lat, hole))
@@ -29,10 +29,10 @@ export function pointInGeometry(lon: number, lat: number, geometry: CandidateGeo
     : geometry.coordinates.some((polygon) => pointInPolygon(lon, lat, polygon))
 }
 
-/** Caja [oeste, sur, este, norte]. */
+/** Box [west, south, east, north]. */
 export type Bbox = readonly [number, number, number, number]
 
-/** true si TODOS los vértices del sector están dentro de la caja (no basta con tocarla). */
+/** true if ALL of the sector's vertices are inside the box (merely touching it is not enough). */
 export function geometryInsideBbox(geometry: CandidateGeometry, [west, south, east, north]: Bbox): boolean {
   const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
   return polygons.every((rings) => rings.every((ring) => ring.every(([lon, lat]) => lon >= west && lon <= east && lat >= south && lat <= north)))

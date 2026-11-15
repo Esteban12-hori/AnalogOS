@@ -1,66 +1,66 @@
-# Revisión y aceptación M7 — Codex
+# M7 Review and Acceptance — Codex
 
-Fecha: 2026-11-14. Implementación: Claude Desktop Code. Dirección, revisión y aceptación: Codex. La aceptación científica inicial se hizo sobre `57b3a97bc13b712e98dae64ae28511fb2782c6c3`; sus comprobaciones y paquete de 18 entradas quedan como evidencia histórica. Posteriormente Dan autorizó actualizar `dev` y Codex integró el rediseño remoto.
+Date: 2026-11-14. Implementation: Claude Desktop Code. Direction, review and acceptance: Codex. The initial scientific acceptance was carried out on `57b3a97bc13b712e98dae64ae28511fb2782c6c3`; its checks and its package of 18 entries remain as historical evidence. Dan subsequently authorized updating `dev` and Codex integrated the remote redesign.
 
-## Revisión de integración para dev
+## Integration review for dev
 
-La entrega vigente reúne el piloto de `1302ed8` con el globo, MapLibre, ficha flotante, visualización de magnitudes y series del equipo. Yungay conserva REF y queda fuera del ranking en todas las vistas. Se corrigieron rutas de las siete imágenes v3, propagación de rankings y el encaje del selector/ficha con nombres largos. La búsqueda auditable y el filtro por país permanecen en una sección propia. ADR-006/007 del equipo se preservan; el de descubrimiento se renumera ADR-008.
+The current delivery combines the `1302ed8` pilot with the globe, MapLibre, floating card, magnitude visualization and the team's series. Yungay keeps REF and remains outside the ranking in all views. The paths of the seven v3 images, ranking propagation, and the fit of the selector/card with long names were fixed. The auditable search and the country filter remain in their own section. The team's ADR-006/007 are preserved; the discovery one is renumbered ADR-008.
 
-- 177 pruebas Python, 69 web, TypeScript y build correctos. Nuevas regresiones: las siete rutas visuales v3, series de los siete sitios y REF sin puesto 7.
-- ZIP: 30 entradas, 12.865.983 bytes; SHA-256 `804184d6015440fa073e451bfea376fc9b1c9ae6b672e133094cd528ac3af12b`. Repetido byte a byte y cotejado con dist; admite chunks, texturas y basemaps alcanzables sin relajar la validación del snapshot.
-- Los once hashes del baseline científico v2 siguen idénticos. Los artefactos científicos y visuales v3 no cambian respecto del checkpoint aceptado. El ZIP histórico v2 se conserva en la versión remota del equipo.
-- ZIP servido en `/AnalogOS/`: globo, candidato argentino, su Sentinel-2 en mapa 2D, filtro Argentina y Yungay verificados. Escritorio y móvil 390 px sin desborde horizontal. Sin errores de aplicación registrados en ese servidor local.
-- Captura vigente: `submission/assets/analogos-integrated-dev.jpg`. Reproducción: `source .venv/bin/activate && npm run verify`, después `npm run release:package`.
+- 177 Python tests, 69 web, TypeScript and build correct. New regressions: the seven v3 visual paths, series for the seven sites and REF with no rank 7.
+- ZIP: 30 entries, 12.865.983 bytes; SHA-256 `804184d6015440fa073e451bfea376fc9b1c9ae6b672e133094cd528ac3af12b`. Repeated byte for byte and checked against dist; it admits reachable chunks, textures and basemaps without relaxing snapshot validation.
+- The eleven hashes of the v2 scientific baseline remain identical. The v3 scientific and visual artifacts do not change with respect to the accepted checkpoint. The historical v2 ZIP is kept in the team's remote version.
+- ZIP served at `/AnalogOS/`: globe, Argentine candidate, its Sentinel-2 in 2D map, Argentina filter and Yungay verified. Desktop and mobile 390 px without horizontal overflow. No application errors recorded on that local server.
+- Current capture: `submission/assets/analogos-integrated-dev.jpg`. Reproduction: `source .venv/bin/activate && npm run verify`, then `npm run release:package`.
 
-Esta integración autoriza la entrega a `dev`; los límites científicos de abajo se mantienen. Las comprobaciones históricas sin red no se presentan como una nueva auditoría de todos los servicios opcionales del rediseño.
+This integration authorizes delivery to `dev`; the scientific limits below remain in force. The historical offline checks are not presented as a new audit of all the optional services of the redesign.
 
-## Decisión
+## Decision
 
-Aceptado como piloto regional preliminar de AnalogOS. Se evaluaron 50 ventanas en dos regiones de prueba de Chile y Argentina (≈22.274 km²), se preseleccionaron seis mediante reglas versionadas y se caracterizaron con datos reales. Yungay queda como referencia conocida, comparable y exportable, fuera del ranking. Ninguno de los seis resultados es un análogo nuevo confirmado.
+Accepted as a preliminary regional pilot of AnalogOS. 50 windows were evaluated in two test regions of Chile and Argentina (≈22.274 km²), six were preselected using versioned rules and characterized with real data. Yungay remains as a known, comparable and exportable reference, outside the ranking. None of the six results is a confirmed new analog.
 
-## Evidencia independiente
+## Independent evidence
 
-| Comprobación de Codex | Resultado |
+| Codex check | Result |
 |---|---|
-| `source .venv/bin/activate && npm run verify` | 167 pruebas Python, 39 web, contratos, TypeScript y Vite correctos |
-| Reconstrucción v3 en directorio temporal | Sus seis JSON coinciden byte por byte con los artefactos entregados |
-| Reconstrucción v2 tras modificar código compartido | Sus cinco archivos coinciden byte por byte con el histórico |
-| Once hashes tomados antes de comenzar | Snapshot, configuración, perfil e imágenes v2 intactos |
-| Coordenadas bibliográficas | 30 conversiones de grados/minutos/segundos verificadas; cinco puntos dentro de la región chilena explican cuatro ventanas excluidas |
-| Preselección | Las 50 prioridades recalculadas de forma independiente y la selección voraz reproducen los seis IDs; distancia mínima entre centros seleccionados ≈29,831 km |
-| Puntuaciones | Cálculo independiente desde topografía, estadísticas mensuales Sentinel-2 y respuestas POWER reproduce las seis similitudes y confianzas |
-| Calidad y procedencia | Reproducidos y corregidos rechazos por banda ausente, intervalo incorrecto, NoData negativo, relleno POWER e identidad de petición incompatible |
-| Resultado negativo | Builder probado con shortlist vacía y stores de etapa 2 ausentes o vacíos; conserva Yungay y no inventa fuentes adquiridas |
-| Caché | Las 18 entradas multifuente y ambos paquetes visuales se reutilizan con clientes de red/login sustituidos por fallos deliberados; no se invocan |
-| Imágenes | Inspección de los seis PNG nuevos; observaciones preliminares incorporadas por ficha, sin deducir instalaciones, propiedad o permisos |
-| Navegador independiente | Filtro Argentina, ficha argentina, Yungay, comparación, exportación JSON y selección de mapa por teclado; revisión móvil y escritorio sin desbordamiento horizontal observado |
-| Exportación real | Archivo descargado desde el navegador conserva país AR, rol candidate, origen grid_search y estado regional_precedent |
-| ZIP extraído | Aplicación e imágenes locales cargan en `/` y `/AnalogOS/`; consola de aplicación sin errores durante la revisión |
-| Empaquetado repetido por Codex | 18 entradas idénticas al build; ZIP repetido idéntico al entregado; checksum correcto |
-| Higiene | `git diff --check` correcto; no se modificaron dependencias, remotos ni baseline científico |
+| `source .venv/bin/activate && npm run verify` | 167 Python tests, 39 web, contracts, TypeScript and Vite correct |
+| v3 rebuild in temporary directory | Its six JSON files match the delivered artifacts byte for byte |
+| v2 rebuild after modifying shared code | Its five files match the historical ones byte for byte |
+| Eleven hashes taken before starting | Snapshot, configuration, profile and v2 images intact |
+| Bibliographic coordinates | 30 degree/minute/second conversions verified; five points within the Chilean region explain four excluded windows |
+| Preselection | The 50 priorities recalculated independently and the greedy selection reproduce the six IDs; minimum distance between selected centers ≈29,831 km |
+| Scores | Independent calculation from topography, Sentinel-2 monthly statistics and POWER responses reproduces the six similarities and confidences |
+| Quality and provenance | Rejections for missing band, incorrect interval, negative NoData, POWER fill value and incompatible request identity reproduced and fixed |
+| Negative result | Builder tested with empty shortlist and absent or empty stage 2 stores; it keeps Yungay and does not invent acquired sources |
+| Cache | The 18 multi-source entries and both visual packages are reused with network/login clients replaced by deliberate failures; they are not invoked |
+| Images | Inspection of the six new PNGs; preliminary observations incorporated per card, without inferring facilities, ownership or permits |
+| Independent browser | Argentina filter, Argentine card, Yungay, comparison, JSON export and keyboard map selection; mobile and desktop review with no horizontal overflow observed |
+| Real export | File downloaded from the browser keeps country AR, role candidate, origin grid_search and status regional_precedent |
+| Extracted ZIP | Application and local images load at `/` and `/AnalogOS/`; application console without errors during the review |
+| Packaging repeated by Codex | 18 entries identical to the build; repeated ZIP identical to the delivered one; checksum correct |
+| Hygiene | `git diff --check` correct; no dependencies, remotes or scientific baseline were modified |
 
-Los tests automatizados cubren imagen ausente/metadata inválida, selección vacía, contratos históricos y v3, autoridades por país, fallos por ventana y empaquetado seguro. No sustituyen una revisión científica o de campo.
+The automated tests cover missing image/invalid metadata, empty selection, historical and v3 contracts, authorities by country, per-window failures and safe packaging. They do not replace a scientific or field review.
 
-## Correcciones devueltas durante la supervisión
+## Corrections returned during supervision
 
-- Registrar falta de tesela o NoData por ventana, manteniendo el experimento restante.
-- Medir completitud Sentinel-2 contra los meses esperados y validar intervalos, bandas, rangos y conteos.
-- Vincular la reutilización de datos a la petición exacta también durante el build.
-- No puntuar valores de relleno o respuestas climáticas inválidas.
-- Advertir que POWER representa contexto regional de una celda mayor que las ventanas. Valores coincidentes no bastan para afirmar que dos consultas identificaron la misma celda.
-- Incorporar observaciones visuales por candidato sin convertirlas en identificación territorial ni modificar scores.
-- Soportar una búsqueda sin preselección y distinguir ventanas intentadas de evaluadas.
+- Record a missing tile or NoData per window, keeping the remaining experiment.
+- Measure Sentinel-2 completeness against the expected months and validate intervals, bands, ranges and counts.
+- Bind data reuse to the exact request also during the build.
+- Do not score fill values or invalid climate responses.
+- Warn that POWER represents regional context of a cell larger than the windows. Matching values are not enough to claim that two queries identified the same cell.
+- Incorporate visual observations per candidate without turning them into territorial identification or modifying scores.
+- Support a search without preselection and distinguish attempted windows from evaluated ones.
 
-## Entrega científica aceptada antes de integrar el rediseño (histórica)
+## Scientific delivery accepted before integrating the redesign (historical)
 
 - ZIP: `submission/analogos-static.zip`, 9.012.267 bytes.
 - SHA-256: `3b419d770f1a1dce5e01f7345aaafef3f33ca18df4d2f73e6d3fb8c7c9853415`.
-- Reporte científico y bibliográfico: `docs/DISCOVERY_REPORT.md`.
-- Decisión: ADR-008 aceptado.
-- Captura de conjunto: `submission/assets/analogos-pilot-overview.jpg`.
+- Scientific and bibliographic report: `docs/DISCOVERY_REPORT.md`.
+- Decision: ADR-008 accepted.
+- Overview capture: `submission/assets/analogos-pilot-overview.jpg`.
 
-## Límites y siguiente trabajo
+## Limits and next work
 
-La aprobación se refiere a la implementación y a la reproducibilidad del piloto, no a la aptitud de los terrenos. Los seis candidatos conservan `regional_precedent` y `requires_review`. Falta revisar textos completos y coordenadas de los estudios argentinos, cruzar capas territoriales oficiales y contrastar localmente POWER en la Puna. La resolución topográfica de ~460–480 m no mide obstáculos o tracción a escala de rueda. Los pesos y calidades asignadas se mantienen; confianza no equivale a probabilidad de éxito.
+The approval refers to the implementation and reproducibility of the pilot, not to the suitability of the terrain. The six candidates keep `regional_precedent` and `requires_review`. The full texts and coordinates of the Argentine studies remain to be reviewed, official territorial layers cross-checked, and POWER contrasted locally in the Puna. The ~460–480 m topographic resolution does not measure obstacles or traction at wheel scale. The assigned weights and qualities are maintained; confidence is not equivalent to probability of success.
 
-La siguiente unidad de implementación debe priorizar el descarte territorial y la evidencia bibliográfica antes de ampliar regiones. Queda pendiente una nueva asignación explícita a Claude. No se inicia automáticamente otro barrido ni publicación.
+The next implementation unit must prioritize territorial exclusion and bibliographic evidence before expanding regions. A new explicit assignment to Claude is pending. No other sweep or publication is started automatically.

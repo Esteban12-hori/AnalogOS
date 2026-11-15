@@ -13,19 +13,19 @@ import {
   pointInRing,
 } from './geometry'
 
-// FIXTURE: polígonos sintéticos con la forma de los sectores del snapshot (cajas de 0,2°).
+// FIXTURE: synthetic polygons shaped like the snapshot sectors (0,2° boxes).
 const yungay: Position[] = [[-70.05, -24.18], [-69.85, -24.18], [-69.85, -23.98], [-70.05, -23.98], [-70.05, -24.18]]
 const hole: Position[] = [[-69.97, -24.1], [-69.93, -24.1], [-69.93, -24.06], [-69.97, -24.06], [-69.97, -24.1]]
 
-describe('punto-en-polígono', () => {
-  it('distingue dentro y fuera de un anillo, cerrado o abierto', () => {
+describe('point-in-polygon', () => {
+  it('distinguishes inside and outside a ring, closed or open', () => {
     expect(pointInRing([-69.95, -24.08], yungay)).toBe(true)
     expect(pointInRing([-69.5, -24.08], yungay)).toBe(false)
     expect(pointInRing([-69.95, -24.3], yungay)).toBe(false)
     expect(pointInRing([-69.95, -24.08], yungay.slice(0, -1))).toBe(true)
   })
 
-  it('respeta los huecos de un Polygon y cualquier parte de un MultiPolygon', () => {
+  it('respects the holes of a Polygon and any part of a MultiPolygon', () => {
     const withHole: CandidateGeometry = { type: 'Polygon', coordinates: [yungay, hole] }
     expect(pointInGeometry([-69.95, -24.08], withHole)).toBe(false)
     expect(pointInGeometry([-69.88, -24.0], withHole)).toBe(true)
@@ -37,7 +37,7 @@ describe('punto-en-polígono', () => {
 })
 
 describe('regiones', () => {
-  it('bboxContains admite cajas que cruzan el antimeridiano', () => {
+  it('bboxContains accepts boxes crossing the antimeridian', () => {
     expect(bboxContains([-69.9, -24], [-71, -25, -68, -20])).toBe(true)
     expect(bboxContains([-67.9, -24], [-71, -25, -68, -20])).toBe(false)
     expect(bboxContains([179.5, 10], [170, 0, -170, 20])).toBe(true)
@@ -46,24 +46,24 @@ describe('regiones', () => {
     expect(bboxCenter([170, 0, -170, 20])).toEqual([180, 10])
   })
 
-  it('una región contiene un sector solo si todos sus vértices caen dentro', () => {
+  it('a region contains a sector only if all its vertices fall inside', () => {
     const sector: CandidateGeometry = { type: 'Polygon', coordinates: [yungay] }
     expect(geometryInsideBbox(sector, [-71, -25, -69, -23])).toBe(true)
-    // Corta el sector por la mitad: no se afirma «contiene».
+    // Cuts the sector in half: "contains" is not asserted.
     expect(geometryInsideBbox(sector, [-71, -25, -69.95, -23])).toBe(false)
     expect(geometryInsideBbox({ type: 'Polygon', coordinates: [] }, [-71, -25, -69, -23])).toBe(false)
   })
 })
 
 describe('zona aproximada', () => {
-  it('destinationPoint recorre la distancia pedida sobre la esfera', () => {
+  it('destinationPoint travels the requested distance on the sphere', () => {
     const north = destinationPoint([-70, -24], (Math.PI / 180) * EARTH_RADIUS_KM, 0)
     expect(north[0]).toBeCloseTo(-70, 6)
     expect(north[1]).toBeCloseTo(-23, 6)
     expect(angularDistanceDeg([-70, -24], north)).toBeCloseTo(1, 6)
   })
 
-  it('el círculo del ◆ queda cerrado y a radio_km del punto citado', () => {
+  it('the ◆ circle is closed and at radio_km from the cited point', () => {
     const analog: Pick<ReferenceAnalog, 'location'> = { location: { kind: 'approximate_point', lon: -110.79, lat: 38.41, radius_km: 25 } }
     const ring = approximateZoneRing(analog, 24)
     expect(ring).toHaveLength(25)
@@ -72,7 +72,7 @@ describe('zona aproximada', () => {
     expect(analogCenter(analog)).toEqual([-110.79, 38.41])
   })
 
-  it('una región se dibuja como su caja y se ancla en su centro', () => {
+  it('a region is drawn as its box and anchored at its center', () => {
     const region: Pick<ReferenceAnalog, 'location'> = { location: { kind: 'region', bbox: [-71, -27, -68, -19] } }
     expect(approximateZoneRing(region)).toEqual([[-71, -27], [-68, -27], [-68, -19], [-71, -19], [-71, -27]])
     expect(analogCenter(region)).toEqual([-69.5, -23])

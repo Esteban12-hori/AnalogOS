@@ -11,43 +11,43 @@ const manifest = read('artifacts/science-v2/manifest.json') as Record<string, un
 const profile = read('artifacts/science-v2/mission-profile.json')
 
 describe('validadores precompilados (Ajv standalone)', () => {
-  it('aceptan el snapshot científico real', () => {
+  it('accept the real scientific snapshot', () => {
     expect(() => assertSnapshotContracts(candidates, manifest, profile)).not.toThrow()
   })
 
-  it('rechazan un candidato con campos inválidos o sobrantes', () => {
+  it('reject a candidate with invalid or extra fields', () => {
     const bad = [{ ...candidates[0], site_id: 'NO-VALIDO' }]
-    expect(() => assertSnapshotContracts(bad, manifest, profile)).toThrow(/Candidato 1 inválido/)
+    expect(() => assertSnapshotContracts(bad, manifest, profile)).toThrow(/Invalid candidate 1/)
     const extra = [{ ...candidates[0], campo_inventado: 1 }]
-    expect(() => assertSnapshotContracts(extra, manifest, profile)).toThrow(/Candidato 1 inválido/)
+    expect(() => assertSnapshotContracts(extra, manifest, profile)).toThrow(/Invalid candidate 1/)
   })
 
-  it('siguen validando formatos (date-time) como el compilador original', () => {
-    expect(() => assertSnapshotContracts(candidates, { ...manifest, created_at: 'ayer' }, profile)).toThrow(/Manifest inválido/)
+  it('keep validating formats (date-time) like the original compiler', () => {
+    expect(() => assertSnapshotContracts(candidates, { ...manifest, created_at: 'ayer' }, profile)).toThrow(/Invalid manifest/)
   })
 
-  it('el archivo generado coincide con los esquemas actuales', () => {
+  it('the generated file matches the current schemas', () => {
     expect(() => execFileSync('node', [resolve(__dirname, '../../scripts/build-validators.mjs'), '--check'])).not.toThrow()
   })
 })
 
-describe('validadores precompilados del snapshot v3 (búsqueda y antecedentes, chunk diferido)', () => {
+describe('precompiled v3 snapshot validators (search and precedents, deferred chunk)', () => {
   const v3 = (file: string) => read(`artifacts/science-v3/${file}`)
   const search = v3('search-results.json') as Record<string, unknown>
   const precedents = v3('precedents.json') as Record<string, unknown>
 
-  it('aceptan v3 y siguen aceptando v2, v1 y demo con los mismos mensajes que shared/domain', async () => {
+  it('accept v3 and keep accepting v2, v1 and demo with the same messages as shared/domain', async () => {
     const { assertDiscoveryContracts } = await import('../domain/discoveryContracts')
     expect(() => assertSnapshotContracts(v3('candidate-details.json'), v3('manifest.json'), v3('mission-profile.json'))).not.toThrow()
     expect(() => assertDiscoveryContracts(search, precedents)).not.toThrow()
     for (const snapshot of ['demo', 'science-v1', 'science-v2']) {
       expect(() => assertSnapshotContracts(read(`artifacts/${snapshot}/candidate-details.json`), read(`artifacts/${snapshot}/manifest.json`), read(`artifacts/${snapshot}/mission-profile.json`))).not.toThrow()
     }
-    expect(() => assertDiscoveryContracts({ ...search, windows: 'nada' }, precedents)).toThrow(/^Resultados de búsqueda inválidos/)
-    expect(() => assertDiscoveryContracts(search, { ...precedents, precedents: [{}] })).toThrow(/^Catálogo de antecedentes inválido/)
+    expect(() => assertDiscoveryContracts({ ...search, windows: 'nada' }, precedents)).toThrow(/^Invalid search results/)
+    expect(() => assertDiscoveryContracts(search, { ...precedents, precedents: [{}] })).toThrow(/^Invalid precedent catalog/)
   })
 
-  it('dan el mismo veredicto que la validación Ajv en runtime del equipo (shared/domain/contracts)', async () => {
+  it('give the same verdict as the team runtime Ajv validation (shared/domain/contracts)', async () => {
     const shared: typeof import('../../../../shared/domain/contracts') = await import('../../../../shared/domain/contracts')
     const local: typeof import('../domain/discoveryContracts') = await import('../domain/discoveryContracts')
     const cases: unknown[] = [search, { ...search, scope_note: 3 }, { ...search, extra: true }]

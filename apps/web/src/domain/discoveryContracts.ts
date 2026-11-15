@@ -1,21 +1,21 @@
 /**
- * Validación de la búsqueda y del catálogo de antecedentes del snapshot v3 (ADR-008), con
- * validadores precompilados. Módulo propio: el cargador lo importa de forma diferida solo cuando
- * el snapshot activo es v3, así sus ~14 KB gz no entran al chunk principal (ADR-013).
+ * Validation of the search and background catalog of the v3 snapshot (ADR-008), with
+ * precompiled validators. Dedicated module: the loader imports it lazily only when
+ * the active snapshot is v3, so its ~14 KB gz do not enter the main chunk (ADR-013).
  */
 import type { SearchResults } from '../../../../shared/domain/contracts'
 import { errorSummary } from './snapshotContracts'
 import { validatePrecedents, validateSearch } from './validators.discovery.generated.js'
 
-/** Valida los resultados de búsqueda y el catálogo de antecedentes de un snapshot v3. */
+/** Validates the search results and the background catalog of a v3 snapshot. */
 export function assertDiscoveryContracts(
   search: unknown,
   precedents: unknown,
 ): asserts search is SearchResults {
   if (!validateSearch(search)) {
-    throw new Error(`Resultados de búsqueda inválidos: ${errorSummary(validateSearch.errors)}`)
+    throw new Error(`Invalid search results: ${errorSummary(validateSearch.errors)}`)
   }
   if (!validatePrecedents(precedents)) {
-    throw new Error(`Catálogo de antecedentes inválido: ${errorSummary(validatePrecedents.errors)}`)
+    throw new Error(`Invalid precedent catalog: ${errorSummary(validatePrecedents.errors)}`)
   }
 }

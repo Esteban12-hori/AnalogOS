@@ -12,7 +12,7 @@ import {
 import { INITIAL_MISSION_STATE, missionStore } from '../state/mission'
 
 describe('createStore', () => {
-  it('mezcla superficialmente y notifica solo si algo cambió', () => {
+  it('merges shallowly and notifies only if something changed', () => {
     const store = createStore({ a: 1, b: 'x' })
     const listener = vi.fn()
     const unsubscribe = store.subscribe(listener)
@@ -28,7 +28,7 @@ describe('createStore', () => {
     expect(listener).toHaveBeenCalledTimes(1)
   })
 
-  it('reset vuelve al estado inicial', () => {
+  it('reset returns to the initial state', () => {
     const store = createStore({ n: 0 })
     store.setState({ n: 5 })
     store.reset()
@@ -37,14 +37,14 @@ describe('createStore', () => {
 })
 
 describe('store ui (UX_REDESIGN §2.1)', () => {
-  it('arranca en Explorar, sin selección, intro pendiente y misión en reposo', () => {
+  it('starts in Explore, without selection, intro pending and mission at rest', () => {
     const state = createInitialUiState('')
     expect(state).toMatchObject({ mode: 'explorar', selection: null, introPhase: 'pending', missionPhase: 'idle', cameraTouchedAt: null })
     expect(state.stageInsets).toEqual(ZERO_INSETS)
     expect(createInitialUiState('?modo=mision').mode).toBe('mision')
   })
 
-  it('lee y escribe ?modo= (Explorar no se escribe)', () => {
+  it('reads and writes ?modo= (Explore is not written)', () => {
     expect(readModeFromSearch('?modo=misión')).toBe('mision')
     expect(readModeFromSearch('?modo=otro')).toBe('explorar')
     expect(searchWithMode('?intro=full', 'mision')).toBe('?intro=full&modo=mision')
@@ -52,7 +52,7 @@ describe('store ui (UX_REDESIGN §2.1)', () => {
     expect(searchWithMode('', 'explorar')).toBe('')
   })
 
-  it('selección: misma selección no notifica; limpiar borra también los criterios activos', () => {
+  it('selection: the same selection does not notify; clearing also clears the active criteria', () => {
     uiStore.reset()
     const listener = vi.fn()
     const unsubscribe = uiStore.subscribe(listener)
@@ -68,7 +68,7 @@ describe('store ui (UX_REDESIGN §2.1)', () => {
     unsubscribe()
   })
 
-  it('los márgenes y obstáculos iguales no notifican (se publican solo al asentarse)', () => {
+  it('equal insets and obstacles do not notify (published only once settled)', () => {
     uiStore.reset()
     const listener = vi.fn()
     const unsubscribe = uiStore.subscribe(listener)
@@ -82,7 +82,7 @@ describe('store ui (UX_REDESIGN §2.1)', () => {
     unsubscribe()
   })
 
-  it('fases y cámara', () => {
+  it('phases and camera', () => {
     uiStore.reset()
     uiActions.setMissionPhase('scoring')
     expect(isMissionBusy(uiStore.getState().missionPhase)).toBe(true)
@@ -99,12 +99,12 @@ describe('store ui (UX_REDESIGN §2.1)', () => {
 })
 
 describe('store mission', () => {
-  it('arranca vacío: sin planificador, solicitud, evaluación ni explicación', () => {
+  it('starts empty: no planner, request, evaluation or explanation', () => {
     expect(missionStore.getState()).toEqual(INITIAL_MISSION_STATE)
     expect(INITIAL_MISSION_STATE).toMatchObject({ planner: null, request: null, evaluation: null, explanation: null, stale: false, revision: 0 })
   })
 
-  it('la fase «review» (editar requisitos) no cuenta como espera; borrador y explicación de IA sí', () => {
+  it('the “review” phase (editing requirements) does not count as a wait; AI draft and explanation do', () => {
     expect(isMissionBusy('review')).toBe(false)
     expect(isMissionBusy('interpreting')).toBe(true)
     expect(isMissionBusy('analysis')).toBe(true)

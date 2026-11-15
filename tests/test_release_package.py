@@ -28,14 +28,14 @@ EXPECTED = sorted([
 
 
 def write_sites(root: Path, sites: tuple[str, ...] = SITES, snapshot: str = SNAPSHOT) -> None:
-    """Metadata sintética mínima de la que el empaquetador deriva la lista de imágenes."""
+    """Minimal synthetic metadata from which the packager derives the list of images."""
     (root / release.CANDIDATES).write_text(
         json.dumps([{"site_id": site, "data_snapshot_version": snapshot} for site in sites]), encoding="utf-8")
     (root / release.MANIFEST).write_text(json.dumps({"snapshot_version": SNAPSHOT}), encoding="utf-8")
 
 
 def write_visual_index(root: Path, images: tuple[str, ...] = IMAGES, snapshot: str = SNAPSHOT) -> None:
-    """Índice sintético coherente con los archivos de prueba (no son imágenes reales)."""
+    """Synthetic index consistent with the test files (these are not real images)."""
     sites = [
         {"image": Path(name).name, "sha256": hashlib.sha256((root / name).read_bytes()).hexdigest()}
         for name in images
@@ -66,7 +66,7 @@ def run(dist: Path, out: Path) -> tuple[Path, Path, str]:
 def test_zip_is_deterministic_for_the_same_dist(dist: Path, tmp_path: Path):
     first_zip, first_sum, first_digest = run(dist, tmp_path / "a")
     for path in dist.rglob("*"):
-        os.utime(path, (1_000_000_000, 1_000_000_000))  # cambiar mtime no debe alterar el ZIP
+        os.utime(path, (1_000_000_000, 1_000_000_000))  # changing mtime must not alter the ZIP
     second_zip, second_sum, second_digest = run(dist, tmp_path / "b")
     assert first_zip.read_bytes() == second_zip.read_bytes()
     assert first_digest == second_digest == hashlib.sha256(first_zip.read_bytes()).hexdigest()
@@ -88,7 +88,7 @@ def test_zip_contains_exactly_the_allowed_files_with_dist_bytes(dist: Path, tmp_
     "index.html",
     "science-v3/search-results.json",
     "science-v3/candidate-details.json",
-    "assets/index-abc123.js",  # referencia de index.html sin archivo
+    "assets/index-abc123.js",  # index.html reference without a file
     "visual-context-v3/index.json",
     "visual-context-v3/cl-pampa-yungay-screening.png",
 ])
@@ -104,9 +104,9 @@ def test_missing_required_or_referenced_file_is_rejected(dist: Path, tmp_path: P
     "assets/index-abc123.js.map",
     "assets/otro-chunk.js",
     ".env",
-    "science-v2/manifest.json",        # snapshots históricos no viajan en la entrega v3
+    "science-v2/manifest.json",        # historical snapshots do not ship in the v3 delivery
     "visual-context/index.json",
-    "visual-context-v3/otra-imagen.png",  # ningún PNG o JSON extra entra por extensión
+    "visual-context-v3/otra-imagen.png",  # no extra PNG or JSON enters by extension
     "visual-context-v3/request.json",
     "visual-context-v3/cl-pampa-yungay-screening.png.bak",
     "science-v3/otro.json",
@@ -115,41 +115,41 @@ def test_unexpected_file_is_rejected(dist: Path, tmp_path: Path, extra: str):
     path = dist / extra
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("no publicable", encoding="utf-8")
-    with pytest.raises(release.ReleaseError, match="inesperado"):
+    with pytest.raises(release.ReleaseError, match="Unexpected file"):
         run(dist, tmp_path / "out")
 
 
 def test_visual_image_changed_after_indexing_is_rejected(dist: Path, tmp_path: Path):
     (dist / IMAGES[0]).write_bytes(b"imagen sustituida")
-    with pytest.raises(release.ReleaseError, match="SHA-256 de visual-context-v3/.+ no coincide"):
+    with pytest.raises(release.ReleaseError, match="SHA-256 of visual-context-v3/.+ does not match"):
         run(dist, tmp_path / "out")
 
 
 @pytest.mark.parametrize("index_text", [
     "esto no es JSON",
-    json.dumps({"sites": [{"image": "cl-pampa-yungay-screening.png"}]}),  # sin sha256
+    json.dumps({"sites": [{"image": "cl-pampa-yungay-screening.png"}]}),  # no sha256
     json.dumps([]),
 ])
 def test_unreadable_visual_index_is_rejected(dist: Path, tmp_path: Path, index_text: str):
     (dist / release.VISUAL_INDEX).write_text(index_text, encoding="utf-8")
-    with pytest.raises(release.ReleaseError, match="no es JSON legible|no es un índice de contexto visual legible"):
+    with pytest.raises(release.ReleaseError, match="is not readable JSON|is not a readable visual context index"):
         run(dist, tmp_path / "out")
 
 
 def test_visual_index_must_declare_exactly_one_image_per_site(dist: Path, tmp_path: Path):
     write_visual_index(dist, IMAGES[:2])
-    with pytest.raises(release.ReleaseError, match="exactamente una imagen por sitio"):
+    with pytest.raises(release.ReleaseError, match="exactly one image per snapshot site"):
         run(dist, tmp_path / "out")
 
 
 def test_image_list_follows_validated_site_metadata(dist: Path, tmp_path: Path):
-    # Un sitio nuevo en la metadata exige su imagen; no basta con que exista algún PNG.
+    # A new site in the metadata requires its image; it is not enough for some PNG to exist.
     write_sites(dist, (*SITES, "ar-win-s2640-w06730"))
     with pytest.raises(release.ReleaseError, match="ar-win-s2640-w06730.png"):
         run(dist, tmp_path / "out")
-    # Un sitio menos convierte su imagen en un archivo inesperado.
+    # One fewer site turns its image into an unexpected file.
     write_sites(dist, SITES[:2])
-    with pytest.raises(release.ReleaseError, match="inesperado"):
+    with pytest.raises(release.ReleaseError, match="Unexpected file"):
         run(dist, tmp_path / "out")
 
 
@@ -162,17 +162,17 @@ def test_image_list_follows_validated_site_metadata(dist: Path, tmp_path: Path):
 ])
 def test_unsafe_duplicated_or_empty_site_ids_are_rejected(dist: Path, tmp_path: Path, sites: tuple[str, ...]):
     write_sites(dist, sites)
-    with pytest.raises(release.ReleaseError, match="identificadores de sitio"):
+    with pytest.raises(release.ReleaseError, match="site identifiers"):
         run(dist, tmp_path / "out")
 
 
 def test_sites_manifest_and_visual_index_must_share_the_snapshot_version(dist: Path, tmp_path: Path):
     write_visual_index(dist, snapshot="otro-snapshot")
-    with pytest.raises(release.ReleaseError, match="otra versión de snapshot"):
+    with pytest.raises(release.ReleaseError, match="another snapshot version"):
         run(dist, tmp_path / "out")
     write_visual_index(dist)
     write_sites(dist, snapshot="otro-snapshot")
-    with pytest.raises(release.ReleaseError, match="misma versión de snapshot"):
+    with pytest.raises(release.ReleaseError, match="same snapshot version"):
         run(dist, tmp_path / "out")
 
 
@@ -184,18 +184,18 @@ def test_symlink_is_rejected_even_under_an_allowed_name(dist: Path, tmp_path: Pa
     target = dist / link
     target.unlink(missing_ok=True)
     target.symlink_to(outside if link == "enlace-a-carpeta" else outside / "secreto.json")
-    with pytest.raises(release.ReleaseError, match="simbólico"):
+    with pytest.raises(release.ReleaseError, match="Symbolic link"):
         run(dist, tmp_path / "out")
 
 
 @pytest.mark.parametrize("reference", [
     "/assets/index-abc123.js",          # absoluta: rompe bajo /AnalogOS/
-    "https://cdn.example/app.js",       # externa: rompe la demo offline
+    "https://cdn.example/app.js",       # external: breaks the offline demo
     "./assets/../science-v3/manifest.json",
 ])
 def test_non_portable_reference_is_rejected(dist: Path, tmp_path: Path, reference: str):
     (dist / "index.html").write_text(INDEX.replace("./assets/index-abc123.js", reference), encoding="utf-8")
-    with pytest.raises(release.ReleaseError, match="Referencia no permitida"):
+    with pytest.raises(release.ReleaseError, match="Reference not allowed"):
         run(dist, tmp_path / "out")
 
 
@@ -230,7 +230,7 @@ def test_error_after_writing_the_temporary_zip_also_preserves_delivery(dist: Pat
 
 
 def flaky_replace(monkeypatch, should_fail):
-    """os.replace falla cuando should_fail(destino, n.º de llamada a ese destino) es cierto."""
+    """os.replace fails when should_fail(target, call number for that target) is true."""
     real, seen = os.replace, []
 
     def fake(source, target, *args, **kwargs):
@@ -252,7 +252,7 @@ def test_checksum_replace_failure_rolls_back_to_the_previous_pair(dist: Path, tm
     code = release.main(["--dist", str(dist), "--zip", str(zip_path), "--checksum", str(checksum_path)])
 
     assert code == 1
-    assert "Se conserva la entrega anterior" in capsys.readouterr().err
+    assert "The previous delivery is kept" in capsys.readouterr().err
     assert (zip_path.read_bytes(), checksum_path.read_bytes()) == previous
     assert hashlib.sha256(zip_path.read_bytes()).hexdigest() in checksum_path.read_text("utf-8")
     assert sorted(path.name for path in out.iterdir()) == ["SHA256SUMS.txt", "demo.zip"]
@@ -279,7 +279,7 @@ def test_failed_rollback_is_reported_as_inconsistent_and_keeps_the_backup(dist: 
 
     message = capsys.readouterr().err
     assert code == 1
-    assert "NO coinciden" in message and "Se conserva la entrega anterior" not in message
+    assert "do NOT match" in message and "The previous delivery is kept" not in message
     backups = [path for path in out.iterdir() if path.name not in ("SHA256SUMS.txt", "demo.zip")]
     assert len(backups) == 1 and backups[0].read_bytes() == previous_zip
     assert str(backups[0]) in message
@@ -289,7 +289,7 @@ def test_failed_rollback_is_reported_as_inconsistent_and_keeps_the_backup(dist: 
 def test_zip_and_checksum_must_be_different_files(dist: Path, tmp_path: Path, checksum_name: str):
     out = tmp_path / "out"
     out.mkdir()
-    with pytest.raises(release.ReleaseError, match="distintos"):
+    with pytest.raises(release.ReleaseError, match="different files"):
         release.package(dist, out / "demo.zip", out / checksum_name)
     assert list(out.iterdir()) == []
 
@@ -300,7 +300,7 @@ def test_checksum_linked_to_the_zip_is_rejected(dist: Path, tmp_path: Path):
     previous = zip_path.read_bytes()
     checksum_path.unlink()
     os.link(zip_path, checksum_path)
-    with pytest.raises(release.ReleaseError, match="distintos"):
+    with pytest.raises(release.ReleaseError, match="different files"):
         release.package(dist, zip_path, checksum_path)
     assert zip_path.read_bytes() == previous
 
@@ -308,14 +308,14 @@ def test_checksum_linked_to_the_zip_is_rejected(dist: Path, tmp_path: Path):
 @pytest.mark.parametrize("zip_target, checksum_target", [
     ("dist/demo.zip", "out/SHA256SUMS.txt"),
     ("out/demo.zip", "dist/science-v2/SHA256SUMS.txt"),
-    ("dist", "out/SHA256SUMS.txt"),  # el propio build
-    (".", "out/SHA256SUMS.txt"),     # carpeta que contiene el build
+    ("dist", "out/SHA256SUMS.txt"),  # the build itself
+    (".", "out/SHA256SUMS.txt"),     # folder containing the build
 ])
 def test_destinations_overlapping_dist_are_rejected_before_writing(
     dist: Path, tmp_path: Path, zip_target: str, checksum_target: str
 ):
     (tmp_path / "out").mkdir()
-    with pytest.raises(release.ReleaseError, match="dentro del build|directorio"):
+    with pytest.raises(release.ReleaseError, match="inside the build|directory"):
         release.package(dist, tmp_path / zip_target, tmp_path / checksum_target)
     assert sorted(path.relative_to(dist).as_posix() for path in dist.rglob("*") if path.is_file()) == EXPECTED
     assert list((tmp_path / "out").iterdir()) == []
@@ -334,7 +334,7 @@ def test_temporaries_are_unique_and_do_not_clobber_existing_tmp_files(dist: Path
     assert (out / "SHA256SUMS.txt.tmp").read_text("utf-8") == "archivo ajeno"
 
 
-# --- Build con chunks diferidos (globo/mapa 2D) y mapas base: manifiesto de Vite ---
+# --- Build with deferred chunks (globe/2D map) and base maps: Vite manifest ---
 
 LAZY = ["assets/CandidateGlobe-aaa.js", "assets/CandidateFlatMap-bbb.js", "assets/CandidateFlatMap-ccc.css",
         "assets/maplibre-gl-worker-ddd.mjs", "assets/earth-eee.jpg", "assets/shared-fff.js"]
@@ -373,35 +373,35 @@ def test_manifest_admits_reachable_lazy_chunks_and_basemaps(lazy_dist: Path, tmp
 
 def test_chunk_not_reachable_from_manifest_is_still_rejected(lazy_dist: Path, tmp_path: Path):
     (lazy_dist / "assets" / "otro-chunk.js").write_text("x", encoding="utf-8")
-    with pytest.raises(release.ReleaseError, match="Archivo inesperado"):
+    with pytest.raises(release.ReleaseError, match="Unexpected file"):
         run(lazy_dist, tmp_path / "out")
 
 
 @pytest.mark.parametrize("bad", ["../science-v2/manifest.json", "assets/x.html", "/assets/abs.js"])
 def test_manifest_entries_outside_assets_are_rejected(lazy_dist: Path, tmp_path: Path, bad: str):
     write_manifest(lazy_dist, {"src/Flat.tsx": {"file": bad}})
-    with pytest.raises(release.ReleaseError, match="no permitido"):
+    with pytest.raises(release.ReleaseError, match="not allowed"):
         run(lazy_dist, tmp_path / "out")
 
 
 def test_manifest_for_another_build_is_rejected(lazy_dist: Path, tmp_path: Path):
     write_manifest(lazy_dist, {"index.html": {"file": "assets/index-otro.js", "isEntry": True}})
-    with pytest.raises(release.ReleaseError, match="no corresponde"):
+    with pytest.raises(release.ReleaseError, match="does not correspond"):
         run(lazy_dist, tmp_path / "out")
 
 
 def test_retired_pregenerated_analysis_is_no_longer_admitted(lazy_dist: Path, tmp_path: Path):
-    # La prosa pregenerada (analysis/ai-analysis.default.json) se retiró con lktron (ADR-012,
-    # sustituido por ADR-009): si reaparece en el build, el empaquetado se detiene.
+    # The pregenerated prose (analysis/ai-analysis.default.json) was withdrawn along with lktron (ADR-012,
+    # superseded by ADR-009): if it reappears in the build, packaging stops.
     (lazy_dist / "analysis").mkdir()
     (lazy_dist / "analysis" / "ai-analysis.default.json").write_text("{}", encoding="utf-8")
-    with pytest.raises(release.ReleaseError, match="Archivo inesperado"):
+    with pytest.raises(release.ReleaseError, match="Unexpected file"):
         run(lazy_dist, tmp_path / "out")
 
 
 def test_unknown_basemap_file_is_rejected(lazy_dist: Path, tmp_path: Path):
     (lazy_dist / "basemaps" / "extra.webp").write_bytes(b"x")
-    with pytest.raises(release.ReleaseError, match="Archivo inesperado"):
+    with pytest.raises(release.ReleaseError, match="Unexpected file"):
         run(lazy_dist, tmp_path / "out")
 
 
@@ -418,14 +418,14 @@ def test_index_may_preload_listed_data_and_inline_favicon(dist: Path, tmp_path: 
 
 @pytest.mark.parametrize("href", [
     "./science-v3/otro.json",
-    "./science-v2/manifest.json",     # los snapshots históricos no viajan ni se precargan
+    "./science-v2/manifest.json",     # historical snapshots are neither shipped nor preloaded
     "./visual-context/index.json",
     "./basemaps/../secreto.json",
     "./visual-context-v3/x.png",
 ])
 def test_index_preload_of_unlisted_file_is_rejected(dist: Path, tmp_path: Path, href: str):
     (dist / "index.html").write_text(INDEX.replace("</head>", f'<link rel="preload" href="{href}"></head>'), encoding="utf-8")
-    with pytest.raises(release.ReleaseError, match="Referencia no permitida"):
+    with pytest.raises(release.ReleaseError, match="Reference not allowed"):
         run(dist, tmp_path / "out")
 
 
@@ -438,7 +438,7 @@ def test_index_may_reference_a_webp_poster_that_exists(dist: Path, tmp_path: Pat
         assert "assets/globe-poster-abc.webp" in archive.namelist()
 
 
-# --- Paquete geológico opcional (M9, fase B) ------------------------------------------------------------------------
+# --- Optional geological package (M9, phase B) ------------------------------------------------------------------------
 
 import copy
 import shutil
@@ -451,7 +451,7 @@ needs_geology = pytest.mark.skipif(not REAL_GEOLOGY.exists(), reason="paquete ge
 
 @pytest.fixture
 def real_dist(dist: Path) -> Path:
-    """dist con los siete sitios REALES (bytes de candidate-details.json) y datos auxiliares sintéticos."""
+    """dist with the seven REAL sites (bytes of candidate-details.json) and synthetic auxiliary data."""
     real_sites = json.loads(REAL_CANDIDATES.read_text("utf-8"))
     snapshot = real_sites[0]["data_snapshot_version"]
     shutil.rmtree(dist / release.VISUAL_DIR)
@@ -497,7 +497,7 @@ def test_valid_geology_package_enters_the_zip_deterministically(real_dist: Path,
 @needs_geology
 def test_invalid_geology_package_stops_packaging_and_keeps_previous_delivery(real_dist: Path, tmp_path: Path):
     out = tmp_path / "out"
-    good_zip, good_sum, _ = run(real_dist, out)  # entrega previa válida (sin geología)
+    good_zip, good_sum, _ = run(real_dist, out)  # previous valid delivery (without geology)
     previous = (good_zip.read_bytes(), good_sum.read_bytes())
     real = json.loads(REAL_GEOLOGY.read_text("utf-8"))
     broken_cases = {}
@@ -514,7 +514,7 @@ def test_invalid_geology_package_stops_packaging_and_keeps_previous_delivery(rea
         broken_cases[name] = broken
     for name, broken in broken_cases.items():
         add_geology(real_dist, broken)
-        with pytest.raises(release.ReleaseError, match="no es válido"):
+        with pytest.raises(release.ReleaseError, match="is not valid"):
             run(real_dist, out)
         assert (good_zip.read_bytes(), good_sum.read_bytes()) == previous, name
 
@@ -523,7 +523,7 @@ def test_invalid_geology_package_stops_packaging_and_keeps_previous_delivery(rea
 def test_geology_package_must_match_the_candidates_bytes_of_this_build(real_dist: Path, tmp_path: Path):
     add_geology(real_dist)
     candidates = json.loads((real_dist / release.CANDIDATES).read_text("utf-8"))
-    candidates[0]["area_km2"] += 1  # mismos sitios y geometrías, otros bytes
+    candidates[0]["area_km2"] += 1  # same sites and geometries, different bytes
     (real_dist / release.CANDIDATES).write_text(json.dumps(candidates), encoding="utf-8")
     with pytest.raises(release.ReleaseError, match="candidates_sha256"):
         run(real_dist, tmp_path / "out")
@@ -534,7 +534,7 @@ def test_geology_package_must_match_the_candidates_bytes_of_this_build(real_dist
 def test_geology_folder_admits_only_the_index(real_dist: Path, tmp_path: Path, extra: str):
     add_geology(real_dist)
     (real_dist / release.GEOLOGY_DIR / extra).write_text("{}")
-    with pytest.raises(release.ReleaseError, match="Archivo inesperado"):
+    with pytest.raises(release.ReleaseError, match="Unexpected file"):
         run(real_dist, tmp_path / "out")
 
 
@@ -546,7 +546,7 @@ def test_geology_folder_without_index_or_with_symlink_is_rejected(real_dist: Pat
     (tmp_path / "elsewhere").mkdir()
     (tmp_path / "elsewhere" / "index.json").write_text("{}")
     (real_dist / release.GEOLOGY_DIR).symlink_to(tmp_path / "elsewhere")
-    with pytest.raises(release.ReleaseError, match="simbólico"):
+    with pytest.raises(release.ReleaseError, match="Symbolic link"):
         run(real_dist, tmp_path / "b")
 
 
@@ -563,7 +563,7 @@ def test_packager_loads_geology_validator_lazily_without_geoprocessing_dependenc
         "import importlib.util, sys;"
         f"spec = importlib.util.spec_from_file_location('package_release', {str(SCRIPT)!r});"
         "m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m);"
-        "print('pipelines.geology_contract' in sys.modules);"  # aún no: solo se importa si hay paquete
+        "print('pipelines.geology_contract' in sys.modules);"  # not yet: only imported if there is a package
         "import pipelines.geology_contract;"
         "print(sorted(x for x in ('shapely', 'pyproj', 'numpy', 'requests') if x in sys.modules))"
     )

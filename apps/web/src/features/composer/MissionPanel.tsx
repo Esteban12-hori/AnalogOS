@@ -1,14 +1,14 @@
 /**
- * «Tu misión» (chunk diferido de misión, ADR-013): el planificador del equipo como pieza interna
- * del rediseño. Monta `PlannerView` (requisitos con `RequirementEditor`, alcance con `ScopePicker`,
- * `ConfirmSummary`, `ResultView` compacto) sobre el planificador COMPARTIDO, más el historial local
- * y Deshacer. Slots: `left.mission` (panel ≥1440), popover del composer (<1440) y `full.mission`
- * (pestaña de S2).
+ * "Your mission" (deferred mission chunk, ADR-013): the team's planner as an internal piece
+ * of the redesign. Mounts `PlannerView` (requirements with `RequirementEditor`, scope with `ScopePicker`,
+ * `ConfirmSummary`, compact `ResultView`) on top of the SHARED planner, plus the local history
+ * and Undo. Slots: `left.mission` (panel ≥1440), composer popover (<1440) and `full.mission`
+ * (S2 tab).
  *
- * Nada aquí calcula: la evaluación es `evaluateMission` del equipo; la IA solo propone requisitos
- * (sin confirmar) cuando el usuario pulsa su botón, con el aviso de envío literal del equipo.
- * Con el contexto geológico oficial, el resultado incluye la orientación geológica de la prueba
- * (`GeologyGuidance` del equipo, M10) y su exportación; la selección con IA se pide en la Lectura.
+ * Nothing here computes: the evaluation is the team's `evaluateMission`; the AI only proposes requirements
+ * (unconfirmed) when the user presses its button, with the team's literal submission notice.
+ * With the official geological context, the result includes the geological guidance for the test
+ * (the team's `GeologyGuidance`, M10) and its export; AI-assisted selection is requested in the Reading.
  */
 import { useMemo, useSyncExternalStore } from 'react'
 import { PlannerView } from '../../components/planner/PlannerView'
@@ -24,28 +24,28 @@ import { usePrintReady } from './printState'
 import './mission.css'
 
 const SOURCE_LABEL: Readonly<Record<MissionSource, string>> = {
-  anthropic: 'Requisitos propuestos con IA · sin confirmar hasta que usted confirme',
-  example: 'Ejemplo editable · no es una recomendación',
-  manual: 'Requisitos escritos por usted',
+  anthropic: 'Requirements proposed with AI · unconfirmed until you confirm',
+  example: 'Editable example · not a recommendation',
+  manual: 'Requirements written by you',
 }
 
-/** Rótulo de procedencia: con la propuesta de la IA, dice si usted ya la confirmó. */
+/** Provenance label: with the AI's proposal, it says whether you have already confirmed it. */
 export function sourceLabel(source: MissionSource, confirmed: boolean): string {
-  return source === 'anthropic' && confirmed ? 'Requisitos propuestos con IA · confirmados por usted' : SOURCE_LABEL[source]
+  return source === 'anthropic' && confirmed ? 'Requirements proposed with AI · confirmed by you' : SOURCE_LABEL[source]
 }
 
 /**
- * «Borrar todo» en la interfaz integrada: aquí SÍ hay historial local (las pruebas evaluadas),
- * a diferencia del panel del equipo, que no guarda nada en el navegador.
+ * "Clear all" in the integrated interface: here there IS a local history (the evaluated tests),
+ * unlike the team's panel, which stores nothing in the browser.
  */
-export const RESET_HINT = 'Borra la prueba en curso. Las pruebas ya evaluadas quedan en el historial de este navegador: bórrelas en «Historial» › «Borrar historial».'
+export const RESET_HINT = 'Clears the current test. Tests already evaluated stay in this browser’s history: delete them in “History” › “Clear history”.'
 
-/** Planificador compartido con la misma forma que `usePlanner` del equipo. */
+/** Shared planner with the same shape as the team's `usePlanner`. */
 function useSharedPlanner(controller: MissionController) {
   const state = useSyncExternalStore(controller.subscribe, controller.getState, controller.getState)
   const evaluationError = useComposer((composer) => composer.evaluationError)
   const exportError = useComposer((composer) => composer.exportError)
-  // Canal geológico (M10): disponibilidad, casilla y error de su exportación también rehacen la vista.
+  // Geological channel (M10): availability, checkbox and error of its export also redo the view.
   const geology = useComposer((composer) => composer.geology)
   const useGeology = useComposer((composer) => composer.useGeology)
   const geologyExportError = useComposer((composer) => composer.geologyExportError)
@@ -61,26 +61,26 @@ function HistoryBlock({ controller }: { controller: MissionController }) {
     <div className="mission-extras">
       {undo.length >= 2 && (
         <button type="button" className="composer-btn" onClick={() => controller.undo()}>
-          Deshacer · volver a la prueba anterior
+          Undo · back to the previous test
         </button>
       )}
       {history.length > 0 && (
         <details className="composer-details">
-          <summary>Historial · {history.length}</summary>
+          <summary>History · {history.length}</summary>
           <ul className="composer-history">
             {history.map((entry) => (
               <li key={entry.id}>
                 <button type="button" className="composer-history-item" onClick={() => controller.restore(entry.id)}>
-                  <span>{entry.brief.trim() || 'Prueba sin texto'}</span>
+                  <span>{entry.brief.trim() || 'Test without text'}</span>
                   <small>{entry.label} · {formatWhen(entry.at)}</small>
                 </button>
               </li>
             ))}
           </ul>
           <button type="button" className="composer-btn composer-btn-quiet" onClick={() => controller.clearHistory()}>
-            Borrar historial
+            Clear history
           </button>
-          <p className="composer-card-note">Solo en este navegador. Se guardan el texto, el alcance y los requisitos que usted escribió; al restaurar, se confirma y se evalúa de nuevo.</p>
+          <p className="composer-card-note">Only in this browser. The text, scope and requirements you wrote are saved; when restored, they are confirmed and evaluated again.</p>
         </details>
       )}
     </div>
@@ -101,9 +101,9 @@ export function MissionPanel({ data, placement, promise }: MissionPanelProps) {
   if (!snapshot || !bundle) {
     return (
       <section className="composer-card" data-placement={placement} aria-labelledby={titleId}>
-        <h2 id={titleId} className="composer-card-title">Tu misión</h2>
+        <h2 id={titleId} className="composer-card-title">Your mission</h2>
         <p className="composer-card-note">
-          {data.status === 'error' ? <><span aria-hidden="true">{GLYPH.fail}</span> Sin snapshot validado: la misión no puede evaluarse.</> : 'Esperando el snapshot validado…'}
+          {data.status === 'error' ? <><span aria-hidden="true">{GLYPH.fail}</span> No validated snapshot: the mission cannot be evaluated.</> : 'Waiting for the validated snapshot…'}
         </p>
       </section>
     )
@@ -111,7 +111,7 @@ export function MissionPanel({ data, placement, promise }: MissionPanelProps) {
   return <MissionPanelBody data={data} placement={placement} promise={promise} controller={missionController(bundle)} titleId={titleId} source={source} notice={notice} stepRequest={stepRequest} />
 }
 
-/** «Ir a la Lectura» (M11): solo UI; el armazón elige la superficie según el ancho. */
+/** "Go to the Reading" (M11): UI only; the shell chooses the surface according to the width. */
 const openReading = () => uiActions.requestReading()
 
 function MissionPanelBody({
@@ -142,7 +142,7 @@ function MissionPanelBody({
       tabIndex={placement === 'panel' ? -1 : undefined}
     >
       <header className="composer-card-head">
-        <h2 id={titleId} className="composer-card-title">Tu misión</h2>
+        <h2 id={titleId} className="composer-card-title">Your mission</h2>
         {source && (
           <span className="composer-card-source" data-source={source}>
             {source === 'anthropic' && <span aria-hidden="true">{GLYPH.ai} </span>}

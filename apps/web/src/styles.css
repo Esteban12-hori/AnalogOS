@@ -1,7 +1,7 @@
 /* AnalogOS · Liquid glass
-   Paleta base: Dry Shillingston Navy #02070A · Unhinged Custodius Blue #0297DE · Slitherine Slime Orange #FC734D.
-   Azul = interacción, similitud y selección. Naranja = advertencias, fixture y énfasis puntual.
-   La confianza usa un tono hielo para no confundirse con la similitud. */
+   Base palette: Dry Shillingston Navy #02070A · Unhinged Custodius Blue #0297DE · Slitherine Slime Orange #FC734D.
+   Blue = interaction, similarity and selection. Orange = warnings, fixture and occasional emphasis.
+   Confidence uses an ice tone so it is not confused with similarity. */
 :root {
   --navy: #02070A;
   --navy-2: #050E15;
@@ -25,7 +25,7 @@
   --glass-shadow: 0 30px 80px -34px rgba(0, 0, 0, .85), 0 2px 8px rgba(0, 0, 0, .25);
   --radius: 24px;
   --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
-  /* Alias de la paleta anterior, usados por CandidateGlobe.css (rama redesign/planeta-3d). */
+  /* Aliases of the previous palette, used by CandidateGlobe.css (branch redesign/planeta-3d). */
   --accent: var(--orange);
   --sand: var(--orange-bright);
   --mint: var(--blue-bright);
@@ -69,7 +69,7 @@ a { color: inherit; }
 :focus-visible { outline: 2px solid var(--blue-bright); outline-offset: 3px; }
 
 
-/* Superficie de vidrio compartida */
+/* Shared glass surface */
 .glass {
   border: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .012)), var(--glass);
@@ -90,10 +90,10 @@ a { color: inherit; }
 }
 .brand-mark::after { content: ""; position: absolute; left: -6px; right: -6px; top: 15px; border-top: 1.5px solid var(--orange); transform: rotate(-25deg); }
 
-/* Rótulo de sección */
+/* Section label */
 .section-kicker { color: var(--orange-bright); font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 
-/* Encabezados de panel (mapa SVG de respaldo y ficha) */
+/* Panel headers (fallback SVG map and site sheet) */
 .panel-heading h2, .map-heading h2, .details-header h2 { margin: 4px 0 0; font-size: 21px; letter-spacing: -.03em; }
 
 /* Mapa */
@@ -137,7 +137,7 @@ a { color: inherit; }
 .legend-swatch.insufficient { background: #3D5363; }
 .legend-swatch.outline { border: 1px solid rgba(63, 180, 236, .55); background: #0B2333; }
 
-/* Ficha: entra con animación al seleccionar otra zona (se remonta por site_id) */
+/* Card: enters with an animation when another zone is selected (remounted by site_id) */
 .details-panel > * { animation: riseIn .5s cubic-bezier(.2, .8, .2, 1) both; }
 .details-panel > *:nth-child(2) { animation-delay: .05s; }
 .details-panel > *:nth-child(3) { animation-delay: .1s; }
@@ -209,7 +209,7 @@ a { color: inherit; }
 .evidence-section a:hover { color: var(--blue-bright); }
 .evidence-section b { color: var(--orange); }
 
-/* Señal Sentinel-2 */
+/* Sentinel-2 signal */
 .signals-section, .comparison-section, .method-section { margin: 18px; padding: 28px; border-radius: var(--radius); }
 .signals-heading, .comparison-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; }
 .signals-heading h2, .comparison-heading h2, .method-intro h2 { margin: 6px 0 0; font-size: 26px; letter-spacing: -.035em; }
@@ -221,7 +221,7 @@ a { color: inherit; }
 .signals-empty { display: grid; gap: 6px; margin-top: 22px; padding: 22px; border: 1px dashed var(--line-strong); border-radius: 18px; color: var(--muted); font-size: 12px; }
 .signals-empty strong { color: var(--text); font-size: 13px; }
 
-/* Comparación */
+/* Comparison */
 .comparison-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
 .comparison-card {
   position: relative;
@@ -251,7 +251,7 @@ a { color: inherit; }
 .comparison-card dd { margin: 4px 0 0; color: var(--blue-bright); font-family: var(--mono); font-size: 13px; }
 .comparison-card dl div:nth-child(2) dd { color: var(--ice); }
 
-/* Método */
+/* Method */
 .method-section { display: grid; grid-template-columns: minmax(260px, .85fr) 1.4fr; gap: 42px; }
 .method-intro p { max-width: 530px; margin: 12px 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
 .method-intro a { color: var(--blue-bright); font-size: 12px; text-decoration: none; }
@@ -263,7 +263,7 @@ a { color: inherit; }
 .method-steps span { margin-top: 4px; color: var(--muted); font-size: 11px; line-height: 1.4; }
 
 
-/* Estados del sistema */
+/* System states */
 .system-state { display: grid; place-items: center; align-content: center; min-height: 100vh; padding: 30px; text-align: center; }
 .system-state p { color: var(--muted); }
 .loader { width: 30px; height: 30px; border: 2px solid var(--line-strong); border-top-color: var(--blue); border-radius: 50%; animation: spin var(--loop-orbit, 2400ms) linear var(--loop-max-iterations, 2); }
@@ -282,9 +282,9 @@ a { color: inherit; }
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
 
-/* Piloto Chile–Argentina (ADR-008): filtro por país, referencia conocida, origen y antecedentes,
-   y el mapa SVG de la búsqueda (pestaña Método y escenario sin WebGL). Selectores del equipo con
-   los tokens y tamaños legibles del rediseño. */
+/* Chile–Argentina pilot (ADR-008): filter by country, known reference, origin and background,
+   and the SVG map of the search (Method tab and scenario without WebGL). Team selectors with
+   the tokens and legible sizes of the redesign. */
 .country-filter { display: flex; flex-wrap: wrap; gap: 6px; }
 .country-filter button { min-height: 28px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; }
 .country-filter button[aria-pressed="true"] { border-color: var(--accent); background: var(--orange-soft); color: var(--sand); }

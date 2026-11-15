@@ -1,7 +1,7 @@
 /*
- * Riel de métricas · parte del chunk principal (.metrics-*): cifras del lugar, cambio de lugar
- * en S1 y estados. El detalle por criterio trae su propio CSS en diferido (metrics.css).
- * Similitud = azul (Tierra); confianza = hielo; nada en naranja (solo Marte como dato).
+ * Metrics rail · part of the main chunk (.metrics-*): site figures, site change
+ * in S1 and states. The per-criterion detail ships its own lazily loaded CSS (metrics.css).
+ * Similarity = blue (Earth); confidence = ice; nothing in orange (only Mars as data)..
  */
 .metrics { display: grid; gap: 14px; min-width: 0; color: var(--text); font-size: var(--fs-13); }
 .metrics[data-busy] .metrics-summary,
@@ -14,7 +14,7 @@
 .metrics button:focus-visible,
 .metrics summary:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 
-/* Cifras del lugar */
+/* Site figures */
 .metrics-summary { display: grid; gap: 8px; min-width: 0; }
 .metrics-score { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
 .metrics-score-glyph { color: var(--earth-bright); font-size: var(--fs-13); }
@@ -61,7 +61,7 @@
   .metrics { font-size: var(--fs-13); }
 }
 
-/* Piloto v3 y capa de requisitos de Misión (ADR-008, ADR-013). */
+/* Pilot v3 and Mission requirements layer (ADR-008, ADR-013). */
 .metrics-role { margin: 0; color: var(--muted); font-size: var(--fs-min); line-height: 1.4; }
 .metrics-ref { color: var(--ice); font-weight: 600; letter-spacing: .02em; }
 .metrics-mission { display: grid; gap: 4px; margin: 2px 0 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; }

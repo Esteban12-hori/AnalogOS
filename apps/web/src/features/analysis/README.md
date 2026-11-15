@@ -1,31 +1,21 @@
-# features/analysis · la Lectura
+# features/analysis · Reading
 
-La Lectura tiene tres capas, siempre separadas (ADR-013, `docs/INTEGRATION_PLAN.md` §5):
+Reading has three layers that always remain separate (ADR-013, `docs/INTEGRATION_PLAN.md` §5):
 
-1. **Resultado**: la `MissionEvaluation` del equipo (`shared/mission`, ADR-009). Rótulo «Cálculo
-   determinista · reglas mission-rules-1.0.0 · similitud v3 sin recalcular».
-2. **Motivos destacados**: `composeExplanation` del equipo. Por defecto, la plantilla determinista
-   («Plantilla determinista sin IA», sin ✦). Si el usuario pulsa «✦ Destacar motivos con IA», la
-   selección de Anthropic validada por el reductor (huellas y `checkSelection`). La IA solo elige IDs:
-   todo texto y toda cifra se resuelven contra la evaluación (`explanationToReading.ts`).
-3. **Hechos del snapshot**: capa de hechos deterministas (`facts.ts`): dirección frente a Jezero,
-   limitante, satura, valor regional compartido, «no distingue», mejor de N (sin la REF) y robustez
-   del orden leída de `analysis-summary.json` (`domain/sensitivity.ts`, `robustness.ts`).
+1. **Result:** the team's `MissionEvaluation` (`shared/mission`, ADR-009), labeled as a deterministic calculation under mission-rules-1.0.0, with v3 similarity left unchanged.
+2. **Highlighted reasons:** the team's `composeExplanation`. By default it uses the deterministic template without AI (no ✦). When the user requests highlighted reasons with AI, the reducer validates Anthropic's selection using fingerprints and `checkSelection`. AI selects IDs only: every displayed fact and value is resolved against the evaluation (`explanationToReading.ts`).
+3. **Snapshot facts:** deterministic facts (`facts.ts`): direction relative to Jezero, limiting criterion, saturation, shared regional value, lack of differentiation, best of N (excluding REF), and ranking robustness from `analysis-summary.json` (`domain/sensitivity.ts`, `robustness.ts`).
 
-«Ir a la Lectura» (M11) llega aquí desde «Tu misión»: en Misión de 1100 a 1439 px la píldora es la
-superficie de la Lectura (rótulo «Lectura», prop `openSignal`). Bajo 1100 px, la hoja usa la pestaña de
-la ficha o el slot `sheet.reading`. El título de la vista acepta foco (`tabIndex=-1`).
+Go to Reading (M11) opens this surface from Your mission. In Mission at widths from 1100 to 1439 px, the Reading pill hosts it (`openSignal`). Below 1100 px, the sheet uses the profile's Reading tab or the `sheet.reading` slot. The view heading can receive focus (`tabIndex=-1`).
 
-En Explorar no hay IA: la Lectura es «Lectura determinista». Nunca hay llamadas automáticas: el
-botón de IA pasa por el controlador de misión (`features/composer/missionController.ts`).
+Explore does not use AI: it shows a deterministic reading. There are no automatic AI calls. The AI button goes through the mission controller (`features/composer/missionController.ts`).
 
-| Archivo | Chunk | Qué hace |
+| File | Chunk | Responsibility |
 |---|---|---|
-| `index.ts`, `ReadingPanel.tsx`, `ReadingPill.tsx` | principal | Interfaz estable y envoltorios (esqueleto, disclosure) |
-| `deferred.ts`, `ReadingView.tsx` | diferido | La vista de tres capas |
-| `facts.ts`, `types.ts` | diferido | Capa de hechos del snapshot (sin paquete ni huella) |
-| `robustness.ts` | diferido | Compara órdenes con la sensibilidad del pipeline |
-| `explanationToReading.ts` | diferido | Adaptadores puros (`explanationToReading`, `readingKey`, `snippetFor`, `evidenceHref`) |
+| `index.ts`, `ReadingPanel.tsx`, `ReadingPill.tsx` | Main | Stable interface and wrappers, including the skeleton and disclosure |
+| `deferred.ts`, `ReadingView.tsx` | Deferred | Three-layer view |
+| `facts.ts`, `types.ts` | Deferred | Snapshot facts without an evidence package or fingerprint |
+| `robustness.ts` | Deferred | Compares rankings against pipeline sensitivity results |
+| `explanationToReading.ts` | Deferred | Pure adapters: `explanationToReading`, `readingKey`, `snippetFor`, `evidenceHref` |
 
-Retirado al integrar con dev: el canal lktron (NDJSON, tokens `{{id}}`, compuerta de eventos,
-huella FNV del paquete) y la prosa pregenerada (ADR-012, sustituido por ADR-009 §7–9).
+Removed during integration with dev: the lktron channel (NDJSON, `{{id}}` tokens, event gate, and package FNV fingerprint) and pre-generated prose (ADR-012, superseded by ADR-009 §7–9).

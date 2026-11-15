@@ -1,21 +1,22 @@
 /**
- * Capa de hechos del snapshot (docs/INTEGRATION_PLAN.md §2.3 y §5.2, capa 3). Hechos
- * deterministas que no tienen equivalente en el planificador del equipo: dirección frente a
- * Jezero, factor limitante, criterio que satura, valor regional compartido, criterio sin
- * discriminación, mejor de N, datos faltantes, verificaciones y robustez del orden.
+ * Snapshot facts layer (docs/INTEGRATION_PLAN.md §2.3 and §5.2, layer 3). Deterministic facts
+ * that have no equivalent in the team's planner: direction relative to
+ * Jezero, limiting factor, saturating criterion, shared regional value, criterion with no
+ * discrimination, best of N, missing data, checks, and ranking robustness.
  *
- * Toda cifra ya viene formateada (es-CL) por `buildMetricViews` o por el snapshot; aquí no se
- * calcula nada nuevo. Sin paquete de evidencia ni huella (se retiraron con lktron, ADR-012): la IA
- * del equipo solo selecciona IDs de `MissionEvaluation` (ADR-009).
+ * Every figure arrives already formatted (es-CL) by `buildMetricViews` or by the snapshot; nothing new is
+ * computed here. No evidence package or fingerprint (they were removed along with lktron, ADR-012): the team's AI
+ * only selects IDs from `MissionEvaluation` (ADR-009).
  *
- * Roles (ADR-008): los candidatos de la búsqueda llevan su puesto global; la referencia conocida
- * (REF) va aparte y nunca entra en «mejor de N», en las brechas del orden ni en la robustez.
- * Acepta sitios de Chile y de Argentina. Función pura: sin stores ni red.
+ * Roles (ADR-008): search candidates carry their global rank; the known reference
+ * (REF) is kept separate and never enters "best of N", the ranking gaps, or the robustness analysis.
+ * Accepts sites in Chile and Argentina. Pure function: no stores or network.
  */
 import type { CandidateSite, CriterionId, MissionProfile } from '../../domain/contracts'
 import { CRITERION_IDS, isCriterionId } from '../../domain/criteria'
 import { rankMap, splitByRole } from '../../domain/discovery'
 import { criterionLabels, feasibilityLabels, formatRatio, formatScore, formatWhole, shortCandidateName } from '../../domain/formatting'
+import { displaySource } from '../../i18n/sourceText'
 import type { MetricView } from '../metrics'
 import { PERTURBATION, type RobustnessSummary } from './robustness'
 import type { ComparisonFacts, CriterionFact, DirectionFact, FactRef, FactsLayer, RobustnessFacts, SiteFacts } from './types'
@@ -24,16 +25,16 @@ export const FACT_TEXT_MAX = 80
 export const CHECK_TEXT_MAX = 400
 export const MAX_SITES = 12
 
-/** Sitios del piloto: Chile o Argentina (mismo patrón que el contrato v3). */
+/** Pilot sites: Chile or Argentina (same pattern as the v3 contract). */
 const SITE_ID = /^(cl|ar)-[a-z0-9-]+$/
 
 type TopographicId = 'slope' | 'terrain_roughness' | 'local_relief'
 
-/** Frase de dirección respecto de Jezero, por criterio topográfico (sin cifras). */
+/** Direction phrase relative to Jezero, per topographic criterion (no figures). */
 export const DIRECTION_PHRASE: Readonly<Record<TopographicId, Readonly<Record<DirectionFact['direction'], string>>>> = {
-  slope: { more_demanding: 'más inclinado que Jezero', less_demanding: 'menos inclinado que Jezero', similar: 'inclinación similar a Jezero' },
-  terrain_roughness: { more_demanding: 'más rugoso que Jezero', less_demanding: 'menos rugoso que Jezero', similar: 'rugosidad similar a Jezero' },
-  local_relief: { more_demanding: 'más relieve que Jezero', less_demanding: 'menos relieve que Jezero', similar: 'relieve similar a Jezero' },
+  slope: { more_demanding: 'steeper than Jezero', less_demanding: 'less steep than Jezero', similar: 'slope similar to Jezero' },
+  terrain_roughness: { more_demanding: 'rougher than Jezero', less_demanding: 'less rough than Jezero', similar: 'roughness similar to Jezero' },
+  local_relief: { more_demanding: 'more relief than Jezero', less_demanding: 'less relief than Jezero', similar: 'relief similar to Jezero' },
 }
 
 function isTopographic(id: CriterionId): id is TopographicId {
@@ -41,19 +42,19 @@ function isTopographic(id: CriterionId): id is TopographicId {
 }
 
 export interface FactsInput {
-  /** Perfil base del snapshot (criterios, pesos y agregación): los pesos del pipeline. */
+  /** Snapshot base profile (criteria, weights, and aggregation): the pipeline weights. */
   base: MissionProfile
   candidates: readonly CandidateSite[]
-  /** Vistas de `buildMetricViews` por site_id (perfil base). */
+  /** `buildMetricViews` views per site_id (base profile). */
   views: ReadonlyMap<string, readonly MetricView[]>
-  /** Resumen de la sensibilidad del pipeline (analysis-summary.json); null = no disponible. */
+  /** Summary of the pipeline sensitivity analysis (analysis-summary.json); null = not available. */
   robustness: RobustnessSummary | null
   robustnessReason?: string | null
-  /** Solo estos sitios (p. ej. los evaluados en Misión); ausente = todos. */
+  /** Only these sites (e.g. those evaluated in Mission); absent = all. */
   onlySiteIds?: readonly string[] | null
 }
 
-/** Nombre corto del lugar, sin el sufijo «— sector …». */
+/** Short place name, without the "— sector …" suffix. */
 export function siteLabel(name: string): string {
   return shortCandidateName(name).split(' — ')[0]?.trim() || name
 }
@@ -62,7 +63,7 @@ function pct(value: number): string {
   return `${formatWhole(value)} %`
 }
 
-/** Candidatos de la búsqueda en su orden global y, aparte, las referencias conocidas. */
+/** Search candidates in their global order and, separately, the known references. */
 function ordered(input: FactsInput): { ranked: CandidateSite[]; references: CandidateSite[] } {
   const keep = (site: CandidateSite) => SITE_ID.test(site.site_id) && (!input.onlySiteIds || input.onlySiteIds.includes(site.site_id))
   const { ranked, references } = splitByRole(input.candidates)
@@ -72,7 +73,7 @@ function ordered(input: FactsInput): { ranked: CandidateSite[]; references: Cand
 class FactBook {
   readonly facts: Record<string, string> = {}
 
-  /** Registra un hecho si su texto cabe en el contrato; devuelve la referencia o null. */
+  /** Registers a fact if its text fits the contract; returns the reference or null. */
   add(id: string, text: string | null | undefined): FactRef | null {
     if (!text) return null
     const trimmed = text.trim()
@@ -96,7 +97,7 @@ export function buildFactsLayer(input: FactsInput): FactsLayer {
   const viewOf = (siteId: string, id: CriterionId): MetricView | undefined => input.views.get(siteId)?.find((view) => view.criterionId === id)
   const robustnessBySite = new Map((input.robustness?.sites ?? []).map((row) => [row.siteId, row]))
 
-  // ---- Hechos de Marte (una sola vez) -----------------------------------------------------
+  // ---- Mars facts (only once) -----------------------------------------------------
   for (const id of CRITERION_IDS) {
     if (weightOf(id) <= 0) continue
     for (const site of sites) {
@@ -108,17 +109,17 @@ export function buildFactsLayer(input: FactsInput): FactsLayer {
     }
   }
 
-  // ---- Por lugar ---------------------------------------------------------------------------
+  // ---- Per place ---------------------------------------------------------------------------
   const factsOf = (site: CandidateSite): SiteFacts => {
     const id = site.site_id
     const reference = site.role === 'reference'
     const similarity = site.similarity
     const insufficient = similarity === null
-    const similarityText = similarity !== null ? `${formatScore(similarity)} %` : 'datos insuficientes'
+    const similarityText = similarity !== null ? `${formatScore(similarity)}%` : 'insufficient data'
     const position = globalRank.get(id)
     const rank = reference
-      ? book.add(`site:${id}:rank`, 'REF · referencia conocida, fuera del ranking')
-      : position !== undefined ? book.add(`site:${id}:rank`, `#${position} de ${rankedTotal}`) : null
+      ? book.add(`site:${id}:rank`, 'REF · known reference, outside the ranking')
+      : position !== undefined ? book.add(`site:${id}:rank`, `#${position} of ${rankedTotal}`) : null
     const confidenceValue = site.confidence
     const stabilityValue = site.stability ?? robustnessBySite.get(id)?.stability ?? null
     const coverageValue = (() => {
@@ -159,7 +160,7 @@ export function buildFactsLayer(input: FactsInput): FactsLayer {
       .map((item) => ({
         criterionId: item.criterion_id as CriterionId,
         label: labelOf(item.criterion_id as CriterionId),
-        status: item.status === 'needs_calibration' ? 'por calcular' : item.status === 'excluded' ? 'excluido' : 'sin dato',
+        status: item.status === 'needs_calibration' ? 'not yet calculated' : item.status === 'excluded' ? 'excluded' : 'no data',
       }))
 
     return {
@@ -173,13 +174,13 @@ export function buildFactsLayer(input: FactsInput): FactsLayer {
       confidence: confidenceValue !== null ? book.add(`site:${id}:confidence`, formatScore(confidenceValue)) : null,
       stability: stabilityValue !== null ? book.add(`site:${id}:stability`, formatScore(stabilityValue)) : null,
       feasibility: book.add(`site:${id}:feasibility`, feasibilityLabels[site.feasibility]),
-      coverage: coverageValue !== null && Number.isFinite(coverageValue) ? book.add(`coverage:${id}`, `${formatWhole(coverageValue * 100)} % del peso`) : null,
+      coverage: coverageValue !== null && Number.isFinite(coverageValue) ? book.add(`coverage:${id}`, `${formatWhole(coverageValue * 100)}% of the weight`) : null,
       directions,
       limiting,
       saturates,
       missing,
       checks: site.field_checks.slice(0, 99).map((text, index) => {
-        const trimmed = text.trim()
+        const trimmed = displaySource(text).trim()
         return { ref: `check:${id}:${index + 1}`, text: trimmed.length > CHECK_TEXT_MAX ? `${trimmed.slice(0, CHECK_TEXT_MAX - 1)}…` : trimmed }
       }).filter((check) => check.text.length > 0),
     }
@@ -187,20 +188,20 @@ export function buildFactsLayer(input: FactsInput): FactsLayer {
   const siteFacts = ranked.map(factsOf)
   const referenceFacts = references.map(factsOf)
 
-  // ---- Comparativa: solo candidatos (la REF no compite en «mejor de N») ---------------------
+  // ---- Comparison: candidates only (the REF does not compete in "best of N") ---------------------
   const comparison = compare(ranked, book, viewOf, weightOf)
 
-  // ---- Brechas del orden (candidatos) ------------------------------------------------------
+  // ---- Ranking gaps (candidates) ------------------------------------------------------
   const rankedScores = ranked.map((site) => site.similarity).filter((value): value is number => value !== null)
   const gaps: FactRef[] = []
   for (let index = 0; index + 1 < rankedScores.length; index += 1) {
     const a = rankedScores[index] as number
     const b = rankedScores[index + 1] as number
-    const gap = book.add(`rank:gap:${index + 1}:${index + 2}`, `${formatScore(a - b)} puntos`)
+    const gap = book.add(`rank:gap:${index + 1}:${index + 2}`, `${formatScore(a - b)} points`)
     if (gap) gaps.push(gap)
   }
 
-  // ---- Robustez (sensibilidad del pipeline sobre los candidatos) ----------------------------
+  // ---- Robustness (pipeline sensitivity over the candidates) ----------------------------
   const robustness = robustnessFacts(input, siteFacts, ranked, book, labelOf)
 
   return { sites: siteFacts, references: referenceFacts, comparison: { ...comparison, gaps }, robustness }
@@ -231,20 +232,20 @@ function compare(
       .map((row) => ({ ...row, similarity: row.view.similarity as number }))
     const label = rows[0]?.view.label ?? criterionLabels[criterionId] ?? criterionId
 
-    // Se compara lo que se muestra: la similitud por criterio en entero.
+    // What is shown is what gets compared: per-criterion similarity as an integer.
     const rounded = rows.map((row) => Math.round(row.similarity))
     if (rows.length >= 2 && rows.length === sites.length && rounded.every((value) => value === rounded[0])) {
-      // «No distingue»: todos los lugares válidos con la misma similitud mostrada.
+      // "Does not distinguish": all valid places with the same displayed similarity.
       noDiscrimination.push({ criterionId, label, sims: rows.flatMap((row) => simRef(row.siteId, criterionId) ?? []) })
     } else if (rows.length >= 2) {
-      // «Mejor de N»: solo si el primero supera al segundo también en el entero mostrado.
+      // "Best of N": only if the first also beats the second in the displayed integer.
       const [first, second] = [...rows].sort((a, b) => b.similarity - a.similarity)
       if (first && second && Math.round(first.similarity) > Math.round(second.similarity)) {
         bestOfN.push({ criterionId, label, siteId: first.siteId, sim: simRef(first.siteId, criterionId) })
       }
     }
 
-    // Valor regional compartido (p. ej. aridez POWER), según buildMetricViews.
+    // Shared regional value (e.g. POWER aridity), according to buildMetricViews.
     for (const row of rows) {
       const group = [row.siteId, ...row.view.sharedRegionalWith].filter((siteId) => ids.has(siteId))
       const unique = [...new Set(group)].sort()
@@ -282,20 +283,20 @@ function robustnessFacts(
       topFlips: null,
       mostSensitive: null,
       sites: bars,
-      reason: input.robustnessReason ?? 'Robustez del orden no disponible: el snapshot no trae la sensibilidad del pipeline.',
+      reason: input.robustnessReason ?? 'Order robustness not available: the snapshot does not include the pipeline sensitivity.',
     }
   }
   const mostSensitive = summary.mostSensitive ? book.add('sens:most_sensitive', labelOf(summary.mostSensitive)) : null
   if (summary.status === 'insufficient') {
-    return { status: 'insufficient', perturbation: null, scenarios: null, flips: null, topFlips: null, mostSensitive, sites: bars, reason: 'Menos de dos lugares con %: no hay orden que comparar.' }
+    return { status: 'insufficient', perturbation: null, scenarios: null, flips: null, topFlips: null, mostSensitive, sites: bars, reason: 'Fewer than two places with a %: there is no order to compare.' }
   }
   const total = summary.scenarios
   return {
     status: 'ready',
-    perturbation: book.add('sens:perturbation', `±${formatWhole(PERTURBATION * 100)} % por peso`),
-    scenarios: book.add('sens:scenarios', `${total} escenarios`),
-    flips: book.add('sens:flips', summary.flips === 0 ? 'ningún escenario cambia el orden' : `${summary.flips} de ${total} escenarios cambian el orden`),
-    topFlips: book.add('sens:top_flips', summary.topFlips === 0 ? 'ningún escenario cambia el primer lugar' : `${summary.topFlips} de ${total} escenarios cambian el primer lugar`),
+    perturbation: book.add('sens:perturbation', `±${formatWhole(PERTURBATION * 100)}% per weight`),
+    scenarios: book.add('sens:scenarios', `${total} scenarios`),
+    flips: book.add('sens:flips', summary.flips === 0 ? 'no scenario changes the order' : `${summary.flips} of ${total} scenarios change the order`),
+    topFlips: book.add('sens:top_flips', summary.topFlips === 0 ? 'no scenario changes the first place' : `${summary.topFlips} of ${total} scenarios change the first place`),
     mostSensitive,
     sites: bars,
     reason: null,

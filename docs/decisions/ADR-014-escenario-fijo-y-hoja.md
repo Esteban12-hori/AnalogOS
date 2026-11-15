@@ -1,26 +1,26 @@
-# ADR-014 — Escenario fijo (100dvh) con dock, riel y una sola hoja de 3 detents
+# ADR-014 — Fixed stage (100dvh) with dock, rail and a single sheet with 3 detents
 
-- Estado: **accepted por Codex (2026-11-15)** como arquitectura de la interfaz del piloto, bajo la dirección delegada por Dan. Revisión en escritorio y viewport móvil de Chrome, con límites registrados en `docs/CODEX_INTEGRATION_REVIEW.md`; no equivale a certificar dispositivos iOS ni impresión nativa. El equipo humano conserva la autoridad final. Numerado originalmente ADR-008, luego ADR-010 y finalmente ADR-014 para preservar los ADR científicos del equipo.
-- Fecha: 2026-11-14
-- Relación: no afecta a ADR-008 (piloto de descubrimiento) ni a ADR-009 (recomendación guiada) del equipo; el escenario aloja sus datos y su planificador (ADR-013). Aplica `docs/UX_REDESIGN.md` §0–§2 y §3.8. Reemplaza el layout de ADR-006 punto 5 (ficha flotante y hero con scroll). Mantiene ADR-006/007 (globo con paso a 2D) y ADR-001 (SVG sin WebGL).
+- Status: **accepted by Codex (2026-11-15)** as the pilot's interface architecture, under the direction delegated by Dan. Reviewed on desktop and Chrome mobile viewport, with limits recorded in `docs/CODEX_INTEGRATION_REVIEW.md`; it does not amount to certifying iOS devices or native printing. The human team retains final authority. Originally numbered ADR-008,, then ADR-010 and finally ADR-014 to preserve the team's scientific ADRs.
+- Date: 2026-11-14
+- Relationship: does not affect the team's ADR-008 (discovery pilot) or ADR-009 (guided recommendation); the stage hosts their data and their planner (ADR-013). Applies `docs/UX_REDESIGN.md` §0–§2 and §3.8. Replaces the layout of ADR-006 item 5 (floating card and scrolling hero). Maintains ADR-006/007 (globe with transition to 2D) and ADR-001 (SVG without WebGL).
 
-## Contexto
+## Context
 
-El sitio actual es un documento con scroll: hero «No buscamos…», ficha flotante de 480 px a la derecha y secciones Señal, Comparar y Método debajo. En móvil hay cinco hojas distintas propuestas y ocho breakpoints. El globo pierde el gesto de un dedo porque el documento se desplaza, y cada componente pasaba sus márgenes al escenario de una forma distinta (`rightInset`, `--stage-inset-*`, `--rail-h`…).
+The current site is a scrolling document: a «No buscamos…» hero, a floating 480 px card on the right, and Signal, Compare and Method sections below. On mobile there are five different proposed sheets and eight breakpoints. The globe loses the one-finger gesture because the document scrolls, and each component passed its margins to the stage in a different way (`rightInset`, `--stage-inset-*`, `--rail-h`…).
 
-## Decisión
+## Decision
 
-1. **Escenario fijo**: `html`/`body` sin scroll; el escenario (globo o mapa 2D) ocupa todo el viewport y se gira con un dedo. Todo lo demás flota encima.
-2. **Una regla espacial**: centro = dónde (globo y líneas); derecha = el lugar (riel de métricas `clamp(340px, 26vw, 380px)`, 520 px en «ficha completa»); izquierda = tu misión y su lectura (solo ≥1440 px y en Misión); abajo = elegir y escribir (un único dock: lugares arriba, composer abajo).
-3. **Tres tramos**: ≥1440, 1100–1439 y <1100 px. Alto <860 px usa variantes compactas. Por debajo de 1100 px hay **una sola hoja** con detents S0 (bandeja), S1 (lugar, 54dvh) y S2 (ficha). Horizontal con alto ≤500 px: hoja lateral de 360 px.
-4. **Hoja**: se arrastra solo desde la manija o la cabecera; la manija es un `<button>` (toque o flechas cambian de detent). El destino lo decide la función pura `resolveDetent` (umbral de velocidad, histéresis a favor del detent de origen, cancelación). S2 usa `pushState`; Atrás y Esc vuelven a S1; el escenario queda `inert` y en pausa en S2. El teclado virtual se compensa con VisualViewport y `--kb-inset`.
-5. **Márgenes del escenario**: un solo canal. El armazón calcula `insets {top, right, bottom, left}` desde el layout y los publica en el store `ui` cuando el layout se asienta. El globo los aplica con `setViewOffset(x, y)` y MapLibre con `setPadding`. El encuadre global, los umbrales globo↔2D y el póster previo a React usan los márgenes **base** del tramo (`shell/stageGeometry.js`), que no cambian al abrir el riel o la hoja, para que la cámara no salte.
-6. **Modos** Explorar | Misión como pestañas APG con pulgar CSS (`?modo=` con `replaceState`). Se retira el shader WebGL de `LiquidNav`. Señal, Comparar y Método pasan a pestañas de la ficha completa (riel de 520 px o S2).
-7. **Estado de UI** en un store externo (`useSyncExternalStore`) fuera del árbol de R3F, para no re-renderizar el globo.
+1. **Fixed stage**: `html`/`body` without scroll; the stage (globe or 2D map) fills the entire viewport and rotates with one finger. Everything else floats on top.
+2. **One spatial rule**: center = where (globe and lines); right = the place (metrics rail `clamp(340px, 26vw, 380px)`, 520 px in «full card»); left = your mission and its reading (only ≥1440 px and in Mission); bottom = choose and write (a single dock: places on top, composer below).
+3. **Three ranges**: ≥1440, 1100–1439 and <1100 px. Height <860 px uses compact variants. Below 1100 px there is **a single sheet** with detents S0 (tray), S1 (place, 54dvh) and S2 (card). Landscape with height ≤500 px: side sheet of 360 px.
+4. **Sheet**: it is dragged only from the handle or the header; the handle is a `<button>` (tap or arrows change detent). The destination is decided by the pure function `resolveDetent` (velocity threshold, hysteresis in favor of the originating detent, cancellation). S2 uses `pushState`; Back and Esc return to S1; the stage remains `inert` and paused in S2. The virtual keyboard is compensated with VisualViewport and `--kb-inset`.
+5. **Stage margins**: a single channel. The shell computes `insets {top, right, bottom, left}` from the layout and publishes them to the `ui` store when the layout settles. The globe applies them with `setViewOffset(x, y)` and MapLibre with `setPadding`. The global framing, the globe↔2D thresholds and the pre-React poster use the range's **base** margins (`shell/stageGeometry.js`), which do not change when opening the rail or the sheet, so that the camera does not jump.
+6. **Modes** Explore | Mission as APG tabs with a CSS thumb (`?modo=` with `replaceState`). The WebGL shader of `LiquidNav` is removed. Signal, Compare and Method become tabs of the full card (520 px rail or S2).
+7. **UI state** in an external store (`useSyncExternalStore`) outside the R3F tree, to avoid re-rendering the globe.
 
-## Consecuencias
+## Consequences
 
-- Se elimina el hero y la ficha flotante; el contenido existente se reubica sin perderse (Métricas, Señal, Comparar, Método y Fuentes como pestañas).
-- El póster del globo y su prueba al píxel (`boot.test`) se alinean con los nuevos márgenes base; cambiar la altura del dock exige actualizar `stageGeometry.js` y `shell.css` juntos (lo verifica un test).
-- Riesgo iOS (pointercancel, scrollend): todo detent es alcanzable con botones y teclado; QA en dispositivo real pendiente (incremento 11).
-- La aceptación conserva el escenario fijo; los ajustes pendientes de navegación móvil e impresión no autorizan a cambiar los contratos ni el motor científico.
+- The hero and the floating card are removed; the existing content is relocated without loss (Metrics, Signal, Compare, Method and Sources as tabs).
+- The globe poster and its pixel-level test (`boot.test`) are aligned with the new base margins; changing the dock height requires updating `stageGeometry.js` and `shell.css` together (verified by a test).
+- iOS risk (pointercancel, scrollend): every detent is reachable with buttons and keyboard; QA on a real device is pending (increment 11).
+- Acceptance preserves the fixed stage; the pending adjustments to mobile navigation and printing do not authorize changing the contracts or the scientific engine.

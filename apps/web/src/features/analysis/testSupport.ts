@@ -1,10 +1,10 @@
 /**
- * Apoyo de tests de features/analysis (solo lo importan archivos *.test.ts; nunca la app).
+ * Test support for features/analysis (imported only by *.test.ts files; never by the app)..
  *
- * `fixtureViews` es un DOBLE DE PRUEBA (FIXTURE) de `buildMetricViews`: imita sus campos con una
- * regla simple para probar el paquete sin depender de la implementación de features/metrics. Las
- * pruebas de integración con la implementación real viven aparte y se saltan si metrics o el
- * motor siguen siendo stubs.
+ * `fixtureViews` is a TEST DOUBLE (FIXTURE) of `buildMetricViews`: it imitates its fields with a
+ * simple rule to test the package without depending on the features/metrics implementation. The
+ * integration tests with the real implementation live separately and are skipped if metrics or the
+ * engine are still stubs.
  */
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -21,7 +21,7 @@ export function readJson(path: string): unknown {
   return JSON.parse(readFileSync(resolve(REPO_ROOT, path), 'utf8'))
 }
 
-/** Snapshot científico v2 real, tal como lo entrega loadDemoSnapshot (sin series ni contorno). */
+/** Real scientific v2 snapshot, as delivered by loadDemoSnapshot (without series or contour). */
 export function loadScienceSnapshot(): DemoSnapshot {
   return {
     candidates: readJson('artifacts/science-v2/candidate-details.json') as CandidateSite[],
@@ -41,7 +41,7 @@ export const MARIA_ELENA = 'cl-pampa-maria-elena-screening'
 
 const MARS: Readonly<Partial<Record<CriterionId, true>>> = { slope: true, terrain_roughness: true, local_relief: true }
 
-/** FIXTURE: vistas mínimas con la misma forma que MetricView (no es la implementación real). */
+/** FIXTURE: minimal views with the same shape as MetricView (not the real implementation). */
 export function fixtureViews(
   snapshot: DemoSnapshot,
   weights: Readonly<Partial<Record<CriterionId, number>>> | null = null,
@@ -71,7 +71,7 @@ export function fixtureViews(
         baseWeight: criterion.weight,
         status: item?.status ?? 'missing',
         similarity: ns === null ? null : ns * 100,
-        siteValue: { raw, unit: criterion.unit, text: typeof raw === 'number' ? formatRawValue(raw, criterion.unit) : 'por calcular' },
+        siteValue: { raw, unit: criterion.unit, text: typeof raw === 'number' ? formatRawValue(raw, criterion.unit) : 'to be calculated' },
         marsValue,
         rule: criterion.method === 'bounded_preference' ? { text: 'FIXTURE', satisfied: ns === null ? null : ns >= 1 } : null,
         vsMars: ratio === null ? null : { direction: ratio > 1.05 ? 'more_demanding' : ratio < 0.95 ? 'less_demanding' : 'similar', ratio },
@@ -94,7 +94,7 @@ export function fixtureViews(
   return result
 }
 
-/** Espera a que se vacíe la cola de microtareas/promesas (controlador asíncrono). */
+/** Waits for the microtask/promise queue to drain (asynchronous controller). */
 export async function flush(times = 8): Promise<void> {
   for (let index = 0; index < times; index += 1) await new Promise((resolve) => setTimeout(resolve, 0))
 }

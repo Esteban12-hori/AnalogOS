@@ -1,5 +1,5 @@
-// Tipos del motor de decisión M8 (ADR-009). Capa determinista sobre el snapshot v3:
-// no cambia fórmulas, pesos, calidad ni perfiles científicos.
+// Types for the M8 decision engine (ADR-009). Deterministic layer over the v3 snapshot:
+// it does not change formulas, weights, quality, or scientific profiles.
 import type { CandidateSite, DataManifest, MissionProfile } from '../domain/contracts'
 
 export type Operator = '<=' | '>=' | 'between' | 'in'
@@ -21,7 +21,7 @@ interface RequirementBase {
   importance: Importance
   origin: RequirementOrigin
   confirmed: boolean
-  /** Fragmento literal del brief del que procede el requisito (o null si lo escribió el usuario sin brief). */
+  /** Literal excerpt from the brief that the requirement comes from (or null if the user wrote it without a brief). */
   source_quote: string | null
 }
 
@@ -34,7 +34,7 @@ export interface MeasurableRequirement extends RequirementBase {
   scale: RequirementScale
 }
 
-/** Pedido que el snapshot no mide: se conserva como pendiente y nunca se aprueba. */
+/** Request that the snapshot does not measure: it is kept as pending and is never approved. */
 export interface UnmeasuredRequirement extends RequirementBase {
   kind: 'unmeasured'
   topic_id: string
@@ -78,9 +78,9 @@ export interface WindowMatch {
   site_id: string
   name: string
   relation: WindowRelation
-  /** Fracción del área solicitada cubierta por la ventana (null para punto). */
+  /** Fraction of the requested area covered by the window (null for a point). */
   request_covered_fraction: number | null
-  /** Fracción de la ventana contenida en la geometría solicitada (null para punto). */
+  /** Fraction of the window contained within the requested geometry (null for a point). */
   window_covered_fraction: number | null
 }
 
@@ -133,7 +133,7 @@ export interface OptionEvaluation {
   critical_unknown: string[]
   preferences: { met: number; unmet: number; unknown: number; total: number }
   requirement_results: RequirementResult[]
-  /** Valores originales del snapshot v3, sin recalcular. La similitud no es probabilidad de éxito. */
+  /** Original values from the v3 snapshot, not recalculated. Similarity is not the probability of success. */
   snapshot_scores: { similarity: number | null; confidence: number; stability: number | null }
   territorial_feasibility: 'pending'
   what_would_change: string[]
@@ -171,8 +171,11 @@ export type EvaluationOutcome =
   | 'insufficient_coverage'
   | 'unsupported_target'
 
+/** Text version of a deterministic record: 1.0.0 frozen Spanish, 1.1.0 English (shared/mission/text). */
+export type EvaluationVersion = '1.0.0' | '1.1.0'
+
 export interface MissionEvaluation {
-  evaluation_version: '1.0.0'
+  evaluation_version: EvaluationVersion
   rules_version: string
   snapshot_version: string
   profile: { id: string; version: string; name: string; status: string }

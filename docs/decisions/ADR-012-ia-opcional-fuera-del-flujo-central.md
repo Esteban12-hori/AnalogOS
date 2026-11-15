@@ -1,30 +1,30 @@
-# ADR-012 — IA opcional (lktron) fuera del flujo central
+# ADR-012 — Optional AI (lktron) outside the core flow
 
-- Estado: **sustituido por ADR-009 §7–9** (recomendación guiada del equipo: Anthropic solo en el servidor, selección de IDs validada). No se integra; se conserva como registro de la decisión descartada. Antes: propuesto (2026-11-14), numerado ADR-010 en la rama del rediseño.
-- Fecha: 2026-11-14 (sustitución: 2026-11-14, ADR-013)
-- Relación: `docs/UX_REDESIGN.md` §0.8–§0.9 y §5 (marcado como sustituido). Dependía de ADR-015, antes ADR-011 (también sustituido).
+- Status: **superseded by ADR-009 §7–9** (guided team recommendation: Anthropic only on the server, validated ID selection). It is not integrated; it is kept as a record of the discarded decision. Previously: proposed (2026-11-14), numbered ADR-010 on the redesign branch.
+- Date: 2026-11-14 (supersession: 2026-11-14, ADR-013)
+- Relation: `docs/UX_REDESIGN.md` §0.8–§0.9 and §5 (marked as superseded). It depended on ADR-015, formerly ADR-011 (also superseded).
 
-> **Sustituido.** Al integrar con dev (ADR-013) se retiraron el cliente lktron (NDJSON), los
-> contratos `mission-interpretation`, `evidence-packet` y `ai-analysis`, la huella FNV, los tokens
-> `{{id}}`, la coincidencia por palabras clave «DEMO · sin IA» y la prosa pregenerada. La IA es la
-> del equipo: `server/ai` (Anthropic, clave solo en el servidor) llamada con `mission/aiClient.ts`,
-> que propone requisitos sin confirmar o selecciona IDs de la evaluación; nunca cifras ni orden.
-> El texto siguiente se conserva sin cambios como registro.
+> **Superseded.** When integrating with dev (ADR-013), the lktron client (NDJSON), the
+> contracts `mission-interpretation`, `evidence-packet` and `ai-analysis`, the FNV fingerprint, the tokens
+> `{{id}}`, the keyword matching "DEMO · no AI" and the pre-generated prose were removed. The AI is the
+> team's: `server/ai` (Anthropic, key only on the server) called with `mission/aiClient.ts`,
+> which proposes unconfirmed requirements or selects IDs from the evaluation; never figures or ordering.
+> The following text is kept unchanged as a record.
 
-## Contexto
+## Context
 
-El modo Misión gana mucho si alguien interpreta el texto libre del usuario y redacta una lectura comparativa. Las reglas del proyecto prohíben usar IA para puntuar, mezclar similitud/confianza/factibilidad, inventar cifras y depender de APIs externas en el flujo central.
+Mission mode gains a lot if someone interprets the user's free text and writes a comparative reading. The project rules prohibit using AI to score, to mix similarity/confidence/feasibility, to invent figures, and to depend on external APIs in the core flow.
 
-## Decisión
+## Decision
 
-1. **La IA nunca puntúa ni produce cifras.** Solo (a) interpreta la misión en niveles 0–3 por criterio, supuestos y «lo pedido sin datos» (`mission-interpretation/1`), y (b) redacta texto que cita hechos con marcadores `{{id}}` (`ai-analysis/1`). Toda cifra, orden y postura («mejor de 3», «limitante», «satura») la produce el motor determinista y viaja en `evidence-packet/1`.
-2. **Contratos cerrados** (`additionalProperties: false`): el esquema no tiene dónde poner un %, una confianza o un ranking. Texto sin dígitos ni % fuera de marcadores, ≤280 caracteres. Validadores Ajv precompilados en el cliente.
-3. **Validación antes de mostrar** (§5.5): esquema, huella FNV-1a 64 del paquete, cada `{{id}}` existe y está en `refs`, sin números escritos, `fact_kind` coherente, filtro de vocabulario («seguro», «apto», «el mejor», «score»…). Lo que no pasa se descarta y se avisa; nunca se muestra texto sin validar.
-4. **Fuera del flujo central**: sin red o sin endpoint, la interpretación usa coincidencia por palabras clave rotulada «DEMO · sin IA» y la lectura usa `artifacts/science-v2/ai-analysis.default.json` (pregenerado, rotulado como no científico) solo si su huella coincide; si no, solo la capa de hechos deterministas. lktron se activa detrás de un flag de build y su endpoint se configura sin subir secretos.
-5. **Rótulo fijo** «✦ Interpretación de IA · interpreta, no puntúa» y «Cifras: motor · Redacción: IA» en toda superficie con texto generado.
+1. **The AI never scores or produces figures.** It only (a) interprets the mission in 0–3 levels per criterion, assumptions and "what was requested without data" (`mission-interpretation/1`), and (b) writes text that cites facts with `{{id}}` markers (`ai-analysis/1`). Every figure, ordering and stance ("best of 3", "limiting", "saturates") is produced by the deterministic engine and travels in `evidence-packet/1`.
+2. **Closed contracts** (`additionalProperties: false`): the schema has nowhere to put a %, a confidence or a ranking. Text without digits or % outside markers, ≤280 characters. Precompiled Ajv validators on the client.
+3. **Validation before display** (§5.5): schema, FNV-1a fingerprint 64 of the package, each `{{id}}` exists and is in `refs`, no written numbers, consistent `fact_kind`, vocabulary filter ("safe", "suitable", "the best", "score"…). Whatever fails is discarded and a notice is shown; unvalidated text is never displayed.
+4. **Outside the core flow**: without network or without an endpoint, the interpretation uses keyword matching labeled "DEMO · no AI" and the reading uses `artifacts/science-v2/ai-analysis.default.json` (pre-generated, labeled as non-scientific) only if its fingerprint matches; otherwise, only the layer of deterministic facts. lktron is enabled behind a build flag and its endpoint is configured without committing secrets.
+5. **Fixed label** "✦ AI interpretation · interprets, does not score" and "Figures: engine · Wording: AI" on every surface with generated text.
 
-## Consecuencias
+## Consequences
 
-- La demo central sigue funcionando offline y sin IA.
-- Riesgo residual: una frase plausible pero falsa sin cifras. Se mitiga con la postura fijada por el motor, el filtro de vocabulario y la checklist a un clic, y se reconoce en la UI.
-- **Si no se aprueba**: Misión queda solo con perfiles predefinidos y matcher DEMO; el panel de Lectura muestra solo hechos deterministas.
+- The core demo keeps working offline and without AI.
+- Residual risk: a plausible but false sentence without figures. It is mitigated by the stance fixed by the engine, the vocabulary filter and the one-click checklist, and it is acknowledged in the UI.
+- **If not approved**: Mission is left with only predefined profiles and the DEMO matcher; the Reading panel shows only deterministic facts.

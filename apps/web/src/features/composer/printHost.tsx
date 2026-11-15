@@ -1,9 +1,9 @@
 /**
- * Informe imprimible de la misión (ADR-013): UNO por página, montado en la raíz del armazón
- * mientras haya una evaluación vigente, para que «Imprimir informe» funcione desde el panel, el
- * popover o la hoja móvil aunque se cierren. El contenido es el `PrintReport` del equipo.
- * M11: sin informe vigente (carga inicial, datos sin validar, prueba editada o informe aún en
- * camino) la impresión del navegador muestra un aviso claro, nunca una página vacía ni un informe viejo.
+ * Printable mission report (ADR-013): ONE per page, mounted at the root of the shell
+ * whenever there is a current evaluation, so that "Print report" works from the panel, the
+ * popover or the mobile sheet even if they are closed. The content is the team's `PrintReport`.
+ * M11: with no current report (initial load, unvalidated data, edited test or report still on
+ * its way) the browser's print output shows a clear notice, never an empty page or an outdated report.
  */
 import { lazy, Suspense } from 'react'
 import type { AppData } from '../../shell/public'
@@ -14,13 +14,13 @@ const PrintContent = lazy(() => import('./PrintContent'))
 export type PrintNoticeReason = 'loading_data' | 'no_result' | 'stale' | 'preparing'
 
 export const PRINT_NOTICE: Readonly<Record<PrintNoticeReason, string>> = {
-  loading_data: 'No hay un informe para imprimir: los datos validados todavía se están cargando.',
-  no_result: 'No hay un informe vigente. Defina la prueba en «Tu misión», confirme los requisitos y evalúe; después use «Imprimir informe».',
-  stale: 'Editó la prueba: el informe anterior ya no corresponde a lo que está escribiendo. Confirme y evalúe de nuevo en «Tu misión» para imprimir el informe vigente.',
-  preparing: 'El informe vigente se está preparando. Cierre esta vista de impresión y use «Imprimir informe» cuando el botón esté disponible.',
+  loading_data: 'There is no report to print: the validated data are still loading.',
+  no_result: 'There is no current report. Define the test in “Your mission”, confirm the requirements and evaluate; then use “Print report”.',
+  stale: 'You edited the test: the previous report no longer matches what you are writing. Confirm and evaluate again in “Your mission” to print the current report.',
+  preparing: 'The current report is being prepared. Close this print view and use “Print report” when the button is available.',
 }
 
-/** Puro: por qué no hay informe que imprimir (null = hay evaluación vigente y datos listos). */
+/** Pure: why there is no report to print (null = there is a current evaluation and the data is ready). */
 export function printNoticeReason(dataReady: boolean, hasResult: boolean, stale: boolean): PrintNoticeReason | null {
   if (!dataReady) return 'loading_data'
   if (hasResult) return null
@@ -30,7 +30,7 @@ export function printNoticeReason(dataReady: boolean, hasResult: boolean, stale:
 export function PrintNotice({ reason }: { reason: PrintNoticeReason }) {
   return (
     <article className="pl-print-only mission-print-notice">
-      <h1>AnalogOS · Informe de recomendación para una prueba</h1>
+      <h1>AnalogOS · Recommendation report for a test</h1>
       <p>{PRINT_NOTICE[reason]}</p>
     </article>
   )

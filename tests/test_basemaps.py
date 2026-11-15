@@ -1,4 +1,4 @@
-"""Pruebas sin red de las funciones puras de pipelines/fetch_basemaps.py."""
+"""Offline tests of the pure functions in pipelines/fetch_basemaps.py."""
 
 import json
 import math
@@ -16,23 +16,23 @@ def test_median_composite_ignora_sin_dato_y_marca_huecos():
     for layer, value in ((a, 100), (b, 110), (c, 250)):
         layer[..., :3] = value
         layer[..., 3] = 255
-    # Píxel (1, 1): sin dato en todas las fechas.
+    # Pixel (1, 1): no data on any date.
     for layer in (a, b, c):
         layer[1, 1, 3] = 0
     rgba, gaps = median_composite([a, b, c])
-    assert rgba[0, 0, 0] == 110  # mediana, la fecha atípica (nube) no domina
-    assert rgba[1, 1, 3] == 0  # el hueco queda transparente, no se inventa
+    assert rgba[0, 0, 0] == 110  # median, the outlier date (cloud) does not dominate
+    assert rgba[1, 1, 3] == 0  # the gap stays transparent, nothing is made up
     assert gaps == 0.25
 
 
 def test_warp_rows_to_mercator_conserva_extremos_y_reordena_filas():
     height = 100
     rgba = np.zeros((height, 1, 4), np.float32)
-    rgba[:, 0, 0] = np.arange(height)  # el valor codifica la fila de origen
+    rgba[:, 0, 0] = np.arange(height)  # the value encodes the source row
     warped = warp_rows_to_mercator(rgba, south=-30.0, north=-17.0)
     assert warped.shape == rgba.shape
     assert warped[0, 0, 0] < 1 and warped[-1, 0, 0] > height - 2
-    # A mitad de la imagen Mercator la latitud es menor (más al sur) que la mitad lineal.
+    # At the middle of the Mercator image, the latitude is lower (further south) than the linear midpoint.
     y = lambda lat: math.log(math.tan(math.pi / 4 + math.radians(lat) / 2))
     mid_lat = math.degrees(2 * math.atan(math.exp((y(-17) + y(-30)) / 2)) - math.pi / 2)
     expected_row = (-17 - mid_lat) / 13 * height - 0.5
@@ -51,7 +51,7 @@ def test_manifiesto_versionado_es_coherente():
         assert west < east and south < north
         assert (ROOT / "artifacts" / entry["image"]).is_file()
         if entry["kind"] == "sector":
-            assert entry["dates"], "un sector sin fechas no es una mediana trazable"
+            assert entry["dates"], "a sector without dates is not a traceable median"
             assert entry["gap_fraction"] < 0.05
 
 

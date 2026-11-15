@@ -1,37 +1,37 @@
-# ADR-003 — Snapshot v2 autenticado con NASADEM y Sentinel-2
+# ADR-003 — Authenticated Snapshot v2 with NASADEM and Sentinel-2
 
-- Estado: aceptado para la entrega de hackathon
-- Fecha: 2026-11-14
+- Status: accepted for the hackathon submission
+- Date: 2026-11-14
 
-## Contexto
+## Context
 
-El snapshot v1 usaba un único tile SRTM por sector y no medía superficie expuesta. Al habilitar Earthdata Login se comprobó que la ventana de Pampa Yungay cruza cuatro tiles; analizar solo `S25W070` truncaba parte del AOI. También se habilitaron credenciales OAuth de Copernicus, lo que permite calcular estadísticas Sentinel-2 sin descargar escenas completas.
+Snapshot v1 used a single SRTM tile per sector and did not measure exposed surface. When Earthdata Login was enabled, it was found that the Pampa Yungay window crosses four tiles; analyzing only `S25W070` truncated part of the AOI. Copernicus OAuth credentials were also enabled, which makes it possible to compute Sentinel-2 statistics without downloading full scenes.
 
-## Decisión
+## Decision
 
-1. Sustituir SRTM vía espejo por `NASADEM_HGT.001` descargado desde NASA Earthdata.
-2. Construir primero un mosaico multitesela y después recortar cada ventana de 0,2°.
-3. Conservar la agregación 16×16 para comparar NASADEM (~30 m) con MOLA a ~460–480 m.
-4. Usar la máscara `swb` de NASADEM para screening de agua permanente.
-5. Consultar Sentinel-2 L2A mediante Copernicus Statistical API en doce intervalos mensuales de 2025, resolución nominal ~30 m y mosaico de menor nubosidad.
-6. Definir píxeles válidos con SCL 2, 4, 5 y 6; derivar superficie no vegetada con SCL 5, además de NDVI y BSI auditables.
-7. Usar la mediana mensual de fracción no vegetada directamente como similitud del criterio `bare_ground_fraction`. Esto mide continuidad de superficie útil para la prueba terrestre, no parecido espectral con Marte.
-8. Consultar HLS S30 v2.0 en CMR como inventario NASA independiente. Sus píxeles no entran al score v2 para evitar doble conteo de observaciones Sentinel-2.
-9. Mantener geología, urbano, áreas sensibles, propiedad y acceso fuera de cualquier afirmación resuelta.
+1. Replace SRTM via mirror with `NASADEM_HGT.001` downloaded from NASA Earthdata.
+2. First build a multi-tile mosaic and then crop each 0,2° window.
+3. Keep the 16×16 aggregation to compare NASADEM (~30 m) with MOLA at ~460–480 m.
+4. Use the NASADEM `swb` mask for permanent water screening.
+5. Query Sentinel-2 L2A through the Copernicus Statistical API in twelve monthly intervals of 2025, with a nominal resolution of ~30 m and a least-cloudy mosaic.
+6. Define valid pixels with SCL 2, 4, 5 and 6; derive non-vegetated surface with SCL 5, in addition to auditable NDVI and BSI.
+7. Use the monthly median of the non-vegetated fraction directly as the similarity for criterion `bare_ground_fraction`. This measures continuity of surface useful for the terrestrial test, not spectral similarity to Mars.
+8. Query HLS S30 v2.0 in CMR as an independent NASA inventory. Its pixels do not enter the v2 score, to avoid double-counting Sentinel-2. observations.
+9. Keep geology, urban areas, sensitive areas, ownership and access outside of any resolved claim.
 
-## Calidad y confianza
+## Quality and confidence
 
-- Topografía NASADEM: calidad 0,93 para pendiente y 0,91 para rugosidad/relieve.
-- Superficie Sentinel-2: calidad máxima 0,90, multiplicada por cobertura válida y completitud temporal.
-- POWER conserva calidad 0,60 porque es contexto climático regional.
-- Geología aporta calidad cero y permanece fuera del score.
+- NASADEM topography: quality 0,93 for slope and 0,91 for roughness/relief.
+- Sentinel-2: surface: maximum quality 0,90, multiplied by valid coverage and temporal completeness.
+- POWER retains quality 0,60 because it is regional climate context.
+- Geology contributes zero quality and remains outside the score.
 
-La confianza resultante (~77,4) es mayor que v1 porque ahora existe evidencia superficial, pero no implica validación de campo.
+The resulting confidence (~77,4) is higher than v1 because surface evidence now exists, but it does not imply field validation.
 
-## Consecuencias
+## Consequences
 
-- Yungay usa cuatro tiles y deja de sufrir truncamiento de borde.
-- El peso válido sube de 0,70 a 0,90.
-- El ranking se mantiene, pero cambian los valores: Yungay 75,67; Domeyko 71,60; María Elena 49,99.
-- María Elena conserva una advertencia por ~0,15 % de agua permanente detectada en el polígono.
-- La reproducción completa requiere cuentas gratuitas Earthdata y Copernicus; la demo final sigue funcionando offline con el snapshot versionado.
+- Yungay uses four tiles and no longer suffers from edge truncation.
+- The valid weight rises from 0,70 to 0,90.
+- The ranking is maintained, but the values change: Yungay 75,67; Domeyko 71,60; María Elena 49,99.
+- María Elena retains a warning for ~0,15 % permanent water detected in the polygon.
+- Full reproduction requires free Earthdata and Copernicus accounts; the final demo still works offline with the versioned snapshot.

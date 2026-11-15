@@ -1,7 +1,7 @@
 /**
- * Apoyo de tests (solo lo importan archivos *.test.*; nunca la app): el snapshot científico v3
- * real tal como lo entrega loadDemoSnapshot, y evaluaciones del planificador del equipo
- * (`plannerReducer` + `evaluateMission`, sin cambios) para probar la interfaz integrada.
+ * Test support (imported only by *.test.* files; never by the app): the real v3 scientific snapshot
+ * as delivered by loadDemoSnapshot, and evaluations from the team planner
+ * (`plannerReducer` + `evaluateMission`, unchanged) to test the integrated interface.
  */
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -66,7 +66,7 @@ export interface Evaluated {
   evaluation: MissionEvaluation
 }
 
-/** Ejemplo editable del equipo (pendiente ≤ 3°, suelo desnudo ≥ 95 %, tracción sin medición), confirmado y evaluado. */
+/** Editable team example (slope ≤ 3°, bare soil ≥ 95 %, traction without measurement), confirmed and evaluated. */
 export function evaluateExample(scope: ScopeInput = emptyScope(), extra: readonly PlannerAction[] = []): Evaluated {
   const confirmed = run(initialPlannerState(), [
     { type: 'set_journey', journey: 'test' },
@@ -76,7 +76,7 @@ export function evaluateExample(scope: ScopeInput = emptyScope(), extra: readonl
     { type: 'confirm' },
   ])
   const request = buildRequest(confirmed).request
-  if (!request) throw new Error(`Solicitud inválida: ${buildRequest(confirmed).issues.join('; ')}`)
+  if (!request) throw new Error(`Invalid request: ${buildRequest(confirmed).issues.join('; ')}`)
   const evaluation = evaluateMission(request, v3Bundle)
   const state = plannerReducer(confirmed, { type: 'evaluated', evaluation })
   return { state, request, evaluation }

@@ -1,9 +1,11 @@
 import { composeGeologyGuidance, deterministicGeologyRefs, type GeologyGuidanceView, type GeologyCatalog } from '../../../../../shared/geology/guidance'
 import { AVAILABILITY_LABEL, formatCoverage, formatScaleLabel } from '../../domain/geologyContext'
 import { shortCandidateName } from '../../domain/formatting'
+import { GLOSS_LABEL, ORIGINAL_LABEL, unitDescriptionEn, unitNameDisplay } from '../../i18n/geologyGloss'
+import { ORIGINAL_WORDING_MARK, displaySource } from '../../i18n/sourceText'
 import type { PlannerState } from '../../mission'
 
-/** Vista vigente: selección de la IA si corresponde exactamente a este catálogo; si no, orientación determinista. */
+/** Current view: the AI selection if it corresponds exactly to this catalog; otherwise, deterministic guidance. */
 export function guidanceView(catalog: GeologyCatalog | null, state: PlannerState): GeologyGuidanceView | null {
   if (!catalog || (!catalog.sites.length && !catalog.excluded.length)) return null
   const rec = state.explain.geologyRecord
@@ -18,18 +20,20 @@ type BriefUnit = SiteBrief['units'][number]
 const safe = (u: string): string | null => (/^https:\/\//.test(u) ? u : null)
 
 /**
- * Textos y piezas compartidos por la pantalla y el informe impreso (M11): la versión imprimible
- * repite la MISMA evidencia geológica (cobertura, unidades, fuente, límites y excluidos), sin
- * interacción. Cartografía regional: nunca se presenta como aptitud del sector.
+ * Texts and components shared by the screen and the printed report (M11): the printable version
+ * repeats the SAME geological evidence (coverage, units, source, limits, and exclusions), without
+ * interaction. Regional cartography: it is never presented as suitability of the sector.
  */
-export const GEOLOGY_LAYER_NOTE = 'Cartografía geológica oficial regional como apoyo para planificar el reconocimiento y las validaciones de campo. Es una capa aparte: no cambia estados, orden ni exclusiones, y no prueba tracción, mecánica de suelos, equivalencia marciana, seguridad ni permisos.'
-export const UNITS_NOT_ADDITIVE = 'Los porcentajes de unidades no se suman: una zona compartida cuenta en cada unidad que la cubre. La capa no dice dónde está cada unidad dentro del sector.'
+export const GEOLOGY_LAYER_NOTE = 'Official regional geological mapping as support for planning reconnaissance and field validation. It is a separate layer: it does not change statuses, order or exclusions, and it does not prove traction, soil mechanics, Martian equivalence, safety or permits.'
+export const UNITS_NOT_ADDITIVE = 'Unit percentages do not add up: a shared area counts in every unit that covers it. The layer does not say where each unit lies inside the sector.'
+/** Language note for unit names and descriptions (official wording stays the record). */
+export const UNIT_LANGUAGE_NOTE = 'Unit names are the official ones (Spanish), followed by an English gloss; descriptions are shown as an English editorial translation with the official original wording next to it. The JSON keeps the official wording.'
 
 function SiteMeta({ brief }: { brief: SiteBrief }) {
   return (
     <>
-      Cubierto {formatCoverage(brief.fractions.covered_total)} · sin polígono {formatCoverage(brief.fractions.unmapped)} · solape {formatCoverage(brief.fractions.covered_ambiguous)} · escala {formatScaleLabel(brief.scale_denominator)} · {brief.source.authority}
-      {brief.applies_to === 'window_not_requested_geometry' && ' · ventana completa, no su geometría'}
+      Covered {formatCoverage(brief.fractions.covered_total)} · without polygon {formatCoverage(brief.fractions.unmapped)} · overlap {formatCoverage(brief.fractions.covered_ambiguous)} · scale {formatScaleLabel(brief.scale_denominator)} · {brief.source.authority}
+      {brief.applies_to === 'window_not_requested_geometry' && ' · full window, not your geometry'}
     </>
   )
 }
@@ -37,21 +41,35 @@ function SiteMeta({ brief }: { brief: SiteBrief }) {
 function ItemSupport({ unit, brief }: { unit: GuidanceSite['items'][number]['unit']; brief: SiteBrief }) {
   return (
     <>
-      {unit ? `Respaldo: unidad ${unit.code ?? 'sin código'} · ${unit.name ?? 'sin nombre'} · ${formatCoverage(unit.fraction)} del sector incluyendo solapes (${formatCoverage(unit.fraction_unambiguous)} sin solape)` : 'Respaldo: cobertura y escala de la capa oficial'}
-      {' · '}{safe(brief.source.dataset_url) ? <a href={safe(brief.source.dataset_url)!} target="_blank" rel="noreferrer noopener">{brief.source.dataset_name} (fuente oficial)</a> : brief.source.dataset_name}
+      {unit ? `Support: unit ${unit.code ?? 'no code'} · ${unitNameDisplay(unit.name, null)} · ${formatCoverage(unit.fraction)} of the sector including overlaps (${formatCoverage(unit.fraction_unambiguous)} without overlap)` : 'Support: coverage and scale of the official layer'}
+      {' · '}{safe(brief.source.dataset_url) ? <a href={safe(brief.source.dataset_url)!} target="_blank" rel="noreferrer noopener">{brief.source.dataset_name} (official source)</a> : brief.source.dataset_name}
     </>
   )
 }
 
 function noItemsText(brief: SiteBrief): string {
-  return brief.availability === 'no_coverage' ? 'Sin unidades cartografiadas en esta capa: nada que orientar desde la geología oficial.' : 'No se destacó ninguna comprobación geológica para este sector.'
+  return brief.availability === 'no_coverage' ? 'No mapped units in this layer: nothing to guide from the official geology.' : 'No geological check was highlighted for this sector.'
 }
 
-function UnitItem({ u }: { u: BriefUnit }) {
+/** Official description as an English editorial gloss, with the original wording next to it (disclosure on screen, inline in print). */
+function UnitDescription({ description, print }: { description: string | null; print: boolean }) {
+  if (description === null) return <>Original description missing in the source.</>
+  const en = unitDescriptionEn(description)
+  if (en === null) return <span lang="es">{description}{ORIGINAL_WORDING_MARK}</span>
+  if (print) return <>{GLOSS_LABEL}: {en}. {ORIGINAL_LABEL}: <span lang="es">“{description}”</span>.</>
+  return (
+    <>
+      <span className="pl-gloss"><small>{GLOSS_LABEL}:</small> {en}</span>
+      <details className="pl-original"><summary>{ORIGINAL_LABEL}</summary><span lang="es">{description}</span></details>
+    </>
+  )
+}
+
+function UnitItem({ u, print = false }: { u: BriefUnit; print?: boolean }) {
   return (
     <li>
-      <b>{u.code ?? 'sin código'} · {u.name ?? 'sin nombre'}</b> — {formatCoverage(u.fraction)} del sector incluyendo zonas compartidas con otras unidades; {formatCoverage(u.fraction_unambiguous)} sin solape{u.fraction_in_ambiguity > 1e-8 ? ` (${formatCoverage(u.fraction_in_ambiguity)} compartido)` : ''}.
-      {' '}{u.description ?? 'Descripción original ausente en la fuente.'}
+      <b>{u.code ?? 'no code'} · {unitNameDisplay(u.name, null)}</b> — {formatCoverage(u.fraction)} of the sector including areas shared with other units; {formatCoverage(u.fraction_unambiguous)} without overlap{u.fraction_in_ambiguity > 1e-8 ? ` (${formatCoverage(u.fraction_in_ambiguity)} shared)` : ''}.
+      {' '}<UnitDescription description={u.description} print={print} />
     </li>
   )
 }
@@ -59,17 +77,17 @@ function UnitItem({ u }: { u: BriefUnit }) {
 function SourceLine({ brief }: { brief: SiteBrief }) {
   return (
     <>
-      Fuente: {brief.source.authority}, distribuido por {brief.source.distributor}. Capa «{brief.source.dataset_name}»: {safe(brief.source.dataset_url) ? <a className="pl-url" href={safe(brief.source.dataset_url)!} target="_blank" rel="noreferrer noopener">{brief.source.dataset_url}</a> : 'sin enlace'}. Fecha del mapa: {brief.source.map_date ?? 'no informada'}.
+      Source: {brief.source.authority}, distributed by {displaySource(brief.source.distributor)}. Layer “{brief.source.dataset_name}”: {safe(brief.source.dataset_url) ? <a className="pl-url" href={safe(brief.source.dataset_url)!} target="_blank" rel="noreferrer noopener">{brief.source.dataset_url}</a> : 'no link'}. Map date: {brief.source.map_date ?? 'not reported'}.
     </>
   )
 }
 
-/** Orientación geológica de la prueba: capa SEPARADA del resultado determinista (no cambia estados ni orden). */
+/** Geological guidance for the test: a layer SEPARATE from the deterministic result (it does not change statuses or order). */
 export function GeologyGuidance({ view, onExport, exportError }: { view: GeologyGuidanceView; onExport: () => void; exportError: string | null }) {
   const ai = view.source === 'anthropic'
   return (
     <section className="pl-geo" aria-labelledby="pl-geo-title">
-      <h3 id="pl-geo-title">Orientación geológica para esta prueba <span className={`pl-tag ${ai ? 'ai' : ''}`}>{ai ? 'Selección por IA' : 'Orientación general sin IA'}</span></h3>
+      <h3 id="pl-geo-title">Geological guidance for this test <span className={`pl-tag ${ai ? 'ai' : ''}`}>{ai ? 'AI selection' : 'General guidance without AI'}</span></h3>
       <p className="pl-hint">{GEOLOGY_LAYER_NOTE}</p>
       <p className="pl-hint">{view.notice}</p>
       {view.scope_note && <p className="pl-notice">{view.scope_note}</p>}
@@ -77,12 +95,12 @@ export function GeologyGuidance({ view, onExport, exportError }: { view: Geology
         <article key={brief.site_id} className="pl-geo-site">
           <h4>
             {shortCandidateName(brief.name)}
-            {brief.role === 'reference' && <b className="pl-tag ref">REF · referencia conocida</b>}
+            {brief.role === 'reference' && <b className="pl-tag ref">REF · known reference</b>}
             <span className="pl-tag">{AVAILABILITY_LABEL[brief.availability]}</span>
           </h4>
           <p className="pl-geo-meta"><SiteMeta brief={brief} /></p>
           {items.length > 0 ? (
-            <ul className="pl-geo-items" aria-label={`Qué comprobar en ${shortCandidateName(brief.name)}`}>
+            <ul className="pl-geo-items" aria-label={`What to check in ${shortCandidateName(brief.name)}`}>
               {items.map(({ ref, unit, purpose_label }) => (
                 <li key={ref.ref_id}>
                   <b>{purpose_label}</b>
@@ -94,63 +112,65 @@ export function GeologyGuidance({ view, onExport, exportError }: { view: Geology
           ) : (
             <p className="pl-hint">{noItemsText(brief)}</p>
           )}
-          <ul className="pl-geo-limits" aria-label="Límites de la evidencia geológica">
+          <ul className="pl-geo-limits" aria-label="Limits of the geological evidence">
             {brief.limits.map((l) => <li key={l}>{l}</li>)}
           </ul>
           <details className="pl-nested">
-            <summary>Unidades cartografiadas y fuente ({brief.units.length})</summary>
+            <summary>Mapped units and source ({brief.units.length})</summary>
             <ul>
               {brief.units.map((u) => <UnitItem key={u.unit_id} u={u} />)}
             </ul>
             <p className="pl-hint">{UNITS_NOT_ADDITIVE}</p>
-            {brief.units_omitted > 0 && <p className="pl-hint">Se omiten {brief.units_omitted} unidad(es) menores de esta lista.</p>}
+            {brief.units.length > 0 && <p className="pl-hint">{UNIT_LANGUAGE_NOTE}</p>}
+            {brief.units_omitted > 0 && <p className="pl-hint">{brief.units_omitted} smaller unit(s) are left out of this list.</p>}
             <p className="pl-hint"><SourceLine brief={brief} /></p>
           </details>
         </article>
       ))}
       {view.excluded.length > 0 && (
         <details className="pl-more">
-          <summary>Sectores sin orientación geológica ({view.excluded.length})</summary>
+          <summary>Sectors without geological guidance ({view.excluded.length})</summary>
           <ul>{view.excluded.map((e) => <li key={e.site_id}><b>{shortCandidateName(e.name)}</b>: {e.reason}</li>)}</ul>
         </details>
       )}
-      <button type="button" className="pl-ghost" onClick={onExport}>Descargar JSON con orientación geológica</button>
+      <button type="button" className="pl-ghost" onClick={onExport}>Download JSON with geological guidance</button>
       {exportError && <p className="pl-notice" role="alert">{exportError}</p>}
     </section>
   )
 }
 
 /**
- * Versión imprimible: sin interacción y con la MISMA evidencia que la pantalla (M11): aviso de capa
- * aparte, cobertura, comprobaciones con su respaldo, límites siempre, unidades con descripción,
- * fuente completa con enlace y sectores sin orientación con su motivo.
+ * Printable version: without interaction and with the SAME evidence as the screen (M11): separate layer
+ * notice, coverage, checks with their supporting evidence, limits always shown, units with description,
+ * full source with link, and sectors without guidance with their reason.
  */
 export function PrintGeology({ view }: { view: GeologyGuidanceView }) {
   return (
     <section className="pl-print-geo">
-      <h2>Orientación geológica ({view.source === 'anthropic' ? 'selección por IA' : 'general, sin IA'})</h2>
+      <h2>Geological guidance ({view.source === 'anthropic' ? 'AI selection' : 'general, without AI'})</h2>
       <p>{GEOLOGY_LAYER_NOTE}</p>
-      <p>{view.notice} Capa aparte del resultado: no cambia estados, orden ni exclusiones.</p>
+      <p>{view.notice} Separate layer from the result: it does not change statuses, order or exclusions.</p>
       {view.scope_note && <p>{view.scope_note}</p>}
       {view.sites.map(({ brief, items }) => (
         <section key={brief.site_id} className="pl-print-opt">
-          <h3>{shortCandidateName(brief.name)}{brief.role === 'reference' ? ' (REF, referencia conocida)' : ''} — {AVAILABILITY_LABEL[brief.availability]}</h3>
+          <h3>{shortCandidateName(brief.name)}{brief.role === 'reference' ? ' (REF, known reference)' : ''} — {AVAILABILITY_LABEL[brief.availability]}</h3>
           <p><SiteMeta brief={brief} /></p>
           {items.length > 0
             ? <ul>{items.map(({ ref, unit, purpose_label }) => <li key={ref.ref_id}><b>{purpose_label}</b> — <ItemSupport unit={unit} brief={brief} />. {ref.text}</li>)}</ul>
             : <p>{noItemsText(brief)}</p>}
-          <p><b>Límites de la evidencia geológica</b></p>
+          <p><b>Limits of the geological evidence</b></p>
           <ul>{brief.limits.map((l) => <li key={l}>{l}</li>)}</ul>
-          <p><b>Unidades cartografiadas ({brief.units.length})</b></p>
-          {brief.units.length > 0 && <ul>{brief.units.map((u) => <UnitItem key={u.unit_id} u={u} />)}</ul>}
+          <p><b>Mapped units ({brief.units.length})</b></p>
+          {brief.units.length > 0 && <ul>{brief.units.map((u) => <UnitItem key={u.unit_id} u={u} print />)}</ul>}
           <p>{UNITS_NOT_ADDITIVE}</p>
-          {brief.units_omitted > 0 && <p>Se omiten {brief.units_omitted} unidad(es) menores de esta lista.</p>}
+          {brief.units.length > 0 && <p>{UNIT_LANGUAGE_NOTE}</p>}
+          {brief.units_omitted > 0 && <p>{brief.units_omitted} smaller unit(s) are left out of this list.</p>}
           <p><SourceLine brief={brief} /></p>
         </section>
       ))}
       {view.excluded.length > 0 && (
         <>
-          <h3>Sectores sin orientación geológica ({view.excluded.length})</h3>
+          <h3>Sectors without geological guidance ({view.excluded.length})</h3>
           <ul>{view.excluded.map((e) => <li key={e.site_id}><b>{shortCandidateName(e.name)}</b>: {e.reason}</li>)}</ul>
         </>
       )}

@@ -1,10 +1,10 @@
 /**
- * Extras del composer (se cargan con el chunk de misión al entrar a Misión): recientes ⟲
- * (historial local) y sugerencias para empezar una prueba sin IA.
+ * Composer extras (loaded with the mission chunk when entering Mission): recents ⟲
+ * (local history) and suggestions for starting a test without AI.
  *
- * Las sugerencias usan el planificador del equipo tal cual: «Usar ejemplo» (`exampleState`),
- * «Añadir requisito: …» (`defaultMetricRequirement`, que llega SIN valor: el usuario escribe el
- * umbral) y «Evaluar un sector…». Nunca proponen cifras.
+ * The suggestions use the team's planner as is: "Use example" (`exampleState`),
+ * "Add requirement: …" (`defaultMetricRequirement`, which arrives WITHOUT a value: the user types the
+ * threshold) and "Evaluate a sector…". They never propose figures.
  */
 import { useRef } from 'react'
 import type { MetricId } from '../../mission/types'
@@ -19,7 +19,7 @@ export interface RecentsMenuProps {
   onPick: (text: string) => void
 }
 
-/** Botón ⟲ y su popover con los últimos textos evaluados en este navegador. */
+/** ⟲ button and its popover with the latest texts evaluated in this browser. */
 export function RecentsMenu({ id, onPick }: RecentsMenuProps) {
   const history = useComposer((state) => state.history)
   const button = useRef<HTMLButtonElement>(null)
@@ -28,7 +28,7 @@ export function RecentsMenu({ id, onPick }: RecentsMenuProps) {
   if (recents.length === 0) return null
   return (
     <>
-      <button ref={button} type="button" className="composer-icon" aria-label="Pruebas recientes" title="Pruebas recientes" popoverTarget={id}>
+      <button ref={button} type="button" className="composer-icon" aria-label="Recent tests" title="Recent tests" popoverTarget={id}>
         <span aria-hidden="true">⟲</span>
       </button>
       <div
@@ -36,13 +36,13 @@ export function RecentsMenu({ id, onPick }: RecentsMenuProps) {
         id={id}
         popover="auto"
         role="dialog"
-        aria-label="Pruebas recientes"
+        aria-label="Recent tests"
         className="composer-popover composer-recent"
         onBeforeToggle={(event) => {
           if (event.newState === 'open') placeAbove(popover.current, button.current, 360)
         }}
       >
-        <p className="composer-popover-title">Pruebas recientes</p>
+        <p className="composer-popover-title">Recent tests</p>
         <ul>
           {recents.map((text) => (
             <li key={text}>
@@ -63,37 +63,37 @@ export function RecentsMenu({ id, onPick }: RecentsMenuProps) {
   )
 }
 
-/** Requisitos que se pueden añadir con un clic (el valor lo escribe el usuario). */
+/** Requirements that can be added with one click (the user types the value). */
 export const METRIC_SUGGESTIONS: ReadonlyArray<{ metric: MetricId; label: string }> = [
-  { metric: 'median_slope_degree', label: 'pendiente' },
-  { metric: 'terrain_roughness_meter', label: 'rugosidad' },
-  { metric: 'local_relief_meter', label: 'relieve' },
-  { metric: 'nonvegetated_fraction', label: 'suelo desnudo' },
-  { metric: 'polygon_area_km2', label: 'área' },
-  { metric: 'country', label: 'país' },
+  { metric: 'median_slope_degree', label: 'slope' },
+  { metric: 'terrain_roughness_meter', label: 'roughness' },
+  { metric: 'local_relief_meter', label: 'relief' },
+  { metric: 'nonvegetated_fraction', label: 'bare ground' },
+  { metric: 'polygon_area_km2', label: 'area' },
+  { metric: 'country', label: 'country' },
 ]
 
-/** Sugerencias: aparecen al enfocar el composer, encima de él (el dock no crece). */
+/** Suggestions: they appear when the composer is focused, above it (the dock does not grow). */
 export function SuggestionChips() {
   return (
-    <div className="composer-chips" role="group" aria-label="Empezar una prueba">
+    <div className="composer-chips" role="group" aria-label="Start a test">
       <button type="button" className="composer-chip" onClick={() => withController((mission) => mission.loadExample())}>
-        Usar ejemplo
+        Use example
       </button>
-      <span className="composer-chips-label" aria-hidden="true">Añadir requisito</span>
+      <span className="composer-chips-label" aria-hidden="true">Add requirement</span>
       {METRIC_SUGGESTIONS.map((item) => (
         <button
           key={item.metric}
           type="button"
           className="composer-chip"
-          aria-label={`Añadir requisito: ${item.label}`}
+          aria-label={`Add requirement: ${item.label}`}
           onClick={() => withController((mission) => mission.addMetricRequirement(item.metric))}
         >
           + {item.label}
         </button>
       ))}
       <button type="button" className="composer-chip" onClick={() => withController((mission) => mission.startSector())}>
-        Evaluar un sector…
+        Evaluate a sector…
       </button>
     </div>
   )

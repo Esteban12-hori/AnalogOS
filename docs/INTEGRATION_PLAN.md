@@ -1,363 +1,363 @@
-# Plan de integración: rediseño Explorar/Misión sobre origin/dev (M7 y M8)
+# Integration plan: Explore/Mission redesign on top of origin/dev (M7 and M8)
 
-> **Cierre de revisión (2026-11-15):** integración publicada en `dev` en `dd625b4`, Actions 43678787020 correcto. Codex comprobó borrador y explicación geológica con Anthropic real y aceptó ADR-013/014. Ver `docs/CODEX_INTEGRATION_REVIEW.md` y el bloque vigente de STATUS. Los estados «plan sin ejecutar», ADR propuesto y push pendiente que siguen describen las etapas históricas del plan, no bloqueos actuales.
+> **Review closure (2026-11-15):** integration published at `dev` on `dd625b4`, Actions 43678787020 passed. Codex checked the draft and the geological explanation against the real Anthropic API and accepted ADR-013/014. See `docs/CODEX_INTEGRATION_REVIEW.md` and the current STATUS block. The statuses "plan not executed", ADR proposed and push pending that follow describe the historical stages of the plan, not current blockers.
 
-- Fecha: 2026-11-14
-- Rama de trabajo: `feature/mision-redesign` (HEAD `9b32457`).
-- Destino: `origin/dev` (HEAD `92392f1`), que tiene 14 commits del equipo desde la base común `adcffcd`.
-- Estado: **plan sin ejecutar.** El commit que añade este archivo no cambia nada más.
-- Autorización: el usuario pidió «fusiona en dev y haz push» y decidió integrar. La interfaz sigue siendo la del rediseño. Por dentro se usan el motor determinista (`shared/mission`), la IA Anthropic (`server/ai` y su cliente) y los datos v3 del equipo, con su búsqueda reproducible.
-- De dónde sale este plan:
-  - lectura de origin/dev en modo solo lectura (worktree temporal ya eliminado, `git merge-tree`, `git archive`);
-  - tests ejecutados en los dos árboles;
-  - `docs/UX_REDESIGN.md` y `docs/BUILD_CONTRACTS.md`.
+- Date: 2026-11-14
+- Working branch: `feature/mision-redesign` (HEAD `9b32457`).
+- Target: `origin/dev` (HEAD `92392f1`), which has 14 team commits since the common base `adcffcd`.
+- Status: **plan not executed.** The commit that adds this file changes nothing else.
+- Authorization: the user asked "merge into dev and push" and decided to integrate. The interface remains the redesign's. Internally, the deterministic engine (`shared/mission`), the Anthropic AI (`server/ai` and its client) and the team's v3 data are used, with its reproducible search.
+- Where this plan comes from:
+  - reading origin/dev in read-only mode (temporary worktree already removed, `git merge-tree`, `git archive`);
+  - tests run in both trees;
+  - `docs/UX_REDESIGN.md` and `docs/BUILD_CONTRACTS.md`.
 
-## 0. Resumen
+## 0. Summary
 
-1. **La interfaz es la del rediseño:** globo de fondo con paso automático a 2D, marcadores ●◆○, carrusel de lugares, líneas Tesla, riel de métricas, composer, Lectura, carga «Órbita honesta» y hoja móvil.
-2. **Por dentro se usa lo del equipo:**
-   - `evaluateMission`, la explicación y el JSON exportable de `shared/mission`;
-   - la IA Anthropic, que vive solo en el servidor y se llama con `apps/web/src/mission/aiClient.ts`;
-   - el snapshot `science-v3` con `domain/discovery.ts`.
-3. **Se retiran `features/engine` y el cliente lktron (NDJSON),** junto con sus contratos, validadores, el análisis pregenerado y sus tests. Solo sobreviven dos piezas sin equivalente: los umbrales de espera visual (`PHASE_THRESHOLDS`, que pasan al composer sin timeout propio) y la capa de hechos de `analysis`.
-4. **Misión deja de calcular un «% de misión».** Muestra:
-   - el estado, con 4 valores posibles;
-   - el puesto, solo para las opciones priorizadas;
-   - las preferencias cumplidas;
-   - similitud, confianza y estabilidad v3 sin recalcular;
-   - la factibilidad territorial, siempre «pendiente».
-5. **La IA nunca se llama sola.** Hay dos botones explícitos, cada uno con su aviso de envío: «Proponer requisitos con IA» y «Destacar motivos con IA». Sin clave, o desde el ZIP, el recorrido manual funciona completo.
-6. **Pampa Yungay es REF:** queda fuera del ranking de Explorar y lleva su rótulo en el globo, el carrusel, el riel y Comparar.
-7. **ADR:** nuestros 008–010 pasan a 010–012 y se añade ADR-013 para la integración.
+1. **The interface is the redesign's:** background globe with automatic switch to 2D, ●◆○ markers, place carousel, Tesla lines, metrics rail, composer, Reading, "Honest orbit" loading and mobile sheet.
+2. **Internally, the team's work is used:**
+   - `evaluateMission`, the explanation and the exportable JSON of `shared/mission`;
+   - the Anthropic AI, which lives only on the server and is called with `apps/web/src/mission/aiClient.ts`;
+   - the `science-v3` snapshot with `domain/discovery.ts`.
+3. **`features/engine` and the lktron client (NDJSON) are retired,** along with their contracts, validators, the pregenerated analysis and their tests. Only two pieces with no equivalent survive: the visual wait thresholds (`PHASE_THRESHOLDS`, which move to the composer without their own timeout) and the facts layer of `analysis`.
+4. **Mission stops computing a "mission %".** It shows:
+   - the status, with 4 possible values;
+   - the rank, only for prioritized options;
+   - the preferences met;
+   - v3 similarity, confidence and stability without recalculation;
+   - territorial feasibility, always "pending".
+5. **The AI is never called on its own.** There are two explicit buttons, each with its own submission notice: "Propose requirements with AI" and "Highlight reasons with AI". Without a key, or from the ZIP, the manual flow works in full.
+6. **Pampa Yungay is REF:** it stays out of the Explore ranking and carries its label on the globe, the carousel, the rail and Compare.
+7. **ADR:** our 008–010 become 010–012 and ADR-013 is added for the integration.
 8. **Tests:**
-   - los del equipo se conservan sin tocar sus aserciones;
-   - los del motor propio y de lktron se eliminan;
-   - los de las features se reescriben contra v3 y `MissionEvaluation`.
-9. **Orden de trabajo:** F0 línea base → F1 fusión → F2 datos, contratos y build → F3 Explorar v3 → F4 Misión → F5 Lectura → F6 retiros, ADR y documentación → F7 verificación y push (§8).
+   - the team's tests are kept without touching their assertions;
+   - those of our own engine and of lktron are deleted;
+   - those of the features are rewritten against v3 and `MissionEvaluation`.
+9. **Work order:** F0 baseline → F1 merge → F2 data, contracts and build → F3 Explore v3 → F4 Mission → F5 Reading → F6 retirements, ADR and documentation → F7 verification and push (§8).
 
-## 1. Invariantes
+## 1. Invariants
 
-| Regla | Cómo se comprueba |
+| Rule | How it is verified |
 |---|---|
-| La IA no produce cifras ni ordena | Todas las cifras de la Lectura salen de `MissionEvaluation` vía `shared/mission/format.ts`. `checkSelection` rechaza IDs ajenos. Lo cubren los tests `aiServer` y `missionEngine` intactos y un test nuevo del adaptador (§7.6) |
-| Similitud, confianza y factibilidad separadas | `snapshot_scores` se muestra tal cual y ningún componente los combina. La factibilidad dice siempre «pendiente» |
-| Nada inventado | No hay conversión texto→umbrales sin IA. Los requisitos de plantilla vienen sin valor. Los ◆ siguen «por calcular» |
-| Primero sin conexión | El ZIP abierto desde `file://` y sin red ofrece Explorar, Misión manual y la exportación JSON |
-| Sin secretos | `ANTHROPIC_*` y `ANALOGOS_AI_*` existen solo en el entorno del servidor, nunca con prefijo `VITE_` |
-| No cambiar fórmulas, pesos ni artefactos v1/v2/v3 | `git diff --quiet origin/dev -- <lista de §9.3>` |
-| TypeScript estricto | `tsc --noEmit` (web) y `npm run typecheck:server` |
-| Sin dependencias npm nuevas | Hoy `package.json` (raíz y web) y `package-lock.json` ya son idénticos en las dos ramas, y deben seguir así |
-| `shared/` y `server/` no importan nada de `apps/web` | `grep -rn "apps/web" shared server api` vacío y `scripts/check-vercel-function.mjs` en verde (ERR_REQUIRE_ESM) |
-| No tocar dev/main en local; un único push al final | `git push origin HEAD:dev` desde la rama de trabajo, sin `--force` |
+| The AI produces no figures and does no ranking | All figures in the Reading come from `MissionEvaluation` via `shared/mission/format.ts`. `checkSelection` rejects foreign IDs. Covered by the untouched `aiServer` and `missionEngine` tests and a new adapter test (§7.6) |
+| Similarity, confidence and feasibility kept separate | `snapshot_scores` is shown as is and no component combines them. Feasibility always says "pending" |
+| Nothing invented | There is no text→thresholds conversion without AI. Template requirements come without a value. The ◆ remain "to be computed" |
+| Offline first | The ZIP opened from `file://` and without a network offers Explore, manual Mission and the JSON export |
+| No secrets | `ANTHROPIC_*` and `ANALOGOS_AI_*` exist only in the server environment, never with the `VITE_` prefix |
+| Do not change formulas, weights or v1/v2/v3 artifacts | `git diff --quiet origin/dev -- <lista de §9.3>` |
+| Strict TypeScript | `tsc --noEmit` (web) and `npm run typecheck:server` |
+| No new npm dependencies | Today `package.json` (root and web) and `package-lock.json` are already identical in both branches, and must remain so |
+| `shared/` and `server/` import nothing from `apps/web` | `grep -rn "apps/web" shared server api` empty and `scripts/check-vercel-function.mjs` green (ERR_REQUIRE_ESM) |
+| Do not touch dev/main locally; a single push at the end | `git push origin HEAD:dev` from the working branch, without `--force` |
 
-## 2. Correspondencia pieza por pieza
+## 2. Piece-by-piece mapping
 
-Qué significa cada decisión:
-- **Conserva:** la pieza entra sin cambios de comportamiento.
-- **Adapta:** se mantiene, con los cambios indicados.
-- **Adopta:** se toma la versión del equipo.
-- **Retira:** se borra.
+What each decision means:
+- **Keep:** the piece comes in with no behavior changes.
+- **Adapt:** it is kept, with the indicated changes.
+- **Adopt:** the team's version is taken.
+- **Retire:** it is deleted.
 
-### 2.1 Datos, contratos y validación
+### 2.1 Data, contracts and validation
 
-| Nuestra pieza | Pieza del equipo | Decisión | Motivo y cómo |
+| Our piece | Team's piece | Decision | Reason and how |
 |---|---|---|---|
-| `data/loadDemoSnapshot.ts` (v2, `chileOutline`) | La misma en dev: v3, con `outline`, `search`, `precedents`, `SNAPSHOT_PATH` e `IS_DISCOVERY_SNAPSHOT` | Adopta | Es el límite de carga de v3. Hay que renombrar `chileOutline`→`outline` en `AppShell`, `appData`, `features/globe/{MapStage,CandidateGlobe,CandidateFlatMap,CandidateMap}` y en los `testSupport` de metrics, places, leaders, composer y analysis |
-| `domain/contracts.ts` (validadores precompilados, `CRITERION_IDS`, `isCriterionId`, `ReferenceAnalog`, `errorSummary`) | `shared/domain/contracts.ts` (Ajv en runtime); en dev, la web solo lo reexporta | Adapta la nuestra | Se mantienen los validadores precompilados en el chunk principal. Desde `shared/domain/contracts` se reexportan **solo tipos** (`export type`). `assertSnapshotContracts` y `assertDiscoveryContracts` se implementan con los validadores generados y con los mismos mensajes que dev («Candidato N inválido», «Resultados de búsqueda inválidos», «Catálogo de antecedentes inválido»). `shared/domain/contracts.ts` no se toca porque lo usa `server/ai/facts.ts` |
-| `apps/web/scripts/build-validators.mjs` | — | Adapta | Hay que añadir `validateSearch` (discovery-search) y `validatePrecedents` (precedent-catalog) en `validators.discovery.generated.js`, que es un chunk aparte; si van al principal suben unos 17 KB gz. Hay que quitar `validators.interpretation.*` y `validators.mission.*`. Luego se regenera con `npm -w apps/web run validators`, porque el `--check` del build falla si el esquema `candidate-site` cambió |
-| `contracts/{mission-interpretation,evidence-packet,ai-analysis}.schema.json` | `contracts/mission-{request,evaluation,export,ai}.schema.json` | Retira las nuestras | Las sustituyen los contratos M8 (ADR-009 del equipo). Se borran junto con sus fixtures en `tests/fixtures/contracts`, los validadores generados y los tests |
-| `contracts/reference-analog.schema.json` y `config/reference_analogs.json` (◆) | No hay equivalente; `precedents.json` es otra cosa | Conserva | Es el catálogo mundial de análogos «por calcular». No se mezcla con `precedents.json`, que es la bibliografía de la región piloto |
-| `domain/scoring.ts` `rankCandidates(todos)` | `domain/discovery.ts` (`splitByRole`, `filterByCountry`, `availableCountries`, `initialSelection`, `summarizeSearch`, `matchDetails`, `buildExport` y etiquetas) | Adopta discovery y adapta los usos | `rankCandidates` se aplica solo sobre `splitByRole(...).ranked`. Hay 8 llamadas que cambian: `places/placeModel.ts`, `globe/markers.ts`, `globe/CandidateMap.tsx`, `metrics/metricContext.ts`, `analysis/runtime.ts`, `analysis/evidencePacket.ts`, `composer/model.ts` y `composer/missionRun.ts` |
-| `data/loadVisualContext.ts` | La versión de dev, con `VISUAL_CONTEXT_DIR` | Adopta | Entra sin conflicto |
-| `features/boot/loadingHints.ts` (precarga v2) | — | Adapta | Pasa a precargar v3 (§4.4). `snapshotCredit` lee el manifest v3 |
-| `artifacts/basemaps/*` (WebP del rediseño) | Igual | Conserva | Son imágenes de fondo, no artefactos científicos. Las vistas previas WebP solo coinciden por SHA con Yungay; los otros 6 sitios cargan el PNG v3 |
-| `artifacts/analysis/ai-analysis.default.json` y `scripts/make_pregenerated_analysis.py` | — | Retira | Es prosa pregenerada, atada a la huella del paquete v2. Con v3 nunca coincide, y mostrarla como IA atribuiría una plantilla a la IA (ADR-009 §9 del equipo) |
-| `artifacts/{demo,science-v1,science-v2,visual-context}` | Iguales | Conserva | Los leen `test_discovery.py` y `snapshot.test.ts`. `prune-build` los saca del dist |
+| `data/loadDemoSnapshot.ts` (v2, `chileOutline`) | The same one in dev: v3, with `outline`, `search`, `precedents`, `SNAPSHOT_PATH` and `IS_DISCOVERY_SNAPSHOT` | Adopt | It is the v3 loading boundary. `chileOutline`→`outline` must be renamed in `AppShell`, `appData`, `features/globe/{MapStage,CandidateGlobe,CandidateFlatMap,CandidateMap}` and in the `testSupport` of metrics, places, leaders, composer and analysis |
+| `domain/contracts.ts` (precompiled validators, `CRITERION_IDS`, `isCriterionId`, `ReferenceAnalog`, `errorSummary`) | `shared/domain/contracts.ts` (Ajv at runtime); in dev, the web only re-exports it | Adapt ours | The precompiled validators are kept in the main chunk. From `shared/domain/contracts` **only types** are re-exported (`export type`). `assertSnapshotContracts` and `assertDiscoveryContracts` are implemented with the generated validators and with the same messages as dev ("Invalid candidate N", "Invalid search results", "Invalid precedent catalog"). `shared/domain/contracts.ts` is not touched because `server/ai/facts.ts` uses it |
+| `apps/web/scripts/build-validators.mjs` | — | Adapt | `validateSearch` (discovery-search) and `validatePrecedents` (precedent-catalog) must be added to `validators.discovery.generated.js`, which is a separate chunk; if they go into the main one it grows by about 17 KB gz. `validators.interpretation.*` and `validators.mission.*` must be removed. Then it is regenerated with `npm -w apps/web run validators`, because the build's `--check` fails if the `candidate-site` schema changed |
+| `contracts/{mission-interpretation,evidence-packet,ai-analysis}.schema.json` | `contracts/mission-{request,evaluation,export,ai}.schema.json` | Retire ours | They are replaced by the M8 contracts (the team's ADR-009). They are deleted along with their fixtures in `tests/fixtures/contracts`, the generated validators and the tests |
+| `contracts/reference-analog.schema.json` and `config/reference_analogs.json` (◆) | There is no equivalent; `precedents.json` is something else | Keep | It is the world catalog of "to be computed" analogues. It is not mixed with `precedents.json`, which is the bibliography of the pilot region |
+| `domain/scoring.ts` `rankCandidates(todos)` | `domain/discovery.ts` (`splitByRole`, `filterByCountry`, `availableCountries`, `initialSelection`, `summarizeSearch`, `matchDetails`, `buildExport` and labels) | Adopt discovery and adapt the usages | `rankCandidates` is applied only to `splitByRole(...).ranked`. There are 8 calls that change: `places/placeModel.ts`, `globe/markers.ts`, `globe/CandidateMap.tsx`, `metrics/metricContext.ts`, `analysis/runtime.ts`, `analysis/evidencePacket.ts`, `composer/model.ts` and `composer/missionRun.ts` |
+| `data/loadVisualContext.ts` | The dev version, with `VISUAL_CONTEXT_DIR` | Adopt | It comes in without conflict |
+| `features/boot/loadingHints.ts` (v2 preload) | — | Adapt | It switches to preloading v3 (§4.4). `snapshotCredit` reads the v3 manifest |
+| `artifacts/basemaps/*` (WebP from the redesign) | Same | Keep | They are background images, not scientific artifacts. The WebP previews match by SHA only for Yungay; the other 6 sites load the v3 PNG |
+| `artifacts/analysis/ai-analysis.default.json` and `scripts/make_pregenerated_analysis.py` | — | Retire | It is pregenerated prose, tied to the v2 package fingerprint. With v3 it never matches, and showing it as AI would attribute a template to the AI (the team's ADR-009 §9) |
+| `artifacts/{demo,science-v1,science-v2,visual-context}` | Identical | Keep | `test_discovery.py` and `snapshot.test.ts` read them. `prune-build` takes them out of dist |
 
-### 2.2 Motor y evaluación
+### 2.2 Engine and evaluation
 
-| Nuestra pieza | Pieza del equipo | Decisión | Motivo y cómo |
+| Our piece | Team's piece | Decision | Reason and how |
 |---|---|---|---|
-| `features/engine/scoreMission.ts` (`scoreMission`, `buildMissionInputs`, `limitingCriterion`, `isUsableBase`) | `shared/mission/evaluate.ts` (`evaluateMission`) | Retira; se usa la del equipo | El ADR-009 del equipo, ya aceptado, prohíbe cambiar pesos. Su orden es: imprescindibles → preferencias cumplidas → similitud v3 → `site_id`. Si ambos motores siguieran activos, la pantalla mostraría dos órdenes y dos «similitudes» |
-| `profiles.ts` (`levelsToWeights`, `profileFromLevels`, `MISSION_PRESETS`, `fnv1a32`) | `Requirement[]`, `exampleState`, `EXAMPLE_BRIEF`, `defaultMetricRequirement`, `fingerprint` | Retira | Volver a ponderar es cambiar pesos |
-| `demoMatcher.ts` (`matchMissionDemo`, `DEMO_LABEL`) | `detectUnmeasuredMentions`, `uncoveredMentions`, el ejemplo editable y la edición manual | Retira | Sacar umbrales de palabras clave inventa cifras. No se crea ningún sustituto |
-| `aggregate.ts`, `pyMath.ts` (port de `scoring.py`) | — | Retira | Nadie los usa una vez quitado el recálculo. La robustez base se lee de `analysis-summary.sites[].sensitivity`, que ya escribe el pipeline |
-| `missionPhase.ts`: `PHASE_THRESHOLDS`, `PhaseThresholds`, `WaitStage` | `CLIENT_TIMEOUT_MS` = 45 s en aiClient | Adapta: pasan a `features/composer/labels.ts` | Quedan solo los umbrales visuales: contador a los 3 s y aviso de lentitud a los 10 s. Se **elimina** `timeoutMs` = 20 s. El corte lo hace aiClient a los 45 s, o el usuario con «Cancelar» (AbortSignal), y el rótulo dice «cancelado», no «falló la IA» |
-| `nextMissionPhase`, `createMissionRunController`, `waitStage` | `plannerReducer` y `usePlanner` | Retira | El reducer del equipo ya protege contra respuestas tardías con `requestId` y las huellas de brief, solicitud y evaluación |
-| `state/mission.ts` (`lktron`/`demo`/`preset`, interpretation, profile, scoring) | `PlannerState` | Adapta, con la forma nueva de §3.1 | |
-| — | `shared/mission/*`, los reexportes de `apps/web/src/mission/*`, `plannerState.ts` y `siteMeasures.ts` | Conserva intacto | Es trabajo verificado y el servidor depende de `shared/` |
+| `features/engine/scoreMission.ts` (`scoreMission`, `buildMissionInputs`, `limitingCriterion`, `isUsableBase`) | `shared/mission/evaluate.ts` (`evaluateMission`) | Retire; the team's is used | The team's ADR-009, already accepted, forbids changing weights. Its order is: must-haves → preferences met → v3 similarity → `site_id`. If both engines remained active, the screen would show two orderings and two "similarities" |
+| `profiles.ts` (`levelsToWeights`, `profileFromLevels`, `MISSION_PRESETS`, `fnv1a32`) | `Requirement[]`, `exampleState`, `EXAMPLE_BRIEF`, `defaultMetricRequirement`, `fingerprint` | Retire | Reweighting is changing weights |
+| `demoMatcher.ts` (`matchMissionDemo`, `DEMO_LABEL`) | `detectUnmeasuredMentions`, `uncoveredMentions`, the editable example and manual editing | Retire | Extracting thresholds from keywords invents figures. No substitute is created |
+| `aggregate.ts`, `pyMath.ts` (port of `scoring.py`) | — | Retire | No one uses them once the recalculation is removed. The baseline robustness is read from `analysis-summary.sites[].sensitivity`, which the pipeline already writes |
+| `missionPhase.ts`: `PHASE_THRESHOLDS`, `PhaseThresholds`, `WaitStage` | `CLIENT_TIMEOUT_MS` = 45 s in aiClient | Adapt: they move to `features/composer/labels.ts` | Only the visual thresholds remain: counter at 3 s and slowness notice at 10 s. `timeoutMs` = 20 s is **removed**. The cutoff is done by aiClient at 45 s, or by the user with "Cancel" (AbortSignal), and the label says "cancelled", not "AI failed" |
+| `nextMissionPhase`, `createMissionRunController`, `waitStage` | `plannerReducer` and `usePlanner` | Remove | The team's reducer already guards against late responses with `requestId` and the fingerprints of the brief, request, and evaluation |
+| `state/mission.ts` (`lktron`/`demo`/`preset`, interpretation, profile, scoring) | `PlannerState` | Adapt, using the new shape from §3.1 | |
+| — | `shared/mission/*`, the re-exports of `apps/web/src/mission/*`, `plannerState.ts` and `siteMeasures.ts` | Keep intact | This is verified work and the server depends on `shared/` |
 
-### 2.3 IA
+### 2.3 AI
 
-| Nuestra pieza | Pieza del equipo | Decisión | Motivo y cómo |
+| Our piece | Team piece | Decision | Reason and how |
 |---|---|---|---|
-| `analysis/lktron.ts`, `lktronConfig.ts` (`VITE_LKTRON_URL`), `lktronClient.ts`, `ndjson.ts` | `apps/web/src/mission/aiClient.ts` (`requestDraft`, `requestExplanation`), que hace `POST ${BASE_URL}api/ai` | Retira; se usa aiClient | Con aiClient el secreto queda en el servidor, la llamada es al mismo origen, hay un tope de 45 s, se cancela con AbortSignal y las respuestas se validan |
-| `eventGate.ts`, `analysisTokens.ts`, `TokenText.tsx`, `factIds.ts` | `checkSelection`, `composeExplanation`, `deterministicSelection` | Retira | La IA del equipo no escribe prosa con `{{id}}`: solo elige IDs existentes |
-| `fnv.ts` (huella del paquete) | `fingerprint.ts` (SHA-256 puro) | Retira | |
-| `pregenerated.ts` | `deterministicSelection`, rotulada «Plantilla determinista sin IA» | Retira | |
-| `evidencePacket.ts` (paquete y capa de hechos) | — | Adapta: queda solo la capa de hechos (`features/analysis/facts.ts`) | Estos hechos deterministas no tienen equivalente: dirección frente a Jezero, factor limitante, criterio que satura, valor regional compartido, criterio sin discriminación, mejor de N, datos faltantes y verificaciones. Hay que quitar `SITE_ID=/^cl-/` (deja fuera los 3 argentinos) y tratar la REF como un hecho aparte. Desaparecen el paquete y su huella |
-| `robustness.ts` | — | Adapta | Pasa a leer `analysis-summary.sites[].sensitivity`, con un parser en `domain/` similar a `parseMarsReference`, en lugar de `engine.sensitivity` |
-| `readingStore`, `controller`, `ReadingPanel`, `ReadingPill`, `ReadingSnippet`, `ReadingView`, el esqueleto | — | Adapta | Siguen siendo la superficie de la Lectura, ahora alimentada por `ExplanationView` (§5) |
-| — | `server/ai/*`, `api/ai.ts`, `tsconfig.server.json`, `scripts/check-vercel-function.mjs`, `.github/workflows/vercel-deploy.yml` | Conserva intacto | Despliegue y función verificados por el equipo |
-| `apps/web/vite.config.ts` (`loadingHints`, `codeSplitting` de rolldown) | El plugin `aiDevApi` (`/api/ai` en `vite dev` y `vite preview`, `loadEnv` filtrado por `ANTHROPIC_`/`ANALOGOS_AI_`) | Une ambos | Sin `aiDevApi`, la IA local siempre aparece como no disponible |
+| `analysis/lktron.ts`, `lktronConfig.ts` (`VITE_LKTRON_URL`), `lktronClient.ts`, `ndjson.ts` | `apps/web/src/mission/aiClient.ts` (`requestDraft`, `requestExplanation`), which does `POST ${BASE_URL}api/ai` | Remove; aiClient is used | With aiClient the secret stays on the server, the call goes to the same origin, there is a cap of 45 s, it is cancelled with AbortSignal, and responses are validated |
+| `eventGate.ts`, `analysisTokens.ts`, `TokenText.tsx`, `factIds.ts` | `checkSelection`, `composeExplanation`, `deterministicSelection` | Remove | The team's AI does not write prose with `{{id}}`: it only chooses existing IDs |
+| `fnv.ts` (package fingerprint) | `fingerprint.ts` (pure SHA-256) | Remove | |
+| `pregenerated.ts` | `deterministicSelection`, labeled "Deterministic template without AI" | Remove | |
+| `evidencePacket.ts` (package and fact layer) | — | Adapt: only the fact layer remains (`features/analysis/facts.ts`) | These deterministic facts have no equivalent: direction relative to Jezero, limiting factor, saturating criterion, shared regional value, criterion without discrimination, best of N, missing data, and checks. `SITE_ID=/^cl-/` must be removed (it leaves out the Argentine 3) and the REF must be treated as a separate fact. The package and its fingerprint disappear |
+| `robustness.ts` | — | Adapt | Now reads `analysis-summary.sites[].sensitivity`, with a parser in `domain/` similar to `parseMarsReference`, instead of `engine.sensitivity` |
+| `readingStore`, `controller`, `ReadingPanel`, `ReadingPill`, `ReadingSnippet`, `ReadingView`, the skeleton | — | Adapt | They remain the surface of the Reading, now fed by `ExplanationView` (§5) |
+| — | `server/ai/*`, `api/ai.ts`, `tsconfig.server.json`, `scripts/check-vercel-function.mjs`, `.github/workflows/vercel-deploy.yml` | Keep intact | Deployment and function verified by the team |
+| `apps/web/vite.config.ts` (`loadingHints`, `codeSplitting` from rolldown) | The `aiDevApi` plugin (`/api/ai` in `vite dev` and `vite preview`, `loadEnv` filtered by `ANTHROPIC_`/`ANALOGOS_AI_`) | Merge both | Without `aiDevApi`, the local AI always appears as unavailable |
 
-### 2.4 Features del rediseño
+### 2.4 Redesign features
 
-| Feature | Qué se conserva | Qué se adapta | Qué se retira |
+| Feature | What is kept | What is adapted | What is removed |
 |---|---|---|---|
-| `places` | El catálogo ◆ (`analogCatalog`, `referenceAnalogs`, `ReferenceCard`) y `classify`, que añade la insignia «coincide con» cuando un ◆ cae dentro de un polígono | `buildPlaceModel` y `PlaceRail`:<br>• Explorar usa `ranked` con su puesto global, luego la REF y luego los ◆, y tiene filtro por país.<br>• Misión agrupa por estado de `MissionEvaluation` (§4).<br>• `PlaceModelInput.scoring` → `evaluation`, más `country`.<br>• `EvaluatedPlace` suma `role`, `country`, `optionStatus`, `preferences` e `inScope` | Las etiquetas «% del motor determinista vX». También `components/CandidateRanking.tsx` de dev: nunca fue parte de nuestra UI y sus aserciones pasan a los tests de `PlaceRail` (§7.4) |
-| `globe` | Vuelo, teclado, geometría, cámara, `stageBridge`, el paso de 3D a 2D y el SVG cuando no hay WebGL | Marcadores:<br>• puesto desde `splitByRole`/`rankOf` y «REF» en vez de número;<br>• grupo por `candidate.country`;<br>• `outline` CL+AR;<br>• encuadre que incluye las dos regiones;<br>• `contextLayers` según `snapshot_version`;<br>• en Misión, tipo de marcador según `OptionStatus`.<br>`features/globe/CandidateMap.tsx` toma el contenido de dev (50 ventanas, antecedentes, `mapFrame`, `projector`) con rutas `../../`.<br>Hay que portar a `features/globe/*` los cambios de dev en `components/{CandidateGlobe,CandidateFlatMap,MapStage}.tsx` | `MissionScoring` y `scoreSource: 'mission'` |
-| `metrics` | `MetricRail`, `MetricViz`, `FadeNumber`, S1 | Pesos y contribuciones salen **siempre** del snapshot. En Misión se superpone una capa de requisitos (§4.2). `engineVersion` → `rulesVersion` (`RULES_VERSION`). `MetricView.requirements?: RequirementResult[]` | El contexto `kind: 'mission'` con pesos de misión |
-| `leaders` | `layoutLeaders`, `projector`, `LeaderToggle`, `controller` y la regla de no dibujar con un ◆ seleccionado | `pickPrincipalMetrics`: en Misión, primero los criterios con requisito (imprescindibles antes que preferencias) y después el peso base. El rótulo lleva ✓/✕/○ y el texto de `describeCondition`. No hay líneas para sitios fuera del alcance | Ordenar por pesos de misión |
-| `boot` | `BootLayer`, `OrbitLoader`, `StatusChip`, hitos | Precarga v3, textos del chip y del anuncio, órbita centrada en las dos regiones (§4.4). `OrbitLoader` se reutiliza para las esperas del borrador y de la explicación | La precarga v2 |
-| `composer` | `Composer`, `MissionCard`, `focusComposer` (sin cambio de firma), los resaltados del brief, Deshacer y el historial | Se convierte en una capa sobre el planificador del equipo (§3). `missionRun.ts` usa `MissionController`. `history.ts` pasa al formato v2 (§3.7). Los chips «Refinar» cambian (§3.4) | `MISSION_PRESETS`, niveles y pesos, la tarjeta «7 criterios con niveles», «DEMO · sin IA» y el envío automático a la IA al pulsar «Enviar» |
-| `analysis` | La capa de hechos, la robustez y la superficie de la Lectura | §5 | lktron, NDJSON, eventGate, tokens, FNV y el texto pregenerado |
-| `components/planner/*` (equipo) | `RequirementEditor`, `ScopePicker`, `ConfirmSummary`, `ResultView` (con `CriteriaTable`, `AiPanel`, `PrintReport`), `GeometryFigure`, `planner.css`, `usePlanner` | Se reutilizan **como piezas internas** de «Tu misión», con los tokens del rediseño. `PlannerPanel` se divide en `PlannerPanel`, que sigue llamando a `usePlanner` y mantiene su firma para los tests, y `PlannerView`, que es presentacional y recibe el planificador compartido. `ResultView` admite una prop opcional `compact` (sin ella se comporta igual) | — |
+| `places` | The ◆ catalog (`analogCatalog`, `referenceAnalogs`, `ReferenceCard`) and `classify`, which adds the "matches" badge when a ◆ falls inside a polygon | `buildPlaceModel` and `PlaceRail`:<br>• Explore uses `ranked` with its global rank, then the REF, then the ◆, and has a country filter.<br>• Mission groups by the state of `MissionEvaluation` (§4).<br>• `PlaceModelInput.scoring` → `evaluation`, plus `country`.<br>• `EvaluatedPlace` adds `role`, `country`, `optionStatus`, `preferences` and `inScope` | The labels "% of the deterministic engine vX". Also the dev `components/CandidateRanking.tsx`: it was never part of our UI and its assertions move to the `PlaceRail` tests (§7.4) |
+| `globe` | Flight, keyboard, geometry, camera, `stageBridge`, the switch from 3D to 2D, and the SVG when there is no WebGL | Markers:<br>• rank from `splitByRole`/`rankOf` and "REF" instead of a number;<br>• group by `candidate.country`;<br>• `outline` CL+AR;<br>• framing that includes both regions;<br>• `contextLayers` according to `snapshot_version`;<br>• in Mission, marker type according to `OptionStatus`.<br>`features/globe/CandidateMap.tsx` takes the content from dev (50 windows, background, `mapFrame`, `projector`) with `../../` routes.<br>The dev changes in `components/{CandidateGlobe,CandidateFlatMap,MapStage}.tsx` must be ported to `features/globe/*` | `MissionScoring` and `scoreSource: 'mission'` |
+| `metrics` | `MetricRail`, `MetricViz`, `FadeNumber`, S1 | Weights and contributions **always** come from the snapshot. In Mission, a requirements layer is overlaid (§4.2). `engineVersion` → `rulesVersion` (`RULES_VERSION`). `MetricView.requirements?: RequirementResult[]` | The `kind: 'mission'` context with mission weights |
+| `leaders` | `layoutLeaders`, `projector`, `LeaderToggle`, `controller` and the rule of not drawing with a ◆ selected | `pickPrincipalMetrics`: in Mission, first the criteria with a requirement (must-haves before preferences) and then the base weight. The label carries ✓/✕/○ and the text from `describeCondition`. There are no lines for out-of-scope sites | Sort by mission weights |
+| `boot` | `BootLayer`, `OrbitLoader`, `StatusChip`, milestones | Preload v3, chip and announcement texts, orbit centered on the two regions (§4.4). `OrbitLoader` is reused for the waits of the draft and the explanation | Preload v2 |
+| `composer` | `Composer`, `MissionCard`, `focusComposer` (no signature change), the brief highlights, Undo, and the history | It becomes a layer on top of the team's planner (§3). `missionRun.ts` uses `MissionController`. `history.ts` moves to the v2 format (§3.7). The "Refine" chips change (§3.4) | `MISSION_PRESETS`, levels and weights, the card "7 criteria with levels", "DEMO · no AI", and the automatic submission to the AI when pressing "Send" |
+| `analysis` | The fact layer, robustness, and the surface of the Reading | §5 | lktron, NDJSON, eventGate, tokens, FNV, and the pre-generated text |
+| `components/planner/*` (team) | `RequirementEditor`, `ScopePicker`, `ConfirmSummary`, `ResultView` (with `CriteriaTable`, `AiPanel`, `PrintReport`), `GeometryFigure`, `planner.css`, `usePlanner` | Reused **as internal pieces** of "Your mission", with the redesign's tokens. `PlannerPanel` is split into `PlannerPanel`, which keeps calling `usePlanner` and keeps its signature for the tests, and `PlannerView`, which is presentational and receives the shared planner. `ResultView` accepts an optional prop `compact` (without it, it behaves the same) | — |
 
-### 2.5 Shell, estado y componentes de dev en conflicto
+### 2.5 Shell, state, and dev components in conflict
 
-| Ruta | Decisión | Cómo |
+| Path | Decision | How |
 |---|---|---|
-| `apps/web/src/App.tsx` | La nuestra | Mantiene la carga y `AppShell`. Debe contener literalmente «Prioriza qué sectores merecen reconocimiento para un ensayo de rover» y «No mide tracción ni aprueba terreno» (los lee `missionFormat.test.tsx`), como una constante `PRODUCT_PROMISE` que se pasa al shell y se muestra en el estado inicial de Explorar y en la cabecera de Misión. Sin hero, sin `#planner` y sin la frase «reproduce mejor condiciones» |
-| `content/shell.ts`, `AppShell` | Adapta | La marca pasa de «AnalogOS Chile» a «AnalogOS», con el subtítulo «Piloto Chile–Argentina». Ninguna superficie dice «M8» |
-| `shell/detail/FullDetail.tsx` | Adapta | Pestaña nueva «Origen», con el bloque «Origen y antecedentes» de dev en `shell/detail/OriginSection.tsx` y textos literales. En la cabecera: país, rol (REF), «Exportar ficha (JSON)» con `buildExport(candidate, search)` y «Evaluar este sector». «Comparar» deja de leer `scoring.engineVersion` |
-| `shell/detail/MethodTab.tsx` | Adapta | Nueva sección «Cómo se buscaron»: `summarizeSearch` (2 regiones; 50 ventanas intentadas y 50 evaluadas; unos 22.274 km²; 4 excluidas por antecedente; 6 preseleccionadas; hasta 3 por país; al menos 25 km entre centros), la lista de regiones, el `CandidateMap` SVG con las 50 ventanas y enlaces a `search-results.json` y `analysis-summary.json` |
-| `components/CandidateComparison.tsx` | Fusión manual | Firma de dev (`ranked`, `references`, `rankOf`), REF aparte y estilo nuestro |
-| `components/CandidateDetails.tsx` (modificado en dev, borrado aquí) | Retira | La ficha es `FullDetail`, más el riel. Los bloques de dev se reparten: «Origen y antecedentes» va a `OriginSection`, la exportación y «Evaluar este sector» a la cabecera de `FullDetail`, y «Dónde falla», «Qué verificar» y «Evidencia» ya existen en las pestañas Métricas y Fuentes |
-| `breakdown/ScoreBreakdown.tsx` (modificado en dev, borrado aquí) | Retira | Lo reemplaza el riel de métricas. El único cambio de dev, «Sector chileno»→«Sector terrestre», se lleva a la leyenda de `MetricViz` |
-| `components/LiquidNav.tsx` (modificado en dev, borrado aquí) | Retira | Lo reemplaza `ModeTabs`. El ícono `planner` de dev no hace falta: Misión ya es una pestaña |
-| `components/{CandidateGlobe,CandidateFlatMap,MapStage}.tsx` (modificados en dev, borrados aquí) | Retira | Sus cambios (REF, país, `outline`, `VISUAL_CONTEXT_DIR`) se portan a `features/globe/*` |
-| `state/ui.ts` | Adapta | `MissionPhase`: `profile` → `review`, que no cuenta como ocupado. `isMissionBusy` = `interpreting`, `scoring` o `analysis`. Yungay REF se selecciona con `kind: 'evaluated'`; `kind: 'reference'` queda para los ◆ |
+| `apps/web/src/App.tsx` | Ours | Keeps the loading and `AppShell`. It must literally contain "Prioritizes which sectors deserve reconnaissance for a rover trial" and "It does not measure traction or approve terrain" (`missionFormat.test.tsx` reads them), as a `PRODUCT_PROMISE` constant that is passed to the shell and shown in the initial Explore state and in the Mission header. No hero, no `#planner`, and without the phrase "better reproduces conditions" |
+| `content/shell.ts`, `AppShell` | Adapt | The brand changes from "AnalogOS Chile" to "AnalogOS", with the subtitle "Chile–Argentina Pilot". No surface says "M8" |
+| `shell/detail/FullDetail.tsx` | Adapt | New tab "Origin", with dev's "Origin and background" block in `shell/detail/OriginSection.tsx` and literal texts. In the header: country, role (REF), "Export sheet (JSON)" with `buildExport(candidate, search)` and "Evaluate this sector". "Compare" stops reading `scoring.engineVersion` |
+| `shell/detail/MethodTab.tsx` | Adapt | New section "How they were searched": `summarizeSearch` (2 regions; 50 windows attempted and 50 evaluated; about 22.274 km²; 4 excluded by background; 6 preselected; up to 3 per country; at least 25 km between centers), the list of regions, the SVG `CandidateMap` with the 50 windows, and links to `search-results.json` and `analysis-summary.json` |
+| `components/CandidateComparison.tsx` | Manual merge | Dev's signature (`ranked`, `references`, `rankOf`), REF separate, and our style |
+| `components/CandidateDetails.tsx` (modified in dev, deleted here) | Remove | The sheet is `FullDetail`, plus the rail. Dev's blocks are distributed: "Origin and background" goes to `OriginSection`, the export and "Evaluate this sector" go to the `FullDetail` header, and "Where it fails", "What to verify", and "Evidence" already exist in the Metrics and Sources tabs |
+| `breakdown/ScoreBreakdown.tsx` (modified in dev, deleted here) | Remove | The metrics rail replaces it. Dev's only change, "Chilean sector"→"Terrestrial sector", is carried over to the legend of `MetricViz` |
+| `components/LiquidNav.tsx` (modified in dev, deleted here) | Remove | `ModeTabs` replaces it. Dev's `planner` icon is not needed: Mission is already a tab |
+| `components/{CandidateGlobe,CandidateFlatMap,MapStage}.tsx` (modified in dev, deleted here) | Remove | Their changes (REF, country, `outline`, `VISUAL_CONTEXT_DIR`) are ported to `features/globe/*` |
+| `state/ui.ts` | Adapt | `MissionPhase`: `profile` → `review`, which does not count as busy. `isMissionBusy` = `interpreting`, `scoring` or `analysis`. Yungay REF is selected with `kind: 'evaluated'`; `kind: 'reference'` remains for the ◆ |
 
-### 2.6 Build, empaquetado y despliegue
+### 2.6 Build, packaging, and deployment
 
-| Ruta | Decisión | Cómo |
+| Path | Decision | How |
 |---|---|---|
-| `package.json` (raíz) | Adopta dev | Trae `typecheck:server`, `test:ai-live`, `discovery:*` y el `verify` con `typecheck:server`. Hoy entra sin conflicto |
-| `apps/web/package.json` | La nuestra | Conserva `validators` y el `build` con `build-validators --check`. Las dependencias son idénticas en las dos ramas |
-| `apps/web/vite.config.ts` | Unión | `aiDevApi` (de dev) más `loadingHints` y la agrupación `$initial` (nuestros) |
-| `apps/web/scripts/prune-build.mjs` | Adopta dev | Al dist solo llegan v3 y `visual-context-v3`. Hay que comprobar que `basemaps/` se conserva |
-| `vercel.json` | Adopta dev | `git.deploymentEnabled: false` y cabeceras de caché para v3 |
-| `.github/workflows/vercel-deploy.yml`, `scripts/check-vercel-function.mjs` | Conserva intacto | Fuera de alcance |
-| `scripts/package_release.py` | Fusión manual | Base de dev: `SCIENCE_FILES` v3, `visual_images()`, control de versión del snapshot, `DEFAULT_ZIP = submission/analogos-static.zip`. Se le añade lo nuestro: `BASEMAP_FILES` (`s2-*.webp`, `world.webp`), la precarga `./data`, el favicon `data:` y el póster WebP. `DATA_REFERENCES` se calcula con las listas v3. **Se quita `ANALYSIS_FILES`.** Nunca debe escribir `analogos-chile-static.zip`, que es el histórico v2 |
-| `submission/analogos-static.zip` y `.sha256` | Se regeneran en F7 | Hoy corresponden a la UI de dev (`9060970`, SHA `eacf5dce…`). Tras integrar se regeneran con `npm run release:package` (dos veces, mismo SHA) y en STATUS se anotan el SHA anterior y el nuevo |
+| `package.json` (root) | Adopt dev | Brings `typecheck:server`, `test:ai-live`, `discovery:*` and the `verify` with `typecheck:server`. Today it comes in without conflict |
+| `apps/web/package.json` | Ours | Keeps `validators` and the `build` with `build-validators --check`. The dependencies are identical in both branches |
+| `apps/web/vite.config.ts` | Union | `aiDevApi` (from dev) plus `loadingHints` and the `$initial` grouping (ours) |
+| `apps/web/scripts/prune-build.mjs` | Adopt dev | Only v3 and `visual-context-v3` reach dist. It must be checked that `basemaps/` is kept |
+| `vercel.json` | Adopt dev | `git.deploymentEnabled: false` and cache headers for v3 |
+| `.github/workflows/vercel-deploy.yml`, `scripts/check-vercel-function.mjs` | Keep intact | Out of scope |
+| `scripts/package_release.py` | Manual merge | Dev's base: `SCIENCE_FILES` v3, `visual_images()`, snapshot version control, `DEFAULT_ZIP = submission/analogos-static.zip`. Ours is added to it: `BASEMAP_FILES` (`s2-*.webp`, `world.webp`), the `./data` preload, the `data:` favicon, and the WebP poster. `DATA_REFERENCES` is computed with the v3 lists. **`ANALYSIS_FILES` is removed.** It must never write `analogos-chile-static.zip`, which is the v2 history |
+| `submission/analogos-static.zip` and `.sha256` | Regenerated in F7 | Today they correspond to dev's UI (`9060970`, SHA `eacf5dce…`). After integration they are regenerated with `npm run release:package` (twice, same SHA) and the previous and new SHA are recorded in STATUS |
 
-## 3. Recorridos del planificador en Explorar, Misión y el composer
+## 3. Planner flows in Explore, Mission, and the composer
 
-### 3.1 Un único planificador compartido
+### 3.1 A single shared planner
 
-- `features/composer/MissionController.tsx` se monta una vez, en la raíz del shell y en diferido (§3.8). Llama a `usePlanner(bundle)` del equipo, con `bundle = {candidates, manifest, profile}` de `science-v3` **sin transformar**.
-- El resultado se publica en `missionStore` (`state/mission.ts`):
+- `features/composer/MissionController.tsx` is mounted once, at the root of the shell and lazily (§3.8). It calls the team's `usePlanner(bundle)`, with `bundle = {candidates, manifest, profile}` from `science-v3` **untransformed**.
+- The result is published in `missionStore` (`state/mission.ts`):
 
 ```ts
 interface MissionState {
-  planner: PlannerState                  // reducer del equipo, tal cual
-  request: MissionRequest | null         // built.request, si es válida
+  planner: PlannerState                  // the team reducer, unchanged
+  request: MissionRequest | null         // built.request, if valid
   evaluation: MissionEvaluation | null   // planner.result
-  explanation: ExplanationView | null    // derivada (§5.2)
+  explanation: ExplanationView | null    // derived (§5.2)
   source: 'anthropic' | 'manual' | 'example' | null
-  revision: number                       // +1 en cada evaluación aceptada
+  revision: number                       // +1 on each accepted evaluation
 }
 ```
 
-- Solo `MissionController` escribe en el store. Expone `dispatch`, `evaluate`, `runDraft`, `runExplain` y `exportJson` como acciones.
-- places, globe, metrics, leaders y analysis solo leen `evaluation` y `explanation`.
-- `PlannerView` (§2.4) recibe esta misma instancia, así que no hay un segundo estado.
+- Only `MissionController` writes to the store. It exposes `dispatch`, `evaluate`, `runDraft`, `runExplain` and `exportJson` as actions.
+- places, globe, metrics, leaders and analysis only read `evaluation` and `explanation`.
+- `PlannerView` (§2.4) receives this same instance, so there is no second state.
 
-| Paso del planificador (dev) | Fase de UI (`state/ui.ts`) | Superficie del rediseño | ¿Ocupado? |
+| Planner step (dev) | UI phase (`state/ui.ts`) | Redesign surface | Busy? |
 |---|---|---|---|
-| Sin brief | `idle` | Explorar; dock vacío | no |
-| Borrador de IA en curso (`draft_start`) | `interpreting` | Dock con `OrbitLoader` «Proponiendo requisitos…» y botón «Cancelar» | solo el composer |
-| Describir y alcance (editar requisitos y geometría) | `review` (nueva) | «Tu misión»: `RequirementEditor` y `ScopePicker` | no |
-| Confirmar | `review` | «Tu misión»: `ConfirmSummary` («Confirmar requisitos y sector» y después «Evaluar ahora», los botones del equipo) | no |
-| `evaluated` (síncrono) | `scoring` → `done` | Carrusel, globo, riel, líneas y Lectura; vista previa de `recommended_site_ids[0]` si existe; un solo `announce()` | transitorio |
-| Explicación de IA en curso | `analysis` | Lectura con `OrbitLoader`; el resto se puede usar | solo la Lectura |
-| Edición después del resultado | `review` | El reducer invalida y aborta; los resultados pasan a `--o-busy` hasta reevaluar | no |
-| Error o cancelación | `error` / `cancelled` | Mensaje en la superficie que lo originó | no |
+| No brief | `idle` | Explore; empty dock | no |
+| AI draft in progress (`draft_start`) | `interpreting` | Dock with `OrbitLoader` "Proposing requirements…" and a "Cancel" button | only the composer |
+| Describe and scope (edit requirements and geometry) | `review` (new) | "Your mission": `RequirementEditor` and `ScopePicker` | no |
+| Confirm | `review` | "Your mission": `ConfirmSummary` ("Confirm requirements and sector" and then "Evaluate now", the team's buttons) | no |
+| `evaluated` (synchronous) | `scoring` → `done` | Carousel, globe, rail, lines, and Reading; preview of `recommended_site_ids[0]` if it exists; a single `announce()` | transient |
+| AI explanation in progress | `analysis` | Reading with `OrbitLoader`; the rest can be used | only the Reading |
+| Editing after the result | `review` | The reducer invalidates and aborts; results move to `--o-busy` until re-evaluation | no |
+| Error or cancellation | `error` / `cancelled` | Message on the surface that originated it | no |
 
-### 3.2 «Definir una prueba» (recorrido `test`)
+### 3.2 "Define a trial" (flow `test`)
 
-1. **Entradas:**
-   - el usuario escribe en el dock;
-   - pulsa «Definir una prueba» en el estado inicial de Explorar;
-   - o cambia a la pestaña Misión.
+1. **Inputs:**
+   - the user types in the dock;
+   - clicks "Define a test" in the initial Explore state;
+   - or switches to the Mission tab.
 
-   En los tres casos se ejecuta `dispatch({type:'set_journey', journey:'test'})`.
-2. **El brief:**
-   - Llega hasta 3000 caracteres (`MAX_BRIEF_CHARS`; antes eran 600).
-   - Pulsar «Enviar», o Intro, **no llama a la IA**: abre «Tu misión» en el paso de requisitos, con el brief ya cargado.
-   - Debajo del brief se resaltan las menciones que detecta `detectUnmeasuredMentions` y su aviso de «pendientes detectados».
-3. **Requisitos:**
-   - Se editan a mano, se carga «Usar ejemplo» (`exampleState`) o se pulsa «✦ Proponer requisitos con IA».
-   - Junto a ese botón va, literal, el aviso del equipo: «Al pulsarlo, el texto de su prueba se envía a Anthropic para proponer un borrador. El recorrido manual no envía nada. La IA no confirma ni evalúa…».
-   - El borrador llega con `confirmed=false` y con la etiqueta IA/Usted en cada requisito.
-   - Los `source_quote` se resaltan en el brief.
-4. **Alcance:** el catálogo (las 7 ventanas), un sector, un punto o un bbox, con `ScopePicker` y `GeometryFigure`.
-5. **Confirmar y evaluar:** con los botones del equipo. **Nunca se confirma solo después de la IA.**
-6. **Resultado en el escenario:** se presenta según §4.2. En «Tu misión» queda el `ResultView` compacto: titular, bloqueos visibles, regla de orden, «Descargar JSON» (`analogos-recomendacion-<fp8>.json`), «Imprimir informe» y «Volver a editar».
+   In all three cases `dispatch({type:'set_journey', journey:'test'})` is executed.
+2. **The brief:**
+   - It accepts up to 3000 characters (`MAX_BRIEF_CHARS`; previously 600).
+   - Clicking "Submit", or pressing Enter, **does not call the AI**: it opens "Your mission" at the requirements step, with the brief already loaded.
+   - Below the brief, the mentions detected by `detectUnmeasuredMentions` are highlighted, along with its "pending items detected" notice.
+3. **Requirements:**
+   - They are edited by hand, "Use example" (`exampleState`) is loaded, or "✦ Propose requirements with AI" is clicked.
+   - Next to that button appears, verbatim, the team's notice: "When you click it, the text of your test is sent to Anthropic to propose a draft. The manual path sends nothing. The AI does not confirm or evaluate…".
+   - The draft arrives with `confirmed=false` and with the AI/You label on each requirement.
+   - The `source_quote` are highlighted in the brief.
+4. **Scope:** the catalog (the 7 windows), a sector, a point or a bbox, with `ScopePicker` and `GeometryFigure`.
+5. **Confirm and evaluate:** with the team's buttons. **It is never confirmed automatically after the AI.**
+6. **Result on the stage:** it is presented according to §4.2. "Your mission" keeps the compact `ResultView`: headline, visible blockers, ordering rule, "Download JSON" (`analogos-recomendacion-<fp8>.json`), "Print report" and "Back to editing".
 
-### 3.3 «Evaluar un sector» (recorrido `sector`)
+### 3.3 "Evaluate a sector" (`sector` path)
 
-- **Entradas:**
-  - «Evaluar este sector» en la cabecera de `FullDetail`, en el riel o en la tarjeta del carrusel;
-  - en Misión, el menú contextual del marcador.
+- **Inputs:**
+  - "Evaluate this sector" in the header of `FullDetail`, in the rail or on the carousel card;
+  - in Mission, the marker's context menu.
 
-  Todas hacen `dispatch({type:'set_journey', journey:'sector', siteId})` y cambian el modo a Misión. El alcance queda fijado en esa ventana y se abre el paso de requisitos. No se reimplementa nada de lo que el reducer conserva o reinicia.
-- **«Evaluar un sector…» sin sitio:** abre `ScopePicker` con sector, punto o bbox. El catálogo solo existe en el recorrido `test`, como en dev.
-- **Punto o bbox:**
-  - `resolveScope` muestra la resolución.
-  - Un punto dentro de una ventana da `needs_window_selection`, y hay que pulsar de forma explícita «Evaluar la ventana completa» (`windowSiteId`).
-  - Un bbox parcial da `partial_coverage`.
-  - Fuera de toda ventana da `insufficient_coverage`, sin vecino. El carrusel muestra el diagnóstico y la exportación de `data_request`.
-- **Opcional (P2):** con `ScopePicker` en modo punto o bbox, un clic en el mapa 2D rellena lon/lat como texto. No hereda métricas.
+  All of them do `dispatch({type:'set_journey', journey:'sector', siteId})` and switch the mode to Mission. The scope is fixed to that window and the requirements step opens. Nothing that the reducer keeps or resets is reimplemented.
+- **"Evaluate a sector…" without a site:** opens `ScopePicker` with sector, point or bbox. The catalog exists only in the `test` path, as in dev.
+- **Point or bbox:**
+  - `resolveScope` shows the resolution.
+  - A point inside a window yields `needs_window_selection`, and "Evaluate the entire window" must be clicked explicitly (`windowSiteId`).
+  - A partial bbox yields `partial_coverage`.
+  - Outside any window yields `insufficient_coverage`, with no neighbor. The carousel shows the diagnosis and the export of `data_request`.
+- **Optional (P2):** with `ScopePicker` in point or bbox mode, a click on the 2D map fills in lon/lat as text. It does not inherit metrics.
 
-### 3.4 Composer (dock) y «Tu misión»
+### 3.4 Composer (dock) and "Your mission"
 
-| Elemento actual | Elemento integrado |
+| Current element | Integrated element |
 |---|---|
-| Brief de 600 caracteres → lktron o `matchMissionDemo` → niveles → `scoreMission` | Brief de hasta 3000 caracteres → (opcional) `requestDraft` → requisitos editables sin confirmar → confirmación explícita → `evaluateMission` local |
-| Tarjeta «Tu misión»: 7 criterios con niveles y pesos | Requisitos (`describeEditable`, `topicLabel`, `RequirementEditor`), alcance y `ConfirmSummary` |
-| Chips «Refinar» (`MISSION_PRESETS`) | «Usar ejemplo», «Añadir requisito: pendiente / rugosidad / relieve / suelo desnudo / área / país» (`defaultMetricRequirement`, **sin valor**) y «Evaluar un sector…» |
-| Resaltados «DEMO» | `source_quote` del borrador de IA y coincidencias de `detectUnmeasuredMentions` (se reutiliza `highlightSegments`) |
-| Línea de resultado «#1 … %» | «N priorizados · #1 ‹nombre› (REF si aplica) · similitud v3 X (sin recalcular)», o «Ninguna opción priorizada» cuando `none_prioritized` |
-| `announce()` | Una sola vez por `revision`, con el mismo texto |
+| Brief of 600 characters → lktron or `matchMissionDemo` → levels → `scoreMission` | Brief of up to 3000 characters → (optional) `requestDraft` → editable unconfirmed requirements → explicit confirmation → local `evaluateMission` |
+| "Your mission" card: 7 criteria with levels and weights | Requirements (`describeEditable`, `topicLabel`, `RequirementEditor`), scope and `ConfirmSummary` |
+| "Refine" chips (`MISSION_PRESETS`) | "Use example", "Add requirement: slope / roughness / relief / bare soil / area / country" (`defaultMetricRequirement`, **no value**) and "Evaluate a sector…" |
+| "DEMO" highlights | `source_quote` of the AI draft and matches from `detectUnmeasuredMentions` (`highlightSegments` is reused) |
+| Result line "#1 … %" | "N prioritized · #1 ‹name› (REF if applicable) · v3 similarity X (not recalculated)", or "No option prioritized" when `none_prioritized` |
+| `announce()` | Only once per `revision`, with the same text |
 
-### 3.5 Sin IA y en el ZIP
+### 3.5 Without AI and in the ZIP
 
-- El botón de IA está siempre visible: su disponibilidad la decide el servidor.
-- Si no hay clave, si hay 404 o HTML (ZIP), un error de red o se cumplen los 45 s, aiClient devuelve `unavailable` con «IA no disponible… Puede continuar manualmente». El texto se muestra junto al botón y el recorrido sigue.
-- Nunca se usa la palabra «DEMO».
-- La Lectura muestra la plantilla determinista, rotulada (§5).
-- La exportación JSON funciona y lleva `ai.draft` y `ai.explanation` en `null`.
+- The AI button is always visible: its availability is decided by the server.
+- If there is no key, if there is 404 or HTML (ZIP), a network error, or the 45 s limit is reached, aiClient returns `unavailable` with "AI not available… You can continue manually". The text is shown next to the button and the path continues.
+- The word "DEMO" is never used.
+- The Reading shows the deterministic template, labeled (§5).
+- The JSON export works and carries `ai.draft` and `ai.explanation` in `null`.
 
-### 3.6 Lo que se pide al usuario aceptar
+### 3.6 What the user is asked to accept
 
-Sin IA no hay conversión determinista de un texto libre a umbrales, y crearla rompería la regla «nada inventado». Por eso el flujo «escribo y veo resultados» pasa a ser «escribo, añado requisitos o uso el ejemplo, confirmo y evalúo». Hay que registrarlo en ADR-013 y en STATUS.
+Without AI there is no deterministic conversion of free text into thresholds, and creating one would break the "nothing invented" rule. For that reason the "I type and see results" flow becomes "I type, add requirements or use the example, confirm and evaluate". This must be recorded in ADR-013 and in STATUS.
 
-### 3.7 Invalidación, respuestas tardías e historial
+### 3.7 Invalidation, late responses and history
 
-- **Invalidación:** cualquier edición de brief, requisitos o alcance hace que el reducer invalide la confirmación y el resultado. `MissionController` aborta en red la petición vigente con un `AbortController` por `requestId` (efecto portado de `usePlanner`).
-- **Historial** (`analogos.composer.history.v2`):
-  - Guarda el brief, el alcance y los requisitos con `origin: 'user'`.
-  - Los requisitos con `origin: 'ai'` que nadie editó **no se guardan**.
-  - Tampoco se guarda nunca la procedencia de la IA ni los resultados.
-  - Se restaura con una secuencia de acciones existentes (`reset` → `set_journey` → `set_brief` → `add_requirement`×n → `set_scope`), sin crear una acción nueva en el reducer.
-  - La clave v1 se ignora: su formato de niveles es incompatible.
-- **Deshacer:** usa el mismo formato.
+- **Invalidation:** any edit to the brief, requirements or scope causes the reducer to invalidate the confirmation and the result. `MissionController` aborts the current request at the network level with a `AbortController` per `requestId` (effect ported from `usePlanner`).
+- **History** (`analogos.composer.history.v2`):
+  - It saves the brief, scope and requirements with `origin: 'user'`.
+  - Requirements with `origin: 'ai'` that nobody edited **are not saved**.
+  - The AI provenance and the results are also never saved.
+  - It is restored with a sequence of existing actions (`reset` → `set_journey` → `set_brief` → `add_requirement`×n → `set_scope`), without creating a new action in the reducer.
+  - The v1 key is ignored: its level format is incompatible.
+- **Undo:** uses the same format.
 
-### 3.8 Carga diferida
+### 3.8 Deferred loading
 
-- `shared/mission/validate.ts` y `aiClient.ts` compilan Ajv al importarse. Por eso **todo lo que importe `apps/web/src/mission/index.ts`, `validate`, `evaluate`, `exportReport`, `plannerState`, `aiClient` o `components/planner/*` va en el chunk diferido de misión.** Se carga al entrar en Misión, al pulsar «Evaluar este sector» o al enfocar el dock.
-- Explorar y el riel solo pueden importar los módulos sin Ajv: `mission/format`, `mission/catalog`, `mission/siteMeasures`, `mission/types` y `mission/fingerprint`.
-- Se verifica en F7: el chunk de entrada no contiene `ajv`.
+- `shared/mission/validate.ts` and `aiClient.ts` compile Ajv on import. Therefore **everything that imports `apps/web/src/mission/index.ts`, `validate`, `evaluate`, `exportReport`, `plannerState`, `aiClient` or `components/planner/*` goes in the deferred mission chunk.** It is loaded on entering Mission, on clicking "Evaluate this sector" or on focusing the dock.
+- Explore and the rail may only import the modules without Ajv: `mission/format`, `mission/catalog`, `mission/siteMeasures`, `mission/types` and `mission/fingerprint`.
+- This is verified in F7: the entry chunk does not contain `ajv`.
 
-## 4. Cómo se presenta v3
+## 4. How v3 is presented
 
-### 4.1 Explorar
+### 4.1 Explore
 
-| Superficie | Presentación |
+| Surface | Presentation |
 |---|---|
-| Globo / 2D | • 6 ● numerados 1–6 con su puesto global (`rankOf`).<br>• Yungay: ● con rótulo «REF» y contorno de referencia, **nunca un número**.<br>• Los 8 ◆ del catálogo mundial siguen «por calcular». `atacama-yungay` coincide con el polígono de la REF y aparece como insignia «coincide con Pampa Yungay (REF)», no como un ◆ superpuesto.<br>• Agrupación por `candidate.country` (`countryLabels`).<br>• Contorno de `context-outline.geojson` (CL y AR) con el rótulo «Contorno referencial, no límite oficial».<br>• El encuadre inicial y el 2D cubren el interior de Antofagasta y la Puna de Catamarca y Salta. |
-| Carrusel | • Primero las 6 tarjetas en orden global; después la tarjeta REF («REF · Referencia conocida · No sale de la búsqueda»); al final los ◆.<br>• Chips «Todos / Chile / Argentina» (`availableCountries`, `filterByCountry`) con `aria-label="Filtrar candidatos por país"`. Filtrar **conserva el puesto global**.<br>• El contador «de N» cuenta solo los candidatos.<br>• Estado vacío: «La búsqueda no dejó candidatos en ‹país›» y «Referencia conocida: Yungay».<br>• Similitud v3 con 1 decimal y confianza aparte. El país va en texto, sin banderas. |
-| Riel | • Pesos y contribuciones del snapshot.<br>• Cabecera con país, rol (REF), «Factibilidad territorial: pendiente» y un enlace a «Origen».<br>• «Mejor de N» cuenta solo los 6 candidatos, con una nota que dice que la REF queda fuera.<br>• Valores regionales compartidos, rotulados como hoy. |
-| Líneas Tesla | Igual que hoy, con los pesos base. |
-| Ficha (`FullDetail`) | • Pestaña «Origen»: origen, `window_id`, `selection_rank`, la prioridad topográfica con su nota («solo ordena la preselección; no es el score ni la confianza»), la revisión bibliográfica (`note`, `catalog_version`, `reviewed_at`) y `matchDetails` con su fuente.<br>• Para la REF: «Referencia conocida», «No sale de la búsqueda» y «La ventana contiene coordenadas de muestreo publicadas».<br>• Botón «Exportar ficha (JSON)», que usa `buildExport`.<br>• Las autoridades territoriales salen del propio sitio (IDERA o IDE Chile, según el país), sin textos fijos. |
-| Método | «Cómo se buscaron» (§2.5). Los antecedentes de `precedents.json` son bibliografía: solo el transecto de Navarro-González (30 puntos) se dibuja, en el SVG; el resto son topónimos sin coordenadas y nunca se dibujan como pin. |
-| Comparar | `CandidateComparison` con `ranked`, `references` y `rankOf`, y la REF aparte. |
+| Globe / 2D | • 6 numbered ● 1–6 with their global rank (`rankOf`).<br>• Yungay: ● labeled "REF" with a reference outline, **never a number**.<br>• The 8 ◆ of the world catalog remain "to be calculated". `atacama-yungay` coincides with the REF polygon and appears as a badge "coincides with Pampa Yungay (REF)", not as an overlapping ◆.<br>• Grouping by `candidate.country` (`countryLabels`).<br>• `context-outline.geojson` outline (CL and AR) with the label "Reference outline, not an official boundary".<br>• The initial framing and the 2D view cover the interior of Antofagasta and the Puna of Catamarca and Salta. |
+| Carousel | • First the 6 cards in global order; then the REF card ("REF · Known reference · Not part of the search"); finally the ◆.<br>• "All / Chile / Argentina" chips (`availableCountries`, `filterByCountry`) with `aria-label="Filter candidates by country"`. Filtering **preserves the global rank**.<br>• The "of N" counter counts only the candidates.<br>• Empty state: "The search left no candidates in ‹country›" and "Known reference: Yungay".<br>• v3 similarity with decimal 1 and confidence separately. The country is given in text, without flags. |
+| Rail | • Weights and contributions from the snapshot.<br>• Header with country, role (REF), "Territorial feasibility: pending" and a link to "Origin".<br>• "Best of N" counts only the 6 candidates, with a note saying that the REF is left out.<br>• Shared regional values, labeled as they are today. |
+| Tesla lines | Same as today, with the base weights. |
+| Sheet (`FullDetail`) | • "Origin" tab: origin, `window_id`, `selection_rank`, the topographic priority with its note ("it only orders the shortlist; it is neither the score nor the confidence"), the bibliographic review (`note`, `catalog_version`, `reviewed_at`) and `matchDetails` with its source.<br>• For the REF: "Known reference", "Not part of the search" and "The window contains published sampling coordinates".<br>• "Export sheet (JSON)" button, which uses `buildExport`.<br>• The territorial authorities come from the site itself (IDERA or IDE Chile, depending on the country), with no fixed texts. |
+| Method | "How they were searched" (§2.5). The `precedents.json` background is bibliography: only the Navarro-González transect (30 points) is drawn, in the SVG; the rest are toponyms without coordinates and are never drawn as pins. |
+| Compare | `CandidateComparison` with `ranked`, `references` and `rankOf`, and the REF separately. |
 
-### 4.2 Misión (después de evaluar)
+### 4.2 Mission (after evaluation)
 
-| Superficie | Presentación |
+| Surface | Presentation |
 |---|---|
-| Carrusel | • Grupos en el orden de estados del equipo.<br>• **Priorizados para reconocimiento:** «#rank» de `option.rank`; si es Yungay, «#n · REF».<br>• **Evidencia insuficiente:** ○.<br>• **No cumple requisitos:** atenuado, con «qué lo impide» (`critical_failed`).<br>• **Objetivo no soportado.**<br>• **Fuera del alcance:** sitios que no están en `evaluated_site_ids`, en un grupo plegado y neutro.<br>• Cada tarjeta muestra el estado (`STATUS_DEFINITIONS`), «met/total preferencias», «similitud v3 X (sin recalcular)», la confianza y «Factibilidad territorial: pendiente».<br>• Cuando `outcome` es `needs_window_selection`, `insufficient_coverage` o `unsupported_target`, el carrusel muestra la tarjeta de diagnóstico (con `data_request` exportable) en lugar de una lista vacía. |
-| Globo | • Priorizado: ● con «#rank».<br>• Evidencia insuficiente: ○.<br>• No cumple: ● atenuado con ✕.<br>• Fuera del alcance: neutro y discontinuo.<br>• La REF conserva su rótulo.<br>• **No hay ningún %:** el marcador codifica estado o rol, nunca aptitud. |
-| Riel | Capa de requisitos sobre cada criterio, vía `METRICS[metric_id].source.criterion_id`:<br>• `median_slope_degree`→`slope`<br>• `terrain_roughness_meter`→`terrain_roughness`<br>• `local_relief_meter`→`local_relief`<br>• `nonvegetated_fraction`→`bare_ground_fraction`<br><br>Cada fila muestra:<br>• lo exigido (`describeCondition`);<br>• lo observado (`fmtObserved`);<br>• ✓/✕/○;<br>• `reason`, `scale_note`, `period`, `conversion` y `evidence_ids` (enlazados a Fuentes).<br><br>Área y país son filas del sitio (`siteMeasures`). Los temas no medidos aparecen como «pendiente · no medido». Los pesos son los del snapshot. |
-| Líneas Tesla | Criterios con requisito (imprescindibles primero), con ✓/✕/○ y el texto de `describeCondition`, igual que en el JSON exportado. Sin líneas para sitios fuera del alcance. |
-| «Tu misión» / hoja | `ResultView` compacto (titular, regla de orden, bloqueos, `pending_requirements`, `open_questions`, `limits`), «Descargar JSON», «Imprimir informe» (`PrintReport` montado mientras hay resultado) y «Volver a editar». |
+| Carousel | • Groups in the team's status order.<br>• **Prioritized for reconnaissance:** "#rank" from `option.rank`; if it is Yungay, "#n · REF".<br>• **Insufficient evidence:** ○.<br>• **Does not meet requirements:** dimmed, with "what prevents it" (`critical_failed`).<br>• **Unsupported target.**<br>• **Out of scope:** sites that are not in `evaluated_site_ids`, in a collapsed, neutral group.<br>• Each card shows the status (`STATUS_DEFINITIONS`), "met/total preferences", "v3 similarity X (not recalculated)", the confidence and "Territorial feasibility: pending".<br>• When `outcome` is `needs_window_selection`, `insufficient_coverage` or `unsupported_target`, the carousel shows the diagnostic card (with exportable `data_request`) instead of an empty list. |
+| Globe | • Prioritized: ● with "#rank".<br>• Insufficient evidence: ○.<br>• Does not meet: dimmed ● with ✕.<br>• Out of scope: neutral and dashed.<br>• The REF keeps its label.<br>• **There is no %:** the marker encodes status or role, never suitability. |
+| Rail | Requirements layer over each criterion, via `METRICS[metric_id].source.criterion_id`:<br>• `median_slope_degree`→`slope`<br>• `terrain_roughness_meter`→`terrain_roughness`<br>• `local_relief_meter`→`local_relief`<br>• `nonvegetated_fraction`→`bare_ground_fraction`<br><br>Each row shows:<br>• what is required (`describeCondition`);<br>• what is observed (`fmtObserved`);<br>• ✓/✕/○;<br>• `reason`, `scale_note`, `period`, `conversion` and `evidence_ids` (linked to Sources).<br><br>Area and country are site rows (`siteMeasures`). Unmeasured topics appear as "pending · not measured". The weights are those of the snapshot. |
+| Tesla lines | Criteria with a requirement (essential ones first), with ✓/✕/○ and the text of `describeCondition`, the same as in the exported JSON. No lines for out-of-scope sites. |
+| "Your mission" / sheet | Compact `ResultView` (headline, ordering rule, blocks, `pending_requirements`, `open_questions`, `limits`), "Download JSON", "Print report" (`PrintReport` mounted while there is a result) and "Back to editing". |
 
-### 4.3 Hoja móvil
+### 4.3 Mobile sheet
 
-- **S0 (Explorar):** carrusel, con su filtro de país.
-- **S1 (resultados de Misión):** grupos de estado y riel con la capa de requisitos.
-- **S2 (ficha):** `FullDetail`, con las pestañas Origen y Método.
-- La pestaña «Misión» de la hoja aloja `PlannerView`.
-- La exportación y la impresión siguen al alcance en móvil: la hoja nunca las desmonta mientras haya resultado.
+- **S0 (Explore):** carousel, with its country filter.
+- **S1 (Mission results):** status groups and rail with the requirements layer.
+- **S2 (detail card):** `FullDetail`, with the Origin and Method tabs.
+- The sheet's "Mission" tab hosts `PlannerView`.
+- Export and print remain within reach on mobile: the sheet never unmounts them while there is a result.
 
-### 4.4 Arranque y créditos
+### 4.4 Startup and credits
 
-| Elemento | Valor |
+| Element | Value |
 |---|---|
-| Snapshot por defecto | `VITE_SNAPSHOT_PATH ?? 'science-v3'` (se importa `SNAPSHOT_PATH`) |
-| Precarga | `candidate-details.json`, `manifest.json`, `mission-profile.json`, `context-outline.geojson`, `analysis-summary.json`, `search-results.json`, `precedents.json`, `visual-context-v3/index.json` y `basemaps/basemaps.json` |
-| Chip | «Snapshot v3 · 6 candidatos · 1 REF · N ◆ por calcular» |
-| Anuncio | «6 candidatos y 1 referencia conocida» |
-| Órbita | Centrada en las dos regiones |
-| Crédito | Desde el manifest v3 (22 conjuntos de datos) |
+| Default snapshot | `VITE_SNAPSHOT_PATH ?? 'science-v3'` (`SNAPSHOT_PATH` is imported) |
+| Preload | `candidate-details.json`, `manifest.json`, `mission-profile.json`, `context-outline.geojson`, `analysis-summary.json`, `search-results.json`, `precedents.json`, `visual-context-v3/index.json` and `basemaps/basemaps.json` |
+| Chip | "Snapshot v3 · 6 candidates · 1 REF · N ◆ to be calculated" |
+| Announcement | "6 candidates and 1 known reference" |
+| Orbit | Centered on the two regions |
+| Credit | From the v3 manifest (22 datasets) |
 
-## 5. La Lectura con la IA real del equipo
+## 5. The Reading with the team's real AI
 
-### 5.1 Qué hace y qué no hace la IA del equipo
+### 5.1 What the team's AI does and does not do
 
-- La operación `explain` recibe la `MissionRequest` confirmada y su huella. El servidor recalcula `evaluateMission` con `artifacts/science-v3` empaquetado y envía a Anthropic solo hechos compactos. El modelo devuelve **una selección de IDs**: requisitos clave y evidencias por opción, y el orden de las verificaciones.
-- No escribe prosa ni cifras.
-- El cliente acepta la selección solo si `request_fingerprint` y `evaluation_fingerprint` coinciden con la evaluación local y si `checkSelection` pasa.
+- The `explain` operation receives the confirmed `MissionRequest` and its fingerprint. The server recalculates `evaluateMission` with the bundled `artifacts/science-v3` and sends only compact facts to Anthropic. The model returns **a selection of IDs**: key requirements and evidence per option, and the order of the verifications.
+- It writes no prose or figures.
+- The client accepts the selection only if `request_fingerprint` and `evaluation_fingerprint` match the local evaluation and if `checkSelection` passes.
 
-### 5.2 Modelo de la Lectura en Misión (tres capas, siempre separadas)
+### 5.2 Reading model in Mission (three layers, always kept separate)
 
-| Capa | Fuente | Rótulo |
+| Layer | Source | Label |
 |---|---|---|
-| 1. Resultado | `MissionEvaluation`: `ordering_rule`, grupos, `requirement_results[].reason`, `what_would_change`, `pending_requirements`, `open_questions`, `limits`, y `data_request` cuando `outcome` no es `evaluated` | «Cálculo determinista · reglas mission-rules-1.0.0 · similitud v3 sin recalcular» |
-| 2. Motivos destacados | Por defecto, `composeExplanation(evaluation, deterministicSelection(evaluation), 'deterministic_template')`. Después de la IA, `composeExplanation(evaluation, selection, 'anthropic')` | Plantilla: «Plantilla determinista sin IA», sin ✦. IA: «✦ Motivos destacados con IA (Anthropic) · las cifras salen del cálculo determinista», con la procedencia (modelo, `created_at`, `request_id`) |
-| 3. Hechos del snapshot | La capa de hechos de `analysis` (§2.3) sobre los sitios evaluados | «Hechos del snapshot» |
+| 1. Result | `MissionEvaluation`: `ordering_rule`, groups, `requirement_results[].reason`, `what_would_change`, `pending_requirements`, `open_questions`, `limits`, and `data_request` when `outcome` is not `evaluated` | "Deterministic calculation · mission-rules-1.0.0 rules · v3 similarity not recalculated" |
+| 2. Highlighted reasons | By default, `composeExplanation(evaluation, deterministicSelection(evaluation), 'deterministic_template')`. After the AI, `composeExplanation(evaluation, selection, 'anthropic')` | Template: "Deterministic template without AI", without ✦. AI: "✦ Reasons highlighted with AI (Anthropic) · the figures come from the deterministic calculation", with the provenance (model, `created_at`, `request_id`) |
+| 3. Snapshot facts | The facts layer of `analysis` (§2.3) over the evaluated sites | "Snapshot facts" |
 
-- La glosa ✦ solo aparece cuando `explanation.source === 'anthropic'`.
-- La lista de verificación de campo sigue `selection.verification_ids`, que reemplaza a `field_priority`.
+- The ✦ gloss appears only when `explanation.source === 'anthropic'`.
+- The field verification checklist follows `selection.verification_ids`, which replaces `field_priority`.
 
-### 5.3 Adaptadores necesarios (funciones puras, con tests)
+### 5.3 Required adapters (pure functions, with tests)
 
-| Adaptador | Firma | Función |
+| Adapter | Signature | Function |
 |---|---|---|
-| `explanationToReading` | `(view: ExplanationView, evaluation: MissionEvaluation) → ReadingModel` | Convierte la vista del equipo en las secciones de `ReadingPanel`, `ReadingPill` y `ReadingSnippet`. Las líneas usan `describeRequirementLine`, `fmtObserved` y `fmtQuantity`. **Nunca lee números de la selección:** solo IDs, que resuelve contra `evaluation` |
-| `readingKey` | `(evaluation, revision) → string` | `mission:${request_fingerprint}:${revision}` para `readingStore`. Una clave distinta descarta la Lectura anterior |
-| `snippetFor` | `(view, siteId) → string \| null` | Primer requisito clave del sitio, para la píldora de la tarjeta del carrusel |
-| `evidenceHref` | `(evidenceId, evaluation) → {tab: 'fuentes', anchor} \| {url}` | Une `evidence_ids` con la pestaña Fuentes (artefacto) o con `#site-record` (`app_derived`) |
-| `buildFactsLayer` | `(snapshot, rankedIds, referenceIds) → Fact[]` | Lo que queda de `buildEvidencePacket`: sin paquete, sin huella FNV y sin filtro `^cl-` |
-| `parseSensitivity` | `(analysisSummary) → Map<siteId, Sensitivity>` | Entrada de `robustness.ts`, tomada del pipeline |
-| `requestMissionExplanation` | Envoltorio de `runExplain` del controlador | La Lectura no llama a aiClient directamente. Todo pasa por el reducer, que conserva las protecciones |
+| `explanationToReading` | `(view: ExplanationView, evaluation: MissionEvaluation) → ReadingModel` | Converts the team's view into the sections of `ReadingPanel`, `ReadingPill` and `ReadingSnippet`. The lines use `describeRequirementLine`, `fmtObserved` and `fmtQuantity`. **It never reads numbers from the selection:** only IDs, which it resolves against `evaluation` |
+| `readingKey` | `(evaluation, revision) → string` | `mission:${request_fingerprint}:${revision}` for `readingStore`. A different key discards the previous Reading |
+| `snippetFor` | `(view, siteId) → string \| null` | First key requirement of the site, for the pill on the carousel card |
+| `evidenceHref` | `(evidenceId, evaluation) → {tab: 'fuentes', anchor} \| {url}` | Links `evidence_ids` with the Sources tab (artifact) or with `#site-record` (`app_derived`) |
+| `buildFactsLayer` | `(snapshot, rankedIds, referenceIds) → Fact[]` | What remains of `buildEvidencePacket`: no package, no FNV fingerprint and no `^cl-` filter |
+| `parseSensitivity` | `(analysisSummary) → Map<siteId, Sensitivity>` | Input of `robustness.ts`, taken from the pipeline |
+| `requestMissionExplanation` | Controller `runExplain` wrapper | The Reading does not call aiClient directly. Everything goes through the reducer, which keeps the safeguards |
 
-### 5.4 Estados y textos
+### 5.4 States and texts
 
-| Estado | Comportamiento |
+| State | Behavior |
 |---|---|
-| Inicial (`done`) | Capas 1, 2 (plantilla) y 3, y el botón «✦ Destacar motivos con IA». Junto al botón va el aviso literal de `ResultView`: «Al pulsar el botón se envían a Anthropic los requisitos confirmados y los resultados ya calculados (no el texto completo del brief).» El botón **solo existe cuando `outcome === 'evaluated'`** |
-| En curso (`analysis`) | `OrbitLoader` «Destacando motivos…»: contador a los 3 s, aviso de lentitud a los 10 s, «Cancelar». La plantilla sigue visible |
-| No disponible | Mensaje de aiClient; la plantilla queda como Lectura |
-| Huella distinta (`stale_request`) o selección rechazada | «La respuesta no corresponde al cálculo vigente», y la plantilla se mantiene |
-| Edición | El reducer aborta la petición; la Lectura vuelve a `--o-busy` hasta reevaluar |
-| Exportación | `buildMissionExport(request, evaluation, bundle, {draft, explanation})`. La plantilla **no** se registra como IA (`ai.explanation: null`) |
+| Initial (`done`) | Layers 1, 2 (template) and 3, and the button "✦ Highlight reasons with AI". Next to the button goes the literal notice from `ResultView`: "Pressing the button sends the confirmed requirements and the results already calculated to Anthropic (not the full text of the brief)." The button **only exists when `outcome === 'evaluated'`** |
+| In progress (`analysis`) | `OrbitLoader` "Highlighting reasons…": counter at 3 s, slowness notice at 10 s, "Cancel". The template remains visible |
+| Unavailable | aiClient message; the template remains as the Reading |
+| Different fingerprint (`stale_request`) or rejected selection | "The response does not correspond to the current calculation", and the template is kept |
+| Editing | The reducer aborts the request; the Reading returns to `--o-busy` until re-evaluation |
+| Export | `buildMissionExport(request, evaluation, bundle, {draft, explanation})`. The template is **not** recorded as AI (`ai.explanation: null`) |
 
-**No hay llamadas automáticas:** se elimina el arranque de lktron al entrar en la fase `analysis`, que ahora termina en `done` en cuanto está la plantilla.
+**There are no automatic calls:** the lktron startup upon entering the `analysis` phase is removed, which now ends in `done` as soon as the template is available.
 
-### 5.5 Lectura en Explorar
+### 5.5 Reading in Explore
 
-- En Explorar no hay operación de IA, porque `explain` necesita una solicitud confirmada.
-- La Lectura muestra solo «Hechos del snapshot» y la robustez base, rotulada «Lectura determinista». No lleva ✦.
+- In Explore there is no AI operation, because `explain` needs a confirmed request.
+- The Reading shows only "Snapshot facts" and the base robustness, labeled "Deterministic reading". It carries no ✦.
 
-## 6. Renumeración de ADR
+## 6. ADR renumbering
 
-origin/dev ya ocupa ADR-008 (`global-discovery-pilot`, aceptado) y ADR-009 (`mission-guided-recommendation`, aceptado). El ADR-007 es idéntico en las dos ramas.
+origin/dev already occupies ADR-008 (`global-discovery-pilot`, accepted) and ADR-009 (`mission-guided-recommendation`, accepted). ADR-007 is identical in both branches.
 
-| Actual (nuestra rama) | Nuevo | Estado tras la integración |
+| Current (our branch) | New | State after integration |
 |---|---|---|
-| `ADR-008-escenario-fijo-y-hoja.md` | `ADR-014-escenario-fijo-y-hoja.md` (ADR-010 hasta la fusión de M9/M10) | Propuesto (sigue pendiente de aceptación humana). Se añade la relación: no afecta a ADR-008 ni ADR-009 del equipo |
-| `ADR-009-recalculo-determinista-en-cliente.md` | `ADR-015-recalculo-determinista-en-cliente.md` (ADR-011 hasta la fusión de M9/M10) | **Sustituido por ADR-009** (recomendación guiada). No se integra; se conserva como registro de la decisión descartada |
-| `ADR-010-ia-opcional-fuera-del-flujo-central.md` | `ADR-012-ia-opcional-fuera-del-flujo-central.md` | **Sustituido por ADR-009 §7–9** (Anthropic solo en el servidor) |
-| — | `ADR-013-integracion-rediseno-planificador.md` | Propuesto. Registra cinco decisiones:<br>• la UI del rediseño aloja el planificador;<br>• validadores precompilados en el chunk principal y Ajv en runtime solo en el chunk de misión;<br>• la Lectura combina la plantilla determinista con una explicación de IA opcional;<br>• no hay llamadas automáticas a la IA;<br>• el flujo sin IA exige requisitos manuales (§3.6). |
+| `ADR-008-escenario-fijo-y-hoja.md` | `ADR-014-escenario-fijo-y-hoja.md` (ADR-010 until the M9/M10 merge) | Proposed (still pending human acceptance). The relationship is added: it does not affect the team's ADR-008 or ADR-009 |
+| `ADR-009-recalculo-determinista-en-cliente.md` | `ADR-015-recalculo-determinista-en-cliente.md` (ADR-011 until the M9/M10 merge) | **Superseded by ADR-009** (guided recommendation). It is not integrated; it is kept as a record of the discarded decision |
+| `ADR-010-ia-opcional-fuera-del-flujo-central.md` | `ADR-012-ia-opcional-fuera-del-flujo-central.md` | **Superseded by ADR-009 §7–9** (Anthropic only on the server) |
+| — | `ADR-013-integracion-rediseno-planificador.md` | Proposed. Records five decisions:<br>• the redesign UI hosts the planner;<br>• precompiled validators in the main chunk and runtime Ajv only in the mission chunk;<br>• the Reading combines the deterministic template with an optional AI explanation;<br>• there are no automatic calls to the AI;<br>• the flow without AI requires manual requirements (§3.6). |
 
-**Procedimiento** (en ese orden, para que no choquen las rutas):
+**Procedure** (in this order, so that paths do not collide):
 
-1. Renombrar con `git mv` 010→012, después 009→011 y por último 008→010.
-2. Actualizar las referencias **solo en los archivos que vienen de nuestra rama** que no se borren en F6. Fuera de `docs/decisions` hoy hay 56 referencias en 36 archivos, y cerca de la mitad de esos archivos se borran con engine y lktron:
+1. Rename with `git mv` 010→012, then 009→011 and finally 008→010.
+2. Update the references **only in the files that come from our branch** and are not deleted in F6. Outside `docs/decisions` there are currently 56 references in 36 files, and about half of those files are deleted along with engine and lktron:
    - `apps/web/src/shell/{AppShell.tsx,layout.ts,shell.css,stageGeometry.js}`;
    - `apps/web/src/shell/sheet/{Sheet.tsx,resolveDetent.ts,useKeyboardInset.ts}`;
    - `apps/web/src/shell/detail/FullDetail.tsx`;
@@ -365,286 +365,286 @@ origin/dev ya ocupa ADR-008 (`global-discovery-pilot`, aceptado) y ADR-009 (`mis
    - `apps/web/src/features/composer/missionRun.test.ts`;
    - `apps/web/src/features/analysis/README.md`;
    - `apps/web/src/tests/{shell.test.tsx,mapZoom.test.ts}`;
-   - `docs/UX_REDESIGN.md`, `docs/BUILD_CONTRACTS.md`, `tests/fixtures/contracts/README.md`, `project/STATUS.md` y `project/CHANGELOG.md`.
-3. Las menciones a ADR-008/009 en archivos de dev (incluido el comentario de su `vite.config.ts`) son correctas y **no se tocan**.
-4. Verificar con `git grep -nE "ADR-0(08|09|1[0-3])"` y revisar cada aparición:
-   - ADR-008 = piloto de descubrimiento;
-   - ADR-009 = recomendación guiada;
-   - ADR-014 = escenario fijo (era ADR-010; el equipo usó ADR-010/011 para la geología M9/M10);
-   - ADR-015 (era ADR-011) y ADR-012 = sustituidos;
-   - ADR-013 = integración.
+   - `docs/UX_REDESIGN.md`, `docs/BUILD_CONTRACTS.md`, `tests/fixtures/contracts/README.md`, `project/STATUS.md` and `project/CHANGELOG.md`.
+3. The mentions of ADR-008/009 in dev files (including the comment in its `vite.config.ts`) are correct and **are not touched**.
+4. Verify with `git grep -nE "ADR-0(08|09|1[0-3])"` and review each occurrence:
+   - ADR-008 = discovery pilot;
+   - ADR-009 = guided recommendation;
+   - ADR-014 = fixed scenario (was ADR-010; the team used ADR-010/011 for the M9/M10 geology);
+   - ADR-015 (was ADR-011) and ADR-012 = superseded;
+   - ADR-013 = integration.
 
-   Además, `ls docs/decisions | cut -c1-7 | sort | uniq -d` no debe devolver nada.
+   In addition, `ls docs/decisions | cut -c1-7 | sort | uniq -d` must return nothing.
 
 ## 7. Tests
 
-Línea base medida:
-- **Nuestra rama:** pytest 170 pasan y 1 se omite; vitest 857 en 57 archivos.
-- **origin/dev:** pytest 173 pasan y 4 se omiten (requieren `data/raw`); vitest 196 pasan y 2 se omiten (IA real, opt-in); `typecheck:server` correcto.
+Measured baseline:
+- **Our branch:** pytest 170 pass and 1 is skipped; vitest 857 in 57 files.
+- **origin/dev:** pytest 173 pass and 4 are skipped (they require `data/raw`); vitest 196 pass and 2 are skipped (real AI, opt-in); `typecheck:server` correct.
 
-### 7.1 Del equipo: se conservan con las aserciones intactas
+### 7.1 From the team: kept with assertions intact
 
-`apps/web/src/tests/{aiServer,aiLive,missionEngine,missionGeometry,plannerState,plannerUi,missionFormat}.test.*` y `tests/test_discovery.py`.
+`apps/web/src/tests/{aiServer,aiLive,missionEngine,missionGeometry,plannerState,plannerUi,missionFormat}.test.*` and `tests/test_discovery.py`.
 
-- `aiLive` sigue siendo opt-in: **no** se ejecuta `npm run test:ai-live` sin autorización explícita del usuario.
-- `plannerUi` y `missionFormat` siguen renderizando `components/planner/*` con la firma de siempre (§2.4).
-- `missionFormat` lee `App.tsx` (§2.5).
-- Al final, `git diff origin/dev -- <estos archivos>` debe salir vacío.
+- `aiLive` remains opt-in: `npm run test:ai-live` is **not** run without explicit authorization from the user.
+- `plannerUi` and `missionFormat` continue to render `components/planner/*` with the usual signature (§2.4).
+- `missionFormat` reads `App.tsx` (§2.5).
+- At the end, `git diff origin/dev -- <estos archivos>` must come out empty.
 
-### 7.2 Compartidos (existen en las dos ramas)
+### 7.2 Shared (exist in both branches)
 
-| Test | Situación | Acción |
+| Test | Situation | Action |
 |---|---|---|
-| `domain`, `globe`, `snapshot` (web); `test_constraints`, `test_contracts`, `test_precision_artifacts`, `test_science_artifacts`, `test_scoring`, `test_visual_context` (Python) | Ninguna rama los cambió | Se conservan |
-| `surfaceSeries`, `visualContext` | Solo los cambió dev (7 series de 12 meses; `visual-context-v3`) | Se adoptan los de dev. `contextLayers` debe pasar además nuestros dos casos con el índice v2 |
-| `basemaps`, `mapZoom`, `test_basemaps.py` | Solo los cambiamos nosotros | Se conservan; en `mapZoom` solo se actualiza la mención al ADR |
-| `mapStage.test.ts` | Cambiado en las dos y fusionado sin conflicto; importa `features/globe/MapStage` y exige `visual-context-v3` (7 capas, 3 `s2-ar-*`) | Se conserva; lo hace pasar `contextLayers` según `snapshot_version` |
-| `tests/test_release_package.py` | Cambiado en las dos y fusionado sin conflicto, pero roto: nuestros casos de precarga apuntan a `./science-v2/manifest.json` y `./visual-context/index.json` | Se reescriben los casos de precarga contra las rutas v3. Se mantienen los de `BASEMAP_FILES`. Se quitan los de `ANALYSIS_FILES` |
-| `discovery.test.tsx` (de dev) | Importa `../components/CandidateMap` (ahora en `features/globe/`), `CandidateRanking` y `CandidateDetails` (retirados) | Los bloques de contratos, roles, búsqueda, exportación y mapa **se conservan con sus aserciones**; solo cambia la ruta de `CandidateMap`. El bloque «ranking y ficha» se porta con **los mismos textos esperados**: el ranking a `places/PlaceRail.test.tsx` y la ficha a `shell/detail/OriginSection.test.tsx`. Se registra en STATUS como portado, no eliminado |
+| `domain`, `globe`, `snapshot` (web); `test_constraints`, `test_contracts`, `test_precision_artifacts`, `test_science_artifacts`, `test_scoring`, `test_visual_context` (Python) | Neither branch changed them | Kept |
+| `surfaceSeries`, `visualContext` | Changed only by dev (7 series of 12 months; `visual-context-v3`) | Dev's versions are adopted. `contextLayers` must also pass our two cases with the v2 index |
+| `basemaps`, `mapZoom`, `test_basemaps.py` | Changed only by us | Kept; in `mapZoom` only the ADR mention is updated |
+| `mapStage.test.ts` | Changed in both and merged without conflict; imports `features/globe/MapStage` and requires `visual-context-v3` (7 layers, 3 `s2-ar-*`) | Kept; made to pass by `contextLayers` according to `snapshot_version` |
+| `tests/test_release_package.py` | Changed in both and merged without conflict, but broken: our preload cases point to `./science-v2/manifest.json` and `./visual-context/index.json` | The preload cases are rewritten against the v3 paths. Those of `BASEMAP_FILES` are kept. Those of `ANALYSIS_FILES` are removed |
+| `discovery.test.tsx` (from dev) | Imports `../components/CandidateMap` (now in `features/globe/`), `CandidateRanking` and `CandidateDetails` (retired) | The contracts, roles, search, export and map blocks are **kept with their assertions**; only the path of `CandidateMap` changes. The "ranking and detail sheet" block is ported with **the same expected texts**: the ranking to `places/PlaceRail.test.tsx` and the detail sheet to `shell/detail/OriginSection.test.tsx`. It is recorded in STATUS as ported, not deleted |
 
-### 7.3 Nuestros: se conservan sin cambios
+### 7.3 Ours: kept unchanged
 
 - `globe/{flight,geometry,keyboard,selectionCamera}.test.ts`
 - `leaders/{layoutLeaders,projector,controller}.test.ts`
 - `tests/{reducedMotion,resolveDetent}.test.ts`
 
-### 7.4 Nuestros: se reescriben
+### 7.4 Ours: rewritten
 
-| Test | Qué cambia |
+| Test | What changes |
 |---|---|
-| `globe/markers.test.ts`, `globe/MarkerLayer.test.tsx` | Rótulo «REF» sin número; grupo por país; tipos según `OptionStatus`; ningún % de misión |
-| `places/places.test.ts`, `places/PlaceRail.test.tsx` | REF fuera del ranking; filtro por país con puesto global; estado vacío honesto; grupos por estado en Misión; diagnóstico cuando `outcome ≠ evaluated`. También reciben las aserciones portadas de `CandidateRanking` (`>REF<`, `aria-label="Filtrar candidatos por país"`, el puesto global argentino, «La búsqueda no dejó candidatos en Argentina», «Referencia conocida: Yungay») |
-| `metrics/{metricContext,buildMetricViews}.test.ts`, `metrics/MetricRail.test.tsx` | Sin pesos de misión; capa de requisitos (✓/✕/○, `reason`, escala); filas de área y país; «Factibilidad territorial: pendiente»; «Mejor de N» sin REF |
-| `leaders/{principal,labelModel}.test.ts`, `leaders/leaders.test.tsx` | Métricas principales ordenadas por requisito; rótulo con `describeCondition`; sin líneas fuera del alcance |
-| `boot/boot.test.tsx`, `tests/boot.test.ts` | Precarga v3; chip «6 candidatos · 1 REF»; marca «AnalogOS · Piloto Chile–Argentina» |
-| `composer/{Composer.test.tsx,missionRun,model,history}.test.ts` | Sobre `MissionController` y `plannerReducer`:<br>• «Enviar» no llama a la IA;<br>• nunca se confirma solo;<br>• una edición invalida y aborta;<br>• historial v2 sin procedencia de IA;<br>• umbrales visuales sin timeout propio, con los casos de umbral traídos de `missionPhase.test.ts` |
-| `analysis/{runtime,controller,evidencePacket→facts,robustness}.test.ts`, `analysis/ReadingView.test.tsx` | Contra `MissionEvaluation` y `ExplanationView`; aceptan sitios `ar-`; la REF como hecho aparte; sensibilidad desde el pipeline |
-| `tests/comparison.test.ts` | Firma de dev (`ranked`, `references`, `rankOf`) |
-| `tests/featureContracts.test.ts` | Sin la entrada `engine`; sin `LKTRON_ENABLED`, `interpretWithLktron` ni `LktronResult`; con las exportaciones nuevas del composer |
-| `tests/shell.test.tsx` | Marca, pestañas Origen y Método, referencias de ADR |
-| `tests/uiStore.test.ts` | Fase `review`, que no cuenta como ocupada |
-| `tests/validators.test.ts` | `OUTPUTS` nuevos (`discovery-search`, `precedent-catalog`). Siguen aceptando v3, v2, v1 y demo, y rechazando los 9 casos rotos de dev |
+| `globe/markers.test.ts`, `globe/MarkerLayer.test.tsx` | "REF" label without a number; grouping by country; types according to `OptionStatus`; no mission % |
+| `places/places.test.ts`, `places/PlaceRail.test.tsx` | REF outside the ranking; country filter with global rank; honest empty state; groups by status in Mission; diagnostic when `outcome ≠ evaluated`. They also receive the assertions ported from `CandidateRanking` (`>REF<`, `aria-label="Filter candidates by country"`, the Argentine global rank, "The search left no candidates in Argentina", "Known reference: Yungay") |
+| `metrics/{metricContext,buildMetricViews}.test.ts`, `metrics/MetricRail.test.tsx` | No mission weights; requirements layer (✓/✕/○, `reason`, scale); area and country rows; "Territorial feasibility: pending"; "Best of N" without REF |
+| `leaders/{principal,labelModel}.test.ts`, `leaders/leaders.test.tsx` | Main metrics ordered by requirement; label with `describeCondition`; no out-of-scope lines |
+| `boot/boot.test.tsx`, `tests/boot.test.ts` | v3 preload; chip "6 candidates · 1 REF"; brand "AnalogOS · Chile–Argentina Pilot" |
+| `composer/{Composer.test.tsx,missionRun,model,history}.test.ts` | On `MissionController` and `plannerReducer`:<br>• "Send" does not call the AI;<br>• it is never confirmed on its own;<br>• an edit invalidates and aborts;<br>• v2 history without AI provenance;<br>• visual thresholds without their own timeout, with the threshold cases brought over from `missionPhase.test.ts` |
+| `analysis/{runtime,controller,evidencePacket→facts,robustness}.test.ts`, `analysis/ReadingView.test.tsx` | Against `MissionEvaluation` and `ExplanationView`; they accept `ar-` sites; the REF as a separate fact; sensitivity from the pipeline |
+| `tests/comparison.test.ts` | Dev signature (`ranked`, `references`, `rankOf`) |
+| `tests/featureContracts.test.ts` | Without the `engine` entry; without `LKTRON_ENABLED`, `interpretWithLktron` or `LktronResult`; with the composer's new exports |
+| `tests/shell.test.tsx` | Brand, Origin and Method tabs, ADR references |
+| `tests/uiStore.test.ts` | Phase `review`, which does not count as occupied |
+| `tests/validators.test.ts` | New `OUTPUTS` (`discovery-search`, `precedent-catalog`). They continue to accept v3, v2, v1 and demo, and to reject the 9 broken cases from dev |
 
-### 7.5 Se eliminan (obsoletos)
+### 7.5 Removed (obsolete)
 
-| Test | Motivo |
+| Test | Reason |
 |---|---|
-| `features/engine/{aggregate,parity,profiles,scoreMission,demoMatcher,missionPhase}.test.ts` | Se retira el motor de recálculo por pesos (ADR-015, sustituido). Los casos de umbral de `missionPhase` se trasladan al composer |
-| `tests/test_engine_parity.py` y `tests/fixtures/engine/` | Comprobaban que el port TS de `aggregate` daba lo mismo que `scoring.py`. Sin port, no hay paridad que verificar. `test_scoring.py` sigue cubriendo el pipeline |
-| `features/analysis/{lktron,ndjson,eventGate,analysisTokens,fnv,pregenerated,integration}.test.ts` | Se retiran el canal lktron NDJSON, los tokens `{{id}}`, la huella FNV y la prosa pregenerada (ADR-012, sustituido por ADR-009 §7–9) |
-| `apps/web/src/tests/aiContracts.test.ts` y `tests/test_ai_contracts.py` | Validaban `mission-interpretation`, `evidence-packet` y `ai-analysis`, que se retiran. Los nuevos contratos los cubren `missionEngine`, `plannerState` y `aiServer` |
-| Fixtures de `tests/fixtures/contracts/` de esos tres contratos, más sus entradas en `expectations.json` | Retiro de contratos. Los de `reference-analog` se conservan |
+| `features/engine/{aggregate,parity,profiles,scoreMission,demoMatcher,missionPhase}.test.ts` | The weight-based recalculation engine is retired (ADR-015, superseded). The threshold cases of `missionPhase` are moved to the composer |
+| `tests/test_engine_parity.py` and `tests/fixtures/engine/` | They checked that the TS port of `aggregate` gave the same results as `scoring.py`. Without a port, there is no parity to verify. `test_scoring.py` continues to cover the pipeline |
+| `features/analysis/{lktron,ndjson,eventGate,analysisTokens,fnv,pregenerated,integration}.test.ts` | The lktron NDJSON channel, the `{{id}}` tokens, the FNV fingerprint and the pregenerated prose are retired (ADR-012, superseded by ADR-009 §7–9) |
+| `apps/web/src/tests/aiContracts.test.ts` and `tests/test_ai_contracts.py` | They validated `mission-interpretation`, `evidence-packet` and `ai-analysis`, which are being retired. The new contracts are covered by `missionEngine`, `plannerState` and `aiServer` |
+| `tests/fixtures/contracts/` fixtures for those three contracts, plus their entries in `expectations.json` | Contract retirement. The `reference-analog` ones are kept |
 
-### 7.6 Tests nuevos
+### 7.6 New tests
 
-| Test | Qué comprueba |
+| Test | What it checks |
 |---|---|
-| `composer/MissionController.test.tsx` | Un solo planificador compartido por el dock, «Tu misión», el carrusel y el riel. Sin llamadas automáticas a la IA. Una edición invalida el escenario y aborta en red |
-| `analysis/explanationToReading.test.ts` | Todas las cifras salen de `evaluation`. La plantilla va rotulada y sin ✦. ✦ solo con `anthropic`. Una huella distinta deja la plantilla |
-| `tests/bundleParity.test.ts` | El bundle que la web pasa a `evaluateMission` tiene la misma huella canónica que `loadTrustedBundle()` del servidor. Si no, toda explicación de IA terminaría en `stale_request` |
-| `tests/referenceNeverRanked.test.ts` | En Explorar, Yungay nunca recibe puesto en places, globe, metrics ni analysis |
-| `tests/copy.test.ts` | Ninguna superficie contiene «% del motor determinista», «DEMO · sin IA», «nivel ÷ suma», «Perfil de tu misión», «M8», «AnalogOS Chile» ni `VITE_LKTRON` |
-| `shell/detail/OriginSection.test.tsx` | La parte de ficha portada de `discovery.test.tsx` (§7.2) |
+| `composer/MissionController.test.tsx` | A single planner shared by the dock, "Your mission", the carousel and the rail. No automatic calls to the AI. An edit invalidates the scenario and aborts on the network |
+| `analysis/explanationToReading.test.ts` | All figures come from `evaluation`. The template is labeled and carries no ✦. ✦ only with `anthropic`. A different fingerprint falls back to the template |
+| `tests/bundleParity.test.ts` | The bundle the web passes to `evaluateMission` has the same canonical fingerprint as the server's `loadTrustedBundle()`. Otherwise, every AI explanation would end up in `stale_request` |
+| `tests/referenceNeverRanked.test.ts` | In Explore, Yungay never receives a rank in places, globe, metrics or analysis |
+| `tests/copy.test.ts` | No surface contains "% of the deterministic engine", "DEMO · no AI", "level ÷ sum", "Your mission profile", "M8", "AnalogOS Chile" or `VITE_LKTRON` |
+| `shell/detail/OriginSection.test.tsx` | The ported record-sheet part of `discovery.test.tsx` (§7.2) |
 
-## 8. Orden de los pasos
+## 8. Order of the steps
 
-Se trabaja en `feature/mision-redesign`; si se quiere poder abandonar, se usa una rama hija `feature/integracion-dev`. **No hay checkout de `dev` ni de `main` en local.** El entorno es este:
-- Python: `PATH=/tmp/claude-venv314/bin:$PATH`. Si hace falta, `pip install -e ".[dev]" pillow`.
-- Navegador: playwright-core en `/tmp/claude-pw`.
-- Servidor estático: `node /tmp/claude-srv/serve.mjs <dist> <puerto>`, que hay que reiniciar después de cada build.
+Work is done on `feature/mision-redesign`; if you want to be able to abandon the work, use a child branch `feature/integracion-dev`. **There is no local checkout of `dev` or `main`.** The environment is as follows:
+- Python: `PATH=/tmp/claude-venv314/bin:$PATH`. If needed, `pip install -e ".[dev]" pillow`.
+- Browser: playwright-core in `/tmp/claude-pw`.
+- Static server: `node /tmp/claude-srv/serve.mjs <dist> <puerto>`, which must be restarted after each build.
 
-Cada fase termina con su compuerta y su commit en español con los trailers de sesión.
+Each phase ends with its gate and its commit in Spanish with the session trailers.
 
-### F0 · Línea base
+### F0 · Baseline
 
-1. Árbol limpio. Anotar `git rev-parse HEAD origin/dev`.
-2. Repetir la medición de §7 en las dos ramas y anotarla.
-3. Anotar el SHA de `submission/analogos-static.zip`.
+1. Clean tree. Note down `git rev-parse HEAD origin/dev`.
+2. Repeat the measurement from §7 on both branches and record it.
+3. Note down the SHA of `submission/analogos-static.zip`.
 
-### F1 · Fusión y conflictos
+### F1 · Merge and conflicts
 
 1. `git merge --no-ff --no-commit origin/dev`.
-2. Resolver las 16 rutas:
+2. Resolve the 16 paths:
 
-| Ruta | Tipo | Resolución |
+| Path | Type | Resolution |
 |---|---|---|
-| `apps/web/src/App.tsx` | contenido | La nuestra, más los textos de §2.5 |
-| `apps/web/src/breakdown/ScoreBreakdown.tsx` | modificado/borrado | Borrar (§2.5) |
-| `apps/web/src/components/CandidateComparison.tsx` | contenido | Firma de dev y estilo nuestro |
-| `apps/web/src/components/CandidateDetails.tsx` | modificado/borrado | Borrar; el bloque de origen pasa a `OriginSection` (en F3) |
-| `apps/web/src/components/{CandidateFlatMap,CandidateGlobe,MapStage}.tsx` | modificado/borrado | Borrar; los cambios se portan a `features/globe/*` (en F2–F3) |
-| `apps/web/src/components/LiquidNav.tsx` | modificado/borrado | Borrar |
-| `apps/web/src/data/loadDemoSnapshot.ts` | contenido | La de dev |
-| `apps/web/src/domain/contracts.ts` | contenido | La nuestra precompilada, con tipos de `shared` (§2.1) |
-| `apps/web/src/features/globe/CandidateMap.tsx` | contenido (renombre detectado) | Contenido de dev con rutas `../../` |
-| `apps/web/src/styles.css` | contenido | La nuestra, más los estilos imprescindibles del SVG de búsqueda; `planner.css` se importa desde sus componentes |
-| `apps/web/vite.config.ts` | contenido | Unión (§2.3) |
-| `project/STATUS.md`, `project/CHANGELOG.md` | contenido | El texto de dev completo, más un bloque nuevo arriba |
-| `scripts/package_release.py` | contenido | Fusión según §2.6 |
+| `apps/web/src/App.tsx` | content | Ours, plus the texts from §2.5 |
+| `apps/web/src/breakdown/ScoreBreakdown.tsx` | modified/deleted | Delete (§2.5) |
+| `apps/web/src/components/CandidateComparison.tsx` | content | Signature from dev and our style |
+| `apps/web/src/components/CandidateDetails.tsx` | modified/deleted | Delete; the source block moves to `OriginSection` (in F3) |
+| `apps/web/src/components/{CandidateFlatMap,CandidateGlobe,MapStage}.tsx` | modified/deleted | Delete; the changes are ported to `features/globe/*` (in F2–F3) |
+| `apps/web/src/components/LiquidNav.tsx` | modified/deleted | Delete |
+| `apps/web/src/data/loadDemoSnapshot.ts` | content | The one from dev |
+| `apps/web/src/domain/contracts.ts` | content | Ours, precompiled, with `shared` types (§2.1) |
+| `apps/web/src/features/globe/CandidateMap.tsx` | content (rename detected) | Content from dev with `../../` paths |
+| `apps/web/src/styles.css` | content | Ours, plus the essential styles of the search SVG; `planner.css` is imported from its components |
+| `apps/web/vite.config.ts` | content | Union (§2.3) |
+| `project/STATUS.md`, `project/CHANGELOG.md` | content | The full text from dev, plus a new block at the top |
+| `scripts/package_release.py` | content | Merge according to §2.6 |
 
-3. Dentro del mismo commit van además estos arreglos mecánicos:
-   - renombrar `chileOutline`→`outline`;
-   - regenerar los validadores;
-   - cambiar la ruta de `CandidateMap` en `discovery.test.tsx`.
-4. **Compuerta F1:**
-   - `npm run typecheck:server` en verde;
-   - `tsc --noEmit` en verde;
-   - pytest en verde, salvo `test_release_package.py`, que se arregla en F2;
+3. The same commit also includes these mechanical fixes:
+   - rename `chileOutline`→`outline`;
+   - regenerate the validators;
+   - change the path of `CandidateMap` in `discovery.test.tsx`.
+4. **F1 gate:**
+   - `npm run typecheck:server` green;
+   - `tsc --noEmit` green;
+   - pytest green, except for `test_release_package.py`, which is fixed in F2;
    - `git diff --quiet origin/dev -- <lista de §9.3>`;
-   - las suites del equipo de §7.1 en verde.
-5. Commit: «Fusiona origin/dev (piloto v3, planificador e IA Anthropic) en el rediseño».
+   - the team suites from §7.1 green.
+5. Suggested commit message (translated): "Merge origin/dev (v3 pilot, planner and Anthropic AI) into the redesign".
 
-### F2 · Datos v3, contratos, build y servidor
+### F2 · v3 data, contracts, build and server
 
-1. `build-validators` con `discovery-search` y `precedent-catalog`. Quitar los validadores lktron cuando ya nadie los importe; si no, en F6.
-2. `assertDiscoveryContracts` precompilado.
-3. `loadingHints` y `snapshotCredit` en v3.
-4. `contextLayers` según `snapshot_version`.
-5. `prune-build` y `vercel.json` de dev.
-6. `package_release.py` y `test_release_package.py`.
-7. **Compuerta F2:**
-   - `npm run build` en verde;
-   - `visualContext`, `mapStage`, `surfaceSeries`, `snapshot`, `validators` y `discovery` (bloques conservados) en verde;
-   - smoke local: `npx vite preview` en `apps/web`, sin `.env`, responde `GET /api/ai` → 405 `method_not_allowed` y `POST {operation:'draft', client_request_id:'ci-startup-0001', brief:'x'}` → 503 `ai_unavailable` con `cache-control: no-store`.
+1. `build-validators` with `discovery-search` and `precedent-catalog`. Remove the lktron validators once nobody imports them anymore; otherwise, in F6.
+2. Precompiled `assertDiscoveryContracts`.
+3. `loadingHints` and `snapshotCredit` in v3.
+4. `contextLayers` according to `snapshot_version`.
+5. `prune-build` and `vercel.json` from dev.
+6. `package_release.py` and `test_release_package.py`.
+7. **F2 gate:**
+   - `npm run build` green;
+   - `visualContext`, `mapStage`, `surfaceSeries`, `snapshot`, `validators` and `discovery` (retained blocks) green;
+   - local smoke test: `npx vite preview` in `apps/web`, without `.env`, responds `GET /api/ai` → 405 `method_not_allowed` and `POST {operation:'draft', client_request_id:'ci-startup-0001', brief:'x'}` → 503 `ai_unavailable` with `cache-control: no-store`.
 
-### F3 · Explorar v3
+### F3 · Explore v3
 
-1. `splitByRole`, `rankOf`, REF y país en markers, places, metrics y analysis.
-2. El filtro por país en `PlaceRail`.
-3. `OriginSection`, «Exportar ficha», «Cómo se buscaron» en Método y `CandidateComparison`.
-4. Boot y marca.
-5. **Compuerta F3:**
-   - tests reescritos de globe, places, metrics, boot, comparison y shell, más los portados de `discovery`, en verde;
-   - en el navegador, en escritorio (1440) y móvil (390×844): 6 candidatos, la REF y los ◆; el filtro por país; la REF sin número; Origen y Método; descarga de la ficha.
+1. `splitByRole`, `rankOf`, REF and country in markers, places, metrics and analysis.
+2. The country filter in `PlaceRail`.
+3. `OriginSection`, "Export record sheet", "How they were searched" in Method and `CandidateComparison`.
+4. Boot and brand.
+5. **F3 gate:**
+   - rewritten tests for globe, places, metrics, boot, comparison and shell, plus those ported from `discovery`, green;
+   - in the browser, on desktop (1440) and mobile (390×844): 6 candidates, the REF and the ◆; the country filter; the REF without a number; Origin and Method; record sheet download.
 
-### F4 · Misión sobre el planificador
+### F4 · Mission on top of the planner
 
-1. `MissionController` y `state/mission.ts` nuevos; fase `review`.
-2. División `PlannerPanel`/`PlannerView` y `ResultView` con `compact`.
-3. Composer y «Tu misión» (§3).
-4. Carrusel, globo, riel y líneas según `MissionEvaluation` (§4.2); exportación e impresión.
-5. Carga diferida (§3.8).
-6. **Compuerta F4:**
-   - `plannerUi`, `missionFormat`, `plannerState`, `missionEngine` y `missionGeometry` intactos y en verde;
-   - composer, places, metrics y leaders reescritos en verde;
-   - `MissionController.test` y `bundleParity` en verde;
-   - en el navegador, sin clave: ejemplo → confirmar → evaluar → grupos → capa de requisitos en el riel → JSON → imprimir. Editar invalida. El botón de IA dice «no disponible». Un punto fuera de cobertura da el diagnóstico exportable.
+1. `MissionController` and new `state/mission.ts`; phase `review`.
+2. Split `PlannerPanel`/`PlannerView` and `ResultView` with `compact`.
+3. Composer and "Your mission" (§3).
+4. Carousel, globe, rail and lines according to `MissionEvaluation` (§4.2); export and printing.
+5. Lazy loading (§3.8).
+6. **F4 gate:**
+   - `plannerUi`, `missionFormat`, `plannerState`, `missionEngine` and `missionGeometry` untouched and green;
+   - composer, places, metrics and leaders rewritten and green;
+   - `MissionController.test` and `bundleParity` green;
+   - in the browser, without a key: example → confirm → evaluate → groups → requirements layer on the rail → JSON → print. Editing invalidates. The AI button says "not available". A point outside coverage gives the exportable diagnostic.
 
-### F5 · Lectura y retiro de lktron
+### F5 · Reading and retirement of lktron
 
-1. Los adaptadores de §5.3; plantilla por defecto; «✦ Destacar motivos con IA» pasando por el reducer.
-2. Capa de hechos sin `^cl-`; robustez desde el pipeline.
-3. Borrar `lktron*`, `ndjson`, `eventGate`, `analysisTokens`, `TokenText`, `factIds`, `fnv` y `pregenerated`, con sus tests.
-4. **Compuerta F5:**
-   - tests de analysis reescritos y `explanationToReading` en verde;
-   - `git grep -nE "lktron|LKTRON|ndjson"` solo devuelve apariciones en ADR-012 y en el CHANGELOG.
+1. The adapters from §5.3; default template; "✦ Highlight reasons with AI" going through the reducer.
+2. Facts layer without `^cl-`; robustness from the pipeline.
+3. Delete `lktron*`, `ndjson`, `eventGate`, `analysisTokens`, `TokenText`, `factIds`, `fnv` and `pregenerated`, together with their tests.
+4. **F5 gate:**
+   - analysis tests rewritten and `explanationToReading` green;
+   - `git grep -nE "lktron|LKTRON|ndjson"` returns only occurrences in ADR-012 and in the CHANGELOG.
 
-### F6 · Retiro del motor propio, contratos, ADR y documentación
+### F6 · Retirement of the in-house engine, contracts, ADRs and documentation
 
-1. Borrar:
-   - `features/engine/*` (salvo lo que se movió a composer en F4);
-   - `tests/test_engine_parity.py` y `tests/fixtures/engine/`;
-   - los tres contratos lktron con sus fixtures y validadores;
-   - `domain/aiContracts.ts` y `domain/interpretationContract.ts`;
-   - `scripts/make_pregenerated_analysis.py` y `artifacts/analysis/ai-analysis.default.json`.
-2. Actualizar `featureContracts.test.ts`.
-3. ADR: renumerar según §6 y crear ADR-013.
-4. Documentación:
-   - `docs/UX_REDESIGN.md` §5: marcar como sustituido por `contracts/mission-ai.schema.json` y ADR-009;
-   - §3.2 y §3.7: actualizar;
-   - `docs/BUILD_CONTRACTS.md` §2.6 y §2.8: motor retirado, analysis sin lktron;
-   - `README.md` si menciona lktron o el % de misión;
-   - `project/NEXT_TASK.md`: registrar que el equipo humano pidió directamente esta integración y el push a dev, en un bloque «decisión directa del usuario» que conserve el encargo M8 aceptado de Codex.
-5. `docs/AI_SETUP.md` y `docs/DEV_AI_VERIFICATION.md` no se tocan.
-6. **Compuerta F6:**
-   - `git grep -nE "features/engine|MissionScoring|profileFromLevels|matchMissionDemo|motor determinista v"` vacío fuera de ADR-015 y del CHANGELOG;
-   - las verificaciones de ADR de §6;
-   - `npm run test` en verde.
+1. Delete:
+   - `features/engine/*` (except what was moved to composer in F4);
+   - `tests/test_engine_parity.py` and `tests/fixtures/engine/`;
+   - the three lktron contracts with their fixtures and validators;
+   - `domain/aiContracts.ts` and `domain/interpretationContract.ts`;
+   - `scripts/make_pregenerated_analysis.py` and `artifacts/analysis/ai-analysis.default.json`.
+2. Update `featureContracts.test.ts`.
+3. ADR: renumber according to §6 and create ADR-013.
+4. Documentation:
+   - `docs/UX_REDESIGN.md` §5: mark as superseded by `contracts/mission-ai.schema.json` and ADR-009;
+   - update §3.2 and §3.7:;
+   - `docs/BUILD_CONTRACTS.md` §2.6 and §2.8: engine retired, analysis without lktron;
+   - `README.md` if it mentions lktron or the mission %;
+   - `project/NEXT_TASK.md`: record that the human team directly requested this integration and the push to dev, in a "direct user decision" block that keeps Codex's accepted M8 assignment.
+5. `docs/AI_SETUP.md` and `docs/DEV_AI_VERIFICATION.md` are not touched.
+6. **F6 gate:**
+   - `git grep -nE "features/engine|MissionScoring|profileFromLevels|matchMissionDemo|motor determinista v"` empty outside ADR-015 and the CHANGELOG;
+   - the ADR checks from §6;
+   - `npm run test` green.
 
-### F7 · Verificación total y publicación
+### F7 · Full verification and publication
 
 1. `PATH=/tmp/claude-venv314/bin:$PATH npm run verify`.
-2. `npm run release:package` dos veces: mismo SHA y lista blanca correcta. Abrir el ZIP desde `file://` sin red.
-3. Smoke de `/api/ai` (como en F2), sobre el build final.
-4. Revisión en el navegador completa (§9.8), sin errores de consola.
-5. Actualizar STATUS y CHANGELOG: qué funciona, cómo ejecutarlo, pruebas con sus números, archivos cambiados, decisiones, bloqueos y los tres próximos pasos.
-6. Push **solo en el paso autorizado por el usuario:** `git fetch origin` y comprobar que `origin/dev` sigue en `92392f1`, o en un descendiente que haya que fusionar antes. Después `git push origin HEAD:dev`, que debe ser fast-forward, nunca `--force`. **El HEAD empujado no debe llevar `[skip ci]`.**
-7. Seguir la ejecución de Actions con `gh run list --branch dev` y `gh run watch`: `vercel build`, `check-vercel-function` (GET 405 y POST sin clave 503), deploy con la clave inyectada y el alias `analogos-dev.vercel.app`.
+2. `npm run release:package` twice: same SHA and correct allowlist. Open the ZIP from `file://` without a network.
+3. `/api/ai` smoke test (as in F2), on the final build.
+4. Full browser review (§9.8), with no console errors.
+5. Update STATUS and CHANGELOG: what works, how to run it, tests with their numbers, files changed, decisions, blockers and the next three steps.
+6. Push **only at the step authorized by the user:** `git fetch origin` and check that `origin/dev` is still at `92392f1`, or at a descendant that must be merged first. Then `git push origin HEAD:dev`, which must be a fast-forward, never `--force`. **The pushed HEAD must not carry `[skip ci]`.**
+7. Follow the Actions run with `gh run list --branch dev` and `gh run watch`: `vercel build`, `check-vercel-function` (GET 405 and POST without key 503), deploy with the injected key and the alias `analogos-dev.vercel.app`.
 
-## 9. Criterios de terminado
+## 9. Done criteria
 
-1. **`npm run verify` en verde** (pytest, `typecheck:server`, vitest y build): 0 fallos en todos. Las únicas omisiones permitidas son las que requieren `data/raw` y los 2 tests de `aiLive`.
-2. **Tests del equipo intactos:** `git diff origin/dev -- apps/web/src/tests/{aiServer,aiLive,missionEngine,missionGeometry,plannerState,plannerUi,missionFormat}.test.* tests/test_discovery.py` sale vacío. En `discovery.test.tsx` solo cambian la ruta de `CandidateMap` y el bloque portado, que figura en STATUS.
-3. **Línea base científica:** `git diff --quiet origin/dev -- artifacts/demo artifacts/science-v1 artifacts/science-v2 artifacts/science-v3 artifacts/visual-context artifacts/visual-context-v3 config/mission_profiles config/discovery_search_v3.json config/analog_precedents_v1.json config/visual_observations_v3.json contracts/candidate-site.schema.json contracts/data-manifest.schema.json contracts/mission-profile.schema.json contracts/discovery-search.schema.json contracts/precedent-catalog.schema.json contracts/mission-request.schema.json contracts/mission-evaluation.schema.json contracts/mission-export.schema.json contracts/mission-ai.schema.json submission/analogos-chile-static.zip` devuelve 0.
-4. **Servidor:**
-   - `npm run typecheck:server` correcto;
-   - `grep -rn "apps/web" shared server api` vacío;
-   - `git diff --quiet origin/dev -- shared server api tsconfig.server.json vercel.json .github scripts/check-vercel-function.mjs` devuelve 0.
-5. **Smoke de `/api/ai` sobre el build final:** GET → 405 `method_not_allowed`; POST de `draft` sin clave → 503 `ai_unavailable` con `no-store`.
+1. **`npm run verify` green** (pytest, `typecheck:server`, vitest and build): 0 failures in all of them. The only permitted skips are those that require `data/raw` and the 2 tests of `aiLive`.
+2. **Team tests untouched:** `git diff origin/dev -- apps/web/src/tests/{aiServer,aiLive,missionEngine,missionGeometry,plannerState,plannerUi,missionFormat}.test.* tests/test_discovery.py` comes out empty. In `discovery.test.tsx` only the path of `CandidateMap` and the ported block change, which is listed in STATUS.
+3. **Scientific baseline:** `git diff --quiet origin/dev -- artifacts/demo artifacts/science-v1 artifacts/science-v2 artifacts/science-v3 artifacts/visual-context artifacts/visual-context-v3 config/mission_profiles config/discovery_search_v3.json config/analog_precedents_v1.json config/visual_observations_v3.json contracts/candidate-site.schema.json contracts/data-manifest.schema.json contracts/mission-profile.schema.json contracts/discovery-search.schema.json contracts/precedent-catalog.schema.json contracts/mission-request.schema.json contracts/mission-evaluation.schema.json contracts/mission-export.schema.json contracts/mission-ai.schema.json submission/analogos-chile-static.zip` returns 0.
+4. **Server:**
+   - `npm run typecheck:server` correct;
+   - `grep -rn "apps/web" shared server api` empty;
+   - `git diff --quiet origin/dev -- shared server api tsconfig.server.json vercel.json .github scripts/check-vercel-function.mjs` returns 0.
+5. **`/api/ai` smoke test on the final build:** GET → 405 `method_not_allowed`; POST of `draft` without key → 503 `ai_unavailable` with `no-store`.
 6. **Release:**
-   - `npm run release:package` repetido da el mismo SHA y el ZIP contiene solo la lista blanca;
-   - desde `file://` y sin red funcionan Explorar y Misión manual hasta exportar el JSON, y los botones de IA dicen «no disponible»;
-   - en STATUS figuran el SHA anterior y el nuevo.
+   - `npm run release:package` repeated gives the same SHA and the ZIP contains only the allowlist;
+   - from `file://` and without a network, Explore and manual Mission work through to exporting the JSON, and the AI buttons say "not available";
+   - STATUS lists the previous and the new SHA.
 7. **Bundle:**
-   - el chunk de entrada no contiene el compilador de Ajv;
-   - el aumento en gz frente a `9b32457` respeta el presupuesto de UX_REDESIGN §6.1 (+12 KB gz como máximo en el chunk principal), o la desviación queda justificada en STATUS;
-   - el planificador, el cliente de IA y `shared/mission/validate` van en un chunk diferido.
-8. **Navegador, escritorio 1440 y móvil 390×844:**
-   - **Explorar:** 6 candidatos numerados, la REF sin número, los ◆ «por calcular», el filtro por país con puesto global, Origen, Método con las 50 ventanas y la exportación de la ficha.
-   - **Misión sin clave:** recorrido completo, diagnóstico de punto fuera de cobertura e invalidación al editar.
-   - **Lectura:** plantilla rotulada y ✦ ausente.
-   - **Accesibilidad:** foco visible, navegación por teclado y atribución de datos siempre visible.
-   - **Consola:** sin errores.
-9. **Textos:**
-   - `App.tsx` contiene las dos frases exigidas;
-   - `copy.test.ts` en verde;
-   - ninguna superficie dice «M8», muestra un % de misión ni rotula «DEMO».
-10. **ADR:** 001–015 sin números repetidos (tras la fusión de M9/M10, el escenario fijo y el recálculo pasaron a 014 y 015); ADR-015 y ADR-012 marcados como sustituidos; ADR-013 propuesto; las referencias, revisadas.
-11. **Documentación:**
-    - STATUS y CHANGELOG conservan el texto de dev con un bloque nuevo arriba;
-    - NEXT_TASK registra la decisión del usuario;
-    - UX_REDESIGN §5 y BUILD_CONTRACTS §2.6 y §2.8 están actualizados;
-    - el handoff indica que Codex puede retomar leyendo `prompts/RESUME_CODEX.md` y `project/STATUS.md`.
-12. **Seguridad:**
-    - `git grep -nE "sk-ant-|ANTHROPIC_API_KEY=."` vacío;
-    - `.env` sin versionar;
-    - ningún `VITE_ANTHROPIC*` ni `VITE_LKTRON*`.
-13. **Dependencias:** `git diff --quiet origin/dev -- package-lock.json` y ninguna dependencia nueva en `package.json`.
+   - the entry chunk does not contain the Ajv compiler;
+   - the gzip increase compared with `9b32457` respects the budget in UX_REDESIGN §6.1 (+12 KB gz at most in the main chunk), or the deviation is justified in STATUS;
+   - the planner, the AI client and `shared/mission/validate` go in a lazily loaded chunk.
+8. **Browser, desktop 1440 and mobile 390×844:**
+   - **Explore:** 6 numbered candidates, the REF without a number, the ◆ "to be calculated", the country filter with global rank, Origin, Method with the 50 windows and the export of the profile.
+   - **Mission without a key:** complete walkthrough, out-of-coverage point diagnostic and invalidation on edit.
+   - **Reading:** labeled template and ✦ absent.
+   - **Accessibility:** visible focus, keyboard navigation and data attribution always visible.
+   - **Console:** no errors.
+9. **Texts:**
+   - `App.tsx` contains the two required sentences;
+   - `copy.test.ts` green;
+   - no surface says "M8", shows a mission % or is labeled "DEMO".
+10. **ADRs:** 001–015 with no repeated numbers (after the M9/M10 merge, the fixed scenario and the recalculation moved to 014 and 015); ADR-015 and ADR-012 marked as superseded; ADR-013 proposed; the references, reviewed.
+11. **Documentation:**
+    - STATUS and CHANGELOG keep the dev text with a new block on top;
+    - NEXT_TASK records the user's decision;
+    - UX_REDESIGN §5 and BUILD_CONTRACTS §2.6 and §2.8 are updated;
+    - the handoff states that Codex can resume by reading `prompts/RESUME_CODEX.md` and `project/STATUS.md`.
+12. **Security:**
+    - `git grep -nE "sk-ant-|ANTHROPIC_API_KEY=."` empty;
+    - `.env` untracked;
+    - no `VITE_ANTHROPIC*` or `VITE_LKTRON*`.
+13. **Dependencies:** `git diff --quiet origin/dev -- package-lock.json` and no new dependencies in `package.json`.
 14. **CI:**
-    - el push a dev es fast-forward;
-    - la ejecución de `vercel-deploy.yml` termina en verde (build, check de la función, deploy y alias);
-    - `analogos-dev.vercel.app` carga con una sesión autorizada, sin desactivar la Protección de Vercel. Si no hay sesión autorizada, la comprobación remota de la IA real queda en STATUS como pendiente para el equipo.
+    - the push to dev is a fast-forward;
+    - the `vercel-deploy.yml` run ends green (build, function check, deploy and alias);
+    - `analogos-dev.vercel.app` loads with an authorized session, without disabling Vercel Protection. If there is no authorized session, the remote check of the real AI stays in STATUS as pending for the team.
 
-## 10. Riesgos que quedan y decisiones abiertas
+## 10. Remaining risks and open decisions
 
-| Riesgo o decisión | Mitigación o propuesta |
+| Risk or decision | Mitigation or proposal |
 |---|---|
-| El bundle de la web no es byte-equivalente al del servidor, y toda explicación de IA termina en «no corresponde al cálculo vigente» | `bundleParity.test.ts`: nunca filtrar ni transformar el snapshot antes de `evaluateMission` |
-| Un `rankCandidates(todos)` olvidado pone a Yungay #4 | `referenceNeverRanked.test.ts` y el grep de F3 |
-| El flujo sin IA es más largo («añadir requisitos») | Aceptarlo explícitamente (ADR-013). «Usar ejemplo» queda a un clic |
-| Más peso del chunk de misión por Ajv en runtime | Carga diferida. Precompilar `mission-*` solo si la salida va dentro de `shared/` (nunca en `apps/web`, que es ESM) y con `check-vercel-function` en verde. Se pospone |
-| El cuerpo de `explain` incluye el brief (hasta 3000 caracteres) y tiene un tope de 24 KB | Sin cambios. El texto junto al botón es el del equipo |
-| Prefetch de las 7 capas: 6 son PNG de 1,1 a 1,2 MB | Opcional: prefetch solo de la capa seleccionada en móvil. Los WebP v3 serían archivos nuevos (no científicos) y se aplazan |
-| Los fondos HLS de Domeyko y María Elena (v2) y la etiqueta «Norte de Chile» sobre ventanas argentinas | Mostrar solo las capas cuyo `site_id` exista en el snapshot activo, y rotular la región en la UI sin editar `basemaps.json`. Decisión del equipo |
-| Gobierno: el `CLAUDE.md` y el `NEXT_TASK` de dev dicen que Claude no tiene asignación | Registrar en STATUS, CHANGELOG y NEXT_TASK que el usuario pidió directamente esta integración y el push |
-| Push a dev = despliegue inmediato, porque el workflow no corre tests | F7 exige `verify` en local antes del push. Si el workflow falla, se corrige con un commit nuevo, nunca con `--force` |
+| The web bundle is not byte-equivalent to the server's, and every AI explanation ends up as "does not correspond to the current calculation" | `bundleParity.test.ts`: never filter or transform the snapshot before `evaluateMission` |
+| A forgotten `rankCandidates(todos)` puts Yungay at #4 | `referenceNeverRanked.test.ts` and the F3 grep |
+| The flow without AI is longer ("add requirements") | Accept it explicitly (ADR-013). "Use example" stays one click away |
+| Greater weight of the mission chunk due to Ajv at runtime | Lazy loading. Precompile `mission-*` only if the output goes inside `shared/` (never in `apps/web`, which is ESM) and with `check-vercel-function` green. Postponed |
+| The body of `explain` includes the brief (up to 3000 characters) and has a cap of 24 KB | No changes. The text next to the button is the team's |
+| Prefetch of the 7 layers: 6 are PNGs of 1,1 to 1,2 MB | Optional: prefetch only the selected layer on mobile. The v3 WebPs would be new (non-scientific) files and are deferred |
+| The HLS backgrounds of Domeyko and María Elena (v2) and the label "Norte de Chile" over Argentine windows | Show only the layers whose `site_id` exists in the active snapshot, and label the region in the UI without editing `basemaps.json`. Team decision |
+| Governance: the `CLAUDE.md` and the `NEXT_TASK` on dev say that Claude has no assignment | Record in STATUS, CHANGELOG and NEXT_TASK that the user directly requested this integration and the push |
+| Push to dev = immediate deployment, because the workflow does not run tests | F7 requires `verify` locally before the push. If the workflow fails, fix it with a new commit, never with `--force` |
 
-## 11. Fusión de M9/M10 del equipo (2026-11-15, `origin/dev` `d2252b6`)
+## 11. Merge of the team's M9/M10 (2026-11-15, `origin/dev` `d2252b6`)
 
-`origin/dev` avanzó de `92392f1` a `d2252b6` (M9: contexto geológico oficial por sector; M10: geología en la orientación de pruebas con IA; robustez de la función Vercel). Se fusionó sin squash. Todo lo del equipo queda **intacto**: `shared/`, `server/`, `api/`, `vercel.json`, `.github/`, `check-vercel-function.mjs`, `package.json` raíz y `package-lock.json`, contratos y artefactos `geology-context-v1`, pipelines científicos, evidencias y sus tests (`aiGeology`, `geologyGuidance`, `plannerGeology`, `plannerState`, `aiLive`, `test_geology_*`). Difieren desde antes de esta fusión, y no por ella: `apps/web/package.json` (`build` ejecuta `build-validators.mjs --check` desde la integración anterior; `vercel build` + `check-vercel-function.mjs` verificados) y, desde el rediseño, `pipelines/fetch_basemaps.py`, `artifacts/basemaps/` y `contracts/reference-analog.schema.json`. Su UI se **portó** a la interfaz integrada, con los mismos textos y garantías.
+`origin/dev` advanced from `92392f1` to `d2252b6` (M9: official geological context by sector; M10: geology in the AI test guidance; robustness of the Vercel function). It was merged without squashing. Everything from the team remains **intact**: `shared/`, `server/`, `api/`, `vercel.json`, `.github/`, `check-vercel-function.mjs`, root `package.json` and `package-lock.json`, `geology-context-v1` contracts and artifacts, scientific pipelines, evidence and their tests (`aiGeology`, `geologyGuidance`, `plannerGeology`, `plannerState`, `aiLive`, `test_geology_*`). They have differed since before this merge, and not because of it: `apps/web/package.json` (`build` has been running `build-validators.mjs --check` since the previous integration; `vercel build` + `check-vercel-function.mjs` verified) and, since the redesign, `pipelines/fetch_basemaps.py`, `artifacts/basemaps/` and `contracts/reference-analog.schema.json`. Its UI was **ported** to the integrated interface, with the same texts and guarantees.
 
-| Del equipo (dev) | En la interfaz integrada |
+| From the team (dev) | In the integrated interface |
 |---|---|
-| `App.tsx` carga `loadGeologyContext` tras el snapshot | `App.tsx` lo pide en un momento ocioso por `data/loadAppGeology.ts` (chunk diferido: el validador usa Ajv en runtime). `AppData.geology` (opcional) lleva el estado y los sectores con ficha válida (`selectGeologySite`). Nunca bloquea nada |
-| `CandidateDetails` › `GeologyContext` (cobertura, unidades, procedencia, «Descargar contexto geológico (JSON)») | Pestaña **«Geología»** de la ficha (riel 520 px y hoja S2), después de «Origen»: `shell/detail/GeologyTab.tsx` monta `GeologyContext` del equipo sin cambios. Sus estilos pasan de `styles.css` a `shell/detail/geology.css` (se cargan con la pestaña) |
-| `ScoreBreakdown`: texto del criterio geológico pendiente con contexto | `MetricDetails` (Métricas) con `domain/geologyCopy.ts`: mismo texto; el criterio sigue «por calcular» y fuera del puntaje |
-| «Dónde falla la analogía»: limitación histórica actualizada | Pestaña «Fuentes»: mismo reemplazo, pero «se consulta en la pestaña «Geología»» en vez de «arriba» (el panel ya no está arriba) |
-| `usePlanner(bundle, geology)` › `GeologyUi`, `runExplain(withGeology?)`, exportación geológica | `missionController`: `setGeology`, catálogo cerrado por evaluación (`buildGeologyCatalog`, memorizado), `runExplain(withGeology?)` con `geologyContextFp`, `geology_context_changed`, `exportGeologyJson` (`buildMissionGeologyExport`) y `api().geologyUi`. El armazón registra el estado con `registerMissionGeology` (`runLoader`) |
-| `ResultView` › `AiPanel`: casilla «Incluir orientación geológica…», aviso único condicional, «Reintentar sin geología» | La Lectura (`AiControls`), donde vive «✦ Destacar motivos con IA»: mismos textos (constantes en `explanationToReading.ts`, cotejadas con el `AiPanel` del equipo en `ReadingView.test`). La casilla se deshabilita mientras la solicitud está en curso |
-| `ResultView` › `GeologyGuidance` y `PrintGeology` | «Tu misión» (`ResultView` compacto) lleva `GeologyGuidance` del equipo sin cambios **plegado después de exportar** (`<details>` cerrado; el resumen dice «Orientación geológica para esta prueba», el rótulo del equipo —«Selección por IA» u «Orientación general sin IA»— y el número de sectores), con una línea que indica que la selección con IA se pide en la Lectura. Desplegada en línea sumaba 4.100–5.200 px a una franja de 344–676 px y dejaba «Descargar JSON» y «Volver a editar» 4–5 veces más abajo. El informe imprimible (`MissionPrintReport`) recibe `missionStore.geologyCatalog` e incluye `PrintGeology` |
-| `PlannerPanel(snapshot, intent, geology)` | Envoltorio con la misma firma: `usePlanner(bundle, geology)` + `PlannerView`, que pasa `geologyUi` a `ResultView` |
+| `App.tsx` loads `loadGeologyContext` after the snapshot | `App.tsx` requests it at an idle moment via `data/loadAppGeology.ts` (deferred chunk: the validator uses Ajv at runtime). `AppData.geology` (optional) carries the state and the sectors with a valid record (`selectGeologySite`). It never blocks anything |
+| `CandidateDetails` › `GeologyContext` (coverage, units, provenance, "Download geological context (JSON)") | **"Geology"** tab of the record (520 px rail and S2 sheet), after "Origin": `shell/detail/GeologyTab.tsx` mounts the team's `GeologyContext` unchanged. Its styles move from `styles.css` to `shell/detail/geology.css` (loaded with the tab) |
+| `ScoreBreakdown`: text of the pending geological criterion with context | `MetricDetails` (Metrics) with `domain/geologyCopy.ts`: same text; the criterion remains "to be calculated" and outside the score |
+| "Where the analogy fails": updated historical limitation | "Sources" tab: same replacement, but "consult it in the "Geology" tab" instead of "above" (the panel is no longer above) |
+| `usePlanner(bundle, geology)` › `GeologyUi`, `runExplain(withGeology?)`, geological export | `missionController`: `setGeology`, catalog closed per evaluation (`buildGeologyCatalog`, memoized), `runExplain(withGeology?)` with `geologyContextFp`, `geology_context_changed`, `exportGeologyJson` (`buildMissionGeologyExport`) and `api().geologyUi`. The shell records the state with `registerMissionGeology` (`runLoader`) |
+| `ResultView` › `AiPanel`: checkbox "Include geological guidance…", single conditional notice, "Retry without geology" | The Reading (`AiControls`), where "✦ Highlight reasons with AI" lives: same texts (constants in `explanationToReading.ts`, checked against the team's `AiPanel` in `ReadingView.test`). The checkbox is disabled while the request is in progress |
+| `ResultView` › `GeologyGuidance` and `PrintGeology` | "Your mission" (compact `ResultView`) carries the team's `GeologyGuidance` unchanged, **collapsed after exporting** (`<details>` closed; the summary reads "Geological guidance for this test", the team's label —"AI selection" or "General guidance without AI"— and the number of sectors), with a line indicating that the AI selection is requested in the Reading. Expanded inline it added 4.100–5.200 px to a strip of 344–676 px and left "Download JSON" and "Back to edit" 4–5 times farther down. The printable report (`MissionPrintReport`) receives `missionStore.geologyCatalog` and includes `PrintGeology` |
+| `PlannerPanel(snapshot, intent, geology)` | Wrapper with the same signature: `usePlanner(bundle, geology)` + `PlannerView`, which passes `geologyUi` to `ResultView` |
 
-**Garantías comprobadas:** la IA solo elige ids del catálogo cerrado; el reductor del equipo descarta toda respuesta cuyo contexto, catálogo, solicitud o evaluación no coincida; recibir el contexto o la selección no cambia `state.result` ni sus huellas (`MissionControllerGeology.test.ts` recalcula y compara); sin opt-in no se envía la huella y una respuesta con geología no pedida se descarta; la exportación M8 1.0 no cambia y la geológica valida con `validateAnyMissionExport`.
+**Verified guarantees:** the AI only chooses ids from the closed catalog; the team's reducer discards any response whose context, catalog, request or evaluation does not match; receiving the context or the selection does not change `state.result` or its fingerprints (`MissionControllerGeology.test.ts` recalculates and compares); without opt-in the fingerprint is not sent and a response with unrequested geology is discarded; the M8 export 1.0 does not change and the geological one validates with `validateAnyMissionExport`.
 
-**ADR:** el equipo numeró ADR-010 (contexto geológico, aceptado) y ADR-011 (orientación geológica) en dev. Los nuestros con esos números pasan a **ADR-014** (escenario fijo, propuesto) y **ADR-015** (recálculo en cliente, sustituido); ADR-012 y ADR-013 no cambian. Los bloques históricos de STATUS y CHANGELOG conservan la numeración de su fecha.
+**ADR:** the team numbered ADR-010 (geological context, accepted) and ADR-011 (geological guidance) on dev. Ours with those numbers become **ADR-014** (fixed scenario, proposed) and **ADR-015** (client-side recalculation, superseded); ADR-012 and ADR-013 do not change. The historical blocks of STATUS and CHANGELOG keep the numbering of their date.
 

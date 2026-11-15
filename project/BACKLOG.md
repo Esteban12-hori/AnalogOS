@@ -1,119 +1,119 @@
-# Backlog ejecutable
+# Executable backlog
 
-## M0 Repositorio reproducible
+## M0 Reproducible repository
 
-- [x] Crear `package.json` raíz con scripts coordinados.
-- [x] Crear `apps/web` con Vite, React y TypeScript estricto.
-- [x] Crear `pyproject.toml` y paquete `pipelines`.
-- [x] Implementar validación JSON Schema.
-- [x] Configurar Vitest y pytest.
-- [x] Crear `.env.example` y documentación de instalación.
-- [x] Verificar `npm run build`, `npm run test` y `python -m pytest`.
+- [x] Create root `package.json` with coordinated scripts.
+- [x] Create `apps/web` with Vite, React, and strict TypeScript.
+- [x] Create `pyproject.toml` and package `pipelines`.
+- [x] Implement JSON Schema validation.
+- [x] Configure Vitest and pytest.
+- [x] Create `.env.example` and installation documentation.
+- [x] Verify `npm run build`, `npm run test`, and `python -m pytest`.
 
-**Gate M0:** una persona nueva instala y ejecuta ambos lados siguiendo el README.
+**Gate M0:** a new person installs and runs both sides by following the README.
 
-## M1 Corte vertical demostrable
+## M1 Demonstrable vertical slice
 
-- [x] Crear 3 candidatos fixture rotulados como `fixture`.
-- [x] Crear `artifacts/demo/manifest.json`.
-- [x] Crear `artifacts/demo/candidates.geojson` o equivalente.
-- [x] Validar fixtures contra los schemas.
-- [x] Implementar layout principal.
-- [x] Implementar mapa de Chile con polígonos.
-- [x] Implementar ranking.
-- [x] Implementar ficha con similitud, confianza y factibilidad.
-- [x] Implementar desglose por criterio y fuentes.
-- [x] Mostrar banner “datos de demostración no científicos”.
-- [x] Construir versión estática sin llamadas externas obligatorias.
+- [x] Create 3 fixture candidates labeled as `fixture`.
+- [x] Create `artifacts/demo/manifest.json`.
+- [x] Create `artifacts/demo/candidates.geojson` or equivalent.
+- [x] Validate fixtures against the schemas.
+- [x] Implement main layout.
+- [x] Implement map of Chile with polygons.
+- [x] Implement ranking.
+- [x] Implement detail sheet with similarity, confidence, and feasibility.
+- [x] Implement breakdown by criterion and sources.
+- [x] Show banner “non-scientific demonstration data”.
+- [x] Build static version with no mandatory external calls.
 
-**Gate M1:** abrir la app, seleccionar tres candidatos y explicar uno en menos de dos minutos.
+**Gate M1:** open the app, select three candidates, and explain one in less than two minutes.
 
-## M2 Motor científico mínimo
+## M2 Minimum scientific engine
 
-- [x] Implementar media geométrica ponderada.
-- [x] Implementar confianza separada.
-- [x] Implementar regla de peso válido mínimo 0.70.
-- [x] Implementar restricciones con razón trazable.
-- [x] Tests de score, faltantes, epsilon, empate y exclusión.
-- [x] Cargar el perfil desde JSON.
-- [x] Exportar `score_breakdown` compatible con contrato.
+- [x] Implement weighted geometric mean.
+- [x] Implement separate confidence.
+- [x] Implement minimum valid weight rule 0.70.
+- [x] Implement constraints with traceable reason.
+- [x] Tests for score, missing values, epsilon, ties, and exclusion.
+- [x] Load the profile from JSON.
+- [x] Export `score_breakdown` compatible with the contract.
 
-**Gate M2:** casos sintéticos conocidos producen resultados deterministas y explicables.
+**Gate M2:** known synthetic cases produce deterministic and explainable results.
 
-## M3 Datos reales y snapshot
+## M3 Real data and snapshot
 
-- [x] Probar Earthdata y Copernicus.
-- [x] Elegir productos exactos y registrar ADR.
-- [x] Crear manifiesto con licencias y checksums.
-- [x] Procesar relieve terrestre.
-- [x] Procesar cobertura/suelo expuesto.
-- [x] Construir firma MOLA.
-- [ ] Incorporar aridez y geología simplificada. (aridez lista; geología pendiente)
-- [x] Calibrar criterios disponibles o marcar los no calibrados.
-- [ ] Generar grilla nacional y top candidatos.
-- [x] Congelar snapshot real `v1`.
+- [x] Test Earthdata and Copernicus.
+- [x] Choose exact products and record ADR.
+- [x] Create manifest with licenses and checksums.
+- [x] Process terrestrial relief.
+- [x] Process land cover/exposed soil.
+- [x] Build MOLA signature.
+- [ ] Incorporate aridity and simplified geology. (aridity ready; geology pending)
+- [x] Calibrate available criteria or mark those not calibrated.
+- [ ] Generate national grid and top candidates.
+- [x] Freeze real snapshot `v1`.
 
-**Gate M3:** existen 3–5 candidatos reproducibles y ningún fixture aparece como resultado.
+**Gate M3:** 3–5 reproducible candidates exist and no fixture appears as a result.
 
-## M4 Validación
+## M4 Validation
 
-- [ ] Revisar resultados altos, medios y bajos en Worldview/imagen reciente. (parcial: contexto Sentinel-2 de diciembre de 2025 offline por candidato y observaciones en `docs/VISUAL_REVIEW.md`; faltan imagen reciente y revisión experta)
-- [x] Usar Atacama como control.
-- [x] Ejecutar sensibilidad ±20 %.
-- [x] Revisar NoData y resolución limitante.
-- [ ] Revisar áreas sensibles y advertencias. (agua permanente lista; territorial pendiente)
-- [ ] Conseguir revisión experta si es posible.
-- [ ] Registrar falsos positivos y correcciones.
+- [ ] Review high, medium, and low results in Worldview/recent imagery. (partial: offline Sentinel-2 context from December 2025 per candidate and observations in `docs/VISUAL_REVIEW.md`; recent imagery and expert review missing)
+- [x] Use Atacama as a control.
+- [x] Run ±20 % sensitivity.
+- [x] Review NoData and limiting resolution.
+- [ ] Review sensitive areas and warnings. (permanent water ready; territorial pending)
+- [ ] Obtain expert review if possible.
+- [ ] Record false positives and corrections.
 
-**Gate M4:** el top 3 tiene evidencia, límites y estabilidad conocida.
+**Gate M4:** the top 3 has known evidence, limits, and stability.
 
-## M5 Producto final
+## M5 Final product
 
-- [x] Reemplazar todos los fixtures en la vista final.
-- [x] Comparador de hasta tres candidatos.
-- [x] Metodología y catálogo de fuentes dentro de la app.
-- [x] Exportación de ficha.
-- [x] Accesibilidad y estados de error.
-- [x] Optimizar carga y geometrías.
-- [x] Probar offline en el navegador de presentación. (segundo equipo pendiente)
+- [x] Replace all fixtures in the final view.
+- [x] Comparator for up to three candidates.
+- [x] Methodology and source catalog within the app.
+- [x] Sheet export.
+- [x] Accessibility and error states.
+- [x] Optimize loading and geometries.
+- [x] Test offline in the presentation browser. (second machine pending)
 
-**Gate M5:** flujo completo, build público y demo de respaldo.
+**Gate M5:** complete flow, public build, and backup demo.
 
-## M6 Entrega
+## M6 Delivery
 
-- [x] README final y licencia elegida.
-- [x] Página del proyecto completa.
-- [x] Guion de pitch.
-- [ ] Video y capturas.
-- [ ] Atribuciones y contribuciones. (atribuciones listas; nombres del equipo pendientes)
-- [ ] Links probados en incógnito.
-- [x] Auditoría/checklist contra brief oficial.
-- [ ] Enviar con margen y guardar comprobante.
+- [x] Final README and chosen license.
+- [x] Complete project page.
+- [x] Pitch script.
+- [ ] Video and screenshots.
+- [ ] Attributions and contributions. (attributions ready; team names pending)
+- [ ] Links tested in incognito mode.
+- [x] Audit/checklist against the official brief.
+- [ ] Submit with time to spare and keep the receipt.
 
-## Reglas de corte
+## Cutoff rules
 
-- Sin M1: no trabajar en datos secundarios.
-- Sin M2: no agregar un segundo perfil.
-- Sin M3: congelar diseño y resolver ciencia.
-- Sin M4: no usar lenguaje concluyente.
-- Si la demo depende de internet: reemplazar por snapshot.
-- IA, SAR y perfil lunar son P1/P2 y se eliminan primero.
+- Without M1: do not work on secondary data.
+- Without M2: do not add a second profile.
+- Without M3: freeze the design and resolve the science.
+- Without M4: do not use conclusive language.
+- If the demo depends on the internet: replace it with a snapshot.
+- AI, SAR and the lunar profile are P1/P2 and are removed first.
 
-## M7 AnalogOS global — piloto Chile–Argentina
+## M7 Global AnalogOS — Chile–Argentina pilot
 
-- [x] Marca visible AnalogOS y subtítulo del piloto.
-- [x] Búsqueda por rejilla reproducible: 50 ventanas en dos regiones de prueba.
-- [x] Prioridad topográfica, rechazos registrados y diversificación determinista.
-- [x] Caracterización multifuente de hasta seis ventanas con fórmulas v2.
-- [x] Yungay como referencia conocida, fuera del ranking, con los valores v2.
-- [x] Catálogo de antecedentes con coordenadas publicadas y búsquedas registradas.
-- [x] Snapshot v3, contratos extendidos y v2 conservado.
-- [x] Mapa regional, filtro por país, ficha con origen y antecedentes, exportación.
-- [x] Contexto visual v3 y entregable `analogos-static.zip`.
-- [x] Aceptación de Codex (2026-11-14; `docs/CODEX_M7_REVIEW.md`).
-- [ ] Cruce territorial con capas oficiales de IDE Chile e IDERA.
-- [ ] Revisión bibliográfica de la Puna con textos completos y coordenadas.
-- [ ] Contraste local del contexto climático POWER en la Puna.
-- [ ] Ampliar la búsqueda a más regiones.
+- [x] Visible AnalogOS branding and pilot subtitle.
+- [x] Reproducible grid search: 50 windows in two test regions.
+- [x] Topographic prioritization, recorded rejections and deterministic diversification.
+- [x] Multi-source characterization of up to six windows with v2 formulas.
+- [x] Yungay as a known reference, outside the ranking, with the v2 values.
+- [x] Catalog of prior work with published coordinates and recorded searches.
+- [x] Snapshot v3, extended contracts and v2 preserved.
+- [x] Regional map, country filter, record sheet with origin and prior work, export.
+- [x] Visual context v3 and `analogos-static.zip` deliverable.
+- [x] Codex acceptance (2026-11-14; `docs/CODEX_M7_REVIEW.md`).
+- [ ] Territorial cross-check with official layers from IDE Chile and IDERA.
+- [ ] Literature review of the Puna with full texts and coordinates.
+- [ ] Local validation of the POWER climate context in the Puna.
+- [ ] Expand the search to more regions.
 
-**Gate M7:** la demo muestra una búsqueda documentada, con cada descarte explicado y sin declarar novedad.
+**M7 Gate:** the demo shows a documented search, with each rejection explained and without claiming novelty.

@@ -1,20 +1,20 @@
 /**
- * Cifra que cambia sin interpolarse (docs/UX_REDESIGN.md §1.7 y §2.2): el valor nuevo aparece
- * ya final, con un fundido y un desplazamiento de 4 px que indica si subió (entra desde abajo)
- * o bajó (desde arriba). Se anima por ref con Web Animations: sin setState ni re-render.
- * Con reduced motion, solo opacidad en 120 ms.
+ * Figure that changes without interpolation (docs/UX_REDESIGN.md §1.7 and §2.2): the new value appears
+ * already final, with a fade and a 4 px shift that indicates whether it went up (enters from below)
+ * or down (from above). It is animated via ref with Web Animations: no setState or re-render.
+ * With reduced motion, opacity only for 120 ms.
  */
 import { useLayoutEffect, useRef, type ReactNode } from 'react'
 import { prefersReducedMotion } from '../../shell/public'
 
 interface FadeNumberProps {
-  /** Valor numérico que decide si hay cambio y su dirección (null = sin cifra). */
+  /** Numeric value that determines whether there is a change and its direction (null = no figure). */
   value: number | string | null
   children: ReactNode
   className?: string
 }
 
-/** +4 si subió, −4 si bajó, 0 si no hay dirección (texto o nulo). */
+/** +4 if it went up, −4 if it went down, 0 if there is no direction (text or null). */
 export function fadeOffset(before: number | string | null, after: number | string | null): number {
   if (typeof before !== 'number' || typeof after !== 'number' || before === after) return 0
   return after > before ? 4 : -4

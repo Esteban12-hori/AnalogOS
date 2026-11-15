@@ -15,18 +15,18 @@ describe('snapshot demo', () => {
   const manifestData = readJson('artifacts/demo/manifest.json')
   const profileData = readJson('artifacts/demo/mission-profile.json')
 
-  it('valida candidatos, manifest y perfil contra los contratos compartidos', () => {
+  it('validates candidates, manifest and profile against the shared contracts', () => {
     expect(() => assertSnapshotContracts(candidatesData, manifestData, profileData)).not.toThrow()
   })
 
-  it('mantiene los tres candidatos inequívocamente rotulados como fixtures', () => {
+  it('keeps the three candidates unambiguously labeled as fixtures', () => {
     assertSnapshotContracts(candidatesData, manifestData, profileData)
     expect(candidatesData).toHaveLength(3)
     expect(candidatesData.every((candidate) => candidate.status === 'fixture')).toBe(true)
     expect(candidatesData.every((candidate) => candidate.limitations[0].includes('FIXTURE'))).toBe(true)
   })
 
-  it('mantiene sincronizadas las versiones de snapshot y perfil', () => {
+  it('keeps snapshot and profile versions in sync', () => {
     assertSnapshotContracts(candidatesData, manifestData, profileData)
     const manifest = manifestData as DataManifest
     const profile = profileData as MissionProfile
@@ -35,7 +35,7 @@ describe('snapshot demo', () => {
     expect(candidates.every((candidate) => candidate.profile_version === profile.version)).toBe(true)
   })
 
-  it('incluye casos completo, parcial e insuficiente para ejercitar la UI', () => {
+  it('includes complete, partial and insufficient cases to exercise the UI', () => {
     assertSnapshotContracts(candidatesData, manifestData, profileData)
     const candidates = candidatesData as CandidateSite[]
     expect(candidates.some((candidate) => candidate.similarity === null)).toBe(true)
@@ -44,12 +44,12 @@ describe('snapshot demo', () => {
   })
 })
 
-describe('snapshot científico de precisión v2', () => {
+describe('v2 precision scientific snapshot', () => {
   const candidatesData = readJson('artifacts/science-v2/candidate-details.json')
   const manifestData = readJson('artifacts/science-v2/manifest.json')
   const profileData = readJson('artifacts/science-v2/mission-profile.json')
 
-  it('valida contratos y usa NASADEM, Copernicus y el inventario HLS', () => {
+  it('validates contracts and uses NASADEM, Copernicus and the HLS inventory', () => {
     assertSnapshotContracts(candidatesData, manifestData, profileData)
     const candidates = candidatesData as CandidateSite[]
     const manifest = manifestData as DataManifest
@@ -60,7 +60,7 @@ describe('snapshot científico de precisión v2', () => {
     expect(candidates.every((candidate) => candidate.confidence > 70)).toBe(true)
   })
 
-  it('mantiene el ranking v2 reproducible', () => {
+  it('keeps the v2 ranking reproducible', () => {
     assertSnapshotContracts(candidatesData, manifestData, profileData)
     const candidates = [...candidatesData as CandidateSite[]]
       .sort((a, b) => (b.similarity ?? -1) - (a.similarity ?? -1))
@@ -72,12 +72,12 @@ describe('snapshot científico de precisión v2', () => {
   })
 })
 
-describe('snapshot científico preliminar', () => {
+describe('preliminary scientific snapshot', () => {
   const candidatesData = readJson('artifacts/science-v1/candidate-details.json')
   const manifestData = readJson('artifacts/science-v1/manifest.json')
   const profileData = readJson('artifacts/science-v1/mission-profile.json')
 
-  it('valida todos los contratos y conserva versiones sincronizadas', () => {
+  it('validates all contracts and keeps versions in sync', () => {
     assertSnapshotContracts(candidatesData, manifestData, profileData)
     const candidates = candidatesData as CandidateSite[]
     const manifest = manifestData as DataManifest
@@ -86,7 +86,7 @@ describe('snapshot científico preliminar', () => {
     expect(candidates.every((candidate) => candidate.data_snapshot_version === manifest.snapshot_version)).toBe(true)
   })
 
-  it('usa fuentes MOLA, SRTM y POWER y mantiene incertidumbre visible', () => {
+  it('uses MOLA, SRTM and POWER sources and keeps uncertainty visible', () => {
     assertSnapshotContracts(candidatesData, manifestData, profileData)
     const candidates = candidatesData as CandidateSite[]
     const manifest = manifestData as DataManifest
@@ -100,8 +100,8 @@ describe('snapshot científico preliminar', () => {
   })
 })
 
-describe('formato de presentación', () => {
-  it('formatea puntajes, áreas y unidades sin inventar precisión', () => {
+describe('presentation format', () => {
+  it('formats scores, areas and units without inventing precision', () => {
     expect(formatScore(null)).toBe('—')
     expect(formatArea(1512.4)).toContain('km²')
     expect(formatRawValue(0.71, 'ratio')).toContain('%')

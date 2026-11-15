@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://analogos.cl/schemas/mission-evaluation.schema.json",
   "title": "AnalogOS Mission Evaluation (M8)",
-  "description": "Resultado determinista de aplicar los requisitos confirmados a las ventanas del snapshot v3. No contiene un porcentaje de aptitud nuevo.",
+  "description": "Deterministic result of applying the confirmed requirements to the v3 snapshot windows. It contains no new suitability percentage.",
   "type": "object",
   "additionalProperties": false,
   "required": ["evaluation_version", "rules_version", "snapshot_version", "profile", "request_fingerprint", "outcome", "resolution", "comparability", "ordering_rule", "options", "recommended_site_ids", "none_prioritized", "pending_requirements", "open_questions", "data_request", "evidence", "limits"],
   "properties": {
-    "evaluation_version": { "const": "1.0.0" },
+    "evaluation_version": { "enum": ["1.0.0", "1.1.0"], "description": "Text version of the record: 1.0.0 = frozen Spanish wording (historical records), 1.1.0 = English wording. Logic, statuses, ranks, values, evidence and geometry do not depend on it (shared/mission/text)." },
     "rules_version": { "type": "string" },
     "snapshot_version": { "type": "string" },
     "profile": {

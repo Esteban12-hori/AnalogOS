@@ -1,4 +1,4 @@
-"""Búsqueda v3: rejilla, preselección, antecedentes, calidad de fuentes y snapshot. Sin red ni credenciales."""
+"""Search v3: grid, preselection, background records, source quality and snapshot. No network or credentials."""
 
 import copy
 import itertools
@@ -44,7 +44,7 @@ def by_id(results: dict) -> dict:
     return {record["window_id"]: record for record in results["windows"]}
 
 
-# --- Rejilla, áreas y distancias ---------------------------------------------------
+# --- Grid, areas and distances ---------------------------------------------------
 
 def test_grid_is_derived_from_origin_and_step_with_stable_ids_and_limits():
     assert len(WINDOWS) == 50 and len({w["window_id"] for w in WINDOWS}) == 50
@@ -61,15 +61,15 @@ def test_grid_is_derived_from_origin_and_step_with_stable_ids_and_limits():
     assert search.required_tiles(WINDOWS) == ["s25w069", "s25w070", "s26w067", "s26w068", "s26w069", "s26w070", "s27w067", "s27w068"]
     broken = copy.deepcopy(CONFIG)
     broken["regions"][0]["bbox"][2] += 0.05
-    with pytest.raises(ValueError, match="múltiplo exacto"):
+    with pytest.raises(ValueError, match="exact multiple"):
         search.grid_windows(broken)
-    with pytest.raises(ValueError, match="máximo de ventanas"):
+    with pytest.raises(ValueError, match="maximum number of windows"):
         search.grid_windows({**CONFIG, "limits": {**CONFIG["limits"], "max_windows": 49}})
 
 
 def test_windows_are_about_20_km_wide_and_neighbours_are_closer_than_the_separation_rule():
     areas = [by_id(load("search-results.json"))[w["window_id"]]["area_km2"] for w in WINDOWS]
-    assert 440 < min(areas) and max(areas) < 450  # ~20 × 22 km, no una rejilla de 5 km
+    assert 440 < min(areas) and max(areas) < 450  # ~20 × 22 km, not a 5 km grid
     first, east, north, diagonal = (WINDOWS[i] for i in (0, 1, 5, 6))
     centre = lambda w: (w["longitude"], w["latitude"])  # noqa: E731
     assert 19.5 < search.distance_km(centre(first), centre(east)) < 20.5
@@ -78,7 +78,7 @@ def test_windows_are_about_20_km_wide_and_neighbours_are_closer_than_the_separat
     assert search.distance_km(centre(first), centre(first)) == 0
 
 
-# --- Prioridad topográfica y selección ----------------------------------------------
+# --- Topographic priority and selection ----------------------------------------------
 
 def test_topographic_priority_is_the_weighted_geometric_mean_and_only_an_ordering():
     similarities, priority = search.topographic_priority(metrics(slope=4.452, roughness=5.5, relief=47.0), MOLA, CONFIG["stage1"])
@@ -89,7 +89,7 @@ def test_topographic_priority_is_the_weighted_geometric_mean_and_only_an_orderin
 
 
 def test_selection_is_deterministic_diversified_and_never_forced():
-    tied = run(lambda window, _config: metrics())  # todas empatan: decide el ID y la distancia
+    tied = run(lambda window, _config: metrics())  # all tie: the ID and the distance decide
     again = run(lambda window, _config: metrics())
     assert tied == again and len(tied["shortlist"]) == 6
     records = by_id(tied)
@@ -102,7 +102,7 @@ def test_selection_is_deterministic_diversified_and_never_forced():
     assert tied["counts"]["not_selected_proximity"] > 0 and all(
         records[r["blocked_by"]]["decision"] == "selected" for r in tied["windows"] if r["decision"] == "not_selected_proximity")
 
-    # Con una sola ventana elegible por país no se completa la lista con otras.
+    # With only one eligible window per country, the list is not filled with others.
     keep = {"cl-win-s2460-w06990", "ar-win-s2560-w06770"}
     few = run(lambda window, _config: metrics() if window["window_id"] in keep else metrics(valid=0.5))
     assert sorted(few["shortlist"]) == sorted(keep) and few["counts"]["rejected_coverage"] == 48
@@ -121,7 +121,7 @@ def test_coverage_water_and_published_coordinates_reject_with_a_recorded_reason(
     for window_id in overlap:
         match = records[window_id]["literature"]["matches"][0]
         assert match["relation"] == "contains_published_sampling_coordinate" and match["points"]
-        assert records[window_id]["topographic_priority"] is not None  # se conserva la evaluación, no se oculta
+        assert records[window_id]["topographic_priority"] is not None  # the evaluation is kept, not hidden
     assert not set(results["shortlist"]) & {low, wet, *overlap}
     assert all(len(r["decision_reason"]) > 10 for r in results["windows"])
     assert sum(v for k, v in results["counts"].items() if k not in ("attempted", "evaluated")) == results["counts"]["attempted"] == 50
@@ -148,7 +148,7 @@ def test_expected_data_failures_are_recorded_per_window_and_programming_errors_p
     assert not {missing, empty} & set(results["shortlist"]) and len(results["shortlist"]) == 6
     validate(results, "discovery-search")
 
-    with pytest.raises(KeyError):  # un error de programación no se disfraza de dato faltante
+    with pytest.raises(KeyError):  # a programming error is not disguised as missing data
         run(lambda window, _config: {"tiles": []})
 
 
@@ -178,9 +178,9 @@ def test_precedent_relations_distinguish_point_area_proximity_and_region():
     region = [window["region_id"]]
     relation = lambda catalog: [m["relation"] for m in search.precedent_matches(window, catalog, 25)]  # noqa: E731
     assert relation(catalog_with(points=[point(-69.75, -25.05)])) == ["contains_published_sampling_coordinate"]
-    assert relation(catalog_with(points=[point(-69.85, -25.0)])) == ["proximity_heuristic"]  # ~15 km, fuera de la ventana
+    assert relation(catalog_with(points=[point(-69.85, -25.0)])) == ["proximity_heuristic"]  # ~15 km, outside the window
     assert relation(catalog_with(points=[point(-69.0, -24.0)])) == []
-    # Un punto lejano no borra el antecedente regional.
+    # A distant point does not erase the regional background record.
     assert relation(catalog_with(points=[point(-69.0, -24.0)], region_ids=region)) == ["regional_precedent"]
     area = {"description": "t", "geometry": {"type": "BBox", "bbox": [-69.9, -25.3, -69.75, -25.05]}}
     assert relation(catalog_with(study_area=area)) == ["study_area_overlap"]
@@ -192,7 +192,7 @@ def test_precedent_relations_distinguish_point_area_proximity_and_region():
     assert status(catalog_with(points=[point(-69.75, -25.05)])) == "known_analogue_overlap"
     assert status(catalog_with(study_area=area)) == "known_analogue_overlap"
     assert status(catalog_with(region_ids=region)) == "regional_precedent"
-    assert status(EMPTY_CATALOG) == "literature_review_pending"  # sin antecedentes no significa «nuevo»
+    assert status(EMPTY_CATALOG) == "literature_review_pending"  # no background records does not mean «new»
     reviewed = {**EMPTY_CATALOG, "searches": [{"date": "2026-11-14", "query": "q", "scope": "s", "finding": "f",
                                                "windows_without_match": [window["window_id"]]}]}
     assert status(reviewed) == "no_match_in_reviewed_sources"
@@ -206,11 +206,11 @@ def test_real_catalog_keeps_the_whole_published_transect_not_a_single_point():
     assert (first["latitude"], first["longitude"]) == pytest.approx((-(24 + 4 / 60 + 9.6 / 3600), -(69 + 51 / 60 + 58.8 / 3600)), abs=1e-6)
     inside = [p for p in transect["points"] if -70.0 <= p["longitude"] <= -69.0 and -25.5 <= p["latitude"] <= -24.5]
     assert sorted(p["label"] for p in inside) == ["AT01-16, AT02-16", "AT02-26", "AT02-27", "AT02-28", "AT02-29"]
-    assert all(p["points"] == [] for p in CATALOG["precedents"] if p["country"] == "AR")  # sin coordenadas inventadas
+    assert all(p["points"] == [] for p in CATALOG["precedents"] if p["country"] == "AR")  # no invented coordinates
     assert "no prueba" in CATALOG["scope_note"] and len(CATALOG["searches"]) >= 3
 
 
-# --- Calidad de las fuentes -----------------------------------------------------------
+# --- Source quality -----------------------------------------------------------
 
 COPERNICUS = SCIENCE["copernicus"]
 MONTHS = snapshot.expected_months(COPERNICUS["time_start"], COPERNICUS["time_end"])
@@ -241,7 +241,7 @@ def test_sentinel_completeness_is_measured_against_the_twelve_configured_months(
     assert full["quality"] == pytest.approx(0.9 * 0.9, abs=1e-4)
     partial, _ = snapshot.checked_sentinel("s", entry([row(i) for i in range(9)]), COPERNICUS)
     assert (partial["valid_intervals"], partial["expected_intervals"]) == (9, 12)
-    assert partial["quality"] == pytest.approx(0.9 * 0.9 * 9 / 12, abs=1e-4)  # la API devolvió 9: no cuentan como 9 de 9
+    assert partial["quality"] == pytest.approx(0.9 * 0.9 * 9 / 12, abs=1e-4)  # the API returned 9: do not count as 9 of 9
 
 
 @pytest.mark.parametrize("bad, reason", [
@@ -276,7 +276,7 @@ def test_sentinel_without_usable_months_is_missing_not_invented():
     assert all(inputs[c]["similarity"] is None and inputs[c]["quality"] == 0 for c in ("bare_ground_fraction", "aridity_context"))
     profile = load("mission-profile.json")
     score = aggregate(profile["criteria"], inputs, 0.01, profile["aggregation"]["minimum_valid_weight"])
-    assert score["similarity"] is None and score["valid_weight"] == pytest.approx(0.55)  # no se relaja el mínimo 0,70
+    assert score["similarity"] is None and score["valid_weight"] == pytest.approx(0.55)  # the 0,70 minimum is not relaxed
     assert "SEGEMAR" in inputs["geologic_relevance"]["explanation"]
 
 
@@ -323,7 +323,7 @@ def test_raw_cache_is_bound_to_the_exact_request_and_stale_data_stops_the_build(
     assert snapshot.cached_response(store, "s", requests_["power"], "POWER") is good
     assert snapshot.cached_response(store, "otro", requests_["power"], "POWER") is None
     assert snapshot.cached_response({"sites": {"s": {**good, "status": "failed"}}}, "s", requests_["power"], "POWER") is None
-    with pytest.raises(snapshot.SourceMismatch, match="no corresponde a la configuración vigente"):
+    with pytest.raises(snapshot.SourceMismatch, match="does not match the current configuration"):
         snapshot.cached_response(store, "s", source_requests(SCIENCE, moved)["power"], "POWER")
 
 
@@ -362,7 +362,7 @@ def test_v3_snapshot_separates_role_from_literature_review_and_keeps_references_
         assert item["literature_review"]["status"] in ("regional_precedent", "literature_review_pending")
         assert item["literature_review"]["matches"] == record["literature"]["matches"]
         assert any("OBSERVACIÓN VISUAL PRELIMINAR" in w for w in item["warnings"])
-    # Ninguna ficha declara novedad ni aprobación.
+    # No record declares novelty or approval.
     text = json.dumps(candidates, ensure_ascii=False).lower()
     assert "no_match_in_reviewed_sources" not in text and "análogo nuevo" not in text and "sitio aprobado" not in text
 
@@ -385,7 +385,7 @@ def test_v3_manifest_links_every_dataset_and_records_real_acquisition_times():
     assert used <= set(datasets)
     v2_time = SCIENCE["created_at"]
     for name in ("copernicus-sentinel2-l2a-surface-2025-v3-search", "nasa-power-climatology-points-v3-search", "nasadem-s26w067-v1"):
-        assert datasets[name]["downloaded_at"] > v2_time  # hora real de adquisición, no la fecha v2 copiada
+        assert datasets[name]["downloaded_at"] > v2_time  # actual acquisition time, not the copied v2 date
     assert datasets["nasadem-s24w070-v1"]["downloaded_at"] == v2_time
     assert "0,5° × 0,625°" in datasets["nasa-power-climatology-points-v3-search"]["spatial_resolution"]
     matching = [w for c in candidates for w in c["warnings"] if "POWER coincidentes" in w]
@@ -429,7 +429,7 @@ def test_search_without_shortlist_builds_an_honest_negative_experiment(tmp_path:
     config = copy.deepcopy(CONFIG)
     for name in ("sentinel2_file", "power_file", "inventory_file", "acquisition_log"):
         path = tmp_path / f"{name}.json"
-        config["sources"][name] = str(path)  # ruta absoluta: no se leen los datos reales de la etapa 2
+        config["sources"][name] = str(path)  # absolute path: the real data from stage 2 are not read
         if stores == "vacíos":
             path.write_text(json.dumps({"sites": {}}), encoding="utf-8")
     config_path = tmp_path / "config.json"
@@ -445,7 +445,7 @@ def test_search_without_shortlist_builds_an_honest_negative_experiment(tmp_path:
     counts = built["search-results.json"]["counts"]
     assert (counts["attempted"], counts["evaluated"], counts.get("selected", 0), counts["rejected_water"]) == (50, 50, 0, 50)
     declared = {d["dataset_id"] for d in built["manifest.json"]["datasets"]}
-    assert not declared & set(snapshot.SEARCH_DATASETS.values()) - {snapshot.DERIVED}  # ningún dataset de etapa 2 inventado
+    assert not declared & set(snapshot.SEARCH_DATASETS.values()) - {snapshot.DERIVED}  # no stage 2 dataset invented
     used = {i["dataset_id"] for i in sites[0]["score_breakdown"] + sites[0]["evidence"]} - {"none"}
     assert used <= declared
     assert built["analysis-summary.json"]["search"]["shortlist"] == [] and len(built["analysis-summary.json"]["sites"]) == 1
@@ -466,13 +466,13 @@ def test_v3_visual_package_is_bound_to_the_snapshot_and_reuses_the_v2_yungay_vie
     def no_network(_request):
         raise AssertionError("no debe consultar")
 
-    # El paquete válido se reutiliza; sin él, superar el límite de imágenes nuevas se rechaza antes de consultar.
+    # The valid package is reused; without it, exceeding the new image limit is rejected before querying.
     package = tmp_path / "visual-context-v3"
     shutil.copytree(visual.V3_OUT, package)
     assert visual.build(package, no_network, **options)[1] is True
-    with pytest.raises(visual.VisualContextError, match="límite autorizado"):
+    with pytest.raises(visual.VisualContextError, match="authorized limit"):
         visual.build(tmp_path / "otro", no_network, **{**options, "max_new": 5})
-    # Un sitio con otra bbox no reutiliza la imagen de la referencia.
+    # A site with a different bbox does not reuse the reference image.
     moved = copy.deepcopy(options["plans"][-1])
     moved["bbox"][0] -= 0.01
     assert visual._reusable(moved, visual.DEFAULT_OUT) is None and visual._reusable(options["plans"][-1], visual.DEFAULT_OUT) is not None

@@ -1,31 +1,31 @@
 /**
- * Glifos con significado fijo (docs/UX_REDESIGN.md §2.4). Usa siempre estas constantes:
- * un mismo símbolo nunca significa dos cosas en el sitio.
+ * Glyphs with a fixed meaning (docs/UX_REDESIGN.md §2.4). Always use these constants:
+ * the same symbol never means two different things on the site.
  */
 export const GLYPH = {
-  /** lugar evaluado / valor del sector */
+  /** evaluated place / sector value */
   evaluated: '●',
-  /** análogo emblemático, por calcular */
+  /** emblematic analog, yet to be computed */
   reference: '◆',
-  /** datos insuficientes */
+  /** insufficient data */
   insufficient: '○',
   /** Jezero (Marte como dato) */
   jezero: '■',
-  /** regla del perfil */
+  /** profile rule */
   rule: '┆',
-  /** solo IA */
+  /** AI only */
   ai: '✦',
-  /** en el globo */
+  /** on the globe */
   onGlobe: '◉',
-  /** sector (área, no pin) */
+  /** sector (area, not a pin) */
   sector: '⬡',
-  /** más exigente que Jezero */
+  /** more demanding than Jezero */
   moreDemanding: '↗',
-  /** menos exigente que Jezero */
+  /** less demanding than Jezero */
   lessDemanding: '↘',
-  /** sube el peso */
+  /** raises the weight */
   weightUp: '↑',
-  /** baja el peso */
+  /** lowers the weight */
   weightDown: '↓',
   /** hito cumplido */
   ok: '✓',
@@ -35,20 +35,20 @@ export const GLYPH = {
 
 export type GlyphName = keyof typeof GLYPH
 
-/** Texto para lectores de pantalla y leyendas (los glifos van con aria-hidden). */
+/** Text for screen readers and legends (the glyphs use aria-hidden). */
 export const GLYPH_MEANING: Readonly<Record<GlyphName, string>> = {
-  evaluated: 'lugar evaluado',
-  reference: 'análogo emblemático, por calcular',
-  insufficient: 'datos insuficientes',
-  jezero: 'Jezero, Marte',
-  rule: 'regla del perfil',
-  ai: 'interpretación de IA',
-  onGlobe: 'en el globo',
-  sector: 'sector (área aproximada)',
-  moreDemanding: 'más exigente que Jezero',
-  lessDemanding: 'menos exigente que Jezero',
-  weightUp: 'sube el peso',
-  weightDown: 'baja el peso',
-  ok: 'cumplido',
-  fail: 'fallido',
+  evaluated: 'evaluated place',
+  reference: 'emblematic analog, not yet calculated',
+  insufficient: 'insufficient data',
+  jezero: 'Jezero, Mars',
+  rule: 'profile rule',
+  ai: 'AI interpretation',
+  onGlobe: 'on the globe',
+  sector: 'sector (approximate area)',
+  moreDemanding: 'more demanding than Jezero',
+  lessDemanding: 'less demanding than Jezero',
+  weightUp: 'weight goes up',
+  weightDown: 'weight goes down',
+  ok: 'met',
+  fail: 'failed',
 }

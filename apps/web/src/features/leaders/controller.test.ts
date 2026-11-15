@@ -10,7 +10,7 @@ import { scienceSite } from './testSupport'
 const yungay = scienceSite('cl-pampa-yungay-screening')
 const IDS = ['slope', 'terrain_roughness', 'bare_ground_fraction', 'local_relief']
 
-/** Doble de elemento: cuenta cada escritura real al DOM. */
+/** Element double: counts each real write to the DOM. */
 class FakeElement implements StyleTarget, AttrTarget {
   writes = 0
   attrs = new Map<string, string>()
@@ -76,7 +76,7 @@ function projectionAt(x: number, y: number): StageProjection {
   return { mode: 'globe', project: (lon, lat) => ({ x: x + (lon + 69.95) * 30, y: y - (lat + 24.08) * 30, visible: 1 }) }
 }
 
-/** Temporizador manual: el test decide cuándo «pasa» SETTLE_MS. */
+/** Manual timer: the test decides when SETTLE_MS "elapses". */
 function manualTimers() {
   let pending: { callback: () => void; ms: number } | null = null
   let armed = 0
@@ -106,7 +106,7 @@ function manualTimers() {
 describe('createLeaderController', () => {
   afterEach(() => publishStageFrame({ projection: null, anchor: null }))
 
-  it('espera a que la cámara se asiente antes de trazar (coreografía B)', () => {
+  it('waits for the camera to settle before drawing (choreography B)', () => {
     const { targets, root } = fakeTargets()
     const timers = manualTimers()
     let stage: StageFrameInput = { projection: projectionAt(400, 340), anchor: null }
@@ -115,7 +115,7 @@ describe('createLeaderController', () => {
     controller.setScene(scene)
     expect(controller.phase).toBe('waiting')
     expect(root.dataset.phase).toBe('waiting')
-    // Cada cuadro de vuelo rearma la espera.
+    // Each flight frame re-arms the wait.
     const before = timers.armed
     stage = { projection: projectionAt(410, 340), anchor: null }
     controller.frame()
@@ -129,7 +129,7 @@ describe('createLeaderController', () => {
     expect(controller.last?.count).toBe(4)
   })
 
-  it('cada cuadro mueve etiquetas y trazos escribiendo directo en el DOM', () => {
+  it('each frame moves labels and strokes by writing directly to the DOM', () => {
     const { targets, labels, paths } = fakeTargets()
     const timers = manualTimers()
     let x = 400
@@ -149,7 +149,7 @@ describe('createLeaderController', () => {
     expect(slope?.dataset.placed).toBe('1')
   })
 
-  it('no reescribe lo que no cambió (un cuadro igual no toca el DOM)', () => {
+  it('does not rewrite what did not change (an identical frame does not touch the DOM)', () => {
     const { targets, labels, paths, root } = fakeTargets()
     const timers = manualTimers()
     const controller = createLeaderController({ targets: () => targets, readStage: () => ({ projection: projectionAt(400, 340), anchor: null }), ...timers })
@@ -163,7 +163,7 @@ describe('createLeaderController', () => {
     expect(count()).toBe(settled)
   })
 
-  it('una selección nueva olvida la histéresis y vuelve a esperar', () => {
+  it('a new selection forgets the hysteresis and waits again', () => {
     const { targets, root } = fakeTargets()
     const timers = manualTimers()
     const controller = createLeaderController({ targets: () => targets, readStage: () => ({ projection: projectionAt(400, 340), anchor: null }), ...timers })
@@ -177,10 +177,10 @@ describe('createLeaderController', () => {
     expect(timers.pending).toBeNull()
   })
 
-  it('recibe los cuadros del canal del globo (stageBridge) sin pasar por React', () => {
+  it('receives frames from the globe channel (stageBridge) without going through React', () => {
     const { targets, labels } = fakeTargets()
     const timers = manualTimers()
-    // El mismo canal que LeaderLayer inyecta (STAGE_BRIDGE).
+    // The same channel that LeaderLayer injects (STAGE_BRIDGE).
     const controller = createLeaderController({ targets: () => targets, readStage: () => ({ projection: getStageProjection(), anchor: getStageAnchor() }), ...timers })
     const unsubscribe = subscribeStageFrame(controller.frame)
     controller.restart()
@@ -191,17 +191,17 @@ describe('createLeaderController', () => {
     for (let step = 1; step <= 30; step += 1) publishStageFrame({ projection: projectionAt(400 + step * 2, 340), anchor: null })
     expect(labels.get('slope')?.style.transform).not.toBe(before)
     expect(controller.last?.mode).toBe('lines')
-    // El globo deja de publicar (p. ej. desmontado): la capa se apaga sola.
+    // The globe stops publishing (e.g., unmounted): the layer shuts itself off.
     publishStageFrame({ projection: null, anchor: null })
     expect(controller.last?.mode).toBe('off')
     unsubscribe()
   })
 })
 
-describe('sin setState por cuadro', () => {
+describe('no setState per frame', () => {
   const read = (file: string) => readFileSync(resolve(__dirname, file), 'utf8')
 
-  it('el controlador y la capa no usan estado de React (solo refs y escritura directa)', () => {
+  it('the controller and the layer use no React state (only refs and direct writes)', () => {
     for (const file of ['controller.ts', 'frame.ts', 'layoutLeaders.ts', 'leaderPaths.ts', 'projector.ts']) {
       expect(read(file), file).not.toMatch(/from 'react'/)
     }
@@ -210,12 +210,12 @@ describe('sin setState por cuadro', () => {
     }
   })
 
-  it('la única suscripción por cuadro va al controlador', () => {
+  it('the only per-frame subscription goes to the controller', () => {
     expect(read('LeaderStage.tsx')).toMatch(/bridge\.subscribe\(controller\.frame\)/)
     expect(read('LeaderLayer.tsx')).toMatch(/subscribe: subscribeStageFrame/)
   })
 
-  it('la parte diferida no importa índices de otras features (se inyectan desde LeaderLayer)', () => {
+  it('the deferred part does not import indexes of other features (injected from LeaderLayer)', () => {
     for (const file of ['LeaderCanvas.tsx', 'LeaderStage.tsx', 'controller.ts', 'frame.ts', 'projector.ts', 'labelModel.ts', 'principal.ts', 'layoutLeaders.ts', 'leaderPaths.ts']) {
       expect(read(file), file).not.toMatch(/^import (?!type)[^\n]*from '\.\.\/(globe|metrics|places|boot|engine|composer|analysis)'/m)
     }

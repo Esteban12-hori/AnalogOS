@@ -1,4 +1,4 @@
-// Roles, filtros y exportación del piloto. Funciones puras: la web no decide candidatos ni scores.
+// Roles, filters, and export for the pilot. Pure functions: the web does not decide candidates or scores.
 import type {
   CandidateSite, CountryCode, LiteratureStatus, PrecedentCatalog, PrecedentMatch, PrecedentRelation, SearchResults,
 } from './contracts'
@@ -9,23 +9,23 @@ export type CountryFilter = 'all' | CountryCode
 export const countryLabels: Record<CountryCode, string> = { CL: 'Chile', AR: 'Argentina' }
 
 export const literatureLabels: Record<LiteratureStatus, string> = {
-  known_reference: 'Referencia conocida',
-  known_analogue_overlap: 'Contiene antecedentes publicados',
-  regional_precedent: 'Región con antecedentes publicados',
-  literature_review_pending: 'Revisión bibliográfica pendiente',
-  no_match_in_reviewed_sources: 'Sin coincidencias en las fuentes revisadas',
+  known_reference: 'Known reference',
+  known_analogue_overlap: 'Contains published precedents',
+  regional_precedent: 'Region with published precedents',
+  literature_review_pending: 'Literature review pending',
+  no_match_in_reviewed_sources: 'No match in the reviewed sources',
 }
 
 export const relationLabels: Record<PrecedentRelation, string> = {
-  contains_published_sampling_coordinate: 'La ventana contiene coordenadas de muestreo publicadas',
-  study_area_overlap: 'Se superpone a un área de estudio publicada',
-  proximity_heuristic: 'Cercanía a una coordenada publicada (heurística de 25 km, no perímetro del estudio)',
-  regional_precedent: 'Antecedente regional, sin coordenadas en las fuentes revisadas',
+  contains_published_sampling_coordinate: 'The window contains published sampling coordinates',
+  study_area_overlap: 'Overlaps a published study area',
+  proximity_heuristic: 'Near a published coordinate (25 km heuristic, not the study perimeter)',
+  regional_precedent: 'Regional precedent, without coordinates in the reviewed sources',
 }
 
 export const isReference = (candidate: CandidateSite): boolean => candidate.role === 'reference'
 
-/** Candidatos de la búsqueda (ordenados) y referencias conocidas, que nunca entran al ranking. */
+/** Search candidates (sorted) and known references, which never enter the ranking. */
 export function splitByRole(candidates: readonly CandidateSite[]): { ranked: CandidateSite[]; references: CandidateSite[] } {
   return {
     ranked: rankCandidates(candidates.filter((candidate) => !isReference(candidate))),
@@ -33,7 +33,7 @@ export function splitByRole(candidates: readonly CandidateSite[]): { ranked: Can
   }
 }
 
-/** Puesto global 1..n de cada candidato ya ordenado; las referencias no tienen puesto. */
+/** Global rank 1..n of each already-sorted candidate; references have no rank. */
 export function rankMap(ranked: readonly CandidateSite[]): Map<string, number> {
   return new Map(ranked.map((candidate, index) => [candidate.site_id, index + 1]))
 }
@@ -42,12 +42,12 @@ export function filterByCountry(candidates: readonly CandidateSite[], country: C
   return country === 'all' ? [...candidates] : candidates.filter((candidate) => candidate.country === country)
 }
 
-/** Países presentes, para ofrecer el filtro solo cuando el snapshot los declara. */
+/** Countries present, so the filter is offered only when the snapshot declares them. */
 export function availableCountries(candidates: readonly CandidateSite[]): CountryCode[] {
   return (['CL', 'AR'] as const).filter((code) => candidates.some((candidate) => candidate.country === code))
 }
 
-/** El primer seleccionado es un candidato; solo si no hay ninguno se muestra una referencia. */
+/** The first selected item is a candidate; a reference is shown only if there are none. */
 export function initialSelection(candidates: readonly CandidateSite[]): string {
   const { ranked, references } = splitByRole(candidates)
   return (ranked[0] ?? references[0])?.site_id ?? ''
@@ -87,7 +87,7 @@ export interface MatchDetail extends PrecedentMatch {
   sourceUrl: string
 }
 
-/** Une cada coincidencia con su antecedente del catálogo para mostrar nombre, precisión y fuente. */
+/** Joins each match with its catalog precedent to show name, precision, and source. */
 export function matchDetails(candidate: CandidateSite, catalog: PrecedentCatalog | null): MatchDetail[] {
   const byId = new Map((catalog?.precedents ?? []).map((precedent) => [precedent.precedent_id, precedent]))
   return (candidate.literature_review?.matches ?? []).flatMap((match) => {
@@ -99,11 +99,11 @@ export function matchDetails(candidate: CandidateSite, catalog: PrecedentCatalog
   })
 }
 
-/** Ficha exportable: conserva rol, origen y revisión bibliográfica, y añade el alcance de la búsqueda. */
+/** Exportable record: keeps role, origin, and bibliographic review, and adds the search scope. */
 export function buildExport(candidate: CandidateSite, search: SearchResults | null) {
   return {
     exported_from: 'AnalogOS',
-    notice: 'Screening preliminar: no aprueba el sitio, no autoriza acceso y no declara novedad.',
+    notice: 'Preliminary screening: it does not approve the site, authorize access or declare novelty. The site object is the source record from the snapshot, kept in its original wording (mostly Spanish).',
     site: candidate,
     search_context: search && {
       search_id: search.search_id,

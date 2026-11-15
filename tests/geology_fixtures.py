@@ -1,4 +1,4 @@
-"""Datos SINTÉTICOS de prueba para geología. Solo existen dentro de los tests: nunca son evidencia real."""
+"""SYNTHETIC test data for geology. It exists only inside the tests: it is never real evidence."""
 
 import io
 import json
@@ -80,7 +80,7 @@ def resource(rid, fmt, name):
 
 
 class FakeServer:
-    """Sirve respuestas por URL exacta; registra las peticiones. Cualquier otra URL falla como red caída."""
+    """Serves responses by exact URL; records the requests. Any other URL fails like a downed network."""
 
     def __init__(self, routes):
         self.routes, self.calls, self.kwargs = dict(routes), [], []
@@ -101,7 +101,7 @@ def http_for(server, clock=lambda: TIME):
 
 
 def synthetic_world(sites, license_id="cc-zero", shapefile_first=False):
-    """Servidor falso con un Chile y tres respuestas argentinas SINTÉTICAS para las geometrías de ``sites``."""
+    """Fake server with one Chilean and three SYNTHETIC Argentine responses for the geometries of ``sites``."""
     routes = {}
     resources = [resource("r-shp", "SHP", "a"), resource("r-geo", "GeoJSON", "b")]
     a_url, b_url = resources[0]["url"], resources[1]["url"]
@@ -130,7 +130,7 @@ def synthetic_world(sites, license_id="cc-zero", shapefile_first=False):
 
 
 def ensure_raw(raw, sites, **kwargs):
-    """Solo para pruebas de adquisición: prepara e instala la caché (el build real publica junto con el paquete)."""
+    """For acquisition tests only: prepares and installs the cache (the real build publishes together with the package)."""
     prepared = fetch.prepare_raw(raw, sites, **kwargs)
     if prepared.staging is not None:
         fetch.publish([(prepared.staging, raw)])

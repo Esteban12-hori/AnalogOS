@@ -1,10 +1,10 @@
-// Referencia regional de Marte (Jezero, MOLA MEGDR) leída de analysis-summary.json.
-// Solo se usa para mostrar contra qué se comparó cada criterio topográfico; el score lo calcula el pipeline.
+// Regional Mars reference (Jezero, MOLA MEGDR) read from analysis-summary.json.
+// Used only to show what each topographic criterion was compared against; the score is computed by the pipeline.
 
 export interface MarsReference {
   name: string
   spacingMeter: number
-  /** Valor marciano por criterion_id (misma unidad que el raw_value del criterio). */
+  /** Martian value per criterion_id (same unit as the criterion's raw_value). */
   byCriterion: Readonly<Record<string, number>>
 }
 
@@ -28,7 +28,7 @@ export function parseMarsReference(summary: unknown): MarsReference | null {
   }
   if (Object.keys(byCriterion).length === 0) return null
   return {
-    name: typeof mola.name === 'string' ? mola.name : 'Referencia MOLA',
+    name: typeof mola.name === 'string' ? mola.name : 'MOLA reference',
     spacingMeter: typeof mola.nominal_spacing_meter === 'number' ? mola.nominal_spacing_meter : Number.NaN,
     byCriterion,
   }

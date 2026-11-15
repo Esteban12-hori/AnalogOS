@@ -1,87 +1,87 @@
 /**
- * Modelo puro del riel de métricas (incremento 5, docs/UX_REDESIGN.md §3.6).
+ * Pure model of the metrics rail (increment 5, docs/UX_REDESIGN.md §3.6).
  *
- * Toda cifra sale del snapshot (score_breakdown del pipeline), de la referencia MOLA de Jezero
- * (analysis-summary.json) o del motor de misión (pesos y contribuciones). Aquí solo se ordena,
- * se compara y se rotula: no se recalcula ninguna similitud ni se inventa un valor de Marte.
+ * Every figure comes from the snapshot (the pipeline's score_breakdown), from the Jezero MOLA reference
+ * (analysis-summary.json) or from the mission engine (weights and contributions). Here things are only sorted,
+ * compared and labeled: no similarity is recalculated and no Mars value is invented.
  *
- *  - Orden: peso del perfil activo, de mayor a menor; empates por el orden canónico.
- *  - ■ Jezero: solo pendiente, rugosidad y relieve (MOLA). El resto lleva null.
- *  - Limitante: la contribución más negativa (campo `contribution`), no la similitud más baja.
- *  - «satura»: preferencia acotada que alcanzó el tope de su regla.
- *  - Valor regional compartido: mismo valor y misma fuente en otro sector evaluado.
+ *  - Order: weight of the active profile, from highest to lowest; ties by canonical order.
+ *  - ■ Jezero: only slope, roughness and relief (MOLA). The rest carry null.
+ *  - Limiting: the most negative contribution (field `contribution`), not the lowest similarity.
+ *  - «saturates»: bounded preference that reached the cap of its rule.
+ *  - Shared regional value: same value and same source in another evaluated sector.
  */
 import type { CriterionId, MissionCriterion, ScoreBreakdownItem } from '../../domain/contracts'
 import { CRITERION_IDS, isCriterionId } from '../../domain/criteria'
 import { criterionLabels, formatRawValue } from '../../domain/formatting'
 import type { BuildMetricViewsInput, MetricView } from './index'
 
-/** Criterios con valor marciano comparable (medianas MOLA de Jezero) y la unidad exigida. */
+/** Criteria with a comparable Martian value (Jezero MOLA medians) and the required unit. */
 export const MARS_COMPARABLE: Readonly<Partial<Record<CriterionId, string>>> = Object.freeze({
   slope: 'degree',
   terrain_roughness: 'meter',
   local_relief: 'meter',
 })
 
-/** Nombre corto de cada criterio en la UI (un mismo nombre en riel, líneas y Lectura). */
+/** Short name of each criterion in the UI (the same name in the rail, lines and Reading). */
 export const METRIC_LABELS: Readonly<Record<CriterionId, string>> = Object.freeze({
-  slope: 'Pendiente',
-  terrain_roughness: 'Rugosidad',
-  local_relief: 'Relieve local',
-  bare_ground_fraction: 'Suelo expuesto',
-  aridity_context: 'Aridez',
-  surface_temperature_variability: 'Rango térmico',
-  geologic_relevance: 'Geología',
+  slope: 'Slope',
+  terrain_roughness: 'Roughness',
+  local_relief: 'Local relief',
+  bare_ground_fraction: 'Bare ground',
+  aridity_context: 'Aridity',
+  surface_temperature_variability: 'Thermal range',
+  geologic_relevance: 'Geology',
 })
 
-/** Qué mide cada criterio, en una línea. */
+/** What each criterion measures, in one line. */
 export const METRIC_MEASURES: Readonly<Record<CriterionId, string>> = Object.freeze({
-  slope: 'Mediana del terreno a ~480 m',
-  terrain_roughness: 'Desnivel mediano entre celdas vecinas',
-  local_relief: 'Desnivel mediano en ventanas 3×3',
-  bare_ground_fraction: 'Píxeles sin vegetación · Sentinel-2 2025',
-  aridity_context: 'Precipitación climatológica · NASA POWER',
-  surface_temperature_variability: 'Amplitud climatológica de la superficie',
-  geologic_relevance: 'Compatibilidad litológica con el objetivo',
+  slope: 'Terrain median at ~480 m',
+  terrain_roughness: 'Median height difference between neighboring cells',
+  local_relief: 'Median height difference in 3×3 windows',
+  bare_ground_fraction: 'Pixels without vegetation · Sentinel-2 2025',
+  aridity_context: 'Climatological precipitation · NASA POWER',
+  surface_temperature_variability: 'Climatological surface amplitude',
+  geologic_relevance: 'Lithological compatibility with the objective',
 })
 
 interface BoundedRule {
-  /** Texto de la regla (┆). */
+  /** Text of the rule (┆). */
   text: string
-  /** La misma fórmula que aplica el pipeline; sirve para el chequeo de consistencia. */
+  /** The same formula applied by the pipeline; used for the consistency check. */
   similarity: (raw: number) => number
 }
 
 /**
- * Reglas de las preferencias acotadas, copiadas de `pipelines/build_precision_snapshot.py`
- * (no son rangos planetarios). Antes de mostrarlas se verifica que reproducen la similitud del
- * snapshot: si no coinciden, la UI no muestra la fórmula y avisa.
+ * Rules of the bounded preferences, copied from `pipelines/build_precision_snapshot.py`
+ * (they are not planetary ranges). Before displaying them, it is verified that they reproduce the similarity of the
+ * snapshot: if they do not match, the UI does not show the formula and issues a warning.
  */
 export const BOUNDED_RULES: Readonly<Partial<Record<CriterionId, BoundedRule>>> = Object.freeze({
   bare_ground_fraction: {
-    text: 'Más suelo sin vegetación, más análogo: la similitud es la fracción no vegetada (Sentinel-2, SCL clase 5).',
+    text: 'More ground without vegetation, more analog: similarity is the non-vegetated fraction (Sentinel-2, SCL class 5).',
     similarity: (raw: number) => Math.max(0, Math.min(1, raw)),
   },
   aridity_context: {
-    text: 'Menos lluvia, más análogo: la similitud es 1 ÷ (1 + lluvia ÷ 25 mm/año); vale 50 a 25 mm/año.',
+    text: 'Less rain, more analog: similarity is 1 ÷ (1 + rain ÷ 25 mm/year); it is 50 at 25 mm/year.',
     similarity: (raw: number) => 1 / (1 + raw / 25),
   },
   surface_temperature_variability: {
-    text: 'Más amplitud térmica, más análogo, hasta saturar en 45 K.',
+    text: 'More thermal amplitude, more analog, until it saturates at 45 K.',
     similarity: (raw: number) => Math.min(raw / 45, 1),
   },
 })
 
-export const GENERIC_RULE_TEXT = 'Preferencia acotada del perfil: la similitud crece hacia el extremo preferido y se detiene en su tope.'
-export const UNVERIFIED_RULE_TEXT = 'La regla conocida no reproduce la similitud del snapshot; consulta «Método» antes de interpretarla.'
+export const GENERIC_RULE_TEXT = 'Bounded profile preference: similarity grows toward the preferred end and stops at its cap.'
+export const UNVERIFIED_RULE_TEXT = 'The known rule does not reproduce the snapshot similarity; check “Method” before interpreting it.'
 
-/** El pipeline redondea la similitud a 6 decimales. */
+/** The pipeline rounds the similarity to 6 decimals. */
 export const RULE_TOLERANCE = 1e-5
-/** Tope de una preferencia acotada (similitud 1). */
+/** Cap of a bounded preference (similarity 1). */
 const SATURATION_EPS = 1e-9
-/** Banda en la que sector y Jezero se consideran «similares» (la razón se muestra con 1 decimal). */
+/** Band in which sector and Jezero are considered «similar» (the ratio is shown with 1 decimal). */
 export const SIMILAR_RATIO_BAND = 0.05
-/** Empates de peso: los pesos de misión salen de una división y pueden diferir en el último bit. */
+/** Weight ties: mission weights come from a division and may differ in the last bit. */
 const WEIGHT_TIE = 1e-12
 
 const CANONICAL_INDEX: ReadonlyMap<string, number> = new Map(CRITERION_IDS.map((id, index) => [id, index]))
@@ -104,11 +104,11 @@ function siteValueText(item: ScoreBreakdownItem | null, unit: string): string {
   if (typeof raw === 'string' && raw.trim()) return raw
   switch (item?.status) {
     case 'needs_calibration':
-      return 'por calcular'
+      return 'not yet calculated'
     case 'excluded':
-      return 'excluido'
+      return 'excluded'
     default:
-      return 'sin dato'
+      return 'no data'
   }
 }
 
@@ -139,8 +139,8 @@ function sharedRegional(
   sites: BuildMetricViewsInput['sites'],
 ): string[] {
   if (!item || item.status !== 'valid' || !isFiniteNumber(item.raw_value)) return []
-  // Dos sectores en el tope (o el piso) de una regla coinciden por saturación, no porque
-  // compartan la misma celda de la fuente: eso no es un valor regional compartido.
+  // Two sectors at the cap (or the floor) of a rule coincide because of saturation, not because
+  // they share the same cell of the source: that is not a shared regional value.
   if (atBound(item.normalized_similarity)) return []
   const shared: string[] = []
   for (const other of sites) {
@@ -160,13 +160,13 @@ function vsMarsFor(raw: unknown, valid: boolean, marsValue: MetricView['marsValu
   return { direction, ratio }
 }
 
-/** Ordena por el peso del perfil activo; desempate por el orden canónico de criterios. */
+/** Sorts by the weight of the active profile; ties broken by the canonical order of criteria. */
 export function buildMetricViews(input: BuildMetricViewsInput): MetricView[] {
   const { site, sites, profile, weights, contributions, marsReference } = input
   const items = new Map<string, ScoreBreakdownItem>(site.score_breakdown.map((item) => [item.criterion_id, item]))
   const criteria = new Map<string, MissionCriterion>(profile.criteria.map((criterion) => [criterion.id, criterion]))
 
-  // Criterios del perfil y, por si el snapshot trae alguno más, los del desglose (sin repetir).
+  // Criteria of the profile and, in case the snapshot brings any more, those of the breakdown (without repeating).
   const ids: CriterionId[] = []
   for (const id of [...profile.criteria.map((criterion) => criterion.id), ...site.score_breakdown.map((item) => item.criterion_id)]) {
     if (isCriterionId(id) && !ids.includes(id)) ids.push(id)
@@ -202,7 +202,7 @@ export function buildMetricViews(input: BuildMetricViewsInput): MetricView[] {
       vsMars: vsMarsFor(item?.raw_value, valid, marsValue),
       isLimiting: false,
       contribution: isFiniteNumber(contribution) ? contribution : null,
-      // Un criterio fuera del perfil (peso 0) no «satura»: no cuenta para el %.
+      // A criterion outside the profile (weight 0) does not «saturate»: it does not count toward the %.
       saturates: weight > 0 && rule !== null && valid && item !== null && item.normalized_similarity !== null && item.normalized_similarity >= 1 - SATURATION_EPS,
       sharedRegionalWith: sharedRegional(id, item, site.site_id, sites),
       quality: item?.quality ?? 0,
@@ -210,7 +210,7 @@ export function buildMetricViews(input: BuildMetricViewsInput): MetricView[] {
     }
   })
 
-  // Limitante = contribución más negativa entre los criterios que pesan; empate → orden canónico.
+  // Limiting = most negative contribution among the criteria that carry weight; tie → canonical order.
   let limiting: MetricView | null = null
   for (const view of [...views].sort((a, b) => canonicalIndex(a.criterionId) - canonicalIndex(b.criterionId))) {
     if (view.weight <= 0 || view.contribution === null || view.contribution >= 0) continue
@@ -225,7 +225,7 @@ export function buildMetricViews(input: BuildMetricViewsInput): MetricView[] {
   })
 }
 
-/** La métrica limitante de una lista de vistas (null si ninguna contribución es negativa). */
+/** The limiting metric of a list of views (null if no contribution is negative). */
 export function limitingView(views: readonly MetricView[]): MetricView | null {
   return views.find((view) => view.isLimiting) ?? null
 }

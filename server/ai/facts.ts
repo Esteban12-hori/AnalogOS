@@ -1,5 +1,5 @@
-// Hechos de confianza: artefactos versionados del snapshot v3, validados con los contratos al cargar.
-// Importaciones estáticas para que Vercel (nft/esbuild) empaquete los JSON con la función.
+// Trusted facts: versioned artifacts from the v3 snapshot, validated against the contracts on load.
+// Static imports so that Vercel (nft/esbuild) bundles the JSON files with the function.
 import candidates from '../../artifacts/science-v3/candidate-details.json'
 import manifest from '../../artifacts/science-v3/manifest.json'
 import profile from '../../artifacts/science-v3/mission-profile.json'

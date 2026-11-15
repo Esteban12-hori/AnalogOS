@@ -1,12 +1,12 @@
 /**
- * Armazón del escenario fijo (ADR-014, docs/UX_REDESIGN.md §2.1 y §3.8).
+ * Fixed stage shell (ADR-014, docs/UX_REDESIGN.md §2.1 and §3.8).
  *
- *   centro = dónde (escenario + líneas) · derecha = el lugar (riel) ·
- *   izquierda = tu misión y por qué (≥1440, Misión) · abajo = elegir y escribir (dock).
- *   <1100 px: una sola hoja S0/S1/S2.
+ *   center = where (stage + lines) · right = the place (rail) ·
+ *   left = your mission and why (≥1440, Mission) · bottom = choose and write (dock).
+ *   <1100 px: a single sheet S0/S1/S2.
  *
- * Cada feature se monta en su slot definitivo (docs/BUILD_CONTRACTS.md). Este archivo es del
- * integrador: los constructores no lo editan.
+ * Each feature is mounted in its final slot (docs/BUILD_CONTRACTS.md). This file belongs to the
+ * integrator: the builders do not edit it.
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Composer, focusComposer, MissionCard, MissionPrintHost, registerMissionGeology, registerMissionSnapshot, useMissionOpenRequest, withController } from '../features/composer'
@@ -36,7 +36,7 @@ import { prefersReducedMotion } from './useReducedMotion'
 import { useViewportLayout } from './useViewportLayout'
 import './shell.css'
 
-/** --dur-4 (hoja, dock) + margen: los márgenes del escenario se publican al asentarse. */
+/** --dur-4 (sheet, dock) + margin: the stage margins are published once they settle. */
 const SETTLE_MS = 460
 const SETTLE_REDUCED_MS = 170
 
@@ -44,7 +44,7 @@ function isEditable(target: EventTarget | null): boolean {
   return target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
 }
 
-/** ¿El evento viene de un popover abierto (Tu misión, recientes)? Ese Esc lo cierra el popover. */
+/** Does the event come from an open popover (Your mission, recent)? That Esc is closed by the popover. */
 function insidePopover(target: EventTarget | null): boolean {
   if (target instanceof Element && target.closest('[popover]')) return true
   try {
@@ -56,7 +56,7 @@ function insidePopover(target: EventTarget | null): boolean {
 
 const cssEscape = (value: string): string => (typeof CSS !== 'undefined' && typeof CSS.escape === 'function' ? CSS.escape(value) : value)
 
-/** Primer elemento que existe y puede recibir el foco, en orden de preferencia. */
+/** First element that exists and can receive focus, in order of preference. */
 function focusFirst(scope: ParentNode, selectors: readonly string[]): boolean {
   for (const selector of selectors) {
     const el = scope.querySelector<HTMLElement>(selector)
@@ -68,12 +68,12 @@ function focusFirst(scope: ParentNode, selectors: readonly string[]): boolean {
   return false
 }
 
-/** Cierra los popovers abiertos (p. ej. «Tu misión» <1440) antes de llevar a la Lectura. */
+/** Closes the open popovers (e.g. "Your mission" <1440) before taking the user to the Reading. */
 function hideOpenPopovers(): void {
   try {
     document.querySelectorAll<HTMLElement>(':popover-open').forEach((el) => el.hidePopover())
   } catch {
-    // Sin popovers nativos no hay nada que cerrar.
+    // Without native popovers there is nothing to close.
   }
 }
 
@@ -87,8 +87,8 @@ function usePageHidden(): boolean {
   return hidden
 }
 
-const SCIENCE_NOTE = ['SCREENING CIENTÍFICO PRELIMINAR · DATOS REALES · NO ES AUTORIZACIÓN DE TERRENO', 'PRELIMINAR · NO AUTORIZA TERRENO'] as const
-const FIXTURE_NOTE = ['DEMOSTRACIÓN TÉCNICA · DATOS SINTÉTICOS · NO ES UN RESULTADO CIENTÍFICO', 'DEMO · DATOS SINTÉTICOS'] as const
+const SCIENCE_NOTE = ['PRELIMINARY SCIENTIFIC SCREENING · REAL DATA · NOT A TERRAIN AUTHORIZATION', 'PRELIMINARY · NOT A TERRAIN AUTHORIZATION'] as const
+const FIXTURE_NOTE = ['TECHNICAL DEMO · SYNTHETIC DATA · NOT A SCIENTIFIC RESULT', 'DEMO · SYNTHETIC DATA'] as const
 
 export function AppShell({ data, promise }: { data: AppData; promise?: string }) {
   const layout = useViewportLayout()
@@ -98,13 +98,13 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
   const selection = useUi((state) => state.selection)
   const settledInsets = useUi((state) => state.stageInsets)
   const revision = useMission((state) => state.revision)
-  // Panel izquierdo (≥1440): sin resultado vigente manda «Tu misión»; con resultado, la Lectura.
+  // Left panel (≥1440): with no current result, "Your mission" takes precedence; with a result, the Reading.
   const missionFocus = useMission((state) => state.evaluation === null || state.stale)
   const [seenRevision, setSeenRevision] = useState(revision)
   const [railFull, setRailFull] = useState(false)
   const [detent, setDetent] = useState<DetentId>('S0')
   const [focusSignal, setFocusSignal] = useState(0)
-  // «Ir a la Lectura» (M11): vista «Lectura» de S2 sin ● y detent al que se vuelve desde ella.
+  // "Go to the Reading" (M11): S2 "Reading" view without ● and the detent to which it returns from there.
   const readingRequest = useUi((state) => state.readingRequest)
   const [sheetReading, setSheetReading] = useState<DetentId | null>(null)
   const [detailTabRequest, setDetailTabRequest] = useState<{ tab: DetailTab; nonce: number } | null>(null)
@@ -115,12 +115,12 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
   const snapshot = data.snapshot
   const site = selection?.kind === 'evaluated' ? snapshot?.candidates.find((item) => item.site_id === selection.siteId) ?? null : null
 
-  // ---- Planificador compartido: el snapshot validado, sin transformar (ADR-013) ------------
+  // ---- Shared planner: the validated snapshot, untransformed (ADR-013) ------------
   useEffect(() => registerMissionSnapshot(data.status === 'ready' ? data.snapshot : null), [data.status, data.snapshot])
-  // Contexto geológico oficial (M10): el mismo objeto validado que ve la ficha llega al planificador.
+  // Official geological context (M10): the same validated object that the card sees reaches the planner.
   const geologyState = geologyStateOf(data)
   useEffect(() => registerMissionGeology(geologyState), [geologyState])
-  // Al entrar a Misión se carga el chunk del planificador y se abre «Definir una prueba» (sin IA).
+  // On entering Mission, the planner chunk is loaded and "Define a test" is opened (without AI).
   useEffect(() => {
     if (mode !== 'mision' || data.status !== 'ready') return
     withController((mission) => {
@@ -128,7 +128,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
     })
   }, [mode, data.status])
 
-  // «Evaluar este sector» o «Enviar» piden abrir «Tu misión»: en la hoja móvil vive en la bandeja S0.
+  // "Evaluate this sector" or "Send" request opening "Your mission": on the mobile sheet it lives in the S0 tray.
   const openRequest = useMissionOpenRequest()
   const seenOpenRequest = useRef(openRequest)
   useEffect(() => {
@@ -137,7 +137,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
     if (narrow) changeDetentRef.current('S0')
   }, [openRequest, narrow])
 
-  // ---- Modo: ?modo= con replaceState y punto de resultados nuevos -------------------------
+  // ---- Mode: ?modo= with replaceState and new-results indicator -------------------------
   useEffect(() => {
     const { pathname, search, hash } = window.location
     const next = searchWithMode(search, mode)
@@ -145,7 +145,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
     if (mode === 'mision') setSeenRevision(revision)
   }, [mode, revision])
 
-  // ---- Selección → riel / hoja --------------------------------------------------------------
+  // ---- Selection → rail / sheet --------------------------------------------------------------
   const selectedKey = selection ? `${selection.kind}:${selection.siteId}:${selection.preview}` : ''
   useEffect(() => {
     if (!selection) {
@@ -153,19 +153,19 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
       setDetent((current) => (current === 'S1' ? 'S0' : current))
       return
     }
-    // La vista previa (#1 al llegar resultados) no abre la hoja ni mueve el foco.
+    // The preview (#1 when results arrive) does not open the sheet or move focus.
     if (!selection.preview) setDetent((current) => (current === 'S0' ? 'S1' : current))
-    // Solo reacciona a cambios de selección (selectedKey resume selection).
+    // It only reacts to selection changes (selectedKey summarizes selection).
   }, [selectedKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ---- S2: pushState; Atrás vuelve a S1 ------------------------------------------------------
+  // ---- S2: pushState; Back returns to S1 ------------------------------------------------------
   const pushed = useRef(false)
   const detentRef = useRef(detent)
   detentRef.current = detent
   const sheetReadingRef = useRef(sheetReading)
   sheetReadingRef.current = sheetReading
   const changeDetent = useCallback((next: DetentId) => {
-    // Salir de S2 por la UI consume la entrada de historial que se agregó al entrar.
+    // Leaving S2 via the UI consumes the history entry that was added on entering.
     if (detentRef.current === 'S2' && next !== 'S2' && pushed.current) {
       pushed.current = false
       window.history.back()
@@ -189,12 +189,12 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
-  // ---- Esc: S2 → S1; ficha completa → riel; riel → sin selección ----------------------------
+  // ---- Esc: S2 → S1; full card → rail; rail → no selection ----------------------------
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || event.defaultPrevented || isEditable(event.target)) return
-      // Un diálogo popover (Tu misión, recientes) se cierra con su propio Esc nativo: no se
-      // cancela ni se borra la selección por debajo (APG, patrón de diálogo).
+      // A popover dialog (Your mission, recent) is closed by its own native Esc: the selection beneath it is not
+      // canceled or cleared (APG, dialog pattern).
       if (insidePopover(event.target)) return
       if (narrow && detent === 'S2') changeDetent(sheetReading ?? 'S1')
       else if (!narrow && railFull) setRailFull(false)
@@ -206,15 +206,15 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
     return () => window.removeEventListener('keydown', onKey)
   }, [narrow, detent, railFull, changeDetent, sheetReading])
 
-  // La vista «Lectura» de la hoja y la pestaña pedida solo valen en S2 bajo 1100 px: al salir se
-  // descartan (la próxima «Ficha» vuelve a abrir en Métricas).
+  // The sheet's "Reading" view and the requested tab are only valid in S2 below 1100 px: on leaving, they are
+  // discarded (the next "Card" opens again on Metrics).
   useEffect(() => {
     if (narrow && detent === 'S2') return
     setSheetReading(null)
     setDetailTabRequest(null)
   }, [narrow, detent])
 
-  // ---- «Ir a la Lectura» (M11): superficie según el ancho; la selección no se toca ----------
+  // ---- "Go to the Reading" (M11): surface according to width; the selection is not touched ----------
   const seenReadingRequest = useRef(readingRequest)
   const cancelReadingFocus = useRef<() => void>(() => undefined)
   useEffect(() => {
@@ -237,10 +237,10 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
   }, [readingRequest]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => cancelReadingFocus.current(), [])
 
-  // ---- Foco: ninguna transición de la hoja o del riel lo deja caer en <body> (WCAG 2.4.3) ----
-  // Se recuerda el último elemento enfocado dentro de la app; si una transición lo desmonta, el
-  // foco pasa al control equivalente del estado nuevo (título de la hoja, pestaña de la ficha,
-  // «Ficha», «Ver ficha completa», la opción del carrusel del lugar cerrado o el conmutador).
+  // ---- Focus: no sheet or rail transition lets it fall onto <body> (WCAG 2.4.3) ----
+  // The last focused element within the app is remembered; if a transition unmounts it, the
+  // focus moves to the equivalent control in the new state (sheet title, card tab,
+  // "Card", "View full card", the carousel option of the closed place, or the switcher).
   const lastFocused = useRef<HTMLElement | null>(null)
   const lastSite = useRef<string | null>(null)
   useEffect(() => {
@@ -278,7 +278,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
     focusFirst(app, targets)
   }, [detent, selectedKey, railFull, narrow, selection, mode])
 
-  // ---- Márgenes del escenario: se publican cuando el layout se asienta ----------------------
+  // ---- Stage margins: published when the layout settles ----------------------
   const railOpen = !narrow && selection !== null
   const target = useMemo(
     () => stageInsetsFor({ width, height, mode, railOpen, railFull: railFull && site !== null, detent }),
@@ -304,11 +304,11 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
     }, prefersReducedMotion() ? SETTLE_REDUCED_MS : SETTLE_MS)
     return () => window.clearTimeout(timer)
   }, [target, width, height, measureObstacles])
-  // La franja del HUD y los controles + − ⌂ del escenario se ubican con los márgenes asentados:
-  // se vuelven a medir después de que el escenario los aplica (obstáculos para las líneas Tesla).
+  // The HUD strip and the + − ⌂ stage controls are positioned using the settled margins:
+  // they are measured again after the stage applies them (obstacles for the Tesla lines).
   useLayoutEffect(measureObstacles, [settledInsets, mode, measureObstacles])
 
-  // ---- Hitos del escenario para la bitácora de arranque --------------------------------------
+  // ---- Stage milestones for the startup log --------------------------------------
   useEffect(() => {
     if (data.status === 'ready') reportBootMilestone('snapshot', 'ok')
     if (data.status === 'error') reportBootMilestone('snapshot', 'error')
@@ -321,7 +321,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
     if (narrow) changeDetent('S1')
   }, [narrow, changeDetent])
 
-  // «Ver lista» del carrusel en la hoja: S1 sin selección dibuja sheet.list; cerrarla vuelve a S0.
+  // "View list" of the carousel in the sheet: S1 with no selection draws sheet.list; closing it returns to S0.
   const openList = useCallback((open: boolean) => changeDetent(open ? 'S1' : 'S0'), [changeDetent])
 
   const fixture = isFixtureSnapshot(snapshot)
@@ -341,7 +341,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
       data-detent={narrow ? detent : undefined}
       style={cssVars}
     >
-      {/* La barra superior va primero en el DOM (orden de tabulación = orden visual); es fija. */}
+      {/* The top bar comes first in the DOM (tab order = visual order); it is fixed. */}
       <header className="topbar" data-obstacle="">
         <h1 className="sr-only">{SHELL_TEXT.brand} · {SHELL_TEXT.brandTagline}</h1>
         <div className="brand" aria-hidden="true">
@@ -356,8 +356,8 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
         <p className={`science-note${fixture ? ' is-fixture' : ''}`} role="note">
           <span aria-hidden="true" />
           <span className="note-long">{(fixture ? FIXTURE_NOTE : SCIENCE_NOTE)[0]}</span>
-          {/* La versión larga sale del árbol con display:none en pantallas angostas; la corta la
-              reemplaza para todos (también lectores de pantalla). */}
+          {/* The long version is removed from the tree with display:none on narrow screens; the short one
+              replaces it for everyone (including screen readers). */}
           <span className="note-short">{(fixture ? FIXTURE_NOTE : SCIENCE_NOTE)[1]}</span>
         </p>
       </header>
@@ -391,13 +391,13 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
       </div>
 
 
-      {/* Explorar ≥1100 y Misión 1100–1439 (M11: superficie de «Ir a la Lectura» sin panel izquierdo). */}
+      {/* Explore ≥1100 and Mission 1100–1439 (M11: "Go to the Reading" surface without a left panel). */}
       {!narrow && (mode === 'explorar' || tramo === 'medium') && (
         <div className="reading-pill-slot" data-slot="pill.reading" data-obstacle=""><ReadingPill data={data} openSignal={readingRequest} /></div>
       )}
 
       {tramo === 'wide' && mode === 'mision' && (
-        <aside className="left-panel" aria-label="Tu misión y lectura" data-obstacle="" data-focus={missionFocus ? 'mission' : 'reading'}>
+        <aside className="left-panel" aria-label="Your mission and reading" data-obstacle="" data-focus={missionFocus ? 'mission' : 'reading'}>
           <div data-slot="left.mission"><MissionCard data={data} placement="panel" promise={promise} /></div>
           <div data-slot="left.reading"><ReadingPanel data={data} placement="panel" /></div>
         </aside>
@@ -428,7 +428,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
           onDetentChange={changeDetent}
           heights={heights}
           side={sideSheet}
-          label={sheetReading ? 'Lectura' : site ? placeLabel(site.name) : 'Lugares'}
+          label={sheetReading ? 'Reading' : site ? placeLabel(site.name) : 'Places'}
           labelledBy={tabId('mode', mode)}
           keyboardOpen={keyboardInset > 0}
           head={sheetHead({ detent, data, siteName: site ? placeLabel(site.name) : null, hasSelection: selection !== null, onDetent: changeDetent, readingBack: sheetReading })}
@@ -450,19 +450,19 @@ interface SheetPartsArgs {
   siteName: string | null
   hasSelection: boolean
   onDetent: (detent: DetentId) => void
-  /** Vista «Lectura» de S2 (M11): detent al que se vuelve; null fuera de esa vista. */
+  /** S2 “Reading” view (M11): detent to return to; null outside that view. */
   readingBack?: DetentId | null
 }
 
 export function sheetHead({ detent, data, siteName, hasSelection, onDetent, readingBack = null }: SheetPartsArgs): ReactNode {
   if (detent === 'S0') return null
   if (detent === 'S2' && readingBack) {
-    // Lectura sin ● (sin selección o con ◆): volver o cerrar regresa sin borrar la selección.
+    // Reading without ● (no selection or with ◆): going back or closing returns without clearing the selection.
     return (
       <>
-        <button type="button" className="sheet-back" onClick={() => onDetent(readingBack)}>← Volver</button>
-        <h2 className="sheet-title" tabIndex={-1}>Lectura</h2>
-        <button type="button" className="sheet-close" aria-label="Cerrar la Lectura" onClick={() => onDetent(readingBack)}>
+        <button type="button" className="sheet-back" onClick={() => onDetent(readingBack)}>← Back</button>
+        <h2 className="sheet-title" tabIndex={-1}>Reading</h2>
+        <button type="button" className="sheet-close" aria-label="Close Reading" onClick={() => onDetent(readingBack)}>
           {GLYPH.fail}
         </button>
       </>
@@ -471,10 +471,10 @@ export function sheetHead({ detent, data, siteName, hasSelection, onDetent, read
   return (
     <>
       {detent === 'S2' && (
-        <button type="button" className="sheet-back" onClick={() => onDetent('S1')}>← Volver</button>
+        <button type="button" className="sheet-back" onClick={() => onDetent('S1')}>← Back</button>
       )}
       <h2 className="sheet-title" tabIndex={-1}>
-        {siteName ? <><span aria-hidden="true">{GLYPH.evaluated}</span> {siteName}</> : hasSelection ? 'Referencia mundial' : 'Lugares'}
+        {siteName ? <><span aria-hidden="true">{GLYPH.evaluated}</span> {siteName}</> : hasSelection ? 'World reference' : 'Places'}
       </h2>
       {detent === 'S1' && siteName && (
         <>
@@ -489,13 +489,13 @@ export function sheetHead({ detent, data, siteName, hasSelection, onDetent, read
               }}
             />
           </span>
-          <button type="button" className="sheet-more" onClick={() => onDetent('S2')}>Ficha</button>
+          <button type="button" className="sheet-more" onClick={() => onDetent('S2')}>Details</button>
         </>
       )}
       <button
         type="button"
         className="sheet-close"
-        aria-label={hasSelection ? 'Cerrar el lugar' : 'Volver a la bandeja'}
+        aria-label={hasSelection ? 'Close the place' : 'Back to the tray'}
         onClick={() => {
           if (hasSelection) uiActions.clearSelection()
           onDetent('S0')
@@ -515,7 +515,7 @@ interface SheetBodyArgs {
   selection: { siteId: string; kind: 'evaluated' | 'reference' } | null
   onShowOnMap: () => void
   onListView: (open: boolean) => void
-  /** Vista «Lectura» de S2 sin ● seleccionado (M11). */
+  /** S2 "Reading" view without a selected ● (M11). */
   reading?: boolean
   detailTabRequest?: { tab: DetailTab; nonce: number } | null
 }

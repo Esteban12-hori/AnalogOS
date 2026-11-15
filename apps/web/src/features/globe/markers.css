@@ -1,10 +1,10 @@
 /*
- * Marcadores ●◆○ y chips de grupo (incremento 4). Mismo estilo en el globo y en el mapa 2D.
- * Fondo de marcador sin blur (--marker-bg). Selección = hielo + azul; nunca naranja (Marte).
- * Solo se animan transform y opacity; con reduced motion: sin escala, halos ni pulsos.
- * Lo que cambia por cuadro llega como atributos data-* que escribe el globo:
- *   data-hidden (detrás del globo) · data-clustered (dentro de un grupo) · data-label (rótulo
- *   dentro del presupuesto) · data-halo / data-pulse (coreografías, una sola vez).
+ * ●◆○ markers and group chips (increment 4). Same style on the globe and on the 2D map.
+ * Marker background without blur (--marker-bg). Selection = ice + blue; never orange (Mars).
+ * Only transform and opacity are animated; with reduced motion: no scaling, halos or pulses.
+ * What changes per frame arrives as data-* attributes written by the globe:
+ *   data-hidden (behind the globe) · data-clustered (inside a group) · data-label (label
+ *   within budget) · data-halo / data-pulse (choreographies, only once).
  */
 .globe-pins { position: absolute; inset: 0; z-index: 2; overflow: hidden; pointer-events: none; }
 
@@ -12,7 +12,7 @@
 .globe-pin[data-hidden], .globe-cluster[data-hidden] { visibility: hidden; }
 .globe-pin-body { position: relative; opacity: 1; transition: opacity var(--dur-2, 200ms) var(--ease-standard, ease); }
 
-/* Marcador: disco de 22 px centrado en el ancla; el rótulo sale a la derecha con línea sólida. */
+/* Marker: 22 px disc centered on the anchor; the label extends to the right with a solid line. */
 .globe-pin-button, .globe-cluster-chip {
   position: absolute;
   top: -11px;
@@ -65,12 +65,12 @@
   line-height: 1.3;
 }
 /*
- * El rótulo termina antes del borde derecho del área libre (riel o pantalla). --pin-x lo escribe
- * el globo por cuadro (y el mapa 2D en cada movimiento) y --inset-right viene del escenario.
- * Si no cabe, se acorta con «…»: primero la insignia «◆ coincide con…»; luego el nombre y el
- * estado en proporción (el nombre conserva al menos 4 caracteres). El % y el puesto nunca se
- * cortan. Con hoja (<1100 px) la insignia se omite y el estado cede antes que el nombre (la hoja
- * ya lo muestra). El texto completo sigue en el nombre accesible del pin y en la tarjeta.
+ * The label ends before the right edge of the free area (rail or screen). --pin-x is written by
+ * the globe per frame (and by the 2D map on every movement) and --inset-right comes from the stage.
+ * If it does not fit, it is shortened with "…": first the badge "◆ matches with…"; then the name and the
+ * status in proportion (the name keeps at least 4 characters). The % and the rank are never
+ * cut. With a sheet (<1100 px) the badge is omitted and the status yields before the name (the sheet
+ * already shows it). The full text remains in the pin's accessible name and in the card.
  */
 .globe-pin-label { max-width: max(96px, calc(100vw - var(--inset-right, 0px) - var(--pin-x, 0px) - 31px)); }
 .globe-pin-label > * { flex-shrink: 0; }
@@ -82,7 +82,7 @@
   .globe-pin-label > .globe-pin-badge { display: none; }
   .globe-pin-label > .globe-pin-status { flex-shrink: 100; }
 }
-/* Rótulo de ranking con línea sólida (§3.1). */
+/* Ranking label with solid line (§3.1). */
 .globe-pin-label::before { content: ''; position: absolute; top: 50%; right: 100%; width: 12px; border-top: 1px solid rgba(63, 180, 236, .7); }
 .globe-pin[data-label] .globe-pin-label, .globe-pin.is-selected .globe-pin-label, .globe-pin.is-hover .globe-pin-label, .globe-pin-button:focus-visible .globe-pin-label { display: inline-flex; }
 .globe-pin.is-reference .globe-pin-label, .globe-pin.is-insufficient .globe-pin-label { border-style: dashed; border-color: rgba(111, 136, 154, .6); }
@@ -92,10 +92,10 @@
 .globe-pin-status { color: var(--muted, #94AABA); font-size: var(--fs-caps, 11px); font-weight: 500; }
 .globe-pin-badge { color: var(--muted, #94AABA); font-size: var(--fs-caps, 11px); font-weight: 500; }
 
-/* Hover desde el carrusel: escala 1,2, sin pulso. */
+/* Hover from the carousel: scale 1,2, without pulse. */
 .globe-pin.is-hover .globe-pin-glyph, .globe-pin-button:hover .globe-pin-glyph { transform: scale(1.2); }
 
-/* Anillo del lugar: radio = polígono proyectado (≥14 px), lo fija el escenario en --ring-r. */
+/* Place ring: radius = projected polygon (≥14 px), set by the stage in --ring-r. */
 .globe-pin-ring, .globe-pin-halo {
   position: absolute;
   top: calc(-1 * var(--ring-r, 14px));
@@ -114,22 +114,22 @@
 .globe-pin-ring::after { content: ''; position: absolute; inset: -2px; border: 2px solid var(--sel-ring, #EAF4FA); border-radius: 50%; opacity: 0; }
 .globe-pin[data-pulse] .globe-pin-ring::after { animation: globe-pin-pulse var(--dur-6, 900ms) var(--ease-emph, ease-out) 1; }
 
-/* Halo de zona: aterrizaje (coreografía A) y orden nuevo de resultados (coreografía D). */
+/* Zone halo: landing (choreography A) and new results order (choreography D). */
 .globe-pin-halo { border: 1.5px solid var(--earth-bright, #3FB4EC); opacity: 0; }
 .globe-pin[data-halo] .globe-pin-halo { animation: globe-pin-halo var(--dur-6, 900ms) var(--ease-emph, ease-out) var(--halo-delay, 0ms) 1 backwards; }
 
-/* Otros lugares a --o-dim mientras hay uno seleccionado. */
+/* Other places at --o-dim while one is selected. */
 :is(.globe-pins, .flat-map)[data-selection] .globe-pin:not(.is-selected):not(.is-hover) > .globe-pin-body,
 :is(.globe-pins, .flat-map)[data-selection] .globe-cluster:not(.is-open):not(.is-hover) > .globe-pin-body { opacity: var(--o-dim, .5); }
 
-/* En el 2D cada marcador vive en un Marker de MapLibre: el grupo abierto queda por encima. */
+/* In 2D each marker lives in a MapLibre Marker: the open group stays on top. */
 .globe-flat-host { width: 0; height: 0; }
 .maplibregl-marker:has(.globe-cluster.is-open), .maplibregl-marker:has(.globe-pin.is-selected) { z-index: 3; }
 
-/* Agrupado: el disco y el rótulo ceden al chip; el halo de zona sigue en su sitio. */
+/* Grouped: the disc and the label yield to the chip; the zone halo stays in place. */
 .globe-pin[data-clustered] .globe-pin-button, .globe-pin[data-clustered] .globe-pin-ring { visibility: hidden; }
 
-/* Chip de grupo: glifos apilados en el ancla + conteos por tipo. */
+/* Group chip: stacked glyphs on the anchor + counts by type. */
 .globe-cluster-stack {
   display: grid;
   flex: none;
@@ -160,12 +160,12 @@
   font-variant-numeric: tabular-nums;
 }
 .globe-cluster-text::before { content: ''; position: absolute; top: 50%; right: 100%; width: 12px; border-top: 1px solid rgba(63, 180, 236, .7); }
-/* Separador «·» entre país y conteos, y glifo con el color de su tipo. */
+/* "·" separator between country and counts, and glyph with the color of its type. */
 .globe-cluster-text > span + span:not(.globe-cluster-caret)::before { content: '·'; margin-right: 6px; color: var(--muted, #94AABA); }
 .globe-cluster-count i { color: var(--earth-bright, #3FB4EC); font-size: 10px; font-style: normal; }
 .globe-cluster-count.is-insufficient i { color: var(--pending, #6F889A); }
 .globe-cluster-count.is-reference i { color: var(--muted, #94AABA); }
-/* Grupo corrido bajo el lugar seleccionado: solo glifos (el texto vuelve al enfocarlo o abrirlo). */
+/* Group shifted below the selected place: glyphs only (the text returns on focusing or opening it). */
 .globe-cluster[data-compact]:not(.is-open) .globe-cluster-text { display: none; }
 .globe-cluster[data-compact] .globe-cluster-chip:is(:hover, :focus-visible) .globe-cluster-text { display: inline-flex; }
 .globe-cluster-caret { display: inline-block; color: var(--muted, #94AABA); transition: transform var(--dur-2, 200ms) var(--ease-standard, ease); }
@@ -196,7 +196,7 @@
 .globe-cluster-item.is-reference .globe-pin-glyph { border-style: dashed; color: var(--muted, #94AABA); }
 .globe-cluster-wait { padding: 6px 8px; color: var(--muted, #94AABA); font-size: var(--fs-caps, 11px); }
 
-/* Coreografía A (aterrizaje): espera oculto; 1→2→3 cada 120 ms con su halo; luego ◆ y grupos. */
+/* Choreography A (landing): waits hidden; 1→2→3 every 120 ms with its halo; then ◆ and groups. */
 .globe-pins[data-intro="pending"] .globe-pin-body { opacity: 0; transition: none; }
 .globe-pins[data-intro="play"] .globe-pin-body { animation: globe-pin-land 320ms var(--ease-emph, ease-out) var(--land-delay, 0ms) 1 backwards; }
 .globe-pins[data-intro="play"] .globe-pin:not(.is-reference) .globe-pin-halo { animation: globe-pin-halo var(--dur-6, 900ms) var(--ease-emph, ease-out) var(--land-delay, 0ms) 1 backwards; }
@@ -220,8 +220,8 @@
   .globe-pin-label, .globe-cluster-text { font-size: var(--fs-caps, 11px); }
 }
 
-/* Piloto v3 y Misión integrada (ADR-008, ADR-013): la REF lleva rótulo, nunca número; en Misión el
-   marcador codifica el estado de la evaluación (nunca un %). */
+/* Pilot v3 and Integrated Mission (ADR-008, ADR-013): the REF carries a label, never a number; in Mission the
+   marker encodes the evaluation status (never a %). */
 .globe-pin[data-role="reference"] .globe-pin-glyph { border-style: dashed; }
 .globe-pin[data-role="reference"] .globe-pin-rank { color: var(--ice, #9CC2FF); letter-spacing: .04em; }
 .globe-pin[data-status="no_cumple_requisitos"] .globe-pin-body,

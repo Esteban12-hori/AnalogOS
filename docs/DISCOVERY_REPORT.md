@@ -1,112 +1,112 @@
-# Reporte de búsqueda y antecedentes — piloto Chile–Argentina (v3)
+# Search and background report — Chile–Argentina pilot (v3)
 
-Este reporte permite reconstruir por qué cada ventana fue evaluada, descartada o seleccionada. Los datos completos están en `artifacts/science-v3/search-results.json`; el catálogo de antecedentes, en `config/analog_precedents_v1.json`.
+This report makes it possible to reconstruct why each window was evaluated, discarded, or selected. The complete data are in `artifacts/science-v3/search-results.json`; the catalog of background sources is in `config/analog_precedents_v1.json`.
 
-## Resumen
+## Summary
 
-| Etapa | Resultado |
+| Stage | Result |
 |---|---|
-| Ventanas intentadas / con métricas válidas | 50 / 50 |
-| Área explorada | ≈ 22.274 km² (25 ventanas de 442–449 km² por región) |
-| Rechazadas por cobertura o agua | 0 |
-| Excluidas por contener coordenadas de muestreo publicadas | 4 (todas en Chile) |
-| Descartadas por cercanía a una ventana mejor | 2 |
-| Elegibles fuera del cupo de 3 por país | 38 |
-| Preseleccionadas y caracterizadas con todas las fuentes | 6 (3 por país) |
-| Fallos de API o meses rechazados en la etapa 2 | 0 |
+| Windows attempted / with valid metrics | 50 / 50 |
+| Area explored | ≈ 22,274 km² (25 windows of 442–449 km² per region) |
+| Rejected due to coverage or water | 0 |
+| Excluded for containing published sampling coordinates | 4 (all in Chile) |
+| Discarded for proximity to a better window | 2 |
+| Eligible but outside the quota of 3 per country | 38 |
+| Shortlisted and characterized with all sources | 6 (3 per country) |
+| API failures or rejected months in stage 2 | 0 |
 
-Es un experimento acotado en dos regiones de prueba. No es una búsqueda nacional ni global y no declara ninguna ventana como nueva.
+This is a limited experiment in two test regions. It is not a national or global search and does not declare any window to be new.
 
-## Reproducción
+## Reproduction
 
 ```bash
 source .venv/bin/activate
-python -m pipelines.fetch_discovery_data --stage tiles     # teselas NASADEM que falten (Earthdata)
-python -m pipelines.discover_candidates                    # etapa 1: 50 ventanas y preselección
-python -m pipelines.fetch_discovery_data --stage sources   # Sentinel-2, POWER y HLS de la preselección
-python -m pipelines.build_context_outline                  # contornos Natural Earth de ambos países
+python -m pipelines.fetch_discovery_data --stage tiles     # missing NASADEM tiles (Earthdata)
+python -m pipelines.discover_candidates                    # stage 1: 50 windows and preselection
+python -m pipelines.fetch_discovery_data --stage sources   # Sentinel-2, POWER and HLS from the preselection
+python -m pipelines.build_context_outline                  # Natural Earth outlines of both countries
 python -m pipelines.build_discovery_snapshot               # snapshot v3 completo
-python -m pipelines.fetch_visual_context --snapshot v3     # imágenes; reutiliza el paquete local sin red
+python -m pipelines.fetch_visual_context --snapshot v3     # images; reuses the local package without network access
 ```
 
-Las etapas de descarga usan credenciales desde el entorno o `.env` y solo contra hosts oficiales. Todo lo ya obtenido se reutiliza; la caché está ligada a la petición exacta (bbox, periodo, producto y transformación).
+The download stages use credentials from the environment or `.env` and only against official hosts. Everything already obtained is reused; the cache is tied to the exact request (bbox, period, product, and transformation).
 
-## Resultado por país
+## Result by country
 
-Similitud, confianza y estabilidad con las fórmulas y pesos v2. Todos quedan en «requiere revisión».
+Similarity, confidence, and stability using the v2 formulas and weights. All remain "requires review".
 
-| Rol | Ventana | Prioridad topográfica | Similitud | Confianza | Estabilidad |
+| Role | Window | Topographic priority | Similarity | Confidence | Stability |
 |---|---|---:|---:|---:|---:|
-| Candidato | `cl-win-s2500-w06970` · 25,0° S, 69,7° O | 98,01 | 94,87 | 77,45 | 99,33 |
-| Candidato | `cl-win-s2480-w06950` · 24,8° S, 69,5° O | 96,16 | 91,87 | 77,45 | 99,03 |
-| Candidato | `cl-win-s2520-w06950` · 25,2° S, 69,5° O | 93,58 | 90,35 | 77,36 | 99,08 |
-| Candidato | `ar-win-s2620-w06750` · 26,2° S, 67,5° O | 86,07 | 63,85 | 77,00 | 95,88 |
-| Candidato | `ar-win-s2640-w06730` · 26,4° S, 67,3° O | 64,53 | 53,68 | 77,25 | 96,81 |
-| Candidato | `ar-win-s2580-w06710` · 25,8° S, 67,1° O | 59,26 | 49,43 | 77,40 | 96,81 |
-| Referencia | `cl-pampa-yungay-screening` (fuera del ranking) | 66,40 | 75,67 | 77,45 | 99,03 |
+| Candidate | `cl-win-s2500-w06970` · 25.0° S, 69.7° W | 98.01 | 94.87 | 77.45 | 99.33 |
+| Candidate | `cl-win-s2480-w06950` · 24.8° S, 69.5° W | 96.16 | 91.87 | 77.45 | 99.03 |
+| Candidate | `cl-win-s2520-w06950` · 25.2° S, 69.5° W | 93.58 | 90.35 | 77.36 | 99.08 |
+| Candidate | `ar-win-s2620-w06750` · 26.2° S, 67.5° W | 86.07 | 63.85 | 77.00 | 95.88 |
+| Candidate | `ar-win-s2640-w06730` · 26.4° S, 67.3° W | 64.53 | 53.68 | 77.25 | 96.81 |
+| Candidate | `ar-win-s2580-w06710` · 25.8° S, 67.1° W | 59.26 | 49.43 | 77.40 | 96.81 |
+| Reference | `cl-pampa-yungay-screening` (outside the ranking) | 66.40 | 75.67 | 77.45 | 99.03 |
 
-Lectura correcta:
+Correct reading:
 
-- Los candidatos chilenos puntúan más que Yungay porque su topografía a ~480 m se parece más a la del entorno de Jezero. Eso no los hace mejores sitios: Yungay tiene dos décadas de trabajo de campo y ellos, ninguna verificación.
-- Los argentinos bajan sobre todo por el contexto climático: POWER da 562–767 mm/año. Ese valor es de una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana; no es lluvia medida en el sitio y necesita contraste local. No se ajustaron pesos ni valores.
-- Dos candidatos chilenos (24,8° S y 25,2° S) tienen valores POWER coincidentes: posible celda compartida, no observaciones independientes.
-- La confianza casi no distingue entre sitios porque usa calidades asignadas por tipo de fuente.
+- The Chilean candidates score higher than Yungay because their topography at ~480 m is more similar to that of the Jezero surroundings. That does not make them better sites: Yungay has two decades of fieldwork, while they have no verification at all.
+- The Argentine ones score lower mainly because of the climatic context: POWER gives 562–767 mm/year. That value comes from a MERRA-2 cell of 0.5° × 0.625°, larger than the window; it is not rainfall measured at the site and needs local verification. No weights or values were adjusted.
+- Two Chilean candidates (24.8° S and 25.2° S) have matching POWER values: a possible shared cell, not independent observations.
+- Confidence barely distinguishes between sites because it uses qualities assigned by source type.
 
-## Ventanas excluidas por antecedentes
+## Windows excluded due to background sources
 
-| Ventana | Prioridad topográfica | Coordenadas publicadas que contiene |
+| Window | Topographic priority | Published coordinates it contains |
 |---|---:|---|
-| `cl-win-s2500-w06990` | 97,15 | AT02-26, AT02-27 |
-| `cl-win-s2480-w06970` | 96,45 | AT02-28 |
-| `cl-win-s2540-w06990` | 90,49 | AT01-16 / AT02-16 |
-| `cl-win-s2460-w06970` | 50,14 | AT02-29 |
+| `cl-win-s2500-w06990` | 97.15 | AT02-26, AT02-27 |
+| `cl-win-s2480-w06970` | 96.45 | AT02-28 |
+| `cl-win-s2540-w06990` | 90.49 | AT01-16 / AT02-16 |
+| `cl-win-s2460-w06970` | 50.14 | AT02-29 |
 
-Se conservan evaluadas y visibles en el mapa; no se ocultan para aparentar descubrimientos. Otras dos ventanas (`cl-win-s2520-w06970` y `ar-win-s2600-w06750`) quedaron fuera por estar a menos de 25 km de una seleccionada con mayor prioridad.
+They are kept as evaluated and visible on the map; they are not hidden in order to feign discoveries. Two other windows (`cl-win-s2520-w06970` and `ar-win-s2600-w06750`) were left out because they are less than 25 km from a selected window with higher priority.
 
-## Antecedentes revisados
+## Background sources reviewed
 
-Revisión documental del 2026-11-14, sin validación experta. Coordenadas solo cuando la fuente las imprime.
+Documentary review of 2026-11-14, without expert validation. Coordinates only where the source prints them.
 
-| Antecedente | Qué aporta | Precisión espacial |
+| Background source | What it contributes | Spatial precision |
 |---|---|---|
-| Navarro-González et al. (2003), Science 302, material suplementario | 30 sitios de muestreo en un transecto norte–sur centrado en ~70° O entre 24° S y 28° S; 17 caen en la ventana de Yungay y 5 en la región chilena de búsqueda | Coordenadas al segundo de arco; el área de estudio es un transecto, no un punto |
-| NASA Astrobiology (2005), «Dry Signs of Life» | Ensayos de rover Hyperion (2003) y Zoë (2004) en Atacama | Sin coordenadas en la fuente |
-| NASA Astrobiology (2017), campaña ARADS | Taladro de detección de vida en Yungay Station | Topónimo |
-| Azua-Bustos et al. (2015), María Elena South | Sitio más seco que Yungay con bacterias viables | Topónimo; fuera de las regiones de búsqueda |
-| UNCA (2025) y tesis CONICET (2021) | Puna catamarqueña como análogo: Campo de Piedra Pómez, Dunas Blancas, megaóndulas, volcán Carachi Pampa, entorno de Antofagasta de la Sierra | Topónimos sin coordenadas |
-| Resúmenes EPSC 2022 (Laguna Negra, Laguna de Alumbrea) | Lagos andinos de altura como análogos para astrobiología | Topónimos; posición respecto de las ventanas no verificada |
+| Navarro-González et al. (2003), Science 302, supplementary material | 30 sampling sites along a north–south transect centered at ~70° W between 24° S and 28° S; 17 fall within the Yungay window and 5 in the Chilean search region | Coordinates to the arc second; the study area is a transect, not a point |
+| NASA Astrobiology (2005), "Dry Signs of Life" | Tests of the Hyperion (2003) and Zoë (2004) rovers in the Atacama | No coordinates in the source |
+| NASA Astrobiology (2017), ARADS campaign | Life-detection drill at Yungay Station | Place name |
+| Azua-Bustos et al. (2015), María Elena South | Site drier than Yungay with viable bacteria | Place name; outside the search regions |
+| UNCA (2025) and CONICET thesis (2021) | The Catamarca Puna as an analog: Campo de Piedra Pómez, Dunas Blancas, megaripples, Carachi Pampa volcano, surroundings of Antofagasta de la Sierra | Place names without coordinates |
+| EPSC abstracts 2022 (Laguna Negra, Laguna de Alumbrea) | High-altitude Andean lakes as analogs for astrobiology | Place names; position relative to the windows not verified |
 
-Relación con los seis candidatos:
+Relationship to the six candidates:
 
-- Los tres chilenos están en una región con antecedentes (transecto y ensayos de rover). Uno (`cl-win-s2500-w06970`) tiene una coordenada publicada a 20,4 km de su centro; esa cercanía es una heurística, no el perímetro del estudio.
-- Los tres argentinos están en la Puna catamarqueña, descrita como análogo en las fuentes revisadas. No se asignaron coordenadas a los topónimos, así que no se sabe si alguna ventana contiene uno de esos sitios.
-- Estado de los seis: `regional_precedent`. Ninguno es `no_match_in_reviewed_sources`.
+- The three Chilean ones are in a region with background sources (transect and rover tests). One (`cl-win-s2500-w06970`) has a published coordinate 20.4 km from its center; that proximity is a heuristic, not the boundary of the study.
+- The three Argentine ones are in the Catamarca Puna, described as an analog in the sources reviewed. No coordinates were assigned to the place names, so it is not known whether any window contains one of those sites.
+- Status of the six: `regional_precedent`. None is `no_match_in_reviewed_sources`.
 
-## Búsquedas dirigidas
+## Targeted searches
 
-| Alcance | Hallazgo |
+| Scope | Finding |
 |---|---|
-| Megaóndulas de la Puna cerca de las ventanas argentinas | Hay literatura revisada por pares (de Silva et al. 2013; Bridges et al. 2015; un estudio de 2020 en Icarus sobre Campo de Piedra Pómez; Zimbelman et al. 2023). No se obtuvieron coordenadas; los textos completos quedan sin revisar |
-| Lagunas de altura y astrobiología | Estudios de extremófilos en Laguna Diamante (caldera del Galán) y resúmenes EPSC 2022. Ninguna fuente revisada permite ubicar esos lagos dentro de una ventana |
-| Sitios análogos con coordenadas cerca de las ventanas chilenas | No apareció una fuente con coordenadas dentro de las tres ventanas; sí antecedentes generales del desierto (ARADS, Red Stone, Life in the Atacama) |
+| Puna megaripples near the Argentine windows | There is peer-reviewed literature (de Silva et al. 2013; Bridges et al. 2015; a 2020 study in Icarus on Campo de Piedra Pómez; Zimbelman et al. 2023). No coordinates were obtained; the full texts remain unreviewed |
+| High-altitude lakes and astrobiology | Studies of extremophiles in Laguna Diamante (Galán caldera) and EPSC abstracts 2022. No reviewed source makes it possible to locate those lakes within a window |
+| Analog sites with coordinates near the Chilean windows | No source with coordinates within the three windows appeared; general background on the desert did (ARADS, Red Stone, Life in the Atacama) |
 
-Lo que falta: leer los textos completos de la literatura de la Puna, cruzar los topónimos argentinos con cartografía oficial y revisar el artículo de 2010 en JGR que Codex señaló, que no se pudo abrir.
+What is missing: reading the full texts of the Puna literature, cross-checking the Argentine place names against official cartography, and reviewing the 2010 article in JGR that Codex flagged, which could not be opened.
 
-## Observaciones visuales preliminares
+## Preliminary visual observations
 
-Hechas por Codex y Claude sobre los mosaicos Sentinel-2 de diciembre de 2025 (`artifacts/visual-context-v3/`). Describen apariencia: no identifican instalaciones, propietarios ni permisos, no cambian ningún score y no producen exclusiones.
+Made by Codex and Claude on the Sentinel-2 mosaics of December 2025 (`artifacts/visual-context-v3/`). They describe appearance: they do not identify facilities, owners or permits, do not change any score and do not produce exclusions.
 
-| Ventana | Observación |
+| Window | Observation |
 |---|---|
-| `cl-win-s2500-w06970` | Numerosas trazas lineales y una red sinuosa y ramificada de tono claro en el noreste |
-| `cl-win-s2480-w06950` | Relieve con abanicos, una franja clara ancha y sinuosa que cruza la ventana y trazas lineales |
-| `cl-win-s2520-w06950` | Trazas rectilíneas y concentraciones geométricas de tono claro en el norte |
-| `ar-win-s2620-w06750` | Campos oscuros en el centro y el este y una franja verde u oscura en el borde noreste |
-| `ar-win-s2640-w06730` | Concentración densa de estructuras claras en el sur con una franja verde u oscura adyacente, compatible con intervención humana a contrastar |
-| `ar-win-s2580-w06710` | Franjas verdes u oscuras ramificadas en el norte y el oeste |
+| `cl-win-s2500-w06970` | Numerous linear traces and a light-toned, sinuous, branching network in the northeast |
+| `cl-win-s2480-w06950` | Terrain with fans, a wide, sinuous light band crossing the window, and linear traces |
+| `cl-win-s2520-w06950` | Rectilinear traces and light-toned geometric concentrations in the north |
+| `ar-win-s2620-w06750` | Dark fields in the center and east and a green or dark strip on the northeast edge |
+| `ar-win-s2640-w06730` | Dense concentration of light-toned structures in the south with an adjacent green or dark strip, consistent with human intervention to be verified |
+| `ar-win-s2580-w06710` | Branching green or dark strips in the north and west |
 
-Una ventana de ~440 km² no es un terreno íntegramente libre ni apto. Todas necesitan cruce con capas territoriales oficiales.
+A window of ~440 km² is not entirely free or suitable land. All of them need cross-referencing with official territorial layers.
 
-## Datos crudos no versionados
+## Unversioned raw data
 
-En `data/raw/` (ignorado por Git): siete teselas NASADEM nuevas (~102 MB), `copernicus/sentinel2_stats_2025_v3.json`, `power/climatology_points_v3.json`, `earthdata/cmr_inventory_v3.json`, `discovery/acquisition_v3.json` (horas reales de adquisición) y `naturalearth/world-atlas-2.0.2-countries-50m.json`. El manifiesto v3 guarda sus checksums y horas.
+In `data/raw/` (ignored by Git): seven new NASADEM tiles (~102 MB), `copernicus/sentinel2_stats_2025_v3.json`, `power/climatology_points_v3.json`, `earthdata/cmr_inventory_v3.json`, `discovery/acquisition_v3.json` (actual acquisition times) and `naturalearth/world-atlas-2.0.2-countries-50m.json`. The v3 manifest stores their checksums and times.

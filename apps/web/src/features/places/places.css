@@ -1,13 +1,13 @@
 /*
- * features/places · carrusel de lugares y tarjeta ◆ (docs/UX_REDESIGN.md §3.5, §2.2, §2.4).
- * Solo tokens de shell/tokens.css; sin backdrop-filter; solo se animan transform y opacity
- * (y stroke-dashoffset del anillo). Ninguna cifra se anima: aparece ya con su valor final.
+ * features/places · places carousel and ◆ card (docs/UX_REDESIGN.md §3.5, §2.2, §2.4).
+ * Only tokens from shell/tokens.css; no backdrop-filter; only transform and opacity are animated
+ * (and the ring's stroke-dashoffset). No figure is animated: it appears already at its final value.
  */
 .places { container: places / inline-size; display: flex; flex-direction: column; gap: 6px; height: 100%; min-width: 0; min-height: 0; }
 .places-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
 .places-title { display: flex; align-items: baseline; gap: 10px; min-width: 0; margin: 0; overflow: hidden; color: var(--muted); font-family: var(--mono); font-size: var(--fs-caps); letter-spacing: var(--caps-tracking); text-transform: uppercase; white-space: nowrap; }
-/* El título («Tu misión · 4 priorizados») es lo último que se pierde: no encoge; los <small>
-   encogen con «…» y, en contenedores angostos, salen primero el catálogo y el perfil. */
+/* The title ("Your mission · 4 prioritized") is the last thing to be lost: it does not shrink; the <small>
+   elements shrink with "…" and, in narrow containers, the catalog and the profile go first. */
 .places-title > span { flex: none; max-width: 100%; overflow: hidden; color: var(--text); text-overflow: ellipsis; }
 .places-title small { flex: 0 1 auto; min-width: 0; overflow: hidden; font-size: var(--fs-min); text-overflow: ellipsis; }
 .places-title .places-catalog { flex-shrink: 1000; }
@@ -25,7 +25,7 @@
 .places-skeleton { display: flex; gap: 10px; overflow: hidden; }
 .places-skeleton i { flex: none; width: 232px; height: 104px; border: 1px dashed var(--line-strong); border-radius: 14px; }
 
-/* ---- Pista: scroll-snap nativo, sin barra ------------------------------------------------- */
+/* ---- Track: native scroll-snap, no scrollbar ------------------------------------------------- */
 .places-track { position: relative; display: flex; flex: 1 1 0; gap: 10px; min-height: 0; padding: 2px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; transition: opacity var(--dur-2) var(--ease-standard); }
 .places-track::-webkit-scrollbar { display: none; }
 .places[data-busy] .places-track { opacity: var(--o-busy); }
@@ -34,7 +34,7 @@
 .places-group-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* ---- Tarjeta (role=option) ---------------------------------------------------------------- */
-/* Filas: 1 qué es · 2 nombre · 3 área (anillo a la derecha de las tres) · 4 insignia · 5 pie. */
+/* Rows: 1 what it is · 2 name · 3 area (ring to the right of the three) · 4 badge · 5 footer. */
 .places-card {
   position: relative; display: grid; flex: none; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto auto auto 1fr;
   gap: 2px 8px; width: clamp(232px, calc((100cqi - 40px) / 4.2), 300px); max-height: 100%; padding: 9px 12px;
@@ -67,15 +67,15 @@
 .places-source { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .places-profile { display: none; }
 /*
- * Formas cortas (encabezado y pie) para tarjetas angostas: «#2 · Priorizado», «Factib.: revisión»,
- * «Conf.». La forma completa sale de la vista pero no del árbol accesible, y sigue en la ficha.
- * Similitud, confianza y factibilidad quedan visibles y separadas en todos los anchos (§4.2).
+ * Short forms (header and footer) for narrow cards: "#2 · Prioritized", "Feasib.: review",
+ * "Conf.". The full form leaves the view but not the accessibility tree, and remains in the detail sheet.
+ * Similarity, confidence and feasibility remain visible and separate at all widths (§4.2).
  */
 .places-kicker { container: place-kicker / inline-size; }
 .places-foot { container: place-foot / inline-size; }
 .places-kicker-short, .places-chip-short, .places-conf-short { display: none; }
-/* El encabezado pasa a su forma corta solo cuando la completa no entra (data-short = ancho que
-   necesita, calculado en PlaceOption.kickerFit). */
+/* The header switches to its short form only when the full one does not fit (data-short = width it
+   needs, computed in PlaceOption.kickerFit). */
 .places-kicker[data-short="always"] > .places-kicker-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .places-kicker[data-short="always"] > .places-kicker-short { display: inline; }
 @container place-kicker (max-width: 300px) {
@@ -131,9 +131,9 @@
   .places-conf i { display: none; }
 }
 
-/* Anillo de similitud: el número aparece ya final; solo el trazo se dibuja (900 ms). */
-/* Ancho para «similitud v3» entero (≈5,5 em del texto mínimo; 11 px en móvil): la versión
-   distingue la similitud del snapshot de la evaluación de Misión. */
+/* Similarity ring: the number appears already final; only the stroke is drawn (900 ms). */
+/* Width for the whole "similarity v3" (≈5,5 em of the minimum text; 11 px on mobile): the version
+   distinguishes the similarity from the Mission evaluation snapshot. */
 .places-ring { position: relative; display: grid; grid-column: 2; grid-row: 1 / span 3; justify-items: center; align-content: start; width: max(58px, calc(var(--fs-min) * 6)); }
 .places-ring svg { width: 42px; height: 42px; transform: rotate(-90deg); }
 .places-ring circle { fill: none; stroke-width: 3; }
@@ -149,15 +149,15 @@
 @keyframes places-in { from { opacity: 0; transform: translateY(8px); } }
 @keyframes places-ring { from { stroke-dashoffset: var(--v); } }
 
-/* ---- Hoja (<1100): una tarjeta y el borde de la siguiente; filas de 44 px en la lista ----- */
+/* ---- Sheet (<1100): one card and the edge of the next; 44 px rows in the list ----- */
 .places[data-placement="sheet"] .places-card { width: min(86cqi, 340px); }
 @container places (max-width: 520px) { .places-title small:not(.places-profile), .places-suffix { display: none; } }
 @container places (max-width: 900px) { .places-title :is(.places-catalog, .places-profile) { display: none; } }
 
-/* ---- Vista de lista («Ver lista»): todas a la vista, filas de 44 px -------------------------- */
+/* ---- List view ("View list"): all in view, 44 px rows -------------------------- */
 .places[data-view="list"] .places-track { display: block; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: none; }
-/* En la hoja móvil el contenedor no tiene alto definido: con flex 1 1 0 la lista medía 0 px (más el padding)
-   y quedaba recortada (pantalla vacía al deslizar hacia arriba). Ahí la lista toma su alto y scrollea la hoja. */
+/* In the mobile sheet the container has no defined height: with flex 1 1 0 the list measured 0 px (plus the padding)
+   and was clipped (empty screen when swiping up). There the list takes its own height and the sheet scrolls. */
 .places[data-placement="sheet"][data-view="list"] .places-track { flex: 0 0 auto; overflow-y: visible; }
 .places[data-view="list"] .places-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px; }
 .places[data-view="list"] .places-group[data-kind="reference"] { margin-top: 8px; padding: 8px 0 0; border-top: 1px dashed var(--pending); border-left: 0; }
@@ -170,11 +170,11 @@
 .places[data-view="list"] .places-ring :is(svg, .places-ring-tag), .places[data-view="list"] .places-ring:not([data-empty]) small, .places[data-view="list"] .places-ring[data-empty] b { display: none; }
 .places[data-view="list"] .places-ring b { position: static; height: auto; }
 
-/* Alto < 860 px: tarjetas más bajas (el dock mide 218 px); el perfil pasa a la cabecera. */
+/* Height < 860 px: shorter cards (the dock measures 218 px); the profile moves to the header. */
 @media (max-height: 859px) {
   .places-card { padding: 7px 10px; row-gap: 1px; }
   .places-ring svg { width: 34px; height: 34px; }
-  /* «94,9» a 12 px tocaba el trazo de un anillo de 34 px. */
+  /* "94,9" at 12 px touched the stroke of a 34 px ring. */
   .places-ring b { height: 34px; font-size: var(--fs-min); }
   .places-ring .places-ring-tag { display: none; }
   .places-profile { display: inline; }
@@ -186,33 +186,33 @@
   @keyframes places-fade { from { opacity: 0; } }
 }
 
-/* ---- Tarjeta compacta cuando la pista no da el alto (Misión con la línea de estado, 1280×800,
-        bandeja S0): nunca se corta a media fila; confianza y factibilidad siguen visibles (§4.2).
-        Solo en el dock y la bandeja, donde la pista tiene alto definido. ------------------------ */
-/* Sin la nota del perfil (Explorar) la pista sigue en la fila elástica: con contención de tamaño
-   una fila «auto» la dejaría en 0 px. */
+/* ---- Compact card when the track does not provide the height (Mission with the status line, 1280×800,
+        tray S0): a row is never cut off midway; confidence and feasibility remain visible (§4.2).
+        Only in the dock and the tray, where the track has a defined height. ------------------------ */
+/* Without the profile note (Explore) the track stays in the elastic row: with size containment
+   an "auto" row would leave it at 0 px. */
 .places:not(:has(> .places-note)) { grid-template-rows: auto minmax(0, 1fr); }
 .dock-places .places-track, .sheet-tray-places .places-track { container: places-track / size; }
 @container places-track (max-height: 111px) {
-  /* Con la insignia (◆ «Coincide con…») cede la fila del área. */
+  /* With the badge (◆ "Matches…") the area row yields. */
   .places-card:has(.places-badge) .places-meta { display: none; }
 }
 @container places-track (max-height: 99px) {
   .places-card { grid-template-rows: auto auto auto; gap: 1px 8px; padding: 5px 10px; line-height: 1.2; }
   .places-meta { display: none; }
-  /* La insignia sale de la vista pero no del árbol accesible. */
+  /* The badge leaves the view but not the accessibility tree. */
   .places-badge { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .places-foot { grid-column: 1; grid-row: 3; }
-  /* «similitud v3» entra entero (la versión distingue la similitud de la evaluación). */
+  /* "similarity v3" fits whole (the version distinguishes the similarity from the evaluation). */
   .places-ring { grid-row: 1 / span 3; align-self: center; width: max(58px, calc(var(--fs-min) * 6)); }
   .places-ring svg { width: 32px; height: 32px; }
   .places-ring b { height: 32px; font-size: var(--fs-min); }
-  /* El pie comparte fila con el anillo: un poco más de ancho para que confianza y factibilidad
-     (formas cortas) entren enteras. */
+  /* The footer shares a row with the ring: a bit more width so that confidence and feasibility
+     (short forms) fit whole. */
   .places-card { width: clamp(256px, calc((100cqi - 40px) / 4.2), 300px); }
 }
 
-/* ---- Piloto v3 y Misión integrada (ADR-008, ADR-013) ------------------------------------- */
+/* ---- Pilot v3 and integrated Mission (ADR-008, ADR-013) ------------------------------------- */
 .places-filter { min-width: 0; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
 .places-filter button { flex: none; }
 .places-empty { flex: none; align-self: center; width: 240px; margin: 0; padding: 10px 12px; border: 1px dashed var(--line-strong); border-radius: 14px; color: var(--muted); font-size: var(--fs-12); line-height: 1.4; white-space: normal; }

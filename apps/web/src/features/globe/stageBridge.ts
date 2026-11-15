@@ -1,31 +1,31 @@
 /**
- * Canal por cuadro del escenario (globo o mapa 2D) hacia capas en espacio de pantalla
- * (líneas Tesla). NO pasa por el store ni por React: cambia en cada cuadro de cámara.
+ * Per-frame channel from the stage (globe or 2D map) to screen-space layers
+ * (Tesla lines). It does NOT go through the store or React: it changes on every camera frame.
  *
- * Publica solo features/globe:
- *  - el globo, desde su único useFrame (MarkerProjector), en cada cuadro que dibuja: con
- *    frameloop «demand» eso es solo durante vuelos, gestos, intro o cambios de datos;
- *  - el mapa 2D, en cada evento `move`/`resize` de MapLibre y al cambiar la selección;
- *  - sin WebGL (mapa SVG) o al desmontarse el globo: { projection: null, anchor: null }.
- * El ancla solo existe para un sector evaluado seleccionado y visible (nunca para un ◆).
- * Coordenadas en píxeles CSS del viewport (el escenario es fijo y ocupa todo el viewport).
+ * Published only by features/globe:
+ *  - the globe, from its single useFrame (MarkerProjector), on every frame it draws: with
+ *    frameloop «demand» that happens only during flights, gestures, intro or data changes;
+ *  - the 2D map, on every MapLibre `move`/`resize` event and when the selection changes;
+ *  - without WebGL (SVG map) or when the globe is unmounted: { projection: null, anchor: null }.
+ * The anchor exists only for a selected, visible evaluated sector (never for a ◆).
+ * Coordinates are in viewport CSS pixels (the stage is fixed and fills the whole viewport).
  */
 
 export interface ScreenPoint {
-  /** Píxeles CSS del viewport. */
+  /** Viewport CSS pixels. */
   x: number
   y: number
-  /** 0–1: visibilidad continua según la orientación (smoothstep(.05, .25) en el globo). */
+  /** 0–1: continuous visibility based on orientation (smoothstep(.05, .25) on the globe). */
   visible: number
 }
 
 export interface StageProjection {
   mode: 'globe' | 'flat'
-  /** Proyecta lon/lat a pantalla; null si cae fuera del encuadre o detrás del globo. */
+  /** Projects lon/lat to screen; null if it falls outside the frame or behind the globe. */
   project(lon: number, lat: number): ScreenPoint | null
 }
 
-/** Ancla del lugar seleccionado: centro del anillo y su radio en pantalla. */
+/** Anchor of the selected place: center of the ring and its radius on screen. */
 export interface StageAnchor {
   siteId: string
   x: number
@@ -41,23 +41,23 @@ let projection: StageProjection | null = null
 let anchor: StageAnchor | null = null
 const listeners = new Set<FrameListener>()
 
-/** Proyección vigente (null si el escenario no publica). */
+/** Current projection (null if the stage is not publishing). */
 export function getStageProjection(): StageProjection | null {
   return projection
 }
 
-/** Ancla vigente del lugar seleccionado (null si no hay selección o no se ve). */
+/** Current anchor of the selected place (null if there is no selection or it is not visible). */
 export function getStageAnchor(): StageAnchor | null {
   return anchor
 }
 
-/** Recibe un aviso por cada cuadro en que la cámara o el ancla cambian. */
+/** Receives a notification for every frame in which the camera or the anchor changes. */
 export function subscribeStageFrame(listener: FrameListener): () => void {
   listeners.add(listener)
   return () => listeners.delete(listener)
 }
 
-/** Solo features/globe: publica proyección y ancla del cuadro actual. */
+/** Only features/globe: publishes the projection and anchor of the current frame. */
 export function publishStageFrame(next: { projection: StageProjection | null; anchor: StageAnchor | null }): void {
   projection = next.projection
   anchor = next.anchor

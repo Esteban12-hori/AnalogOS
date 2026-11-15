@@ -1,21 +1,21 @@
 /**
- * Controlador imperativo de las líneas Tesla: aplica cada cuadro de cámara escribiendo directo
- * en el DOM (transform de etiquetas, `d` de los trazos, data-* de la capa). React solo monta
- * los elementos y entrega la escena cuando cambia el contenido o el layout asentado: nunca hay
- * setState por cuadro (§2.2 regla 5, docs/BUILD_CONTRACTS.md §2.4).
- *
- * Fases (data-phase de la capa):
- *  - 'waiting': selección nueva y cámara en vuelo; nada se ve. Cada cuadro rearma la espera.
- *  - 'enter': la cámara se asentó (`settleMs` sin cuadros): el CSS traza las líneas y entra
- *    las etiquetas (coreografía B). Desde ahí las líneas siguen al globo sin transición.
+ * Imperative controller for the Tesla lines: applies each camera frame by writing directly
+ * to the DOM (label transform, `d` of the strokes, data-* of the layer). React only mounts
+ * the elements and delivers the scene when the content or the settled layout changes: there is never a
+ * per-frame setState (§2.2 rule 5, docs/BUILD_CONTRACTS.md §2.4).
+  *
+ * Phases (data-phase of the layer):
+ *  - 'waiting': new selection and camera in flight; nothing is visible. Each frame re-arms the wait.
+ *  - 'enter': the camera has settled (`settleMs` without frames): the CSS draws the lines and brings in
+ *    the labels (choreography B). From then on the lines follow the globe without transition.
  */
 import { computeLeaderFrame, FRESH_MEMORY, nextMemory, type LeaderFrame, type LeaderMemory, type LeaderScene } from './frame'
 import type { StageFrameInput } from './projector'
 
-/** Sin cuadros de cámara durante este tiempo = la cámara llegó (frameloop a demanda). */
+/** No camera frames during this time = the camera has arrived (on-demand frameloop). */
 export const SETTLE_MS = 140
 
-/** Lo mínimo del DOM que el controlador toca (los tests usan dobles con esta forma). */
+/** The minimum of the DOM that the controller touches (tests use doubles with this shape). */
 export interface StyleTarget {
   style: { transform: string }
   dataset: Record<string, string | undefined>
@@ -42,7 +42,7 @@ export type LeaderPhase = 'waiting' | 'enter'
 
 export interface LeaderControllerOptions {
   targets: () => LeaderTargets
-  /** Lee el cuadro vigente del escenario (LeaderStageBridge.read). */
+  /** Reads the current frame from the stage (LeaderStageBridge.read). */
   readStage: () => StageFrameInput
   settleMs?: number
   setTimer?: (callback: () => void, ms: number) => unknown
@@ -50,11 +50,11 @@ export interface LeaderControllerOptions {
 }
 
 export interface LeaderController {
-  /** Contenido o layout asentado nuevo (no por cuadro): recalcula y aplica. */
+  /** New settled content or layout (not per frame): recompute and apply. */
   setScene(scene: LeaderScene | null): void
-  /** Selección o resultado nuevo: oculta y espera a que la cámara se asiente. */
+  /** New selection or result: hides and waits for the camera to settle. */
   restart(): void
-  /** Un cuadro del escenario. */
+  /** One frame from the stage. */
   frame(): void
   dispose(): void
   readonly phase: LeaderPhase
@@ -75,7 +75,7 @@ export function createLeaderController(options: LeaderControllerOptions): Leader
   let phase: LeaderPhase = 'waiting'
   let timer: unknown = null
   let last: LeaderFrame | null = null
-  // Última escritura por elemento y propiedad: no se reescribe lo que no cambió.
+  // Last write per element and property: what has not changed is not rewritten.
   const written = new WeakMap<object, Map<string, string>>()
 
   const put = (target: object, key: string, value: string, apply: (value: string) => void) => {
@@ -142,7 +142,7 @@ export function createLeaderController(options: LeaderControllerOptions): Leader
 
   const settle = () => {
     timer = null
-    // Al asentarse se elige el mejor lado sin arrastrar lo que pasó durante el vuelo.
+    // Upon settling, the best side is chosen without carrying over what happened during the flight.
     const frame = compute(FRESH_MEMORY)
     memory = frame ? nextMemory(FRESH_MEMORY, frame) : FRESH_MEMORY
     setPhase('enter')

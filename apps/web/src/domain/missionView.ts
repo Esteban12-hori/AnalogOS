@@ -1,23 +1,23 @@
 /**
- * Lectura pura de una `MissionEvaluation` del equipo (ADR-009) para el carrusel, el globo, el
- * riel y las líneas. No calcula nada: solo agrupa por el estado que ya decidió `evaluateMission`
- * y marca «fuera del alcance» los sitios que la evaluación no incluyó. Sin Ajv ni motor: puede ir
- * en el chunk principal (solo importa tipos).
+ * Pure reading of a team's `MissionEvaluation` (ADR-009) for the carousel, the globe, the
+ * rail and the lines. It computes nothing: it only groups by the status that `evaluateMission` has already decided
+ * and marks as "out of scope" the sites that the evaluation did not include. No Ajv or engine: it can go
+ * in the main chunk (it only imports types).
  */
 import type { MissionEvaluation, OptionEvaluation, OptionStatus, RequirementResult } from '../mission/types'
 
-/** Estado de un sitio en Misión: el de la evaluación o «fuera del alcance». */
+/** Status of a site in Mission: that of the evaluation or "out of scope". */
 export type SiteMissionStatus = OptionStatus | 'fuera_de_alcance'
 
 export const MISSION_STATUS_LABEL: Readonly<Record<SiteMissionStatus, string>> = {
-  priorizado_para_reconocimiento: 'Priorizado para reconocimiento',
-  no_cumple_requisitos: 'No cumple requisitos',
-  evidencia_insuficiente: 'Evidencia insuficiente',
-  objetivo_no_soportado: 'Objetivo no soportado',
-  fuera_de_alcance: 'Fuera del alcance',
+  priorizado_para_reconocimiento: 'Prioritized for reconnaissance',
+  no_cumple_requisitos: 'Does not meet requirements',
+  evidencia_insuficiente: 'Insufficient evidence',
+  objetivo_no_soportado: 'Unsupported objective',
+  fuera_de_alcance: 'Out of scope',
 }
 
-/** Orden de los grupos: el de ResultView del equipo, más «fuera del alcance» al final. */
+/** Order of the groups: that of the team's ResultView, plus "out of scope" at the end. */
 export const MISSION_STATUS_ORDER: readonly SiteMissionStatus[] = [
   'priorizado_para_reconocimiento',
   'no_cumple_requisitos',
@@ -29,12 +29,12 @@ export const MISSION_STATUS_ORDER: readonly SiteMissionStatus[] = [
 export interface MissionSiteView {
   siteId: string
   status: SiteMissionStatus
-  /** Puesto de la evaluación (solo priorizados); nunca un %. */
+  /** Rank from the evaluation (prioritized only); never a %. */
   rank: number | null
   option: OptionEvaluation | null
 }
 
-/** Vista por sitio de la evaluación. Sin evaluación, mapa vacío (Explorar o Misión sin evaluar). */
+/** Per-site view of the evaluation. Without an evaluation, an empty map (Explore or Mission without evaluation). */
 export function missionSiteViews(evaluation: MissionEvaluation | null, siteIds: readonly string[]): Map<string, MissionSiteView> {
   const views = new Map<string, MissionSiteView>()
   if (!evaluation) return views
@@ -52,8 +52,8 @@ export function missionSiteViews(evaluation: MissionEvaluation | null, siteIds: 
 }
 
 /**
- * Orden de los sitios en Misión: grupos por estado; dentro de los priorizados, el puesto de la
- * evaluación; en los demás grupos, el orden en que la evaluación los entrega y luego site_id.
+ * Order of the sites in Mission: groups by status; within the prioritized ones, the rank from the
+ * evaluation; in the other groups, the order in which the evaluation delivers them and then site_id.
  */
 export function missionOrder(evaluation: MissionEvaluation, siteIds: readonly string[]): string[] {
   const views = missionSiteViews(evaluation, siteIds)
@@ -72,7 +72,7 @@ export function missionOrder(evaluation: MissionEvaluation, siteIds: readonly st
   })
 }
 
-/** ✓ cumple · ✕ no cumple · ○ no evaluable (mismo vocabulario que la tabla del equipo). */
+/** ✓ meets · ✕ does not meet · ○ not evaluable (same vocabulary as the team's table). */
 export const REQUIREMENT_MARK: Readonly<Record<RequirementResult['status'], string>> = {
   cumple: '✓',
   no_cumple: '✕',
@@ -80,21 +80,21 @@ export const REQUIREMENT_MARK: Readonly<Record<RequirementResult['status'], stri
 }
 
 export const REQUIREMENT_STATUS_LABEL: Readonly<Record<RequirementResult['status'], string>> = {
-  cumple: 'Cumple',
-  no_cumple: 'No cumple',
-  no_evaluable: 'No evaluable',
+  cumple: 'Met',
+  no_cumple: 'Not met',
+  no_evaluable: 'Not assessable',
 }
 
-/** «3 de 4 preferencias» (sin preferencias: null). */
+/** “3 of 4 preferences” (no preferences: null). */
 export function preferencesText(option: Pick<OptionEvaluation, 'preferences'>): string | null {
   const { met, total, unknown } = option.preferences
   if (total === 0) return null
-  return `${met} de ${total} ${total === 1 ? 'preferencia' : 'preferencias'}${unknown > 0 ? ` · ${unknown} sin dato` : ''}`
+  return `${met} of ${total} ${total === 1 ? 'preference' : 'preferences'}${unknown > 0 ? ` · ${unknown} no data` : ''}`
 }
 
 /**
- * Recuento de priorizados SIN la REF: la referencia conocida no es un candidato de la búsqueda
- * (ADR-008). Si el motor del equipo la prioriza, se dice aparte («REF también priorizada»).
+ * Count of prioritized sites WITHOUT the REF: the known reference is not a candidate of the search
+ * (ADR-008). If the team's engine prioritizes it, this is stated separately ("REF also prioritized").
  */
 export function prioritizedCount(evaluation: MissionEvaluation): { candidates: number; of: number; reference: boolean } {
   const prioritized = evaluation.options.filter((option) => option.status === 'priorizado_para_reconocimiento')

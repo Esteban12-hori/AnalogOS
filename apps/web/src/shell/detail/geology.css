@@ -1,9 +1,9 @@
 /*
- * Contexto geológico oficial (M9 del equipo): estilos del panel `GeologyContext`, tal cual los
- * escribió el equipo en styles.css. Viven aquí para cargarse con la pestaña «Geología» (chunk
- * diferido) y no sumar al CSS inicial. Usan los tokens globales de styles.css.
+ * Official geological context (team M9): styles for the `GeologyContext` panel, exactly as the
+ * team wrote them in styles.css. They live here so they are loaded with the "Geology" tab (deferred chunk)
+ * and do not add to the initial CSS. They use the global tokens from styles.css.
  */
-/* Contexto geológico (M9): ficha compacta con detalle expandible, en el vidrio existente */
+/* Geological context (M9): compact card with expandable detail, on the existing glass */
 .geology-context { min-width: 0; }
 .geology-summary { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255, 255, 255, .03); }
 .geology-summary > p, .geology-source-line { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
@@ -46,7 +46,7 @@
 .geology-actions button { min-height: 40px; padding: 7px 12px; border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255, 255, 255, .04); color: var(--text); cursor: pointer; font-size: 12px; }
 .geology-actions button:hover { border-color: var(--blue-line); background: var(--blue-soft); }
 .geology-error { margin: 6px 0 0; color: var(--orange-bright); font-size: 12px; }
-/* Cabecera (archivo del integrador): en anchos estrechos el subtítulo baja entero bajo el título. */
+/* Header (integrator's file): at narrow widths the subtitle drops entirely below the title. */
 .geology-context .subheading-row { flex-wrap: wrap; gap: 2px 10px; }
 @media (max-width: 480px) {
   .geology-provenance div { grid-template-columns: minmax(0, 1fr); gap: 1px; }

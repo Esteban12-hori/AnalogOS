@@ -1,36 +1,37 @@
 /**
- * Adaptadores puros de la Lectura en Misión (docs/INTEGRATION_PLAN.md §5.3). Convierten la vista
- * de explicación del equipo (`composeExplanation`, ADR-009) y la `MissionEvaluation` en las
- * secciones que dibuja la Lectura del rediseño.
+ * Pure adapters for the Reading in Mission (docs/INTEGRATION_PLAN.md §5.3). They convert the team's explanation view
+ * (`composeExplanation`, ADR-009) and the `MissionEvaluation` into the
+ * sections drawn by the redesigned Reading.
  *
- * Regla: NINGUNA cifra sale de la selección (de la IA o de la plantilla). La selección solo aporta
- * IDs; cada texto y cada valor se resuelven contra `evaluation` (lo exigido, lo observado con
- * `fmtObserved`, el motivo y la evidencia que escribió el motor determinista).
+ * Rule: NO figure comes from the selection (from the AI or from the template). The selection only provides
+ * IDs; each text and each value is resolved against `evaluation` (what is required, what is observed with
+ * `fmtObserved`, the reason and the evidence written by the deterministic engine).
  */
 import { MISSION_STATUS_LABEL, MISSION_STATUS_ORDER, REQUIREMENT_MARK } from '../../domain/missionView'
 import type { ExplanationView } from '../../mission/explanation'
 import type { AiProvenance } from '../../mission/exportReport'
 import { fmtObserved } from '../../mission/format'
+import { displaySource, verificationDisplayText } from '../../i18n/sourceText'
 import type { MissionEvaluation, OptionStatus, RequirementResult } from '../../mission/types'
 
-export const RESULT_LABEL = (rulesVersion: string) => `Cálculo determinista · reglas ${rulesVersion} · similitud v3 sin recalcular`
-export const TEMPLATE_LABEL = 'Plantilla determinista sin IA'
-/** Sin ✦: la Lectura lo antepone (aria-hidden) en la capa de IA; así no se repite. */
-export const AI_LABEL = 'Motivos destacados con IA (Anthropic) · las cifras salen del cálculo determinista'
+export const RESULT_LABEL = (rulesVersion: string) => `Deterministic calculation · rules ${rulesVersion} · v3 similarity not recalculated`
+export const TEMPLATE_LABEL = 'Deterministic template without AI'
+/** No ✦: the Reading prepends it (aria-hidden) in the AI layer; this way it is not repeated. */
+export const AI_LABEL = 'Reasons highlighted with AI (Anthropic) · figures come from the deterministic calculation'
 /**
- * Avisos literales de `ResultView` › `AiPanel` del equipo (M10): uno solo, condicional a la casilla del
- * canal geológico (`plannerGeology.test` y `ReadingView.test` comprueban que coinciden).
+ * Literal notices from the team's `ResultView` › `AiPanel` (M10): just one, conditional on the checkbox of the
+ * geological channel (`plannerGeology.test` and `ReadingView.test` verify that they match).
  */
-export const AI_SEND_NOTICE = 'Al pulsar el botón se envían a Anthropic los requisitos confirmados y los resultados ya calculados (no el texto completo del brief ni cartografía geológica).'
-export const AI_SEND_NOTICE_GEOLOGY = 'Al pulsar el botón se envían a Anthropic los requisitos confirmados, los resultados ya calculados, el objetivo confirmado (texto del brief, actividad y requisitos) y la cartografía geológica pública oficial de los sectores evaluados.'
-export const GEOLOGY_OPT_LABEL = 'Incluir orientación geológica de la prueba (la IA solo elige entre comprobaciones calculadas por la app).'
+export const AI_SEND_NOTICE = 'When you press the button, the confirmed requirements and the already calculated results are sent to Anthropic (not the full brief text or geological mapping).'
+export const AI_SEND_NOTICE_GEOLOGY = 'When you press the button, the confirmed requirements, the already calculated results, the confirmed objective (brief text, activity and requirements) and the official public geological mapping of the evaluated sectors are sent to Anthropic.'
+export const GEOLOGY_OPT_LABEL = 'Include geological guidance for the test (the AI only chooses among checks calculated by the app).'
 export const geologyUnavailableNotice = (reason: string | null): string =>
-  `Orientación geológica con IA no disponible: ${reason ?? 'falta el contexto geológico oficial.'} La explicación de requisitos funciona igual sin geología.`
-export const GEOLOGY_RETRY_NOTICE = 'La orientación geológica no se pudo pedir. Puede reintentar la explicación sin geología (se enviarán solo los requisitos y resultados calculados, sin el texto del brief ni cartografía).'
-export const GEOLOGY_RETRY_LABEL = 'Reintentar sin geología'
-/** Dónde queda la orientación geológica en la interfaz integrada (la Lectura solo tiene el botón). */
-export const GEOLOGY_WHERE = 'La orientación geológica de la prueba (general o elegida por la IA) se ve en «Tu misión», bajo el resultado.'
-export const STALE_AI_MESSAGE = 'La respuesta no corresponde al cálculo vigente: se mantiene la plantilla determinista.'
+  `AI geological guidance not available: ${reason ?? 'the official geology context is missing.'} The requirements explanation works the same without geology.`
+export const GEOLOGY_RETRY_NOTICE = 'The geological guidance could not be requested. You can retry the explanation without geology (only the calculated requirements and results will be sent, without the brief text or mapping).'
+export const GEOLOGY_RETRY_LABEL = 'Retry without geology'
+/** Where the geological guidance sits in the integrated interface (the Reading only has the button). */
+export const GEOLOGY_WHERE = 'The geological guidance for the test (general or chosen by the AI) is shown in “Your mission”, below the result.'
+export const STALE_AI_MESSAGE = 'The response does not belong to the current calculation: the deterministic template is kept.'
 
 export interface ReadingLine {
   requirementId: string
@@ -52,7 +53,7 @@ export interface ReadingOption {
   lines: readonly ReadingLine[]
 }
 
-/** Lugar con requisitos no cumplidos o sin evaluar para el que la selección no destacó nada. */
+/** Site with unmet or unevaluated requirements for which the selection highlighted nothing. */
 export interface OmittedOption {
   siteId: string
   name: string
@@ -76,21 +77,21 @@ export interface ReadingModel {
   }
   highlights: {
     source: ExplanationView['source']
-    /** Rótulo visible: plantilla (sin ✦) o IA (con ✦ y procedencia). */
+    /** Visible label: template (without ✦) or AI (with ✦ and provenance). */
     label: string
     notice: string
-    /** «claude-… · 2026-11-14 · req_…» solo con IA. */
+    /** «claude-… · 2026-11-14 · req_…» only with AI. */
     provenance: string | null
-    /** Lugares en el orden de la evaluación (nunca en el que devolvió la IA). */
+    /** Sites in the order of the evaluation (never in the order the AI returned). */
     options: readonly ReadingOption[]
     /**
-     * Lugares con algún requisito distinto de «cumple» sin motivos en la selección (solo puede
-     * pasar con la IA: la plantilla los destaca todos). Se listan para no callarlos.
+     * Sites with some requirement other than «met» without reasons in the selection (can only
+     * happen with the AI: the template highlights all of them). They are listed so as not to silence them.
      */
     omitted: readonly OmittedOption[]
     /**
-     * Nota cuando no hay motivos que mostrar, decidida con la EVALUACIÓN (nunca con lo que eligió
-     * la IA): todo se cumple, el alcance no tiene cálculo por requisito o la selección omitió lugares.
+     * Note when there are no reasons to show, decided with the EVALUATION (never with what the AI
+     * chose): everything is met, the scope has no per-requirement calculation, or the selection omitted sites.
      */
     emptyNote: string | null
     verifications: ReadonlyArray<{ id: string; text: string }>
@@ -99,21 +100,21 @@ export interface ReadingModel {
 
 export type EvidenceLink = { tab: 'fuentes'; anchor: string } | { url: string }
 
-/** Une `evidence_ids` con la pestaña Fuentes (artefacto con URL) o con la ficha del sitio (`app_derived`). */
+/** Links `evidence_ids` with the Sources tab (artifact with URL) or with the site sheet (`app_derived`). */
 export function evidenceHref(evidenceId: string, evaluation: MissionEvaluation): EvidenceLink {
   const ref = evaluation.evidence.find((item) => item.evidence_id === evidenceId)
   if (ref?.kind === 'artifact' && ref.source_url && /^https:\/\//.test(ref.source_url)) return { url: ref.source_url }
   return { tab: 'fuentes', anchor: evidenceId.includes('#') ? evidenceId.slice(evidenceId.indexOf('#') + 1) : evidenceId }
 }
 
-/** Clave de la Lectura: otra solicitud u otra revisión descartan la anterior. */
+/** Key of the Reading: another request or another revision discards the previous one. */
 export function readingKey(evaluation: Pick<MissionEvaluation, 'request_fingerprint'>, revision: number): string {
   return `mission:${evaluation.request_fingerprint}:${revision}`
 }
 
-/** Línea de un requisito con lo exigido y lo observado (ambos de la evaluación). */
+/** Line of a requirement with what is required and what is observed (both from the evaluation). */
 export function requirementLine(result: RequirementResult, evaluation: MissionEvaluation): ReadingLine {
-  const observed = result.kind === 'measurable' ? ` · observado ${fmtObserved(result.observed_value, result.observed_unit)}` : ''
+  const observed = result.kind === 'measurable' ? ` · observed ${fmtObserved(result.observed_value, result.observed_unit)}` : ''
   return {
     requirementId: result.requirement_id,
     mark: REQUIREMENT_MARK[result.status],
@@ -130,20 +131,20 @@ function provenanceText(provenance: AiProvenance | null): string | null {
 }
 
 /**
- * Qué decir cuando faltan motivos. Se decide con la evaluación: «todo se cumple» solo si ningún
- * resultado es distinto de «cumple»; si la IA dejó lugares sin motivos, se dice y se remite a
- * «Resultado», donde están los bloqueos del cálculo.
+ * What to say when reasons are missing. It is decided with the evaluation: «everything is met» only if no
+ * result is other than «met»; if the AI left sites without reasons, this is stated and the reader is referred to
+ * «Result», where the calculation blocks are.
  */
 export function emptyNote(evaluation: MissionEvaluation, shown: number, omitted: number, ai: boolean): string | null {
-  if (evaluation.outcome !== 'evaluated') return shown === 0 ? 'Sin resultados por requisito en este alcance: el diagnóstico está en «Resultado».' : null
+  if (evaluation.outcome !== 'evaluated') return shown === 0 ? 'No per-requirement results in this scope: the diagnosis is in “Result”.' : null
   if (omitted > 0) {
-    const places = omitted === 1 ? '1 lugar' : `${omitted} lugares`
-    return `${ai ? 'La IA no destacó' : 'La plantilla no destacó'} motivos para ${places}; los bloqueos del cálculo están en «Resultado».`
+    const places = omitted === 1 ? '1 place' : `${omitted} places`
+    return `${ai ? 'The AI did not highlight' : 'The template did not highlight'} reasons for ${places}; the calculation blockers are in “Result”.`
   }
   if (shown > 0) return null
-  if (evaluation.options.every((option) => option.requirement_results.length === 0)) return 'La prueba no tiene requisitos: no hay motivos que destacar.'
-  // Sin omitidos ni líneas: ningún resultado es distinto de «cumple».
-  return 'Todos los requisitos se cumplen donde hay evidencia: no hay motivos que destacar.'
+  if (evaluation.options.every((option) => option.requirement_results.length === 0)) return 'The test has no requirements: there are no reasons to highlight.'
+  // No omitted sites or lines: no result is other than «met».
+  return 'Every requirement is met where there is evidence: there are no reasons to highlight.'
 }
 
 export function explanationToReading(
@@ -154,21 +155,21 @@ export function explanationToReading(
 ): ReadingModel {
   const options = new Map(evaluation.options.map((option) => [option.site_id, option]))
   const ai = view.source === 'anthropic'
-  // La IA no ordena: los lugares van en el orden de la evaluación, sea cual sea el de la selección.
+  // The AI does not order: sites go in the order of the evaluation, whatever the order of the selection.
   const position = new Map(evaluation.options.map((option, index) => [option.site_id, index]))
   const at = (siteId: string) => position.get(siteId) ?? evaluation.options.length
   const highlighted = [...view.options]
     .sort((a, b) => at(a.site_id) - at(b.site_id))
     .map((item) => {
       const option = options.get(item.site_id)
-      // Solo IDs de la selección: el texto y las cifras se resuelven contra la evaluación.
+      // Only IDs from the selection: the text and figures are resolved against the evaluation.
       const lines = item.highlighted
         .map((entry) => option?.requirement_results.find((result) => result.requirement_id === entry.requirement_id))
         .filter((result): result is RequirementResult => result !== undefined)
         .map((result) => requirementLine(result, evaluation))
       return {
         siteId: item.site_id,
-        name: option?.name ?? item.name,
+        name: displaySource(option?.name ?? item.name),
         role: option?.role ?? 'candidate',
         status: option?.status ?? item.status,
         statusLabel: MISSION_STATUS_LABEL[option?.status ?? item.status],
@@ -179,7 +180,7 @@ export function explanationToReading(
   const withLines = new Set(highlighted.filter((option) => option.lines.length > 0).map((option) => option.siteId))
   const omitted: OmittedOption[] = evaluation.options
     .filter((option) => !withLines.has(option.site_id) && option.requirement_results.some((result) => result.status !== 'cumple'))
-    .map((option) => ({ siteId: option.site_id, name: option.name, role: option.role, rank: option.rank, statusLabel: MISSION_STATUS_LABEL[option.status] }))
+    .map((option) => ({ siteId: option.site_id, name: displaySource(option.name), role: option.role, rank: option.rank, statusLabel: MISSION_STATUS_LABEL[option.status] }))
   return {
     key: readingKey(evaluation, revision),
     result: {
@@ -195,7 +196,7 @@ export function explanationToReading(
               label: MISSION_STATUS_LABEL[status],
               options: list.map((option) => ({
                 siteId: option.site_id,
-                name: option.name,
+                name: displaySource(option.name),
                 role: option.role,
                 rank: option.rank,
                 blockers: option.requirement_results.filter((result) => result.importance === 'critical' && result.status !== 'cumple').map((result) => `${result.label}: ${result.reason}`),
@@ -218,12 +219,12 @@ export function explanationToReading(
       options: highlighted,
       omitted,
       emptyNote: emptyNote(evaluation, withLines.size, omitted.length, ai),
-      verifications: view.verifications.map((item) => ({ id: item.id, text: item.text })),
+      verifications: view.verifications.map((item) => ({ id: item.id, text: verificationDisplayText(item) })),
     },
   }
 }
 
-/** Primer requisito destacado del sitio, para la píldora de la tarjeta del carrusel. */
+/** First highlighted requirement of the site, for the pill on the carousel card. */
 export function snippetFor(view: ExplanationView | null, evaluation: MissionEvaluation | null, siteId: string): string | null {
   if (!view || !evaluation) return null
   const option = view.options.find((item) => item.site_id === siteId)

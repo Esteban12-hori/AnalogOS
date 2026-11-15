@@ -1,17 +1,17 @@
 /**
- * Sensibilidad del orden que escribe el pipeline en analysis-summary.json (`sites[].sensitivity`:
- * ±20 % por peso, renormalizado; pipelines/scoring.py). Se lee en el límite, como
- * `parseMarsReference`: lo que no tiene la forma esperada se ignora, nunca se inventa.
+ * Sensitivity of the ranking that the pipeline writes to analysis-summary.json (`sites[].sensitivity`:
+ * ±20 % per weight, renormalized; pipelines/scoring.py). It is read at the boundary, like
+ * `parseMarsReference`: anything that does not have the expected shape is ignored, never invented.
  */
 export interface SensitivityScenario {
   criterionId: string
   direction: 'minus' | 'plus'
-  /** Similitud del lugar en el escenario; null si el pipeline no la calculó. */
+  /** Similarity of the place in the scenario; null if the pipeline did not compute it. */
   score: number | null
   delta: number | null
 }
 
-/** Sensibilidad de un lugar tal como la escribe el pipeline. */
+/** Sensitivity of a place as written by the pipeline. */
 export interface SensitivityResult {
   stability: number | null
   maxScoreDelta: number | null
@@ -21,8 +21,8 @@ export interface SensitivityResult {
 const finite = (value: unknown): number | null => (typeof value === 'number' && Number.isFinite(value) ? value : null)
 
 /**
- * Lee `sites[].sensitivity` de analysis-summary.json (validación en el límite: lo que no tiene
- * la forma esperada se ignora, nunca se inventa). Mapa vacío si el resumen no la trae.
+ * Reads `sites[].sensitivity` from analysis-summary.json (validation at the boundary: anything that does not have
+ * the expected shape is ignored, never invented). Empty map if the summary does not include it.
  */
 export function parseSensitivity(summary: unknown): Map<string, SensitivityResult> {
   const out = new Map<string, SensitivityResult>()

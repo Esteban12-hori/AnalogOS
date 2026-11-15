@@ -1,6 +1,6 @@
 /**
- * Identificadores de los 7 criterios del perfil base (orden canónico de los snapshots v2 y v3).
- * Módulo sin dependencias: lo usan el riel, las líneas y la Lectura en el chunk principal.
+ * Identifiers of the 7 criteria of the base profile (canonical order of the v2 and v3 snapshots)..
+ * Dependency-free module: used by the rail, the lines, and the Reading in the main chunk.
  */
 export const CRITERION_IDS = [
   'slope',

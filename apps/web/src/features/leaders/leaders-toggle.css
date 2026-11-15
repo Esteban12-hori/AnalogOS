@@ -1,4 +1,4 @@
-/* Interruptor «Líneas» del HUD del escenario (chunk principal: es lo único de leaders que se ve sin selección). */
+/* "Lines" toggle in the scenario HUD (main chunk: it is the only part of leaders that is visible without a selection). */
 .leaders-toggle {
   display: inline-flex;
   align-items: center;

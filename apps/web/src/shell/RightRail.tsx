@@ -1,8 +1,8 @@
 /**
- * Riel derecho (≥1100): el lugar seleccionado. Ancho clamp(340, 26vw, 380) px; «Ver ficha
- * completa» lo amplía a 520 px con pestañas. Entre 1100 y 1439 px lleva «Métricas | Lectura»
- * (la Lectura vive en el panel izquierdo desde 1440). «Evaluar este sector» abre el recorrido
- * «sector» del planificador del equipo (ADR-013).
+ * Right rail (≥1100): the selected place. Width clamp(340, 26vw, 380) px; «View full profile»
+ * expands it to 520 px with tabs. Between 1100 and 1439 px it carries «Metrics | Reading»
+ * (the Reading lives in the left panel since 1440). «Evaluate this sector» opens the «sector» flow
+ * of the team planner (ADR-013).
  */
 import { useState } from 'react'
 import { ReadingPanel } from '../features/analysis'
@@ -32,7 +32,7 @@ export function RightRail({ data, tramo, selection, full, onFullChange, onShowOn
   const [tab, setTab] = useState<RailTab>('metricas')
   const site = selection?.kind === 'evaluated' ? data.snapshot?.candidates.find((item) => item.site_id === selection.siteId) ?? null : null
   const open = selection !== null
-  const title = site ? placeLabel(site.name) : selection?.kind === 'reference' ? 'Referencia mundial' : ''
+  const title = site ? placeLabel(site.name) : selection?.kind === 'reference' ? 'World reference' : ''
 
   return (
     <aside
@@ -40,7 +40,7 @@ export function RightRail({ data, tramo, selection, full, onFullChange, onShowOn
       data-open={open ? '' : undefined}
       data-full={full && site ? '' : undefined}
       data-obstacle={open ? '' : undefined}
-      aria-label="Lugar seleccionado"
+      aria-label="Selected place"
       aria-hidden={!open}
       inert={!open}
     >
@@ -49,21 +49,21 @@ export function RightRail({ data, tramo, selection, full, onFullChange, onShowOn
           <header className="rail-head">
             <h2>
               <span aria-hidden="true">{site ? GLYPH.evaluated : GLYPH.reference}</span> {title}
-              {selection?.preview && <small> · vista previa</small>}
+              {selection?.preview && <small> · preview</small>}
             </h2>
             {site && (
               <button type="button" className="rail-action" aria-expanded={full} onClick={() => onFullChange(!full)}>
-                {full ? 'Volver al riel' : 'Ver ficha completa →'}
+                {full ? 'Back to the rail' : 'See full details →'}
               </button>
             )}
-            <button type="button" className="rail-close" aria-label="Cerrar el lugar" onClick={() => uiActions.clearSelection()}>
+            <button type="button" className="rail-close" aria-label="Close the place" onClick={() => uiActions.clearSelection()}>
               {GLYPH.fail}
             </button>
           </header>
           <div className="rail-body">
             {site && !full && (
               <div className="rail-subactions">
-                <button type="button" className="rail-action" onClick={() => evaluateSector(site.site_id)}>Evaluar este sector</button>
+                <button type="button" className="rail-action" onClick={() => evaluateSector(site.site_id)}>Evaluate this sector</button>
               </div>
             )}
             {selection?.kind === 'reference' && <div data-slot="rail.reference"><ReferenceCard data={data} analogId={selection.siteId} /></div>}
@@ -73,9 +73,9 @@ export function RightRail({ data, tramo, selection, full, onFullChange, onShowOn
               <>
                 <TabList
                   idPrefix="rail"
-                  label="Contenido del riel"
+                  label="Rail content"
                   className="detail-tabs"
-                  items={[{ id: 'metricas', label: 'Métricas' }, { id: 'lectura', label: 'Lectura' }]}
+                  items={[{ id: 'metricas', label: 'Metrics' }, { id: 'lectura', label: 'Reading' }]}
                   active={tab}
                   onChange={setTab}
                 />
@@ -87,7 +87,7 @@ export function RightRail({ data, tramo, selection, full, onFullChange, onShowOn
               </>
             )}
             {selection?.kind === 'evaluated' && !site && (
-              <p className="rail-empty">Este lugar no está en el snapshot cargado.</p>
+              <p className="rail-empty">This place is not in the loaded snapshot.</p>
             )}
           </div>
         </>

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://analogos.cl/schemas/reference-analog.schema.json",
-  "title": "AnalogOS · análogos de referencia (◆, por calcular)",
-  "description": "Catálogo de análogos emblemáticos del mundo (config/reference_analogs.json). No tienen similitud, confianza ni ranking: el esquema no ofrece dónde ponerlos (additionalProperties: false). Cada análogo exige ubicación aproximada o región y al menos una fuente citada; lo que no tenga fuente no se publica (docs/UX_REDESIGN.md §3.5, §7.2).",
+  "title": "AnalogOS · reference analogs (◆, to be calculated)",
+  "description": "Catalog of emblematic analogs worldwide (config/reference_analogs.json). They have no similarity, confidence or ranking: the schema offers no place to put them (additionalProperties: false). Each analog requires an approximate location or region and at least one cited source; anything without a source is not published (docs/UX_REDESIGN.md §3.5, §7.2).",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "analogs"],
@@ -24,7 +24,7 @@
         "name": {"type": "string", "minLength": 2, "maxLength": 80},
         "country": {"type": "string", "minLength": 2, "maxLength": 60},
         "status": {
-          "description": "Un análogo de referencia nunca se puntúa en este snapshot.",
+          "description": "A reference analog is never scored in this snapshot.",
           "const": "por_calcular"
         },
         "location": {
@@ -43,7 +43,7 @@
       }
     },
     "approximatePoint": {
-      "description": "Punto citado por la fuente con su radio de incertidumbre: se dibuja como «zona aproximada», nunca como pin exacto.",
+      "description": "Point cited by the source with its uncertainty radius: drawn as an “approximate area”, never as an exact pin.",
       "type": "object",
       "additionalProperties": false,
       "required": ["kind", "lon", "lat", "radius_km"],
@@ -55,7 +55,7 @@
       }
     },
     "region": {
-      "description": "Región extensa (por ejemplo, un desierto completo) como caja [oeste, sur, este, norte] en grados WGS84.",
+      "description": "Large region (for example, a whole desert) as a box [west, south, east, north] in WGS84 degrees.",
       "type": "object",
       "additionalProperties": false,
       "required": ["kind", "bbox"],

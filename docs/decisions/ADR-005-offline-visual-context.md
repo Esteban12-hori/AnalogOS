@@ -1,34 +1,34 @@
-# ADR-005 — Contexto visual Sentinel-2 offline por candidato
+# ADR-005 — Offline Sentinel-2 visual context per candidate
 
-- Estado: accepted por Codex tras revisión independiente de código, imágenes, pruebas y demo
-- Fecha: 2026-11-14
+- Status: accepted by Codex after independent review of code, images, tests and demo
+- Date: 2026-11-14
 
-## Contexto
+## Context
 
-M4 pide inspeccionar visualmente los candidatos. Hasta ahora la ficha mostraba números y un mapa esquemático, pero ninguna imagen del terreno. La demo debe seguir funcionando offline, sin APIs en el navegador, y el snapshot científico v2 no debe cambiar.
+M4 asks for candidates to be inspected visually. Until now the record showed numbers and a schematic map, but no image of the terrain. The demo must keep working offline, without APIs in the browser, and the v2 scientific snapshot must not change.
 
-## Decisión
+## Decision
 
-1. `pipelines/fetch_visual_context.py` pide a la Process API de Copernicus Sentinel Hub una vista RGB (B04/B03/B02) por candidato y escribe `artifacts/visual-context/`: tres PNG tal como los devuelve el servicio y un `index.json` público.
-2. La bbox sale de la geometría versionada del candidato y se contrasta con `config/science_snapshot_v2.json`. Ventana fija: 2025-12-01 a 2026-01-01 UTC, `sentinel-2-l2a`, orden `leastCC`, nubosidad máxima 40 % por escena.
-3. Vista de 768 px de alto y ancho proporcional a la latitud (705–714 px), unos 28,8 m por píxel. Se documenta como vista reducida, no como resolución nativa.
-4. Transformación única y explícita: reflectancia × 2,0 recortada a [0, 1]; alfa 0 donde no hay datos.
-5. El evalscript usa mosaico `ORBIT`, devuelve en `userdata` las órbitas consideradas y cuenta los píxeles que aporta cada una. Las órbitas «usadas» solo se publican si esos contadores suman exactamente la rejilla pedida; si no, quedan solo las consideradas.
-6. El índice guarda la petición completa y el evalscript (sin credenciales), la metadata devuelta, la hora real de consulta y el SHA-256 de cada PNG. Todo lo que presenta se valida contra el candidato, la petición, el archivo o la metadata devuelta.
-7. Un paquete local válido se reutiliza sin red ni credenciales; `--refresh` fuerza la consulta. Una generación nueva se arma completa en un directorio temporal y se intercambia entera; ante error se conserva la anterior.
-8. La web lee solo archivos locales (`BASE_URL`), muestra el panel en la ficha y cae a «no disponible» si falta el índice, es inválido, el candidato es un fixture o la imagen no abre. No toca similitud, confianza, estabilidad ni factibilidad.
-9. El empaquetador admite `visual-context/index.json` y exactamente tres PNG con nombre fijo, y exige que su SHA-256 coincida con el índice.
+1. `pipelines/fetch_visual_context.py` asks the Copernicus Sentinel Hub Process API for an RGB view (B04/B03/B02) per candidate and writes `artifacts/visual-context/`: three PNGs exactly as returned by the service and a public `index.json`.
+2. The bbox comes from the candidate's versioned geometry and is checked against `config/science_snapshot_v2.json`. Fixed window: 2025-12-01 to 2026-01-01 UTC, `sentinel-2-l2a`, order `leastCC`, maximum cloud cover 40 % per scene.
+3. View 768 px high and with a width proportional to latitude (705–714 px), about 28,8 m per pixel. It is documented as a reduced view, not as native resolution.
+4. Single, explicit transformation: reflectance × 2,0 clipped to [0, 1]; alpha 0 where there is no data.
+5. The evalscript uses a `ORBIT` mosaic, returns the orbits considered in `userdata` and counts the pixels contributed by each one. The “used” orbits are published only if those counters add up exactly to the requested grid; otherwise, only the considered ones remain.
+6. The index stores the full request and the evalscript (without credentials), the returned metadata, the actual query time and the SHA-256 of each PNG. Everything it presents is validated against the candidate, the request, the file or the returned metadata.
+7. A valid local package is reused without network or credentials; `--refresh` forces the query. A new generation is assembled in full in a temporary directory and swapped in as a whole; on error, the previous one is kept.
+8. The web reads only local files (`BASE_URL`), shows the panel in the record and falls back to “not available” if the index is missing, is invalid, the candidate is a fixture or the image does not open. It does not touch similarity, confidence, stability or feasibility.
+9. The packager accepts `visual-context/index.json` and exactly three PNGs with a fixed name, and requires that their SHA-256 match the index.
 
-## Consecuencias
+## Consequences
 
-- El ZIP de entrega pasa de ~0,5 MB a ~4,1 MB; cada PNG pesa 1,1–1,2 MB.
-- Cambiar cualquier constante que el índice presenta (periodo, transformación, limitaciones, evalscript) invalida el paquete local y exige una consulta nueva con credenciales.
-- Añadir o quitar candidatos obliga a actualizar la lista explícita del empaquetador.
-- Credenciales Copernicus solo vía entorno o `.env`, enviadas únicamente a `identity.dataspace.copernicus.eu`; el token solo a `sh.dataspace.copernicus.eu`. No se registran cabeceras ni cuerpos de respuesta.
+- The delivery ZIP goes from ~0,5 MB to ~4,1 MB; each PNG weighs 1,1–1,2 MB.
+- Changing any constant that the index presents (period, transformation, limitations, evalscript) invalidates the local package and requires a new query with credentials.
+- Adding or removing candidates requires updating the packager's explicit list.
+- Copernicus credentials only via environment or `.env`, sent only to `identity.dataspace.copernicus.eu`; the token only to `sh.dataspace.copernicus.eu`. Response headers and bodies are not logged.
 
-## Límites
+## Limits
 
-- Es contexto para inspección, no evidencia que cierre advertencias, restricciones territoriales, revisión experta ni M4.
-- Mosaico de un mes de 2025: no es una fecha única ni una imagen actual.
-- El filtro de nubes es por escena; la vista puede tener nubes, sombras o bruma.
-- El reemplazo del paquete no es atómico frente a un corte abrupto; si tampoco puede restaurarse o limpiarse, el comando informa el estado real y conserva el respaldo.
+- It is context for inspection, not evidence that closes warnings, territorial restrictions, expert review or M4.
+- A one-month mosaic of 2025: is not a single date or a current image.
+- The cloud filter is per scene; the view may have clouds, shadows or haze.
+- Package replacement is not atomic against an abrupt interruption; if it also cannot be restored or cleaned up, the command reports the actual state and keeps the backup.

@@ -1,16 +1,16 @@
-"""Descarga acotada y reanudable de las fuentes de la búsqueda v3.
+"""Bounded, resumable download of the sources for search v3.
 
-Dos etapas, para no pedir fuentes costosas antes de preseleccionar:
+Two stages, so as not to request costly sources before preselecting:
 
-- ``--stage tiles``: teselas NASADEM que faltan para las ventanas de la rejilla.
-- ``--stage sources``: Sentinel-2 mensual, POWER e inventario HLS solo para las
-  ventanas preseleccionadas en ``artifacts/science-v3/search-results.json``.
+- ``--stage tiles``: NASADEM tiles that are missing for the grid windows.
+- ``--stage sources``: monthly Sentinel-2, POWER and HLS inventory only for the
+  windows preselected in ``artifacts/science-v3/search-results.json``.
 
-Cada resultado se guarda con su hora real de adquisición y una clave derivada de
-la petición completa (bbox, periodo, producto y transformación), de modo que un
-cambio de configuración nunca reutiliza datos de otra petición. Los fallos se
-registran y no se convierten en datos. Las credenciales se leen desde el
-programa y solo viajan a los hosts oficiales de Earthdata y Copernicus.
+Each result is saved with its actual acquisition time and a key derived from
+the complete request (bbox, period, product and transformation), so that a
+configuration change never reuses data from another request. Failures are
+recorded and are not turned into data. Credentials are read from the
+program and are only sent to the official Earthdata and Copernicus hosts.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ def _now() -> str:
 
 
 def request_key(request: object) -> str:
-    """Huella de la petición completa: liga la caché a bbox, periodo, producto y transformación."""
+    """Fingerprint of the complete request: ties the cache to bbox, period, product and transformation."""
     return hashlib.sha256(json.dumps(request, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
 
 
@@ -52,7 +52,7 @@ def _write(path: Path, content: dict) -> None:
 
 
 def cached(store: dict, site_id: str, key: str) -> bool:
-    """Solo se reutiliza una entrada correcta de exactamente la misma petición."""
+    """Only a successful entry from exactly the same request is reused."""
     entry = store.get(site_id)
     return bool(entry) and entry.get("request_key") == key and entry.get("status") == "ok"
 
@@ -65,27 +65,27 @@ def _earthdata_login():
         load_dotenv(ROOT / ".env")
     auth = earthaccess.login(strategy="environment")
     if not getattr(auth, "authenticated", True):
-        raise RuntimeError("Earthdata Login rechazó las credenciales.")
+        raise RuntimeError("Earthdata Login rejected the credentials.")
     return earthaccess
 
 
 def _tile_bbox(tile: str) -> tuple[float, float, float, float]:
-    """Caja pequeña en el centro de la tesela ``s25w070``, para que CMR devuelva solo esa."""
+    """Small box at the center of the ``s25w070`` tile, so that CMR returns only that one."""
     south = -int(tile[1:3]) if tile[0] == "s" else int(tile[1:3])
     west = -int(tile[4:7]) if tile[3] == "w" else int(tile[4:7])
     return (west + 0.4, south + 0.4, west + 0.6, south + 0.6)
 
 
 def fetch_tiles(config: dict, science_config: dict, log: dict) -> list[str]:
-    """Descarga las teselas que faltan, dentro del límite autorizado. Devuelve las pendientes."""
+    """Downloads the missing tiles, within the authorized limit. Returns the pending ones."""
     nasadem = science_config["nasadem"]
     directory = ROOT / nasadem["directory"]
     needed = required_tiles(grid_windows(config))
     missing = [tile for tile in needed if not (directory / f"NASADEM_HGT_{tile}.zip").exists()]
     limit = config["limits"]["max_new_nasadem_tiles"]
     if len(missing) > limit:
-        raise RuntimeError(f"Harían falta {len(missing)} teselas nuevas; el límite autorizado es {limit}.")
-    print(f"teselas necesarias: {len(needed)}; en caché: {len(needed) - len(missing)}; por descargar: {missing}")
+        raise RuntimeError(f"{len(missing)} new tiles would be needed; the authorized limit is {limit}.")
+    print(f"tiles needed: {len(needed)}; cached: {len(needed) - len(missing)}; to download: {missing}")
     if not missing:
         return []
     earthaccess = _earthdata_login()
@@ -93,7 +93,7 @@ def fetch_tiles(config: dict, science_config: dict, log: dict) -> list[str]:
     pending = []
     for tile in missing:
         filename = f"NASADEM_HGT_{tile}.zip"
-        outcome = "sin intentos"
+        outcome = "no attempts"
         for attempt in range(config["limits"]["attempts_per_request"]):
             try:
                 granules = earthaccess.search_data(
@@ -101,12 +101,12 @@ def fetch_tiles(config: dict, science_config: dict, log: dict) -> list[str]:
                 )
                 matching = [g for g in granules if any(link.endswith(filename) for link in g.data_links(access="external"))]
                 if not matching:
-                    outcome = "CMR no devolvió esa tesela"
+                    outcome = "CMR did not return that tile"
                     break
                 earthaccess.download(matching[:1], local_path=str(directory))
                 with zipfile.ZipFile(directory / filename) as bundle:
                     if not {f"{tile}.hgt", f"{tile}.swb"} <= set(bundle.namelist()):
-                        raise zipfile.BadZipFile("faltan .hgt o .swb")
+                        raise zipfile.BadZipFile("missing .hgt or .swb")
                 link = next(link for link in matching[0].data_links(access="external") if link.endswith(filename))
                 tiles_log[filename] = {
                     "acquired_at": _now(), "sha256": _sha256(directory / filename),
@@ -116,8 +116,8 @@ def fetch_tiles(config: dict, science_config: dict, log: dict) -> list[str]:
                 outcome = "ok"
                 break
             except (OSError, zipfile.BadZipFile) as error:
-                (directory / filename).unlink(missing_ok=True)  # nunca dejar una tesela parcial en la caché
-                outcome = f"fallo de descarga ({type(error).__name__}), intento {attempt + 1}"
+                (directory / filename).unlink(missing_ok=True)  # never leave a partial tile in the cache
+                outcome = f"download failure ({type(error).__name__}), attempt {attempt + 1}"
         print(f"  {filename}: {outcome}")
         if outcome != "ok":
             pending.append(tile)
@@ -126,10 +126,10 @@ def fetch_tiles(config: dict, science_config: dict, log: dict) -> list[str]:
 
 
 def source_requests(science_config: dict, window: dict) -> dict:
-    """Peticiones exactas de una ventana según la configuración vigente (bbox, periodo, producto, transformación).
+    """Exact requests for a window according to the current configuration (bbox, period, product, transformation).
 
-    El fetch las usa como clave de caché y el build las vuelve a derivar para comprobar
-    que cada dato crudo pertenece a este experimento y no a una configuración anterior.
+    The fetch uses them as a cache key and the build derives them again to verify
+    that each raw data item belongs to this experiment and not to a previous configuration.
     """
     from pipelines.fetch_precision_data import _statistics_request
 
@@ -146,11 +146,11 @@ def source_requests(science_config: dict, window: dict) -> dict:
 
 
 def fetch_sources(config: dict, science_config: dict, shortlist: list[dict], log: dict, client=None) -> list[str]:
-    """Sentinel-2, POWER e inventario HLS de la preselección. Devuelve los sitios con algún fallo."""
+    """Sentinel-2, POWER and HLS inventory of the preselection. Returns the sites with any failure."""
     from pipelines.fetch_science_data import _fetch_json
 
     if len(shortlist) > config["limits"]["max_multisource_windows"]:
-        raise RuntimeError("La preselección supera el máximo de ventanas multifuente autorizado.")
+        raise RuntimeError("The shortlist exceeds the authorized maximum of multi-source windows.")
     paths = {name: ROOT / config["sources"][name] for name in ("sentinel2_file", "power_file", "inventory_file")}
     copernicus = science_config["copernicus"]
     sentinel = _read(paths["sentinel2_file"], {"service": copernicus["statistics_url"], "collection": copernicus["collection"],
@@ -163,18 +163,18 @@ def fetch_sources(config: dict, science_config: dict, shortlist: list[dict], log
 
     def record(store: dict, path: Path, site_id: str, key: str, request: object, fetch) -> None:
         if cached(store["sites"], site_id, key):
-            print(f"  {site_id}: reutilizado ({path.name})")
+            print(f"  {site_id}: reused ({path.name})")
             return
         entry = {"request_key": key, "request": request, "acquired_at": _now()}
         try:
             entry.update(status="ok", response=fetch())
         except (VisualContextError, OSError, ValueError) as error:
-            # El fallo queda registrado tal cual; nunca se rellena con datos ficticios.
+            # The failure is recorded as is; it is never filled in with fictitious data.
             entry.update(status="failed", error=f"{type(error).__name__}: {error}"[:300])
             failed.add(site_id)
             log.setdefault("failures", []).append({"at": entry["acquired_at"], "stage": path.name, "item": site_id, "outcome": entry["error"]})
         store["sites"][site_id] = entry
-        _write(path, store)  # guardado tras cada sitio: la ejecución es reanudable
+        _write(path, store)  # saved after each site: the run is resumable
         print(f"  {site_id}: {entry['status']} ({path.name})")
 
     for window in shortlist:
@@ -216,7 +216,7 @@ def main(argv: list[str] | None = None) -> int:
             problems = fetch_tiles(config, science_config, log)
         else:
             if not args.search_results.exists():
-                print("ERROR: falta search-results.json; ejecuta antes python -m pipelines.discover_candidates", file=sys.stderr)
+                print("ERROR: search-results.json is missing; run python -m pipelines.discover_candidates first", file=sys.stderr)
                 return 1
             selected = set(json.loads(args.search_results.read_text(encoding="utf-8"))["shortlist"])
             shortlist = [window for window in grid_windows(config) if window["window_id"] in selected]
@@ -224,9 +224,9 @@ def main(argv: list[str] | None = None) -> int:
     finally:
         _write(log_path, log)
     if problems:
-        print(f"BLOQUEO PARCIAL: quedaron pendientes {problems}. Vuelve a ejecutar; lo ya obtenido se reutiliza.", file=sys.stderr)
+        print(f"PARTIAL BLOCK: still pending {problems}. Run again; what was already obtained is reused.", file=sys.stderr)
         return 1
-    print(f"etapa {args.stage} completa; registro en {log_path}")
+    print(f"stage {args.stage} complete; log in {log_path}")
     return 0
 
 

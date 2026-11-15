@@ -1,18 +1,19 @@
 /**
- * Detalle por criterio del riel de métricas (chunk diferido). Lo carga MetricRail.
+ * Per-criterion detail of the metrics rail (deferred chunk). Loaded by MetricRail.
  *
- *  - 'rail':  acordeón-carrusel (una métrica abierta; ⌃ ⌄ recorren; flechas mueven el foco).
- *  - 'full':  tarjetas completas con su visualización, en el orden del perfil activo.
- *  - 'sheet': pestañas APG + pista deslizable (scroll-snap) con región aria-live propia
- *             (única excepción permitida: patrón APG de carrusel en móvil).
+ *  - 'rail':  accordion-carousel (one open metric; ⌃ ⌄ cycle through; arrow keys move focus).
+ *  - 'full':  full cards with their visualization, in the order of the active profile.
+ *  - 'sheet': APG tabs + swipeable track (scroll-snap) with its own aria-live region
+ *             (the only allowed exception: APG carousel pattern on mobile).
  *
- * Sincroniza `ui.activeCriterionId` (métrica abierta/activa) y `ui.previewCriterionId`
- * (hover o foco) con las líneas y la Lectura. Nunca escribe en el store por cuadro.
+ * Synchronizes `ui.activeCriterionId` (open/active metric) and `ui.previewCriterionId`
+ * (hover or focus) with the lines and the Reading. Never writes to the store per frame.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 import type { CandidateSite, DataManifest } from '../../domain/contracts'
 import { formatArea } from '../../domain/formatting'
 import { criterionExplanation } from '../../domain/geologyCopy'
+import { displaySource } from '../../i18n/sourceText'
 import { GLYPH, hasGeologyFor, useReducedMotion, type AppData } from '../../shell/public'
 import { uiActions, useUi } from '../../state/ui'
 import { buildMetricViews, limitingView } from './buildMetricViews'
@@ -39,7 +40,7 @@ export interface MetricDetailsProps extends MetricRailProps {
   context: MetricContext
 }
 
-/** Siguiente índice para listas navegables con teclado (null si la tecla no aplica). */
+/** Next index for keyboard-navigable lists (null if the key does not apply). */
 export function nextIndex(key: string, index: number, count: number, orientation: 'vertical' | 'horizontal'): number | null {
   if (count <= 0) return null
   const forward = orientation === 'vertical' ? 'ArrowDown' : 'ArrowRight'
@@ -51,7 +52,7 @@ export function nextIndex(key: string, index: number, count: number, orientation
   return null
 }
 
-/** Métrica abierta por defecto: la limitante; si no hay, la de mayor peso. */
+/** Metric open by default: the limiting one; if there is none, the one with the highest weight. */
 export function defaultCriterion(views: readonly MetricView[]): string | null {
   return limitingView(views)?.criterionId ?? views[0]?.criterionId ?? null
 }
@@ -60,27 +61,27 @@ function domId(siteId: string, suffix: string): string {
   return `metrics-${siteId}-${suffix}`.replace(/[^A-Za-z0-9_-]/g, '-')
 }
 
-/** «Proveedor · resolución» del dataset en el manifiesto (null si no aplica). */
+/** "Provider · resolution" of the dataset in the manifest (null if not applicable). */
 export function sourceLine(datasetId: string, manifest: DataManifest | null): string | null {
   if (datasetId === 'none') return null
   const entry = manifest?.datasets.find((dataset) => dataset.dataset_id === datasetId)
-  return entry ? `${entry.provider} · ${entry.spatial_resolution}` : datasetId
+  return entry ? `${displaySource(entry.provider)} · ${displaySource(entry.spatial_resolution)}` : datasetId
 }
 
-/** Nombre accesible de una fila/pestaña: sin glifos, con la cifra y su significado. */
+/** Accessible name of a row/tab: no glyphs, with the figure and its meaning. */
 export function metricAriaLabel(view: MetricView): string {
   const parts = [view.label]
   const pending = pendingText(view)
-  if (view.similarity !== null) parts.push(`similitud ${similarityText(view)}`)
+  if (view.similarity !== null) parts.push(`similarity ${similarityText(view)}`)
   if (pending) parts.push(pending)
   else parts.push(`sector ${view.siteValue.text}`)
   if (view.marsValue) parts.push(`Jezero ${view.marsValue.text}`)
-  if (view.rule?.satisfied) parts.push('cumple la regla del perfil')
-  if (view.isLimiting) parts.push('limitante')
+  if (view.rule?.satisfied) parts.push('meets the profile rule')
+  if (view.isLimiting) parts.push('limiting factor')
   return parts.join(', ')
 }
 
-/** Escribe `previewCriterionId` solo mientras esta vista lo controla; lo limpia al desmontar. */
+/** Writes `previewCriterionId` only while this view controls it; clears it on unmount. */
 function usePreview(): (criterionId: string | null) => void {
   const owned = useRef(false)
   useEffect(() => () => {
@@ -106,15 +107,15 @@ function MarsReading({ view }: { view: MetricView }) {
   if (view.rule) {
     return (
       <span className="metrics-reading is-rule">
-        <small><span aria-hidden="true">{GLYPH.rule}</span> Regla</small>
-        <strong>{view.rule.satisfied ? <><span aria-hidden="true">{GLYPH.ok}</span> cumple</> : view.rule.satisfied === false ? 'no satura' : 'sin verificar'}</strong>
+        <small><span aria-hidden="true">{GLYPH.rule}</span> Rule</small>
+        <strong>{view.rule.satisfied ? <><span aria-hidden="true">{GLYPH.ok}</span> met</> : view.rule.satisfied === false ? 'does not saturate' : 'not verified'}</strong>
       </span>
     )
   }
   return (
     <span className="metrics-reading is-none">
-      <small>Marte</small>
-      <strong>sin medición comparable</strong>
+      <small>Mars</small>
+      <strong>no comparable measurement</strong>
     </span>
   )
 }
@@ -135,8 +136,8 @@ function Badges({ view }: { view: MetricView }) {
   if (!view.isLimiting && !view.saturates) return null
   return (
     <span className="metrics-badges">
-      {view.isLimiting && <b className="metrics-badge is-limiting">Limitante</b>}
-      {view.saturates && <b className="metrics-badge is-saturates">satura</b>}
+      {view.isLimiting && <b className="metrics-badge is-limiting">Limiting</b>}
+      {view.saturates && <b className="metrics-badge is-saturates">saturates</b>}
     </span>
   )
 }
@@ -146,7 +147,7 @@ interface BodyProps {
   context: MetricContext
   site: CandidateSite
   data: AppData
-  /** 'full' añade la explicación del método del snapshot. */
+  /** 'full' adds the explanation of the snapshot's method. */
   detail: 'rail' | 'full' | 'sheet'
 }
 
@@ -166,14 +167,14 @@ function MetricBody({ view, context, site, data, detail }: BodyProps) {
   return (
     <div className="metrics-body">
       {requirements.length > 0 && (
-        <ul className="metrics-reqs" aria-label={`Requisitos de tu misión sobre ${view.label}`}>
+        <ul className="metrics-reqs" aria-label={`Your mission requirements on ${view.label}`}>
           {requirements.map((result) => <RequirementRow key={result.requirement_id} result={result} />)}
         </ul>
       )}
       {pending ? (
         <div className="metrics-pending-box">
           <strong>{pendingText(view)}</strong>
-          {/* Con el contexto geológico oficial del sector, el criterio geológico dice que está disponible pero sin calibrar (M9). */}
+          {/* With the official geological context of the sector, the geological criterion says it is available but uncalibrated (M9). */}
           {item?.explanation && <span>{criterionExplanation(view.criterionId, item.explanation, hasGeologyFor(data, site.site_id))}</span>}
         </div>
       ) : (
@@ -186,17 +187,17 @@ function MetricBody({ view, context, site, data, detail }: BodyProps) {
 
       {view.isLimiting && view.contribution !== null && (
         <p className="metrics-callout is-limiting">
-          <b>Limitante</b> · es el criterio que más baja la similitud v3 de este lugar con el perfil base (aporte {contributionText(view.contribution)}).
+          <b>Limiting factor</b> · the criterion that lowers this place's v3 similarity the most with the base profile (contribution {contributionText(view.contribution)}).
         </p>
       )}
 
       {view.rule && !pending && (
         <div className="metrics-rule">
-          <span className="metrics-rule-kicker"><span aria-hidden="true">{GLYPH.rule}</span> Regla del perfil</span>
+          <span className="metrics-rule-kicker"><span aria-hidden="true">{GLYPH.rule}</span> Profile rule</span>
           <p>{view.rule.text}</p>
           {view.saturates && (
             <p className="metrics-rule-sat">
-              <b className="metrics-badge is-saturates">satura</b> cumple la regla · no significa igual a Marte
+              <b className="metrics-badge is-saturates">saturates</b> meets the rule · does not mean equal to Mars
             </p>
           )}
         </div>
@@ -204,23 +205,23 @@ function MetricBody({ view, context, site, data, detail }: BodyProps) {
 
       {sharedNames.length > 0 && (
         <p className="metrics-callout is-shared">
-          Mismo valor y misma fuente que {sharedNames.join(' y ')}: este criterio no distingue entre {sharedNames.length > 1 ? 'estos lugares' : 'ambos lugares'}.
+          Same value and same source as {sharedNames.join(' and ')}: this criterion does not distinguish between {sharedNames.length > 1 ? 'these places' : 'both places'}.
         </p>
       )}
 
       {detail !== 'sheet' && !pending && why && <p className="metrics-why">{why}</p>}
-      {detail === 'full' && !pending && item?.explanation && <p className="metrics-method">{item.explanation}</p>}
+      {detail === 'full' && !pending && item?.explanation && <p className="metrics-method">{displaySource(item.explanation)}</p>}
 
       <dl className="metrics-meta">
         <div className="metrics-meta-weight">
-          <dt>Peso</dt>
+          <dt>Weight</dt>
           <dd>
-            {excluded ? 'excluido (0 %)' : <FadeNumber value={view.weight}>{weightText(view.weight)}</FadeNumber>}
+            {excluded ? 'excluded (0%)' : <FadeNumber value={view.weight}>{weightText(view.weight)}</FadeNumber>}
           </dd>
         </div>
         {!pending && (
           <div className="metrics-meta-quality">
-            <dt>Calidad del dato</dt>
+            <dt>Data quality</dt>
             <dd>
               <i className="metrics-quality-bar" aria-hidden="true"><em style={{ transform: `scaleX(${Math.max(0, Math.min(1, view.quality))})` }} /></i>
               {qualityText(view.quality)}
@@ -229,7 +230,7 @@ function MetricBody({ view, context, site, data, detail }: BodyProps) {
         )}
         {source && detail !== 'sheet' && (
           <div className="metrics-meta-source">
-            <dt>Fuente</dt>
+            <dt>Source</dt>
             <dd>{source}</dd>
           </div>
         )}
@@ -245,7 +246,7 @@ function RowValues({ view }: { view: MetricView }) {
     <span className="metrics-row-values">
       <span><span aria-hidden="true" className="is-site">{GLYPH.evaluated}</span> {view.siteValue.text}</span>
       {view.marsValue && <span className="is-mars"><span aria-hidden="true">{GLYPH.jezero}</span> {view.marsValue.text}</span>}
-      {!view.marsValue && view.rule && <span className="is-rule"><span aria-hidden="true">{GLYPH.rule}</span> {view.rule.satisfied ? GLYPH.ok : 'regla'}</span>}
+      {!view.marsValue && view.rule && <span className="is-rule"><span aria-hidden="true">{GLYPH.rule}</span> {view.rule.satisfied ? GLYPH.ok : 'rule'}</span>}
       {view.vsMars && directionGlyph(view) && <span className="is-dir" aria-hidden="true">{directionGlyph(view)}</span>}
     </span>
   )
@@ -255,17 +256,17 @@ function Header({ context, site, data, headingId }: { context: MetricContext; si
   const mars = data.snapshot?.marsReference ?? null
   return (
     <header className="metrics-head">
-      <h3 id={headingId}>Métricas vs Jezero</h3>
+      <h3 id={headingId}>Metrics vs Jezero</h3>
       <p>
-        Todo el sector · <span aria-hidden="true">{GLYPH.sector}</span> {formatArea(site.area_km2)} · medianas · perfil base
-        {context.kind === 'mission' ? ' · con tus requisitos (✓ ✕ ○)' : ''}
+        Whole sector · <span aria-hidden="true">{GLYPH.sector}</span> {formatArea(site.area_km2)} · medians · base profile
+        {context.kind === 'mission' ? ' · with your requirements (✓ ✕ ○)' : ''}
       </p>
-      <ul className="metrics-legend" aria-label="Leyenda">
+      <ul className="metrics-legend" aria-label="Legend">
         <li><span aria-hidden="true" className="is-site">{GLYPH.evaluated}</span> Sector</li>
         {mars
           ? <li><span aria-hidden="true" className="is-mars">{GLYPH.jezero}</span> Jezero (MOLA)</li>
-          : <li className="is-none">Sin referencia marciana en este snapshot</li>}
-        <li><span aria-hidden="true" className="is-rule">{GLYPH.rule}</span> Regla del perfil</li>
+          : <li className="is-none">No Martian reference in this snapshot</li>}
+        <li><span aria-hidden="true" className="is-rule">{GLYPH.rule}</span> Profile rule</li>
       </ul>
     </header>
   )
@@ -275,12 +276,12 @@ function Warnings({ site }: { site: CandidateSite }) {
   const [first, ...rest] = site.warnings
   if (!first) return null
   return (
-    <section className="metrics-warnings" aria-label="Advertencias del lugar">
-      <p><strong>Advertencia</strong> {first}</p>
+    <section className="metrics-warnings" aria-label="Place warnings">
+      <p><strong>Warning</strong> {displaySource(first)}</p>
       {rest.length > 0 && (
         <details>
-          <summary>{rest.length} {rest.length === 1 ? 'verificación pendiente' : 'verificaciones pendientes'}</summary>
-          <ul>{rest.map((warning) => <li key={warning}>{warning}</li>)}</ul>
+          <summary>{rest.length} {rest.length === 1 ? 'pending check' : 'pending checks'}</summary>
+          <ul>{rest.map((warning) => <li key={warning}>{displaySource(warning)}</li>)}</ul>
         </details>
       )}
     </section>
@@ -291,12 +292,12 @@ function ShowOnMap({ onShowOnMap }: { onShowOnMap?: () => void }) {
   if (!onShowOnMap) return null
   return (
     <button type="button" className="metrics-action" onClick={onShowOnMap}>
-      <span aria-hidden="true">{GLYPH.sector}</span> Ver el sector en el mapa
+      <span aria-hidden="true">{GLYPH.sector}</span> Show the sector on the map
     </button>
   )
 }
 
-/* ---------- Variante 'rail': acordeón-carrusel ------------------------------------------- */
+/* ---------- 'rail' variant: accordion-carousel ------------------------------------------- */
 
 function RailAccordion({ views, context, site, data, onShowOnMap }: VariantProps) {
   const active = useUi((state) => state.activeCriterionId)
@@ -309,7 +310,7 @@ function RailAccordion({ views, context, site, data, onShowOnMap }: VariantProps
   const expanded = activeHere ?? (collapsed ? null : defaultCriterion(views))
   const index = expanded === null ? -1 : views.findIndex((view) => view.criterionId === expanded)
 
-  // Si la métrica activa cambia (aquí, desde las líneas o desde la Lectura), se trae a la vista.
+  // If the active metric changes (here, from the lines or from the Reading), it is brought into view.
   useEffect(() => {
     if (activeHere === null) return
     rows.current.get(activeHere)?.scrollIntoView?.({ block: 'nearest', behavior: reduced ? 'auto' : 'smooth' })
@@ -331,14 +332,14 @@ function RailAccordion({ views, context, site, data, onShowOnMap }: VariantProps
     const target = views[next]
     if (target) headers.current.get(target.criterionId)?.focus()
   }
-  const position = index < 0 ? '—' : `${index + 1} de ${views.length}`
+  const position = index < 0 ? '—' : `${index + 1} of ${views.length}`
 
   return (
     <section className="metrics-panel" aria-labelledby={domId(site.site_id, 'h')}>
       <Header context={context} site={site} data={data} headingId={domId(site.site_id, 'h')} />
       <div className="metrics-stepper">
-        <button type="button" className="metrics-step" aria-label="Abrir la métrica anterior" aria-disabled={index <= 0} onClick={() => step(-1)}>⌃</button>
-        <button type="button" className="metrics-step" aria-label="Abrir la métrica siguiente" aria-disabled={index >= views.length - 1} onClick={() => step(1)}>⌄</button>
+        <button type="button" className="metrics-step" aria-label="Open the previous metric" aria-disabled={index <= 0} onClick={() => step(-1)}>⌃</button>
+        <button type="button" className="metrics-step" aria-label="Open the next metric" aria-disabled={index >= views.length - 1} onClick={() => step(1)}>⌄</button>
         <span className="metrics-position" aria-hidden="true">{position}</span>
       </div>
       <div className="metrics-accordion">
@@ -410,7 +411,7 @@ function FullCards({ views, context, site, data, onShowOnMap }: VariantProps) {
   return (
     <section className="metrics-panel" aria-labelledby={domId(site.site_id, 'full-h')}>
       <Header context={context} site={site} data={data} headingId={domId(site.site_id, 'full-h')} />
-      <p className="metrics-count">{valid}/{views.length} criterios válidos · ordenados por peso del perfil</p>
+      <p className="metrics-count">{valid}/{views.length} valid criteria · ordered by profile weight</p>
       <div className="metrics-cards">
         {views.map((view, at) => (
           <article
@@ -440,7 +441,7 @@ function FullCards({ views, context, site, data, onShowOnMap }: VariantProps) {
         ))}
       </div>
       <p className="metrics-note">
-        La calidad del dato la asigna el pipeline por tipo de fuente (ADR-003); no es una incertidumbre medida. La similitud por criterio se muestra en entero; el valor exacto está en «Método».
+        Data quality is assigned by the pipeline per source type (ADR-003); it is not a measured uncertainty. Per-criterion similarity is shown as a whole number; the exact value is in “Method”.
       </p>
       <Warnings site={site} />
       <ShowOnMap onShowOnMap={onShowOnMap} />
@@ -448,7 +449,7 @@ function FullCards({ views, context, site, data, onShowOnMap }: VariantProps) {
   )
 }
 
-/* ---------- Variante 'sheet': pestañas + pista deslizable (APG) ------------------------- */
+/* ---------- 'sheet' variant: tabs + swipeable track (APG) ------------------------- */
 
 const SWIPE_VISIBLE = 0.6
 const PROGRAMMATIC_GUARD_MS = 900
@@ -477,11 +478,11 @@ function SheetCarousel({ views, context, site, data, onShowOnMap }: VariantProps
     if (!view) return
     fromSwipe.current = source === 'swipe'
     uiActions.setActiveCriterion(view.criterionId)
-    // Con las pestañas el cambio de foco ya lo anuncia: la región viva solo habla por botón o gesto.
-    if (source !== 'tab') setLive(`${view.label}, ${target + 1} de ${views.length}`)
+    // With tabs, the focus change is already announced: the live region speaks only on button or gesture.
+    if (source !== 'tab') setLive(`${view.label}, ${target + 1} of ${views.length}`)
   }
 
-  // La pista sigue a la métrica activa (pestaña, botón, líneas o Lectura), salvo si la movió el dedo.
+  // The track follows the active metric (tab, button, lines or Reading), unless the finger moved it.
   useLayoutEffect(() => {
     const element = track.current
     const slide = slides.current[index]
@@ -508,7 +509,7 @@ function SheetCarousel({ views, context, site, data, onShowOnMap }: VariantProps
     if (guardTimer.current !== null) window.clearTimeout(guardTimer.current)
   }, [])
 
-  // Deslizar con el dedo cambia la métrica activa al cruzar el 60 % visible (no por cuadro).
+  // Swiping with a finger changes the active metric when crossing the 60 % visible (not per frame).
   useEffect(() => {
     const root = track.current
     if (!root || typeof IntersectionObserver === 'undefined') return
@@ -526,7 +527,7 @@ function SheetCarousel({ views, context, site, data, onShowOnMap }: VariantProps
     }, { root, threshold: [SWIPE_VISIBLE] })
     for (const slide of slides.current) if (slide) observer.observe(slide)
     return () => observer.disconnect()
-    // `go` solo usa refs, setLive y acciones del store; se reobserva cuando cambian las vistas.
+    // `go` only uses refs, setLive and store actions; it re-observes when the views change.
   }, [views])
 
   const onTabKey = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -536,11 +537,11 @@ function SheetCarousel({ views, context, site, data, onShowOnMap }: VariantProps
     go(next, 'tab')
     tabs.current[next]?.focus()
   }
-  const label = `Métricas de ${siteShortName(site.name)} vs Jezero`
+  const label = `Metrics of ${siteShortName(site.name)} vs Jezero`
 
   return (
-    <section className="metrics-carousel" aria-roledescription="carrusel" aria-label={label}>
-      <div className="metrics-tabs" role="tablist" aria-label="Elegir métrica" onKeyDown={onTabKey} style={{ '--metrics-n': views.length } as CSSProperties}>
+    <section className="metrics-carousel" aria-roledescription="carousel" aria-label={label}>
+      <div className="metrics-tabs" role="tablist" aria-label="Choose a metric" onKeyDown={onTabKey} style={{ '--metrics-n': views.length } as CSSProperties}>
         {views.map((view, at) => {
           const selected = at === index
           return (
@@ -568,7 +569,7 @@ function SheetCarousel({ views, context, site, data, onShowOnMap }: VariantProps
         })}
       </div>
       <p className="metrics-caption">
-        Todo el sector · <span aria-hidden="true">{GLYPH.sector}</span> {formatArea(site.area_km2)} · medianas · <span aria-hidden="true">{GLYPH.evaluated}</span> sector <span aria-hidden="true">{GLYPH.jezero}</span> Jezero <span aria-hidden="true">{GLYPH.rule}</span> regla
+        Whole sector · <span aria-hidden="true">{GLYPH.sector}</span> {formatArea(site.area_km2)} · medians · <span aria-hidden="true">{GLYPH.evaluated}</span> sector <span aria-hidden="true">{GLYPH.jezero}</span> Jezero <span aria-hidden="true">{GLYPH.rule}</span> rule
       </p>
       <div className="metrics-track" ref={track} tabIndex={-1}>
         {views.map((view, at) => {
@@ -579,7 +580,7 @@ function SheetCarousel({ views, context, site, data, onShowOnMap }: VariantProps
               className="metrics-slide"
               role="tabpanel"
               id={domId(site.site_id, `${view.criterionId}-slide`)}
-              aria-roledescription="métrica"
+              aria-roledescription="metric"
               aria-labelledby={domId(site.site_id, `${view.criterionId}-tab`)}
               aria-hidden={!selected}
               inert={!selected}
@@ -603,11 +604,11 @@ function SheetCarousel({ views, context, site, data, onShowOnMap }: VariantProps
         })}
       </div>
       <div className="metrics-stepper is-sheet">
-        <button type="button" className="metrics-step" aria-label="Métrica anterior" aria-disabled={index <= 0} onClick={() => index > 0 && go(index - 1, 'button')}>◀</button>
+        <button type="button" className="metrics-step" aria-label="Previous metric" aria-disabled={index <= 0} onClick={() => index > 0 && go(index - 1, 'button')}>◀</button>
         <span className="metrics-position" aria-hidden="true">{index + 1} de {views.length}</span>
-        <button type="button" className="metrics-step" aria-label="Métrica siguiente" aria-disabled={index >= views.length - 1} onClick={() => index < views.length - 1 && go(index + 1, 'button')}>▶</button>
+        <button type="button" className="metrics-step" aria-label="Next metric" aria-disabled={index >= views.length - 1} onClick={() => index < views.length - 1 && go(index + 1, 'button')}>▶</button>
       </div>
-      {/* Excepción documentada (BUILD_CONTRACTS §1.8): carrusel APG en móvil con su propia región. */}
+      {/* Documented exception (BUILD_CONTRACTS §1.8): APG carousel on mobile with its own region. */}
       <p className="metrics-sr" aria-live="polite" aria-atomic="true">{live}</p>
       <ShowOnMap onShowOnMap={onShowOnMap} />
     </section>
@@ -627,7 +628,7 @@ interface VariantProps {
 export default function MetricDetails({ data, site, variant, context, onShowOnMap }: MetricDetailsProps): ReactNode {
   const views = useMemo(() => buildMetricViews(context.input), [context])
   if (views.length === 0) {
-    return <p className="metrics-note">Este lugar no trae desglose por criterio en el snapshot.</p>
+    return <p className="metrics-note">This place has no per-criterion breakdown in the snapshot.</p>
   }
   const props: VariantProps = { views, context, site, data, onShowOnMap }
   if (variant === 'full') return <FullCards {...props} />

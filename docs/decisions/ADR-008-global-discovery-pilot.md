@@ -1,51 +1,51 @@
-# ADR-008 — AnalogOS global: piloto de búsqueda Chile–Argentina
+# ADR-008 — Global AnalogOS: Chile–Argentina Discovery Pilot
 
-- Estado: accepted por Codex (2026-11-14; revisión independiente en `../CODEX_M7_REVIEW.md`)
-- Fecha: 2026-11-14
-- Numeración: inicialmente ADR-006; renumerado a ADR-008 al integrar el avance remoto, que ya ocupaba ADR-006 y ADR-007 para el escenario visual. La ciencia y los artefactos no cambian.
-- Autorización: Dan aprobó el cambio de alcance el 2026-11-14; Codex aprobó el checkpoint de método el mismo día.
+- Status: accepted by Codex (2026-11-14; independent review in `../CODEX_M7_REVIEW.md`)
+- Date: 2026-11-14
+- Numbering: initially ADR-006; renumbered to ADR-008 when integrating the remote progress, which already used ADR-006 and ADR-007 for the visual scenario. The science and the artifacts do not change.
+- Authorization: Dan approved the change of scope on 2026-11-14; Codex approved the method checkpoint the same day.
 
-## Contexto
+## Context
 
-Hasta el snapshot v2 el producto evaluaba tres sectores elegidos de antemano en Chile, con Yungay en primer lugar. Yungay es un análogo publicado desde hace más de veinte años: presentarlo como resultado no demuestra capacidad de búsqueda. El producto pasa a llamarse AnalogOS, con visión global, y debe encontrar sectores mediante un procedimiento documentado en lugar de listar puntos conocidos.
+Up to snapshot v2, the product evaluated three sectors chosen in advance in Chile, with Yungay in first place. Yungay has been a published analog for more than twenty years: presenting it as a result does not demonstrate search capability. The product is renamed AnalogOS, with a global vision, and must find sectors through a documented procedure instead of listing known points.
 
-## Decisión
+## Decision
 
-1. **Marca y alcance.** La marca visible es «AnalogOS» con el subtítulo «Exploración de análogos planetarios · Piloto Chile–Argentina». No se renombra carpeta, remoto, paquetes ni hosting. No se afirma cobertura mundial ejecutada.
-2. **Experimento acotado.** Dos regiones de prueba de 1° × 1° en CRS84: interior de Antofagasta `[-70.0, -25.5, -69.0, -24.5]` y Puna de Catamarca y Salta `[-67.8, -26.5, -66.8, -25.5]`. Rejilla regular de 25 ventanas de 0,2° por región (442–449 km² cada una). Son una selección de prueba, no una muestra representativa ni regiones garantizadas inéditas.
-3. **Etapa 1, prioridad topográfica.** Métricas NASADEM con el código v2 para las 50 ventanas. Se rechazan con registro las de cobertura < 95 %, agua permanente > 5 % o que contengan coordenadas o un área de estudio publicadas. El orden es la media geométrica de pendiente, rugosidad y relieve con pesos relativos 0,20/0,20/0,15. Solo ordena: no es el score ni la confianza.
-4. **Diversificación.** Selección voraz y determinista: hasta 3 ventanas por país, centros a ≥ 25 km (geodésica), desempate por identificador. Nunca se completa la lista a mano.
-5. **Etapa 2.** Hasta 6 ventanas reciben Sentinel-2 mensual 2025, POWER e inventario HLS, con fórmulas, pesos y tolerancias v2. Geología sigue sin calibrar.
-6. **Yungay como referencia.** Se recalcula con sus datos v2 y las mismas reglas, conserva 75,67 / 77,45 / 99,03, lleva `role: reference` y queda fuera del ranking. Su ventana no es el perímetro de cada campaña histórica.
-7. **Antecedentes.** Catálogo versionado con fuentes, fecha de revisión y coordenadas solo cuando la publicación las da. Se distingue «contiene coordenada de muestreo publicada», «se superpone a un área de estudio», «cercanía (heurística de 25 km al centro, no perímetro del estudio)» y «antecedente regional». Ninguna ventana se declara nueva; no encontrar coincidencias no prueba novedad.
-8. **Contratos.** `candidate-site` admite `cl-` y `ar-`, añade `country`, `role`, `discovery` y `literature_review` (obligatorios en v3) y el estado `reference`. Nuevos contratos `discovery-search` y `precedent-catalog`. Los snapshots históricos siguen validando.
-9. **Calidad sin confianza falsa** (aprobado por Codex, sin cambiar v2):
-   - la completitud Sentinel-2 se mide contra los 12 meses configurados; se descartan meses duplicados, fuera de periodo, incompletos, con error, con conteos incoherentes o con valores no finitos o fuera de rango;
-   - la calidad topográfica se multiplica por la cobertura NASADEM válida;
-   - POWER se valida (unidades, valor de relleno, finitud, rangos) antes de puntuar;
-   - cada dato crudo se liga a su petición exacta; un dato de otra configuración detiene el build.
-10. **Autoridades por país.** Las restricciones no evaluadas citan IDE Chile o IDERA según corresponda y siguen pendientes. No se infiere permiso ni terreno libre.
-11. **Entrega.** `artifacts/science-v3/` y `artifacts/visual-context-v3/` son nuevos; v2 se conserva byte a byte. El empaquetador genera `submission/analogos-static.zip` con su checksum; el ZIP v2 queda como histórico.
+1. **Brand and scope.** The visible brand is "AnalogOS" with the subtitle "Planetary analog exploration · Chile–Argentina Pilot". The folder, remote, packages and hosting are not renamed. No claim of executed worldwide coverage is made.
+2. **Bounded experiment.** Two test regions of 1° × 1° in CRS84: the Antofagasta interior `[-70.0, -25.5, -69.0, -24.5]` and the Puna of Catamarca and Salta `[-67.8, -26.5, -66.8, -25.5]`. Regular grid of 25 windows of 0,2° per region (442–449 km² each). They are a test selection, not a representative sample nor regions guaranteed to be unpublished.
+3. **Stage 1, topographic priority.** NASADEM metrics with the v2 code for the 50 windows. Windows are rejected, with a record, if coverage is < 95 %, permanent water is > 5 %, or they contain published coordinates or a published study area. The ordering is the geometric mean of slope, roughness and relief with relative weights 0,20/0,20/0,15. It only orders: it is not the score or the confidence.
+4. **Diversification.** Greedy, deterministic selection: up to 3 windows per country, centers at ≥ 25 km (geodesic), ties broken by identifier. The list is never completed by hand.
+5. **Stage 2.** Up to 6 windows receive monthly Sentinel-2 2025, POWER and HLS inventory, with v2 formulas, weights and tolerances. Geology remains uncalibrated.
+6. **Yungay as reference.** It is recalculated with its v2 data and the same rules, keeps 75,67 / 77,45 / 99,03, carries `role: reference` and stays outside the ranking. Its window is not the perimeter of each historical campaign.
+7. **Prior work.** Versioned catalog with sources, review date and coordinates only when the publication provides them. A distinction is made between "contains a published sampling coordinate", "overlaps a study area", "proximity (25 km heuristic to the center, not the study perimeter)" and "regional precedent". No window is declared new; finding no matches does not prove novelty.
+8. **Contracts.** `candidate-site` accepts `cl-` and `ar-`, adds `country`, `role`, `discovery` and `literature_review` (mandatory in v3) and the state `reference`. New contracts `discovery-search` and `precedent-catalog`. Historical snapshots continue to validate.
+9. **Quality without false confidence** (approved by Codex, without changing v2):
+   - Sentinel-2 completeness is measured against the 12 configured months; months that are duplicated, out of period, incomplete, in error, with inconsistent counts, or with non-finite or out-of-range values are discarded;
+   - topographic quality is multiplied by the valid NASADEM coverage;
+   - POWER is validated (units, fill value, finiteness, ranges) before scoring;
+   - each raw data item is tied to its exact request; data from a different configuration stops the build.
+10. **Authorities by country.** Restrictions not evaluated cite IDE Chile or IDERA as appropriate and remain pending. No permission or free terrain is inferred.
+11. **Delivery.** `artifacts/science-v3/` and `artifacts/visual-context-v3/` are new; v2 is preserved byte for byte. The packager generates `submission/analogos-static.zip` with its checksum; the v2 ZIP remains as historical.
 
-## Límites autorizados y usados
+## Authorized and used limits
 
-| Recurso | Límite | Usado |
+| Resource | Limit | Used |
 |---|---:|---:|
-| Ventanas topográficas | 50 | 50 |
-| Teselas NASADEM nuevas | 20 | 7 |
-| Ventanas multifuente nuevas | 6 | 6 |
-| Imágenes RGB nuevas | 6 | 6 (Yungay se reutilizó del paquete v2) |
+| Topographic windows | 50 | 50 |
+| New NASADEM tiles | 20 | 7 |
+| New multisource windows | 6 | 6 |
+| New RGB images | 6 | 6 (Yungay was reused from the v2 package) |
 
-## Consecuencias
+## Consequences
 
-- El resultado puede ser incómodo y se muestra igual: los tres candidatos chilenos puntúan más que Yungay y los argentinos, menos.
-- La diferencia de los argentinos se debe sobre todo al contexto climático POWER (562–767 mm/año), que describe una celda MERRA-2 de 0,5° × 0,625° y no lluvia medida en el sitio. No se cambiaron pesos ni valores para corregirlo.
-- Cuatro ventanas chilenas con muy alta prioridad topográfica quedaron fuera por contener coordenadas del transecto de Navarro-González et al. (2003).
-- El ZIP de entrega pasa a ~9,0 MB por las siete imágenes.
-- Cambiar regiones, periodo, producto o transformación invalida la caché y exige nuevas consultas con credenciales.
+- The result may be uncomfortable and is shown anyway: the three Chilean candidates score higher than Yungay and the Argentine ones score lower.
+- The difference for the Argentine ones is mainly due to the POWER climate context (562–767 mm/year), which describes a MERRA-2 cell of 0,5° × 0,625° and not rainfall measured at the site. Weights and values were not changed to correct it.
+- Four Chilean windows with very high topographic priority were left out because they contain coordinates of the transect of Navarro-González et al. (2003).
+- The delivery ZIP grows to ~9,0 MB because of the seven images.
+- Changing regions, period, product or transformation invalidates the cache and requires new queries with credentials.
 
-## Qué no afirma esta decisión
+## What this decision does not claim
 
-- No hay análogos nuevos confirmados ni validación de campo, geológica o territorial.
-- Una ventana de ~440 km² no es un terreno íntegramente libre ni apto: las imágenes muestran trazas y estructuras que deben contrastarse.
-- Los tests verdes validan el software, no la equivalencia planetaria.
+- There are no confirmed new analogs, nor field, geological or territorial validation.
+- A window of ~440 km² is not entirely free or suitable terrain: the images show traces and structures that must be checked.
+- Passing tests validate the software, not planetary equivalence.

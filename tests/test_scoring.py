@@ -49,10 +49,10 @@ def test_missing_renormalizes_similarity_and_lowers_confidence():
     partial_inputs = full(0.8, 0.8, 0.8, q=0.9)
     del partial_inputs["c"]
     partial = run(partial_inputs)
-    # Similitud: los pesos válidos (0.8) se renormalizan; faltar no es similitud cero.
+    # Similarity: valid weights (0.8) are renormalized; being absent is not zero similarity.
     assert partial["similarity"] == pytest.approx(80, abs=0.01)
     assert partial["similarity"] == complete["similarity"]
-    # Confianza: baja exactamente por el peso faltante.
+    # Confidence: lowered by exactly the missing weight.
     assert complete["confidence"] == pytest.approx(90)
     assert partial["confidence"] == pytest.approx(72)
     missing = partial["score_breakdown"][2]
@@ -60,7 +60,7 @@ def test_missing_renormalizes_similarity_and_lowers_confidence():
 
 
 def test_valid_weight_below_minimum_is_insufficient_data():
-    result = run({"a": {"similarity": 0.9, "quality": 1.0}})  # peso válido 0.5 < 0.7
+    result = run({"a": {"similarity": 0.9, "quality": 1.0}})  # valid weight 0.5 < 0.7
     assert result["similarity"] is None
     assert result["confidence"] == pytest.approx(50)
     assert all(item["contribution"] is None for item in result["score_breakdown"])

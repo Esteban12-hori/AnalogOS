@@ -1,8 +1,8 @@
 /**
- * Acciones del armazón compartidas por la ficha, el riel y la hoja (archivo del integrador).
- * - «Evaluar este sector»: pasa a Misión y abre el recorrido «sector» del planificador del equipo
- *   con el alcance fijado en esa ventana (ADR-009, ADR-013). No evalúa ni llama a la IA.
- * - «Exportar ficha (JSON)»: `buildExport` del equipo (rol, origen, revisión y alcance de la búsqueda).
+ * Shell actions shared by the record, the rail, and the sheet (integrator's file).
+ * - «Evaluate this sector»: switches to Mission and opens the planner's «sector» flow for the team
+ *   with the scope fixed to that window (ADR-009, ADR-013). It does not evaluate or call the AI.
+ * - «Export record (JSON)»: `buildExport` of the team (role, origin, review, and search scope).
  */
 import type { CandidateSite, SearchResults } from '../domain/contracts'
 import { buildExport } from '../domain/discovery'
@@ -14,12 +14,12 @@ export function evaluateSector(siteId: string): void {
   withController((mission) => mission.startSector(siteId))
 }
 
-/** Texto de la ficha exportada (aviso de honestidad, sitio y alcance de la búsqueda). */
+/** Text of the exported record (honesty notice, site, and search scope). */
 export function siteExportText(candidate: CandidateSite, search: SearchResults | null): string {
   return `${JSON.stringify(buildExport(candidate, search), null, 2)}\n`
 }
 
-/** Toda descarga de ficha pasa por aquí (cabecera y pestaña Fuentes): un solo contenido por archivo. */
+/** Every record download goes through here (header and Sources tab): a single content per file. */
 export function exportSiteJson(candidate: CandidateSite, search: SearchResults | null): void {
   const blob = new Blob([siteExportText(candidate, search)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)

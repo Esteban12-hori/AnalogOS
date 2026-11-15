@@ -1,11 +1,11 @@
-"""Agregación determinista de similitud y confianza (docs/DATA_AND_SCORING.md).
+"""Deterministic aggregation of similarity and confidence (docs/DATA_AND_SCORING.md).
 
-Similitud:  S = 100 × exp(Σ w'_i × ln(max(s_i, ε)))  sobre criterios válidos,
-            con w'_i = w_i / (peso válido total).
-Confianza:  C = 100 × Σ w_i × q_i  con los pesos originales; un criterio no
-            válido aporta q_i = 0, así que los faltantes bajan la confianza
-            sin tocar la similitud.
-Son dos números independientes: nunca se combinan.
+Similarity:  S = 100 × exp(Σ w'_i × ln(max(s_i, ε)))  over valid criteria,
+            with w'_i = w_i / (total valid weight).
+Confidence:  C = 100 × Σ w_i × q_i  using the original weights; an invalid criterion
+            contributes q_i = 0, so missing ones lower the confidence
+            without affecting the similarity.
+They are two independent numbers: they are never combined.
 """
 
 import math
@@ -15,14 +15,14 @@ _TOLERANCE = 1e-9
 
 def aggregate(criteria: list[dict], inputs: dict[str, dict], epsilon: float,
               minimum_valid_weight: float) -> dict:
-    """Función pura.
+    """Pure function.
 
-    criteria: criterios del perfil (`id`, `weight`, `unit`).
-    inputs:   por `criterion_id`: `similarity` (0–1 o None), `quality` (0–1),
-              y opcionales `status`, `raw_value`, `dataset_id`, `explanation`.
-              Un criterio ausente de `inputs` se trata como `missing`.
-    Devuelve `similarity` (None si el peso válido < mínimo), `confidence`,
-    `valid_weight` y `score_breakdown` compatible con candidate-site.schema.json.
+    criteria: profile criteria (`id`, `weight`, `unit`).
+    inputs:   per `criterion_id`: `similarity` (0–1 or None), `quality` (0–1),
+              and optional `status`, `raw_value`, `dataset_id`, `explanation`.
+              A criterion absent from `inputs` is treated as `missing`.
+    Returns `similarity` (None if the valid weight < minimum), `confidence`,
+    `valid_weight` and `score_breakdown` compatible with candidate-site.schema.json.
     """
     rows = []
     for criterion in criteria:
@@ -32,10 +32,10 @@ def aggregate(criteria: list[dict], inputs: dict[str, dict], epsilon: float,
         if status == "valid" and s is None:
             status = "missing"
         if s is not None and not 0 <= s <= 1:
-            raise ValueError(f"{criterion['id']}: similarity fuera de [0, 1]: {s}")
+            raise ValueError(f"{criterion['id']}: similarity outside [0, 1]: {s}")
         quality = given.get("quality", 0.0) if status == "valid" else 0.0
         if not 0 <= quality <= 1:
-            raise ValueError(f"{criterion['id']}: quality fuera de [0, 1]: {quality}")
+            raise ValueError(f"{criterion['id']}: quality outside [0, 1]: {quality}")
         rows.append((criterion, given, s, status, quality))
 
     valid_weight = sum(c["weight"] for c, _, _, status, _ in rows if status == "valid")
@@ -71,12 +71,12 @@ def aggregate(criteria: list[dict], inputs: dict[str, dict], epsilon: float,
 
 def sensitivity(criteria: list[dict], inputs: dict[str, dict], epsilon: float,
                 minimum_valid_weight: float, perturbation: float = 0.2) -> dict:
-    """Perturba cada peso ±``perturbation`` y devuelve estabilidad 0–100.
+    """Perturbs each weight by ±``perturbation`` and returns stability 0–100.
 
-    Los pesos se renormalizan en cada escenario. ``stability`` mide el peor
-    cambio absoluto del score respecto de la base: 100 significa que ninguna
-    perturbación univariada movió el resultado; ``None`` indica datos
-    insuficientes. También se devuelven los escenarios para auditoría.
+    The weights are renormalized in each scenario. ``stability`` measures the worst
+    absolute change in the score relative to the baseline: 100 means that no
+    univariate perturbation moved the result; ``None`` indicates insufficient
+    data. The scenarios are also returned for auditing.
     """
     if not 0 < perturbation < 1:
         raise ValueError("perturbation debe estar entre 0 y 1")
@@ -94,9 +94,9 @@ def sensitivity(criteria: list[dict], inputs: dict[str, dict], epsilon: float,
             total = sum(item["weight"] for item in varied)
             for item in varied:
                 item["weight"] /= total
-            # La suficiencia ya fue aprobada para la base. La perturbación no
-            # debe convertir artificialmente un criterio disponible en dato
-            # insuficiente solo porque cambió su peso relativo.
+            # Sufficiency was already approved for the baseline. The perturbation must not
+            # artificially turn an available criterion into insufficient
+            # data merely because its relative weight changed.
             score = aggregate(varied, inputs, epsilon, 0.0)["similarity"]
             scenarios.append({
                 "criterion_id": criterion["id"],

@@ -1,20 +1,20 @@
-# Fixtures de contrato (FIXTURE · no científico)
+# Contract fixtures (FIXTURE · non-scientific)
 
-Casos válidos e inválidos para el contrato propio del rediseño Explorar / Misión que sigue vigente
-tras la integración con dev (ADR-014, ADR-013):
+Valid and invalid cases for the Explore / Mission redesign's own contract that remains in force
+after the integration with dev (ADR-014, ADR-013):
 
-| Carpeta | Contrato |
+| Folder | Contract |
 |---|---|
-| `reference-analog/` | `contracts/reference-analog.schema.json` (catálogo de ◆ por calcular) |
+| `reference-analog/` | `contracts/reference-analog.schema.json` (catalog of ◆ to be computed) |
 
-Los contratos `mission-interpretation`, `evidence-packet` y `ai-analysis` (canal lktron) se
-retiraron con sus fixtures: los sustituyen los contratos de misión del equipo
-(`contracts/mission-{request,evaluation,export,ai}.schema.json`, ADR-009; ADR-012 queda sustituido).
+The contracts `mission-interpretation`, `evidence-packet` and `ai-analysis` (lktron channel) were
+retired along with their fixtures: they are replaced by the team's mission contracts
+(`contracts/mission-{request,evaluation,export,ai}.schema.json`, ADR-009; ADR-012 is superseded).
 
-- `expectations.json` dice qué se espera de cada archivo: válido, o inválido con la ruta
-  (`path`, puntero JSON) y la palabra clave (`keyword`) del error que lo invalida.
-- Los prueban dos suites independientes: `apps/web/src/tests/contractFixtures.test.ts`
-  (validadores Ajv precompilados) y `tests/test_contract_fixtures.py` (jsonschema en Python).
-- Los análogos `fixture-*`, sus coordenadas, fuentes `example.org` y textos
-  son inventados para probar la forma del contrato. **No son datos, ubicaciones ni resultados
-  reales** y no deben copiarse a `config/` ni a `artifacts/`.
+- `expectations.json` states what is expected of each file: valid, or invalid with the path
+  (`path`, JSON pointer) and the keyword (`keyword`) of the error that invalidates it.
+- They are tested by two independent suites: `apps/web/src/tests/contractFixtures.test.ts`
+  (precompiled Ajv validators) and `tests/test_contract_fixtures.py` (jsonschema in Python).
+- The `fixture-*` analogs, their coordinates, `example.org` sources and texts
+  are invented to test the shape of the contract. **They are not real data, locations or results**
+  and must not be copied into `config/` or `artifacts/`.

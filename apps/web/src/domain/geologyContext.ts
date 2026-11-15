@@ -1,2 +1,2 @@
-// Reexport del núcleo compartido (M10): validación única del paquete geológico, también usada por el servidor.
+// Re-export of the shared core (M10): single validation of the geological package, also used by the server.
 export * from '../../../../shared/geology/context'

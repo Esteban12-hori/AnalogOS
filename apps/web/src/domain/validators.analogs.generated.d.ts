@@ -1,6 +1,6 @@
-// Tipos del validador precompilado del catálogo de ◆ (scripts/build-validators.mjs). Se carga
-// junto con config/reference_analogs.json (chunk diferido), no en el chunk principal.
+// Types of the precompiled validator for the ◆ catalog (scripts/build-validators.mjs). It is loaded
+// together with config/reference_analogs.json (deferred chunk), not in the main chunk.
 import type { StandaloneValidator } from './validators.generated'
 
-/** contracts/reference-analog.schema.json (catálogo de ◆ por calcular). */
+/** contracts/reference-analog.schema.json (catalog of ◆ to be calculated). */
 export const validateReferenceAnalogs: StandaloneValidator

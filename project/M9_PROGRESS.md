@@ -1,84 +1,84 @@
-# M9 — progreso de implementación y revisión
+# M9 — implementation progress and review
 
-## Checkpoint Codex — entrega completada
+## Codex checkpoint — delivery completed
 
-Revisión de A/B y QA local terminadas; correcciones de legibilidad y advertencias históricas aplicadas por Codex. 316 Python, 246 web, build/typecheck, baseline49 intacto, ZIP determinista `eed86833…6520c`. Descarga real validada y móvil/teclado/offline comprobados. Ver `docs/CODEX_M9_REVIEW.md`. Publicado en dev (`34e76b9`, Actions 43658989969 correcto); geología/exportación remotas y las dos operaciones Anthropic verificadas, JSON recalculado idéntico. Las secciones siguientes preservan la historia de entregas de Claude.
+A/B review and local QA finished; readability fixes and historical warnings applied by Codex. 316 Python, 246 web, build/typecheck, baseline49 intact, deterministic ZIP `eed86833…6520c`. Real download validated and mobile/keyboard/offline checked. See `docs/CODEX_M9_REVIEW.md`. Published to dev (`34e76b9`, Actions 43658989969 successful); remote geology/export and the two Anthropic operations verified, recalculated JSON identical. The following sections preserve the history of Claude's deliveries.
 
-## Fase B — IMPLEMENTADA, para revisión de Codex (2026-11-14)
+## Phase B — IMPLEMENTED, for Codex review (2026-11-14)
 
-Cerrados antes dos bordes de A: (1) `publish` ahora registra como `PackageStateError` (con ruta, estado real y respaldo `.previo` conservado) el caso en que falla instalar el staging y también restaurar el respaldo del MISMO par (probado en el primer y el segundo par; los pares anteriores se deshacen igual); (2) `check_geometry_dict` exige el cierre exacto de cada anillo (probado en Chile y Argentina; los datos reales siguen pasando y el paquete no cambió).
+Two edges of A closed beforehand: (1) `publish` now records as `PackageStateError` (with path, actual state and preserved `.previo` backup) the case where installing the staging fails and restoring the backup of the SAME pair also fails (tested on the first and the second pair; earlier pairs are still rolled back); (2) `check_geometry_dict` requires the exact closure of each ring (tested in Chile and Argentina; real data still passes and the package did not change).
 
-### Qué se hizo
+### What was done
 
-- **Estructura**: `pipelines/geology_policy.py` (constantes y reglas puras, sin geoproceso); `geology_contract.py` solo depende de él y de `jsonschema`; `build_export`/`validate_export` y `contracts/geology-export.schema.json` (autocontenido; prueba de no divergencia con el esquema del paquete).
-- **Web**: `domain/geologyContext.ts` (contrato Ajv + semántica espejo, exportación, formato), `data/loadGeologyContext.ts` (timeout 8 s que cubre el cuerpo, tope 2 MB, nunca lanza), `components/GeologyContext.tsx` (ficha compacta + detalles expandibles + botón de descarga accesible), cableado en `App.tsx`/`CandidateDetails.tsx` y estilos en `styles.css` dentro del vidrio existente. Sin mapa de polígonos, sin filtros, sin tocar `shared/`, `server/`, `api/`, M8, ciencia, perfiles ni IA.
-- **Exportación**: `<site_id>-geology-context.json`, subconjunto de un sector con las peticiones necesarias; `full_candidates_file_sha256` no se confunde con el subset. Validada antes de descargar.
-- **Empaquetador**: `geology-context-v1/index.json` opcional (único archivo de su carpeta), validado completo con el validador único contra los bytes de `candidate-details.json` del build; importación diferida; sin carpeta, ZIP como antes.
-- **Docs**: README, `docs/GEOLOGY_CONTEXT.md` (producto, exportación, empaquetado), `docs/DATA_AND_SCORING.md`, `docs/SOURCE_CATALOG.md`, ADR-010 (decisiones 12–16 y brechas).
+- **Structure**: `pipelines/geology_policy.py` (constants and pure rules, no geoprocessing); `geology_contract.py` depends only on it and on `jsonschema`; `build_export`/`validate_export` and `contracts/geology-export.schema.json` (self-contained; non-divergence test against the package schema).
+- **Web**: `domain/geologyContext.ts` (Ajv contract + mirrored semantics, export, formatting), `data/loadGeologyContext.ts` (8 s timeout that covers the body, 2 MB cap, never throws), `components/GeologyContext.tsx` (compact card + expandable details + accessible download button), wiring in `App.tsx`/`CandidateDetails.tsx` and styles in `styles.css` within the existing glass style. No polygon map, no filters, without touching `shared/`, `server/`, `api/`, M8, science, profiles or AI.
+- **Export**: `<site_id>-geology-context.json`, subset of one sector with the necessary requests; `full_candidates_file_sha256` is not confused with the subset. Validated before downloading.
+- **Packager**: optional `geology-context-v1/index.json` (the only file in its folder), fully validated with the single validator against the bytes of `candidate-details.json` from the build; deferred import; without the folder, ZIP as before.
+- **Docs**: README, `docs/GEOLOGY_CONTEXT.md` (product, export, packaging), `docs/DATA_AND_SCORING.md`, `docs/SOURCE_CATALOG.md`, ADR-010 (decisions 12–16 and gaps).
 
-### Verificación
+### Verification
 
-- `npm run verify`: **316 Python**, **245 web** (+2 de IA real omitidas), typecheck del servidor y build correctos.
-- Pruebas nuevas: 49 web (paquete real, 30 mutaciones de vínculos/fracciones/política/URL, exportación, paridad con la exportación de referencia de Python, carga tolerante con cuerpo colgado, formato honesto, ficha en cuatro estados, nombres largos) y Python (exportación, drift de esquema, aislamiento de dependencias, 10 del empaquetador).
-- `npm run release:package` dos veces: ZIP idéntico (`cmp`), 31 entradas, 13220555 bytes, SHA-256 `579a4fedf5e5cee8f3653ac8e3c3fc62995518d4cc42f747862cdc5581d674be`, `shasum -c` OK. Contiene `geology-context-v1/index.json` (190.198 bytes, idéntico al artefacto) y nada de raw/investigación. Extraído bajo `/AnalogOS/` y servido por HTTP: `index.html` y el paquete geológico responden 200.
-- Paquete geológico no recalculado (contenido sin cambios): SHA-256 `fe2552dd…856c`; rebuild offline idéntico. Baseline de 49 archivos intacto; `git diff --check` limpio. Sin refresh de red en esta fase.
-- Cambia `submission/analogos-static.zip` y su `.sha256` (entrega v3 regenerada con geología).
+- `npm run verify`: **316 Python**, **245 web** (+2 real AI tests skipped), server typecheck and build correct.
+- New tests: 49 web (real package, 30 mutations of links/fractions/policy/URL, export, parity with the Python reference export, tolerant loading with a hanging body, honest formatting, card in four states, long names) and Python (export, schema drift, dependency isolation, 10 of the packager).
+- `npm run release:package` twice: identical ZIP (`cmp`), 31 entries, 13220555 bytes, SHA-256 `579a4fedf5e5cee8f3653ac8e3c3fc62995518d4cc42f747862cdc5581d674be`, `shasum -c` OK. It contains `geology-context-v1/index.json` (190.198 bytes, identical to the artifact) and nothing from raw/research. Extracted under `/AnalogOS/` and served over HTTP: `index.html` and the geological package respond 200.
+- Geological package not recalculated (content unchanged): SHA-256 `fe2552dd…856c`; offline rebuild identical. Baseline of 49 files intact; `git diff --check` clean. No network refresh in this phase.
+- `submission/analogos-static.zip` and its `.sha256` change (v3 delivery regenerated with geology).
 
-### Brechas reales
+### Real gaps
 
-- No se hizo QA en navegador (escritorio, 390 px, teclado, descarga real, ZIP en navegador): lo hace Codex. Solo hay render estático (`renderToStaticMarkup`) y verificación de bytes/HTTP.
-- La web no calcula SHA-256: el hash de candidatos y `request_id` los verifican pipeline y empaquetador.
-- El estilo usa tamaños de 9–12 px acordes con el resto de la ficha; si la revisión visual los considera pequeños, ajustar.
-- Un servidor `http.server` temporal del puerto 8765 (comprobación manual) puede seguir ejecutándose: el sandbox no permitió terminarlo; no tiene efecto en el repo.
-- La exportación de referencia (`tests/fixtures/geology-export-ar-win-s2640-w06730.json`) debe regenerarse si el paquete se reconstruye con fechas nuevas.
+- No browser QA was done (desktop, 390 px, keyboard, real download, ZIP in browser): Codex does it. There is only static rendering (`renderToStaticMarkup`) and byte/HTTP verification.
+- The web does not compute SHA-256: the candidates hash, and `request_id` are verified by the pipeline and packager.
+- The style uses 9–12 px sizes consistent with the rest of the card; if the visual review finds them too small, adjust.
+- A temporary `http.server` server on port 8765 (manual check) may still be running: the sandbox did not allow terminating it; it has no effect on the repo.
+- The reference export (`tests/fixtures/geology-export-ar-win-s2640-w06730.json`) must be regenerated if the package is rebuilt with new dates.
 
-## Fase A — CORREGIDA tras la revisión de Codex (2026-11-14); a la espera de su aprobación
+## Phase A — CORRECTED after Codex review (2026-11-14); awaiting its approval
 
-El detalle de la corrección está en la sección siguiente; lo posterior describe la entrega original y sigue vigente salvo donde se indica.
+The details of the correction are in the next section; what follows describes the original delivery and remains valid except where indicated.
 
-Fase B (UI, exportación, empaquetador/ZIP) **pendiente**; no iniciada. Sin commit ni push.
+Phase B (UI, export, packager/ZIP) **pending**; not started. No commit or push.
 
-### Correcciones de la revisión A (docs/CODEX_M9_REVIEW.md)
+### Corrections from review A (docs/CODEX_M9_REVIEW.md)
 
-| Hallazgo | Corrección | Regresión permanente |
+| Finding | Correction | Permanent regression |
 |---|---|---|
-| P1 MultiPolygon duplicado aceptado (cambio total 50 %) | `_diagnose` exige además cambio ORIGINAL TOTAL / REPARADO TOTAL ≤ 0,001; original no positivo o no finito → rechazo con máscara; el contraste simétrico make_valid/buffer(0) se conserva y registra | `test_material_total_area_change_is_rejected_…`, `test_original_area_not_positive_…`, `test_accepted_repairs_satisfy_all_three_…` |
-| P1 NaN interno / hojas malformadas | `check_geometry_dict`: estructura de Polygon/MultiPolygon y cada vértice 2D, finito y en rango, ANTES de Shapely; Chile y Argentina usan el mismo control (`validate_chile_collection` y `validate_wfs` llaman a `parse_features`) antes de instalar; AR con 0 entidades y `crs: null` sigue válido | 16 geometrías malformadas parametrizadas; `test_chile_and_argentina_share_the_geometry_control_…` |
-| P1 refresh con Point reemplaza la caché | `prepare_raw` descarga y valida en staging; el build construye el índice y valida ANTES de instalar; `publish` reemplaza caché y paquete en pareja con rollback (caché primero) | `test_fresh_layer_with_a_point_…`, fallo de análisis, validación inyectada, fallo del segundo reemplazo (restaura raw y paquete), fallo de rollback (`PackageStateError`, mensaje veraz), reuso offline sin copias |
-| P1 AR4 puede citar AR6 | Semántica: un sector argentino cita exactamente UNA petición `argentina_wfs` con su `site_id`; la URL tiene forma exacta y su bbox (parse numérico exacto, sin redondeo) es la del sector; `request_id` = SHA-256 de método+URL recalculado; una petición por sector | `test_ar_site_cannot_cite_another_sector_acquisition`, `test_wfs_request_bbox_…` (1e-6, 1e-12 y 6 decimales) |
-| P2 CL cita solo metadata | Un sector chileno debe citar `chile_layer`; la metadata puede ser adicional | `test_chile_site_must_cite_the_layer_download_…` |
-| Caché: nombre/symlink | Nombre seguro y no-symlink antes de abrir (O_NOFOLLOW); roles, tipos, fechas, bytes, hashes, número de entidades y archivos no declarados coherentes | symlink con mismos bytes, 6 nombres inseguros, archivo extra, 9 registros incoherentes |
-| Licencia CC0 | Se lee `license_id` de CKAN; el build se rechaza si no es `cc-zero`; el paquete lleva `declared_id` | `test_changed_ckan_license_is_rejected_…` |
-| Narrativa de formatos | Derivada del recurso realmente inspeccionado y de `rejected_resources` | `test_metadata_reflects_only_observed_resources_…` |
-| SIGAM | «Sistema de Información Geológica Ambiental Minera» | mismo test |
-| Método | COMMON_TRANSFORMATIONS, LIMITATIONS, docstrings, ADR-010 y docs alineados con la superposición en EPSG:6933 (aprobada) | — |
-| Prueba de texto del código | Reemplazada por una funcional: cabeceras de las peticiones con secretos en el entorno | `test_requests_carry_no_credentials_…` |
+| P1 Duplicate MultiPolygon accepted (total change 50 %) | `_diagnose` additionally requires ORIGINAL TOTAL / REPAIRED TOTAL change ≤ 0,001; non-positive or non-finite original → rejection with mask; the symmetric make_valid/buffer(0) contrast is kept and recorded | `test_material_total_area_change_is_rejected_…`, `test_original_area_not_positive_…`, `test_accepted_repairs_satisfy_all_three_…` |
+| P1 Internal NaN / malformed leaves | `check_geometry_dict`: Polygon/MultiPolygon structure and every vertex 2D, finite and in range, BEFORE Shapely; Chile and Argentina use the same check (`validate_chile_collection` and `validate_wfs` call `parse_features`) before installing; AR with 0 entities and `crs: null` remains valid | 16 parametrized malformed geometries; `test_chile_and_argentina_share_the_geometry_control_…` |
+| P1 Refresh with a Point replaces the cache | `prepare_raw` downloads and validates in staging; the build constructs the index and validates BEFORE installing; `publish` replaces cache and package as a pair with rollback (cache first) | `test_fresh_layer_with_a_point_…`, parsing failure, injected validation, failure of the second replacement (restores raw and package), rollback failure (`PackageStateError`, truthful message), offline reuse without copies |
+| P1 AR4 may cite AR6 | Semantics: an Argentine sector cites exactly ONE `argentina_wfs` request with its `site_id`; the URL has the exact form and its bbox (exact numeric parse, no rounding) is that of the sector; `request_id` = SHA-256 of method+URL recalculated; one request per sector | `test_ar_site_cannot_cite_another_sector_acquisition`, `test_wfs_request_bbox_…` (1e-6, 1e-12 and 6 decimals) |
+| P2 CL cites only metadata | A Chilean sector must cite `chile_layer`; the metadata may be additional | `test_chile_site_must_cite_the_layer_download_…` |
+| Cache: name/symlink | Safe name and not a symlink before opening (O_NOFOLLOW); roles, types, dates, bytes, hashes, number of entities and undeclared files consistent | symlink with the same bytes, 6 unsafe names, extra file, 9 inconsistent records |
+| CC0 license | `license_id` is read from CKAN; the build is rejected if it is not `cc-zero`; the package carries `declared_id` | `test_changed_ckan_license_is_rejected_…` |
+| Formats narrative | Derived from the resource actually inspected and from `rejected_resources` | `test_metadata_reflects_only_observed_resources_…` |
+| SIGAM | «Sistema de Información Geológica Ambiental Minera» | same test |
+| Method | COMMON_TRANSFORMATIONS, LIMITATIONS, docstrings, ADR-010 and docs aligned with the overlay in EPSG:6933 (approved) | — |
+| Code text test | Replaced by a functional one: request headers with secrets in the environment | `test_requests_carry_no_credentials_…` |
 
-Además: `policy` del paquete debe coincidir con la política vigente y toda reparación aceptada debe cumplir los tres límites (validación semántica).
+Additionally: the `policy` of the package must match the current policy and every accepted repair must meet the three limits (semantic validation).
 
-Los tres casos de `/tmp/analogos-m9-independent-review.py` dan ahora `true, true, true`; los dos de procedencia cuentan con regresiones. El script reescribe `/tmp/analogos-m9-independent-review-results.json` al ejecutarse.
+The three `/tmp/analogos-m9-independent-review.py` cases now give `true, true, true`; the two provenance ones have regressions. The script rewrites `/tmp/analogos-m9-independent-review-results.json` when run.
 
-**Paquete real recalculado DESDE LA CACHÉ, sin red ni refresh** (fechas de adquisición originales conservadas): SHA-256 `fe2552dd…856c`, rebuild offline repetido idéntico. Mismos números de cobertura, ambigüedad y diagnósticos que la tabla siguiente (cambian solo metadata: licencia con `declared_id`, distribuidor SIGAM, narrativa, política con el límite de cambio total). Comparación con la auditoría: dentro de 1e-3 pp en el test, diferencia real ≤ 5e-5 pp. Las cuatro reparaciones reales cumplen los tres límites (cambio total 0–1,6e-15; diferencia simétrica 0).
+**Real package recalculated FROM THE CACHE, without network or refresh** (original acquisition dates preserved): SHA-256 `fe2552dd…856c`, repeated offline rebuild identical. Same coverage, ambiguity and diagnostics numbers as the following table (only metadata changes: license with `declared_id`, SIGAM distributor, narrative, policy with the total change limit). Comparison with the audit: within 1e-3 pp in the test, actual difference ≤ 5e-5 pp. The four real repairs meet the three limits (total change 0–1,6e-15; symmetric difference 0).
 
-Verificación: **297 pasan** (49 más), de ellos 120 geológicos; 196 web (+2 omitidas), typecheck y build correctos; baseline de 49 archivos intacto; `git diff --check` limpio. `npm run release:package` no se ejecutó (sigue fallando hasta B).
+Verification: **297 pass** (49 more), of which 120 geological; 196 web (+2 skipped), typecheck and build correct; baseline of 49 files intact; `git diff --check` clean. `npm run release:package` was not run (it keeps failing until B).
 
 
-### Decisiones aprobadas por Codex para la fase A (registradas en ADR-010)
+### Decisions approved by Codex for phase A (recorded in ADR-010)
 
-1. WFS por sector; descarga fresca (CKAN + ZIP Chile + 3 consultas AR); hosts públicos y límites. BBOX devuelve polígonos completos: se valida CRS/rangos lon/lat y que el bbox de cada entidad intersecte la consulta, y después se recorta; entidades sin intersección positiva son válidas; ejes invertidos no se aceptan sin comprobar posición.
-2. Sin hash de coordenadas redondeadas ni SHA-256 artesanal: geometría exacta conservada (todos los anillos) con igualdad estructural numérica estricta en Python/web; SHA-256 del archivo `candidate-details.json` como procedencia, verificado en pipeline y empaquetador; web sin criptografía.
-3. Estados conservadores (`available` solo cobertura completa ≤ 1e-8, sin ambigüedad/rechazos/descripción ausente; 99 % es `partial`).
-4. Reparación: `make_valid` vs `buffer(0)`, límites independientes 0,1 % (entidad) y 0,05 % (sector); rechazo → bbox∩AOI como máscara conservadora restada de todas las unidades.
-5. Shapely `>=2.2,<2.3`, versión en `processing`; sin pyshp/GDAL/GeoPandas.
-6. Preservar anterior ante fallos; validación de contrato y semántica antes del reemplazo; raw con petición exacta y `acquired_at`; sin hora de build.
+1. WFS per sector; fresh download (CKAN + Chile ZIP + 3 AR queries); public hosts and limits. BBOX returns complete polygons: the CRS/lon/lat ranges are validated and that the bbox of each entity intersects the query, and then it is clipped; entities without positive intersection are valid; inverted axes are not accepted without checking position.
+2. No hash of rounded coordinates or ad hoc SHA-256: exact geometry preserved (all rings) with strict numeric structural equality in Python/web; SHA-256 of the `candidate-details.json` file as provenance, verified in pipeline and packager; web without cryptography.
+3. Conservative states (`available` only full coverage ≤ 1e-8, without ambiguity/rejections/missing description; 99 % is `partial`).
+4. Repair: `make_valid` vs `buffer(0)`, independent limits 0,1 % (entity) and 0,05 % (sector); rejection → bbox∩AOI as a conservative mask subtracted from all units.
+5. Shapely `>=2.2,<2.3`, version in `processing`; no pyshp/GDAL/GeoPandas.
+6. Preserve the previous one on failures; contract and semantic validation before replacement; raw with exact request and `acquired_at`; no build time.
 
-### Decisión propia (aprobada por Codex en la revisión A)
+### Own decision (approved by Codex in review A)
 
-Superposición y recorte en el plano EPSG:6933 (validez/reparación en lon/lat). Motivo: operar en grados y medir proyectado rompía la aditividad (~2e-7 del sector) y el cierre de la partición. Efecto frente a la auditoría ≤ 5e-5 puntos porcentuales. Detalle en ADR-010 §7. Si prefieres lon/lat puro habría que medir con una integral exacta en lugar de proyectar vértices.
+Overlay and clipping in the EPSG:6933 plane (validity/repair in lon/lat). Reason: operating in degrees and measuring projected broke additivity (~2e-7 of the sector) and the closure of the partition. Effect versus the audit ≤ 5e-5 percentage points. Details in ADR-010 §7. If you prefer pure lon/lat, it would be necessary to measure with an exact integral instead of projecting vertices.
 
-### Resultados reales (paquete `artifacts/geology-context-v1/index.json`, SHA-256 `fe2552ddaedf61c7c54a35081d4cf3977d2806ec7127298bc564a89a7630856c`)
+### Real results (package `artifacts/geology-context-v1/index.json`, SHA-256 `fe2552ddaedf61c7c54a35081d4cf3977d2806ec7127298bc564a89a7630856c`)
 
-| Sector | Estado | Cubierta | Sin cobertura | Ambigua | Unidades | Auditoría (cubierta / sin cob. / ambigua) |
+| Sector | Status | Covered | Without coverage | Ambiguous | Units | Audit (covered / without cov. / ambiguous) |
 |---|---|---:|---:|---:|---:|---|
 | `cl-win-s2500-w06970` | partial | 99,389372 % | 0,610628 % | 0,831560 % | 5 | 99,389364 / 0,610636 / 0,831551 |
 | `cl-win-s2480-w06950` | partial | 99,224138 % | 0,775862 % | 0,823337 % | 6 | 99,224112 / 0,775888 / 0,823327 |
@@ -88,35 +88,35 @@ Superposición y recorte en el plano EPSG:6933 (validez/reparación en lon/lat).
 | `ar-win-s2580-w06710` | available | 100 % | 0 % | 0 % | 7 | 100 / 0 / 0 |
 | `cl-pampa-yungay-screening` | partial | 99,068520 % | 0,931480 % | 1,183567 % | 6 | 99,068499 / 0,931501 / 1,183521 |
 
-Áreas del sector idénticas a la auditoría (447,301089 … 450,519184 km²). Los valores salen del cálculo; la auditoría es un control comparado en un test (tolerancia 1e-3 pp), no se copia. Cero descripciones ausentes y cero entidades rechazadas en los siete sectores. Argentina 6 es `available` porque su capa 250K cubre todo el sector sin solape ni descripción vacía; eso es evidencia cartográfica completa, no calidad.
+Sector areas identical to the audit (447,301089 … 450,519184 km²). The values come from the calculation; the audit is a control compared in a test (tolerance 1e-3 pp), not copied. Zero missing descriptions and zero rejected features across the seven sectors. Argentina 6 is `available` because its 250K layer covers the entire sector with no overlap or empty description; that is complete cartographic evidence, not quality.
 
-### Diagnósticos de reparación (todas aceptadas; ninguna máscara)
+### Repair diagnostics (all accepted; no mask)
 
-Entidades CL únicas 824, 846 y 9388 y AR `e250K_UnidadGeologica.117363`, todas «Ring Self-intersection». Cambio relativo de área total original→reparada 0–1,6e-15; diferencia simétrica `make_valid` vs `buffer(0)` 0,0 km² en todas; sin descarte dimensional. 846 (1296 km² totales) tiene bbox cruzado: área recortada 0 en Chile 1 (`accepted_no_positive_intersection`) y 26,45 km² en Yungay. 824: 190,55 / 250,40 / 0 (Chile 3) / 20,31 km² recortados según sector. 9388: 0,118 y 43,24 km². AR 117363: 14,49 km² recortados. Detalle por sector en `geometry_diagnostics`.
+Unique CL features 824, 846 and 9388 and AR `e250K_UnidadGeologica.117363`, all "Ring Self-intersection". Relative change in total area original→repaired 0–1,6e-15; symmetric difference `make_valid` vs `buffer(0)` 0,0 km² in all; no dimensional discard. 846 (1296 km² total) has a crossed bbox: clipped area 0 in Chile 1 (`accepted_no_positive_intersection`) and 26,45 km² in Yungay. 824: 190,55 / 250,40 / 0 (Chile 3) / 20,31 km² clipped depending on the sector. 9388: 0,118 and 43,24 km². AR 117363: 14,49 km² clipped. Detail by sector in `geometry_diagnostics`.
 
-### Fuentes y adquisición real
+### Sources and actual acquisition
 
-CKAN `package_show` (3.590 bytes); ZIP del recurso rotulado SHP (5.995.050 bytes, SHA-256 `916fad22…95a3`, idéntico a la caché de la investigación) que contiene un único GeoJSON de 16.364 entidades (115 con geometría nula); tres WFS por sector (46, 0 y 28 entidades). La capa chilena no declara fecha del mapa; CKAN `metadata_modified` 2026-04-21 va como `catalog_modified_at`. SIGAM sin fecha de levantamiento. Todas las respuestas del WFS con entidades traen CRS EPSG:4326; la de cero entidades trae `crs: null` (válido y documentado).
+CKAN `package_show` (3.590 bytes); ZIP of the resource labeled SHP (5.995.050 bytes, SHA-256 `916fad22…95a3`, identical to the research cache) containing a single GeoJSON of 16.364 features (115 with null geometry); three WFS per sector (46, 0 and 28 features). The Chilean layer does not declare a map date; CKAN `metadata_modified` 2026-04-21 is recorded as `catalog_modified_at`. SIGAM has no survey date. All WFS responses with features carry CRS EPSG:4326; the zero-feature one carries `crs: null` (valid and documented).
 
-### Archivos de la fase A
+### Phase A files
 
-Nuevos: `contracts/geology-context.schema.json`; `pipelines/{fetch_geology_data,geology_coverage,geology_contract,build_geology_context}.py`; `artifacts/geology-context-v1/index.json`; `tests/{geology_fixtures,test_geology_coverage,test_geology_fetch,test_geology_context}.py`; `docs/decisions/ADR-010-geology-context.md`; `docs/GEOLOGY_CONTEXT.md`; este archivo. Modificados: `pyproject.toml` (solo Shapely), `project/{NEXT_TASK,STATUS,CHANGELOG}.md`. Preservados sin cambios: documentación y evidencia de investigación de Codex, `science-v2/v3`, M8, `shared/`, `server/`, `api/`, workflows, Vercel.
+New: `contracts/geology-context.schema.json`; `pipelines/{fetch_geology_data,geology_coverage,geology_contract,build_geology_context}.py`; `artifacts/geology-context-v1/index.json`; `tests/{geology_fixtures,test_geology_coverage,test_geology_fetch,test_geology_context}.py`; `docs/decisions/ADR-010-geology-context.md`; `docs/GEOLOGY_CONTEXT.md`; this file. Modified: `pyproject.toml` (Shapely only), `project/{NEXT_TASK,STATUS,CHANGELOG}.md`. Preserved unchanged: Codex research documentation and evidence, `science-v2/v3`, M8, `shared/`, `server/`, `api/`, workflows, Vercel.
 
-### Verificación
+### Verification
 
-- Entrega original: 248 pasan (177 previos + 71 geológicos); tras la corrección, 297.
-- `npm run verify` con el venv: 248 Python, 196 web (+2 de IA real omitidas), typecheck del servidor y build correctos.
-- Rebuild offline repetido dos veces: SHA-256 idéntico. `git diff --check` limpio. Baseline `/tmp/analogos-m9-baseline-hashes.json`: 49 archivos, ninguno cambió.
-- Pruebas: agujeros, multipolígonos, polígono que cruza ampliamente el borde, duplicados vs conflictos, cero/mínima cobertura, descripción ausente, bowtie rechazado con máscara, reparación aceptada con descarte, CRS/esquema/truncamiento/límite/ejes invertidos, ZIP inseguro/bomba/Shapefile, hosts y redirecciones, límites de bytes, no eco de cuerpos de error, caché corrupta/otra geometría (1e-9°)/otra petición, fallo que conserva caché y paquete, contrato inválido que no reemplaza, 17 manipulaciones semánticas, rebuild offline determinista. Fixtures solo en tests, rotulados sintéticos.
+- Original delivery: 248 pass (177 previous + 71 geological); after the fix, 297.
+- `npm run verify` with the venv: 248 Python, 196 web (+2 real AI tests skipped), server typecheck and build correct.
+- Offline rebuild repeated twice: identical SHA-256. `git diff --check` clean. Baseline `/tmp/analogos-m9-baseline-hashes.json`: 49 files, none changed.
+- Tests: holes, multipolygons, a polygon that broadly crosses the edge, duplicates vs conflicts, zero/minimal coverage, missing description, bowtie rejected with mask, accepted repair with discard, CRS/schema/truncation/limit/inverted axes, unsafe ZIP/bomb/Shapefile, hosts and redirects, byte limits, no echo of error bodies, corrupt cache/different geometry (1e-9°)/different request, failure that preserves cache and package, invalid contract that does not replace, 17 semantic manipulations, deterministic offline rebuild. Fixtures only in tests, labeled synthetic.
 
-### Brechas y riesgos a revisar
+### Gaps and risks to review
 
-- **`npm run release:package` falla ahora** («Archivo inesperado en el build: geology-context-v1/index.json») porque `publicDir` copia el paquete a `dist` y el empaquetador no lo admite aún; conserva el ZIP anterior (`submission/` sin cambios). Se resuelve en B (lista explícita). Si hay que publicar antes, necesita adelantar ese cambio mínimo o decidir otra cosa.
-- Estado `available` para Argentina 6 es cobertura cartográfica completa, no calidad: la UI de B debe separar porcentaje, estado y escala.
-- No se validó la geología (ni la de la fuente) en campo; umbrales provisionales; aristas rectas en el plano.
-- Adquisición fresca con una sola respuesta por petición; las fuentes pueden cambiar y un `--refresh` futuro mostrará el cambio real.
-- NEXT_TASK pasó a `review` al entregar; no marqué `in_progress` al comenzar (asignación y arranque ocurrieron en la misma sesión).
+- **`npm run release:package` now fails** ("Unexpected file in the build: geology-context-v1/index.json") because `publicDir` copies the package to `dist` and the packager does not support it yet; it keeps the previous ZIP (`submission/` unchanged). It is resolved in B (explicit list). If publishing is needed earlier, that minimal change must be brought forward or something else decided.
+- Status `available` for Argentina 6 is complete cartographic coverage, not quality: the UI in B must separate percentage, status and scale.
+- The geology (including that of the source) was not validated in the field; provisional thresholds; straight edges in the plane.
+- Fresh acquisition with a single response per request; the sources may change and a future `--refresh` will show the actual change.
+- NEXT_TASK moved to `review` upon delivery; I did not mark `in_progress` at the start (assignment and start occurred in the same session).
 
-### Pendiente fase B
+### Pending phase B
 
-`apps/web/src/domain/geologyContext.ts` (contrato + semántica + igualdad exacta de geometría) y `data/loadGeologyContext.ts` (carga opcional tolerante); ficha «Contexto geológico» en `CandidateDetails.tsx`; exportación JSON propia con nombre estable; `scripts/package_release.py` con `geology-context-v1/index.json` opcional validado (incluido SHA-256 de `candidate-details.json` leyendo bytes y semántica); pruebas web y de empaquetador; ZIP repetible bajo `/AnalogOS/`; textos de UI; nota de que la IA M8 no consume geología.
+`apps/web/src/domain/geologyContext.ts` (contract + semantics + exact geometry equality) and `data/loadGeologyContext.ts` (tolerant optional loading); "Geological context" card in `CandidateDetails.tsx`; own JSON export with a stable name; `scripts/package_release.py` with optional validated `geology-context-v1/index.json` (including SHA-256 of `candidate-details.json` reading bytes and semantics); web and packager tests; repeatable ZIP under `/AnalogOS/`; UI texts; note that the M8 AI does not consume geology.

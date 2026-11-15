@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://analogos.cl/schemas/mission-request.schema.json",
   "title": "AnalogOS Mission Request (M8)",
-  "description": "Solicitud de recomendación: brief, requisitos estructurados y geometría. Contrato aditivo; la validación semántica (unidades, rangos, coordenadas) la hace mission/validate.ts.",
+  "description": "Recommendation request: brief, structured requirements and geometry. Additive contract; semantic validation (units, ranges, coordinates) is done by mission/validate.ts.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "brief", "activity", "target", "requirements", "open_questions", "scope", "confirmed"],

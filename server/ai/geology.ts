@@ -1,8 +1,8 @@
-// Carga del paquete geológico OFICIAL en el servidor (M10). Nunca se aceptan geodatos ni IDs del cliente:
-// el servidor lee el archivo empaquetado, lo valida con el mismo validador que la web (shared/geology) contra
-// los candidatos del snapshot, y comprueba el SHA-256 de los bytes originales de candidate-details.json.
-// Ausente = canal geológico no disponible (M8 intacto). Presente pero inválido/divergente = estado «invalid»,
-// que NO se confunde con ausente.
+// Loading of the OFFICIAL geological package on the server (M10). Client-supplied geodata or IDs are never accepted:
+// the server reads the packaged file, validates it with the same validator as the web app (shared/geology) against
+// the snapshot candidates, and checks the SHA-256 of the original bytes of candidate-details.json.
+// Absent = geological channel unavailable (M8 intact). Present but invalid/divergent = "invalid" state,
+// which is NOT confused with absent.
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, statSync } from 'node:fs'
 import { join, resolve } from 'node:path'
@@ -19,22 +19,22 @@ export type ServerGeology =
   | { status: 'absent' }
   | { status: 'invalid'; reason: string }
 
-/** Raíces candidatas: función Vercel (cwd/LAMBDA_TASK_ROOT), servidor local de Vite (cwd = apps/web) y relativo al módulo. */
+/** Candidate roots: Vercel function (cwd/LAMBDA_TASK_ROOT), local Vite server (cwd = apps/web), and relative to the module. */
 function roots(only?: string): string[] {
-  // Con raíz explícita (pruebas, verificación aislada) solo se mira ahí: nunca se cae al repositorio real.
-  if (only !== undefined) return [resolve(only)] // incluida la cadena vacía (= cwd): el aislamiento es real
+  // With an explicit root (tests, isolated verification) only that location is checked: it never falls back to the real repository.
+  if (only !== undefined) return [resolve(only)] // including the empty string (= cwd): the isolation is real
   const out: string[] = []
-  // Primero lo relativo al paquete desplegado (así un cwd con el repositorio completo no enmascara un archivo faltante).
+  // First, what is relative to the deployed package (so a cwd containing the full repository does not mask a missing file).
   if (process.env.LAMBDA_TASK_ROOT) out.push(process.env.LAMBDA_TASK_ROOT)
   if (typeof __dirname === 'string') out.push(resolve(__dirname, '..'), resolve(__dirname, '..', '..'), resolve(__dirname, '..', '..', '..'))
   out.push(process.cwd(), resolve(process.cwd(), '..', '..'))
   return [...new Set(out)]
 }
 
-// El bundle de runtime es inmutable (módulo cargado una vez); la clave incluye su identidad por si se llama con otro (tests/API).
+// The runtime bundle is immutable (module loaded once); the key includes its identity in case it is called with a different one (tests/API).
 let cached: { key: string; bundle: EvidenceBundle; value: ServerGeology } | null = null
 
-/** Solo se cachea el estado «ready»; ausente/inválido se recalcula (barato) para no fijar un fallo transitorio. */
+/** Only the "ready" state is cached; absent/invalid is recomputed (cheap) so as not to pin a transient failure. */
 export function loadTrustedGeology(bundle: EvidenceBundle, opts: { root?: string } = {}): ServerGeology {
   if (cached && cached.bundle === bundle && cached.key === (opts.root ?? '\u0000')) return cached.value
   const found = roots(opts.root).find((r) => existsSync(join(r, GEOLOGY_REL)) || existsSync(join(r, CANDIDATES_REL)))
@@ -42,17 +42,17 @@ export function loadTrustedGeology(bundle: EvidenceBundle, opts: { root?: string
   const invalid = (reason: string): ServerGeology => ({ status: 'invalid', reason })
   try {
     const file = join(found, GEOLOGY_REL)
-    if (statSync(file).size > GEOLOGY_MAX_BYTES) return invalid('El paquete geológico excede el tamaño permitido.')
+    if (statSync(file).size > GEOLOGY_MAX_BYTES) return invalid('The geology package exceeds the allowed size.')
     const candidatesFile = join(found, CANDIDATES_REL)
-    if (!existsSync(candidatesFile)) return invalid('Falta el archivo de candidatos para verificar el paquete geológico.')
+    if (!existsSync(candidatesFile)) return invalid('The candidates file needed to verify the geology package is missing.')
     const context = parseGeologyContext(JSON.parse(readFileSync(file, 'utf8')) as unknown, bundle.candidates)
     const sha = createHash('sha256').update(readFileSync(candidatesFile)).digest('hex')
-    if (sha !== context.candidates_sha256) return invalid('El paquete geológico no corresponde a los bytes del snapshot de candidatos.')
+    if (sha !== context.candidates_sha256) return invalid('The geology package does not match the bytes of the candidates snapshot.')
     const value: ServerGeology = { status: 'ready', context, fingerprint: fingerprint(context) }
     cached = { key: opts.root ?? '\u0000', bundle, value }
     return value
   } catch {
-    return invalid('El paquete geológico no es válido.')
+    return invalid('The geology package is not valid.')
   }
 }
 

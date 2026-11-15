@@ -1,9 +1,9 @@
-"""Genera el snapshot demo NO CIENTÍFICO en artifacts/demo a partir de fixtures.
+"""Generates the NON-SCIENTIFIC demo snapshot in artifacts/demo from fixtures.
 
     python -m pipelines.build_demo --profile config/mission_profiles/mars-rover-mobility-v1.json
 
-Escribe manifest.json, mission-profile.json y candidate-details.json, todos
-validados contra contracts/. La salida es determinista: mismas entradas, mismos bytes.
+Writes manifest.json, mission-profile.json, and candidate-details.json, all
+validated against contracts/. The output is deterministic: same inputs, same bytes.
 """
 
 import argparse
@@ -23,13 +23,13 @@ _GEOD = Geod(ellps="WGS84")
 
 
 def _area_km2(geometry: dict) -> float:
-    """Área geodésica (WGS84), no en grados."""
+    """Geodesic area (WGS84), not in degrees."""
     polygons = [geometry["coordinates"]] if geometry["type"] == "Polygon" else geometry["coordinates"]
     total = 0.0
     for rings in polygons:
         for index, ring in enumerate(rings):
             area, _ = _GEOD.polygon_area_perimeter([p[0] for p in ring], [p[1] for p in ring])
-            total += abs(area) if index == 0 else -abs(area)  # los anillos interiores restan
+            total += abs(area) if index == 0 else -abs(area)  # interior rings are subtracted
     return round(total / 1e6, 1)
 
 
@@ -75,7 +75,7 @@ def build(profile_path: Path, fixtures_path: Path, out_dir: Path) -> dict[str, o
             "pipeline_version": __version__,
             "geometry": site["geometry"],
             "area_km2": _area_km2(site["geometry"]),
-            "status": "fixture",  # nunca "candidate": esto no es un resultado científico
+            "status": "fixture",  # never "candidate": this is not a scientific result
             "similarity": result["similarity"],
             "confidence": result["confidence"],
             "feasibility": site["feasibility"],
@@ -109,8 +109,8 @@ def main() -> None:
     args.out.mkdir(parents=True, exist_ok=True)
     for name, content in build(args.profile, args.fixtures, args.out).items():
         (args.out / name).write_text(dump(content), "utf-8")
-        print(f"escrito {args.out / name}")
-    print("AVISO: snapshot de fixtures NO CIENTÍFICO.")
+        print(f"wrote {args.out / name}")
+    print("WARNING: fixture snapshot, NOT SCIENTIFIC.")
 
 
 if __name__ == "__main__":

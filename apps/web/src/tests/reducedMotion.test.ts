@@ -18,13 +18,13 @@ function fakeMatchMedia(matches: boolean) {
 }
 
 describe('useReducedMotion', () => {
-  it('lee la preferencia del sistema', () => {
+  it('reads the system preference', () => {
     expect(prefersReducedMotion(fakeMatchMedia(true).matchMedia)).toBe(true)
     expect(prefersReducedMotion(fakeMatchMedia(false).matchMedia)).toBe(false)
     expect(prefersReducedMotion(null)).toBe(false)
   })
 
-  it('escucha los cambios y se desuscribe', () => {
+  it('listens to changes and unsubscribes', () => {
     const media = fakeMatchMedia(false)
     const listener = vi.fn()
     const unsubscribe = subscribeReducedMotion(listener, media.matchMedia)
@@ -34,7 +34,7 @@ describe('useReducedMotion', () => {
     expect(media.listeners.size).toBe(0)
   })
 
-  it('en el servidor (sin matchMedia) devuelve false', () => {
+  it('on the server (no matchMedia) returns false', () => {
     function Probe() {
       return createElement('span', null, useReducedMotion() ? 'reducido' : 'normal')
     }
@@ -42,7 +42,7 @@ describe('useReducedMotion', () => {
   })
 })
 
-// ---- Transparencia reducida, vidrio y contraste del armazón (§2.4, §6.1, WCAG 1.4.3) ---------
+// ---- Reduced transparency, glass, and shell contrast (§2.4, §6.1, WCAG 1.4.3) ---------
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
@@ -57,8 +57,8 @@ const contrast = (a: string, b: string) => {
   return ((hi ?? 0) + 0.05) / ((lo ?? 0) + 0.05)
 }
 
-describe('vidrio y transparencia reducida', () => {
-  it('prefers-reduced-transparency: tinte sólido sin blur en las superficies del armazón', () => {
+describe('glass and reduced transparency', () => {
+  it('prefers-reduced-transparency: solid tint without blur on the shell surfaces', () => {
     const tokens = css('shell/tokens.css')
     const block = tokens.slice(tokens.indexOf('@media (prefers-reduced-transparency: reduce)'))
     expect(block).toMatch(/--glass-blur: none/)
@@ -66,19 +66,19 @@ describe('vidrio y transparencia reducida', () => {
     expect(block).toMatch(/--topbar-tint: rgba\(2, 7, 10, \.96\)/)
   })
 
-  it('la barra superior es tinte sin blur: ninguna hoja de estilos le vuelve a poner backdrop-filter', () => {
+  it('the top bar is a tint without blur: no stylesheet puts backdrop-filter back on it', () => {
     expect(css('liquid/liquid-glass.css')).not.toMatch(/\.topbar\s*\{[^}]*backdrop-filter/)
     expect(css('shell/shell.css')).toMatch(/\.topbar \{[^}]*backdrop-filter: none;/)
   })
 
-  it('ningún bucle infinito en el armazón legado (spinner acotado, pulso único, manchas sin repetir)', () => {
+  it('no infinite loop in the legacy shell (bounded spinner, single pulse, non-repeating blobs)', () => {
     const styles = css('styles.css')
     expect(styles).not.toMatch(/\.loader \{[^}]*infinite/)
     expect(styles).not.toMatch(/markerPulse [^;]*infinite/)
     expect(css('liquid/liquid-glass.css')).not.toMatch(/lgDrift[ABC] [^;]*infinite/)
   })
 
-  it('pestaña de modo activa: blanco sobre el pulgar ≥ 4,5:1', () => {
+  it('active mode tab: white on the thumb ≥ 4.5:1', () => {
     expect(css('shell/tokens.css')).toMatch(/--mode-thumb: #0274AD;/)
     expect(contrast('#FFFFFF', '#0274AD')).toBeGreaterThanOrEqual(4.5)
   })

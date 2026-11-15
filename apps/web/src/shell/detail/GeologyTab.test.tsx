@@ -1,6 +1,6 @@
-// Bloques de tests/geologyContext.test.tsx del equipo que usaban CandidateDetails, portados con los
-// MISMOS textos esperados a la ficha integrada (ADR-013): pestaña «Geología» (panel del equipo),
-// criterio geológico pendiente en «Métricas» y «Dónde falla la analogía» en «Fuentes».
+// Blocks of the team's tests/geologyContext.test.tsx that used CandidateDetails, ported with the SAME
+// expected texts (now English) to the integrated site sheet (ADR-013): “Geology” tab (team panel),
+// pending geology criterion in “Metrics” and “Where the analogy breaks down” in “Sources”.
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { appGeologyFrom } from '../../data/loadAppGeology'
@@ -22,21 +22,21 @@ const ready: GeologyContextState = { status: 'ready', context: real }
 const byId = (id: string) => candidates.find((candidate) => candidate.site_id === id)!
 const withGeology = (state: GeologyContextState): AppData => ({ ...readyData, geology: appGeologyFrom(state, candidates) })
 
-describe('ficha integrada · pestaña «Geología»', () => {
-  it('la ficha completa del candidato incluye la sección y funciona sin el paquete', () => {
+describe('integrated site sheet · “Geology” tab', () => {
+  it('the full candidate sheet includes the section and works without the package', () => {
     for (const geology of [ready, { status: 'unavailable', reason: 'sin paquete' } as GeologyContextState]) {
       const data = withGeology(geology)
       const tab = renderToStaticMarkup(<GeologyTab data={data} site={byId('cl-win-s2500-w06970')} />)
-      expect(tab).toContain('Contexto geológico')
+      expect(tab).toContain('Geological context')
       const full = renderToStaticMarkup(<FullDetail data={data} site={byId('cl-win-s2500-w06970')} placement="rail" onShowOnMap={() => undefined} />)
-      expect(full).toContain('Candidato #')
-      expect(full).toContain('Geología')
+      expect(full).toContain('Candidate #')
+      expect(full).toContain('Geology')
     }
-    // Sin el paquete todavía (carga diferida): «Cargando contexto geológico…», nunca un error.
-    expect(renderToStaticMarkup(<GeologyTab data={readyData} site={byId('cl-win-s2500-w06970')} />)).toContain('Cargando contexto geológico')
+    // Without the package yet (deferred load): “Loading geological context…”, never an error.
+    expect(renderToStaticMarkup(<GeologyTab data={readyData} site={byId('cl-win-s2500-w06970')} />)).toContain('Loading geological context')
   })
 
-  it('la pestaña va después de «Origen» en el riel y en la hoja, en ambos modos', () => {
+  it('the tab comes after “Origin” in the rail and in the sheet, in both modes', () => {
     for (const placement of ['rail', 'sheet'] as const) {
       for (const mode of ['explorar', 'mision'] as const) {
         const tabs = detailTabs(placement, mode)
@@ -45,21 +45,21 @@ describe('ficha integrada · pestaña «Geología»', () => {
     }
   })
 
-  it('con el paquete real: cobertura, escala, fuente y exportación por sector; un fixture no hereda ficha', () => {
+  it('with the real package: coverage, scale, source and per-sector export; a fixture does not inherit a sheet', () => {
     const data = withGeology(ready)
     const html = renderToStaticMarkup(<GeologyTab data={data} site={byId('cl-win-s2500-w06970')} />)
-    expect(html).toContain('Cobertura parcial')
-    expect(html).toContain('1:1.000.000')
+    expect(html).toContain('Partial coverage')
+    expect(html).toContain('1:1,000,000')
     expect(html).toContain('SERNAGEOMIN')
-    expect(html).toContain('Descargar contexto geológico (JSON)')
+    expect(html).toContain('Download geological context (JSON source record)')
     expect(html).toContain('cl-win-s2500-w06970-geology-context.json')
-    expect(renderToStaticMarkup(<GeologyTab data={data} site={byId('ar-win-s2640-w06730')} />)).toContain('Sin cobertura en esta capa')
-    expect(renderToStaticMarkup(<GeologyTab data={data} site={fixtures[0]!} />)).toContain('fixtures sintéticos')
+    expect(renderToStaticMarkup(<GeologyTab data={data} site={byId('ar-win-s2640-w06730')} />)).toContain('No coverage in this layer')
+    expect(renderToStaticMarkup(<GeologyTab data={data} site={fixtures[0]!} />)).toContain('Synthetic fixtures')
     expect(hasGeologyFor(data, fixtures[0]!.site_id)).toBe(false)
     expect(candidates.every((candidate) => hasGeologyFor(data, candidate.site_id))).toBe(true)
   })
 
-  it('el estado de la ficha y el de la misión son el mismo objeto (una sola carga validada)', () => {
+  it('the sheet state and the mission state are the same object (a single validated load)', () => {
     const data = withGeology(ready)
     expect(geologyStateOf(data)).toBe(ready)
     expect(geologyStateOf(readyData)).toBe(geologyStateOf({}))
@@ -67,7 +67,7 @@ describe('ficha integrada · pestaña «Geología»', () => {
   })
 })
 
-describe('contexto geológico y advertencias históricas (ficha integrada)', () => {
+describe('geological context and historical warnings (integrated sheet)', () => {
   const site = candidates[0]!
   const metrics = (data: AppData) => {
     const context = resolveMetricContext({ site, candidates, profile: v3Snapshot.profile, marsReference: v3Snapshot.marsReference, mode: 'explorar', evaluation: null, request: null })
@@ -77,32 +77,32 @@ describe('contexto geológico y advertencias históricas (ficha integrada)', () 
     <SourcesTab site={site} manifest={v3Snapshot.manifest} search={null} visual={{ status: 'loading' }} onShowOnMap={() => undefined} hasGeology={hasGeologyFor(data, site.site_id)} />,
   )
 
-  it('actualiza solo la presentación cuando hay contexto validado, conservando el snapshot y la falta de calibración', () => {
+  it('only updates the presentation when there is validated context, keeping the snapshot and the lack of calibration', () => {
     const before = JSON.stringify(site)
     const loaded = withGeology(ready)
     const loadedMetrics = metrics(loaded)
-    expect(loadedMetrics).toContain('Falta calibrar su compatibilidad')
+    expect(loadedMetrics).toContain('still needs calibration and expert review')
     expect(loadedMetrics).toContain(GEOLOGY_PENDING_WITH_CONTEXT)
-    expect(loadedMetrics).not.toContain('Requiere cartografía geológica oficial (SERNAGEOMIN)')
+    expect(loadedMetrics).not.toContain('Requires official geological mapping (SERNAGEOMIN)')
     const loadedSources = sources(loaded)
     expect(loadedSources).not.toContain('Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes')
     expect(loadedSources).toContain(GEOLOGY_LIMITATION_WITH_CONTEXT)
-    // Sin paquete (o mientras carga): los textos del snapshot, tal cual.
+    // Without a package (or while loading): the snapshot texts, in their English display rendering.
     for (const data of [withGeology({ status: 'unavailable', reason: 'sin paquete' }), readyData]) {
-      expect(metrics(data)).toContain('Requiere cartografía geológica oficial (SERNAGEOMIN)')
-      expect(sources(data)).toContain(HISTORICAL_GEOLOGY_LIMITATION)
+      expect(metrics(data)).toContain('Requires official geological mapping (SERNAGEOMIN)')
+      expect(sources(data)).toContain('Geology, protected areas, urban areas, ownership and access remain pending integrated official evidence in both countries.') // English display of HISTORICAL_GEOLOGY_LIMITATION
     }
     expect(JSON.stringify(site)).toBe(before)
   })
 
-  it('el criterio geológico sigue pendiente («por calcular»): el contexto no le da valor ni aptitud', () => {
+  it('the geology criterion stays pending (“to be calculated”): the context gives it no value or suitability', () => {
     const html = metrics(withGeology(ready))
     const at = html.indexOf('data-criterion="geologic_relevance"')
     expect(at).toBeGreaterThan(-1)
     const chunk = html.slice(at, html.indexOf('data-criterion="', at + 10) === -1 ? undefined : html.indexOf('data-criterion="', at + 10))
     expect(chunk).toContain('metrics-pending-box')
-    expect(chunk).toContain('por calcular')
+    expect(chunk).toContain('not yet calculated')
     expect(chunk).toContain('is-empty')
-    expect(chunk).not.toMatch(/\bapto\b|aprobad|autorizad/i)
+    expect(chunk).not.toMatch(/\bapto\b|aprobad|autorizad|\bis suitable\b|\bapproved\b|\bauthorized\b/i)
   })
 })

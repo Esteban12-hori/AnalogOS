@@ -4,7 +4,7 @@ import { feasibilityLabels, formatScore, shortCandidateName } from '../domain/fo
 
 export interface ComparisonRow {
   candidate: CandidateSite
-  /** Puesto global entre los candidatos de la búsqueda; null para la referencia conocida. */
+  /** Global rank among the search candidates; null for the known reference. */
   rank: number | null
   reference: boolean
   similarity: number | null
@@ -13,10 +13,10 @@ export interface ComparisonRow {
 }
 
 /**
- * Filas de Comparar (función pura): primero los candidatos de la búsqueda en su orden global,
- * después las referencias conocidas, que nunca reciben puesto (ADR-008). Las cifras son siempre
- * las del snapshot, sin recalcular: Misión no tiene un % propio (ADR-009), así que no hay otra
- * similitud que mostrar.
+ * Compare rows (pure function): first the search candidates in their global order,
+ * then the known references, which never receive a rank (ADR-008). The figures are always
+ * those from the snapshot, without recalculation: Mission has no percentage of its own (ADR-009), so there is no other
+ * similarity to display.
  */
 export function comparisonRows(ranked: readonly CandidateSite[], references: readonly CandidateSite[], rankOf: ReadonlyMap<string, number>): ComparisonRow[] {
   return [...ranked, ...references].map((candidate) => {
@@ -33,7 +33,7 @@ export function comparisonRows(ranked: readonly CandidateSite[], references: rea
 }
 
 interface CandidateComparisonProps {
-  /** Candidatos ordenados seguidos de las referencias conocidas. */
+  /** Sorted candidates followed by the known references. */
   ranked: CandidateSite[]
   references: CandidateSite[]
   rankOf: Map<string, number>
@@ -47,10 +47,10 @@ export function CandidateComparison({ ranked, references, rankOf, selectedId, on
     <section id="comparison" className="comparison-section glass" aria-labelledby="comparison-title">
       <div className="comparison-heading">
         <div>
-          <span className="section-kicker">Comparación rápida · snapshot sin recalcular</span>
-          <h2 id="comparison-title">Tres señales, una decisión explicable</h2>
+          <span className="section-kicker">Quick comparison · snapshot not recalculated</span>
+          <h2 id="comparison-title">Three signals, one explainable decision</h2>
         </div>
-        <p>La similitud prioriza. La confianza y la factibilidad impiden confundir prioridad con aprobación.</p>
+        <p>Similarity prioritizes. Confidence and feasibility keep priority from being mistaken for approval.</p>
       </div>
       <div className="comparison-grid">
         {rows.map(({ candidate, rank, reference, similarity, confidence, stability }) => {
@@ -63,16 +63,16 @@ export function CandidateComparison({ ranked, references, rankOf, selectedId, on
               aria-pressed={candidate.site_id === selectedId}
               onClick={() => onSelect(candidate.site_id)}
             >
-              <span className="comparison-rank">{reference ? 'REF · Referencia conocida' : rank === null ? '—' : String(rank).padStart(2, '0')}</span>
+              <span className="comparison-rank">{reference ? 'REF · Known reference' : rank === null ? '—' : String(rank).padStart(2, '0')}</span>
               <strong>{shortCandidateName(candidate.name)}</strong>
               <span>
                 {candidate.country ? `${countryLabels[candidate.country]} · ` : ''}{feasibilityLabels[candidate.feasibility]}
               </span>
               <dl>
-                <div><dt>Similitud</dt><dd>{similarity === null ? 'N/D' : formatScore(similarity)}</dd></div>
-                <div><dt>Confianza</dt><dd>{formatScore(confidence)}</dd></div>
-                <div><dt>Estabilidad</dt><dd>{stability === null ? '—' : formatScore(stability)}</dd></div>
-                <div><dt>Evidencia</dt><dd>{valid}/{candidate.score_breakdown.length}</dd></div>
+                <div><dt>Similarity</dt><dd>{similarity === null ? 'N/A' : formatScore(similarity)}</dd></div>
+                <div><dt>Confidence</dt><dd>{formatScore(confidence)}</dd></div>
+                <div><dt>Stability</dt><dd>{stability === null ? '—' : formatScore(stability)}</dd></div>
+                <div><dt>Evidence</dt><dd>{valid}/{candidate.score_breakdown.length}</dd></div>
               </dl>
             </button>
           )

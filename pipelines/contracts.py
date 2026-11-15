@@ -1,4 +1,4 @@
-"""Validación de artefactos contra los JSON Schema de `contracts/`."""
+"""Validation of artifacts against the JSON Schemas of `contracts/`."""
 
 import json
 from pathlib import Path
@@ -24,12 +24,12 @@ def validate(instance: object, contract: str) -> None:
 
 
 def load_profile(path: Path) -> dict:
-    """Carga un perfil de misión, lo valida y comprueba que los pesos sumen 1."""
+    """Loads a mission profile, validates it, and checks that the weights sum to 1."""
     profile = json.loads(Path(path).read_text("utf-8"))
-    # `$schema` es una pista para editores; el contrato no la admite (additionalProperties: false).
+    # `$schema` is a hint for editors; the contract does not allow it (additionalProperties: false).
     profile.pop("$schema", None)
     validate(profile, "mission-profile")
     total = sum(c["weight"] for c in profile["criteria"])
     if abs(total - 1.0) > 1e-9:
-        raise ContractError(f"mission-profile: los pesos suman {total}, no 1")
+        raise ContractError(f"mission-profile: weights sum to {total}, not 1")
     return profile

@@ -1,30 +1,30 @@
-# ADR-004 — Entrega estática portable y empaquetado determinista
+# ADR-004 — Portable static release and deterministic packaging
 
-- Estado: accepted por Codex, tras revisión independiente de implementación, tests y demo por HTTP
-- Fecha: 2026-11-14
+- Status: accepted by Codex, after independent review of the implementation, tests and demo over HTTP
+- Date: 2026-11-14
 
-## Contexto
+## Context
 
-El ZIP de entrega se armaba a mano con `zip -r` sobre `apps/web/dist/`. Eso no garantizaba qué archivos entraban, cambiaba de bytes en cada ejecución por las fechas internas y no protegía la entrega anterior ante un error. Además, el build usaba rutas absolutas (`/assets/...`), por lo que solo cargaba en la raíz de un dominio y no en un subdirectorio como `/AnalogOS/`.
+The release ZIP was assembled by hand with `zip -r` on `apps/web/dist/`. That did not guarantee which files went in, its bytes changed on every run because of internal timestamps, and it did not protect the previous release in case of an error. In addition, the build used absolute paths (`/assets/...`), so it only loaded at the root of a domain and not in a subdirectory such as `/AnalogOS/`.
 
-## Decisión
+## Decision
 
-1. `base: './'` en Vite. `index.html`, la carga de JSON y el enlace al análisis auditable ya usan `import.meta.env.BASE_URL`, así que el mismo build funciona en `/` y en un subdirectorio.
-2. `npm run release:package` encadena `npm run build` con `scripts/package_release.py` (solo biblioteca estándar de Python).
-3. Lista explícita de contenido: `index.html`, los JS/CSS que ese HTML referencia de forma relativa bajo `assets/` y los cinco archivos `science-v2/`. Se rechazan archivos adicionales, enlaces simbólicos, referencias absolutas o externas y archivos requeridos ausentes.
-4. ZIP determinista: orden alfabético, fecha interna fija (1980-01-01), permisos fijos y sin compresión (`ZIP_STORED`), para que los bytes no dependan de la versión de zlib.
-5. Escritura en temporales únicos junto al destino, verificación del ZIP contra el build y reemplazo en pareja. Si falla el reemplazo del checksum, se restaura el ZIP anterior.
-6. Se rechazan, antes de escribir, destinos iguales entre sí o ubicados dentro del build.
+1. `base: './'` in Vite. `index.html`, the JSON loading and the link to the auditable analysis already use `import.meta.env.BASE_URL`, so the same build works at `/` and in a subdirectory.
+2. `npm run release:package` chains `npm run build` with `scripts/package_release.py` (Python standard library only).
+3. Explicit content list: `index.html`, the JS/CSS files that this HTML references relatively under `assets/`, and the five `science-v2/` files. Additional files, symbolic links, absolute or external references, and missing required files are rejected.
+4. Deterministic ZIP: alphabetical order, fixed internal date (1980-01-01), fixed permissions and no compression (`ZIP_STORED`), so that the bytes do not depend on the zlib version.
+5. Writing to unique temporary files next to the destination, verification of the ZIP against the build, and paired replacement. If replacing the checksum fails, the previous ZIP is restored.
+6. Destinations that are identical to each other or located inside the build are rejected before writing.
 
-## Consecuencias
+## Consequences
 
-- El ZIP pesa ~514 kB en vez de ~146 kB; a cambio su SHA-256 es reproducible para un mismo build.
-- Si Vite llega a emitir más chunks, imágenes o fuentes, el empaquetador falla con un mensaje explícito y habrá que ampliar la lista a partir del manifest de Vite.
-- La URL en subdirectorio debe terminar en barra (`/AnalogOS/`); los hostings estáticos habituales redirigen solos.
-- No se garantiza abrir `index.html` con `file://`.
+- The ZIP weighs ~514 kB instead of ~146 kB; in exchange, its SHA-256 is reproducible for the same build.
+- If Vite ever emits more chunks, images or fonts, the packager fails with an explicit message and the list will have to be extended based on the Vite manifest.
+- The URL in a subdirectory must end with a slash (`/AnalogOS/`); common static hosting services redirect automatically.
+- Opening `index.html` with `file://` is not guaranteed to work.
 
-## Límites
+## Limits
 
-- No hay atomicidad frente a un corte de energía o un `kill` entre los dos renombrados: ZIP y checksum pueden quedar desincronizados y `shasum -a 256 -c SHA256SUMS.txt` lo detecta. Un proceso interrumpido puede dejar temporales `.analogos-chile-static.zip.*.tmp` en `submission/`.
-- El determinismo es del ZIP respecto del build. Que dos máquinas produzcan el mismo build depende de las versiones fijadas en `package-lock.json`.
-- El empaquetador no publica nada: el despliegue sigue siendo una acción humana.
+- There is no atomicity in the face of a power outage or a `kill` between the two renames: the ZIP and the checksum can end up out of sync, and `shasum -a 256 -c SHA256SUMS.txt` detects it. An interrupted process may leave `.analogos-chile-static.zip.*.tmp` temporary files in `submission/`.
+- The determinism applies to the ZIP with respect to the build. Whether two machines produce the same build depends on the versions pinned in `package-lock.json`.
+- The packager does not publish anything: deployment remains a human action.

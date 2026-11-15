@@ -1,34 +1,34 @@
-# Paquete de presentación — AnalogOS (piloto Chile–Argentina)
+# Submission Package — AnalogOS (Chile–Argentina pilot)
 
-## Archivos para entregar
+## Files to submit
 
-- `PROJECT_PAGE_ES.md`: texto principal en español.
-- `PROJECT_PAGE_EN.md`: versión en inglés para evaluación global.
-- `PITCH_3_MIN_ES.md`: guion hablado de tres minutos.
-- `DEMO_SCRIPT_2_MIN_ES.md`: recorrido exacto del producto.
-- `METHODOLOGY.md`: método, fórmulas, fuentes y límites.
-- `RESULTS_AND_LIMITATIONS.md`: tabla final y lectura correcta.
-- `ATTRIBUTIONS.md`: créditos y licencias de datos/software.
-- `TEAM.md`: plantilla para integrantes, contribuciones y declaración de IA.
-- `VIDEO_SHOT_LIST.md`: plan de grabación de respaldo.
-- `JUDGING_CHECKLIST.md`: auditoría antes de enviar.
-- `assets/analogos-integrated-dev.jpg`: captura vigente del piloto integrado con el rediseño.
-- `assets/analogos-pilot-overview.jpg`: captura histórica de la primera revisión científica del piloto.
-- `analogos-static.zip`: build estático v3 listo para publicar.
-- `analogos-static.zip.sha256`: checksum del ZIP v3.
-- Históricos v2, que no se regeneran: `analogos-chile-static.zip`, `SHA256SUMS.txt` y las capturas `assets/analogos-chile-*.jpg`.
+- [PROJECT_PAGE_EN.md](PROJECT_PAGE_EN.md): main project text in English for evaluation.
+- [PITCH_3_MIN_EN.md](PITCH_3_MIN_EN.md): three-minute spoken script in English.
+- [DEMO_SCRIPT_2_MIN_EN.md](DEMO_SCRIPT_2_MIN_EN.md): English product walkthrough and optional AR6 mission example.
+- Optional Spanish counterparts: [project page](PROJECT_PAGE_ES.md), [pitch](PITCH_3_MIN_ES.md), and [demo script](DEMO_SCRIPT_2_MIN_ES.md).
+- `METHODOLOGY.md`: method, formulas, sources and limits.
+- `RESULTS_AND_LIMITATIONS.md`: final table and correct reading.
+- `ATTRIBUTIONS.md`: credits and data/software licenses.
+- `TEAM.md`: template for team members, contributions and AI declaration.
+- `VIDEO_SHOT_LIST.md`: backup recording plan.
+- `JUDGING_CHECKLIST.md`: audit before submitting.
+- `assets/analogos-production.jpg`: production screenshot used by the root README.
+- `assets/analogos-pilot-overview.jpg`: historical capture of the pilot's first scientific review.
+- `analogos-static.zip`: v3 static build ready to publish.
+- `analogos-static.zip.sha256`: checksum of the v3 ZIP.
+- Historical v2 files, which are not regenerated: `analogos-chile-static.zip`, `SHA256SUMS.txt` and the captures `assets/analogos-chile-*.jpg`.
 
-## Mensaje central
+## Central message
 
-> AnalogOS no dice “este lugar es Marte”. Dice “este lugar merece ser investigado para esta prueba, por estas razones, con estas limitaciones”.
+> AnalogOS does not say "this place is Mars". It says "this place deserves to be investigated for this test, for these reasons, with these limitations".
 
-## Resultado que se puede afirmar
+## Result that can be claimed
 
-Con el perfil preliminar de movilidad de rover y el snapshot `science-screening-v3`, una búsqueda sobre 50 ventanas en dos regiones de prueba de Chile y Argentina preseleccionó seis candidatos. Los tres chilenos obtienen entre 90,35 y 94,87 de similitud y los tres argentinos entre 49,43 y 63,85; Yungay, recalculado como referencia conocida, obtiene 75,67 y queda fuera del ranking. La confianza ronda 77/100 y la factibilidad sigue en `requiere revisión` para todos.
+With the preliminary rover mobility profile and the `science-screening-v3` snapshot, a search over 50 windows in two test regions of Chile and Argentina shortlisted six candidates. The three Chilean ones obtain between 90.35 and 94.87 similarity and the three Argentine ones between 49.43 and 63.85; Yungay, recalculated as a known reference, obtains 75.67 and is left out of the ranking. Confidence is around 77/100 and feasibility remains at “requires review” for all of them.
 
-No se puede afirmar que algún candidato sea un análogo nuevo, que sea mejor sitio que Yungay ni que el terreno esté disponible: ambas regiones tienen antecedentes publicados y falta el cruce territorial.
+It cannot be claimed that any candidate is a new analog, that it is a better site than Yungay, or that the terrain is available: both regions have published precedents and the territorial cross-check is still missing.
 
-## Inicio de la demo
+## Starting the demo
 
 ```bash
 cd analogos-chile
@@ -36,18 +36,18 @@ npm install
 npm run dev
 ```
 
-Abrir `http://127.0.0.1:5173/`. Para una demo sin herramientas de desarrollo, descomprimir `analogos-static.zip` en cualquier hosting estático, en la raíz o en un subdirectorio como `/AnalogOS/`: el build usa rutas relativas.
+Open `http://127.0.0.1:5173/`. For a demo without development tools, unzip `analogos-static.zip` on any static hosting, at the root or in a subdirectory such as `/AnalogOS/`: the build uses relative paths.
 
-## Regenerar y comprobar el ZIP
+## Regenerating and checking the ZIP
 
-Desde la raíz del repositorio, con `npm install` hecho y el entorno Python activo:
+From the repository root, with `npm install` done and the Python environment active:
 
 ```bash
 npm run release:package
 (cd submission && shasum -a 256 -c analogos-static.zip.sha256)
 ```
 
-El ZIP vigente (interfaz integrada: rediseño Explorar/Misión sobre el planificador, la IA opcional y los datos v3 del equipo, ADR-013) contiene `index.html`, 25 JS y 10 CSS compilados más el worker de MapLibre, texturas del globo (cuatro WebP y un JPG), nueve basemaps locales, siete archivos `science-v3/` y el contexto visual (`visual-context-v3/index.json` y siete PNG Sentinel-2, uno por sitio): 66 entradas y 14.508.759 bytes, SHA-256 `c5904c66c84ca6d8dfc480f4ad1841b09015a343f63e5bea19d822a54d0f99f8`. Es determinista para un mismo build. Las imágenes son contexto preliminar de diciembre de 2025: no validan los sitios ni cambian el ranking. El mapa 2D puede solicitar GIBS público como mejora opcional. Descomprimir `analogos-static.zip` sirve para una demo sin herramientas de desarrollo. Prueba por HTTP local en un subdirectorio:
+The current ZIP contains the compiled interface, its required assets, local basemaps, the v3 science snapshot, the seven stored Sentinel-2 images and the validated geological context. Its current SHA-256 is recorded in `analogos-static.zip.sha256`; the command above checks it against the actual archive. The archive is deterministic for the same build. The images are preliminary context from December 2025: they do not validate the sites or change the ranking. GIBS tiles are an optional online enhancement. The static package does not include the optional AI server. Test it over local HTTP in a subdirectory:
 
 ```bash
 mkdir -p /tmp/analogos-demo/AnalogOS
@@ -55,4 +55,4 @@ unzip -o -q submission/analogos-static.zip -d /tmp/analogos-demo/AnalogOS
 python3 -m http.server 8080 --bind 127.0.0.1 --directory /tmp/analogos-demo
 ```
 
-Abrir `http://127.0.0.1:8080/AnalogOS/`. No se garantiza abrir `index.html` con `file://`; la demo necesita un servidor HTTP, aunque sea local.
+Open `http://127.0.0.1:8080/AnalogOS/`. Opening `index.html` with `file://` is not guaranteed to work; the demo needs an HTTP server, even if it is local.

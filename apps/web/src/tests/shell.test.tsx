@@ -34,8 +34,8 @@ const loading: AppData = { status: 'loading', snapshot: null, visual: { status: 
 
 afterEach(() => uiStore.reset())
 
-describe('layout del escenario fijo (ADR-014)', () => {
-  it('tres tramos y variantes compactas', () => {
+describe('fixed stage layout (ADR-014)', () => {
+  it('three breakpoints and compact variants', () => {
     expect(stageTramo(1440)).toBe('wide')
     expect(stageTramo(1439)).toBe('medium')
     expect(stageTramo(1100)).toBe('medium')
@@ -45,13 +45,13 @@ describe('layout del escenario fijo (ADR-014)', () => {
     expect(viewportLayout(390, 844).sideSheet).toBe(false)
   })
 
-  it('el riel mide clamp(340, 26vw, 380)', () => {
+  it('the rail measures clamp(340, 26vw, 380)', () => {
     expect(railWidth(1100)).toBe(340)
     expect(railWidth(1400)).toBe(364)
     expect(railWidth(2560)).toBe(380)
   })
 
-  it('las alturas de la hoja crecen S0 < S1 < S2 y S2 deja ver la barra superior', () => {
+  it('sheet heights grow S0 < S1 < S2 and S2 lets the top bar show', () => {
     for (const [w, h] of [[390, 844], [360, 640], [1024, 768]] as const) {
       const heights = sheetDetentHeights(w, h)
       expect(heights.S0).toBeLessThan(heights.S1)
@@ -60,7 +60,7 @@ describe('layout del escenario fijo (ADR-014)', () => {
     }
   })
 
-  it('los márgenes siguen al riel, al panel izquierdo y a la hoja; la base no los incluye', () => {
+  it('insets follow the rail, the left panel and the sheet; the base does not include them', () => {
     const base = { width: 1440, height: 900, mode: 'explorar' as const, railOpen: false, railFull: false, detent: 'S0' as const }
     expect(stageInsetsFor(base)).toEqual(baseStageInsets(1440, 900))
     expect(stageInsetsFor({ ...base, railOpen: true }).right).toBe(railWidth(1440) + 2 * STAGE_GEOMETRY.gap)
@@ -73,7 +73,7 @@ describe('layout del escenario fijo (ADR-014)', () => {
     expect(stageInsetsFor({ ...phone, detent: 'S2' }).bottom).toBe(sheetDetentHeights(390, 844).S1)
   })
 
-  it('shell.css reserva las mismas alturas que stageGeometry.js (CLS 0 y póster al píxel)', () => {
+  it('shell.css reserves the same heights as stageGeometry.js (CLS 0 and poster to the pixel)', () => {
     const css = readFileSync(resolve(__dirname, '../shell/shell.css'), 'utf8')
     const g = STAGE_GEOMETRY
     for (const declaration of [
@@ -97,8 +97,8 @@ describe('layout del escenario fijo (ADR-014)', () => {
   })
 })
 
-describe('utilidades del armazón', () => {
-  it('teclado virtual: ignora la barra del navegador y entradas no finitas', () => {
+describe('shell utilities', () => {
+  it('virtual keyboard: ignores the browser bar and non-finite inputs', () => {
     expect(keyboardInsetFrom(844, 844, 0)).toBe(0)
     expect(keyboardInsetFrom(844, 844 - (KEYBOARD_MIN_PX - 1), 0)).toBe(0)
     expect(keyboardInsetFrom(844, 500, 0)).toBe(344)
@@ -106,7 +106,7 @@ describe('utilidades del armazón', () => {
     expect(keyboardInsetFrom(Number.NaN, 500, 0)).toBe(0)
   })
 
-  it('pestañas APG: flechas circulares, Inicio y Fin', () => {
+  it('APG tabs: circular arrows, Home and End', () => {
     expect(nextTabIndex('ArrowRight', 1, 2)).toBe(0)
     expect(nextTabIndex('ArrowLeft', 0, 2)).toBe(1)
     expect(nextTabIndex('Home', 4, 6)).toBe(0)
@@ -114,87 +114,87 @@ describe('utilidades del armazón', () => {
     expect(nextTabIndex('a', 0, 6)).toBeNull()
   })
 
-  it('tira de pestañas: marca los bordes con pestañas ocultas y lleva la activa fuera del difuminado', () => {
-    // Ficha a 1440 con 8 pestañas: 581 px de contenido en 486 px visibles.
+  it('tab strip: marks the edges with hidden tabs and brings the active one out of the fade', () => {
+    // Site sheet at 1440 with 8 tabs: 581 px of content in 486 visible px.
     expect(overflowEdges({ scrollLeft: 0, scrollWidth: 581, clientWidth: 486 })).toEqual({ start: false, end: true })
     expect(overflowEdges({ scrollLeft: 40, scrollWidth: 581, clientWidth: 486 })).toEqual({ start: true, end: true })
     expect(overflowEdges({ scrollLeft: 95, scrollWidth: 581, clientWidth: 486 })).toEqual({ start: true, end: false })
     expect(overflowEdges({ scrollLeft: 0, scrollWidth: 486.5, clientWidth: 486 })).toEqual({ start: false, end: false })
-    // «Fuentes» en [1434−925, 1506−925] = [509, 581] de una lista de 486: se desplaza hasta dejarla entera más el difuminado.
+    // “Sources” at [1434−925, 1506−925] = [509, 581] of a 486 list: it scrolls until the tab is fully visible plus the fade.
     expect(revealDelta(509, 581, 486)).toBe(581 - (486 - TAB_EDGE_FADE))
     expect(revealDelta(100, 160, 486)).toBe(0)
     expect(revealDelta(10, 70, 486)).toBe(10 - TAB_EDGE_FADE)
-    // Pestaña más ancha que la vista: prima su comienzo.
+    // Tab wider than the view: its start wins.
     expect(revealDelta(100, 700, 486)).toBe(100 - TAB_EDGE_FADE)
   })
 
-  it('formatScore usa 1 decimal fijo: «50,0» y «77,5»', () => {
-    expect(formatScore(49.99)).toBe('50,0')
-    expect(formatScore(77.45)).toBe('77,5')
-    expect(formatScore(75.67)).toBe('75,7')
+  it('formatScore uses 1 fixed decimal: “50.0” and “77.5”', () => {
+    expect(formatScore(49.99)).toBe('50.0')
+    expect(formatScore(77.45)).toBe('77.5')
+    expect(formatScore(75.67)).toBe('75.7')
     expect(formatScore(null)).toBe('—')
   })
 })
 
-describe('armazón: slots montados', () => {
-  it('el HTML estático ya no tiene el hero y reserva dock y bandeja', () => {
+describe('shell: mounted slots', () => {
+  it('the static HTML no longer has the hero and reserves dock and tray', () => {
     const html = staticShellHtml()
     expect(html).not.toContain('No buscamos')
     expect(html).toContain('class="dock"')
     expect(html).toContain('class="sheet" data-detent="S0"')
-    expect(html).toContain('NO ES AUTORIZACIÓN DE TERRENO')
+    expect(html).toContain('NOT A TERRAIN AUTHORIZATION')
   })
 
-  it('mientras carga: barra con pestañas de modo, dock con lugares y composer, sin ficha flotante', () => {
+  it('while loading: bar with mode tabs, dock with places and composer, no floating sheet', () => {
     const html = renderToStaticMarkup(<AppShell data={loading} />)
-    expect(html).toContain('role="tablist" aria-label="Modo"')
+    expect(html).toContain('role="tablist" aria-label="Mode"')
     expect(html).toContain('id="mode-panel" role="tabpanel"')
-    expect(html).toContain('Cargando snapshot validado')
+    expect(html).toContain('Loading validated snapshot')
     expect(html).toContain('composer-pill')
     expect(html).not.toContain('No buscamos')
     expect(html).not.toContain('details-panel')
   })
 
-  it('el riel muestra el lugar y «Ver ficha completa»; la ficha completa trae las pestañas', () => {
+  it('the rail shows the place and “See full details”; the full sheet carries the tabs', () => {
     const selection = { siteId: 'cl-pampa-yungay-screening', kind: 'evaluated' as const, preview: false }
     const rail = renderToStaticMarkup(
       <RightRail data={ready} tramo="wide" selection={selection} full={false} onFullChange={() => undefined} onShowOnMap={() => undefined} />,
     )
     expect(rail).toContain('Pampa Yungay')
-    expect(rail).toContain('Ver ficha completa')
-    expect(rail).toContain('75,7')
+    expect(rail).toContain('See full details')
+    expect(rail).toContain('75.7')
     const full = renderToStaticMarkup(
       <FullDetail data={ready} site={candidates[0] as CandidateSite} placement="rail" onShowOnMap={() => undefined} />,
     )
-    for (const label of ['Métricas', 'Lectura', 'Origen', 'Geología', 'Señal', 'Comparar', 'Método', 'Fuentes']) expect(full).toContain(label)
+    for (const label of ['Metrics', 'Reading', 'Origin', 'Geology', 'Signal', 'Compare', 'Method', 'Sources']) expect(full).toContain(label)
     expect(full).not.toContain('Lectura IA')
-    expect(full).toContain('Exportar ficha (JSON)')
-    expect(full).toContain('Evaluar este sector')
-    expect(rail).toContain('Evaluar este sector')
+    expect(full).toContain('Export site record (JSON source record)')
+    expect(full).toContain('Evaluate this sector')
+    expect(rail).toContain('Evaluate this sector')
     expect(detailTabs('sheet', 'mision')).toContain('mision')
     expect(detailTabs('rail', 'mision')).not.toContain('mision')
     expect(detailTabs('rail', 'explorar')).toContain('origen')
     expect(detailTabs('rail', 'explorar')).toContain('geologia')
   })
 
-  it('v3: la ficha rotula la referencia conocida (REF) y el país; Método explica cómo se buscaron', async () => {
+  it('v3: the sheet labels the known reference (REF) and the country; Method explains how they were searched', async () => {
     const { readyData, v3Snapshot } = await import('./v3Support')
     const ref = v3Snapshot.candidates.find((site) => site.role === 'reference') as CandidateSite
     const full = renderToStaticMarkup(<FullDetail data={readyData} site={ref} placement="rail" onShowOnMap={() => undefined} />)
-    expect(full).toContain('REF · Referencia conocida')
+    expect(full).toContain('REF · Known reference')
     expect(full).toContain('Chile')
     const { MethodTab } = await import('../shell/detail/MethodTab')
     const method = renderToStaticMarkup(<MethodTab data={readyData} />)
-    expect(method).toContain('Cómo se buscaron')
-    expect(method).toContain('50 evaluadas de 50 intentadas')
-    expect(method).toContain('excluidas del ranking')
-    expect(method).toContain('hasta 3 por país')
+    expect(method).toContain('How they were searched')
+    expect(method).toContain('50 evaluated of 50 attempted')
+    expect(method).toContain('excluded from the ranking')
+    expect(method).toContain('up to 3 per country')
     expect(method.match(/class="window /g)).toHaveLength(50)
     expect(method).toContain('search-results.json')
     expect(method).toContain('analysis-summary.json')
   })
 
-  it('el riel cerrado queda inert y sin contenido', () => {
+  it('the closed rail is inert and empty', () => {
     const rail = renderToStaticMarkup(
       <RightRail data={ready} tramo="medium" selection={null} full={false} onFullChange={() => undefined} onShowOnMap={() => undefined} />,
     )
@@ -203,33 +203,33 @@ describe('armazón: slots montados', () => {
   })
 })
 
-describe('atribución, aviso y orden del armazón (CLAUDE.md: atribución siempre visible)', () => {
-  it('la atribución sale del manifiesto: las fuentes que producen los %, sin métricas propias ni inventarios', () => {
+describe('attribution, notice and shell order (CLAUDE.md: attribution always visible)', () => {
+  it('attribution comes from the manifest: the sources that produce the %, without own metrics or inventories', () => {
     expect(dataAttribution(snapshot.manifest)).toEqual(['NASADEM', 'Copernicus Sentinel-2', 'MOLA (PDS)', 'NASA POWER', 'Natural Earth'])
     expect(dataAttributionText({ datasets: [] })).toBeNull()
   })
 
-  it('Explorar sin selección: la línea de datos va en la franja del escenario (siempre montada)', () => {
-    // MapStage necesita window (no se renderiza en Node): se verifica el cableado en el código.
+  it('Explore without selection: the data line goes in the stage strip (always mounted)', () => {
+    // MapStage needs window (it does not render in Node): the wiring is checked in the code.
     const shell = readFileSync(resolve(__dirname, '../shell/AppShell.tsx'), 'utf8')
     const stage = readFileSync(resolve(__dirname, '../features/globe/MapStage.tsx'), 'utf8')
     expect(shell).toMatch(/creditSlot=\{credit \? <p className="stage-data-credit">\{credit\}<\/p> : null\}/)
-    // El armazón estático pinta la misma línea antes de React (mismo marcado y tamaño).
+    // The static shell paints the same line before React (same markup and size).
     expect(staticShellHtml({ credit: 'Datos: NASADEM' })).toContain('<div class="stage-dock" data-static=""><p class="stage-data-credit">Datos: NASADEM</p></div>')
     expect(stage).toMatch(/\{hudSlot\}\s*\{creditSlot\}\s*<\/div>/)
   })
 
-  it('la barra superior va antes que el escenario en el DOM (orden de foco = orden visual) y hay main y h1', () => {
+  it('the top bar comes before the stage in the DOM (focus order = visual order) and there are main and h1', () => {
     const html = renderToStaticMarkup(<AppShell data={loading} />)
     expect(html.indexOf('class="topbar"')).toBeLessThan(html.indexOf('class="stage"'))
     expect(html).toContain('<main class="app-main">')
-    expect(html).toMatch(/<h1 class="sr-only">AnalogOS · Piloto Chile–Argentina<\/h1>/)
+    expect(html).toMatch(/<h1 class="sr-only">AnalogOS · Chile–Argentina pilot<\/h1>/)
     expect(html).not.toContain('AnalogOS Chile')
   })
 
-  it('el aviso científico tiene texto accesible en todos los tramos (la versión corta no es aria-hidden)', () => {
+  it('the scientific notice has accessible text at every breakpoint (the short version is not aria-hidden)', () => {
     const html = renderToStaticMarkup(<AppShell data={loading} />)
-    expect(html).toContain('<span class="note-short">PRELIMINAR · NO AUTORIZA TERRENO</span>')
+    expect(html).toContain('<span class="note-short">PRELIMINARY · NOT A TERRAIN AUTHORIZATION</span>')
     expect(html).not.toMatch(/note-short" aria-hidden/)
   })
 })

@@ -1,9 +1,9 @@
 /**
- * Hoja única de 3 detents para <1100 px (ADR-014): S0 bandeja, S1 lugar, S2 ficha.
- * - Se arrastra solo desde la manija o la cabecera (`.sheet-grip`), sin transición durante
- *   el arrastre; al soltar decide `resolveDetent` y la transición usa --dur-4 / --ease-sheet.
- * - La manija es un <button>: un toque sube un detent (en S2 baja a S1); ↑/↓ cambian de detent.
- * - Horizontal bajo (alto ≤500 px): hoja lateral de 360 px, sin arrastre.
+ * Single sheet with 3 detents for <1100 px (ADR-014): S0 tray, S1 place, S2 detail card.
+ * - It is dragged only from the handle or the header (`.sheet-grip`), with no transition during
+ *   the drag; on release `resolveDetent` decides and the transition uses --dur-4 / --ease-sheet.
+ * - The handle is a <button>: one tap goes up one detent (at S2 it goes down to S1); ↑/↓ change detent.
+ * - Low landscape (height ≤500 px): side sheet of 360 px, no dragging.
  */
 import { useRef, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
 import { DETENTS, type DetentId } from '../layout'
@@ -16,16 +16,16 @@ interface SheetProps {
   heights: Record<DetentId, number>
   side: boolean
   label: string
-  /** Pestaña de modo que rotula la hoja (tabpanel de las pestañas Explorar | Misión). */
+  /** Mode tab that labels the sheet (tabpanel of the Explore | Mission tabs). */
   labelledBy: string
-  /** Contenido de la cabecera arrastrable (título, volver, cerrar). */
+  /** Content of the draggable header (title, back, close). */
   head?: ReactNode
-  /** Teclado virtual abierto: el carrusel se pliega y el composer sube. */
+  /** Virtual keyboard open: the carousel collapses and the composer moves up. */
   keyboardOpen: boolean
   children: ReactNode
 }
 
-const DETENT_NAMES: Record<DetentId, string> = { S0: 'bandeja', S1: 'lugar', S2: 'ficha' }
+const DETENT_NAMES: Record<DetentId, string> = { S0: 'tray', S1: 'place', S2: 'details' }
 
 interface Drag {
   pointerId: number
@@ -86,7 +86,7 @@ export function Sheet({ detent, onDetentChange, heights, side, label, labelledBy
       event.currentTarget.setPointerCapture(event.pointerId)
     }
     const dt = Math.max(event.timeStamp - state.lastT, 1)
-    // Velocidad positiva = la hoja crece (dedo hacia arriba). Suavizado exponencial simple.
+    // Positive velocity = the sheet grows (finger moving up). Simple exponential smoothing.
     state.velocity = 0.7 * ((state.lastY - event.clientY) / dt) + 0.3 * state.velocity
     state.lastY = event.clientY
     state.lastT = event.timeStamp
@@ -144,7 +144,7 @@ export function Sheet({ detent, onDetentChange, heights, side, label, labelledBy
         <button
           type="button"
           className="sheet-handle"
-          aria-label={`${label}: ${DETENT_NAMES[detent]}. Cambiar tamaño de la hoja`}
+          aria-label={`${label}: ${DETENT_NAMES[detent]}. Resize the sheet`}
           aria-keyshortcuts="ArrowUp ArrowDown"
           onClick={onHandleClick}
           onKeyDown={onHandleKey}

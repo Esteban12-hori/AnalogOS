@@ -1,15 +1,15 @@
 /**
- * PlaceRail (docs/UX_REDESIGN.md §3.5; ADR-008 y ADR-013): carrusel de lugares con scroll-snap nativo.
+ * PlaceRail (docs/UX_REDESIGN.md §3.5; ADR-008 and ADR-013): places carousel with native scroll-snap.
  *
- * - Un listbox horizontal (APG) con roving tabindex: flechas, Inicio/Fin, búsqueda por letras;
- *   Enter/Espacio o clic seleccionan. El foco y el puntero publican `hoverSiteId` para el globo.
- * - Explorar: «Candidatos de la búsqueda» en su puesto global (filtro por país que lo conserva),
- *   «Referencia conocida» (REF, sin puesto) y «◆ Emblemáticos · por calcular».
- * - Misión con evaluación: grupos por estado de la evaluación del equipo; diagnóstico exportable
- *   cuando el alcance no tiene evidencia.
- * - Globo → carrusel: cualquier selección nueva lleva su tarjeta a la vista.
- * - Hoja móvil: un barrido táctil (pointerType touch) deja la tarjeta centrada en vista previa.
- * - Edición tras evaluar: resultados previos a --o-busy con aria-busy, sin inert, hasta reevaluar.
+ * - A horizontal listbox (APG) with roving tabindex: arrow keys, Home/End, type-ahead search by letters;
+ *   Enter/Space or click select. Focus and the pointer publish `hoverSiteId` for the globe.
+ * - Explore: «Search candidates» in their global rank (country filter that preserves it),
+ *   «Known reference» (REF, unranked) and «◆ Emblematic · to be calculated».
+ * - Mission with evaluation: groups by the state of the team's evaluation; exportable diagnostic
+ *   when the scope has no evidence.
+ * - Globe → carousel: any new selection brings its card into view.
+ * - Mobile sheet: a touch swipe (pointerType touch) leaves the card centered in preview.
+ * - Editing after evaluating: previous results go to --o-busy with aria-busy, without inert, until re-evaluated.
  */
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import type { ReferenceAnalog } from '../../domain/contracts'
@@ -33,7 +33,7 @@ const NO_ANALOGS: readonly ReferenceAnalog[] = []
 const TYPEAHEAD_MS = 500
 const SWIPE_SETTLE_MS = 140
 
-/** Lleva una opción a la vista moviendo SOLO el carrusel (scrollIntoView movería la hoja o el dock). */
+/** Brings an option into view by moving ONLY the carousel (scrollIntoView would move the sheet or the dock). */
 function reveal(scroller: HTMLElement, el: HTMLElement, horizontal: boolean, center: boolean, smooth: boolean): void {
   const start = horizontal ? el.offsetLeft : el.offsetTop
   const size = horizontal ? el.offsetWidth : el.offsetHeight
@@ -58,14 +58,14 @@ export function PlaceRail(props: PlaceRailProps) {
   if (data.status === 'error') {
     return (
       <div className="places" data-placement={placement}>
-        <p className="places-state"><span aria-hidden="true">{GLYPH.fail}</span> No se pudieron cargar los lugares{data.error ? `: ${data.error}` : '.'}</p>
+        <p className="places-state"><span aria-hidden="true">{GLYPH.fail}</span> The places could not be loaded{data.error ? `: ${data.error}` : '.'}</p>
       </div>
     )
   }
   return (
     <div className="places" data-placement={placement} aria-busy="true">
-      <div className="places-head"><p className="places-title">Lugares</p></div>
-      <p className="places-state">Cargando snapshot validado…</p>
+      <div className="places-head"><p className="places-title">Places</p></div>
+      <p className="places-state">Loading validated snapshot…</p>
       <div className="places-skeleton" aria-hidden="true"><i /><i /><i /></div>
     </div>
   )
@@ -110,7 +110,7 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
   const [edges, setEdges] = useState({ start: true, end: true })
   const last = useRef({ range: null as Range, start: true, end: true })
 
-  // ---- Contador «1–4 de 11» y flechas: solo cambia el estado cuando cambia el rango ----------
+  // ---- Counter «1–4 of 11» and arrows: state only changes when the range changes ----------
   const measure = useCallback(() => {
     const scroller = track.current
     if (!scroller) return
@@ -140,7 +140,7 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
       if (!center) return
       window.clearTimeout(settle)
       settle = window.setTimeout(() => {
-        // Solo un barrido táctil elige (vista previa): la rueda o el trackpad nunca seleccionan.
+        // Only a touch swipe selects (preview): the wheel or trackpad never select.
         if (!touch.current) return
         touch.current = false
         const middle = scroller.scrollLeft + scroller.clientWidth / 2
@@ -157,8 +157,8 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
         }
       }, SWIPE_SETTLE_MS)
     }
-    // Al abrirse el riel el dock se estrecha DESPUÉS de seleccionar: al asentarse el tamaño, la
-    // tarjeta elegida vuelve a quedar entera a la vista.
+    // When the rail opens, the dock narrows AFTER selecting: once the size settles, the
+    // chosen card is brought fully back into view.
     let resized = 0
     const onResize = () => {
       if (!frame) frame = requestAnimationFrame(() => { frame = 0; measure() })
@@ -181,7 +181,7 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
     }
   }, [measure, center, listView])
 
-  // ---- Globo → carrusel: la selección nueva entra en vista y recibe la parada de tabulación ----
+  // ---- Globe → carousel: the new selection enters the view and receives the tab stop ----
   useEffect(() => {
     setActiveId(null)
     const scroller = track.current
@@ -189,11 +189,11 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
     if (scroller && el) reveal(scroller, el, !listView, center, !reduced)
   }, [selectedId, listView, center, reduced])
 
-  // Al desmontarse (S0 → S1 en la hoja) la tarjeta enfocada no emite blur: el hover que publicó
-  // quedaría pegado en el globo (pin fuera de su grupo).
+  // On unmount (S0 → S1 in the sheet) the focused card does not emit blur: the hover it published
+  // would remain stuck on the globe (pin outside its group).
   useEffect(() => () => uiActions.setHover(null), [])
 
-  // ---- FLIP al reordenar (resultados de la misión): solo transform, 400 ms ------------------
+  // ---- FLIP on reorder (mission results): transform only, 400 ms ------------------
   const orderKey = options.map((option) => option.id).join('|')
   const positions = useRef({ list: listView, at: new Map<string, number>() })
   useLayoutEffect(() => {
@@ -202,8 +202,8 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
       els.current.forEach((el, key) => at.set(key, listView ? el.offsetTop : el.offsetLeft))
       return at
     }
-    // Primer montaje (sin posiciones previas) o sin animación: no hay nada que animar, así que no
-    // se fuerza un layout síncrono en el arranque; se mide en el primer cuadro.
+    // First mount (no previous positions) or no animation: there is nothing to animate, so no
+    // synchronous layout is forced at startup; it is measured in the first frame.
     if (positions.current.at.size === 0 || reduced) {
       const frame = requestAnimationFrame(() => {
         positions.current = { list: listView, at: read() }
@@ -233,7 +233,7 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
     if (track.current) reveal(track.current, el, !listView, center, !reduced)
   }
 
-  /** Canal ligero carrusel → globo; un ◆ además precarga su tarjeta del riel. */
+  /** Lightweight carousel → globe channel; a ◆ also preloads its rail card. */
   const hover = (option: Place) => {
     uiActions.setHover(option.id)
     if (option.kind === 'reference') preloadReferenceCard()
@@ -277,30 +277,30 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
   const canList = placement === 'dock' || onListViewChange !== undefined
   const toggleList = () => (onListViewChange ? onListViewChange(!listView) : setLocalList(!localList))
   const fromMission = model.source === 'mission' && missionEvaluation !== null
-  // La REF no cuenta como priorizado: no es un candidato de la búsqueda (se nombra aparte).
+  // The REF does not count as prioritized: it is not a search candidate (it is named separately).
   const prioritized = missionEvaluation ? prioritizedCount(missionEvaluation) : { candidates: 0, of: 0, reference: false }
-  // El modo se oculta en contenedores angostos (la hoja ya tiene las pestañas encima); el rótulo
-  // de las reglas nunca se oculta: dice de dónde salen los estados.
+  // The mode is hidden in narrow containers (the sheet already has the tabs above it); the label
+  // of the rules is never hidden: it says where the states come from.
   const title = fromMission
-    ? `Tu misión · ${prioritized.candidates} ${prioritized.candidates === 1 ? 'priorizado' : 'priorizados'}${prioritized.reference ? ' + REF' : ''}`
-    : <>Lugares<span className="places-suffix"> · {mission ? 'Misión' : 'Explorar'}</span></>
+    ? `Your mission · ${prioritized.candidates} prioritized${prioritized.reference ? ' + REF' : ''}`
+    : <>Places<span className="places-suffix"> · {mission ? 'Mission' : 'Explore'}</span></>
   const note = fromMission
-    ? `${busy ? 'Editó la prueba: confirme y evalúe de nuevo · ' : ''}Estados del cálculo determinista (${RULES_VERSION}) · similitud v3 sin recalcular · factibilidad territorial pendiente`
+    ? `${busy ? 'You edited the test: confirm and evaluate again · ' : ''}Statuses from the deterministic calculation (${RULES_VERSION}) · v3 similarity not recalculated · territorial feasibility pending`
     : mission
-      ? 'Sin evaluar: defina y confirme los requisitos en «Tu misión». Similitud v3 del snapshot.'
+      ? 'Not evaluated: define and confirm the requirements in “Your mission”. Snapshot v3 similarity.'
       : promise ?? null
-  // Cuenta lo que se ve: ◆ con tarjeta; los que coinciden con un sector van como insignia.
+  // Counts what is visible: ◆ with a card; those that match a sector are shown as a badge.
   const matched = new Set([...classification.badges.values()].flat().map((analog) => analog.id)).size
   const catalogNote =
     catalog.status === 'ready'
-      ? `${model.references.length} por calcular${matched > 0 ? ` · ${matched} coincide con un sector` : ''}`
-      : catalog.status === 'loading' ? 'cargando…' : 'sin catálogo'
+      ? `${model.references.length} not yet calculated${matched > 0 ? ` · ${matched} ${matched === 1 ? 'matches a sector' : 'match sectors'}` : ''}`
+      : catalog.status === 'loading' ? 'loading…' : 'no catalog'
 
   if (options.length === 0) {
     return (
       <div className="places" data-placement={placement}>
         <div className="places-head"><p className="places-title">{title}</p></div>
-        <p className="places-state">No hay lugares para mostrar: el snapshot no trae sectores.</p>
+        <p className="places-state">There are no places to show: the snapshot has no sectors.</p>
       </div>
     )
   }
@@ -325,13 +325,13 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
         style={{ '--i': Math.min(index, 6) } as CSSProperties}
         onClick={() => choose(option)}
         onFocus={(event) => {
-          // Solo el foco de teclado previsualiza en el globo: el foco que devuelve el armazón tras
-          // un toque no debe dejar un hover pegado (pin fuera de su grupo).
+          // Only keyboard focus previews on the globe: the focus that the shell returns after
+          // a tap must not leave a stuck hover (pin outside its group).
           if (focusVisible(event.currentTarget)) hover(option)
         }}
         onBlur={() => uiActions.setHover(null)}
         onPointerEnter={(event) => {
-          // En táctil no hay «hover»: un toque publicaría un hover que nadie limpia.
+          // On touch there is no «hover»: a tap would publish a hover that nobody clears.
           if (event.pointerType !== 'touch') hover(option)
         }}
         onPointerLeave={() => uiActions.setHover(null)}
@@ -345,35 +345,35 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
 
   const evaluatedCount = model.evaluated.length
   const candidateGroup = model.groups.find((group) => group.role === 'candidate')
-  const filters: Array<[CountryFilter, string]> = [['all', 'Todos'], ...model.countries.map((code) => [code, countryLabels[code]] as [CountryFilter, string])]
+  const filters: Array<[CountryFilter, string]> = [['all', 'All'], ...model.countries.map((code) => [code, countryLabels[code]] as [CountryFilter, string])]
   let offset = 0
   return (
     <div className="places" data-placement={placement} data-view={listView ? 'list' : 'carousel'} data-busy={busy ? '' : undefined} aria-busy={busy || undefined}>
       <div className="places-head">
         <p className="places-title">
           <span>{title}</span>
-          <small className="places-counts"><span aria-hidden="true">{GLYPH.evaluated}</span> {model.rankedCount} candidatos · 1 REF</small>
+          <small className="places-counts"><span aria-hidden="true">{GLYPH.evaluated}</span> {model.rankedCount} candidates · 1 REF</small>
           <small className="places-catalog" title={catalog.status === 'unavailable' ? catalog.reason : undefined}><span aria-hidden="true">{GLYPH.reference}</span> {catalogNote}</small>
-          <small className="places-profile">{fromMission ? `estado · reglas ${RULES_VERSION}` : 'similitud v3'}</small>
+          <small className="places-profile">{fromMission ? `status · rules ${RULES_VERSION}` : 'v3 similarity'}</small>
         </p>
         <div className="places-tools">
           {!fromMission && model.countries.length > 1 && (
-            <div className="country-filter places-filter" role="group" aria-label="Filtrar candidatos por país">
+            <div className="country-filter places-filter" role="group" aria-label="Filter candidates by country">
               {filters.map(([value, label]) => (
                 <button type="button" key={value} aria-pressed={country === value} onClick={() => setCountry(value)}>{label}</button>
               ))}
             </div>
           )}
-          <span className="places-count">{listView ? `${options.length} lugares` : rangeLabel(range, options.length)}</span>
+          <span className="places-count">{listView ? `${options.length} places` : rangeLabel(range, options.length)}</span>
           {canList && (
             <button type="button" className="places-tool" aria-controls={listboxId} onClick={toggleList}>
-              {listView ? 'Ver carrusel' : 'Ver lista'}
+              {listView ? 'Show carousel' : 'Show list'}
             </button>
           )}
           {!listView && (
             <>
-              <button type="button" className="places-tool places-arrow" aria-label="Lugares anteriores" aria-controls={listboxId} disabled={edges.start} onClick={() => scrollPage(-1)}>‹</button>
-              <button type="button" className="places-tool places-arrow" aria-label="Lugares siguientes" aria-controls={listboxId} disabled={edges.end} onClick={() => scrollPage(1)}>›</button>
+              <button type="button" className="places-tool places-arrow" aria-label="Previous places" aria-controls={listboxId} disabled={edges.start} onClick={() => scrollPage(-1)}>‹</button>
+              <button type="button" className="places-tool places-arrow" aria-label="Next places" aria-controls={listboxId} disabled={edges.end} onClick={() => scrollPage(1)}>›</button>
             </>
           )}
         </div>
@@ -385,7 +385,7 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
         ref={track}
         id={listboxId}
         role="listbox"
-        aria-label="Lugares"
+        aria-label="Places"
         aria-orientation={listView ? 'vertical' : 'horizontal'}
         className="places-track"
         onKeyDown={onKeyDown}
@@ -393,7 +393,7 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
       >
         {candidateGroup && candidateGroup.places.length === 0 && (
           <p className="places-empty" role="status">
-            La búsqueda no dejó candidatos {country === 'all' ? 'elegibles' : `en ${countryLabels[country]}`}. No se completa la lista con sitios elegidos a mano.
+            The search left no candidates {country === 'all' ? 'eligible' : `in ${countryLabels[country]}`}. The list is not filled with hand-picked sites.
           </p>
         )}
         {model.groups.map((group, groupIndex) => {
@@ -410,7 +410,7 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
               data-status={group.status ?? undefined}
             >
               <span id={`${listboxId}-g${groupIndex}`} role="presentation" className="places-group-label">
-                {group.role === 'reference' ? `Referencia conocida: ${group.places.map((item) => placeLabelOf(item)).join(', ')}` : group.label}
+                {group.role === 'reference' ? `Known reference: ${group.places.map((item) => placeLabelOf(item)).join(', ')}` : group.label}
               </span>
               {group.places.map((option, index) => renderOption(option, start + index))}
             </div>
@@ -419,7 +419,7 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
         {model.references.length > 0 && (
           <div role="group" aria-labelledby={`${listboxId}-g2`} className="places-group" data-kind="reference">
             <span id={`${listboxId}-g2`} role="presentation" className="places-group-label">
-              <span aria-hidden="true">{GLYPH.reference}</span> Emblemáticos · por calcular
+              <span aria-hidden="true">{GLYPH.reference}</span> Emblematic analogs · not yet calculated
             </span>
             {model.references.map((option, index) => renderOption(option, evaluatedCount + index))}
           </div>

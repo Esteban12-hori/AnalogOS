@@ -1,60 +1,60 @@
-# Checklist antes de enviar
+# Checklist before submitting
 
-## Ciencia y honestidad
+## Science and honesty
 
-- [x] La referencia MOLA está identificada y versionada.
-- [x] NASADEM se mosaica y compara a una escala espacial equivalente.
-- [x] Sentinel-2 L2A mide superficie no vegetada con máscara SCL y serie mensual.
-- [x] Earthdata y Copernicus están autenticados; las credenciales no se versionan.
-- [x] POWER se describe como contexto regional.
-- [x] Los criterios sin evidencia quedan fuera del score.
-- [x] Similitud, confianza, estabilidad y factibilidad están separadas.
-- [x] El resultado dice “screening preliminar”, no “sitio aprobado”.
-- [x] Los candidatos salen de una búsqueda por rejilla documentada (50 ventanas), no de una lista manual.
-- [x] Yungay figura como referencia conocida, fuera del ranking.
-- [x] Las ventanas con coordenadas publicadas quedan excluidas y visibles; ningún candidato se declara nuevo.
-- [ ] Completar la revisión bibliográfica de la Puna con textos completos y coordenadas.
-- [ ] Contrastar el contexto climático POWER de los candidatos argentinos con datos locales.
-- [ ] Inspeccionar visualmente los sitios en NASA Worldview o imagen reciente. (avance parcial: vista Sentinel-2 de diciembre de 2025 por sitio y observaciones en `docs/VISUAL_REVIEW.md`; faltan imagen reciente, capas territoriales de ambos países y revisión experta)
-- [ ] Obtener revisión rápida de una persona con experiencia geológica o robótica, si está disponible.
+- [x] The MOLA reference is identified and versioned.
+- [x] NASADEM is mosaicked and compared at an equivalent spatial scale.
+- [x] Sentinel-2 L2A measures non-vegetated surface with an SCL mask and a monthly series.
+- [x] Earthdata and Copernicus are authenticated; credentials are not versioned.
+- [x] POWER is described as regional context.
+- [x] Criteria without evidence are left out of the score.
+- [x] Similarity, confidence, stability and feasibility are kept separate.
+- [x] The result says “preliminary screening,” not “approved site.”
+- [x] Candidates come from a documented grid search (50 windows), not from a manual list.
+- [x] Yungay appears as a known reference, outside the ranking.
+- [x] Windows with published coordinates are excluded and visible; no candidate is declared new.
+- [ ] Complete the literature review of the Puna with full texts and coordinates.
+- [ ] Compare the POWER climate context of the Argentine candidates with local data.
+- [ ] Visually inspect the sites in NASA Worldview or recent imagery. (partial progress: Sentinel-2 view from December 2025 per site and observations in `docs/VISUAL_REVIEW.md`; recent imagery, territorial layers for both countries and expert review are still missing)
+- [ ] Obtain a quick review from a person with geological or robotics experience, if available.
 
-## Producto
+## Product
 
-- [x] Ranking, mapa y ficha usan el mismo snapshot.
-- [x] Selección por ranking y mapa funciona.
-- [x] Comparador rápido disponible.
-- [x] Ficha JSON descargable.
-- [x] Fuentes y análisis auditable accesibles.
-- [x] App usable con teclado en acciones principales.
-- [x] Demo sin APIs ni WebGL.
-- [x] Estado de error legible.
+- [x] Ranking, map and sheet use the same snapshot.
+- [x] Selection by ranking and map works.
+- [x] Quick comparator available.
+- [x] Downloadable JSON sheet.
+- [x] Sources and auditable analysis are accessible.
+- [x] App usable with keyboard for main actions.
+- [x] Demo without APIs or WebGL.
+- [x] Readable error state.
 
-## Ingeniería
+## Engineering
 
-- [x] Contratos compartidos JSON Schema.
-- [x] Pipeline determinista y archivos versionados.
-- [x] Checksums SHA-256 en el manifiesto.
-- [x] Tests Python y web verdes.
-- [x] Build estático generado.
-- [x] Dependencias sin vulnerabilidades conocidas por `npm audit`.
-- [ ] Probar `analogos-static.zip` en un segundo equipo o hosting.
-- [ ] Probar links públicos en incógnito.
+- [x] Shared JSON Schema contracts.
+- [x] Deterministic pipeline and versioned files.
+- [x] SHA-256 checksums in the manifest.
+- [x] Python and web tests passing.
+- [x] Static build generated.
+- [x] Dependencies with no known vulnerabilities according to `npm audit`.
+- [ ] Test `analogos-static.zip` on a second machine or hosting.
+- [ ] Test public links in incognito mode.
 
-## Entrega
+## Delivery
 
-- [x] Descripción en español e inglés.
-- [x] Pitch de tres minutos.
-- [x] Guion de demo.
-- [x] Captura principal.
-- [x] Atribuciones y licencia.
-- [ ] Grabar y subir video de respaldo.
-- [ ] Añadir URL pública de demo, repositorio y video a la página del proyecto.
-- [ ] Completar nombres y contribuciones del equipo.
-- [ ] Enviar con margen y guardar comprobante.
+- [x] Description in Spanish and English.
+- [x] Three-minute pitch.
+- [x] Demo script.
+- [x] Main screenshot.
+- [x] Attributions and license.
+- [ ] Record and upload backup video.
+- [ ] Add the public demo URL, repository and video to the project page.
+- [ ] Complete team names and contributions.
+- [ ] Submit with time to spare and save the receipt.
 
-## Links que el equipo debe completar
+## Links the team must complete
 
-- Demo pública: `PENDIENTE`
-- Repositorio: `https://github.com/Esteban12-hori/AnalogOS` (privado; hacerlo público antes de enviar)
-- Video: `PENDIENTE`
-- Integrantes/contribuciones: `PENDIENTE`
+- Public demo: https://analogos.vercel.app/
+- Repository: `https://github.com/Esteban12-hori/AnalogOS` (verify that judges can access it before submitting)
+- Video: `PENDING`
+- Team members/contributions: `PENDING`

@@ -1,0 +1,123 @@
+{
+  "note": "Legacy 1.0.0 (Spanish) outputs captured from base 273e5f8 BEFORE the English text packs were introduced. SHA-256 of the canonical JSON (shared/mission/fingerprint.ts) for each case in apps/web/src/tests/legacyCases.ts, built with the trusted v3 bundle and the official geology-context-v1 package (deterministic geology selection). Must never be regenerated to make a test pass.",
+  "base_commit": "273e5f8",
+  "cases": {
+    "catalog_mixed": {
+      "evaluation_sha": "753c6a4bcb8ad2944785093c34d1ea9493da2473de01ff76a3eb252c84448f9f",
+      "export_sha": "5c5530304c4001ce817aa15ade624e48b36087ee8a701c1963004ad1fcb5df0e",
+      "catalog_fingerprint": "208066c108403e38b5948f0509c56814598dd678772905aaf2da0c0d2bbafda6",
+      "guidance_sha": "7f22dc0d652a343552f096d938c357e9398d1106b5b4d277dcdcc3405fc963aa",
+      "wrapper_sha": "8481cca7e19bfc233bda5df498334082ba7695683843a30016dc848805cfb69f",
+      "verification_sha": "6a3696e0820b5a13b8946dc39a0279ac6aaa89eb8614161cfff4273b32a7dcf1",
+      "view_sha": "696311976db0fcc1cbcd057dd03a20ea3f2bda0a9d8df46594855b1fbedeaa76"
+    },
+    "catalog_empty": {
+      "evaluation_sha": "ba89f9d91dfe31913fd91b8baaf5bc0e7d815b509c30af1dd6f03429f324d0a3",
+      "export_sha": "0e86898ecd57c7d72d706d3880a3b9094b015e1f25d3d88098ffc8a56a9a5746",
+      "catalog_fingerprint": "ec9268e16701f875feb9c70a1a119ae1002698797428273183b176c4c68d27fa",
+      "guidance_sha": "d9408232bd24b696a928d5b1c6de0c53509a7a32e30eb00a201ffba9189354bd",
+      "wrapper_sha": "ee3e3e5a451b29fd1ddd1444b8fdc7be8920f897d4bd07ebc398c8da7bb1ac97",
+      "verification_sha": "23a6079aee1862f500615dbfb1d93c54d82531968f0173039ddc707ee86b5a32",
+      "view_sha": "f7ee89e45a568d610bef0612e0552d303bd68423ca5e4632686b5b2d03fc019c"
+    },
+    "none_prioritized": {
+      "evaluation_sha": "635570576b3d4213707357cf00a14f00e72499cc471532412c20c18753fb0bd4",
+      "export_sha": "90dabd41b63e1b984d94a47a8614d257ca08101eacc645b27b90a69e4db402e3",
+      "catalog_fingerprint": "0c296913570b918586ccf3bc561ff9c113435fb77ee9b9b1c3c429537ad5511d",
+      "guidance_sha": "d64ff6839a26cbb70abc80d8361b56e3867ceb94b8038ac0bea7965be842f983",
+      "wrapper_sha": "d00cfb7b866fd408e409c5f7f0e0af44af51e324b6ded70953ab2e7b2d4e08d6",
+      "verification_sha": "43e8e2cf9c867dbc1f7c377c7cea29147603adc6bf35fe36332cd5c95b22fff1",
+      "view_sha": "c4e7fa9fa4854fab5247ee5497242a078d09da7c59e1fc62b8768cfa1c52887d"
+    },
+    "unsupported_objective": {
+      "evaluation_sha": "3d6dc462a9573331225596cb098b8f4360b528b92f46b82dce76be761ac13ddf",
+      "export_sha": "df532fd93585c1fa27733875253562d8bf0168bf52ef0080c51c8ba9a9c4b5ac",
+      "catalog_fingerprint": "d55b3131b5230f31db52c83987dc65cc92bb451d061335fac09b2412f4599224",
+      "guidance_sha": "5e9b5eaa0a51dfdab9ac4a8e9d521ce33db128034605a2d6c1125936f8e9c01a",
+      "wrapper_sha": "c5da525ce312981c1ce85a60c573b2d541b5b18b38c17655e6a71c570ae1bb80",
+      "verification_sha": "fb1d5c98fdb6d8cee168d65e0ed21778fcdfb36d49d323fab1cf0453b5b468fe",
+      "view_sha": "b9a570968c0a2de54e5d9b7644fa284997212c1347c7d0ab2a05819304ab0f07"
+    },
+    "point_no_coverage": {
+      "evaluation_sha": "f4aa155d5fc4c4fa9b418c738c164ab8e55b834cbc261491eecb6702fb8ea783",
+      "export_sha": "9723da4e60a17657e7cb354ca5ec39dbcd76dc8d8b1d5cf0380d48ba0dadcdb1",
+      "catalog_fingerprint": "4fa3c7a6a22fa66f644540573a4b955186fe97f79e7ed9aa4d88777481433caa",
+      "guidance_sha": "440180df7cbdb1e8252548c8ad0fdefc32e4f4dd85da1ab447879acae2a83ddb",
+      "wrapper_sha": "c46f55f6eb42380d1c37bed090d44b1248b6b35d0569b9b3c50809ef4f0fdcd5",
+      "verification_sha": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "view_sha": "702c64463bde3762f0da86c16d5483583348b148bacd1c4fc1ce7cd19884a316"
+    },
+    "bbox_no_coverage": {
+      "evaluation_sha": "724bd664fda24ab2faccb24f78f89c31e16e3c358a402733b12392a488a62b07",
+      "export_sha": "1b2da6c8cb4f0856242ad9bb525a9461b2d5b60dc1da94b72e9ca8cbd41e9bef",
+      "catalog_fingerprint": "56e380742a9bd02c9f0125e3e1c454f33c6a081d8ada0ce63a52dc2af77d3d60",
+      "guidance_sha": "440180df7cbdb1e8252548c8ad0fdefc32e4f4dd85da1ab447879acae2a83ddb",
+      "wrapper_sha": "dff6335126a28d19fa8e96fbea2945948c3f232dc872268312abe661483bcdbc",
+      "verification_sha": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "view_sha": "702c64463bde3762f0da86c16d5483583348b148bacd1c4fc1ce7cd19884a316"
+    },
+    "point_needs_window": {
+      "evaluation_sha": "cfb925386d9191d1ced117b942558af49d69280fe2a0a3449a375b6241bdb10b",
+      "export_sha": "52c34055c1ff7bb06c4c3c1b6d0610adfcee6176b9713efb0ea8061ab64eaaf9",
+      "catalog_fingerprint": "657cbc7eac41b3a8ad7f4f00eaa5af27621c052bc7040fc98093b1cfadd7a976",
+      "guidance_sha": "440180df7cbdb1e8252548c8ad0fdefc32e4f4dd85da1ab447879acae2a83ddb",
+      "wrapper_sha": "f63d6ce883c530046003ca56b95d5940f333558a26d7b7552948227cb9cafec9",
+      "verification_sha": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "view_sha": "702c64463bde3762f0da86c16d5483583348b148bacd1c4fc1ce7cd19884a316"
+    },
+    "point_window_selected_ar": {
+      "evaluation_sha": "dcb8793198dd8c64a5055c636b92d60c1fcb79a181e6692c07842e1d46efeff0",
+      "export_sha": "fd80123ad87bc863fa3118f7b22b0578665a573c6deb2df0501eb9509d245c5d",
+      "catalog_fingerprint": "1a54b1edabc00259e83003d79c8b877c7af2136e55719cfd34edec701a8bc7d5",
+      "guidance_sha": "152b7ac5ff0e569b2904fa69403d2ee690c5b90483c3d74a74a4e2e114ed4475",
+      "wrapper_sha": "8d2e624d0b77c87e836d598c4d92d6fd2a1bed021b180947b2e1f739f6cadf0a",
+      "verification_sha": "08282371411267b8a40c5163a84bfd35bc54a887fe673392dd301f790b5a57e1",
+      "view_sha": "927ccbc0a873bcdc27def3bed66964b17da8228cbc0befa83d5fd1c3616f2810"
+    },
+    "bbox_partial_selected": {
+      "evaluation_sha": "3b7aad47127d7c65b011dd8edeab15433e98a51983088e1ca3d12be604a036fb",
+      "export_sha": "5b24ac29f28b126ba1e04cd9f73a023671a96b0827e5f94e9e7d4bd6f1deb060",
+      "catalog_fingerprint": "961c8bd389c786d1aa2ff49f54159faa264bbda724af30aeab89449dcc3e752f",
+      "guidance_sha": "152b7ac5ff0e569b2904fa69403d2ee690c5b90483c3d74a74a4e2e114ed4475",
+      "wrapper_sha": "8e663607e8bbd5f3ebfd13476a167d119cad7d803f0239bbf27d0e7a19d6a608",
+      "verification_sha": "08282371411267b8a40c5163a84bfd35bc54a887fe673392dd301f790b5a57e1",
+      "view_sha": "927ccbc0a873bcdc27def3bed66964b17da8228cbc0befa83d5fd1c3616f2810"
+    },
+    "sector_ar6_geology": {
+      "evaluation_sha": "c77b243f73b8f2cc71d4ffce1f62ab550c6a3b4a6566ca5c4b2511d0406d18ce",
+      "export_sha": "76693d11d51fa9d95bcf7afbe951122a5eccb93789a1e5132ad92586a1f6e873",
+      "catalog_fingerprint": "690ce06cdc9627fd20f86a44b11ee302ba3c31c7841da4513f76cb9bcd12e809",
+      "guidance_sha": "b280eb4f5c94252b4ed8d9e6863ee27cd5e5fb9506b93369be7a456a70c07c2f",
+      "wrapper_sha": "871e16c148ef8a3b23a115baae0e7d3fabc24765cf3cd07dd3387684554c34b3",
+      "verification_sha": "aba3d389f8408b8b14ea5d70b556c7cece26bd3935378ebb70b16efa577e2a53",
+      "view_sha": "0e90086d3695fc18ce194a646a54c8943eaa3d5c39685e76c8c374a9fded9205"
+    },
+    "sector_cl_partial": {
+      "evaluation_sha": "ead0946b85588caa8e7cebf7f2d4f6e82922396592995ded93e31da664e6b69a",
+      "export_sha": "b2fd96df8fa2bfd04a8cb260ca247bee70147755de23b1400d55e29313515e86",
+      "catalog_fingerprint": "4f5d503b80139ab00930064eb5b472c1f8ed37249f0879b762de88332ebfc32a",
+      "guidance_sha": "a88e6669ed41137a89ba4b11787d047b5c505b9103fcdb07593767f1a07702b8",
+      "wrapper_sha": "4579ba0965eba42a375ad69925d9c8fa7e7e160b304f71a574c98b15eea4d013",
+      "verification_sha": "7c350a4da6e6aa1a16d7cd6d197d832ee27dac05817408e25baa3e109a2000f5",
+      "view_sha": "a947ebe99d0408a4cdd2a66fe2c93f52b5773183ec8c003a041bd96dc934a018"
+    },
+    "sector_reference": {
+      "evaluation_sha": "d39958e30a05c36c51b4bab6b2e82c53fad142205e8e9eb9114cc233bd4aae67",
+      "export_sha": "bec0650f4280064316f1a8915e2d16a436350212fd89504529b140a44b96dce4",
+      "catalog_fingerprint": "08162edc32b924ad658e9734c4e3ee892d711c3a8cf06dab605e739c91625969",
+      "guidance_sha": "9b93fe49feaf7110e9a35424c76818537f450944344758e3e6ffed33bc18fc15",
+      "wrapper_sha": "e2accf935af4194dac65011e503f3ecc52566215a8a13cc7ab843df2261b7c40",
+      "verification_sha": "52910e2cc4884897dbd476771319aacb2ba5bc39ebce123a67914401f46b378e",
+      "view_sha": "6b199701032e824f8c9cbe5d0b1abdad73ca48568392c0c91131659c7677d582"
+    }
+  },
+  "geology_exports_v1": {
+    "cl-win-s2500-w06970": "13c24e1afcc85abfdea3dfe07e0b9a37bcd95b45c4865e5391df3807cb7f6d17",
+    "cl-win-s2480-w06950": "472216a66a9b83baaed9c592001161c8f39183a3072e010eb40406370e2076f4",
+    "cl-win-s2520-w06950": "f7faf124c041c914b3e87f88014076d46f59c529265c11e426b9f46a56b87964",
+    "ar-win-s2620-w06750": "f50504666d411ca2f80cd0ec7ac0507e2bf84b057aad95b63467ece5a552463f",
+    "ar-win-s2640-w06730": "577395792852aa0899d0df039ee4cb929e5cfe845ae099aa3b78f55b32d2fd7b",
+    "ar-win-s2580-w06710": "a8ce64c8c7318da403900f259a639aac8b6e3d8b004c57b7235806868bf2ccc5",
+    "cl-pampa-yungay-screening": "3fcaa4346d47cac0cc9b0ff1502e9c0c6cba6b271d55b180246570af9f6dd2d6"
+  }
+}

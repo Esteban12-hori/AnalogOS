@@ -1,17 +1,17 @@
 /**
- * Pestañas según el patrón APG (activación automática): flechas, Inicio y Fin; tabindex
- * itinerante. Las usa el armazón (modo, riel y ficha completa).
+ * Tabs following the APG pattern (automatic activation): arrow keys, Home and End; roving
+ * tabindex. Used by the shell (mode, rail and full record).
  *
- * La tira se desplaza sin barra (la ficha tiene hasta 9 pestañas): la lista marca con
- * `data-more-start` / `data-more-end` si quedan pestañas ocultas a cada lado, para que el CSS
- * difumine ese borde, y lleva la pestaña activa a la parte visible sin mover la hoja ni el riel.
+ * The strip scrolls without a scrollbar (the record has up to 9 tabs): the list marks with
+ * `data-more-start` / `data-more-end` whether there are hidden tabs on each side, so that the CSS
+ * fades that edge, and brings the active tab into the visible area without moving the sheet or the rail.
  */
 import { useEffect, useRef, type KeyboardEvent, type ReactNode, type RefObject } from 'react'
 
 export interface TabItem<T extends string> {
   id: T
   label: ReactNode
-  /** Contenido accesible si `label` no es texto plano. */
+  /** Accessible content if `label` is not plain text. */
   ariaLabel?: string
 }
 
@@ -22,7 +22,7 @@ interface TabListProps<T extends string> {
   active: T
   onChange: (id: T) => void
   className?: string
-  /** id del panel controlado por todas las pestañas (si es uno solo). */
+  /** id of the panel controlled by all the tabs (if there is only one). */
   controls?: string
   children?: ReactNode
 }
@@ -35,7 +35,7 @@ export function panelId(prefix: string, id: string): string {
   return `${prefix}-panel-${id}`
 }
 
-/** Índice siguiente según la tecla (null si la tecla no mueve el foco). */
+/** Next index according to the key (null if the key does not move focus). */
 export function nextTabIndex(key: string, index: number, count: number): number | null {
   if (count <= 0) return null
   if (key === 'ArrowRight' || key === 'ArrowDown') return (index + 1) % count
@@ -45,10 +45,10 @@ export function nextTabIndex(key: string, index: number, count: number): number 
   return null
 }
 
-/** Ancho del difuminado del borde (px): la pestaña activa se lleva fuera de él. */
+/** Width of the edge fade (px): the active tab is moved out of it. */
 export const TAB_EDGE_FADE = 28
 
-/** ¿Quedan pestañas ocultas al inicio o al final de la tira? (tolerancia de 1 px por redondeo) */
+/** Are there hidden tabs at the start or the end of the strip? (tolerance of 1 px for rounding) */
 export function overflowEdges(el: { scrollLeft: number; scrollWidth: number; clientWidth: number }): { start: boolean; end: boolean } {
   const max = el.scrollWidth - el.clientWidth
   if (max <= 1) return { start: false, end: false }
@@ -56,8 +56,8 @@ export function overflowEdges(el: { scrollLeft: number; scrollWidth: number; cli
 }
 
 /**
- * Desplazamiento horizontal que deja la pestaña `[left, right]` (relativa al borde visible de la
- * lista, de ancho `width`) fuera de los difuminados; 0 si ya se ve.
+ * Horizontal scroll offset that places tab `[left, right]` (relative to the visible edge of the
+ * list, of width `width`) outside the fades; 0 if it is already visible.
  */
 export function revealDelta(left: number, right: number, width: number, fade = TAB_EDGE_FADE): number {
   if (left < fade) return left - fade
@@ -83,7 +83,7 @@ function useOverflowEdges(list: RefObject<HTMLDivElement | null>, count: number,
       observer?.disconnect()
     }
   }, [list, count])
-  // Solo desplaza la tira (scrollIntoView movería también la hoja o el riel).
+  // Only scrolls the strip (scrollIntoView would also move the sheet or the rail).
   useEffect(() => {
     const el = list.current
     const tab = el ? document.getElementById(activeId) : null
@@ -118,7 +118,7 @@ export function TabList<T extends string>({ idPrefix, label, items, active, onCh
           role="tab"
           id={tabId(idPrefix, item.id)}
           aria-selected={item.id === active}
-          // Solo se renderiza el panel activo: las pestañas inactivas no apuntan a un id inexistente.
+          // Only the active panel is rendered: inactive tabs do not point to a nonexistent id.
           aria-controls={controls ?? (item.id === active ? panelId(idPrefix, item.id) : undefined)}
           aria-label={item.ariaLabel}
           tabIndex={item.id === active ? 0 : -1}

@@ -1,99 +1,99 @@
-# IA verificada — producción y antecedentes de dev
+# Verified AI — production and dev background
 
-## Producción — 2026-11-15
+## Production — 2026-11-15
 
-La entrega `7e8c779` se publicó desde main y pasó las dos operaciones reales de Anthropic desde `https://analogos.vercel.app/`, incluida geología AR6. Exportación validada y reconstruida idéntica: `submission/evidence/production-geology-export.json`. Procedencia, Actions y alcance de verificación en [PRODUCTION_RELEASE.md](PRODUCTION_RELEASE.md). Los bloques de dev que siguen son antecedentes, no la versión actual de producción.
+Delivery `7e8c779` was published from main and passed the two real Anthropic operations from `https://analogos.vercel.app/`, including AR6 geology. Export validated and rebuilt identically: `submission/evidence/production-geology-export.json`. Provenance, Actions and verification scope in [PRODUCTION_RELEASE.md](PRODUCTION_RELEASE.md). The dev blocks that follow are background, not the current production version.
 
-## Integración Explorar/Misión — Codex, 2026-11-15
+## Explore/Mission integration — Codex, 2026-11-15
 
-**Cierre final publicado:** código `9c183fb8cc5d8adbc717f931efd64bf877ddb0b0`, [Actions 43681551867 correcto](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43681551867), incluyendo arranque aislado de la función empaquetada y alias fijo. Desde una pestaña nueva de dev se repitió AR6 → Evaluar este sector → Enviar: conserva recorrido y geometría. Se repitieron las dos llamadas reales de Anthropic, sin respuestas simuladas.
+**Final published closure:** code `9c183fb8cc5d8adbc717f931efd64bf877ddb0b0`, [Actions 43681551867 successful](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43681551867), including isolated startup of the packaged function and fixed alias. From a new dev tab, AR6 → Evaluate this sector → Submit was repeated: it preserves the route and geometry. The two real Anthropic calls were repeated, with no simulated responses.
 
-- Borrador final: `req_011Ch4ApuLtToXEojFVFZVG5`, `2026-11-15T05:35:08.907Z`, `claude-sonnet-5-5`, 2229/1637 tokens, `end_turn`. Seis requisitos sin confirmar; confirmación explícita y una sola ventana AR6 priorizada.
-- Explicación/geología final: `req_011Ch4Auogxy1aMjkFPPkkB5`, `2026-11-15T05:36:08.544Z`, mismo modelo, 7521/354 tokens, `end_turn`. Tres referencias válidas: caracterizar material superficial de Galán y depósitos aluviales/coluviales, más reconocer diversidad litológica de Galán. La selección puede variar; las unidades y textos se resuelven contra el catálogo cerrado y el resultado determinista permanece igual.
-- `submission/evidence/integration-final-dev-geology-export.json`: validación sin incidencias y reconstrucción idéntica con snapshot/contexto oficiales. SHA-256 `e1d5ffcf461af972a2422423b8da6ec2eeeb953e992360fee3caed07cbaaa653`. Captura `submission/assets/analogos-integration-final-dev.png`.
-- El checkpoint posterior solo incorpora documentación y evidencia con `[skip ci]`; no altera el código desplegado ni requiere regenerar el ZIP.
+- Final draft: `req_011Ch4ApuLtToXEojFVFZVG5`, `2026-11-15T05:35:08.907Z`, `claude-sonnet-5-5`, 2229/1637 tokens, `end_turn`. Six unconfirmed requirements; explicit confirmation and a single prioritized AR6 window.
+- Final explanation/geology: `req_011Ch4Auogxy1aMjkFPPkkB5`, `2026-11-15T05:36:08.544Z`, same model, 7521/354 tokens, `end_turn`. Three valid references: characterize Galán surface material and alluvial/colluvial deposits, plus recognize Galán lithological diversity. The selection may vary; the units and texts are resolved against the closed catalog and the deterministic result remains the same.
+- `submission/evidence/integration-final-dev-geology-export.json`: validation with no issues and identical rebuild with official snapshot/context. SHA-256 `e1d5ffcf461af972a2422423b8da6ec2eeeb953e992360fee3caed07cbaaa653`. Screenshot `submission/assets/analogos-integration-final-dev.png`.
+- The later checkpoint only adds documentation and evidence with `[skip ci]`; it does not alter the deployed code or require regenerating the ZIP.
 
-### Prueba inicial sobre la integración de Gus
+### Initial test on Gus's integration
 
-Sobre `dd625b4` desplegado ([Actions 43678787020](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43678787020)), se probaron realmente **las dos operaciones de Anthropic desde la nueva interfaz**, con geología activada en la explicación. Brief sintético, seis requisitos propuestos sin confirmar, confirmación humana explícita de prueba, una ventana AR6 evaluada y tres referencias geológicas SEGEMAR seleccionadas. Ningún cambio de números, estados ni orden por la IA.
+On the deployed `dd625b4` ([Actions 43678787020](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43678787020)), **both Anthropic operations from the new interface** were actually tested, with geology enabled in the explanation. Synthetic brief, six proposed requirements left unconfirmed, explicit human test confirmation, one AR6 window evaluated and three SEGEMAR geological references selected. No change to numbers, statuses or order by the AI.
 
-- Borrador: `req_011Ch49r2xSqLrAHSpZDFz6w`, `2026-11-15T05:22:19.635Z`, `claude-sonnet-5-5`, tokens 2229/1842.
-- Explicación/geología: `req_011Ch49vXptJHdQhMzJSRTMq`, `2026-11-15T05:23:11.255Z`, mismo modelo, tokens 7536/374.
-- Ambas respuestas `end_turn`. Exportación `submission/evidence/integration-dev-geology-export.json`, validada con `validateAnyMissionExport` y reconstruida idéntica con `buildMissionGeologyExport` y datos oficiales. Captura `submission/assets/analogos-integration-dev.png`.
-- La revisión corrigió aparte la pérdida de alcance al enviar el brief desde el dock; no cambió el motor, el cliente de IA ni el servidor. Alcance de aceptación y pendientes en `docs/CODEX_INTEGRATION_REVIEW.md`.
+- Draft: `req_011Ch49r2xSqLrAHSpZDFz6w`, `2026-11-15T05:22:19.635Z`, `claude-sonnet-5-5`, tokens 2229/1842.
+- Explanation/geology: `req_011Ch49vXptJHdQhMzJSRTMq`, `2026-11-15T05:23:11.255Z`, same model, tokens 7536/374.
+- Both responses `end_turn`. Export `submission/evidence/integration-dev-geology-export.json`, validated with `validateAnyMissionExport` and rebuilt identically with `buildMissionGeologyExport` and official data. Screenshot `submission/assets/analogos-integration-dev.png`.
+- The review separately fixed the loss of scope when sending the brief from the dock; it did not change the engine, the AI client or the server. Acceptance scope and pending items in `docs/CODEX_INTEGRATION_REVIEW.md`.
 
-Los bloques siguientes conservan los resultados de sus respectivas versiones; no describen el número de pruebas ni el ZIP vigente.
+The following blocks preserve the results of their respective versions; they do not describe the current number of tests or the current ZIP.
 
-## M10 — publicación y comprobación remota final (Codex, 2026-11-14 America/Santiago)
+## M10 — final publication and remote verification (Codex, 2026-11-14 America/Santiago)
 
-**Completado, revisado y publicado en dev.** Implementación de Claude bajo encargo; revisión, devoluciones, correcciones y aceptación de Codex. Código `4708b42b4bd152dca74d3e009f233a910e458d8b`; [Actions correcto](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43665786554); [dev](https://analogos-dev.vercel.app/); deployment https://analogos-5plfynboc-pruebas-730d0f41.vercel.app. El checkpoint documental posterior usa `[skip ci]` y conserva este código desplegado. Esta entrega no modificó main, secretos ni protección Vercel.
+**Completed, reviewed and published in dev.** Implementation by Claude on assignment; review, returns, corrections and acceptance by Codex. Code `4708b42b4bd152dca74d3e009f233a910e458d8b`; [Actions successful](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43665786554); [dev](https://analogos-dev.vercel.app/); deployment https://analogos-5plfynboc-pruebas-730d0f41.vercel.app. The later documentation checkpoint uses `[skip ci]` and preserves this deployed code. This delivery did not modify main, secrets or Vercel protection.
 
-- La función Vercel real pasó el control aislado: dos entradas filePathMap materializadas; snapshot/contratos/geología cargan y validan; casos de ausencia/corrupción correctos antes de publicar.
-- Prueba real desde Chrome en dev, sector AR6 (`ar-win-s2580-w06710`), brief sintético de movilidad/reconocimiento geológico, pendiente regional ≤9° y preferencia no vegetada ≥95 %. El único sector evaluado quedó priorizado; tracción y factibilidad territorial pendientes. Son umbrales de demostración, no recomendaciones operativas.
-- Anthropic eligió tres referencias válidas: caracterizar material superficial en Complejo volcánico Galán y depósitos aluviales/coluviales, más comprobar correspondencia mapa–terreno del primero. Fuente SEGEMAR 1:250.000, cobertura 100 %, límites y enlace oficial visibles. Ningún cambio de evaluación, valores ni ranking.
-- Exportación descargada: `submission/evidence/m10-dev-geology-export.json`. Validada con `validateAnyMissionExport` y reconstruida idéntica con `buildMissionGeologyExport`, snapshot y contexto oficiales. Captura: `submission/assets/analogos-m10-dev.jpg`.
-- Procedencia: modelo `claude-sonnet-5-5`, `2026-11-15T02:02:57.957Z`, request `req_011Ch3teqxMdwPrJqPCngjWE`, tokens 6795/719, `end_turn`. Esta evidencia prueba la respuesta aceptada; no registra si se requirió el reintento interno ni agrega su consumo.
-- Verificación final: **316 Python, 332 web**, typecheck/build correctos. Dos objetivos reales finales contrastantes: movilidad y muestreo, 12 referencias válidas cada uno, propósitos distintos (`submission/evidence/m10-live-geology-evidence.json`). Tres consultas AR6 locales correctas; regresión M8/M9 y repros de integridad correctos; 33 archivos protegidos intactos.
-- ZIP vigente: **31 entradas, 13.255.407 bytes**, SHA-256 `f76a905564f69737e763724da8467aff45dff1177e269a188a60da35807eb122`, repetido idéntico. QA local offline/subcarpeta/ausencia de geología/móvil 390px/teclado documentado en `docs/CODEX_M10_REVIEW.md`; las últimas modificaciones solo añaden recuperación del servidor y motivos tipados de rechazo compartidos, sin cambiar el recorrido ni los datos.
+- The real Vercel function passed the isolated check: two filePathMap entries materialized; snapshot/contracts/geology load and validate; absence/corruption cases correct before publishing.
+- Real test from Chrome on dev, AR6 sector (`ar-win-s2580-w06710`), synthetic mobility/geological reconnaissance brief, regional slope ≤9° and non-vegetated preference ≥95 %. The only sector evaluated was prioritized; traction and territorial feasibility pending. These are demonstration thresholds, not operational recommendations.
+- Anthropic chose three valid references: characterize surface material in the Galán volcanic complex and alluvial/colluvial deposits, plus verify map–terrain correspondence of the former. SEGEMAR source 1:250.000, coverage 100 %, limits and official link visible. No change to evaluation, values or ranking.
+- Export downloaded: `submission/evidence/m10-dev-geology-export.json`. Validated with `validateAnyMissionExport` and rebuilt identically with `buildMissionGeologyExport`, official snapshot and context. Screenshot: `submission/assets/analogos-m10-dev.jpg`.
+- Provenance: model `claude-sonnet-5-5`, `2026-11-15T02:02:57.957Z`, request `req_011Ch3teqxMdwPrJqPCngjWE`, tokens 6795/719, `end_turn`. This evidence proves the accepted response; it does not record whether the internal retry was required nor add its consumption.
+- Final verification: **316 Python, 332 web**, typecheck/build correct. Two contrasting final real objectives: mobility and sampling, 12 valid references each, distinct purposes (`submission/evidence/m10-live-geology-evidence.json`). Three local AR6 queries correct; M8/M9 regression and integrity repros correct; 33 protected files intact.
+- Current ZIP: **31 entries, 13.255.407 bytes**, SHA-256 `f76a905564f69737e763724da8467aff45dff1177e269a188a60da35807eb122`, repeated identically. Local QA offline/subfolder/absence of geology/mobile 390px/keyboard documented in `docs/CODEX_M10_REVIEW.md`; the latest changes only add server recovery and shared typed rejection reasons, without changing the route or the data.
 
-Antes de esta publicación, el modelo excedió el tope de tres referencias por sector en AR6. Se mantuvo el rechazo y se agregó una única segunda llamada con recordatorio controlado, mismos hechos y validación completa, dentro del plazo total. Si vuelve a fallar, la app conserva el resultado manual. No se amplían topes ni se recorta la salida. Los fallos iniciales de empaquetado quedaron resueltos antes de actualizar el alias.
+Before this publication, the model exceeded the cap of three references per sector in AR6. The rejection was kept and a single second call was added with a controlled reminder, the same facts and full validation, within the total time limit. If it fails again, the app keeps the manual result. Caps are not raised and the output is not trimmed. The initial packaging failures were resolved before updating the alias.
 
-Límites: siete sectores del piloto; orientación de reconocimiento, sin validación geológica de campo, score litológico, tracción medida ni autorización de acceso. En M10 se probó remotamente la explicación con geología; la prueba remota de generación de borrador permanece como antecedente M9, no se atribuye una nueva ejecución a M10. La inspección de impresión nativa sigue pendiente. Claude queda sin nueva asignación.
+Limits: seven pilot sectors; reconnaissance guidance, without field geological validation, lithological score, measured traction or access authorization. In M10 the explanation with geology was tested remotely; the remote draft-generation test remains as M9 background, and no new execution is attributed to M10. Native print inspection is still pending. Claude is left without a new assignment.
 
-## Antecedente M9 — publicación y regresión remota
+## M9 background — publication and remote regression
 
-**M9 completado y publicado en dev.** Código `34e76b9734efab2428013a13c6d0defb8d85d8f4`, Actions correcto: https://github.com/Esteban12-hori/AnalogOS/actions/runs/43658989969. Deploy https://analogos-nmyfr42k8-pruebas-730d0f41.vercel.app, alias https://analogos-dev.vercel.app/. El checkpoint posterior agrega solo documentos/evidencia con `[skip ci]` y conserva ese código desplegado. Main no cambió.
+**M9 completed and published in dev.** Code `34e76b9734efab2428013a13c6d0defb8d85d8f4`, Actions successful: https://github.com/Esteban12-hori/AnalogOS/actions/runs/43658989969. Deploy https://analogos-nmyfr42k8-pruebas-730d0f41.vercel.app, alias https://analogos-dev.vercel.app/. The later checkpoint adds only documents/evidence with `[skip ci]` and preserves that deployed code. Main did not change.
 
-- La función realmente empaquetada pasó el control de arranque (módulos/snapshot/contratos, GET 405 y POST sin clave 503). Se mantuvieron protección Vercel y configuración de credenciales.
-- Geología en dev: Chile 99,4 %, Argentina 100 % y referencia Yungay 99,1 % observados; unidades y escala correctas. Exportación argentina descargada y validada, idéntica a la reconstruida desde el paquete: `submission/evidence/m9-dev-geology-export.json`.
-- Regresión IA real: brief sintético con pendiente mediana regional ≤ 2,3°, preferencia no vegetada ≥ 95 %, permisos pendientes. Anthropic propuso tres requisitos editables; confirmación explícita y evaluación priorizaron una de siete áreas. La explicación destacó motivos existentes sin alterar números ni exclusiones. Permisos y factibilidad quedaron pendientes.
-- JSON de IA descargado desde dev, contrato validado y evaluación recalculada idéntica; reconstrucción completa con `buildMissionExport` también idéntica. Evidencia: `submission/evidence/m9-dev-ai-export.json`.
-- Borrador: `claude-sonnet-5-5`, `2026-11-15T00:38:32.854Z`, request `req_011Ch3nDHnwnQR73oKU4vndZ`, tokens 2177/1010, `end_turn`.
-- Explicación: `claude-sonnet-5-5`, `2026-11-15T00:39:27.098Z`, request `req_011Ch3nHb48fJE7MMfz5V45L`, tokens 5792/460, `end_turn`.
-- Capturas: `submission/assets/analogos-m9-dev.jpg` y `analogos-m9-dev-ai.jpg`. La IA sigue usando exclusivamente el motor/evidencia M8; no consume el nuevo contexto geológico.
+- The actually packaged function passed the startup check (modules/snapshot/contracts, GET 405 and POST without key 503). Vercel protection and credential configuration were kept.
+- Geology in dev: Chile 99,4 %, Argentina 100 % and Yungay reference 99,1 % observed; units and scale correct. Argentine export downloaded and validated, identical to the one rebuilt from the package: `submission/evidence/m9-dev-geology-export.json`.
+- Real AI regression: synthetic brief with regional median slope ≤ 2,3°, non-vegetated preference ≥ 95 %, permits pending. Anthropic proposed three editable requirements; explicit confirmation and evaluation prioritized one of seven areas. The explanation highlighted existing reasons without altering numbers or exclusions. Permits and feasibility remained pending.
+- AI JSON downloaded from dev, contract validated and evaluation recomputed identically; full rebuild with `buildMissionExport` also identical. Evidence: `submission/evidence/m9-dev-ai-export.json`.
+- Draft: `claude-sonnet-5-5`, `2026-11-15T00:38:32.854Z`, request `req_011Ch3nDHnwnQR73oKU4vndZ`, tokens 2177/1010, `end_turn`.
+- Explanation: `claude-sonnet-5-5`, `2026-11-15T00:39:27.098Z`, request `req_011Ch3nHb48fJE7MMfz5V45L`, tokens 5792/460, `end_turn`.
+- Screenshots: `submission/assets/analogos-m9-dev.jpg` and `analogos-m9-dev-ai.jpg`. The AI still uses exclusively the M8 engine/evidence; it does not consume the new geological context.
 
-Aceptado por Codex tras revisar la implementación de Claude y corregir la presentación final. Claude queda sin nueva asignación. No se afirma validación de campo, exactitud absoluta ni ausencia universal de defectos; las pruebas cubren el alcance M9 y sus regresiones observadas.
+Accepted by Codex after reviewing Claude's implementation and correcting the final presentation. Claude is left without a new assignment. Field validation, absolute accuracy or universal absence of defects are not claimed; the tests cover the M9 scope and its observed regressions.
 
-## Antecedente M8 — 2026-11-14
+## M8 background — 2026-11-14
 
-**Resultado: publicado y comprobado.** Dan autorizó subir M8 a dev y probar allí la IA. Codex realizó la entrega, corrigió el fallo detectado en la primera publicación y verificó ambas operaciones desde Chrome con la sesión autorizada de Vercel.
+**Result: published and verified.** Dan authorized uploading M8 to dev and testing the AI there. Codex carried out the delivery, fixed the failure detected in the first publication and verified both operations from Chrome with the authorized Vercel session.
 
-- URL del equipo: https://analogos-dev.vercel.app/
-- Código desplegado: `9060970ecf71e3c68f7b11a8d220e37e49057dc8`.
-- Actions final, correcto: https://github.com/Esteban12-hori/AnalogOS/actions/runs/43639834860
+- Team URL: https://analogos-dev.vercel.app/
+- Deployed code: `9060970ecf71e3c68f7b11a8d220e37e49057dc8`.
+- Final Actions, successful: https://github.com/Esteban12-hori/AnalogOS/actions/runs/43639834860
 - Deployment: `dpl_Ar1mb5AXiyviiCaBbWmAFPvWmAvE`, https://analogos-op5lhed43-pruebas-730d0f41.vercel.app/
-- El checkpoint posterior solo agrega documentación y evidencia; usa `[skip ci]` para conservar este despliegue ya comprobado. Main y producción no se publicaron.
+- The later checkpoint only adds documentation and evidence; it uses `[skip ci]` to preserve this already verified deployment. Main and production were not published.
 
-## Prueba real de extremo a extremo
+## Real end-to-end test
 
-Entrada sintética: ensayo de navegación autónoma de rover marciano, mediana de pendiente regional de la ventana completa ≤ 2,3°, preferencia de superficie no vegetada ≥ 95 % y verificación pendiente de permisos de acceso.
+Synthetic input: autonomous navigation test of a Martian rover, regional slope median of the full window ≤ 2,3°, non-vegetated surface preference ≥ 95 % and pending verification of access permits.
 
-1. «Proponer requisitos con IA» devolvió tres requisitos editables con citas del brief, sin confirmarlos automáticamente. Conservó permisos como no medidos.
-2. La confirmación mostró valores/unidades/escala efectivos. La evaluación priorizó `cl-win-s2500-w06970` y descartó los otros seis por incumplir la pendiente requerida; mantuvo comparación parcial y factibilidad territorial pendiente.
-3. «Destacar motivos con IA» devolvió una selección válida de motivos calculados; mostró incumplimientos, permisos pendientes y verificaciones. No cambió valores, estados ni ranking.
-4. Se descargó el JSON desde dev. Codex validó su contrato, recalculó la evaluación localmente y comprobó igualdad exacta, huella y selección de motivos. Conserva ambas procedencias de Anthropic.
+1. "Propose requirements with AI" returned three editable requirements with citations from the brief, without confirming them automatically. It kept permits as unmeasured.
+2. The confirmation showed the effective values/units/scale. The evaluation prioritized `cl-win-s2500-w06970` and discarded the other six for failing the required slope; it kept partial comparison and territorial feasibility pending.
+3. "Highlight reasons with AI" returned a valid selection of calculated reasons; it showed failures, pending permits and verifications. It did not change values, statuses or ranking.
+4. The JSON was downloaded from dev. Codex validated its contract, recomputed the evaluation locally and verified exact equality, fingerprint and selection of reasons. It preserves both Anthropic provenances.
 
-| Operación | Fecha UTC | Modelo | Request ID | Tokens entrada/salida |
+| Operation | UTC date | Model | Request ID | Input/output tokens |
 |---|---|---|---|---|
-| Borrador | 2026-11-14T20:54:49.557Z | claude-sonnet-5-5 | `req_011Ch3V9sX8XWfnCFHCehTem` | 2166 / 870 |
-| Explicación | 2026-11-14T20:55:30.448Z | claude-sonnet-5-5 | `req_011Ch3VD7AVeY7uEpeKT9i9e` | 5751 / 461 |
+| Draft | 2026-11-14T20:54:49.557Z | claude-sonnet-5-5 | `req_011Ch3V9sX8XWfnCFHCehTem` | 2166 / 870 |
+| Explanation | 2026-11-14T20:55:30.448Z | claude-sonnet-5-5 | `req_011Ch3VD7AVeY7uEpeKT9i9e` | 5751 / 461 |
 
-Ambas finalizaron con `end_turn`. Exportación completa del ejemplo: `submission/evidence/m8-dev-ai-export.json`. Captura: `submission/assets/analogos-m8-dev-ai.png`. El observador automático de descarga agotó su espera; el navegador sí había guardado el archivo, recuperado del disco y validado. No se atribuye ese timeout a la aplicación.
+Both finished with `end_turn`. Full export of the example: `submission/evidence/m8-dev-ai-export.json`. Screenshot: `submission/assets/analogos-m8-dev-ai.png`. The automatic download observer timed out; the browser had in fact saved the file, which was recovered from disk and validated. This timeout is not attributed to the application.
 
-## Corrección comprobada
+## Verified fix
 
-La publicación inicial `707d4b1` pasó build/deploy pero la función terminó con `ERR_REQUIRE_ESM`: el servidor CommonJS requería código del paquete ESM anidado de la web. Se extrajo la única implementación del motor y los validadores a `shared/`; la web conserva reexports y el servidor importa directamente ese núcleo. Sin cambios de reglas, datos ni dependencias.
+The initial publication `707d4b1` passed build/deploy but the function ended with `ERR_REQUIRE_ESM`: the CommonJS server required code from the web's nested ESM package. The single implementation of the engine and the validators was extracted to `shared/`; the web keeps re-exports and the server imports that core directly. No changes to rules, data or dependencies.
 
-El workflow ahora ejecuta `scripts/check-vercel-function.mjs` contra la función realmente empaquetada antes de desplegar. Comprueba carga de módulos, snapshot y contratos, respuesta GET 405 y POST sin clave 503. Pasó en Actions y en compilación Node local. El typecheck del servidor usa NodeNext.
+The workflow now runs `scripts/check-vercel-function.mjs` against the actually packaged function before deploying. It checks module loading, snapshot and contracts, the GET response 405 and POST without a key 503. It passed in Actions and in a local Node build. The server typecheck uses NodeNext.
 
-## Configuración y verificación final
+## Configuration and final verification
 
-- `ANTHROPIC_API_KEY` se guarda en GitHub Secrets y se inyecta únicamente en runtime de dev mediante el workflow. No aparece en Git, bundle, ZIP ni evidencia. La clave no se incorpora al build.
-- La protección existente de Vercel permanece activa; las pruebas usaron la sesión autorizada. No se deshabilitó ni se publicaron credenciales de acceso.
-- Pruebas tras la corrección: 177 Python, 196 web (+2 pruebas reales opt-in omitidas por defecto), typecheck y build correctos. Las llamadas reales remotas anteriores complementan esa suite.
-- Los 38 hashes del baseline científico, visual, configuración y contratos existentes siguen intactos.
-- ZIP final: 30 entradas, 12.987.707 bytes, SHA-256 `eacf5dce441763b2c5e21d2aa2d75fe88130cccfeafb098c72e73bba1f2bd32f`. Empaquetado repetido idéntico y entradas cotejadas con dist.
+- `ANTHROPIC_API_KEY` is stored in GitHub Secrets and injected only into the dev runtime through the workflow. It does not appear in Git, the bundle, the ZIP or the evidence. The key is not incorporated into the build.
+- Existing Vercel protection remains active; the tests used the authorized session. It was not disabled and no access credentials were published.
+- Tests after the fix: 177 Python, 196 web (+2 real opt-in tests skipped by default), typecheck and build correct. The earlier real remote calls complement that suite.
+- The 38 hashes of the existing scientific baseline, visual baseline, configuration and contracts remain intact.
+- Final ZIP: 30 entries, 12.987.707 bytes, SHA-256 `eacf5dce441763b2c5e21d2aa2d75fe88130cccfeafb098c72e73bba1f2bd32f`. Repeated packaging is identical and entries were checked against dist.
 
-Reproducción local: `source .venv/bin/activate && npm run verify`; `npm run release:package`. Para repetir la prueba remota, abrir dev con acceso autorizado, definir el ejemplo, generar requisitos, confirmar/evaluar, destacar motivos y descargar JSON. Cada acción de IA realiza una llamada real.
+Local reproduction: `source .venv/bin/activate && npm run verify`; `npm run release:package`. To repeat the remote test, open dev with authorized access, define the example, generate requirements, confirm/evaluate, highlight reasons and download JSON. Each AI action makes a real call.
 
-La disponibilidad comprobada corresponde a esta configuración y fecha. Se mantienen los límites científicos de M8: siete áreas, perfil rover/Jezero, sin adquisición para polígonos nuevos ni permisos de terreno. La inspección visual de impresión nativa sigue pendiente y no afecta estas dos operaciones de IA.
+The verified availability corresponds to this configuration and date. The scientific limits of M8 are maintained: seven areas, rover/Jezero profile, no acquisition for new polygons and no terrain permissions. Visual inspection of native printing remains pending and does not affect these two AI operations.

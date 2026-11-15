@@ -1,4 +1,4 @@
-/* features/analysis · chunk principal: píldora, esqueleto estático y fragmentos ✦. Sin blur (§2.4). */
+/* features/analysis · main chunk: pill, static skeleton and ✦ fragments. No blur (§2.4). */
 .analysis-pill-wrap { position: relative; display: grid; justify-items: start; gap: 8px; }
 .analysis-pill {
   display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px;
@@ -14,10 +14,10 @@
 .analysis-pill[aria-expanded="true"] .analysis-pill-caret { transform: rotate(180deg); }
 .analysis-pop {
   width: min(360px, calc(100vw - 2 * var(--gap, 12px)));
-  /* Termina sobre el dock: barra superior + píldora (≈40 px) + dock + márgenes. */
+  /* Ends above the dock: top bar + pill (≈40 px) + dock + margins. */
   max-height: min(640px, calc(100dvh - var(--chrome-top, 74px) - var(--dock-h, 256px) - 4 * var(--gap, 12px) - 40px));
   overflow: auto; overscroll-behavior: contain; padding: 14px 16px;
-  /* Opaco: el texto del escenario no se transparenta bajo la lectura (sin blur, §2.4). */
+  /* Opaque: the stage text does not show through beneath the reading (no blur, §2.4). */
   border: 1px solid var(--line-strong); border-radius: 16px; background: var(--navy-2, #050E15);
   box-shadow: 0 24px 60px -30px rgba(0, 0, 0, .9);
   animation: analysis-pop-in var(--dur-3) var(--ease-sheet) both;
@@ -28,7 +28,7 @@
 .analysis-skeleton { display: grid; gap: 8px; padding-left: 10px; border-left: 2px solid var(--ai-rule); }
 .analysis-skeleton-title { margin: 0; color: var(--muted); font-family: var(--mono); font-size: var(--fs-caps); letter-spacing: var(--caps-tracking); text-transform: uppercase; }
 .analysis-skeleton-label { margin: 0; color: var(--muted); font-size: var(--fs-13); }
-/* Esqueleto ESTÁTICO: sin barrido ni bucle (§2.2 regla 2). */
+/* STATIC skeleton: no sweep or loop (§2.2 rule 2). */
 .analysis-skeleton-bar { display: block; height: 10px; width: 100%; border-radius: 4px; background: var(--line-strong); }
 .analysis-skeleton-bar.is-short { width: 62%; }
 

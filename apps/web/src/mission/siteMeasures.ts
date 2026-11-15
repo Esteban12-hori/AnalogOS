@@ -10,7 +10,7 @@ export interface SiteMeasure {
   scale_note: string
 }
 
-/** Medidas del snapshot para un sector (independientes de los requisitos). Solo lee; no calcula nada nuevo. */
+/** Snapshot measures for a sector (independent of the requirements). Read-only; does not compute anything new. */
 export function siteMeasures(site: CandidateSite): SiteMeasure[] {
   return METRIC_IDS.map((id) => {
     const spec = METRICS[id]

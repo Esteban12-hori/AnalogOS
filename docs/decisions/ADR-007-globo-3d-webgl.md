@@ -1,23 +1,23 @@
-# ADR-007 — Globo terrestre 3D (three.js) con mapa SVG como fallback
+# ADR-007 — 3D Globe (three.js) with SVG map as fallback
 
-- Estado: aceptado por el equipo humano (2026-11-14, decisión directa del usuario, sin revisión de Codex). Renumerado desde ADR-004 para no colisionar con `ADR-004-portable-static-release.md`.
-- Fecha: 2026-11-14
+- Status: accepted by the human team (2026-11-14, direct decision by the user, without Codex review). Renumbered from ADR-004 to avoid colliding with `ADR-004-portable-static-release.md`.
+- Date: 2026-11-14
 
-## Contexto
+## Context
 
-El rediseño visual pide reemplazar el mapa plano por un planeta 3D (referencia: componente `Globe3D` con React Three Fiber, textura NASA Blue Marble, relieve y atmósfera). El stack P0 congelado no incluye three.js y ADR-001 eligió SVG porque WebGL falló en el navegador de presentación.
+The visual redesign calls for replacing the flat map with a 3D planet (reference: `Globe3D` component with React Three Fiber, NASA Blue Marble texture, relief and atmosphere). The frozen P0 stack does not include three.js, and ADR-001 chose SVG because WebGL failed in the presentation browser.
 
-## Decisión
+## Decision
 
-1. Añadir `three`, `@react-three/fiber` y `@react-three/drei` a `apps/web`. Sin Tailwind ni design system: estilos en `components/CandidateGlobe.css`.
-2. El globo es la vista por defecto **solo si** el navegador crea un contexto WebGL. Si no hay WebGL, si el componente lanza un error o si se pierde el contexto, la app vuelve sola al mapa SVG de ADR-001. El usuario puede alternar «Globo 3D / Mapa 2D» en todo momento.
-3. Texturas versionadas en `apps/web/src/assets/globe/` (NASA Blue Marble 4096×2048 y relieve 2048×1024, dominio público; copia de `three-globe@2.31.0/example/img`). Sin CDN: la demo sigue funcionando offline.
-4. three.js se carga con `React.lazy` en un chunk aparte (~970 kB, ~260 kB gzip). El bundle inicial no cambia (~395 kB).
-5. Los candidatos se dibujan como **polígonos** sobre la esfera, nunca como pins. El rótulo se ancla al centro aproximado del polígono con una línea guía; es un `<button>` accesible por teclado.
-6. Las funciones geométricas (`latLngToVec3`, `densifyRing`, `geometryCenter`, `facingFactor`) son puras, viven en `src/domain/globe.ts` y tienen tests.
+1. Add `three`, `@react-three/fiber` and `@react-three/drei` to `apps/web`. No Tailwind or design system: styles in `components/CandidateGlobe.css`.
+2. The globe is the default view **only if** the browser creates a WebGL context. If there is no WebGL, if the component throws an error or if the context is lost, the app automatically falls back to the SVG map from ADR-001. The user can switch between "3D Globe / 2D Map" at any time.
+3. Textures are versioned in `apps/web/src/assets/globe/` (NASA Blue Marble 4096×2048 and relief 2048×1024, public domain; copy of `three-globe@2.31.0/example/img`). No CDN: the demo keeps working offline.
+4. three.js is loaded with `React.lazy` in a separate chunk (~970 kB, ~260 kB gzip). The initial bundle does not change (~395 kB).
+5. Candidates are drawn as **polygons** on the sphere, never as pins. The label is anchored to the approximate center of the polygon with a guide line; it is a keyboard-accessible `<button>`.
+6. The geometric functions (`latLngToVec3`, `densifyRing`, `geometryCenter`, `facingFactor`) are pure, live in `src/domain/globe.ts` and have tests.
 
-## Consecuencias
+## Consequences
 
-- La vista es más comunicativa, pero la textura (~10 km/píxel) se pixela al acercarse: el globo ubica las zonas, no sirve para inspección a escala de sitio.
-- El fallback SVG queda como ruta garantizada para equipos sin aceleración gráfica.
-- El `Html` de drei no puede ser fallback de `Suspense` con React 19 (lanza `removeChild` al retirarse); se usa un overlay DOM.
+- The view is more communicative, but the texture (~10 km/pixel) becomes pixelated when zooming in: the globe locates the zones, and is not suitable for site-scale inspection.
+- The SVG fallback remains as the guaranteed path for machines without graphics acceleration.
+- The drei `Html` cannot be the fallback of `Suspense` with React 19 (it throws `removeChild` when removed); a DOM overlay is used.

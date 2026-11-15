@@ -1,116 +1,116 @@
-# Geología oficial en AnalogOS: valor, esfuerzo y decisión propuesta
+# Official geology in AnalogOS: value, effort and proposed decision
 
-Fecha de evaluación: 14 de noviembre de 2026. Responsable: Codex.
-Base inspeccionada: `dev`, `92392f1181133ee2b86fb6b13c97ec9b10de021d`.
-Estado: evaluación terminada; integración de producto pendiente de asignación. No se han modificado la web, el motor, la IA ni los snapshots científicos.
+Evaluation date: 14 November 2026. Owner: Codex.
+Inspected baseline: `dev`, `92392f1181133ee2b86fb6b13c97ec9b10de021d`.
+Status: evaluation completed; product integration pending assignment. The web app, the engine, the AI and the scientific snapshots have not been modified.
 
-## Dictamen
+## Verdict
 
-**Sí conviene incorporar geología oficial como contexto de reconocimiento. No conviene activar todavía un puntaje geológico ni inferir propiedades mecánicas del suelo.** El primer corte recomendado requiere aproximadamente **20–32 horas de ingeniería y revisión**, distribuidas en 3–5 jornadas según disponibilidad del equipo. Es una estimación, no una promesa de calendario ni de validación científica.
+**Yes, it is worth incorporating official geology as reconnaissance context. It is not yet advisable to activate a geological score or to infer mechanical properties of the soil.** The first recommended cut requires approximately **20–32 hours of engineering and review**, spread over 3–5 working days depending on team availability. This is an estimate, not a commitment on schedule or on scientific validation.
 
-La utilidad para el usuario actual —responsable de una campaña de robótica planetaria— es moderada y concreta: distinguir ambientes geológicos dentro de áreas que ya parecen favorables por relieve y superficie no vegetada; preparar qué inspeccionar, muestrear y contrastar en terreno. Para objetivos de muestreo o selección de análogos geológicos el potencial es mayor, pero esos perfiles aún no están soportados por AnalogOS.
+The usefulness for the current user —the person in charge of a planetary robotics campaign— is moderate and concrete: distinguishing geological settings within areas that already look favorable because of relief and non-vegetated surface; preparing what to inspect, sample and cross-check in the field. For sampling targets or the selection of geological analogs the potential is greater, but those profiles are not yet supported by AnalogOS.
 
-No resuelve hoy la pregunta «¿puede circular este rover?». Las capas inspeccionadas no contienen resistencia, cohesión, granulometría de superficie, profundidad de arena, tamaño de obstáculos ni tracción medida. Tampoco resuelven acceso, propiedad o permisos. Si el objetivo inmediato fuera organizar una campaña real, resolver acceso y restricciones territoriales tendría más impacto operativo que una explicación geológica más elaborada.
+It does not today answer the question "can this rover drive here?". The inspected layers contain no strength, cohesion, surface grain size, sand depth, obstacle size or measured traction. Nor do they resolve access, ownership or permits. If the immediate goal were to organize a real campaign, resolving access and territorial restrictions would have more operational impact than a more elaborate geological explanation.
 
-## Lo comprobado con datos reales
+## What was verified with real data
 
-No se evaluó solo la existencia de un visor. Se descargaron datos públicos, se cruzaron con los siete polígonos exactos de `science-v3` y se comprobaron consultas independientes para Argentina. No se usaron credenciales ni se llamó a Anthropic.
+Not only the existence of a viewer was evaluated. Public data were downloaded, intersected with the seven exact polygons of `science-v3` and independent queries were verified for Argentina. No credentials were used and Anthropic was not called.
 
-| Sector del producto | Fuente inicial | Escala cartográfica | Área cubierta por polígonos geológicos | Hallazgo útil |
+| Product sector | Initial source | Map scale | Area covered by geological polygons | Useful finding |
 |---|---|---:|---:|---|
-| Chile 1 · 25,0° S / 69,7° O | SERNAGEOMIN vía MMA | 1:1.000.000 | 99,4 % | Depósitos aluviales y unidades volcánicas; 5 unidades diferenciadas |
-| Chile 2 · 24,8° S / 69,5° O | SERNAGEOMIN vía MMA | 1:1.000.000 | 99,2 % | Predominio cartográfico de depósitos aluviales; 6 unidades |
-| Chile 3 · 25,2° S / 69,5° O | SERNAGEOMIN vía MMA | 1:1.000.000 | 99,3 % | Depósitos aluviales, secuencias sedimentarias y volcánicas; 6 unidades |
-| Argentina 4 · 26,2° S / 67,5° O | SEGEMAR, unidades 250K | 1:250.000 | 50,0 % | Descripciones utilizables en la mitad cubierta; 7 unidades |
-| Argentina 5 · 26,4° S / 67,3° O | SEGEMAR, unidades 250K | 1:250.000 | 0 % | Falta cobertura de esta capa; no implica ausencia de geología |
-| Argentina 6 · 25,8° S / 67,1° O | SEGEMAR, unidades 250K | 1:250.000 | 100 % aprox. | Unidades del complejo volcánico Galán y otras; 7 unidades |
-| Yungay · ventana de referencia | SERNAGEOMIN vía MMA | 1:1.000.000 | 99,1 % | Ventana mixta con unidades plutónicas y depósitos; 6 unidades |
+| Chile 1 · 25,0° S / 69,7° W | SERNAGEOMIN via MMA | 1:1.000.000 | 99,4 % | Alluvial deposits and volcanic units; 5 differentiated units |
+| Chile 2 · 24,8° S / 69,5° W | SERNAGEOMIN via MMA | 1:1.000.000 | 99,2 % | Cartographic predominance of alluvial deposits; 6 units |
+| Chile 3 · 25,2° S / 69,5° W | SERNAGEOMIN via MMA | 1:1.000.000 | 99,3 % | Alluvial deposits, sedimentary and volcanic sequences; 6 units |
+| Argentina 4 · 26,2° S / 67,5° W | SEGEMAR, 250K units | 1:250.000 | 50,0 % | Usable descriptions in the covered half; 7 units |
+| Argentina 5 · 26,4° S / 67,3° W | SEGEMAR, 250K units | 1:250.000 | 0 % | This layer has no coverage; this does not imply absence of geology |
+| Argentina 6 · 25,8° S / 67,1° W | SEGEMAR, 250K units | 1:250.000 | 100 % approx. | Units of the Galán volcanic complex and others; 7 units |
+| Yungay · reference window | SERNAGEOMIN via MMA | 1:1.000.000 | 99,1 % | Mixed window with plutonic units and deposits; 6 units |
 
-Los porcentajes expresan cobertura del mapa, **no precisión, confianza, aptitud ni porcentaje del terreno confirmado en campo**. El recuadro de Yungay representa una ventana de unos 20 km y no el perímetro exacto de una campaña histórica.
+The percentages express map coverage, **not accuracy, confidence, suitability or the percentage of terrain confirmed in the field**. The Yungay box represents a window of about 20 km and not the exact perimeter of a historical campaign.
 
-Ejemplo del valor adicional: la unidad cartográfica aluvial `Qa` ocupa aproximadamente 43–56 % de las tres ventanas chilenas; en Argentina 6 una unidad del complejo Galán descrita como ignimbrita dacítica ocupa aproximadamente 46 %. Es información distinta de pendiente o NDVI y permite preparar preguntas de reconocimiento diferentes. No demuestra que esos materiales estén expuestos en toda esa superficie.
+Example of the added value: the alluvial cartographic unit `Qa` occupies approximately 43–56 % of the three Chilean windows; in Argentina 6 a unit of the Galán complex described as dacitic ignimbrite occupies approximately 46 %. This is information distinct from slope or NDVI and makes it possible to prepare different reconnaissance questions. It does not prove that those materials are exposed across that entire surface.
 
-### Alternativas para los huecos argentinos
+### Alternatives for the Argentine gaps
 
-Se probaron dos capas adicionales por separado:
+Two additional layers were tested separately:
 
-| Capa SEGEMAR | Argentina 4 | Argentina 5 | Argentina 6 | Decisión propuesta |
+| SEGEMAR layer | Argentina 4 | Argentina 5 | Argentina 6 | Proposed decision |
 |---|---:|---:|---:|---|
-| `sigam:e1M.NOA.Geol`, 1:1.000.000 | 100 % | 47,6 % | 97,8 % | No priorizar en el primer corte: cobertura incompleta y textos con problemas de codificación |
-| `sigam:e2.5M.UnidadesGeologicas`, 1:2.500.000 | 100 % | 100 % | 100 % | Disponible como contexto nacional separado, sin rellenar silenciosamente la capa 250K |
+| `sigam:e1M.NOA.Geol`, 1:1.000.000 | 100 % | 47,6 % | 97,8 % | Do not prioritize in the first cut: incomplete coverage and texts with encoding problems |
+| `sigam:e2.5M.UnidadesGeologicas`, 1:2.500.000 | 100 % | 100 % | 100 % | Available as separate national context, without silently filling in the 250K layer |
 
-El mapa 1:2.500.000 es diez veces más general en escala lineal que el 1:250.000. Cubrir el mismo polígono con ambos no los convierte en evidencia de igual detalle. El MVP puede mostrar el hueco de la capa 250K y un enlace al contexto nacional; no necesita incorporar tres capas ni inventar una cobertura homogénea.
+The 1:2.500.000 map is ten times more general in linear scale than the 1:250.000. Covering the same polygon with both does not make them evidence of equal detail. The MVP can show the gap in the 250K layer and a link to the national context; it does not need to incorporate three layers or invent homogeneous coverage.
 
-## Fuentes, acceso y problemas reales
+## Sources, access and real problems
 
 ### Chile
 
-- [Catálogo MMA: Geología Base](https://lineasdebasepublicas.mma.gob.cl/datos_abiertos/dataset/geologia-base). Declara fuente SERNAGEOMIN, escala 1:1.000.000, EPSG:4326 y licencia CC0. La actualización del catálogo es del 21 de abril de 2026; **no se debe presentar esa fecha como fecha de levantamiento geológico**.
-- [Metadatos CKAN JSON](https://lineasdebasepublicas.mma.gob.cl/datos_abiertos/api/3/action/package_show?id=geologia-base).
-- [Recurso rotulado SHP](https://lineasdebasepublicas.mma.gob.cl/datos_abiertos/dataset/fe09e3df-c26e-41c8-bd7d-ac9605b1b0aa/resource/b4196bd6-a094-4f1e-914e-118f07df9983/download/geologia-base_shapefile.zip): descarga comprobada, **su contenido real es GeoJSON**, 5.995.050 bytes comprimidos.
-- [Recurso rotulado GeoJSON](https://lineasdebasepublicas.mma.gob.cl/datos_abiertos/dataset/fe09e3df-c26e-41c8-bd7d-ac9605b1b0aa/resource/44d0cc33-0059-4b65-88b0-f73bc46a3fdb/download/geologia-base_geojson.zip): descarga comprobada, **su contenido real es Shapefile**, 5.653.045 bytes. Las etiquetas están intercambiadas en lo descargado durante esta auditoría. Los adaptadores deben inspeccionar contenido y esquema.
-- Las geometrías de 306 registros próximos al piloto coinciden entre ambos formatos. Hay 115 geometrías nulas en el archivo nacional; no se atribuyen esas 115 a nuestros sectores.
-- En las cuatro ventanas chilenas hay aproximadamente 0,6–1,2 % de solapamiento entre unidades, además de huecos. El procesamiento debe separar área sin datos y área ambigua; sumar porcentajes de unidades sin tratar los solapamientos produce una distribución engañosa.
-- [Catálogo directo SERNAGEOMIN](https://portalsdnmext.sernageomin.cl/publicacionesgeologicas): incluye cartografía más detallada, pero no se verificó aquí una descarga vectorial directa y completa para los cuatro polígonos. El acceso directo presentó errores durante la consulta. La vía MMA sí funcionó.
+- [MMA catalog: Base Geology](https://lineasdebasepublicas.mma.gob.cl/datos_abiertos/dataset/geologia-base). It states SERNAGEOMIN as the source, scale 1:1.000.000, EPSG:4326 and a CC0 license. The catalog update is dated 21 April 2026; **that date must not be presented as the date of the geological survey**.
+- [CKAN JSON metadata](https://lineasdebasepublicas.mma.gob.cl/datos_abiertos/api/3/action/package_show?id=geologia-base).
+- [Resource labeled SHP](https://lineasdebasepublicas.mma.gob.cl/datos_abiertos/dataset/fe09e3df-c26e-41c8-bd7d-ac9605b1b0aa/resource/b4196bd6-a094-4f1e-914e-118f07df9983/download/geologia-base_shapefile.zip): download verified, **its actual content is GeoJSON**, 5.995.050 compressed bytes.
+- [Resource labeled GeoJSON](https://lineasdebasepublicas.mma.gob.cl/datos_abiertos/dataset/fe09e3df-c26e-41c8-bd7d-ac9605b1b0aa/resource/44d0cc33-0059-4b65-88b0-f73bc46a3fdb/download/geologia-base_geojson.zip): download verified, **its actual content is Shapefile**, 5.653.045 bytes. The labels are swapped in what was downloaded during this audit. Adapters must inspect content and schema.
+- The geometries of 306 records near the pilot match between both formats. There are 115 null geometries in the national file; those 115 are not attributed to our sectors.
+- In the four Chilean windows there is approximately 0,6–1,2 % overlap between units, in addition to gaps. Processing must separate no-data area from ambiguous area; summing unit percentages without handling overlaps produces a misleading distribution.
+- [SERNAGEOMIN direct catalog](https://portalsdnmext.sernageomin.cl/publicacionesgeologicas): includes more detailed cartography, but a direct, complete vector download for the four polygons was not verified here. Direct access produced errors during the query. The MMA route did work.
 
 ### Argentina
 
-- [Geoservicios SIGAM/SEGEMAR](https://sigam.segemar.gov.ar/sigam/geoservicios/): WFS para objetos vectoriales, WMS para visualización y CSW para metadatos. La página declara CC BY 4.0; conservar atribución y registrar condiciones de la capa al empaquetar la integración.
+- [SIGAM/SEGEMAR geoservices](https://sigam.segemar.gov.ar/sigam/geoservicios/): WFS for vector objects, WMS for visualization and CSW for metadata. The page declares CC BY 4.0; keep attribution and record the layer's conditions when packaging the integration.
 - [WFS GetCapabilities](https://sigam.segemar.gov.ar/geoserver217/ows?SERVICE=WFS&REQUEST=GetCapabilities).
-- Petición comprobada: base `https://sigam.segemar.gov.ar/geoserver217/ows`, `service=WFS`, `version=1.0.0`, `request=GetFeature`, `typeName=sigam:e250K_UnidadGeologica`, `bbox=-67.8,-26.5,-66.8,-25.5,EPSG:4326`, `srsName=EPSG:4326`, `outputFormat=application/json`, `maxFeatures=2000`.
-- Resultado regional: 700 entidades, `numberMatched=numberReturned=700`; no se alcanzó el límite. Campos útiles: hoja, código y nombre de unidad, descripción litológica, edades y génesis. Muchas otras columnas están vacías: no se deben convertir en hechos mediante IA.
-- Las consultas individuales devolvieron 46, 0 y 28 entidades; al recortar geometrías con área positiva quedan 44, 0 y 27. La cobertura geométrica coincide exactamente con el cruce de la consulta regional.
-- Una prueba exploratoria `resultType=hits` con WFS 1.0 devolvió cero incluso en áreas con entidades. **No usar esa respuesta para decidir ausencia**; se comprobaron las entidades GeoJSON reales y su geometría. Un conector de producción debe fijar versión, orden de ejes y controles de completitud explícitos.
-- Referencias para contrastar unidades: [Hoja Cachi](https://repositorio.segemar.gov.ar/handle/308849217/99), [Hoja Paso San Francisco](https://repositorio.segemar.gov.ar/handle/308849217/167) y [Hoja Antofalla](https://repositorio.segemar.gov.ar/handle/308849217/97). No confundir fecha de incorporación al repositorio con fecha de la publicación o del levantamiento.
+- Verified request: base `https://sigam.segemar.gov.ar/geoserver217/ows`, `service=WFS`, `version=1.0.0`, `request=GetFeature`, `typeName=sigam:e250K_UnidadGeologica`, `bbox=-67.8,-26.5,-66.8,-25.5,EPSG:4326`, `srsName=EPSG:4326`, `outputFormat=application/json`, `maxFeatures=2000`.
+- Regional result: 700 features, `numberMatched=numberReturned=700`; the limit was not reached. Useful fields: sheet, unit code and name, lithological description, ages and genesis. Many other columns are empty: they must not be turned into facts by AI.
+- The individual queries returned 46, 0 and 28 features; after clipping geometries with positive area, 44, 0 and 27. remain. The geometric coverage matches the regional query intersection exactly.
+- An exploratory `resultType=hits` test with WFS 1.0 returned zero even in areas with features. **Do not use that response to decide absence**; the actual GeoJSON features and their geometry were checked. A production connector must fix the version, axis order and explicit completeness checks.
+- References for cross-checking units: [Cachi Sheet](https://repositorio.segemar.gov.ar/handle/308849217/99), [Paso San Francisco Sheet](https://repositorio.segemar.gov.ar/handle/308849217/167) and [Antofalla Sheet](https://repositorio.segemar.gov.ar/handle/308849217/97). Do not confuse the date of incorporation into the repository with the date of publication or of the survey.
 
-## Valor para el producto y la IA
+## Value for the product and the AI
 
-1. **Contexto geológico: valor claro.** Una ficha puede mostrar qué unidades cartografiadas atraviesan la ventana, qué superficie carece de cobertura, escala, fuente y preguntas para el reconocimiento. Ayuda a justificar por qué estudiar un área.
-2. **Requisitos del ensayo: valor condicionado.** Un futuro requisito «presencia cartografiada de unidades volcánicas» sería distinto de «roca basáltica expuesta y transitable». Requiere vocabulario controlado, procedencia, escala aceptada por el usuario y reglas explícitas para cobertura parcial. No traducir uno al otro automáticamente.
-3. **Explicación con IA: mejora posterior.** Anthropic podría explicar hechos geológicos previamente validados y citar sus IDs. No debe completar huecos, convertir una categoría regional en suelo superficial, ni declarar semejanza con Jezero sin referencia planetaria compatible.
-4. **Score de analogía geológica: no habilitar ahora.** Actualmente `geologic_relevance` pesa 0,10 en el perfil, pero es `needs_calibration`, tiene calidad cero y no entra en similitud; el peso válido es 0,90. Introducir datos terrestres no basta para calibrar compatibilidad con Marte. Añadirlo exigiría otra versión científica y revisión experta; no garantiza que el ranking mejore.
+1. **Geological context: clear value.** A sheet can show which mapped units cross the window, which surface lacks coverage, the scale, the source and questions for reconnaissance. It helps justify why an area should be studied.
+2. **Test requirements: conditional value.** A future requirement "mapped presence of volcanic units" would be different from "exposed, traversable basaltic rock". It requires a controlled vocabulary, provenance, a scale accepted by the user and explicit rules for partial coverage. Do not translate one into the other automatically.
+3. **AI explanation: later improvement.** Anthropic could explain previously validated geological facts and cite their IDs. It must not fill gaps, turn a regional category into surface soil, or declare similarity to Jezero without a compatible planetary reference.
+4. **Geological analogy score: do not enable now.** Currently `geologic_relevance` weighs 0,10 in the profile, but it is `needs_calibration`, has zero quality and does not enter similarity; the valid weight is 0,90. Introducing terrestrial data is not enough to calibrate compatibility with Mars. Adding it would require another scientific version and expert review; it does not guarantee that the ranking will improve.
 
-## Alcance recomendado y esfuerzo
+## Recommended scope and effort
 
-Estimación de ingeniería con Claude implementando y Codex revisando; incluye correcciones normales, no adquisición de cartografía de pago ni revisión científica externa.
+Engineering estimate with Claude implementing and Codex reviewing; it includes normal fixes, but not the acquisition of paid cartography or external scientific review.
 
-| Trabajo del primer corte | Estimación | Resultado |
+| First-cut work | Estimate | Result |
 |---|---:|---|
-| Adaptadores de descarga y caché, metadatos y comprobación de contenido | 4–6 h | Dos fuentes públicas reproducibles, sin API en el navegador |
-| Recorte, geometrías inválidas, huecos, solapamientos y contrato separado | 6–10 h | Contexto por sector con estados explícitos y hashes |
-| Ficha geológica y exportación propia | 4–6 h | Unidades, cobertura, escala y fuente legibles; sin tocar scores |
-| Revisión independiente, pruebas de datos, modo offline y paquete | 6–10 h | Entrega revisada sin regresiones en M8 |
-| **Total** | **20–32 h** | **Primer corte útil y acotado** |
+| Download and cache adapters, metadata and content checks | 4–6 h | Two reproducible public sources, no API in the browser |
+| Clipping, invalid geometries, gaps, overlaps and separate contract | 6–10 h | Context per sector with explicit states and hashes |
+| Geological sheet and own export | 4–6 h | Legible units, coverage, scale and source; without touching scores |
+| Independent review, data tests, offline mode and package | 6–10 h | Reviewed delivery without regressions in M8 |
+| **Total** | **20–32 h** | **Useful, bounded first cut** |
 
-Una capa coloreada sobre el mapa sumaría aproximadamente 6–10 h. Incorporar geología al contexto de IA y a requisitos estructurados sería otro corte de aproximadamente 8–16 h de ingeniería, una vez revisado el vocabulario y su interpretación; el tiempo del especialista se estima aparte. No son necesarios para probar el valor inicial.
+A colored layer on the map would add approximately 6–10 h. Incorporating geology into the AI context and into structured requirements would be another cut of approximately 8–16 h of engineering, once the vocabulary and its interpretation have been reviewed; the specialist's time is estimated separately. They are not necessary to prove the initial value.
 
-No presupuestar todavía un score planetario: el trabajo decisivo sería elegir referencias de Marte, homologar escala y variables, definir compatibilidad y contrastarla con expertos. Más código o más credenciales no sustituyen ese trabajo.
+Do not budget yet for a planetary score: the decisive work would be choosing Mars references, harmonizing scale and variables, defining compatibility, and validating it with experts. More code or more credentials do not replace that work.
 
-## Integración técnica propuesta para Claude
+## Proposed technical integration for Claude
 
-Esta sección es un alcance preparado para una futura asignación, **no una orden de iniciar implementación**.
+This section is a scope prepared for a future assignment, **not an order to start implementation**.
 
-- Crear un artefacto independiente de contexto geológico, con contrato propio y vínculo al hash exacto de la geometría de cada sitio. Mantener `science-v2`, `science-v3`, perfiles, pesos y rankings byte a byte.
-- Procesar por lotes en Python. `requests` y `pyproj` ya están disponibles; probablemente basta añadir Shapely a las dependencias del pipeline. El GeoJSON chileno comprobado permite evitar GDAL/GeoPandas y un lector Shapefile en el corte inicial.
-- Datos por sitio: proveedor original y distribuidor; capa/hoja/versión; código y nombre originales; descripción original; fecha de consulta y fecha del mapa separadas; escala; cobertura, huecos y ambigüedad; geometría solicitada/procesada; transformaciones, licencia, URL y hash. Desconocidos siguen siendo nulos.
-- No usar IA para clasificar litologías en esta fase. Conservar los nombres de fuente; no presentar un vocabulario homologado como revisado por un geólogo cuando no lo está.
-- Geometrías inválidas: registrar IDs, método y efecto de reparación. Si la reparación altera de forma material el área o no produce polígonos coherentes, marcar esa evidencia como no utilizable hasta revisión. La auditoría actual es exploratoria, no aceptación automática de reparaciones.
-- Mostrar la ficha solo para su geometría exacta. Un punto dentro de una ventana o un subpolígono no hereda porcentajes agregados. Cobertura 0 es «esta capa no cubre el sector», no «sin rocas» ni «descartado».
-- Crear estado disponible/parcial/sin cobertura/error de fuente separado del estado de aptitud del ensayo. No dar una ventaja de ranking al país con cartografía más detallada.
-- Mantener la tarjeta «Geología sin calibrar» del score, explicando que puede existir contexto cartográfico sin compatibilidad planetaria calibrada.
-- Adaptar carga opcional en web, lista permitida del empaquetador y exportación geológica; si falta o falla el contexto, M8 continúa funcionando. No cambiar el esquema del informe de recomendación sin versionarlo.
-- Archivos existentes a revisar: `apps/web/src/data/loadDemoSnapshot.ts`, `apps/web/src/components/CandidateDetails.tsx`, `scripts/package_release.py` y sus pruebas. La IA quedaría para otro corte: `server/ai/facts.ts`, contratos compartidos, validación de evidencia y exportación.
-- Criterios de aceptación: siete estados honestos; fuentes y escala visibles; huecos y conflictos no sumados como material conocido; sin cambios de scores; reproducibilidad desde caché; respuesta truncada rechazada; errores de fuente tolerados; exportación trazable; pantalla móvil y offline revisadas.
+- Create an independent geological-context artifact, with its own contract and a link to the exact geometry hash of each site. Keep `science-v2`, `science-v3`, profiles, weights and rankings byte for byte.
+- Process in batches in Python. `requests` and `pyproj` are already available; it is probably enough to add Shapely to the pipeline dependencies. The verified Chilean GeoJSON makes it possible to avoid GDAL/GeoPandas and a Shapefile reader in the initial cut.
+- Data per site: original provider and distributor; layer/sheet/version; original code and name; original description; query date and map date kept separate; scale; coverage, gaps and ambiguity; requested/processed geometry; transformations, license, URL and hash. Unknowns remain null.
+- Do not use AI to classify lithologies in this phase. Keep the source names; do not present a harmonized vocabulary as reviewed by a geologist when it is not.
+- Invalid geometries: record IDs, method and effect of the repair. If the repair materially alters the area or does not produce coherent polygons, mark that evidence as unusable until review. The current audit is exploratory, not automatic acceptance of repairs.
+- Show the record only for its exact geometry. A point within a window or a sub-polygon does not inherit aggregated percentages. Coverage 0 means "this layer does not cover the sector", not "no rocks" nor "discarded".
+- Create an available/partial/no coverage/source error status separate from the trial's suitability status. Do not give a ranking advantage to the country with more detailed mapping.
+- Keep the score's "Uncalibrated geology" card, explaining that cartographic context may exist without calibrated planetary compatibility.
+- Adapt optional loading in the web app, the packager's allowlist and the geological export; if the context is missing or fails, M8 keeps working. Do not change the recommendation report schema without versioning it.
+- Existing files to review: `apps/web/src/data/loadDemoSnapshot.ts`, `apps/web/src/components/CandidateDetails.tsx`, `scripts/package_release.py` and their tests. AI would be left for another cut: `server/ai/facts.ts`, shared contracts, evidence validation and export.
+- Acceptance criteria: seven honest statuses; sources and scale visible; gaps and conflicts not added up as known material; no score changes; reproducibility from cache; truncated response rejected; source errors tolerated; traceable export; mobile screen and offline reviewed.
 
-## Evidencia y reproducción
+## Evidence and reproduction
 
-- Resultados detallados y hashes: `docs/research/geology/measurements.json`.
-- Cálculo offline: `docs/research/geology/audit.py`. Intersección en lon/lat, áreas en la proyección equivalente EPSG:6933, conservación de huecos, disolución por unidad y cálculo separado de superposición entre unidades. No se normalizan las unidades para forzar 100 %.
-- Caché pública local ignorada: `data/raw/geology-feasibility-20261114/`, 13 archivos, 20.873.381 bytes. Contiene ambos ZIP chilenos, metadatos CKAN, capacidades WFS, tres capas argentinas, consultas individuales y controles independientes. No se redistribuye esa caché en el build.
-- Para una reproducción nueva hay que obtener las respuestas desde los enlaces y parámetros anteriores, registrar sus hashes y repetir las comprobaciones individuales; las fuentes pueden cambiar. El script offline no descarga datos ni garantiza que una consulta futura sea idéntica.
-- Entorno de la auditoría: Shapely 2.2.0 y pyshp 2.4.2 instalados exclusivamente en `/tmp/analogos-geology-audit-libs`; pyshp se usó para contrastar formatos, no es necesario para volver a ejecutar el cálculo GeoJSON. `pyproj` proviene del entorno existente del proyecto.
+- Detailed results and hashes: `docs/research/geology/measurements.json`.
+- Offline calculation: `docs/research/geology/audit.py`. Intersection in lon/lat, areas in the equal-area projection EPSG:6933, preservation of gaps, dissolving by unit and separate calculation of overlap between units. The units are not normalized to force 100 %.
+- Local ignored public cache: `data/raw/geology-feasibility-20261114/`, 13 files, 20.873.381 bytes. It contains both Chilean ZIPs, CKAN metadata, WFS capabilities, three Argentine layers, individual queries and independent controls. That cache is not redistributed in the build.
+- For a new reproduction, the responses must be obtained from the links and parameters above, their hashes recorded, and the individual checks repeated; the sources may change. The offline script does not download data nor guarantee that a future query will be identical.
+- Audit environment: Shapely 2.2.0 and pyshp 2.4.2 installed exclusively in `/tmp/analogos-geology-audit-libs`; pyshp was used to cross-check formats and is not needed to rerun the GeoJSON calculation. `pyproj` comes from the project's existing environment.
 
-Comando ejecutado desde la raíz del repositorio:
+Command run from the repository root:
 
 ```sh
 PYTHONPATH=/tmp/analogos-geology-audit-libs .venv/bin/python docs/research/geology/audit.py \
@@ -119,10 +119,10 @@ PYTHONPATH=/tmp/analogos-geology-audit-libs .venv/bin/python docs/research/geolo
   --output docs/research/geology/measurements.json
 ```
 
-Verificación del producto existente: `source .venv/bin/activate && npm run verify` → 177 pruebas Python y 196 web pasan; 2 pruebas de IA real omitidas por ser opt-in; typecheck y build correctos. Esa comprobación valida que el estado actual sigue funcionando, **no que la geología ya esté integrada**.
+Verification of the existing product: `source .venv/bin/activate && npm run verify` → 177 Python tests and 196 web tests pass; 2 real-AI tests skipped because they are opt-in; typecheck and build correct. That check validates that the current state still works, **not that geology is already integrated**.
 
-## Decisión pendiente de producto
+## Pending product decision
 
-Recomiendo autorizar el primer corte descrito y medir su utilidad con un responsable de campañas: que pueda explicar qué ambiente está cartografiado en un sector, qué parte se desconoce y qué necesita verificar en terreno. Si el usuario solo necesita la misma información que ya obtiene del relieve y las imágenes, no ampliar hacia filtros o IA geológica.
+I recommend authorizing the first cut described and measuring its usefulness with a campaign manager: whether they can explain which environment is mapped in a sector, which part is unknown and what needs to be verified in the field. If the user only needs the same information they already get from the relief and imagery, do not expand toward filters or geological AI.
 
-Hasta una asignación nueva, M8 continúa aceptado y publicado; Claude espera. Esta evaluación no autoriza un cambio de ranking, una afirmación de aptitud ni una publicación a dev.
+Until a new assignment, M8 remains accepted and published; Claude waits. This assessment does not authorize a ranking change, a suitability claim or a publication to dev.

@@ -1,26 +1,26 @@
-# ADR-002 — Snapshot científico preliminar MOLA + SRTM + POWER
+# ADR-002 — Preliminary MOLA + SRTM + POWER Scientific Snapshot
 
-- Estado: aceptado para la entrega de hackathon
-- Fecha: 2026-11-14
+- Status: accepted for the hackathon delivery
+- Date: 2026-11-14
 
-## Contexto
+## Context
 
-El producto necesitaba reemplazar fixtures por un resultado reproducible sin depender de credenciales Earthdata o Copernicus. Comparar SRTM de ~30 m directamente con MOLA de cientos de metros introduciría una diferencia de escala inaceptable.
+The product needed to replace fixtures with a reproducible result without depending on Earthdata or Copernicus credentials. Directly comparing SRTM at ~30 m with MOLA at hundreds of meters would introduce an unacceptable scale difference.
 
-## Decisión
+## Decision
 
-1. Usar MOLA MEGDR `MEGT44N000HB` a 128 píxeles/grado como referencia del entorno regional de Jezero.
-2. Agregar SRTM 1 arc-second en bloques 16×16 antes de calcular pendiente, diferencia entre celdas y relieve 3×3. La escala resultante es ~473–476 m, cercana a los ~451 m nominales de la ventana MOLA usada.
-3. Usar NASA POWER 2001–2025 solo como contexto regional para precipitación y rango de temperatura de piel.
-4. Mantener suelo expuesto y geología fuera del score v1; su peso faltante reduce la confianza.
-5. Marcar agua, urbano, áreas sensibles, acceso y pendiente de campo como no evaluados, forzando `requires_review`.
+1. Use MOLA MEGDR `MEGT44N000HB` at 128 pixels/degree as the reference for the regional environment of Jezero.
+2. Aggregate SRTM 1 arc-second in 16×16 blocks before calculating slope, difference between cells, and 3×3. relief. The resulting scale is ~473–476 m, close to the ~451 m nominal scale of the MOLA window used.
+3. Use NASA POWER 2001–2025 only as regional context for precipitation and skin temperature range.
+4. Keep exposed soil and geology out of the v1 score; their missing weight reduces confidence.
+5. Mark water, urban areas, sensitive areas, access, and field slope as not evaluated, forcing `requires_review`.
 
-## Interpretación
+## Interpretation
 
-La salida prioriza sectores para investigar. No demuestra equivalencia con Marte, transitabilidad a escala de rueda, seguridad, permiso ni factibilidad legal.
+The output prioritizes sectors to investigate. It does not demonstrate equivalence with Mars, wheel-scale traversability, safety, permission, or legal feasibility.
 
-## Consecuencias
+## Consequences
 
-- El peso válido es exactamente 0,70 y la confianza queda en 57,8/100.
-- Existen tres candidatos reales y ningún fixture aparece en la vista final.
-- La siguiente versión debe sumar clasificación óptica, geología SERNAGEOMIN y capas oficiales de restricciones.
+- The valid weight is exactly 0,70 and the confidence remains at 57,8/100.
+- There are three real candidates and no fixture appears in the final view.
+- The next version must add optical classification, SERNAGEOMIN geology, and official restriction layers.

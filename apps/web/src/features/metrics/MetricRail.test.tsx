@@ -1,4 +1,4 @@
-// Render de las tres variantes con react-dom/server (sin jsdom). Snapshot real science-v2.
+// Render of the three variants with react-dom/server (no jsdom). Real science-v2 snapshot.
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -40,7 +40,7 @@ function context(of: CandidateSite) {
 function details(of: CandidateSite, variant: 'rail' | 'full' | 'sheet'): string {
   return renderToStaticMarkup(<MetricDetails data={data} site={of} variant={variant} context={context(of)} onShowOnMap={() => undefined} />)
 }
-/** Trozo de HTML de la fila/tarjeta/diapositiva de un criterio. */
+/** HTML chunk of a criterion's row/card/slide. */
 function chunk(html: string, criterion: string): string {
   const at = html.indexOf(`data-criterion="${criterion}"`)
   expect(at).toBeGreaterThan(-1)
@@ -55,55 +55,55 @@ afterEach(() => {
 })
 
 describe('MetricRail (chunk principal)', () => {
-  it('pinta al instante similitud, confianza, estabilidad y factibilidad por separado', () => {
+  it('instantly paints similarity, confidence, stability and feasibility separately', () => {
     const html = renderToStaticMarkup(<MetricRail data={data} site={yungay} variant="rail" />)
-    expect(html).toContain('75,7')
-    expect(html).toContain('#1 de 3')
-    for (const label of ['Confianza', 'Estabilidad', 'Factibilidad']) expect(html).toContain(`<dt>${label}</dt>`)
-    expect(html).toContain('77,5')
-    expect(html).toContain('99,0')
-    expect(html).toContain('Requiere revisión')
-    expect(html).toContain('6 de 7 criterios con dato · 90 % del peso')
-    expect(html).toContain('necesita calibración')
-    // El detalle por criterio llega en diferido, con un estado de carga estático.
-    expect(html).toContain('Cargando el detalle por criterio')
+    expect(html).toContain('75.7')
+    expect(html).toContain('#1 of 3')
+    for (const label of ['Confidence', 'Stability', 'Feasibility']) expect(html).toContain(`<dt>${label}</dt>`)
+    expect(html).toContain('77.5')
+    expect(html).toContain('99.0')
+    expect(html).toContain('Requires review')
+    expect(html).toContain('6 of 7 criteria with data · 90% of the weight')
+    expect(html).toContain('needs calibration')
+    // The per-criterion detail arrives deferred, with a static loading state.
+    expect(html).toContain('Loading the per-criterion detail')
   })
 
-  it('S1: «‹ #1 de 3 · % ›» con el anterior deshabilitado en el #1', () => {
+  it('S1: “‹ #1 of 3 · % ›” with previous disabled on #1', () => {
     const html = renderToStaticMarkup(<MetricRail data={data} site={yungay} variant="sheet" />)
-    expect(html).toContain('aria-label="Cambiar de lugar"')
-    expect(html).toContain('aria-disabled="true" aria-label="No hay lugar anterior"')
-    expect(html).toContain('aria-label="Lugar siguiente: Cordón de Domeyko"')
-    expect(html).toContain('#1 de 3 · ')
-    expect(html).toContain('75,7')
+    expect(html).toContain('aria-label="Change place"')
+    expect(html).toContain('aria-disabled="true" aria-label="No previous place"')
+    expect(html).toContain('aria-label="Next place: Cordón de Domeyko"')
+    expect(html).toContain('#1 of 3 · ')
+    expect(html).toContain('75.7')
   })
 
-  it('v3: país, rol y «Factibilidad territorial: pendiente»; la REF sin puesto', () => {
+  it('v3: country, role and “Territorial feasibility: pending”; the REF without rank', () => {
     const ref = v3Snapshot.candidates.find((candidate) => candidate.role === 'reference')!
     const html = renderToStaticMarkup(<MetricRail data={readyData} site={ref} variant="rail" />)
-    expect(html).toContain('REF · Referencia conocida')
+    expect(html).toContain('REF · Known reference')
     expect(html).toContain('Chile')
-    expect(html).toContain('Factibilidad territorial: pendiente')
+    expect(html).toContain('Territorial feasibility: pending')
     expect(html).not.toMatch(/#\d de 6/)
     const first = renderToStaticMarkup(<MetricRail data={readyData} site={v3Snapshot.candidates[0]!} variant="rail" />)
-    expect(first).toContain('#1 de 6')
-    expect(first).toContain('Candidato de la búsqueda')
+    expect(first).toContain('#1 of 6')
+    expect(first).toContain('Search candidate')
   })
 
-  it('Misión con evaluación: estado, requisitos sin medición y la versión de las reglas; nunca un % de misión', () => {
+  it('Mission with evaluation: status, requirements without measurement and the rules version; never a mission %', () => {
     const { evaluation, request } = evaluateExample()
     missionStore.setState({ evaluation, evaluatedRequest: request, revision: 1 })
     uiStore.setState({ mode: 'mision', missionPhase: 'done' })
     const site = v3Snapshot.candidates[0]!
     const html = renderToStaticMarkup(<MetricRail data={readyData} site={site} variant="rail" />)
-    expect(html).toContain('Priorizado para reconocimiento')
-    expect(html).toContain('Tracción')
+    expect(html).toContain('Prioritized for reconnaissance')
+    expect(html).toContain('Traction')
     expect(html).toContain('mission-rules-1.0.0')
-    expect(html).toContain('sin recalcular')
+    expect(html).toContain('not recalculated')
     expect(html).not.toMatch(/motor determinista v|tu perfil/)
   })
 
-  it('tras editar la prueba, la capa de Misión queda aria-busy (sin inert) hasta reevaluar', () => {
+  it('after editing the test, the Mission layer stays aria-busy (without inert) until re-evaluation', () => {
     const { evaluation, request } = evaluateExample()
     missionStore.setState({ evaluation, evaluatedRequest: request, stale: true, revision: 1 })
     uiStore.setState({ mode: 'mision', missionPhase: 'review' })
@@ -114,20 +114,20 @@ describe('MetricRail (chunk principal)', () => {
   })
 })
 
-describe('MetricDetails · riel (acordeón)', () => {
-  it('abre por defecto la limitante (Rugosidad) y la marca', () => {
+describe('MetricDetails · rail (accordion)', () => {
+  it('opens the limiting factor (Roughness) by default and marks it', () => {
     const html = details(yungay, 'rail')
     const roughness = chunk(html, 'terrain_roughness')
     expect(roughness).toContain('data-open=""')
     expect(roughness).toContain('data-limiting=""')
     expect(roughness).toContain('aria-expanded="true"')
-    expect(roughness).toContain('Limitante')
-    expect(roughness).toContain('aporte −0,091')
+    expect(roughness).toContain('Limiting')
+    expect(roughness).toContain('contribution −0.091')
     expect(chunk(html, 'local_relief')).toContain('aria-expanded="false"')
     expect(html.match(/data-limiting=""/g)).toHaveLength(1)
   })
 
-  it('■ Jezero solo en las filas topográficas; el resto lleva regla o nada', () => {
+  it('■ Jezero only on the topographic rows; the rest carry a rule or nothing', () => {
     const html = details(yungay, 'rail')
     for (const id of ['slope', 'terrain_roughness', 'local_relief']) expect(chunk(html, id)).toContain('■')
     for (const id of ['bare_ground_fraction', 'aridity_context', 'surface_temperature_variability', 'geologic_relevance']) {
@@ -135,53 +135,53 @@ describe('MetricDetails · riel (acordeón)', () => {
       expect(chunk(html, id)).not.toContain('Jezero')
     }
     expect(chunk(html, 'surface_temperature_variability')).toContain('┆')
-    expect(chunk(html, 'geologic_relevance')).toContain('por calcular')
+    expect(chunk(html, 'geologic_relevance')).toContain('not yet calculated')
   })
 
-  it('la métrica activa del store manda sobre la limitante', () => {
+  it('the active metric in the store wins over the limiting factor', () => {
     uiStore.setState({ activeCriterionId: 'aridity_context' })
     const html = details(yungay, 'rail')
     expect(chunk(html, 'aridity_context')).toContain('aria-expanded="true"')
     expect(chunk(html, 'terrain_roughness')).toContain('aria-expanded="false"')
-    expect(html).toContain('Menos lluvia, más análogo')
+    expect(html).toContain('Less rain, more analog')
   })
 
-  it('advertencias neutras y acción «Ver el sector en el mapa»', () => {
+  it('neutral warnings and the “See the sector on the map” action', () => {
     const html = details(yungay, 'rail')
-    expect(html).toContain('aria-label="Advertencias del lugar"')
-    expect(html).toContain('Ver el sector en el mapa')
+    expect(html).toContain('aria-label="Place warnings"')
+    expect(html).toContain('Show the sector on the map')
   })
 })
 
 describe('MetricDetails · ficha completa', () => {
-  it('siete tarjetas en orden de peso, con visualización y «satura»', () => {
+  it('seven cards in weight order, with visualization and “saturates”', () => {
     const html = details(yungay, 'full')
     const order = [...html.matchAll(/data-criterion="([a-z_]+)"/g)].map((match) => match[1])
     expect(order).toEqual(buildMetricViews(context(yungay).input).map((view) => view.criterionId))
     expect(chunk(html, 'slope')).toContain('role="img"')
     expect(chunk(html, 'surface_temperature_variability')).toContain('satura')
-    expect(chunk(html, 'surface_temperature_variability')).toContain('cumple la regla · no significa igual a Marte')
+    expect(chunk(html, 'surface_temperature_variability')).toContain('meets the rule · does not mean equal to Mars')
     expect(chunk(html, 'bare_ground_fraction')).toContain('satura')
-    expect(html).toContain('NASA POWER · celda climática regional más cercana')
+    expect(html).toContain('NASA POWER · nearest regional climate cell')
   })
 
-  it('valor regional compartido: Domeyko y María Elena en aridez', () => {
+  it('shared regional value: Domeyko and María Elena on aridity', () => {
     const html = details(domeyko, 'full')
-    expect(chunk(html, 'aridity_context')).toContain('Mismo valor y misma fuente que Pampa María Elena')
+    expect(chunk(html, 'aridity_context')).toContain('Same value and same source as Pampa María Elena')
     expect(chunk(html, 'slope')).not.toContain('Mismo valor')
     expect(details(yungay, 'full')).not.toContain('Mismo valor')
   })
 })
 
 describe('MetricDetails · S1 (carrusel APG)', () => {
-  it('pestañas con tabindex itinerante, diapositivas inactivas inertes y región aria-live propia', () => {
+  it('tabs with roving tabindex, inert inactive slides and their own aria-live region', () => {
     const html = details(yungay, 'sheet')
     expect(html).toContain('role="tablist"')
     expect(html.match(/role="tab"/g)).toHaveLength(7)
     expect(html.match(/role="tabpanel"/g)).toHaveLength(7)
     expect(html.match(/aria-selected="true"/g)).toHaveLength(1)
     expect(html.match(/tabindex="0"/g)).toHaveLength(1)
-    expect(html).toContain('aria-roledescription="carrusel"')
+    expect(html).toContain('aria-roledescription="carousel"')
     expect(html).toContain('aria-live="polite"')
     expect(html.match(/inert=""/g)).toHaveLength(6)
     const active = html.slice(html.indexOf('data-active=""') - 400, html.indexOf('data-active=""'))
@@ -189,8 +189,8 @@ describe('MetricDetails · S1 (carrusel APG)', () => {
   })
 })
 
-describe('utilidades del detalle', () => {
-  it('teclado: flechas, Inicio y Fin sin dar la vuelta', () => {
+describe('detail utilities', () => {
+  it('keyboard: arrows, Home and End without wrapping', () => {
     expect(nextIndex('ArrowDown', 0, 7, 'vertical')).toBe(1)
     expect(nextIndex('ArrowDown', 6, 7, 'vertical')).toBe(6)
     expect(nextIndex('ArrowUp', 0, 7, 'vertical')).toBe(0)
@@ -200,16 +200,16 @@ describe('utilidades del detalle', () => {
     expect(nextIndex('End', 0, 7, 'vertical')).toBe(6)
   })
 
-  it('métrica por defecto, nombre accesible y fuente', () => {
+  it('default metric, accessible name and source', () => {
     const views = buildMetricViews(context(yungay).input)
     expect(defaultCriterion(views)).toBe('terrain_roughness')
     const roughness = views.find((view) => view.criterionId === 'terrain_roughness')
-    expect(roughness && metricAriaLabel(roughness)).toBe('Rugosidad, similitud 66, sector 16,6 m, Jezero 11 m, limitante')
+    expect(roughness && metricAriaLabel(roughness)).toBe('Roughness, similarity 66, sector 16.6 m, Jezero 11 m, limiting factor')
     expect(sourceLine('none', snapshot.manifest)).toBeNull()
     expect(sourceLine('desconocido', snapshot.manifest)).toBe('desconocido')
   })
 
-  it('el fundido indica si la cifra subió o bajó, sin interpolar', () => {
+  it('the fade indicates whether the figure went up or down, without interpolating', () => {
     expect(fadeOffset(70, 75.7)).toBe(4)
     expect(fadeOffset(75.7, 70)).toBe(-4)
     expect(fadeOffset(null, 70)).toBe(0)

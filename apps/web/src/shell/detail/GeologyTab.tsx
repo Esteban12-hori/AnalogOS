@@ -1,8 +1,8 @@
 /**
- * Pestaña «Geología» de la ficha (chunk diferido): el panel de contexto geológico oficial del equipo
- * (M9, `GeologyContext`) tal cual, con cobertura, unidades, procedencia y «Descargar contexto
- * geológico (JSON)». Si el paquete falta o no valida, el panel dice «no disponible» y el resto de la
- * ficha no cambia.
+ * "Geology" tab of the detail sheet (deferred chunk): the team's official geological context panel
+ * (M9, `GeologyContext`) as is, with coverage, units, provenance and "Download geological
+ * context (JSON)". If the package is missing or fails validation, the panel says "not available" and the rest of the
+ * detail sheet does not change.
  */
 import { GeologyContext } from '../../components/GeologyContext'
 import type { CandidateSite } from '../../domain/contracts'

@@ -1,33 +1,33 @@
 /**
- * features/composer — composer de misión, «Tu misión» (planificador del equipo, historial y
- * Deshacer) y coreografía de resultados, sobre el planificador compartido (ADR-013).
- * Orquesta con el controlador de misión: `plannerReducer` → confirmación explícita →
- * `evaluateMission` (equipo, ADR-009) → escribe state/mission y ui.missionPhase. Es el ÚNICO
- * escritor de `state/mission.ts`. La IA de Anthropic solo se llama con los botones explícitos.
- * Slots: `dock.composer` (≥1100), `sheet.tray.composer` (S0), `sheet.head` (botón «Refinar»
- * en S1), `left.mission` (panel ≥1440 en Misión), `full.mission` (pestaña «Tu misión» en S2).
- * El popover de 1100–1439 (y de la bandeja <1100) lo abre el propio Composer.
+ * features/composer — mission composer, «Your mission» (team planner, history and
+ * Undo) and results choreography, on top of the shared planner (ADR-013).
+ * Orchestrates with the mission controller: `plannerReducer` → explicit confirmation →
+ * `evaluateMission` (team, ADR-009) → writes state/mission and ui.missionPhase. It is the ONLY
+ * writer of `state/mission.ts`. Anthropic's AI is only called via the explicit buttons.
+ * Slots: `dock.composer` (≥1100), `sheet.tray.composer` (S0), `sheet.head` («Refine» button
+ * in S1), `left.mission` (panel ≥1440 in Mission), `full.mission` («Your mission» tab in S2).
+ * The 1100–1439 popover (and that of the <1100 tray) is opened by the Composer itself.
  *
- * INTERFAZ ESTABLE: tipos y firmas de este archivo. Implementación: composer en el chunk
- * principal; controlador, planificador, Ajv en runtime, cliente de IA y «Tu misión» en el chunk
- * diferido de misión (`missionController.ts`, `MissionPanel.tsx`), que se precarga al entrar a
- * Misión o al enfocar el dock.
+ * STABLE INTERFACE: types and signatures of this file. Implementation: composer in the
+ * main chunk; controller, planner, runtime Ajv, AI client and «Your mission» in the
+ * deferred mission chunk (`missionController.ts`, `MissionPanel.tsx`), which is preloaded when entering
+ * Mission or when focusing the dock.
  */
 import type { AppData } from '../../shell/public'
 
 export interface ComposerProps {
   data: AppData
-  /** 'dock' (≥1100) · 'sheet' (bandeja S0) · 'sheet-head' (botón «Refinar» de la cabecera de S1). */
+  /** 'dock' (≥1100) · 'sheet' (S0 tray) · 'sheet-head' («Refine» button in the S1 header). */
   placement: 'dock' | 'sheet' | 'sheet-head'
-  /** Solo 'sheet-head': pide al armazón volver a la bandeja S0 donde vive el composer. */
+  /** Only 'sheet-head': asks the shell to return to the S0 tray where the composer lives. */
   onRequestTray?: () => void
 }
 
 export interface MissionCardProps {
   data: AppData
-  /** 'panel' = sección del panel izquierdo (≥1440) · 'sheet' = pestaña «Tu misión» de S2. */
+  /** 'panel' = section of the left panel (≥1440) · 'sheet' = «Your mission» tab of S2. */
   placement: 'panel' | 'sheet'
-  /** Promesa del producto (App.tsx), en la cabecera de Misión antes de elegir recorrido. */
+  /** Product promise (App.tsx), in the Mission header before choosing a route. */
   promise?: string
 }
 

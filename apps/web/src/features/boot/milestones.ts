@@ -1,7 +1,7 @@
 /**
- * Hitos reales del arranque (snapshot validado, globo listo, textura nítida) y pedidos de órbita
- * sobre el globo (espera de la IA). Los hitos los reporta el armazón; la fase de intro
- * (`ui.introPhase`) la decide BootLayer a partir de ellos.
+ * Real boot milestones (validated snapshot, globe ready, sharp texture) and orbit requests
+ * over the globe (waiting for the AI). The milestones are reported by the shell; the intro phase
+ * (`ui.introPhase`) is decided by BootLayer based on them.
  */
 import { createStore, useStore } from '../../state/store'
 import { INITIAL_MILESTONES, type BootMilestone, type Milestones, type MilestoneStatus } from './bootModel'
@@ -22,31 +22,31 @@ export function useBootMilestones(): Milestones {
   return useStore(milestones, (state) => state.value)
 }
 
-/** Solo tests. */
+/** Tests only. */
 export function resetBootMilestones(): void {
   milestones.reset()
   orbit.reset()
 }
 
-// ---- Órbita sobre el globo pedida por OrbitLoader (placement 'globe') ----------------------
+// ---- Orbit over the globe requested by OrbitLoader (placement 'globe') ----------------------
 
 export interface OrbitRequest {
   id: number
-  /** performance.now() al activarse: la órbita del escenario va en fase con el composer. */
+  /** performance.now() upon activation: the stage orbit stays in phase with the composer. */
   startedAt: number
 }
 
 const orbit = createStore<{ requests: readonly OrbitRequest[] }>({ requests: [] })
 let nextId = 1
 
-/** Pide la órbita sobre el globo mientras dure la espera; devuelve la función que la libera. */
+/** Requests the orbit over the globe for as long as the wait lasts; returns the function that releases it. */
 export function requestStageOrbit(startedAt: number = now()): () => void {
   const request: OrbitRequest = { id: nextId++, startedAt }
   orbit.setState((state) => ({ requests: [...state.requests, request] }))
   return () => orbit.setState((state) => ({ requests: state.requests.filter((item) => item.id !== request.id) }))
 }
 
-/** La espera activa más antigua (null si no hay ninguna). */
+/** The oldest active wait (null if there is none). */
 export function useStageOrbit(): OrbitRequest | null {
   return useStore(orbit, (state) => state.requests[0] ?? null)
 }

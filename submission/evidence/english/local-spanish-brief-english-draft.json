@@ -1,0 +1,74 @@
+{
+  "synthetic_input": "Quiero probar la movilidad de un rover en Marte. Imprescindible: mediana de pendiente regional no mayor de 9 grados. Preferible: al menos 95 % de superficie no vegetada. La tracción debe verificarse en terreno.",
+  "response": {
+    "ok": true,
+    "operation": "draft",
+    "client_request_id": "english-review-spanish-01",
+    "draft": {
+      "activity": "Test rover mobility on Mars-analog terrain",
+      "target_kind": "mars_rover_terrain",
+      "target_profile_id": "mars-rover-screening-v3",
+      "requirements": [
+        {
+          "requirement_id": "ai-1",
+          "importance": "critical",
+          "origin": "ai",
+          "confirmed": false,
+          "source_quote": "mediana de pendiente regional no mayor de 9 grados",
+          "kind": "measurable",
+          "label": "Regional median slope",
+          "metric_id": "median_slope_degree",
+          "operator": "<=",
+          "value": 9,
+          "unit": "degree",
+          "scale": "window"
+        },
+        {
+          "requirement_id": "ai-2",
+          "importance": "preference",
+          "origin": "ai",
+          "confirmed": false,
+          "source_quote": "al menos 95 % de superficie no vegetada",
+          "kind": "measurable",
+          "label": "Non-vegetated surface fraction",
+          "metric_id": "nonvegetated_fraction",
+          "operator": ">=",
+          "value": 95,
+          "unit": "percent",
+          "scale": "window"
+        },
+        {
+          "requirement_id": "ai-3",
+          "importance": "preference",
+          "origin": "ai",
+          "confirmed": false,
+          "source_quote": "La tracción debe verificarse en terreno",
+          "kind": "unmeasured",
+          "label": "Traction",
+          "topic_id": "traction",
+          "detail": "Traction must be verified on the ground; this is not a measured metric, so it is an unmeasured topic."
+        }
+      ],
+      "open_questions": [
+        "Should the nonvegetated fraction threshold be read as 95 percent (0.95 ratio)? It was entered as a percent value.",
+        "Is traction verification a mandatory field-check or a preference? The brief says it must be verified on site but gives no criteria."
+      ],
+      "warnings": []
+    },
+    "provenance": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-5-5",
+      "request_id": "req_011Ch4p3MG1m9w3Vh4mepVoh",
+      "created_at": "2026-11-15T13:43:04.645Z",
+      "usage": {
+        "input_tokens": 2069,
+        "output_tokens": 519
+      },
+      "stop_reason": "end_turn"
+    }
+  },
+  "verification": {
+    "literal_source_quotes": true,
+    "unconfirmed_requirements": true
+  }
+}

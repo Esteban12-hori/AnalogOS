@@ -4,23 +4,24 @@ import {
   composeExplanation, describeEffective, describeScope, evaluationFingerprint, fmtObserved, fmtQuantity, SCOPE_STATE_LABEL, siteMeasures, type EvidenceRef, type MissionEvaluation, type MissionRequest,
   type OptionEvaluation, type OptionStatus, type PlannerState, type RequirementResult,
 } from '../../mission'
+import { displaySource, verificationDisplayText } from '../../i18n/sourceText'
 import { GeometryFigure } from './GeometryFigure'
 import { GeologyGuidance, PrintGeology, guidanceView } from './GeologyGuidance'
 import type { GeologyUi } from './usePlanner'
 import type { GeologyCatalog, GeologyGuidanceView } from '../../../../../shared/geology/guidance'
 
 const STATUS: Record<OptionStatus, string> = {
-  priorizado_para_reconocimiento: 'Priorizado para reconocimiento',
-  no_cumple_requisitos: 'No cumple requisitos',
-  evidencia_insuficiente: 'Evidencia insuficiente',
-  objetivo_no_soportado: 'Objetivo no soportado',
+  priorizado_para_reconocimiento: 'Prioritized for reconnaissance',
+  no_cumple_requisitos: 'Does not meet requirements',
+  evidencia_insuficiente: 'Insufficient evidence',
+  objetivo_no_soportado: 'Unsupported objective',
 }
-const REQ_STATUS: Record<RequirementResult['status'], string> = { cumple: 'Cumple', no_cumple: 'No cumple', no_evaluable: 'No evaluable' }
+const REQ_STATUS: Record<RequirementResult['status'], string> = { cumple: 'Met', no_cumple: 'Not met', no_evaluable: 'Not assessable' }
 const SCOPE_STATE = SCOPE_STATE_LABEL
 const OUTCOME_COPY: Record<MissionEvaluation['outcome'], string> = {
-  evaluated: '', unsupported_target: 'Este objetivo no tiene un perfil soportado',
-  needs_window_selection: 'Hay evidencia de una ventana, no del punto: falta elegirla',
-  insufficient_coverage: 'Evidencia insuficiente para esta geometría',
+  evaluated: '', unsupported_target: 'This objective has no supported profile',
+  needs_window_selection: 'There is evidence for a window, not for the point: it still needs to be chosen',
+  insufficient_coverage: 'Insufficient evidence for this geometry',
 }
 
 const safeUrl = (u: string | null): string | null => (u && /^https:\/\//.test(u) ? u : null)
@@ -39,19 +40,19 @@ function EvidenceLinks({ ids, map }: { ids: string[]; map: Map<string, EvidenceR
 }
 
 export function CriteriaTable({ results, map }: { results: RequirementResult[]; map: Map<string, EvidenceRef> }) {
-  if (!results.length) return <p className="pl-muted">No hay requisitos que evaluar.</p>
+  if (!results.length) return <p className="pl-muted">There are no requirements to evaluate.</p>
   return (
     <div className="pl-table-wrap">
       <table className="pl-table pl-criteria-table">
-        <thead><tr><th>Requisito</th><th>Exigido</th><th>Observado</th><th>Resultado</th><th>Escala · periodo</th><th>Evidencia</th></tr></thead>
+        <thead><tr><th>Requirement</th><th>Required</th><th>Observed</th><th>Result</th><th>Scale · period</th><th>Evidence</th></tr></thead>
         <tbody>
           {results.map((r) => (
             <tr key={r.requirement_id} className={r.status}>
-              <th scope="row">{r.label}<small>{r.importance === 'critical' ? 'Imprescindible' : 'Preferencia'}</small></th>
+              <th scope="row">{r.label}<small>{r.importance === 'critical' ? 'Must-have' : 'Preference'}</small></th>
               <td>{r.required}{r.conversion && <small>{r.conversion}</small>}</td>
               <td>{fmtObserved(r.observed_value, r.observed_unit)}</td>
               <td><b className={`pl-res ${r.status}`}>{REQ_STATUS[r.status]}</b><small>{r.reason}</small></td>
-              <td><small>{r.scale_note ?? '—'}{r.period ? ` · ${r.period}` : ''}</small></td>
+              <td><small>{r.scale_note === null ? '—' : displaySource(r.scale_note)}{r.period ? ` · ${r.period}` : ''}</small></td>
               <td><EvidenceLinks ids={r.evidence_ids} map={map} /></td>
             </tr>
           ))}
@@ -65,11 +66,11 @@ function Measures({ site }: { site: CandidateSite }) {
   return (
     <div className="pl-table-wrap">
       <table className="pl-table compact">
-        <caption>Medidas del snapshot para esta ventana (estadísticos de la ventana completa)</caption>
-        <thead><tr><th>Medida</th><th>Valor</th><th>Escala</th></tr></thead>
+        <caption>Snapshot measurements for this window (full-window statistics)</caption>
+        <thead><tr><th>Measurement</th><th>Value</th><th>Scale</th></tr></thead>
         <tbody>
           {siteMeasures(site).map((m) => (
-            <tr key={m.metric_id}><th scope="row">{m.label}</th><td>{m.value === null ? 'sin dato' : typeof m.value === 'number' ? fmtQuantity(m.value, m.unit) : m.value}</td><td><small>{m.scale_note}</small></td></tr>
+            <tr key={m.metric_id}><th scope="row">{m.label}</th><td>{m.value === null ? 'no data' : typeof m.value === 'number' ? fmtQuantity(m.value, m.unit) : m.value}</td><td><small>{m.scale_note}</small></td></tr>
           ))}
         </tbody>
       </table>
@@ -83,36 +84,36 @@ function OptionCard({ o, site, map }: { o: OptionEvaluation; site: CandidateSite
   return (
     <article className={`pl-opt ${o.status}`}>
       <header>
-        {o.rank !== null && <span className="pl-rank" aria-label={`Puesto ${o.rank}`}>{o.rank}</span>}
+        {o.rank !== null && <span className="pl-rank" aria-label={`Rank ${o.rank}`}>{o.rank}</span>}
         <div>
           <h4>{shortCandidateName(o.name)}</h4>
-          <small>{country(o.country)}{o.role === 'reference' && <b className="pl-tag ref">REF · referencia conocida</b>}</small>
+          <small>{country(o.country)}{o.role === 'reference' && <b className="pl-tag ref">REF · known reference</b>}</small>
         </div>
         <span className={`pl-status ${o.status}`}>{STATUS[o.status]}</span>
       </header>
       {o.status !== 'objetivo_no_soportado' && (
         <p className="pl-counts">
-          Imprescindibles: {crit.filter((r) => r.status === 'cumple').length} cumplidos · {o.critical_failed.length} incumplidos · {o.critical_unknown.length} no evaluables.
-          {' '}Preferencias: {o.preferences.met} de {o.preferences.total} cumplidas{o.preferences.unknown > 0 && `, ${o.preferences.unknown} desconocida(s)`}.
+          Must-haves: {crit.filter((r) => r.status === 'cumple').length} met · {o.critical_failed.length} not met · {o.critical_unknown.length} not assessable.
+          {' '}Preferences: {o.preferences.met} of {o.preferences.total} met{o.preferences.unknown > 0 && `, ${o.preferences.unknown} unknown`}.
         </p>
       )}
       {blockers.length > 0 && (
-        <ul className="pl-blockers" aria-label="Qué lo impide">
+        <ul className="pl-blockers" aria-label="What blocks it">
           {blockers.map((b) => <li key={b.requirement_id}><b className={`pl-res ${b.status}`}>{REQ_STATUS[b.status]}</b> {b.label}: {b.reason}</li>)}
         </ul>
       )}
       <details>
-        <summary>Detalle por criterio, medidas y verificaciones</summary>
+        <summary>Detail by criterion, measurements and checks</summary>
         <CriteriaTable results={o.requirement_results} map={map} />
         {site && <Measures site={site} />}
         <p className="pl-scores">
-          Valores originales del snapshot v3, sin recalcular: similitud {o.snapshot_scores.similarity === null ? 'sin score' : formatScore(o.snapshot_scores.similarity)} · confianza {formatScore(o.snapshot_scores.confidence)} · estabilidad {o.snapshot_scores.stability === null ? '—' : formatScore(o.snapshot_scores.stability)}.
-          La similitud no es probabilidad de éxito.
+          Original v3 snapshot values, not recalculated: similarity {o.snapshot_scores.similarity === null ? 'no score' : formatScore(o.snapshot_scores.similarity)} · confidence {formatScore(o.snapshot_scores.confidence)} · stability {o.snapshot_scores.stability === null ? '—' : formatScore(o.snapshot_scores.stability)}.
+          Similarity is not a probability of success.
         </p>
-        <p className="pl-scores">Factibilidad territorial: <b>pendiente</b> (permisos, acceso, áreas protegidas, propiedad). Es independiente de este resultado.</p>
-        {o.what_would_change.length > 0 && <><h5>Qué evidencia cambiaría la decisión</h5><ul>{o.what_would_change.map((t) => <li key={t}>{t}</li>)}</ul></>}
-        {o.field_checks.length > 0 && <><h5>Verificaciones de campo</h5><ul>{o.field_checks.map((t) => <li key={t}>{t}</li>)}</ul></>}
-        <details className="pl-nested"><summary>Límites del snapshot para esta ventana</summary><ul>{o.limitations.map((t) => <li key={t}>{t}</li>)}</ul></details>
+        <p className="pl-scores">Territorial feasibility: <b>pending</b> (permits, access, protected areas, ownership). It is independent of this result.</p>
+        {o.what_would_change.length > 0 && <><h5>What evidence would change the decision</h5><ul>{o.what_would_change.map((t) => <li key={t}>{t}</li>)}</ul></>}
+        {o.field_checks.length > 0 && <><h5>Field checks</h5><ul>{o.field_checks.map((t) => <li key={t}>{displaySource(t)}</li>)}</ul></>}
+        <details className="pl-nested"><summary>Snapshot limits for this window</summary><ul>{o.limitations.map((t) => <li key={t}>{displaySource(t)}</li>)}</ul></details>
       </details>
     </article>
   )
@@ -123,36 +124,36 @@ function AiPanel({ state, evaluation, onExplain, geo }: { state: PlannerState; e
   const view = e.record ? composeExplanation(evaluation, e.record.selection, 'anthropic') : null
   return (
     <section className="pl-ai" aria-labelledby="pl-ai-title">
-      <h3 id="pl-ai-title">Interpretación con IA <span className="pl-tag ai">Opcional</span></h3>
+      <h3 id="pl-ai-title">AI interpretation <span className="pl-tag ai">Optional</span></h3>
       <p className="pl-hint">
         {geo.available && geo.useGeology
-          ? 'Al pulsar el botón se envían a Anthropic los requisitos confirmados, los resultados ya calculados, el objetivo confirmado (texto del brief, actividad y requisitos) y la cartografía geológica pública oficial de los sectores evaluados.'
-          : 'Al pulsar el botón se envían a Anthropic los requisitos confirmados y los resultados ya calculados (no el texto completo del brief ni cartografía geológica).'}
-        {' '}La IA solo destaca motivos de hechos ya calculados: no cambia estados, valores ni exclusiones, y los bloqueos se muestran siempre.
+          ? 'When you press the button, the confirmed requirements, the already calculated results, the confirmed objective (brief text, activity and requirements) and the official public geological mapping of the evaluated sectors are sent to Anthropic.'
+          : 'When you press the button, the confirmed requirements and the already calculated results are sent to Anthropic (not the full brief text or geological mapping).'}
+        {' '}The AI only highlights reasons from facts already calculated: it does not change statuses, values or exclusions, and blockers are always shown.
       </p>
       {geo.available ? (
         <label className="pl-geo-opt">
           <input type="checkbox" checked={geo.useGeology} onChange={(ev) => geo.setUseGeology(ev.target.checked)} />
-          <span>Incluir orientación geológica de la prueba (la IA solo elige entre comprobaciones calculadas por la app).</span>
+          <span>Include geological guidance for the test (the AI only chooses among checks calculated by the app).</span>
         </label>
       ) : (
-        <p className="pl-hint">Orientación geológica con IA no disponible: {geo.unavailableReason ?? 'falta el contexto geológico oficial.'} La explicación de requisitos funciona igual sin geología.</p>
+        <p className="pl-hint">AI geological guidance not available: {geo.unavailableReason ?? 'the official geology context is missing.'} The requirements explanation works the same without geology.</p>
       )}
       <button type="button" disabled={e.status === 'pending'} onClick={() => onExplain()} aria-busy={e.status === 'pending'}>
-        {e.status === 'pending' ? 'Consultando a la IA…' : view ? 'Pedir otra selección a la IA' : 'Destacar motivos con IA'}
+        {e.status === 'pending' ? 'Asking the AI…' : view ? 'Ask the AI for another selection' : 'Highlight reasons with AI'}
       </button>
       <div aria-live="polite" className="pl-ai-status">
-        {(e.status === 'error' || e.status === 'unavailable') && <p className="pl-notice">{e.message} El resultado calculado no cambió.</p>}
+        {(e.status === 'error' || e.status === 'unavailable') && <p className="pl-notice">{e.message} The calculated result did not change.</p>}
         {e.status === 'error' && e.geologyFailed && (
           <p className="pl-notice">
-            La orientación geológica no se pudo pedir. Puede reintentar la explicación sin geología (se enviarán solo los requisitos y resultados calculados, sin el texto del brief ni cartografía).{' '}
-            <button type="button" className="pl-ghost" onClick={() => onExplain(false)}>Reintentar sin geología</button>
+            The geological guidance could not be requested. You can retry the explanation without geology (only the calculated requirements and results will be sent, without the brief text or mapping).{' '}
+            <button type="button" className="pl-ghost" onClick={() => onExplain(false)}>Retry without geology</button>
           </p>
         )}
       </div>
       {view && e.record && (
         <div className="pl-ai-view">
-          <p className="pl-hint">{view.notice} Modelo {e.record.provenance.model} · {e.record.provenance.created_at.slice(0, 10)}{e.record.provenance.request_id ? ` · ${e.record.provenance.request_id}` : ''}.</p>
+          <p className="pl-hint">{view.notice} Model {e.record.provenance.model} · {e.record.provenance.created_at.slice(0, 10)}{e.record.provenance.request_id ? ` · ${e.record.provenance.request_id}` : ''}.</p>
           <ul>
             {view.options.map((o) => (
               <li key={o.site_id}>
@@ -161,7 +162,7 @@ function AiPanel({ state, evaluation, onExplain, geo }: { state: PlannerState; e
               </li>
             ))}
           </ul>
-          {view.verifications.length > 0 && <><h5>Verificaciones en el orden que sugiere la IA</h5><ol>{view.verifications.map((v) => <li key={v.id}>{v.text}</li>)}</ol></>}
+          {view.verifications.length > 0 && <><h5>Checks in the order the AI suggests</h5><ol>{view.verifications.map((v) => <li key={v.id}>{verificationDisplayText(v)}</li>)}</ol></>}
         </div>
       )}
     </section>
@@ -172,11 +173,11 @@ function GeometryText({ ev, byId }: { ev: MissionEvaluation; byId: Map<string, C
   const lines = describeScope(ev.resolution, (id) => shortCandidateName(byId.get(id)?.name ?? id))
   return (
     <div className="pl-geotext">
-      <p><b>Pedida:</b> {lines.requested}</p>
-      <p><b>Estado:</b> {lines.state}.</p>
-      <p><b>Medida:</b></p>
+      <p><b>Requested:</b> {lines.requested}</p>
+      <p><b>Status:</b> {lines.state}.</p>
+      <p><b>Measured:</b></p>
       <ul>{lines.measured.map((m) => <li key={m}>{m}</li>)}</ul>
-      {lines.matches.length > 0 && <><p><b>Ventanas con intersección:</b></p><ul>{lines.matches.map((m) => <li key={m}>{m}</li>)}</ul></>}
+      {lines.matches.length > 0 && <><p><b>Intersecting windows:</b></p><ul>{lines.matches.map((m) => <li key={m}>{m}</li>)}</ul></>}
       <ul>{ev.resolution.notes.map((n) => <li key={n}>{n}</li>)}</ul>
     </div>
   )
@@ -195,41 +196,41 @@ interface Props {
   exportError: string | null
   onEdit: () => void
   /**
-   * Variante de «Tu misión» en la interfaz integrada (ADR-013): titular, bloqueos, regla de orden,
-   * pendientes, límites y exportación. El detalle por criterio vive en el riel, los motivos y el
-   * botón de IA en la Lectura, y el informe imprimible lo monta una sola vez el controlador de
-   * misión. Sin esta prop, la vista es la del equipo.
+   * Variant of "Your mission" in the integrated interface (ADR-013): headline, blockers, ordering rule,
+   * pending items, limits and export. The per-criterion detail lives in the rail, the reasons and the
+   * AI button in the Reading, and the printable report is mounted only once by the mission
+   * controller. Without this prop, the view is the team's.
    */
   compact?: boolean
   /**
-   * «Ir a la Lectura» (interfaz integrada, M11): con esta prop el resultado compacto muestra la acción
-   * que lleva a la Lectura. Solo navega: no cambia selección, requisitos, alcance ni llama a la IA.
+   * "Go to the Reading" (integrated interface, M11): with this prop the compact result shows the action
+   * that leads to the Reading. It only navigates: it does not change the selection, requirements or scope, nor does it call the AI.
    */
   onOpenReading?: () => void
   /**
-   * ¿El informe imprimible de ESTA evaluación ya está montado? (interfaz integrada, M11). Mientras no
-   * lo esté, «Imprimir informe» queda deshabilitado con «Preparando informe…»; el clic imprime en el
-   * acto, sin esperas ni impresiones diferidas. En la vista del equipo el informe va dentro (true).
+   * Is the printable report for THIS evaluation already mounted? (integrated interface, M11). While it is not
+   * mounted, "Print report" stays disabled with "Preparing report…"; the click prints
+   * immediately, with no waiting or deferred printing. In the team view the report is included inside (true).
    */
   printReady?: boolean
 }
 
-/** Resumen compacto de una opción: estado, puesto y lo que la bloquea (sin tablas). */
+/** Compact summary of an option: status, position and what blocks it (no tables). */
 function CompactOption({ o }: { o: OptionEvaluation }) {
   const blockers = o.requirement_results.filter((r) => r.importance === 'critical' && r.status !== 'cumple')
   return (
     <li className={`pl-copt ${o.status}`}>
       <span className="pl-copt-head">
-        {o.rank !== null && <b className="pl-rank" aria-label={`Puesto ${o.rank}`}>{o.rank}</b>}
+        {o.rank !== null && <b className="pl-rank" aria-label={`Rank ${o.rank}`}>{o.rank}</b>}
         <strong>{shortCandidateName(o.name)}</strong>
         {o.role === 'reference' && <b className="pl-tag ref">REF</b>}
         <small>{country(o.country)}</small>
       </span>
       {o.status !== 'objetivo_no_soportado' && o.preferences.total > 0 && (
-        <small className="pl-copt-prefs">Preferencias: {o.preferences.met} de {o.preferences.total}{o.preferences.unknown > 0 ? ` · ${o.preferences.unknown} sin dato` : ''}</small>
+        <small className="pl-copt-prefs">Preferences: {o.preferences.met} of {o.preferences.total}{o.preferences.unknown > 0 ? ` · ${o.preferences.unknown} no data` : ''}</small>
       )}
       {blockers.length > 0 && (
-        <ul className="pl-blockers" aria-label="Qué lo impide">
+        <ul className="pl-blockers" aria-label="What blocks it">
           {blockers.map((b) => <li key={b.requirement_id}><b className={`pl-res ${b.status}`}>{REQ_STATUS[b.status]}</b> {b.label}: {b.reason}</li>)}
         </ul>
       )}
@@ -243,7 +244,7 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
   const group = (s: OptionStatus) => ev.options.filter((o) => o.status === s)
   const prior = group('priorizado_para_reconocimiento')
   const headline = ev.outcome === 'evaluated'
-    ? (prior.length ? `${prior.length} de ${ev.options.length} áreas quedan priorizadas para reconocimiento` : 'Ninguna área queda priorizada con estos requisitos')
+    ? (prior.length ? `${prior.length} of ${ev.options.length} areas are prioritized for reconnaissance` : 'No area is prioritized with these requirements')
     : OUTCOME_COPY[ev.outcome]
   const top = prior[0]
   const gview = guidanceView(geo.catalog, state)
@@ -253,30 +254,30 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
       <div className="pl-screen-only">
         <h3 id="pl-result-title" tabIndex={-1} className="pl-headline">{headline}</h3>
         <p className="pl-lead">
-          {ev.outcome === 'evaluated' && top && <>Primera por orden: <strong>{shortCandidateName(top.name)}</strong>. Es una priorización de screening para reconocimiento; no aprueba ni autoriza el sector.</>}
-          {ev.outcome === 'evaluated' && !top && <>Es un resultado válido: ningún sector cumple todo lo imprescindible con evidencia suficiente. Revise los motivos abajo.</>}
-          {ev.outcome !== 'evaluated' && <>No se estimó nada con ventanas vecinas ni se consultaron satélites. Puede exportar la solicitud como diagnóstico.</>}
+          {ev.outcome === 'evaluated' && top && <>First in order: <strong>{shortCandidateName(top.name)}</strong>. It is a screening prioritization for reconnaissance; it does not approve or authorize the sector.</>}
+          {ev.outcome === 'evaluated' && !top && <>This is a valid result: no sector meets every must-have with sufficient evidence. Review the reasons below.</>}
+          {ev.outcome !== 'evaluated' && <>Nothing was estimated from neighboring windows and no satellites were queried. You can export the request as a diagnostic.</>}
         </p>
-        {/* «Ir a la Lectura» (M11): acción única junto al resumen, en la primera vista del resultado compacto. */}
-        {compact && onOpenReading && <p className="pl-reading-cta"><button type="button" className="pl-reading-link" onClick={onOpenReading}>Ir a la Lectura</button></p>}
+        {/* "Go to the Reading" (M11): single action next to the summary, in the first view of the compact result. */}
+        {compact && onOpenReading && <p className="pl-reading-cta"><button type="button" className="pl-reading-link" onClick={onOpenReading}>Go to Reading</button></p>}
         <p className="pl-chips">
           <span className="pl-tag">{SCOPE_STATE[ev.resolution.state]}</span>
-          {ev.comparability === 'partial' && <span className="pl-tag warn">Comparación parcial: hay preferencias que no se pudieron medir</span>}
-          <span className="pl-tag">Factibilidad territorial pendiente</span>
+          {ev.comparability === 'partial' && <span className="pl-tag warn">Partial comparison: some preferences could not be measured</span>}
+          <span className="pl-tag">Territorial feasibility pending</span>
         </p>
 
         {!compact && <GeometryFigure candidates={candidates} resolution={ev.resolution} />}
-        <details className="pl-more"><summary>Geometría pedida y medida</summary>
+        <details className="pl-more"><summary>Requested and measured geometry</summary>
           <GeometryText ev={ev} byId={byId} />
         </details>
 
         {ev.data_request && (
           <section className="pl-diag" aria-labelledby="pl-diag-title">
-            <h3 id="pl-diag-title">Informe de evidencia insuficiente</h3>
+            <h3 id="pl-diag-title">Insufficient-evidence report</h3>
             <p>{ev.data_request.note}</p>
-            <h5>Fuentes previstas para un análisis futuro</h5>
-            <ul>{ev.data_request.planned_sources.map((s) => <li key={s.dataset_id}><a href={safeUrl(s.landing_url) ?? undefined} target="_blank" rel="noreferrer noopener">{s.product}</a> · {s.provider}</li>)}</ul>
-            <p className="pl-hint">La solicitud (geometría, requisitos y fuentes) viaja en el JSON exportado.</p>
+            <h5>Planned sources for a future analysis</h5>
+            <ul>{ev.data_request.planned_sources.map((s) => <li key={s.dataset_id}><a href={safeUrl(s.landing_url) ?? undefined} target="_blank" rel="noreferrer noopener">{displaySource(s.product)}</a> · {displaySource(s.provider)}</li>)}</ul>
+            <p className="pl-hint">The request (geometry, requirements and sources) travels in the exported JSON.</p>
           </section>
         )}
 
@@ -300,29 +301,29 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
           </>
         )}
 
-        <details className="pl-more"><summary>Cómo se ordena y qué significan los estados</summary><p>{ev.ordering_rule}</p></details>
-        {ev.pending_requirements.length > 0 && <p className="pl-notice">Hay {ev.pending_requirements.length} requisito(s) sin medición en esta evaluación: se conservaron como pendientes y nunca cuentan como cumplidos.</p>}
-        {ev.open_questions.length > 0 && <details className="pl-more"><summary>Preguntas abiertas ({ev.open_questions.length})</summary><ul>{ev.open_questions.map((q) => <li key={q}>{q}</li>)}</ul></details>}
+        <details className="pl-more"><summary>How options are ordered and what the statuses mean</summary><p>{ev.ordering_rule}</p></details>
+        {ev.pending_requirements.length > 0 && <p className="pl-notice">There are {ev.pending_requirements.length} unmeasured requirement(s) in this evaluation: they were kept as pending and never count as met.</p>}
+        {ev.open_questions.length > 0 && <details className="pl-more"><summary>Open questions ({ev.open_questions.length})</summary><ul>{ev.open_questions.map((q) => <li key={q}>{q}</li>)}</ul></details>}
 
         {ev.outcome === 'evaluated' && !compact && <AiPanel state={state} evaluation={ev} onExplain={onExplain} geo={geo} />}
         {ev.outcome === 'evaluated' && gview && !compact && <GeologyGuidance view={gview} onExport={geo.onExportGeology} exportError={geo.exportError} />}
 
-        <section className="pl-export" aria-label="Exportar">
-          <button type="button" onClick={onExport}>Descargar JSON</button>
-          <button type="button" disabled={!printReady} aria-busy={!printReady || undefined} onClick={() => window.print()}>{printReady ? 'Imprimir informe' : 'Preparando informe…'}</button>
-          <button type="button" className="pl-ghost" onClick={onEdit}>Volver a editar</button>
+        <section className="pl-export" aria-label="Export">
+          <button type="button" onClick={onExport}>Download JSON</button>
+          <button type="button" disabled={!printReady} aria-busy={!printReady || undefined} onClick={() => window.print()}>{printReady ? 'Print report' : 'Preparing report…'}</button>
+          <button type="button" className="pl-ghost" onClick={onEdit}>Back to editing</button>
           {exportError && <p className="pl-notice" role="alert">{exportError}</p>}
         </section>
 
         {ev.outcome === 'evaluated' && gview && compact && <CompactGeology view={gview} geo={geo} />}
 
-        <details className="pl-more"><summary>Límites, evidencias y detalle técnico</summary>
-          <h5>Límites</h5><ul>{ev.limits.map((l) => <li key={l}>{l}</li>)}</ul>
-          <h5>Evidencias citadas</h5>
-          <ul>{ev.evidence.map((e) => <li key={e.evidence_id}><EvidenceLinks ids={[e.evidence_id]} map={map} /> — {e.claim}</li>)}</ul>
-          <h5>Versiones</h5>
-          <p>Snapshot {ev.snapshot_version} · perfil {ev.profile.id} {ev.profile.version} · reglas {ev.rules_version}</p>
-          <p className="pl-mono">solicitud {ev.request_fingerprint}<br />evaluación {evaluationFingerprint(ev)}</p>
+        <details className="pl-more"><summary>Limits, evidence and technical detail</summary>
+          <h5>Limits</h5><ul>{ev.limits.map((l) => <li key={l}>{l}</li>)}</ul>
+          <h5>Cited evidence</h5>
+          <ul>{ev.evidence.map((e) => <li key={e.evidence_id}><EvidenceLinks ids={[e.evidence_id]} map={map} /> — {displaySource(e.claim)}</li>)}</ul>
+          <h5>Versions</h5>
+          <p>Snapshot {ev.snapshot_version} · profile {ev.profile.id} {ev.profile.version} · rules {ev.rules_version}</p>
+          <p className="pl-mono">request {ev.request_fingerprint}<br />evaluation {evaluationFingerprint(ev)}</p>
         </details>
       </div>
 
@@ -331,14 +332,14 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
   )
 }
 
-/** Pista de «Tu misión» compacta: dónde se pide la selección geológica con IA (botón de la Lectura). */
-export const COMPACT_GEOLOGY_WHERE = 'La selección geológica con IA se pide con «Destacar motivos con IA» en la Lectura, marcando la orientación geológica.'
+/** Hint for the compact "Your mission": where the AI geological selection is requested (the Reading button). */
+export const COMPACT_GEOLOGY_WHERE = 'The AI geology selection is requested with “Highlight reasons with AI” in Reading, by ticking the geological guidance option.'
 
 /**
- * «Tu misión» compacta (interfaz integrada): la orientación geológica del equipo va plegada DESPUÉS
- * de exportar, para que el resultado y sus acciones no queden miles de píxeles más abajo. El resumen
- * repite el rótulo del equipo («Selección por IA» u «Orientación general sin IA») y cuántos sectores
- * trae; dentro, `GeologyGuidance` sin cambios (mismos textos, límites, fuente y exportación).
+ * Compact "Your mission" (integrated interface): the team's geological guidance is collapsed AFTER
+ * exporting, so that the result and its actions do not end up thousands of pixels further down. The summary
+ * repeats the team's label ("AI selection" or "General guidance without AI") and how many sectors
+ * it contains; inside, `GeologyGuidance` unchanged (same texts, limits, source and export).
  */
 function CompactGeology({ view, geo }: { view: GeologyGuidanceView; geo: GeologyUi }) {
   const ai = view.source === 'anthropic'
@@ -346,9 +347,9 @@ function CompactGeology({ view, geo }: { view: GeologyGuidanceView; geo: Geology
   return (
     <details className="pl-more pl-geo-fold">
       <summary>
-        <span>Orientación geológica para esta prueba</span>
-        <span className={`pl-tag ${ai ? 'ai' : ''}`}>{ai ? 'Selección por IA' : 'Orientación general sin IA'}</span>
-        <small>{count} {count === 1 ? 'sector' : 'sectores'}</small>
+        <span>Geological guidance for this test</span>
+        <span className={`pl-tag ${ai ? 'ai' : ''}`}>{ai ? 'AI selection' : 'General guidance without AI'}</span>
+        <small>{count} {count === 1 ? 'sector' : 'sectors'}</small>
       </summary>
       <p className="pl-hint pl-geo-where">{COMPACT_GEOLOGY_WHERE}</p>
       <GeologyGuidance view={view} onExport={geo.onExportGeology} exportError={geo.exportError} />
@@ -356,18 +357,25 @@ function CompactGeology({ view, geo }: { view: GeologyGuidanceView; geo: Geology
   )
 }
 
-/** Titular del resultado (mismo texto en pantalla e informe). */
+/** Result headline (same text on screen and in the report). */
 export function resultHeadline(ev: MissionEvaluation): string {
   const prior = ev.options.filter((o) => o.status === 'priorizado_para_reconocimiento')
   return ev.outcome === 'evaluated'
-    ? (prior.length ? `${prior.length} de ${ev.options.length} áreas quedan priorizadas para reconocimiento` : 'Ninguna área queda priorizada con estos requisitos')
+    ? (prior.length ? `${prior.length} of ${ev.options.length} areas are prioritized for reconnaissance` : 'No area is prioritized with these requirements')
     : OUTCOME_COPY[ev.outcome]
 }
 
+/** Report language disclosure: what is translated for reading and what the JSON keeps verbatim. */
+export const REPORT_LANGUAGE_NOTE =
+  'Language: this report is in English. Source evidence copied from the snapshot and the official geology data (site names, field checks, '
+  + 'limitations, evidence claims, criterion explanations, unit descriptions) is shown here in an English translation for reading; the '
+  + 'downloadable JSON keeps the original wording (mostly Spanish) as the audit record. Official names and titles are kept as in the source. '
+  + 'Your own text (brief, labels, quotes) is reproduced as written.'
+
 /**
- * Informe imprimible para montar fuera de ResultView (interfaz integrada: uno solo por página).
- * Con el catálogo geológico de la evaluación vigente incluye la orientación geológica (M10), igual
- * que el informe de `ResultView`.
+ * Printable report to be mounted outside ResultView (integrated interface: only one per page).
+ * With the geological catalog of the current evaluation it includes the geological guidance (M10), just
+ * like the report of `ResultView`.
  */
 export function MissionPrintReport({ evaluation: ev, request, state, candidates, geologyCatalog = null }: { evaluation: MissionEvaluation; request: MissionRequest; state: PlannerState; candidates: CandidateSite[]; geologyCatalog?: GeologyCatalog | null }) {
   const byId = new Map(candidates.map((c) => [c.site_id, c]))
@@ -375,47 +383,48 @@ export function MissionPrintReport({ evaluation: ev, request, state, candidates,
   return <PrintReport ev={ev} request={request} state={state} byId={byId} map={map} headline={resultHeadline(ev)} gview={guidanceView(geologyCatalog, state)} />
 }
 
-/** Informe imprimible: contenido completo y sin elementos interactivos (solo visible con @media print). */
+/** Printable report: complete content with no interactive elements (only visible with @media print). */
 function PrintReport({ ev, request, state, byId, map, headline, gview }: { ev: MissionEvaluation; request: MissionRequest; state: PlannerState; byId: Map<string, CandidateSite>; map: Map<string, EvidenceRef>; headline: string; gview: ReturnType<typeof guidanceView> }) {
   const draft = state.draft.record
   const expl = state.explain.record
   return (
     <article className="pl-print-only">
-      <h1>AnalogOS · Informe de recomendación para una prueba</h1>
-      <p><strong>{headline}</strong>. Screening de escritorio sobre el snapshot {ev.snapshot_version}: no aprueba ni autoriza ningún sector.</p>
-      <h2>Prueba</h2>
-      <p><b>Actividad:</b> {request.activity || '—'}<br /><b>Objetivo:</b> {request.target.profile_id === 'unsupported' ? `No soportado — ${request.target.stated}` : `Rover marciano, referencia Jezero (perfil ${ev.profile.id} ${ev.profile.version})`}</p>
-      <h3>Texto completo del brief</h3>
-      <p className="pl-pre">{request.brief || '(sin texto)'}</p>
-      <h3>Requisitos confirmados</h3>
-      <table className="pl-table"><thead><tr><th>Requisito</th><th>Condición efectiva</th><th>Importancia</th><th>Origen</th><th>Cita del brief</th></tr></thead>
-        <tbody>{request.requirements.map((r) => <tr key={r.requirement_id}><td>{r.label}</td><td>{describeEffective(r)}</td><td>{r.importance === 'critical' ? 'Imprescindible' : 'Preferencia'}</td><td>{r.origin === 'ai' ? 'Propuesto por IA' : 'Usuario'}</td><td>{r.source_quote ?? '—'}</td></tr>)}</tbody></table>
-      {request.requirements.length === 0 && <p>Sin requisitos.</p>}
-      {ev.open_questions.length > 0 && <><h3>Pendientes y preguntas abiertas</h3><ul>{ev.open_questions.map((q) => <li key={q}>{q}</li>)}</ul></>}
-      <h2>Geometría</h2>
+      <h1>AnalogOS · Recommendation report for a test</h1>
+      <p><strong>{headline}</strong>. Desktop screening on snapshot {ev.snapshot_version}: it does not approve or authorize any sector.</p>
+      <p className="pl-print-lang">{REPORT_LANGUAGE_NOTE}</p>
+      <h2>Test</h2>
+      <p><b>Activity:</b> {request.activity || '—'}<br /><b>Objective:</b> {request.target.profile_id === 'unsupported' ? `Not supported — ${request.target.stated}` : `Mars rover, Jezero reference (profile ${ev.profile.id} ${ev.profile.version})`}</p>
+      <h3>Full brief text</h3>
+      <p className="pl-pre">{request.brief || '(no text)'}</p>
+      <h3>Confirmed requirements</h3>
+      <table className="pl-table"><thead><tr><th>Requirement</th><th>Effective condition</th><th>Importance</th><th>Origin</th><th>Quote from the brief</th></tr></thead>
+        <tbody>{request.requirements.map((r) => <tr key={r.requirement_id}><td>{r.label}</td><td>{describeEffective(r)}</td><td>{r.importance === 'critical' ? 'Must-have' : 'Preference'}</td><td>{r.origin === 'ai' ? 'Proposed by AI' : 'User'}</td><td>{r.source_quote ?? '—'}</td></tr>)}</tbody></table>
+      {request.requirements.length === 0 && <p>No requirements.</p>}
+      {ev.open_questions.length > 0 && <><h3>Pending items and open questions</h3><ul>{ev.open_questions.map((q) => <li key={q}>{q}</li>)}</ul></>}
+      <h2>Geometry</h2>
       <GeometryText ev={ev} byId={byId} />
       <GeometryFigure candidates={[...byId.values()]} resolution={ev.resolution} />
-      <h2>Resultado</h2>
+      <h2>Result</h2>
       {ev.options.map((o) => (
         <section key={o.site_id} className="pl-print-opt">
-          <h3>{o.rank !== null ? `${o.rank}. ` : ''}{shortCandidateName(o.name)} — {STATUS[o.status]}{o.role === 'reference' ? ' (REF, referencia conocida)' : ''}</h3>
+          <h3>{o.rank !== null ? `${o.rank}. ` : ''}{shortCandidateName(o.name)} — {STATUS[o.status]}{o.role === 'reference' ? ' (REF, known reference)' : ''}</h3>
           <CriteriaTable results={o.requirement_results} map={map} />
-          <p>Snapshot v3 (sin recalcular): similitud {o.snapshot_scores.similarity === null ? 'sin score' : formatScore(o.snapshot_scores.similarity)} · confianza {formatScore(o.snapshot_scores.confidence)} · estabilidad {o.snapshot_scores.stability === null ? '—' : formatScore(o.snapshot_scores.stability)}. Factibilidad territorial: pendiente.</p>
+          <p>Snapshot v3 (not recalculated): similarity {o.snapshot_scores.similarity === null ? 'no score' : formatScore(o.snapshot_scores.similarity)} · confidence {formatScore(o.snapshot_scores.confidence)} · stability {o.snapshot_scores.stability === null ? '—' : formatScore(o.snapshot_scores.stability)}. Territorial feasibility: pending.</p>
           {o.what_would_change.length > 0 && <ul>{o.what_would_change.map((t) => <li key={t}>{t}</li>)}</ul>}
-          {o.field_checks.length > 0 && <><b>Verificaciones de campo</b><ul>{o.field_checks.map((t) => <li key={t}>{t}</li>)}</ul></>}
+          {o.field_checks.length > 0 && <><b>Field checks</b><ul>{o.field_checks.map((t) => <li key={t}>{displaySource(t)}</li>)}</ul></>}
         </section>
       ))}
       {gview && <PrintGeology view={gview} />}
-      {ev.data_request && <><h2>Solicitud de datos</h2><p>{ev.data_request.note}</p><ul>{ev.data_request.planned_sources.map((s) => <li key={s.dataset_id}>{s.product} · {s.provider} · {s.landing_url}</li>)}</ul></>}
-      <h2>Regla de orden</h2><p>{ev.ordering_rule}</p>
-      <h2>Límites</h2><ul>{ev.limits.map((l) => <li key={l}>{l}</li>)}</ul>
-      <h2>Evidencias</h2><ul>{ev.evidence.map((e) => <li key={e.evidence_id}><code>{e.evidence_id}</code> — {e.claim} {e.source_url ?? ''}</li>)}</ul>
+      {ev.data_request && <><h2>Data request</h2><p>{ev.data_request.note}</p><ul>{ev.data_request.planned_sources.map((s) => <li key={s.dataset_id}>{displaySource(s.product)} · {displaySource(s.provider)} · {s.landing_url}</li>)}</ul></>}
+      <h2>Ordering rule</h2><p>{ev.ordering_rule}</p>
+      <h2>Limits</h2><ul>{ev.limits.map((l) => <li key={l}>{l}</li>)}</ul>
+      <h2>Evidence</h2><ul>{ev.evidence.map((e) => <li key={e.evidence_id}><code>{e.evidence_id}</code> — {displaySource(e.claim)} {e.source_url ?? ''}</li>)}</ul>
       <section className="pl-print-provenance">
-        <h2>Procedencia y versiones</h2>
-        <p>Snapshot {ev.snapshot_version} · perfil {ev.profile.id} {ev.profile.version} · reglas {ev.rules_version}.<br />
-          Borrador con IA: {draft ? `sí (${draft.provenance.model}, ${draft.provenance.created_at.slice(0, 10)}, ${draft.provenance.request_id ?? 'sin id'}); el usuario editó o confirmó los requisitos.` : 'no'}.<br />
-          Interpretación con IA: {expl ? `sí (${expl.provenance.model}, ${expl.provenance.created_at.slice(0, 10)}, ${expl.provenance.request_id ?? 'sin id'}); solo selecciona referencias.` : 'no'}.</p>
-        <p className="pl-mono">solicitud {ev.request_fingerprint} · evaluación {evaluationFingerprint(ev)}</p>
+        <h2>Provenance and versions</h2>
+        <p>Snapshot {ev.snapshot_version} · profile {ev.profile.id} {ev.profile.version} · rules {ev.rules_version} · record version {ev.evaluation_version}.<br />
+          AI draft: {draft ? `yes (${draft.provenance.model}, ${draft.provenance.created_at.slice(0, 10)}, ${draft.provenance.request_id ?? 'no id'}); the user edited or confirmed the requirements.` : 'no'}.<br />
+          AI interpretation: {expl ? `yes (${expl.provenance.model}, ${expl.provenance.created_at.slice(0, 10)}, ${expl.provenance.request_id ?? 'no id'}); it only selects references.` : 'no'}.</p>
+        <p className="pl-mono">request {ev.request_fingerprint} · evaluation {evaluationFingerprint(ev)}</p>
       </section>
     </article>
   )

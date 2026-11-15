@@ -1,11 +1,11 @@
 /**
- * Marcadores ●◆○ y chips de grupo, con el mismo estilo en el globo (capa DOM proyectada en
- * useFrame) y en el mapa 2D (dentro de los Marker de MapLibre). Cada marcador es un <button>
- * real: foco, teclado y lector de pantalla. Los rótulos visibles van aria-hidden porque la
- * etiqueta accesible del botón ya dice lo mismo.
+ * ●◆○ markers and group chips, with the same style on the globe (DOM layer projected in
+ * useFrame) and on the 2D map (inside MapLibre's Marker). Each marker is a real <button>:
+ * focus, keyboard and screen reader. The visible labels are aria-hidden because the
+ * button's accessible label already says the same thing.
  *
- * Lo que cambia en cada cuadro (posición, visibilidad, rótulo, agrupado) lo escribe el globo
- * directo en el DOM, con atributos `data-*` que React nunca gestiona.
+ * What changes on every frame (position, visibility, label, grouping) is written by the globe
+ * directly to the DOM, with attributes `data-*` that React never manages.
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import {
@@ -32,7 +32,7 @@ export interface MarkerPinProps {
   model: MarkerModel
   selected: boolean
   hover: boolean
-  /** Rótulo dentro del presupuesto. En el globo lo decide el proyector por cuadro (sin esta prop). */
+  /** Label within the budget. On the globe the projector decides it per frame (without this prop). */
   labeled?: boolean
   onActivate: (model: MarkerModel) => void
   rootRef?: PinRef
@@ -70,9 +70,9 @@ export function MarkerPin({ model, selected, hover, labeled, onActivate, rootRef
             <span className="globe-pin-name">{model.name}</span>
             {score && <span className="globe-pin-score" data-sim-tone={similarityTone(model.score) ?? undefined}>{score}</span>}
             {status && <span className="globe-pin-status">{status}</span>}
-            {model.contains !== null && <span className="globe-pin-status">contiene {model.contains} {model.contains === 1 ? 'sector' : 'sectores'}</span>}
-            {selected && model.kind === 'reference' && <span className="globe-pin-status">zona aproximada</span>}
-            {model.coincides.length > 0 && <span className="globe-pin-badge">◆ coincide con {model.coincides.join(' · ')}</span>}
+            {model.contains !== null && <span className="globe-pin-status">contains {model.contains} {model.contains === 1 ? 'sector' : 'sectors'}</span>}
+            {selected && model.kind === 'reference' && <span className="globe-pin-status">approximate area</span>}
+            {model.coincides.length > 0 && <span className="globe-pin-badge">◆ matches {model.coincides.join(' · ')}</span>}
           </span>
         </button>
       </div>
@@ -80,7 +80,7 @@ export function MarkerPin({ model, selected, hover, labeled, onActivate, rootRef
   )
 }
 
-/** Glifos del grupo a partir de sus conteos, en el orden ● ○ ◆. */
+/** Group glyphs from their counts, in the order ● ○ ◆. */
 export function kindsFromCounts(counts: MarkerCounts): MarkerKind[] {
   return [
     ...Array<MarkerKind>(counts.evaluated).fill('evaluated'),
@@ -93,7 +93,7 @@ export interface ClusterChipProps {
   clusterKey: string
   counts: MarkerCounts
   group: string
-  /** Miembros ya resueltos (en el 2D llegan al abrir la lista). */
+  /** Already-resolved members (in 2D they arrive when the list is opened). */
   members: readonly MarkerModel[] | null
   open: boolean
   hover: boolean
@@ -111,7 +111,7 @@ export function ClusterChip({ clusterKey, counts, group, members, open, hover, o
   const chip = useRef<HTMLButtonElement>(null)
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== 'Escape' || !open) return
-    // Esc cierra la lista antes que la selección (el armazón respeta defaultPrevented).
+    // Esc closes the list before the selection (the shell respects defaultPrevented).
     event.preventDefault()
     onToggle(false)
     chip.current?.focus()
@@ -142,7 +142,7 @@ export function ClusterChip({ clusterKey, counts, group, members, open, hover, o
         {open && (
           <ul id={id} className="globe-cluster-list">
             {members === null ? (
-              <li className="globe-cluster-wait">Buscando lugares del grupo…</li>
+              <li className="globe-cluster-wait">Finding the places in the group…</li>
             ) : (
               members.map((model) => {
                 const detail = markerScoreText(model) ?? markerStatusText(model)
@@ -167,32 +167,32 @@ export function ClusterChip({ clusterKey, counts, group, members, open, hover, o
 }
 
 // ---------------------------------------------------------------------------
-// Capa DOM del globo
+// Globe DOM layer
 // ---------------------------------------------------------------------------
 
-/** Estado por cuadro de un marcador o grupo, tal como lo dejó el último cuadro. */
+/** Per-frame state of a marker or group, as left by the last frame. */
 export interface PinFrame {
   x: number
   y: number
   opacity: number
-  /** Grupo corrido bajo el lugar seleccionado: solo glifos. */
+  /** Group shifted below the selected place: glyphs only. */
   compact?: boolean
 }
 
 /**
- * Puente mutable entre la capa DOM (fuera del Canvas) y el proyector (dentro del Canvas). No es
- * estado de React: el proyector escribe aquí y en el DOM sin re-renderizar nada.
+ * Mutable bridge between the DOM layer (outside the Canvas) and the projector (inside the Canvas). It is not
+ * React state: the projector writes here and to the DOM without re-rendering anything.
  */
 export interface GlobeMarkerRuntime {
   pins: Map<string, HTMLDivElement>
   clusters: Map<string, HTMLDivElement>
   lastPin: Map<string, PinFrame>
   lastCluster: Map<string, PinFrame>
-  /** Última partición calculada: la capa la toma al montarse (puede llegar después del cuadro). */
+  /** Last computed partition: the layer picks it up when it mounts (it may arrive after the frame). */
   clusterList: MarkerCluster[]
-  /** Lo registra la capa: el proyector lo llama solo cuando cambia la partición. */
+  /** Registered by the layer: the projector calls it only when the partition changes. */
   setClusters: ((clusters: MarkerCluster[]) => void) | null
-  /** Lo registra el Canvas: pide un cuadro (frameloop «demand»). */
+  /** Registered by the Canvas: requests a frame (frameloop "demand"). */
   invalidate: (() => void) | null
 }
 
@@ -200,11 +200,11 @@ export function createGlobeMarkerRuntime(): GlobeMarkerRuntime {
   return { pins: new Map(), clusters: new Map(), lastPin: new Map(), lastCluster: new Map(), clusterList: [], setClusters: null, invalidate: null }
 }
 
-/** Aplica posición y opacidad al elemento (también lo usa el proyector en cada cuadro). */
+/** Applies position and opacity to the element (also used by the projector on every frame). */
 export function applyPinFrame(element: HTMLElement, frame: PinFrame): void {
   const transform = `translate3d(${frame.x.toFixed(1)}px, ${frame.y.toFixed(1)}px, 0)`
   if (element.style.transform !== transform) element.style.transform = transform
-  // El rótulo se acorta para no pasar bajo el riel ni fuera de pantalla (markers.css, max-width).
+  // The label is shortened so it does not run under the rail or off screen (markers.css, max-width).
   const pinX = `${Math.round(frame.x)}px`
   if (element.style.getPropertyValue('--pin-x') !== pinX) element.style.setProperty('--pin-x', pinX)
   const opacity = frame.opacity >= 0.999 ? '' : frame.opacity.toFixed(3)
@@ -212,14 +212,14 @@ export function applyPinFrame(element: HTMLElement, frame: PinFrame): void {
   setDataFlag(element, 'compact', frame.compact === true)
 }
 
-/** Activa o quita un atributo data-* sin tocarlo si ya está como corresponde. */
+/** Sets or removes a data-* attribute without touching it if it is already as it should be. */
 export function setDataFlag(element: HTMLElement, name: string, on: boolean): void {
   const present = name in element.dataset
   if (on && !present) element.dataset[name] = ''
   else if (!on && present) delete element.dataset[name]
 }
 
-/** Reinicia una animación CSS de un solo disparo ligada a un atributo data-*. */
+/** Restarts a one-shot CSS animation tied to a data-* attribute. */
 function retrigger(element: HTMLElement, name: string, durationMs: number): void {
   delete element.dataset[name]
   void element.offsetWidth
@@ -227,12 +227,12 @@ function retrigger(element: HTMLElement, name: string, durationMs: number): void
   window.setTimeout(() => delete element.dataset[name], durationMs)
 }
 
-/** Selección al llegar la cámara: el anillo emite un pulso (900 ms) y queda estático. */
+/** Selection when the camera arrives: the ring emits a pulse (900 ms) and then stays static. */
 export function pulsePin(element: HTMLElement): void {
   retrigger(element, 'pulse', 950)
 }
 
-/** Halos de zona en orden, cada `staggerMs` (coreografía D: orden nuevo de resultados). */
+/** Zone halos in order, each `staggerMs` (choreography D: new order of results). */
 export function playHalos(elements: ReadonlyMap<string, HTMLElement>, order: readonly string[], staggerMs: number): void {
   order.forEach((id, index) => {
     const element = elements.get(id)
@@ -253,7 +253,7 @@ export interface GlobeMarkerOverlayProps {
   onActivate: (model: MarkerModel) => void
 }
 
-/** Retardos de la coreografía A: ● en orden 1→2→3 cada 120 ms tras 300 ms; luego ◆ y grupos. */
+/** Delays for choreography A: ● in order 1→2→3 every 120 ms after 300 ms; then ◆ and groups. */
 export function landingDelays(models: readonly MarkerModel[]): { pins: Map<string, number>; after: number } {
   const pins = new Map<string, number>()
   let sectors = 0
@@ -268,7 +268,7 @@ export function GlobeMarkerOverlay({ runtime, models, selectedId, hoverId, intro
   const [openKey, setOpenKey] = useState<string | null>(null)
   useLayoutEffect(() => {
     runtime.setClusters = setClusters
-    // El proyector pudo calcular la partición antes de que esta capa existiera.
+    // The projector may have computed the partition before this layer existed.
     setClusters(runtime.clusterList)
     return () => {
       runtime.setClusters = null
@@ -278,7 +278,7 @@ export function GlobeMarkerOverlay({ runtime, models, selectedId, hoverId, intro
     if (openKey !== null && !clusters.some((cluster) => cluster.key === openKey)) setOpenKey(null)
   }, [clusters, openKey])
 
-  // Un callback de ref estable por id: React no los vuelve a llamar en cada render.
+  // A stable ref callback per id: React does not call them again on every render.
   const pinRefs = useRef(new Map<string, PinRef>())
   const pinRef = useCallback((id: string): PinRef => {
     let ref = pinRefs.current.get(id)
@@ -292,7 +292,7 @@ export function GlobeMarkerOverlay({ runtime, models, selectedId, hoverId, intro
         const last = runtime.lastPin.get(id)
         if (last) applyPinFrame(element, last)
         else {
-          // Sin cuadro previo: oculto hasta que el proyector lo ubique.
+          // No previous frame: hidden until the projector places it.
           element.dataset.hidden = ''
           runtime.invalidate?.()
         }

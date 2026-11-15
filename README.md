@@ -1,86 +1,92 @@
 # AnalogOS
 
-**Encuentra dónde probar tu rover, con evidencia que tu equipo puede revisar.**
+**English** · [Español](README.es.md)
 
-AnalogOS ayuda a equipos de robótica planetaria a priorizar terrenos terrestres para pruebas de movilidad, navegación y autonomía. Reúne datos satelitales, topografía, clima y cartografía geológica para responder una pregunta concreta: **¿qué sector merece una visita de reconocimiento para nuestra prueba y qué falta comprobar allí?**
+**Find where to test your rover, with evidence your team can review.**
 
-[Abrir AnalogOS](https://analogos.vercel.app/) · [Conocer el producto](https://analogos-landing.vercel.app/) · [Probar localmente](#probar-localmente) · [Documentación](#documentación)
+AnalogOS helps planetary robotics teams prioritize terrestrial sites for mobility, navigation, and autonomy testing. It brings together satellite data, topography, climate, and geological maps to answer a practical question: **which area deserves a reconnaissance visit for our test, and what still needs to be verified there?**
 
-![AnalogOS en producción: nuevo explorador con globo, métricas del sector y carrusel de candidatos Chile–Argentina](submission/assets/analogos-production.jpg)
+[Open AnalogOS](https://analogos.vercel.app/) · [Product overview](https://analogos-landing.vercel.app/) · [Run locally](#run-locally) · [Documentation](#documentation)
 
-## Explora el terreno. Define tu misión.
+![AnalogOS in production: the globe explorer, site metrics, and the Chile–Argentina candidate carousel](submission/assets/analogos-production.jpg)
 
-AnalogOS reúne la exploración del lugar y la decisión sobre tu ensayo en una misma interfaz. El globo pasa a un mapa 2D al acercarte; el carrusel permite recorrer los lugares y la ficha reúne sus métricas, imágenes, geología y fuentes.
+## Explore the terrain. Define your mission.
 
-| Modo | Qué puedes hacer |
+AnalogOS combines site exploration and test planning in one interface. The globe transitions to a 2D map as you zoom in; the carousel lets you browse sites, and each site profile brings together metrics, imagery, geology, and sources.
+
+| Mode | What you can do |
 |---|---|
-| **Explorar** | Recorrer los sectores del piloto, filtrar candidatos por país y comparar sus condiciones regionales con la referencia de Jezero. Yungay aparece aparte como referencia conocida. |
-| **Misión** | Describir una prueba o partir de un sector, revisar y confirmar requisitos, y recibir una priorización respaldada por datos. «Tu misión» conserva el alcance elegido y la «Lectura» explica los resultados y lo que falta verificar. |
+| **Explore** | Browse the pilot sites, filter candidates by country, and compare their regional conditions with the Jezero reference. Yungay is displayed separately as a known reference site. |
+| **Mission** | Describe a test or start from a site, review and confirm requirements, and receive a prioritization supported by data. “Your mission” preserves your chosen scope, while the “Reading” view explains the results and what remains to be verified. |
 
-Las métricas se muestran junto al lugar seleccionado para conectar cada cifra con su contexto. En móvil, una hoja reúne la ficha, la Lectura y Tu misión; «Ir a la Lectura» abre la explicación directamente desde el resultado. Los análogos emblemáticos de otras regiones se presentan como antecedentes **por calcular**, sin puntajes ni recomendaciones inventadas.
+Metrics appear alongside the selected site to connect each value with its context. On mobile, a sheet brings together the site profile, Reading, and Your mission; “Go to Reading” opens the explanation directly from the result. Well-known analog sites in other regions appear as background references **awaiting analysis**, without invented scores or recommendations.
 
-## Para quién
+## Who it is for
 
-Para responsables de campañas de robótica planetaria, equipos universitarios que desarrollan rovers e investigadores que necesitan justificar la elección de un terreno antes de movilizar personas y equipos. AnalogOS organiza la comparación y conserva la evidencia detrás de cada recomendación.
+Planetary robotics campaign leads, university rover teams, and researchers who need to justify a site choice before deploying people and equipment. AnalogOS organizes the comparison and preserves the evidence behind each recommendation.
 
-## De una prueba a una recomendación
+## From a test to a recommendation
 
-1. **Define lo que quieres probar o elige un sector.** En Misión, describe el ensayo y revisa sus requisitos. Desde Explorar puedes abrir una ficha y elegir «Evaluar este sector». Completa los requisitos manualmente o pide a la IA un borrador que luego debes confirmar.
-2. **Compara los sectores disponibles.** El motor evalúa los requisitos confirmados y distingue cumplimiento, incompatibilidades y datos insuficientes. La similitud con Marte, la confianza en las fuentes y la factibilidad se muestran por separado.
-3. **Revisa el porqué y prepara el reconocimiento.** La Lectura separa el cálculo determinista de los motivos destacados con IA. La ficha «Geología» muestra la cartografía oficial; en Tu misión, la orientación geológica propone comprobaciones relevantes para el ensayo, como contrastar unidades del mapa o medir propiedades del terreno.
-4. **Comparte la decisión con tu equipo.** Exporta un informe JSON con requisitos, resultados, procedencia y verificaciones pendientes para poder revisar y reconstruir la evaluación. También puedes imprimir o guardar en PDF el informe completo, incluida la evidencia geológica y sus fuentes.
+1. **Define what you want to test or choose a site.** In Mission, describe the test and review its requirements. From Explore, open a site profile and choose “Evaluate this sector.” Enter requirements manually or ask AI for a draft that you must then confirm.
+2. **Compare the available sites.** The engine evaluates confirmed requirements and distinguishes satisfied criteria, incompatibilities, and insufficient data. Similarity to Mars, confidence in the sources, and feasibility are shown separately.
+3. **Understand the reasoning and prepare for reconnaissance.** Reading separates the deterministic calculation from the reasons highlighted with AI assistance. The Geology tab displays official maps; in Your mission, geological guidance suggests checks relevant to the test, such as verifying mapped units or measuring ground properties.
+4. **Share the decision with your team.** Export a JSON report with requirements, results, provenance, and pending checks so the evaluation can be reviewed and reconstructed. You can also print or save the complete report as a PDF, including geological evidence and its sources.
 
-Por ejemplo, un equipo que prepara una prueba de navegación puede comparar condiciones de pendiente regional y superficie no vegetada, y salir con una lista de sectores para investigar. La tracción del rover y el acceso al terreno siguen siendo comprobaciones de campo.
+For example, a team preparing a navigation test can compare regional slope conditions and non-vegetated surface fractions, then leave with a shortlist of sites to investigate. Rover traction and access to the land still require field verification.
 
-## Evidencia detrás de la recomendación
+## Evidence behind the recommendation
 
-| Fuente | Qué aporta |
+| Source | What it contributes |
 |---|---|
-| NASA PDS / MOLA | Referencia topográfica marciana del entorno de Jezero. |
-| NASADEM | Pendiente, rugosidad y relieve terrestre a escala regional. |
-| Copernicus Sentinel-2 | Series mensuales de superficie e imágenes para inspección visual. |
-| NASA POWER | Contexto climático regional para caracterizar los sectores. |
-| SERNAGEOMIN y SEGEMAR | Unidades geológicas oficiales, cobertura del mapa y preguntas para el reconocimiento. |
+| NASA PDS / MOLA | Martian topographic reference for the Jezero region. |
+| NASADEM | Terrestrial slope, roughness, and relief at regional scale. |
+| Copernicus Sentinel-2 | Monthly surface observations and imagery for visual inspection. |
+| NASA POWER | Regional climate context to characterize the sites. |
+| SERNAGEOMIN and SEGEMAR | Official geological units, map coverage, and questions to investigate during reconnaissance. |
 
-Cada sector conserva las fuentes, el alcance de los datos y sus límites. El [reporte de búsqueda](docs/DISCOVERY_REPORT.md) documenta el método y los resultados; la [guía geológica](docs/GEOLOGY_CONTEXT.md) explica escalas, cobertura y uso de la cartografía.
+Each site retains its sources, data scope, and limitations. The [discovery report](docs/DISCOVERY_REPORT.md) documents the method and results; the [geological guide](docs/GEOLOGY_CONTEXT.md) explains map scales, coverage, and use.
 
-### IA que ayuda a interpretar
+### AI that helps interpret the evidence
 
-La asistencia de Anthropic es opcional. Propone requisitos a partir de tu descripción y selecciona explicaciones y comprobaciones entre evidencias verificadas. Tú confirmas los requisitos; el motor calcula la evaluación con reglas reproducibles. La IA no modifica puntajes ni convierte datos ausentes en hechos.
+Anthropic assistance is optional. It proposes requirements from your description and selects explanations and checks from verified evidence. You confirm the requirements; the engine computes the evaluation using reproducible rules. AI does not change scores or turn missing data into facts.
 
-El recorrido manual funciona sin clave ni conexión después de instalar las dependencias. Al solicitar asistencia, se envía a Anthropic la información indicada junto al botón. Consulta la [configuración de IA y los datos que se comparten](docs/AI_SETUP.md).
+The manual workflow works without an API key or an internet connection once dependencies are installed. When you request assistance, the information listed next to the button is sent to Anthropic. See [AI setup and data sharing](docs/AI_SETUP.md).
 
-## Alcance actual
+## Current scope
 
-AnalogOS está en fase de piloto para pruebas de rover marciano, con referencia regional en Jezero. La búsqueda abarca **50 ventanas en dos regiones de Chile y Argentina** y ofrece seis candidatos caracterizados, además de **Pampa Yungay como referencia conocida**, fuera del ranking de búsqueda. En Misión, Yungay puede evaluarse como alternativa conocida para tu prueba, siempre identificada como REF.
+AnalogOS is a pilot for Mars rover testing, using Jezero as its regional reference. The search covers **50 windows across two regions in Chile and Argentina** and provides six characterized candidates, plus **Pampa Yungay as a known reference**, excluded from the discovery ranking. In Mission, Yungay can be evaluated as a known alternative for your test and is always labeled REF.
 
-El objetivo es extender el método a más regiones. Hoy no hay cobertura mundial ni nacional completa: introducir un punto o un área nueva comprueba la disponibilidad de evidencia, pero no activa una adquisición automática de datos.
+The aim is to extend the method to more regions. There is currently no worldwide or complete national coverage: entering a new point or area checks evidence availability but does not trigger automatic data acquisition.
 
-La recomendación sirve para priorizar reconocimiento. Las mediciones regionales no describen obstáculos a escala de rueda ni certifican aptitud, seguridad o permisos; la cartografía geológica tampoco mide tracción o mecánica de suelos. Los puntajes no son probabilidades de éxito. Sigue pendiente contrastar los sectores en campo y validar el producto con sus usuarios.
+Recommendations help prioritize reconnaissance. Regional measurements do not describe wheel-scale obstacles or certify suitability, safety, or permits; geological maps do not measure traction or soil mechanics. Scores are not probabilities of success. Field verification of the sites and product validation with users are still pending.
 
-## Probar localmente
+## Run locally
 
-Necesitas **Node.js 22 o superior y npm**. Desde la raíz de este repositorio:
+You need **Node.js 22 or later and npm**. From the repository root:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Abre [AnalogOS local](http://127.0.0.1:5173/). Los datos procesados del piloto ya están incluidos: no necesitas cuentas Earthdata ni Copernicus para explorarlos. La instalación inicial requiere conexión; las capas de mapa en línea y la IA son complementos opcionales.
+Open [AnalogOS locally](http://127.0.0.1:5173/). Processed pilot data is already included: you do not need Earthdata or Copernicus accounts to explore it. Initial installation requires an internet connection; online map layers and AI are optional additions.
 
-Para construir, verificar, desplegar o reproducir los datos, consulta la [guía de desarrollo](docs/DEVELOPMENT.md).
+To build, verify, deploy, or reproduce the data, see the [development guide](docs/DEVELOPMENT.md).
 
-## Documentación
+## Documentation
 
-| Quiero… | Ir a |
+English is the default for the interface, AI-generated prose, reports, and documentation. Original source records and official names retain their language for traceability; geological descriptions have labeled English translations. Historical exports remain verifiable. See the [language and compatibility decision](docs/decisions/ADR-016-english-default-and-export-compatibility.md).
+
+Both READMEs describe the same capabilities and limitations. Keep the [English](README.md) and [Spanish](README.es.md) versions in sync when updating them.
+
+| I want to… | Go to |
 |---|---|
-| Instalar, desarrollar o preparar una versión portable | [Desarrollo y operación](docs/DEVELOPMENT.md) |
-| Entender cómo se buscaron y compararon los sectores | [Método y resultados del piloto](docs/DISCOVERY_REPORT.md) |
-| Interpretar la evidencia geológica | [Contexto geológico](docs/GEOLOGY_CONTEXT.md) |
-| Activar y entender la asistencia de IA | [Configuración, privacidad y límites](docs/AI_SETUP.md) |
-| Revisar las decisiones del producto y del sistema | [Registro de decisiones](docs/decisions/) |
+| Install, develop, or prepare a portable release | [Development and operations](docs/DEVELOPMENT.md) |
+| Understand how sites were discovered and compared | [Pilot method and results](docs/DISCOVERY_REPORT.md) |
+| Interpret geological evidence | [Geological context](docs/GEOLOGY_CONTEXT.md) |
+| Enable and understand AI assistance | [Setup, privacy, and limitations](docs/AI_SETUP.md) |
+| Review product and system decisions | [Decision records](docs/decisions/) |
 
-## Licencia
+## License
 
-El código se distribuye bajo [licencia MIT](LICENSE). Los datos e imágenes conservan las condiciones de uso y atribución de sus proveedores, documentadas en los manifiestos y las guías de fuentes.
+The code is distributed under the [MIT License](LICENSE). Data and imagery retain their providers’ terms of use and attribution requirements, documented in the manifests and source guides.

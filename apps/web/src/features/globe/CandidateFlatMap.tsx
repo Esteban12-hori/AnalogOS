@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { GeoJSONSource, Map as MapLibreMap, Marker, setWorkerUrl, type GeoJSONFeature, type LngLatBoundsLike } from 'maplibre-gl'
-// MapLibre 6 busca su worker junto al módulo; con Vite se sirve como asset propio.
+// MapLibre 6 looks for its worker next to the module; with Vite it is served as its own asset.
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import type { StyleSpecification } from '@maplibre/maplibre-gl-style-spec'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
@@ -18,26 +18,26 @@ import { ClusterChip, MarkerPin, playHalos, pulsePin, setDataFlag, type PinRef }
 import { buildMarkerModels, labelBudget, placeNearSelection, ringRadius, type MarkerCounts, type MarkerInput, type MarkerModel } from './markers'
 import { publishStageFrame, type StageAnchor, type StageProjection } from './stageBridge'
 
-/** Teselas Web Mercator de NASA GIBS: solo mejoran la vista fuera de las imágenes locales. */
+/** NASA GIBS Web Mercator tiles: they only improve the view outside the local images. */
 const GIBS_BLUE_MARBLE =
   'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_NextGeneration/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg'
 setWorkerUrl(workerUrl)
 
 /**
- * HLS S30 (~30 m) en línea para cualquier lugar: varias fechas apiladas; cada una es
- * transparente fuera de su pasada, así que las de abajo rellenan los huecos.
- * Octubre: estación seca en Atacama, pocas nubes.
+ * HLS S30 (~30 m) online for any location: several dates stacked; each one is
+ * transparent outside its pass, so the ones below fill in the gaps.
+ * October: dry season in Atacama, few clouds.
  */
 export const ONLINE_HLS_DATES = ['2025-10-01', '2025-10-02', '2025-10-03', '2025-10-04', '2025-10-05', '2025-10-06']
 const hlsTiles = (date: string) =>
   `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/${date}/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png`
 const ONLINE_HLS_MIN_ZOOM = 8
 
-/** Agrupación nativa de MapLibre con el mismo radio que el globo (§3.1). */
+/** Native MapLibre clustering with the same radius as the globe (§3.1). */
 const CLUSTER_RADIUS = 36
 const MAX_ZOOM = 14
 
-/** Botones + / − del escenario en el 2D (el teclado lo maneja MapLibre). */
+/** Stage + / − buttons in 2D (the keyboard is handled by MapLibre). */
 export type FlatCommand = { kind: 'zoom'; delta: number; nonce: number }
 
 interface CandidateFlatMapProps {
@@ -48,17 +48,17 @@ interface CandidateFlatMapProps {
   selection: StageSelection | null
   hoverId: string | null
   onActivate: (model: MarkerModel) => void
-  /** Centrar un marcador (selección o «Centrar en ‹#1›»). */
+  /** Center a marker (selection or "Center on ‹#1›"). */
   fly: FlyRequest | null
   command: FlatCommand | null
-  /** Centro y zoom con que se entra desde el globo. */
+  /** Center and zoom used when entering from the globe. */
   entry: FlatHandoff
-  /** Pide encuadrar el lugar seleccionado (cambia el número para repetir). */
+  /** Requests framing the selected place (change the number to repeat). */
   focusRequest: number
   active: boolean
-  /** Márgenes asentados de la UI: padding de MapLibre (el centro queda en el área libre). */
+  /** Settled UI margins: MapLibre padding (the center stays in the free area). */
   insets: ViewInsets
-  /** Umbrales globo ↔ 2D según el panel visible. */
+  /** Globe ↔ 2D thresholds depending on the visible panel. */
   thresholds: FlatThresholds
   narrow: boolean
   resultsRevision: number
@@ -80,7 +80,7 @@ function candidateCollection(candidates: CandidateSite[], selectedId: string | n
   }
 }
 
-/** Puntos de los marcadores agrupables; la selección y el hover quedan fuera (nunca se agrupan). */
+/** Points of the clusterable markers; the selection and hover are left out (they are never clustered). */
 function markerCollection(models: readonly MarkerModel[], standalone: ReadonlySet<string>): FeatureCollection {
   return {
     type: 'FeatureCollection',
@@ -125,7 +125,7 @@ function buildStyle(basemaps: Basemap[], outline: GeoJsonFeatureCollection, cand
       ]
     }),
   )
-  // Orden de abajo hacia arriba por calidad: regional < mediana HLS por sector < Sentinel-2 por candidato.
+  // Bottom-to-top order by quality: regional < per-sector HLS median < per-candidate Sentinel-2.
   const rank = { world: 0, regional: 1, sector: 2, context: 3 } as const
   const detailed = (basemap: Basemap) => basemap.kind === 'sector' || basemap.kind === 'context'
   const ordered = [...basemaps].sort((a, b) => rank[a.kind] - rank[b.kind])
@@ -155,7 +155,7 @@ function buildStyle(basemaps: Basemap[], outline: GeoJsonFeatureCollection, cand
         cluster: true,
         clusterRadius: CLUSTER_RADIUS,
         clusterMaxZoom: MAX_ZOOM,
-        // Conteos por tipo y país común: nunca promedios.
+        // Counts by type and common country: never averages.
         clusterProperties: {
           evaluated: ['+', ['case', ['==', ['get', 'kind'], 'evaluated'], 1, 0]],
           insufficient: ['+', ['case', ['==', ['get', 'kind'], 'insufficient'], 1, 0]],
@@ -166,7 +166,7 @@ function buildStyle(basemaps: Basemap[], outline: GeoJsonFeatureCollection, cand
     },
     layers: [
       { id: 'background', type: 'background', paint: { 'background-color': '#02070A' } },
-      // Mundo local de respaldo: queda debajo de las teselas en línea, que lo tapan si hay conexión.
+      // Local fallback world: it sits beneath the online tiles, which cover it if there is a connection.
       ...ordered.filter((basemap) => basemap.kind === 'world').map((basemap) => ({
         id: `basemap-${basemap.id}`,
         type: 'raster' as const,
@@ -180,7 +180,7 @@ function buildStyle(basemaps: Basemap[], outline: GeoJsonFeatureCollection, cand
         source: `basemap-${basemap.id}`,
         paint: { 'raster-fade-duration': 0 },
       })),
-      // La fecha más reciente queda arriba; las anteriores rellenan sus huecos.
+      // The most recent date stays on top; the earlier ones fill in its gaps.
       ...ONLINE_HLS_DATES.map((date) => ({
         id: `gibs-hls-${date}`,
         type: 'raster' as const,
@@ -192,7 +192,7 @@ function buildStyle(basemaps: Basemap[], outline: GeoJsonFeatureCollection, cand
         id: `basemap-${basemap.id}`,
         type: 'raster' as const,
         source: `basemap-${basemap.id}`,
-        // Los sectores a 30 m entran gradualmente cuando su detalle supera al regional.
+        // The 30 m sectors fade in gradually when their detail surpasses the regional one.
         paint: { 'raster-opacity': ['interpolate', ['linear'], ['zoom'], 7.5, 0, 8.5, 1] as unknown as number, 'raster-fade-duration': 0 },
       })),
       {
@@ -201,7 +201,7 @@ function buildStyle(basemaps: Basemap[], outline: GeoJsonFeatureCollection, cand
         source: 'chile-outline',
         paint: { 'line-color': '#3FB4EC', 'line-opacity': 0.55, 'line-width': 1 },
       },
-      // Sectores: polígonos (nunca pins). Selección = hielo + azul; datos insuficientes, discontinuo.
+      // Sectors: polygons (never pins). Selection = ice + blue; insufficient data, dashed.
       {
         id: 'candidate-fill',
         type: 'fill',
@@ -225,9 +225,9 @@ function buildStyle(basemaps: Basemap[], outline: GeoJsonFeatureCollection, cand
         filter: ['get', 'pending'],
         paint: { 'line-color': ['case', ['get', 'selected'], '#EAF4FA', '#6F889A'], 'line-width': 1.6, 'line-dasharray': [2, 2] },
       },
-      // Zona aproximada del ◆ seleccionado: siempre discontinua.
+      // Approximate area of the selected ◆: always dashed.
       { id: 'zone-line', type: 'line', source: 'zone', paint: { 'line-color': '#94AABA', 'line-width': 1.6, 'line-dasharray': [3, 2] } },
-      // Capa invisible: obliga a MapLibre a calcular los grupos; los marcadores son DOM.
+      // Invisible layer: forces MapLibre to compute the clusters; the markers are DOM.
       { id: 'marker-probe', type: 'circle', source: 'markers', paint: { 'circle-radius': 1, 'circle-opacity': 0, 'circle-stroke-width': 0 } },
     ],
   }
@@ -238,7 +238,7 @@ function viewBounds(map: MapLibreMap): Bounds {
   return [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]
 }
 
-/** Un marcador DOM visible en el 2D: un lugar suelto o un grupo de MapLibre. */
+/** A visible DOM marker in 2D: a single place or a MapLibre cluster. */
 type FlatEntry =
   | { key: string; kind: 'pin'; id: string; at: Position }
   | { key: string; kind: 'cluster'; clusterId: number; count: number; counts: MarkerCounts; group: string; at: Position }
@@ -256,7 +256,7 @@ function readEntries(features: GeoJSONFeature[]): FlatEntry[] {
     const properties = feature.properties
     if (properties.cluster) {
       const clusterId = numberProperty(feature, 'cluster_id')
-      // MapLibre reutiliza ids entre datos distintos: el conteo forma parte de la clave.
+      // MapLibre reuses ids across different data: the count is part of the key.
       const key = `c:${clusterId}:${numberProperty(feature, 'point_count')}`
       if (entries.has(key)) continue
       const group = typeof properties.group === 'string' ? properties.group : ''
@@ -309,7 +309,7 @@ export default function CandidateFlatMap({
   const selectedId = selection?.id ?? null
   const standalone = useMemo(() => new Set([selectedId, hoverId].filter((id): id is string => id !== null)), [selectedId, hoverId])
 
-  // Marcadores DOM: un contenedor por entrada (Marker de MapLibre) donde React monta un portal.
+  // DOM markers: one container per entry (MapLibre Marker) where React mounts a portal.
   const [entries, setEntries] = useState<FlatEntry[]>([])
   const entryList = useRef<FlatEntry[]>([])
   const hosts = useRef(new Map<string, { marker: Marker; element: HTMLDivElement }>())
@@ -317,7 +317,7 @@ export default function CandidateFlatMap({
   const signature = useRef('')
   const [openCluster, setOpenCluster] = useState<{ key: string; members: MarkerModel[] | null } | null>(null)
 
-  // Las callbacks cambian en cada render del padre; el mapa se crea una sola vez.
+  // The callbacks change on every render of the parent; the map is created only once.
   const latest = useRef({ onExit, onSourcesChange, onCameraInput, onHome, onActivate, basemaps, active, thresholds, byId, selection, standalone, models })
   latest.current = { onExit, onSourcesChange, onCameraInput, onHome, onActivate, basemaps, active, thresholds, byId, selection, standalone, models }
   const flying = useRef<string | null>(null)
@@ -334,7 +334,7 @@ export default function CandidateFlatMap({
     },
   }), [])
 
-  /** Publica proyección y ancla del lugar seleccionado; ajusta el anillo al polígono proyectado. */
+  /** Publishes the projection and anchor of the selected place; fits the ring to the projected polygon. */
   const publishFrame = useCallback(() => {
     const map = mapRef.current
     const { active, selection, byId } = latest.current
@@ -357,21 +357,21 @@ export default function CandidateFlatMap({
       const point = map.project(item.at)
       let x = point.x
       if (item.kind === 'cluster') {
-        // Un grupo pegado al seleccionado se corre bajo su anillo y queda compacto (como en el globo).
+        // A cluster adjacent to the selected one is shifted beneath its ring and stays compact (as on the globe).
         const placed = placeNearSelection(point, selectedRing)
         host.marker.setOffset([placed.x - point.x, placed.y - point.y])
         const root = host.element.firstElementChild
         if (root instanceof HTMLElement) setDataFlag(root, 'compact', placed.compact)
         x = placed.x
       }
-      // Como applyPinFrame en el globo: el rótulo se acorta antes del riel o del borde (markers.css).
+      // Like applyPinFrame on the globe: the label is shortened before the rail or the edge (markers.css).
       const pinX = `${Math.round(x)}px`
       if (host.element.style.getPropertyValue('--pin-x') !== pinX) host.element.style.setProperty('--pin-x', pinX)
     }
     publishStageFrame({ projection, anchor })
   }, [projection])
 
-  /** Lee los grupos que calculó MapLibre y reconcilia los Marker DOM (solo si cambió el conjunto). */
+  /** Reads the clusters computed by MapLibre and reconciles the DOM Markers (only if the set changed). */
   const syncMarkers = useCallback(() => {
     const map = mapRef.current
     if (!map || !map.getSource('markers') || !map.isSourceLoaded('markers')) return
@@ -404,7 +404,7 @@ export default function CandidateFlatMap({
     }
     entryList.current = next
     setEntries(next)
-    // Los Marker nuevos reciben su --pin-x sin esperar al próximo movimiento.
+    // New Markers receive their --pin-x without waiting for the next movement.
     publishFrame()
   }, [publishFrame])
 
@@ -447,14 +447,14 @@ export default function CandidateFlatMap({
         reportSources()
       }
     })
-    // Sin conexión, las teselas en línea fallan: se ignora y quedan las imágenes locales.
+    // Offline, the online tiles fail: this is ignored and the local images remain.
     map.on('error', () => undefined)
     map.on('load', () => {
       reportSources()
       const source = map.getSource('markers')
       if (source instanceof GeoJSONSource) source.setData(markerCollection(latest.current.models, latest.current.standalone))
     })
-    // 'render' cubre los cambios de zoom (los grupos cambian por nivel); solo reconcilia si cambió el conjunto.
+    // 'render' covers zoom changes (clusters change per level); it only reconciles if the set changed.
     map.on('render', syncMarkers)
     map.on('move', publishFrame)
     map.on('resize', publishFrame)
@@ -479,7 +479,7 @@ export default function CandidateFlatMap({
       }
     })
     map.on('click', 'candidate-fill', (event) => {
-      // Un clic sobre un marcador DOM ya lo resolvió su botón.
+      // A click on a DOM marker has already been resolved by its button.
       const target = event.originalEvent.target
       if (target instanceof Element && target.closest('.globe-pin, .globe-cluster')) return
       const id = event.features?.[0]?.properties?.site_id
@@ -501,7 +501,7 @@ export default function CandidateFlatMap({
       map.remove()
       mapRef.current = null
     }
-    // El mapa se crea una vez; los cambios posteriores se aplican en efectos dedicados.
+    // The map is created once; later changes are applied in dedicated effects.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -510,7 +510,7 @@ export default function CandidateFlatMap({
     mapRef.current?.setPadding({ top, right, bottom, left })
   }, [top, right, bottom, left])
 
-  // Re-entrada desde el globo: salto al mismo centro/escala.
+  // Re-entry from the globe: jump to the same center/scale.
   useEffect(() => {
     const map = mapRef.current
     if (!map || !active) return
@@ -519,7 +519,7 @@ export default function CandidateFlatMap({
     map.jumpTo({ center: [entry.lon, entry.lat], zoom: Math.max(entry.zoom, map.getMinZoom()) })
   }, [active, entry])
 
-  // Datos de marcadores, selección, hover y zona: solo con el mapa activo (el 2D dormido no redibuja).
+  // Marker data, selection, hover and area: only with the map active (the dormant 2D does not redraw).
   useEffect(() => {
     const map = mapRef.current
     if (!map || !active) return
@@ -537,7 +537,7 @@ export default function CandidateFlatMap({
     else map.once('load', apply)
   }, [active, candidates, models, byId, standalone, selection, publishFrame])
 
-  // Centrar un marcador: misma fórmula de duración que el globo; con reduced motion, corte.
+  // Centering a marker: same duration formula as the globe; with reduced motion, a cut.
   const lastFly = useRef(fly?.nonce ?? 0)
   useEffect(() => {
     if (!fly || fly.nonce === lastFly.current) return
@@ -562,8 +562,8 @@ export default function CandidateFlatMap({
     map.easeTo({ zoom: map.getZoom() + command.delta, duration, easing: easeInOutCubic })
   }, [command, active])
 
-  // «Ver en el mapa»: encuadre del sector (o de la zona aproximada del ◆) seleccionado.
-  // `focusRequest` empieza en 0: si al montar ya es mayor, hubo un pedido mientras el chunk cargaba.
+  // "View on the map": framing of the selected sector (or of the approximate area of the ◆).
+  // `focusRequest` starts at 0: if on mount it is already greater, there was a request while the chunk was loading.
   const lastFocus = useRef(0)
   useEffect(() => {
     const map = mapRef.current
@@ -573,11 +573,11 @@ export default function CandidateFlatMap({
     const candidate = candidates.find((item) => item.site_id === selection.id)
     const bounds = candidate ? boundsOf(candidate) : ringBounds(byId.get(selection.id)?.outline ?? [])
     if (!bounds) return
-    // El padding del mapa ya descuenta la UI (insets); aquí solo un margen alrededor del sector.
+    // The map padding already accounts for the UI (insets); here only a margin around the sector.
     map.fitBounds(bounds, { padding: { top: 48, bottom: 48, left: 64, right: 64 }, maxZoom: 11.5, duration: prefersReducedMotion() ? 0 : 1400 })
   }, [focusRequest, selection, candidates, byId])
 
-  // Coreografía D: halos en el orden nuevo sobre los lugares sueltos.
+  // Choreography D: halos in the new order over the individual places.
   const lastRevision = useRef(resultsRevision)
   useEffect(() => {
     if (resultsRevision === lastRevision.current) return
@@ -586,12 +586,12 @@ export default function CandidateFlatMap({
     playHalos(pins.current, models.filter((model) => model.kind === 'evaluated' && model.rank !== null).map((model) => model.id), 120)
   }, [resultsRevision, models, active])
 
-  // Marcadores recién montados: ubicar grupos cercanos a la selección y publicar el ancla.
+  // Newly mounted markers: locate clusters near the selection and publish the anchor.
   useEffect(() => {
     publishFrame()
   }, [entries, publishFrame])
 
-  // Al cambiar el conjunto, la lista abierta de un grupo que ya no existe se cierra.
+  // When the set changes, the open list of a cluster that no longer exists is closed.
   useEffect(() => {
     if (openCluster && !entries.some((item) => item.key === openCluster.key)) setOpenCluster(null)
   }, [entries, openCluster])
@@ -616,7 +616,7 @@ export default function CandidateFlatMap({
     }, () => setOpenCluster((current) => (current?.key === item.key ? { key: item.key, members: [] } : current)))
   }
 
-  // Rótulos: presupuesto por prioridad (selección, hover, luego orden), como en el globo.
+  // Labels: budget by priority (selection, hover, then order), as on the globe.
   const labeled = useMemo(() => {
     const singles = entries.flatMap((item) => (item.kind === 'pin' ? byId.get(item.id) ?? [] : []))
     const priority = (model: MarkerModel) => (model.id === selectedId ? -2 : model.id === hoverId ? -1 : model.order)
@@ -641,7 +641,7 @@ export default function CandidateFlatMap({
       ref={containerRef}
       className="flat-map"
       role="region"
-      aria-label="Mapa 2D con imágenes oficiales NASA. Flechas: desplazar. Más y menos: acercar o alejar. Inicio: vista global."
+      aria-label="2D map with official NASA imagery. Arrows: pan. Plus and minus: zoom in or out. Home: global view."
       data-selection={selectedId ? '' : undefined}
     >
       {entries.map((item) => {

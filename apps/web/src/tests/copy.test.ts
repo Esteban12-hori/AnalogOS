@@ -1,5 +1,5 @@
-// Textos de la interfaz integrada (ADR-013): ninguna superficie promete un % de misión, rotula
-// «DEMO», habla de niveles ponderados, dice «M8» o «AnalogOS Chile», ni expone VITE_LKTRON.
+// Integrated interface texts (ADR-013): no surface promises a mission %, labels
+// «DEMO», talks about weighted levels, says «M8» or «AnalogOS Chile», or exposes VITE_LKTRON.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -15,25 +15,25 @@ function sources(dir: string): string[] {
   })
 }
 
-describe('textos de producto', () => {
-  it('ninguna superficie contiene los textos retirados', () => {
+describe('product texts', () => {
+  it('no surface contains the retired texts', () => {
     for (const file of sources(SRC)) {
       const text = readFileSync(file, 'utf8')
       for (const phrase of FORBIDDEN) expect(text.includes(phrase), `${file}: «${phrase}»`).toBe(false)
     }
   })
 
-  it('ninguna superficie de usuario dice «M8» (comentarios aparte)', () => {
+  it('no user surface says “M8” (comments aside)', () => {
     for (const file of sources(SRC).filter((path) => path.endsWith('.tsx'))) {
       const code = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
       expect(code, file).not.toMatch(/\bM8\b/)
     }
   })
 
-  it('App.tsx mantiene la promesa del producto (la lee missionFormat.test del equipo)', () => {
+  it('App.tsx keeps the product promise (read by the team missionFormat.test)', () => {
     const app = readFileSync(join(SRC, 'App.tsx'), 'utf8')
-    expect(app).toContain('Prioriza qué sectores merecen reconocimiento para un ensayo de rover')
-    expect(app).toContain('No mide tracción ni aprueba terreno')
-    expect(app).not.toContain('reproduce mejor condiciones')
+    expect(app).toContain('Prioritizes which sectors deserve reconnaissance for a rover test')
+    expect(app).toContain('It does not measure traction or approve terrain')
+    expect(app).not.toContain('best reproduces conditions')
   })
 })

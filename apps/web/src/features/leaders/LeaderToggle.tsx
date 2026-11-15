@@ -1,4 +1,4 @@
-/** Interruptor «Líneas» junto a los controles del escenario (slot `stage.hud`). */
+/** "Lines" toggle next to the stage controls (slot `stage.hud`). */
 import { setLeadersEnabled, useLeadersEnabled } from './preference'
 import './leaders-toggle.css'
 
@@ -13,7 +13,7 @@ export function LeaderToggle() {
       onClick={() => setLeadersEnabled(!enabled)}
     >
       <span className="leaders-toggle-track" aria-hidden="true"><span className="leaders-toggle-knob" /></span>
-      Líneas<span className="leaders-toggle-state" aria-hidden="true">: {enabled ? 'sí' : 'no'}</span>
+      Lines<span className="leaders-toggle-state" aria-hidden="true">: {enabled ? 'on' : 'off'}</span>
     </button>
   )
 }

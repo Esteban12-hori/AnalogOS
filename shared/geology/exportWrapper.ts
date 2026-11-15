@@ -1,24 +1,32 @@
-// Exportación M10: wrapper con kind/versión propios que embebe SIN cambios la exportación M8 1.0 y agrega la
-// orientación geológica efectivamente usada (subconjunto autocontenido y validable por sector, identidad del
-// contexto, selección y procedencia). Las exportaciones M8 1.0 existentes no cambian ni se reescriben.
+// M10 export: wrapper with its own kind/version that embeds the M8 export WITHOUT changes and adds the
+// geological guidance actually used (self-contained subset, validatable per sector, context identity,
+// selection and provenance). Existing M8 1.0 exports are neither changed nor rewritten.
+// Versions (explicit pairing, never reinterpreted): wrapper 1 ↔ mission export 1.0.0 ↔ geology exports v1 (frozen
+// Spanish wording); wrapper 2 ↔ mission export 1.1.0 ↔ geology exports v2 (English wording).
 import Ajv2020 from 'ajv/dist/2020'
 import wrapperSchema from '../../contracts/mission-geology-export.schema.json'
+import { RULES_VERSION } from '../mission/catalog'
 import { evaluationFingerprint } from '../mission/evaluate'
 import { canonicalJson, fingerprint } from '../mission/fingerprint'
 import { MissionExportError, buildMissionExport, userChangesFrom, type AiProvenance } from '../mission/exportReport'
 import { checkSelection } from '../mission/explanation'
 import type { EvidenceBundle, MissionEvaluation } from '../mission/types'
 import { evaluateMission } from '../mission/evaluate'
+import { EXPORT_LANGUAGE_1_1, isEvaluationVersion, missionText } from '../mission/text'
 import { validateMissionExport, validateMissionRequest } from '../mission/validate'
 import { GeologyContractError, buildGeologyExport, parseGeologyContext, validateGeologyExport, type GeologyContext, type GeologyExport } from './context'
 import {
   buildGeologyCatalog, catalogSourceFromExports, checkGeologySelection, composeGeologyGuidance, deterministicGeologyRefs, type GeologyAiRecord,
 } from './guidance'
+import { DEFAULT_GEOLOGY_EXPORT_VERSION, evaluationVersionFor, geologyText, geologyVersionFor, isGeologyTextVersion, type GeologyText, type GeologyTextVersion } from './text'
 
 export const GEOLOGY_WRAPPER_KIND = 'analogos-mission-geology-export'
-export const FINGERPRINT_METHOD = 'SHA-256 del JSON canónico COMPLETO del contexto geológico validado (shared/mission/fingerprint.ts); no es el hash de los bytes del archivo.'
-export const SUBSET_FINGERPRINT_METHOD = 'SHA-256 del JSON canónico de la lista de subconjuntos geology-export incluidos en este archivo (cubre geometría, unidades, fuentes, citas, peticiones y metadatos de cada sector usado). Se recalcula aquí.'
-export const IDENTITY_NOTE = 'Este archivo trae solo los sectores usados (cada uno validable por sí solo); la identidad del paquete completo está DECLARADA y no puede recalcularse aquí, porque se omiten los demás sectores.'
+// Wrapper texts of the default (English) version for importers; each wrapper uses the texts of its own version,
+// so legacy v1 reconstruction stays bound to the frozen Spanish pack (geologyText(1)).
+const DEFAULT_WRAPPER = geologyText(DEFAULT_GEOLOGY_EXPORT_VERSION).wrapper
+export const FINGERPRINT_METHOD = DEFAULT_WRAPPER.fingerprintMethod
+export const SUBSET_FINGERPRINT_METHOD = DEFAULT_WRAPPER.subsetFingerprintMethod
+export const IDENTITY_NOTE = DEFAULT_WRAPPER.identityNote
 
 export class GeologyExportError extends Error {
   constructor(message: string) {
@@ -30,62 +38,79 @@ export class GeologyExportError extends Error {
 export interface WrapperGuidanceInput {
   mode: 'ai' | 'deterministic'
   ref_ids: string[]
-  /** Registro del canal geológico de la llamada (solo modo ai) y procedencia de esa MISMA llamada. */
+  /** Record of the call's geological channel (ai mode only) and provenance of that SAME call. */
   ai?: { record: GeologyAiRecord; provenance: AiProvenance }
 }
 
 const ajv = new Ajv2020({ allErrors: true, strict: false })
 const validateShape = ajv.compile(wrapperSchema)
 
-export const WRAPPER_DESCRIPTION =
-  'Recomendación de AnalogOS con orientación geológica para la prueba. Contiene, sin cambios, la exportación de recomendación M8 1.0 '
-  + '(resultado determinista) y, aparte, la orientación geológica efectivamente usada con sus fuentes y límites.'
-export const WRAPPER_HOW_TO_READ = [
-  'mission_export es la exportación M8 1.0 íntegra: el resultado determinista de requisitos no cambia por la geología.',
-  'geology_guidance es una capa separada: cartografía regional oficial (no medición de campo) y orientación editorial para reconocimiento y validación; no prueba tracción, mecánica de suelos, equivalencia marciana, seguridad ni permisos, y un sector descartado no se rehabilita por su geología.',
-  'mode = ai: la IA solo eligió referencias (unidad + propósito) de un catálogo calculado a partir de la cartografía; no escribió hechos. mode = deterministic: orientación general sin IA que no depende del objetivo.',
-  'context_identity declara la identidad del paquete geológico completo (no verificable desde este archivo) y la huella exacta de los subconjuntos incluidos (subset_fingerprint, recalculable). geology_exports son subconjuntos validables por sector; con el snapshot confiable también se contrasta su geometría. El catálogo y la guía se recalculan al validar.',
-]
+export const WRAPPER_DESCRIPTION = DEFAULT_WRAPPER.description
+export const WRAPPER_HOW_TO_READ = DEFAULT_WRAPPER.howToRead
 
-/** Identidad declarada del paquete completo, a partir del contexto validado. */
-function identityOf(context: GeologyContext, contextFp: string, subsetFp: string) {
+/** Declared identity of the complete package, based on the validated context. */
+function identityOf(context: GeologyContext, contextFp: string, subsetFp: string, text: GeologyText) {
   return {
-    context_fingerprint: contextFp, subset_fingerprint: subsetFp, subset_fingerprint_method: SUBSET_FINGERPRINT_METHOD, fingerprint_method: FINGERPRINT_METHOD, verifiable_from_this_file: false as const,
+    context_fingerprint: contextFp, subset_fingerprint: subsetFp, subset_fingerprint_method: text.wrapper.subsetFingerprintMethod, fingerprint_method: text.wrapper.fingerprintMethod, verifiable_from_this_file: false as const,
     package_kind: context.kind, package_schema_version: context.schema_version, snapshot_version: context.snapshot_version,
-    pipeline_version: context.pipeline_version, candidates_file: context.candidates_file, candidates_sha256: context.candidates_sha256, note: IDENTITY_NOTE,
+    pipeline_version: context.pipeline_version, candidates_file: context.candidates_file, candidates_sha256: context.candidates_sha256, note: text.wrapper.identityNote,
   }
 }
 
 /**
- * Auditoría de una exportación M8 1.0 (embebida o suelta). Con `bundle` la RECONSTRUYE con `buildMissionExport`
- * (solicitud + snapshot + registros de IA) y exige igualdad completa; sin bundle comprueba lo que no necesita el
- * snapshot: contrato, huellas, selección de IA contra la evaluación embebida, huella del brief/propuesta y cambios del usuario.
+ * Version coherence of a mission export (1.0.0 or 1.1.0) that needs no snapshot: export/evaluation versions match
+ * and every authored text (rules, ordering rule, limits, language block) is exactly the one of that version. A
+ * 1.1.0 file with Spanish rules, or a 1.0.0 file relabeled 1.1.0, is rejected instead of reinterpreted.
+ */
+function versionIssues(doc: Record<string, unknown> & { evaluation: MissionEvaluation }): string[] {
+  const version = doc.export_version
+  if (!isEvaluationVersion(version)) return [`Unsupported export version: ${String(version).slice(0, 40)}.`]
+  if (doc.evaluation.evaluation_version !== version) return ['Export version and evaluation version do not match.']
+  const text = missionText(version)
+  const issues: string[] = []
+  const rules = doc.rules as { rules_version: string; ordering_rule: string; status_definitions: unknown }
+  if (rules.rules_version !== RULES_VERSION || doc.evaluation.rules_version !== RULES_VERSION) issues.push('Unknown rules version.')
+  if (rules.ordering_rule !== text.orderingRule || doc.evaluation.ordering_rule !== text.orderingRule
+    || canonicalJson(rules.status_definitions) !== canonicalJson(text.statusDefinitions) || canonicalJson(doc.evaluation.limits) !== canonicalJson(text.limits)) {
+    issues.push(`Rules, status definitions or limits do not match the wording of version ${version}.`)
+  }
+  if (version === '1.0.0' ? doc.language !== undefined : canonicalJson(doc.language) !== canonicalJson(EXPORT_LANGUAGE_1_1)) {
+    issues.push(`Language block does not match version ${version}.`)
+  }
+  return issues
+}
+
+/**
+ * Audit of an M8 1.0 export (embedded or standalone). With `bundle` it RECONSTRUCTS it with `buildMissionExport`
+ * (request + snapshot + AI records) and requires full equality; without a bundle it checks what does not need the
+ * snapshot: contract, fingerprints, AI selection against the embedded evaluation, brief/proposal fingerprint and user changes.
  */
 export function auditMissionExport(m8: unknown, bundle?: EvidenceBundle): string[] {
   const shape = validateMissionExport(m8)
-  if (shape.length) return [`La exportación M8 no cumple su contrato 1.0: ${shape[0]}`]
+  if (shape.length) return [`The mission export does not meet its contract (supported versions 1.0.0 and 1.1.0): ${shape[0]}`]
   const doc = m8 as Record<string, unknown> & {
     request: never; evaluation: MissionEvaluation; evaluation_fingerprint: string
     ai: { draft: { provenance: AiProvenance; brief_fingerprint: string; proposal_fingerprint: string; proposal: never; user_changes: unknown } | null; explanation: { provenance: AiProvenance; selection: unknown; request_fingerprint: string; evaluation_fingerprint: string } | null }
   }
-  const issues: string[] = []
+  const issues: string[] = versionIssues(doc)
+  if (issues.length) return issues
   const checked = validateMissionRequest(doc.request, { requireConfirmed: true })
-  if (!checked.ok) return [`La solicitud embebida no es válida o no está confirmada: ${checked.issues[0]}`]
+  if (!checked.ok) return [`The embedded request is invalid or not confirmed: ${checked.issues[0]}`]
   const reqFp = fingerprint(checked.request)
   const evalFp = evaluationFingerprint(doc.evaluation)
-  if (doc.evaluation.request_fingerprint !== reqFp) issues.push('La evaluación embebida no corresponde a la solicitud embebida.')
-  if (doc.evaluation_fingerprint !== evalFp) issues.push('La huella de evaluación M8 no coincide.')
+  if (doc.evaluation.request_fingerprint !== reqFp) issues.push('The embedded evaluation does not belong to the embedded request.')
+  if (doc.evaluation_fingerprint !== evalFp) issues.push('The mission evaluation fingerprint does not match.')
   const ex = doc.ai.explanation
   if (ex) {
-    if (ex.request_fingerprint !== reqFp || ex.evaluation_fingerprint !== evalFp) issues.push('La explicación de IA pertenece a otra solicitud o evaluación.')
+    if (ex.request_fingerprint !== reqFp || ex.evaluation_fingerprint !== evalFp) issues.push('The AI explanation belongs to another request or evaluation.')
     const sel = checkSelection(ex.selection, doc.evaluation)
-    if (!sel.ok) issues.push(`Selección de IA inválida: ${sel.reason}`)
+    if (!sel.ok) issues.push(`Invalid AI selection: ${sel.reason}`)
   }
   const dr = doc.ai.draft
   if (dr) {
-    if (dr.brief_fingerprint !== fingerprint(checked.request.brief)) issues.push('El brief cambió después del borrador de IA.')
-    if (dr.proposal_fingerprint !== fingerprint(dr.proposal)) issues.push('La huella de la propuesta de IA no coincide.')
-    if (canonicalJson(dr.user_changes) !== canonicalJson(userChangesFrom(dr.proposal, checked.request))) issues.push('Los cambios del usuario declarados no coinciden con los calculados.')
+    if (dr.brief_fingerprint !== fingerprint(checked.request.brief)) issues.push('The brief changed after the AI draft.')
+    if (dr.proposal_fingerprint !== fingerprint(dr.proposal)) issues.push('The AI proposal fingerprint does not match.')
+    if (canonicalJson(dr.user_changes) !== canonicalJson(userChangesFrom(dr.proposal, checked.request))) issues.push('The declared user changes do not match the computed ones.')
   }
   if (issues.length) return issues
   if (bundle) {
@@ -94,17 +119,18 @@ export function auditMissionExport(m8: unknown, bundle?: EvidenceBundle): string
         draft: dr ? { provenance: dr.provenance, brief_fingerprint: dr.brief_fingerprint, proposal: dr.proposal } : null,
         explanation: ex ? { provenance: ex.provenance, selection: ex.selection as never, request_fingerprint: ex.request_fingerprint, evaluation_fingerprint: ex.evaluation_fingerprint } : null,
       })
-      if (canonicalJson(rebuilt) !== canonicalJson(m8)) issues.push('La exportación M8 no coincide con la reconstruida desde la solicitud, el snapshot y los registros de IA.')
+      if (canonicalJson(rebuilt) !== canonicalJson(m8)) issues.push('The mission export does not match the one rebuilt from the request, the snapshot and the AI records.')
     } catch (error) {
-      issues.push(error instanceof MissionExportError ? error.message : 'No se pudo reconstruir la exportación M8.')
+      issues.push(error instanceof MissionExportError ? error.message : 'The mission export could not be rebuilt.')
     }
   }
   return issues
 }
 
 /**
- * Construye el wrapper. El contexto se valida contra los candidatos del snapshot (`bundle`): la procedencia no se asume.
- * Rechaza (GeologyExportError) si algo no corresponde: M8 incoherente, contexto/huella ajenos, selección o procedencia ajenas.
+ * Builds the wrapper. The context is validated against the snapshot candidates (`bundle`): provenance is not assumed.
+ * Rejects (GeologyExportError) if anything does not match: inconsistent M8, foreign context/fingerprint, foreign selection or provenance.
+ * The wrapper version follows the embedded mission export (1.0.0 → wrapper 1, 1.1.0 → wrapper 2); any other is rejected.
  */
 export function buildMissionGeologyExport(
   missionExport: Record<string, unknown>,
@@ -114,45 +140,49 @@ export function buildMissionGeologyExport(
   input: WrapperGuidanceInput,
   opts: { bundle: EvidenceBundle },
 ): Record<string, unknown> {
+  const embeddedVersion = missionExport?.export_version
+  if (!isEvaluationVersion(embeddedVersion)) throw new GeologyExportError(`Unsupported embedded mission export version: ${String(embeddedVersion).slice(0, 40)}.`)
+  const version = geologyVersionFor(embeddedVersion)
+  const text = geologyText(version)
   const m8Issues = auditMissionExport(missionExport, opts.bundle)
-  if (m8Issues.length) throw new GeologyExportError(`La exportación M8 embebida no es coherente: ${m8Issues[0]}`)
+  if (m8Issues.length) throw new GeologyExportError(`The embedded mission export is not consistent: ${m8Issues[0]}`)
   try {
     parseGeologyContext(context, opts.bundle.candidates)
   } catch (error) {
-    throw new GeologyExportError(error instanceof GeologyContractError ? error.message : 'El contexto geológico no corresponde al snapshot.')
+    throw new GeologyExportError(error instanceof GeologyContractError ? error.message : 'The geology context does not belong to the snapshot.')
   }
-  if (fingerprint(context) !== contextFingerprint) throw new GeologyExportError('La huella no corresponde al contexto geológico dado.')
-  if (canonicalJson(missionExport.evaluation) !== canonicalJson(evaluation)) throw new GeologyExportError('La evaluación no es la de la exportación M8 embebida.')
+  if (fingerprint(context) !== contextFingerprint) throw new GeologyExportError('The fingerprint does not belong to the given geology context.')
+  if (canonicalJson(missionExport.evaluation) !== canonicalJson(evaluation)) throw new GeologyExportError('The evaluation is not the one in the embedded mission export.')
   const catalog = buildGeologyCatalog(evaluation, context, contextFingerprint)
   const checked = checkGeologySelection({ ref_ids: input.ref_ids }, catalog)
-  if (!checked.ok) throw new GeologyExportError(`Selección geológica inválida: ${checked.reason}`)
+  if (!checked.ok) throw new GeologyExportError(`Invalid geology selection: ${checked.reason}`)
   let ai: Record<string, unknown> | null = null
   if (input.mode === 'ai') {
     const a = input.ai
-    if (!a) throw new GeologyExportError('El modo ai exige el registro y la procedencia de la llamada.')
+    if (!a) throw new GeologyExportError('Mode ai requires the record and the provenance of the call.')
     const g = a.record
     if (g.context_fingerprint !== contextFingerprint || g.catalog_fingerprint !== catalog.catalog_fingerprint
       || g.request_fingerprint !== catalog.request_fingerprint || g.evaluation_fingerprint !== catalog.evaluation_fingerprint
       || canonicalJson(g.selection.ref_ids) !== canonicalJson(checked.selection.ref_ids)) {
-      throw new GeologyExportError('El registro de IA geológica pertenece a otro contexto, solicitud, evaluación o selección.')
+      throw new GeologyExportError('The geology AI record belongs to another context, request, evaluation or selection.')
     }
     const explanation = (missionExport.ai as { explanation?: { provenance?: unknown; request_fingerprint?: unknown; evaluation_fingerprint?: unknown } | null } | undefined)?.explanation
     if (!explanation || canonicalJson(explanation.provenance) !== canonicalJson(a.provenance)
       || explanation.request_fingerprint !== g.request_fingerprint || explanation.evaluation_fingerprint !== g.evaluation_fingerprint) {
-      throw new GeologyExportError('La selección geológica no proviene de la misma llamada que la explicación M8 embebida.')
+      throw new GeologyExportError('The geology selection does not come from the same call as the embedded mission explanation.')
     }
     ai = { provenance: a.provenance, request_fingerprint: g.request_fingerprint, evaluation_fingerprint: g.evaluation_fingerprint, catalog_fingerprint: g.catalog_fingerprint }
   } else if (canonicalJson(checked.selection.ref_ids) !== canonicalJson(deterministicGeologyRefs(catalog).ref_ids)) {
-    throw new GeologyExportError('La orientación determinista no coincide con la que calcula la app.')
+    throw new GeologyExportError('The deterministic guidance does not match the one the app computes.')
   }
   const doc = {
-    kind: GEOLOGY_WRAPPER_KIND, schema_version: 1, status: 'preliminary_geological_guidance',
-    export_info: { description: WRAPPER_DESCRIPTION, how_to_read: WRAPPER_HOW_TO_READ, embedded_mission_export_version: '1.0.0' },
+    kind: GEOLOGY_WRAPPER_KIND, schema_version: version, status: 'preliminary_geological_guidance',
+    export_info: { description: text.wrapper.description, how_to_read: text.wrapper.howToRead, embedded_mission_export_version: embeddedVersion },
     mission_export: missionExport,
     geology_guidance: {
       mode: input.mode,
-      context_identity: identityOf(context, contextFingerprint, catalog.subset_fingerprint),
-      geology_exports: catalog.sites.map((s) => buildGeologyExport(context, s.site_id)),
+      context_identity: identityOf(context, contextFingerprint, catalog.subset_fingerprint, text),
+      geology_exports: catalog.sites.map((s) => buildGeologyExport(context, s.site_id, version)),
       catalog: {
         catalog_fingerprint: catalog.catalog_fingerprint, subset_fingerprint: catalog.subset_fingerprint, request_fingerprint: catalog.request_fingerprint,
         evaluation_fingerprint: catalog.evaluation_fingerprint, scope_mode: catalog.scope_mode, ref_ids: catalog.refs.map((r) => r.ref_id), excluded: catalog.excluded,
@@ -163,19 +193,21 @@ export function buildMissionGeologyExport(
     },
   }
   const issues = validateMissionGeologyExport(JSON.parse(JSON.stringify(doc)), { bundle: opts.bundle })
-  if (issues.length) throw new GeologyExportError(`Exportación geológica inválida: ${issues.join('; ')}`)
+  if (issues.length) throw new GeologyExportError(`Invalid geology export: ${issues.join('; ')}`)
   return doc
 }
 
 /**
- * Valida un wrapper de forma independiente: contrato, exportación M8 embebida (auditada; reconstruida con `bundle`),
- * subconjuntos por sector (anclados a los candidatos con `bundle`: geometría exacta), catálogo y guía recalculados,
- * huella de subconjuntos, selección, huellas y procedencia. Sin `bundle` NO se puede anclar la geometría al snapshot:
- * solo se detecta incoherencia interna (la identidad del paquete completo es declarada).
+ * Validates a wrapper independently: contract, embedded M8 export (audited; reconstructed with `bundle`),
+ * per-sector subsets (anchored to the candidates with `bundle`: exact geometry), recalculated catalog and guide,
+ * subset fingerprint, selection, fingerprints and provenance. Without `bundle` the geometry CANNOT be anchored to the snapshot:
+ * only internal inconsistency is detected (the identity of the complete package is declared).
  */
 export function validateMissionGeologyExport(doc: unknown, opts: { bundle?: EvidenceBundle } = {}): string[] {
   if (!validateShape(doc)) return (validateShape.errors ?? []).slice(0, 5).map((e) => `${e.instancePath || '/'} ${e.message ?? ''}`.trim())
   const d = doc as unknown as {
+    schema_version: GeologyTextVersion
+    export_info: { description: string; how_to_read: string[]; embedded_mission_export_version: string }
     mission_export: Record<string, unknown>
     geology_guidance: {
       mode: 'ai' | 'deterministic'; context_identity: ReturnType<typeof identityOf>; geology_exports: unknown[]
@@ -183,77 +215,95 @@ export function validateMissionGeologyExport(doc: unknown, opts: { bundle?: Evid
       selection: { ref_ids: string[] }; ai: { provenance: unknown; request_fingerprint: string; evaluation_fingerprint: string; catalog_fingerprint: string } | null; guidance: unknown
     }
   }
+  if (!isGeologyTextVersion(d.schema_version)) return ['Unsupported wrapper version.']
+  const version = d.schema_version
+  const text = geologyText(version)
   const m8 = d.mission_export
+  // Explicit pairing, also semantically: wrapper 1 ↔ 1.0.0 ↔ geology exports v1; wrapper 2 ↔ 1.1.0 ↔ v2.
+  if (m8.export_version !== evaluationVersionFor(version) || d.export_info.embedded_mission_export_version !== evaluationVersionFor(version)) {
+    return [`Wrapper version ${version} must embed mission export ${evaluationVersionFor(version)}.`]
+  }
   const m8Issues = auditMissionExport(m8, opts.bundle)
   if (m8Issues.length) return m8Issues.map((i) => `mission_export: ${i}`)
   const evaluation = m8.evaluation as MissionEvaluation
   const g = d.geology_guidance
   const issues: string[] = []
+  if (d.export_info.description !== text.wrapper.description || canonicalJson(d.export_info.how_to_read) !== canonicalJson(text.wrapper.howToRead)) {
+    issues.push(`export_info does not match the wording of wrapper version ${version}.`)
+  }
+  const idText = g.context_identity
+  if (idText.fingerprint_method !== text.wrapper.fingerprintMethod || idText.subset_fingerprint_method !== text.wrapper.subsetFingerprintMethod || idText.note !== text.wrapper.identityNote) {
+    issues.push(`context_identity wording does not match wrapper version ${version}.`)
+  }
+  if (g.geology_exports.some((e) => (e as { schema_version?: unknown })?.schema_version !== version)) issues.push(`Geology exports must be version ${version} in wrapper version ${version}.`)
+  if (issues.length) return issues
   const exportsOk: GeologyExport[] = []
   for (const raw of g.geology_exports) {
     try {
       const siteId = (raw as { site?: { site_id?: string } }).site?.site_id
       const candidate = opts.bundle ? opts.bundle.candidates.find((c) => c.site_id === siteId) ?? null : null
-      if (opts.bundle && !candidate) throw new GeologyContractError(`${siteId}: el sector no está en el snapshot.`)
+      if (opts.bundle && !candidate) throw new GeologyContractError(`${siteId}: the sector is not in the snapshot.`)
       exportsOk.push(validateGeologyExport(raw, candidate))
     } catch (error) {
-      issues.push(`Subconjunto geológico inválido: ${error instanceof Error ? error.message : 'error'}`)
+      issues.push(`Invalid geology subset: ${error instanceof Error ? error.message : 'error'}`)
     }
   }
   if (issues.length) return issues
   const id = g.context_identity
   for (const e of exportsOk) {
     const info = e.export_info
-    if (info.snapshot_version !== id.snapshot_version || info.snapshot_version !== evaluation.snapshot_version) issues.push(`${e.site.site_id}: snapshot distinto del declarado o del evaluado.`)
-    if (info.pipeline_version !== id.pipeline_version || info.full_candidates_file_sha256 !== id.candidates_sha256 || info.full_candidates_file !== id.candidates_file) issues.push(`${e.site.site_id}: identidad del paquete distinta de la declarada.`)
+    if (info.snapshot_version !== id.snapshot_version || info.snapshot_version !== evaluation.snapshot_version) issues.push(`${e.site.site_id}: snapshot differs from the declared or evaluated one.`)
+    if (info.pipeline_version !== id.pipeline_version || info.full_candidates_file_sha256 !== id.candidates_sha256 || info.full_candidates_file !== id.candidates_file) issues.push(`${e.site.site_id}: package identity differs from the declared one.`)
   }
-  if (new Set(exportsOk.map((e) => e.site.site_id)).size !== exportsOk.length) issues.push('Sectores geológicos repetidos.')
+  if (new Set(exportsOk.map((e) => e.site.site_id)).size !== exportsOk.length) issues.push('Repeated geology sectors.')
   if (issues.length) return issues
-  // Todo se recalcula desde los subconjuntos y la evaluación embebida: nada de lo declarado se acepta por fe.
+  // Everything is recalculated from the subsets and the embedded evaluation: nothing declared is accepted on faith.
   const catalog = buildGeologyCatalog(evaluation, catalogSourceFromExports(exportsOk), id.context_fingerprint)
   const usedIds = catalog.sites.map((s) => s.site_id)
-  if (canonicalJson(exportsOk.map((e) => e.site.site_id)) !== canonicalJson(usedIds)) issues.push('Los subconjuntos geológicos no son exactamente los sectores del catálogo, en su orden.')
-  if (id.subset_fingerprint !== fingerprint(exportsOk)) issues.push('La huella de subconjuntos declarada no coincide con los subconjuntos incluidos (geometría, unidades, fuentes o citas alteradas).')
-  if (g.catalog.subset_fingerprint !== catalog.subset_fingerprint) issues.push('La huella de subconjuntos del catálogo no coincide.')
+  if (canonicalJson(exportsOk.map((e) => e.site.site_id)) !== canonicalJson(usedIds)) issues.push('The geology subsets are not exactly the catalog sectors, in order.')
+  if (id.subset_fingerprint !== fingerprint(exportsOk)) issues.push('The declared subset fingerprint does not match the included subsets (geometry, units, sources or citations altered).')
+  if (g.catalog.subset_fingerprint !== catalog.subset_fingerprint) issues.push('The catalog subset fingerprint does not match.')
   if (g.catalog.catalog_fingerprint !== catalog.catalog_fingerprint || g.catalog.request_fingerprint !== catalog.request_fingerprint
     || g.catalog.evaluation_fingerprint !== catalog.evaluation_fingerprint || g.catalog.scope_mode !== catalog.scope_mode
     || canonicalJson(g.catalog.ref_ids) !== canonicalJson(catalog.refs.map((r) => r.ref_id)) || canonicalJson(g.catalog.excluded) !== canonicalJson(catalog.excluded)) {
-    issues.push('El catálogo declarado no coincide con el recalculado (contexto, subconjuntos, solicitud, evaluación o referencias).')
+    issues.push('The declared catalog does not match the recomputed one (context, subsets, request, evaluation or references).')
   }
   const picked = checkGeologySelection(g.selection, catalog)
-  if (!picked.ok) issues.push(`Selección geológica inválida: ${picked.reason}`)
+  if (!picked.ok) issues.push(`Invalid geology selection: ${picked.reason}`)
   if (g.mode === 'ai') {
     const a = g.ai
     const ex = (m8.ai as { explanation?: { provenance?: unknown; request_fingerprint?: string; evaluation_fingerprint?: string } | null }).explanation
-    if (!a) issues.push('El modo ai exige el bloque ai.')
-    else if (a.catalog_fingerprint !== catalog.catalog_fingerprint || a.request_fingerprint !== catalog.request_fingerprint || a.evaluation_fingerprint !== catalog.evaluation_fingerprint) issues.push('La IA geológica pertenece a otro catálogo, solicitud o evaluación.')
-    else if (!ex || canonicalJson(ex.provenance) !== canonicalJson(a.provenance) || ex.request_fingerprint !== a.request_fingerprint || ex.evaluation_fingerprint !== a.evaluation_fingerprint) issues.push('La selección geológica no proviene de la misma llamada que la explicación M8 embebida.')
+    if (!a) issues.push('Mode ai requires the ai block.')
+    else if (a.catalog_fingerprint !== catalog.catalog_fingerprint || a.request_fingerprint !== catalog.request_fingerprint || a.evaluation_fingerprint !== catalog.evaluation_fingerprint) issues.push('The geology AI belongs to another catalog, request or evaluation.')
+    else if (!ex || canonicalJson(ex.provenance) !== canonicalJson(a.provenance) || ex.request_fingerprint !== a.request_fingerprint || ex.evaluation_fingerprint !== a.evaluation_fingerprint) issues.push('The geology selection does not come from the same call as the embedded mission explanation.')
   } else {
-    if (g.ai !== null) issues.push('El modo determinista no admite bloque ai.')
-    if (picked.ok && canonicalJson(picked.selection.ref_ids) !== canonicalJson(deterministicGeologyRefs(catalog).ref_ids)) issues.push('La orientación determinista no coincide con la que calcula la app.')
+    if (g.ai !== null) issues.push('Deterministic mode does not allow an ai block.')
+    if (picked.ok && canonicalJson(picked.selection.ref_ids) !== canonicalJson(deterministicGeologyRefs(catalog).ref_ids)) issues.push('The deterministic guidance does not match the one the app computes.')
   }
   if (picked.ok) {
     const expected = composeGeologyGuidance(catalog, picked.selection.ref_ids, g.mode === 'ai' ? 'anthropic' : 'deterministic_template')
-    if (canonicalJson(g.guidance) !== canonicalJson(expected)) issues.push('La guía declarada no coincide con la recalculada.')
+    if (canonicalJson(g.guidance) !== canonicalJson(expected)) issues.push('The declared guidance does not match the recomputed one.')
   }
   return issues
 }
 
-export type ExportFormat = 'mission-export-1.0' | 'mission-geology-export-1' | 'unknown'
+export type ExportFormat = 'mission-export-1.0' | 'mission-export-1.1' | 'mission-geology-export-1' | 'mission-geology-export-2' | 'unknown'
 
-/** Aceptación explícita de formatos: 1.0 de M8 y el wrapper; nada más. */
+/** Explicit acceptance of formats: M8 1.0/1.1 and wrapper 1/2; nothing else (no other version is reinterpreted). */
 export function detectMissionExportFormat(doc: unknown): ExportFormat {
   if (!doc || typeof doc !== 'object') return 'unknown'
   const r = doc as Record<string, unknown>
   if (r.kind === GEOLOGY_WRAPPER_KIND && r.schema_version === 1) return 'mission-geology-export-1'
+  if (r.kind === GEOLOGY_WRAPPER_KIND && r.schema_version === 2) return 'mission-geology-export-2'
   if (r.export_version === '1.0.0' && r.kind === undefined) return 'mission-export-1.0'
+  if (r.export_version === '1.1.0' && r.kind === undefined) return 'mission-export-1.1'
   return 'unknown'
 }
 
-/** Valida cualquiera de los dos formatos aceptados. */
+/** Validates any of the accepted formats. */
 export function validateAnyMissionExport(doc: unknown, opts: { bundle?: EvidenceBundle } = {}): { format: ExportFormat; issues: string[] } {
   const format = detectMissionExportFormat(doc)
-  if (format === 'mission-geology-export-1') return { format, issues: validateMissionGeologyExport(doc, opts) }
-  if (format === 'mission-export-1.0') return { format, issues: auditMissionExport(doc, opts.bundle) }
-  return { format, issues: ['Formato de exportación no reconocido.'] }
+  if (format === 'mission-geology-export-1' || format === 'mission-geology-export-2') return { format, issues: validateMissionGeologyExport(doc, opts) }
+  if (format === 'mission-export-1.0' || format === 'mission-export-1.1') return { format, issues: auditMissionExport(doc, opts.bundle) }
+  return { format, issues: ['Unrecognized export format (accepted: mission export 1.0.0/1.1.0 and geology wrapper 1/2).'] }
 }

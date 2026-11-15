@@ -1,20 +1,20 @@
 /**
- * Contexto geológico oficial para la interfaz integrada (M9, ADR-010 del equipo). Chunk DIFERIDO: el
- * validador del paquete (`shared/geology/context`) usa Ajv en runtime y no debe entrar al chunk de
- * entrada (docs/PERFORMANCE.md). Envuelve `loadGeologyContext` del equipo sin cambiarlo y calcula, con
- * `selectGeologySite`, qué sectores tienen SU ficha válida (misma geometría exacta, nunca heredada).
+ * Official geological context for the integrated interface (M9, team ADR-010). DEFERRED chunk: the
+ * package validator (`shared/geology/context`) uses Ajv at runtime and must not enter the entry
+ * chunk (docs/PERFORMANCE.md). It wraps the team's `loadGeologyContext` without changing it and uses
+ * `selectGeologySite` to compute which sectors have THEIR OWN valid record (same exact geometry, never inherited).
  *
- * Nunca lanza: ante cualquier problema devuelve «no disponible» y la ficha, el ranking y la misión
- * siguen funcionando sin geología.
+ * Never throws: on any problem it returns "not available", and the record, the ranking and the mission
+ * keep working without geology.
  */
 import type { CandidateSite } from '../domain/contracts'
 import { selectGeologySite, type GeologyContextState } from '../domain/geologyContext'
 import { loadGeologyContext } from './loadGeologyContext'
 
 export interface AppGeology {
-  /** Estado del paquete tal cual lo devuelve `loadGeologyContext` (el mismo objeto que usa la misión). */
+  /** Package state exactly as returned by `loadGeologyContext` (the same object used by the mission). */
   state: GeologyContextState
-  /** Sectores con ficha geológica válida (`selectGeologySite(...).status === 'ready'`). */
+  /** Sectors with a valid geological record (`selectGeologySite(...).status === 'ready'`). */
   readySites: ReadonlySet<string>
 }
 

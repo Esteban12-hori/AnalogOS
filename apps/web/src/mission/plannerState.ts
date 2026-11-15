@@ -1,6 +1,6 @@
-// Estado puro del planificador M8. La UI lo usa tal cual con useReducer: aquí viven las reglas de
-// invalidación (editar algo borra resultados y cancela IA pendiente) y la protección contra
-// respuestas tardías (solo se acepta la respuesta del requestId vigente cuyo contexto no cambió).
+// Pure state of the M8 planner. The UI uses it as is with useReducer: this is where the rules of
+// invalidation (editing something clears results and cancels pending AI) and the protection against
+// late responses (only the response for the current requestId whose context has not changed is accepted) live.
 import { MAX_BRIEF_CHARS, METRICS, SUPPORTED_PROFILE_ID, UNMEASURED_TOPICS, detectUnmeasuredMentions } from './catalog'
 import { checkGeologySelection, type GeologyAiRecord, type GeologyCatalog } from '../../../../shared/geology/guidance'
 import { checkSelection } from './explanation'
@@ -64,11 +64,11 @@ export interface PlannerState {
   draft: { status: AiCallStatus; requestId: string | null; briefFp: string | null; message: string | null; warnings: string[]; record: AiDraftRecord | null }
   explain: {
     status: AiCallStatus; requestId: string | null; requestFp: string | null; evaluationFp: string | null; message: string | null; record: AiExplanationRecord | null
-    /** Canal geológico opt-in (M10): registro y catálogo propios, de la misma llamada que `record`. El registro M8 no cambia. */
+    /** Opt-in geological channel (M10): its own record and catalog, from the same call as `record`. The M8 record does not change. */
     geologyRecord: GeologyAiRecord | null
     geologyCatalog: GeologyCatalog | null
     pendingCatalog: GeologyCatalog | null
-    /** El último intento falló solo por el canal geológico: la UI ofrece reintentar sin geología (explícito). */
+    /** The last attempt failed only because of the geological channel: the UI offers to retry without geology (explicit). */
     geologyFailed: boolean
   }
   counter: number
@@ -90,9 +90,9 @@ export function initialPlannerState(): PlannerState {
   }
 }
 
-// ---------- análisis de entradas de texto ----------
+// ---------- text input parsing ----------
 
-/** Número estricto (admite coma decimal; sin exponentes, sin NaN/Infinity). */
+/** Strict number (accepts decimal comma; no exponents, no NaN/Infinity). */
 export function parseNumber(text: string): number | null {
   const t = text.trim()
   if (!/^-?\d+(?:[.,]\d+)?$/.test(t)) return null
@@ -102,32 +102,32 @@ export function parseNumber(text: string): number | null {
 
 export function toRequirement(e: EditableRequirement, confirmed: boolean): { ok: true; requirement: Requirement } | { ok: false; issue: string } {
   const base = { requirement_id: e.requirement_id, label: e.label.trim(), importance: e.importance, origin: e.origin, confirmed, source_quote: e.source_quote }
-  const tag = `«${e.label.trim() || e.requirement_id}»`
-  if (!base.label) return { ok: false, issue: `Un requisito no tiene nombre.` }
+  const tag = `“${e.label.trim() || e.requirement_id}”`
+  if (!base.label) return { ok: false, issue: `A requirement has no name.` }
   if (e.kind === 'unmeasured') return { ok: true, requirement: { ...base, kind: 'unmeasured', topic_id: e.topic_id, detail: e.detail.trim() } }
   let value: MeasurableRequirement['value']
   if (e.operator === 'in') {
-    if (!e.countries.length) return { ok: false, issue: `${tag}: elija al menos un país.` }
+    if (!e.countries.length) return { ok: false, issue: `${tag}: choose at least one country.` }
     value = [...e.countries]
   } else if (e.operator === 'between') {
     const lo = parseNumber(e.valueText[0])
     const hi = parseNumber(e.valueText[1])
-    if (lo === null || hi === null) return { ok: false, issue: `${tag}: escriba mínimo y máximo como números.` }
+    if (lo === null || hi === null) return { ok: false, issue: `${tag}: enter the minimum and maximum as numbers.` }
     value = [lo, hi]
   } else {
     const n = parseNumber(e.valueText[0])
-    if (n === null) return { ok: false, issue: `${tag}: escriba el valor como número.` }
+    if (n === null) return { ok: false, issue: `${tag}: enter the value as a number.` }
     value = n
   }
   return { ok: true, requirement: { ...base, kind: 'measurable', metric_id: e.metric_id, operator: e.operator, value, unit: e.unit, scale: e.scale } }
 }
 
-/** Línea de resumen de un requisito en edición, con la condición efectiva (misma redacción que el resultado). */
+/** Summary line of a requirement being edited, with the effective condition (same wording as the result). */
 export function describeEditable(e: EditableRequirement, withImportance = true): string {
   const parsed = toRequirement(e, false)
-  if (parsed.ok) return withImportance ? describeRequirementLine(parsed.requirement) : `${parsed.requirement.label}: ${parsed.requirement.kind === 'unmeasured' ? `sin medición${parsed.requirement.detail ? ` — ${parsed.requirement.detail}` : ''}` : `${describeCondition(parsed.requirement)} · ${SCALE_LABEL[parsed.requirement.scale]}`}`
+  if (parsed.ok) return withImportance ? describeRequirementLine(parsed.requirement) : `${parsed.requirement.label}: ${parsed.requirement.kind === 'unmeasured' ? `not measured${parsed.requirement.detail ? ` — ${parsed.requirement.detail}` : ''}` : `${describeCondition(parsed.requirement)} · ${SCALE_LABEL[parsed.requirement.scale]}`}`
   const typed = e.kind === 'measurable' ? (e.operator === 'in' ? e.countries.join(', ') : e.valueText.filter(Boolean).join(' – ')) : ''
-  return `${e.label || 'Requisito'}: incompleto${typed ? ` (escrito: ${typed})` : ''} (${IMPORTANCE_LABEL[e.importance]})`
+  return `${e.label || 'Requirement'}: incomplete${typed ? ` (typed: ${typed})` : ''} (${IMPORTANCE_LABEL[e.importance]})`
 }
 
 export function toEditable(r: Requirement): EditableRequirement {
@@ -145,31 +145,31 @@ export interface BuiltScope { scope: MissionScope | null; issues: string[] }
 
 export function buildScope(s: ScopeInput): BuiltScope {
   if (s.mode === 'catalog') return { scope: { mode: 'catalog' }, issues: [] }
-  if (s.mode === 'sector') return s.siteId ? { scope: { mode: 'sector', site_id: s.siteId }, issues: [] } : { scope: null, issues: ['Elija un sector.'] }
+  if (s.mode === 'sector') return s.siteId ? { scope: { mode: 'sector', site_id: s.siteId }, issues: [] } : { scope: null, issues: ['Choose a sector.'] }
   if (s.mode === 'point') {
     const lon = parseNumber(s.lon)
     const lat = parseNumber(s.lat)
     const issues: string[] = []
-    if (lon === null) issues.push('Longitud: escriba un número (p. ej. -69,7).')
-    if (lat === null) issues.push('Latitud: escriba un número (p. ej. -25,0).')
+    if (lon === null) issues.push('Longitude: enter a number (e.g. -69.7).')
+    if (lat === null) issues.push('Latitude: enter a number (e.g. -25.0).')
     return lon === null || lat === null ? { scope: null, issues } : { scope: { mode: 'point', lon, lat, window_site_id: s.windowSiteId }, issues: [] }
   }
-  const parts: Array<[string, string]> = [['Oeste', s.west], ['Sur', s.south], ['Este', s.east], ['Norte', s.north]]
+  const parts: Array<[string, string]> = [['West', s.west], ['South', s.south], ['East', s.east], ['North', s.north]]
   const nums = parts.map(([, t]) => parseNumber(t))
-  const issues = parts.flatMap(([name], i) => (nums[i] === null ? [`${name}: escriba un número.`] : []))
+  const issues = parts.flatMap(([name], i) => (nums[i] === null ? [`${name}: enter a number.`] : []))
   return issues.length ? { scope: null, issues } : { scope: { mode: 'bbox', bbox: nums as [number, number, number, number], window_site_id: s.windowSiteId }, issues: [] }
 }
 
-/** Temas no medidos que el brief menciona y ningún requisito cubre todavía. */
+/** Unmeasured topics that the brief mentions and no requirement covers yet. */
 export function uncoveredMentions(state: Pick<PlannerState, 'brief' | 'requirements'>): Array<{ topic_id: string; label: string; matched_text: string }> {
   const covered = new Set(state.requirements.filter((r): r is EditableUnmeasured => r.kind === 'unmeasured').map((r) => r.topic_id))
   if (state.requirements.some((r) => r.kind === 'measurable' && r.metric_id === 'median_slope_degree' && r.scale === 'point')) covered.add('max_point_slope')
   return detectUnmeasuredMentions(state.brief).filter((m) => !covered.has(m.topic_id))
 }
 
-/** Preguntas abiertas guardadas más los temas no medidos que el brief menciona y ningún requisito cubre. */
+/** Saved open questions plus the unmeasured topics that the brief mentions and no requirement covers. */
 export function pendingQuestions(state: Pick<PlannerState, 'brief' | 'requirements' | 'openQuestions'>): string[] {
-  const detected = uncoveredMentions(state).map((m) => `El brief menciona «${m.matched_text}»: «${m.label}» no está medido en el snapshot; añádalo como requisito pendiente si importa.`)
+  const detected = uncoveredMentions(state).map((m) => `The brief mentions “${m.matched_text}”: “${m.label}” is not measured in the snapshot; add it as a pending requirement if it matters.`)
   return [...new Set([...state.openQuestions, ...detected])].slice(0, 20)
 }
 
@@ -183,15 +183,15 @@ export function buildRequest(state: PlannerState): { request: MissionRequest | n
   }
   const scope = buildScope(state.scope)
   issues.push(...scope.issues)
-  if (state.brief.length > MAX_BRIEF_CHARS) issues.push(`El brief supera ${MAX_BRIEF_CHARS} caracteres.`)
-  if (state.target.kind === 'other' && !state.target.stated.trim()) issues.push('Describa el objetivo no soportado para conservarlo en el informe.')
+  if (state.brief.length > MAX_BRIEF_CHARS) issues.push(`The brief exceeds ${MAX_BRIEF_CHARS} characters.`)
+  if (state.target.kind === 'other' && !state.target.stated.trim()) issues.push('Describe the unsupported objective so it is kept in the report.')
   if (issues.length || !scope.scope) return { request: null, issues }
   const request: MissionRequest = {
     schema_version: '1.0.0',
     brief: state.brief,
     activity: state.activity.trim(),
     target: state.target.kind === 'rover'
-      ? { profile_id: SUPPORTED_PROFILE_ID, stated: state.target.stated.trim() || 'Rover marciano (referencia Jezero)' }
+      ? { profile_id: SUPPORTED_PROFILE_ID, stated: state.target.stated.trim() || 'Mars rover (Jezero reference)' }
       : { profile_id: 'unsupported', stated: state.target.stated.trim() },
     requirements,
     open_questions: pendingQuestions(state).map((q) => q.slice(0, 300)),
@@ -226,14 +226,14 @@ export type PlannerAction =
   | { type: 'geology_context_changed' }
   | { type: 'reset' }
 
-/** Cualquier cambio de entrada: borra confirmación y resultado, y cancela IA pendiente (respuestas tardías se ignoran). */
+/** Any input change: clears confirmation and result, and cancels pending AI (late responses are ignored). */
 function invalidate(s: PlannerState): PlannerState {
   return {
     ...s,
     confirmed: false,
     result: null,
     explain: IDLE_EXPLAIN,
-    draft: s.draft.status === 'pending' ? { ...s.draft, status: 'idle', requestId: null, briefFp: null, message: 'Solicitud de IA cancelada porque el contenido cambió.' } : s.draft,
+    draft: s.draft.status === 'pending' ? { ...s.draft, status: 'idle', requestId: null, briefFp: null, message: 'AI request canceled because the content changed.' } : s.draft,
   }
 }
 
@@ -244,7 +244,7 @@ export function newRequirementId(s: PlannerState): { id: string; counter: number
 export function plannerReducer(state: PlannerState, action: PlannerAction): PlannerState {
   switch (action.type) {
     case 'set_journey': {
-      if (state.journey === action.journey && !action.siteId) return state // pulsar el recorrido ya activo no borra nada
+      if (state.journey === action.journey && !action.siteId) return state // clicking the already active route does not clear anything
       let scope = state.scope
       if (action.siteId) scope = { ...emptyScope(action.siteId), mode: 'sector' }
       else if (action.journey === 'sector' && scope.mode === 'catalog') scope = { ...scope, mode: 'sector' }
@@ -254,11 +254,11 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
     case 'set_brief': {
       if (action.brief === state.brief) return state
       const base = invalidate(state)
-      // Editar el brief rompe el vínculo con el borrador de IA: lo que sigue ya no es una propuesta intacta.
+      // Editing the brief breaks the link with the AI draft: what follows is no longer an intact proposal.
       return {
         ...base,
         brief: action.brief,
-        draft: { ...IDLE_DRAFT, message: state.draft.record ? 'El texto cambió: los requisitos que propuso la IA pasan a figurar como editados por usted.' : base.draft.message },
+        draft: { ...IDLE_DRAFT, message: state.draft.record ? 'The text changed: the requirements the AI proposed are now shown as edited by you.' : base.draft.message },
         requirements: state.requirements.map((r) => (r.origin === 'ai' ? { ...r, origin: 'user' as const } : r)),
       }
     }
@@ -292,13 +292,13 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
     case 'unconfirm':
       return { ...state, confirmed: false, result: null, explain: IDLE_EXPLAIN }
     case 'evaluated': {
-      // Solo se acepta la evaluación de la solicitud confirmada vigente.
+      // Only the evaluation of the current confirmed request is accepted.
       const built = buildRequest(state)
       if (!state.confirmed || !built.request || fingerprint(built.request) !== action.evaluation.request_fingerprint) return state
       return { ...state, result: action.evaluation, explain: IDLE_EXPLAIN }
     }
     case 'draft_start':
-      // El borrador anterior (si hay) sigue en uso hasta que llegue uno nuevo: se conserva su procedencia.
+      // The previous draft (if any) remains in use until a new one arrives: its provenance is preserved.
       return { ...state, draft: { ...state.draft, status: 'pending', requestId: action.requestId, briefFp: fingerprint(state.brief), message: null } }
     case 'draft_fail': {
       if (state.draft.status !== 'pending' || state.draft.requestId !== action.requestId) return state
@@ -306,7 +306,7 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
     }
     case 'draft_ok': {
       const d = state.draft
-      if (d.status !== 'pending' || d.requestId !== action.requestId || d.briefFp !== fingerprint(state.brief)) return state // tardía u obsoleta
+      if (d.status !== 'pending' || d.requestId !== action.requestId || d.briefFp !== fingerprint(state.brief)) return state // late or stale
       const calls = state.draftCalls + 1
       const proposal: DraftProposal = {
         ...action.proposal,
@@ -323,7 +323,7 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
         requirements: [...kept, ...proposal.requirements.map(toEditable)],
         openQuestions: [...new Set([...state.openQuestions, ...proposal.open_questions])].slice(0, 20),
         draft: {
-          ...IDLE_DRAFT, status: 'done', warnings: otherTarget ? [...proposal.warnings, 'La IA entendió que el objetivo no es un rover marciano; revise el destino antes de confirmar.'] : proposal.warnings,
+          ...IDLE_DRAFT, status: 'done', warnings: otherTarget ? [...proposal.warnings, 'The AI understood that the objective is not a Mars rover; check the target before confirming.'] : proposal.warnings,
           record: { provenance: action.provenance, brief_fingerprint: d.briefFp ?? '', proposal },
         },
       }
@@ -338,14 +338,14 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
     }
     case 'explain_ok': {
       const e = state.explain
-      if (e.status !== 'pending' || e.requestId !== action.requestId || !state.result) return state // otra solicitud o ya cancelada: se ignora
-      // Es la respuesta de la solicitud vigente: si no corresponde al cálculo, termina en error (nunca queda «pendiente»).
-      const discard = (): PlannerState => ({ ...state, explain: { ...state.explain, status: 'error', requestId: null, pendingCatalog: null, message: 'La respuesta de la IA no corresponde al cálculo vigente y se descartó.' } })
+      if (e.status !== 'pending' || e.requestId !== action.requestId || !state.result) return state // another request or already canceled: ignored
+      // It is the response to the current request: if it does not match the calculation, it ends in error (it never stays "pending").
+      const discard = (): PlannerState => ({ ...state, explain: { ...state.explain, status: 'error', requestId: null, pendingCatalog: null, message: 'The AI response does not belong to the current calculation and was discarded.' } })
       if (action.requestFp !== e.requestFp || action.evaluationFp !== e.evaluationFp) return discard()
       if (state.result.request_fingerprint !== e.requestFp || evaluationFingerprint(state.result) !== e.evaluationFp) return discard()
       const checked = checkSelection(action.selection, state.result)
       if (!checked.ok) return discard()
-      // Canal geológico: la respuesta debe corresponder EXACTAMENTE al catálogo (contexto, solicitud, evaluación y referencias) enviado.
+      // Geological channel: the response must correspond EXACTLY to the catalog (context, request, evaluation and references) sent.
       let geologyRecord: GeologyAiRecord | null = null
       const catalog = e.pendingCatalog
       if (catalog) {
@@ -368,7 +368,7 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
       }
     }
     case 'geology_context_changed':
-      // El contexto geológico cargado ya no es el de la selección: se descarta (y la petición pendiente se cancela por requestId).
+      // The loaded geological context is no longer that of the selection: it is discarded (and the pending request is cancelled by requestId).
       return state.explain.geologyCatalog || state.explain.pendingCatalog ? { ...state, explain: IDLE_EXPLAIN } : state
     case 'reset':
       return initialPlannerState()
@@ -376,7 +376,7 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
 }
 
 export function topicLabel(id: string): string {
-  return UNMEASURED_TOPICS.find((t) => t.id === id)?.label ?? 'Otro pedido sin medición'
+  return UNMEASURED_TOPICS.find((t) => t.id === id)?.label ?? 'Other unmeasured request'
 }
 
 export function defaultMetricRequirement(metric: MetricId, id: string): EditableMeasurable {
@@ -388,20 +388,20 @@ export function defaultMetricRequirement(metric: MetricId, id: string): Editable
   }
 }
 
-/** Ejemplo EDITABLE con valores de muestra; no es una recomendación. */
+/** EDITABLE example with sample values; it is not a recommendation. */
 export const EXAMPLE_BRIEF =
-  'Probar la navegación autónoma de un rover de ruedas en terreno árido y llano. Imprescindible: pendiente mediana regional no mayor de 3 grados. ' +
-  'Preferible: al menos 95 % de superficie no vegetada. También importan la tracción y el permiso del propietario, que este sistema no mide.'
+  'Test autonomous navigation of a wheeled rover on arid, flat terrain. Must-have: regional median slope no greater than 3 degrees. ' +
+  'Preferred: at least 95% non-vegetated surface. Traction and permission from the landowner also matter, but this system does not measure them.'
 
 export function exampleState(): { brief: string; activity: string; requirements: Requirement[] } {
   const common = { importance: 'critical' as const, origin: 'user' as const, confirmed: false }
   return {
     brief: EXAMPLE_BRIEF,
-    activity: 'Ensayo de navegación autónoma de rover',
+    activity: 'Rover autonomous navigation test',
     requirements: [
-      { ...common, requirement_id: 'ex1', label: 'Mediana de pendiente regional', source_quote: 'pendiente mediana regional no mayor de 3 grados', kind: 'measurable', metric_id: 'median_slope_degree', operator: '<=', value: 3, unit: 'degree', scale: 'window' },
-      { ...common, importance: 'preference', requirement_id: 'ex2', label: 'Fracción no vegetada', source_quote: 'al menos 95 % de superficie no vegetada', kind: 'measurable', metric_id: 'nonvegetated_fraction', operator: '>=', value: 95, unit: 'percent', scale: 'window' },
-      { ...common, importance: 'preference', requirement_id: 'ex3', label: 'Tracción', source_quote: 'la tracción', kind: 'unmeasured', topic_id: 'traction', detail: 'No medido por este sistema.' },
+      { ...common, requirement_id: 'ex1', label: 'Regional median slope', source_quote: 'regional median slope no greater than 3 degrees', kind: 'measurable', metric_id: 'median_slope_degree', operator: '<=', value: 3, unit: 'degree', scale: 'window' },
+      { ...common, importance: 'preference', requirement_id: 'ex2', label: 'Non-vegetated fraction', source_quote: 'at least 95% non-vegetated surface', kind: 'measurable', metric_id: 'nonvegetated_fraction', operator: '>=', value: 95, unit: 'percent', scale: 'window' },
+      { ...common, importance: 'preference', requirement_id: 'ex3', label: 'Traction', source_quote: 'Traction', kind: 'unmeasured', topic_id: 'traction', detail: 'Not measured by this system.' },
     ],
   }
 }

@@ -1,24 +1,24 @@
 /*
- * Líneas Tesla (incremento 6, docs/UX_REDESIGN.md §3.4). Chunk diferido.
- * Sin blur (marcadores, etiquetas y chips: --marker-bg). Solo se animan opacity, transform y
- * stroke-dashoffset (SVG pequeño). Las posiciones las escribe el controlador por cuadro sin
- * transición (manipulación directa); los cambios de modo son fundidos de opacidad.
+ * Tesla lines (increment 6, docs/UX_REDESIGN.md §3.4). Deferred chunk.
+ * No blur (markers, labels and chips: --marker-bg). Only opacity, transform and
+ * stroke-dashoffset (small SVG) are animated. Positions are written by the controller on every frame without
+ * transition (direct manipulation); mode changes are opacity fades.
  */
 .leaders-layer {
   /*
-   * Coreografía B (§2.3), parametrizada en tokens porque tesla.com no se pudo validar
-   * visualmente (§7.2): se ajusta aquí sin tocar el código.
-   *   cámara llega → anillo del globo (after-ring) → cada línea se traza (line-dur, cada
-   *   line-stagger) → su etiqueta entra cuando la línea la alcanza (label-dur).
+   * Choreography B (§2.3), parameterized in tokens because tesla.com could not be validated
+   * visually (§7.2): it is adjusted here without touching the code.
+   *   camera arrives → globe ring (after-ring) → each line is drawn (line-dur, every
+   *   line-stagger) → its label enters when the line reaches it (label-dur).
    */
-  --leaders-after-ring: var(--dur-2);          /* el anillo del lugar aparece: 200 ms */
-  --leaders-line-dur: 360ms;                   /* trazo de cada línea (§2.3 B) */
+  --leaders-after-ring: var(--dur-2);          /* the place ring appears: 200 ms */
+  --leaders-line-dur: 360ms;                   /* stroke of each line (§2.3 B) */
   --leaders-line-ease: var(--ease-emph);
-  --leaders-line-stagger: var(--stagger-list); /* 50 ms entre líneas */
-  --leaders-label-dur: 220ms;                  /* entrada de cada etiqueta (§2.3 B) */
+  --leaders-line-stagger: var(--stagger-list); /* 50 ms between lines */
+  --leaders-label-dur: 220ms;                  /* entrance of each label (§2.3 B) */
   --leaders-label-ease: var(--ease-enter);
-  --leaders-label-shift: 6px;                  /* la etiqueta entra desde su línea */
-  --leaders-fade: var(--dur-2);                /* líneas ↔ acoplado ↔ chip */
+  --leaders-label-shift: 6px;                  /* the label enters from its line */
+  --leaders-fade: var(--dur-2);                /* lines ↔ docked ↔ chip */
   --leaders-line: var(--earth-bright, #3FB4EC);
   --leaders-line-width: 1.25px;
   --leaders-label-from: calc(var(--leaders-label-shift) * -1);
@@ -33,13 +33,13 @@
 }
 .leaders-layer[data-side="left"] { --leaders-label-from: var(--leaders-label-shift); }
 .leaders-layer[data-busy] { opacity: var(--o-busy); }
-/* En vuelo (waiting) o sin escenario que publique (off): nada se ve; el layout sí, para medir. */
+/* In flight (waiting) or with no scenario to publish (off): nothing is visible; the layout is, for measuring. */
 .leaders-layer[data-phase="waiting"],
 .leaders-layer[data-mode="off"] { visibility: hidden; }
 
 .leaders-svg { position: absolute; inset: 0; overflow: visible; }
 
-/* ---- Visibilidad por modo (data-mode lo escribe el controlador) ---------------------------- */
+/* ---- Visibility by mode (data-mode is written by the controller) ---------------------------- */
 .leaders-lines,
 .leaders-mobile,
 .leaders-label,
@@ -54,16 +54,16 @@
 .leaders-header,
 .leaders-chip { position: absolute; top: 0; left: 0; }
 
-/* ---- Líneas ----------------------------------------------------------------------------------- */
+/* ---- Lines ----------------------------------------------------------------------------------- */
 .leaders-path {
   fill: none;
   stroke: var(--leaders-line);
   stroke-width: var(--leaders-line-width);
   stroke-linejoin: round;
-  /* Con pathLength=1: un solo guion del largo del trazo, que el dashoffset revela. */
+  /* With pathLength=1: a single dash the length of the stroke, which the dashoffset reveals. */
   stroke-dasharray: 1;
 }
-/* Discontinua = sin dato o por calcular (todo el sitio). */
+/* Dashed = no data or pending calculation (entire site). */
 .leaders-path[data-pending] { stroke: var(--pending, #6F889A); stroke-dasharray: var(--pending-dash, 4px) 3px; }
 .leaders-path[data-active] { stroke: var(--sel-ring, #EAF4FA); stroke-width: 1.75px; }
 .leaders-dot { fill: var(--leaders-line); }
@@ -121,7 +121,7 @@
   inset: 0;
   background: var(--sim, var(--earth, #0297DE));
   transform-origin: left center;
-  transition: transform var(--dur-3) var(--ease-standard); /* barras sí transicionan; cifras no */
+  transition: transform var(--dur-3) var(--ease-standard); /* bars do transition; figures do not */
 }
 .leaders-bar.is-pending { background: none; border: 1px dashed var(--pending, #6F889A); height: 5px; }
 .leaders-pct { font-weight: 650; }
@@ -130,7 +130,7 @@
 .leaders-sim-word { color: var(--muted, #94AABA); font-size: var(--fs-min, 10px); }
 .leaders-note { max-width: 194px; color: var(--muted, #94AABA); font-size: var(--fs-min, 10px); }
 
-/* Encabezado de honestidad: medianas de todo el sector, no un punto. */
+/* Honesty header: medians for the entire sector, not a single point. */
 .leaders-header-text {
   max-width: 232px;
   padding: 3px 8px;
@@ -161,7 +161,7 @@
   .leaders-card { gap: 2px; padding: 5px 8px 6px; }
 }
 
-/* ---- Coreografía de entrada (data-phase="enter") ------------------------------------------ */
+/* ---- Entrance choreography (data-phase="enter") ------------------------------------------ */
 @keyframes leaders-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes leaders-label-in { from { opacity: 0; transform: translateX(var(--leaders-label-from)); } }
 @keyframes leaders-fade-in { from { opacity: 0; } }
@@ -185,7 +185,7 @@
   animation: leaders-fade-in var(--leaders-label-dur) var(--ease-standard) var(--leaders-after-ring) both;
 }
 
-/* Reduced motion: sin trazos progresivos ni desplazamientos; opacidad ≤150 ms (§2.2 regla 7). */
+/* Reduced motion: no progressive strokes or displacements; opacity ≤150 ms (§2.2 rule 7). */
 @media (prefers-reduced-motion: reduce) {
   .leaders-layer {
     --leaders-after-ring: 0ms;
@@ -202,7 +202,7 @@
   .leaders-bar > span { transition: none; }
 }
 
-/* Requisito de la prueba sobre el criterio (Misión, ADR-013): ✓ cumple · ✕ no cumple · ○ no evaluable. */
+/* Test requirement on the criterion (Mission, ADR-013): ✓ meets · ✕ does not meet · ○ not evaluable. */
 .leaders-req { margin-top: 2px; color: var(--muted); font-size: var(--fs-min); line-height: 1.3; }
 .leaders-req b { color: var(--earth-bright); }
 .leaders-req[data-status="no_cumple"] b { color: var(--text); }

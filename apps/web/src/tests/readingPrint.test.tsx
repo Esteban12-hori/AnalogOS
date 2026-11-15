@@ -1,6 +1,6 @@
-// M11-READING-PRINT: «Ir a la Lectura» desde «Tu misión» (superficie por ancho, sin tocar selección,
-// planificador ni IA) y el informe imprimible (completo, con/sin geología, sin informe viejo ni
-// página vacía). Pruebas SSR y de lógica: no sustituyen la comprobación de un PDF nativo.
+// M11-READING-PRINT: “Go to Reading” from “Your mission” (surface by width, without touching selection,
+// planner or AI) and the printable report (complete, with/without geology, no stale report or empty
+// page). SSR and logic tests: they do not replace checking a native PDF.
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { buildGeologyCatalog } from '../../../../shared/geology/guidance'
@@ -30,27 +30,27 @@ afterEach(() => {
   printStore.reset()
 })
 
-describe('«Ir a la Lectura»: superficie según el ancho (ADR-014, M11)', () => {
+describe('“Go to Reading”: surface by width (ADR-014, M11)', () => {
   const site = v3Snapshot.candidates.find((c) => c.role !== 'reference')!
   const evaluated = { siteId: site.site_id, kind: 'evaluated' as const, preview: false }
   const reference = { siteId: 'ref-analog', kind: 'reference' as const, preview: false }
 
-  it('≥1440 panel izquierdo y 1100–1439 píldora, con o sin selección', () => {
+  it('≥1440 left panel and 1100–1439 pill, with or without selection', () => {
     for (const selection of [null, evaluated, reference]) {
       expect(readingRoute('wide', selection, selection === evaluated)).toEqual({ surface: 'left', back: null })
       expect(readingRoute('medium', selection, selection === evaluated)).toEqual({ surface: 'pill', back: null })
     }
   })
 
-  it('<1100: ● → pestaña de su ficha; sin selección o ◆ → vista Lectura de la hoja, volviendo a donde estaba', () => {
+  it('<1100: ● → tab of its site sheet; without selection or ◆ → Reading view of the sheet, returning to where it was', () => {
     expect(readingRoute('narrow', evaluated, true)).toEqual({ surface: 'sheet-tab', back: 'S1' })
     expect(readingRoute('narrow', null, false)).toEqual({ surface: 'sheet-reading', back: 'S0' })
     expect(readingRoute('narrow', reference, false)).toEqual({ surface: 'sheet-reading', back: 'S1' })
-    // Un ● que ya no está en el snapshot no abre una ficha vacía.
+    // A ● no longer in the snapshot does not open an empty sheet.
     expect(readingRoute('narrow', evaluated, false)).toEqual({ surface: 'sheet-reading', back: 'S1' })
   })
 
-  it('pedir la Lectura solo fija Misión y cuenta el pedido: la selección (◆ incluida) no cambia', () => {
+  it('requesting the Reading only sets Mission and counts the request: the selection (◆ included) does not change', () => {
     uiActions.select(YUNGAY, 'evaluated')
     const before = uiStore.getState().selection
     uiActions.requestReading()
@@ -64,7 +64,7 @@ describe('«Ir a la Lectura»: superficie según el ancho (ADR-014, M11)', () =>
     expect(uiStore.getState().readingRequest).toBe(2)
   })
 
-  it('navegar tras evaluar (también sin priorizados) no muta el planificador ni llama a la IA', () => {
+  it('navigating after evaluating (also with no prioritized sites) does not mutate the planner or call the AI', () => {
     const mission = createStore<MissionState>(INITIAL_MISSION_STATE)
     const composer = createStore<ComposerState>(initialComposerState())
     const requestExplanation = vi.fn(() => new Promise(() => undefined))
@@ -101,79 +101,79 @@ describe('«Ir a la Lectura»: superficie según el ancho (ADR-014, M11)', () =>
     expect(requestDraft).not.toHaveBeenCalled()
   })
 
-  it('hoja móvil: vista «Lectura» sin ● (también con ◆) en lugar de la ficha de referencia; Volver/✕ no cierran el lugar', () => {
+  it('mobile sheet: “Reading” view without ● (also with ◆) instead of the reference sheet; Back/✕ do not close the place', () => {
     const body = renderToStaticMarkup(<>{sheetBody({ detent: 'S2', data: readyData, site: null, selection: { siteId: 'ref-analog', kind: 'reference' }, onShowOnMap: noop, onListView: noop, reading: true })}</>)
     expect(body).toContain('data-slot="sheet.reading"')
     expect(body).not.toContain('data-slot="sheet.reference"')
     const head = renderToStaticMarkup(<>{sheetHead({ detent: 'S2', data: readyData, siteName: null, hasSelection: true, onDetent: noop, readingBack: 'S1' })}</>)
-    expect(head).toContain('>Lectura</h2>')
-    expect(head).toContain('aria-label="Cerrar la Lectura"')
+    expect(head).toContain('>Reading</h2>')
+    expect(head).toContain('aria-label="Close Reading"')
     expect(head).not.toContain('Cerrar el lugar')
-    // Fuera de la vista Lectura, la hoja no cambia.
+    // Outside the Reading view, the sheet does not change.
     const plain = renderToStaticMarkup(<>{sheetBody({ detent: 'S2', data: readyData, site: null, selection: { siteId: 'ref-analog', kind: 'reference' }, onShowOnMap: noop, onListView: noop })}</>)
     expect(plain).toContain('data-slot="sheet.reference"')
   })
 
-  it('hoja móvil con ●: la ficha abre directamente en la pestaña «Lectura»', () => {
+  it('mobile sheet with ●: the site sheet opens directly on the “Reading” tab', () => {
     const html = renderToStaticMarkup(<FullDetail data={readyData} site={site} placement="sheet" onShowOnMap={noop} tabRequest={{ tab: 'lectura', nonce: 1 }} />)
-    expect(html).toMatch(/aria-selected="true"[^>]*>Lectura|>Lectura<\/button>/)
+    expect(html).toMatch(/aria-selected="true"[^>]*>Reading|>Reading<\/button>/)
     expect(html).toContain('data-slot="full.reading"')
     expect(html).not.toContain('data-slot="full.metrics"')
     const normal = renderToStaticMarkup(<FullDetail data={readyData} site={site} placement="sheet" onShowOnMap={noop} />)
     expect(normal).toContain('data-slot="full.metrics"')
   })
 
-  it('píldora en Misión (1100–1439): rótulo «Lectura»; en Explorar sigue «Lectura determinista»', () => {
-    expect(renderToStaticMarkup(<ReadingPill data={readyData} />)).toContain('Lectura determinista')
+  it('pill in Mission (1100–1439): label “Reading”; in Explore it stays “Deterministic reading”', () => {
+    expect(renderToStaticMarkup(<ReadingPill data={readyData} />)).toContain('Deterministic reading')
     uiActions.setMode('mision')
     const html = renderToStaticMarkup(<ReadingPill data={readyData} openSignal={0} />)
-    expect(html).toContain('<span>Lectura</span>')
+    expect(html).toContain('<span>Reading</span>')
   })
 })
 
-describe('resultado compacto: acción «Ir a la Lectura» e impresión sin esperas diferidas (M11)', () => {
+describe('compact result: “Go to Reading” action and printing without deferred waits (M11)', () => {
   const props = { onExplain: noop, onExport: noop, exportError: null, onEdit: noop, candidates: v3Bundle.candidates }
 
-  it('se ofrece también cuando ninguna área queda priorizada; la vista del equipo no la lleva', () => {
+  it('also offered when no area is prioritized; the team view does not carry it', () => {
     const none = evaluateExample(undefined, [{ type: 'update_requirement', id: 'ex1', patch: { valueText: ['0,001', ''] } }])
     expect(none.evaluation.recommended_site_ids).toEqual([])
     const compact = renderToStaticMarkup(<ResultView {...props} {...none} compact onOpenReading={noop} />)
-    expect(compact).toContain('Ninguna área queda priorizada')
-    expect(compact).toContain('>Ir a la Lectura</button>')
+    expect(compact).toContain('No area is prioritized')
+    expect(compact).toContain('>Go to Reading</button>')
     expect(renderToStaticMarkup(<ResultView {...props} {...none} onOpenReading={noop} />)).not.toContain('Ir a la Lectura')
   })
 
-  it('ronda 2: una sola acción, después del resumen inicial y antes de chips, grupos y exportación', () => {
+  it('round 2: a single action, after the initial summary and before chips, groups and export', () => {
     for (const ev of [evaluateExample(), evaluateExample(undefined, [{ type: 'update_requirement', id: 'ex1', patch: { valueText: ['0,001', ''] } }])]) {
       const html = renderToStaticMarkup(<ResultView {...props} {...ev} compact onOpenReading={noop} />)
-      expect(html.match(/Ir a la Lectura/g)).toHaveLength(1)
-      const cta = html.indexOf('Ir a la Lectura')
+      expect(html.match(/Go to Reading/g)).toHaveLength(1)
+      const cta = html.indexOf('Go to Reading')
       expect(cta).toBeGreaterThan(html.indexOf('class="pl-lead"'))
       expect(cta).toBeLessThan(html.indexOf('class="pl-chips"'))
       expect(cta).toBeLessThan(html.indexOf('class="pl-group"'))
-      // No se presenta como exportación.
+      // It is not presented as an export.
       expect(html.slice(html.indexOf('class="pl-export"'))).not.toContain('Ir a la Lectura')
-      expect(html).toContain('<p class="pl-reading-cta"><button type="button" class="pl-reading-link">Ir a la Lectura</button></p>')
+      expect(html).toContain('<p class="pl-reading-cta"><button type="button" class="pl-reading-link">Go to Reading</button></p>')
     }
   })
 
-  it('«Imprimir informe» queda deshabilitado con «Preparando informe…» hasta que el informe vigente esté montado', () => {
+  it('“Print report” stays disabled with “Preparing report…” until the current report is mounted', () => {
     const ev = evaluateExample()
     const waiting = renderToStaticMarkup(<ResultView {...props} {...ev} compact printReady={false} />)
-    expect(waiting).toMatch(/<button type="button" disabled=""[^>]*>Preparando informe…<\/button>/)
+    expect(waiting).toMatch(/<button type="button" disabled=""[^>]*>Preparing report…<\/button>/)
     expect(waiting).not.toContain('Imprimir informe')
-    expect(renderToStaticMarkup(<ResultView {...props} {...ev} compact printReady />)).toMatch(/<button type="button"[^>]*>Imprimir informe<\/button>/)
-    // Vista del equipo: su informe va dentro, el botón sigue disponible.
-    expect(renderToStaticMarkup(<ResultView {...props} {...ev} />)).toContain('>Imprimir informe</button>')
+    expect(renderToStaticMarkup(<ResultView {...props} {...ev} compact printReady />)).toMatch(/<button type="button"[^>]*>Print report<\/button>/)
+    // Team view: its report is inside, the button stays available.
+    expect(renderToStaticMarkup(<ResultView {...props} {...ev} />)).toContain('>Print report</button>')
   })
 
-  it('vigencia de una sola fuente: listo solo con el MISMO resultado montado; otro resultado o editar lo deshabilitan', () => {
+  it('single-source freshness: ready only with the SAME result mounted; another result or an edit disables it', () => {
     const a = evaluateExample().evaluation
     const b = evaluateExample().evaluation
     expect(isPrintReady(a, null)).toBe(false)
     const unmount = markPrintMounted(a)
     expect(isPrintReady(a, printStore.getState().mounted)).toBe(true)
-    expect(isPrintReady(b, printStore.getState().mounted)).toBe(false) // otra misión: nunca el informe anterior
+    expect(isPrintReady(b, printStore.getState().mounted)).toBe(false) // another mission: never the previous report
     expect(isPrintReady(null, printStore.getState().mounted)).toBe(false) // prueba editada (resultado anulado)
     unmount()
     expect(printStore.getState().mounted).toBeNull()
@@ -185,7 +185,7 @@ describe('informe imprimible (M11)', () => {
   const ev = evaluateExample()
   const catalog = buildGeologyCatalog(ev.evaluation, context, fingerprint(context))
 
-  it('aviso en lugar de página vacía o informe viejo: carga inicial, sin evaluación y prueba editada', () => {
+  it('a notice instead of an empty page or a stale report: initial load, no evaluation and edited test', () => {
     expect(printNoticeReason(false, false, false)).toBe('loading_data')
     expect(printNoticeReason(true, false, false)).toBe('no_result')
     expect(printNoticeReason(true, false, true)).toBe('stale')
@@ -193,47 +193,47 @@ describe('informe imprimible (M11)', () => {
     const loading = renderToStaticMarkup(<MissionPrintHost data={{ status: 'loading', snapshot: null, visual: { status: 'loading' }, error: null }} />)
     expect(text(loading)).toContain(PRINT_NOTICE.loading_data)
     expect(text(renderToStaticMarkup(<MissionPrintHost data={readyData} />))).toContain(PRINT_NOTICE.no_result)
-    // Edición tras evaluar: el reductor anula el resultado; la vista atenuada NO se imprime.
+    // Edit after evaluating: the reducer cancels the result; the dimmed view is NOT printed.
     missionStore.setState({ planner: { ...ev.state, result: null, confirmed: false }, request: ev.request, evaluation: ev.evaluation, stale: true })
     const stale = renderToStaticMarkup(<MissionPrintHost data={readyData} />)
     expect(text(stale)).toContain(PRINT_NOTICE.stale)
     expect(stale).not.toContain('pl-print-opt')
-    // Con resultado vigente y el informe aún en camino (chunk diferido): aviso de preparación.
+    // With a current result and the report still on its way (deferred chunk): preparing notice.
     missionStore.setState({ planner: ev.state, request: ev.request, evaluation: ev.evaluation, stale: false })
     const preparing = renderToStaticMarkup(<MissionPrintHost data={readyData} />)
     expect(text(preparing)).toContain(PRINT_NOTICE.preparing)
   })
 
-  it('con geología: la misma evidencia que la pantalla, límites siempre y sin convertir cartografía en aptitud', () => {
+  it('with geology: the same evidence as the screen, limits always and without turning mapping into suitability', () => {
     const html = renderToStaticMarkup(<MissionPrintReport evaluation={ev.evaluation} request={ev.request} state={ev.state} candidates={v3Bundle.candidates} geologyCatalog={catalog} />)
     const geo = text(html.slice(html.indexOf('pl-print-geo')))
     expect(geo).toContain(GEOLOGY_LAYER_NOTE)
     expect(geo).toContain(UNITS_NOT_ADDITIVE)
-    expect(geo).toContain('Límites de la evidencia geológica')
-    expect(geo).toContain('Fecha del mapa')
-    expect(geo).toContain('distribuido por')
+    expect(geo).toContain('Limits of the geological evidence')
+    expect(geo).toContain('Map date')
+    expect(geo).toContain('distributed by')
     for (const site of catalog.sites) {
       for (const limit of site.limits) expect(geo).toContain(text(limit).trim())
       for (const unit of site.units.slice(0, 3)) expect(geo).toContain(text(unit.description ?? 'Descripción original ausente en la fuente.').trim())
     }
     for (const excluded of catalog.excluded) expect(geo).toContain(excluded.reason)
-    expect(geo).not.toMatch(/\bapto\b|aprobad|autorizad/i)
+    expect(geo).not.toMatch(/\bapto\b|aprobad|autorizad|\bis suitable\b|\bapproved\b|\bauthorized\b/i)
   })
 
-  it('sin geología: informe completo sin sección geológica', () => {
+  it('without geology: full report without the geology section', () => {
     const html = text(renderToStaticMarkup(<MissionPrintReport evaluation={ev.evaluation} request={ev.request} state={ev.state} candidates={v3Bundle.candidates} />))
     expect(html).not.toContain('Orientación geológica')
-    for (const heading of ['Prueba', 'Geometría', 'Resultado', 'Regla de orden', 'Límites', 'Evidencias', 'Procedencia y versiones']) expect(html).toContain(heading)
+    for (const heading of ['Test', 'Geometry', 'Result', 'Ordering rule', 'Limits', 'Evidence', 'Provenance and versions']) expect(html).toContain(heading)
   })
 
-  it('brief largo íntegro, todos los sectores (REF rotulada) y fuentes de evidencia con URL', () => {
+  it('whole long brief, all sectors (REF labeled) and evidence sources with URL', () => {
     const long = `${'Ensayo de navegación autónoma con pendientes suaves y suelo desnudo. '.repeat(40)}FIN-DEL-BRIEF`.slice(-MAX_BRIEF_CHARS)
     const html = renderToStaticMarkup(<MissionPrintReport evaluation={ev.evaluation} request={{ ...ev.request, brief: long }} state={ev.state} candidates={v3Bundle.candidates} />)
     expect(html).toContain('FIN-DEL-BRIEF')
     expect(text(html)).toContain(text(long).trim())
     expect(ev.evaluation.options.length).toBeGreaterThan(1)
     expect((html.match(/class="pl-print-opt"/g) ?? []).length).toBe(ev.evaluation.options.length)
-    expect(text(html)).toContain('(REF, referencia conocida)')
+    expect(text(html)).toContain('(REF, known reference)')
     const urls = ev.evaluation.evidence.map((e) => e.source_url).filter((u): u is string => !!u)
     expect(urls.length).toBeGreaterThan(0)
     for (const url of urls) expect(html).toContain(url)

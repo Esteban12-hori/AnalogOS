@@ -1,15 +1,15 @@
 /**
- * Teclado del escenario (docs/UX_REDESIGN.md §3.1): flechas giran 10° (Mayús 30°), + / − acercan
- * o alejan medio nivel de zoom e Inicio vuelve a la vista global. Función pura: el globo la
- * traduce a un vuelo; el mapa 2D conserva su propio paneo por píxeles y solo toma Inicio.
+ * Stage keyboard controls (docs/UX_REDESIGN.md §3.1): arrow keys rotate 10° (Shift 30°), + / − zoom in
+ * or out half a zoom level, and Home returns to the global view. Pure function: the globe
+ * translates it into a flight; the 2D map keeps its own per-pixel panning and only takes Home.
  */
 import type { Position } from '../../domain/contracts'
 
 export const KEY_STEP_DEG = 10
 export const KEY_STEP_SHIFT_DEG = 30
-/** Medio nivel de zoom ≈ ×1,4: el mismo margen que separa la vista global del paso al 2D. */
+/** Half a zoom level ≈ ×1,4: the same margin that separates the global view from the switch to 2D. */
 export const KEY_ZOOM_STEP = 0.5
-/** Latitud máxima del centro de la vista (evita voltear la cámara sobre los polos). */
+/** Maximum latitude of the view center (prevents flipping the camera over the poles). */
 export const MAX_CENTER_LATITUDE = 80
 
 export type CameraKeyAction =
@@ -43,7 +43,7 @@ export function cameraKeyAction(key: string, shiftKey = false): CameraKeyAction 
   }
 }
 
-/** Nuevo centro tras girar: longitud envuelta en [-180, 180) y latitud acotada a ±80°. */
+/** New center after rotating: longitude wrapped to [-180, 180) and latitude clamped to ±80°. */
 export function rotateCenter([lon, lat]: Position, dLon: number, dLat: number): Position {
   let nextLon = ((((lon + dLon + 180) % 360) + 360) % 360) - 180
   if (Object.is(nextLon, -0)) nextLon = 0

@@ -1,23 +1,23 @@
 /**
- * Parte diferida de la capa de líneas: lee los stores (cambios de estado, nunca por cuadro),
- * arma las vistas con `buildMetricViews` de features/metrics, elige las principales y monta
- * `LeaderStage`, que delega cada cuadro de cámara al controlador imperativo.
+ * Deferred part of the lines layer: reads the stores (state changes, never per frame),
+ * builds the views with `buildMetricViews` from features/metrics, chooses the main ones, and mounts
+ * `LeaderStage`, which delegates each camera frame to the imperative controller.
  *
- * `buildMetricViews` y el canal del escenario llegan por props desde LeaderLayer: este chunk
- * no importa `../metrics` ni `../globe` (ver LeaderStageBridge en projector.ts).
+ * `buildMetricViews` and the stage channel arrive via props from LeaderLayer: this chunk
+ * does not import `../metrics` or `../globe` (see LeaderStageBridge in projector.ts).
  */
 import { useMemo } from 'react'
 import type { CandidateSite } from '../../domain/contracts'
 import { useViewportLayout, type AppData } from '../../shell/public'
 import { useMission } from '../../state/mission'
 import { useUi } from '../../state/ui'
-// Directo del módulo (no del índice de metrics): así viaja en este chunk diferido y no en el
-// principal (§6.1), sin arrastrar el resto de la feature.
+// Directly from the module (not from the metrics index): this way it travels in this deferred chunk and not in the
+// main one (§6.1), without dragging in the rest of the feature.
 import { buildMetricViews } from '../metrics/buildMetricViews'
 import { leaderHeader, leaderLabelModelFor } from './labelModel'
 import { LeaderStage } from './LeaderStage'
 import { pickMissionMetrics, pickPrincipalMetrics } from './principal'
-// La capa de requisitos sale del mismo reparto que usa el riel (función pura, sin estado).
+// The requirements layer comes from the same distribution used by the rail (pure function, stateless).
 import { requirementLayer } from '../metrics/metricContext'
 import type { LeaderStageBridge } from './projector'
 
@@ -40,7 +40,7 @@ export default function LeaderCanvas({ data, site, bridge }: LeaderCanvasProps) 
   const { width, height, tramo, compact, sideSheet } = useViewportLayout()
   const snapshot = data.snapshot
 
-  // Pesos y contribuciones SIEMPRE del snapshot; en Misión, los requisitos de la evaluación vigente.
+  // Weights and contributions ALWAYS from the snapshot; in Mission, the requirements of the current assessment.
   const option = mode === 'mision' ? evaluation?.options.find((item) => item.site_id === site.site_id) ?? null : null
   const missionActive = mode === 'mision' && evaluation !== null
   const outOfScope = missionActive && option === null
@@ -56,7 +56,7 @@ export default function LeaderCanvas({ data, site, bridge }: LeaderCanvasProps) 
     [site, snapshot, principal, missionActive],
   )
 
-  // Sin líneas para un sitio fuera del alcance de la evaluación (no hay requisitos que mostrar).
+  // No lines for a site outside the scope of the assessment (there are no requirements to display).
   if (labels.length === 0 || outOfScope) return null
   return (
     <LeaderStage

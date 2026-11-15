@@ -1,15 +1,15 @@
 /**
- * Validación del snapshot en el límite del sistema (candidatos, manifiesto y perfil), con los
- * validadores precompilados de contracts/*.schema.json (scripts/build-validators.mjs): misma
- * validación que shared/domain/contracts.ts, sin el compilador de Ajv en el chunk principal.
- * Mensajes idénticos a los de la versión compartida.
+ * Snapshot validation at the system boundary (candidates, manifest, and profile), using the
+ * precompiled validators from contracts/*.schema.json (scripts/build-validators.mjs): the same
+ * validation as shared/domain/contracts.ts, without the Ajv compiler in the main chunk.
+ * Messages identical to those of the shared version.
  */
 import type { ErrorObject } from 'ajv'
 import type { CandidateSite } from '../../../../shared/domain/contracts'
 import { validateCandidate, validateManifest, validateProfile } from './validators.generated.js'
 
 export function errorSummary(errors: ErrorObject[] | null | undefined): string {
-  if (!errors?.length) return 'error de contrato desconocido'
+  if (!errors?.length) return 'unknown contract error'
   return errors.map((error) => `${error.instancePath || '/'} ${error.message ?? ''}`.trim()).join('; ')
 }
 
@@ -19,17 +19,17 @@ export function assertSnapshotContracts(
   profile: unknown,
 ): asserts candidates is CandidateSite[] {
   if (!Array.isArray(candidates)) {
-    throw new Error('candidate-details.json debe contener una lista.')
+    throw new Error('candidate-details.json must contain a list.')
   }
   candidates.forEach((candidate, index) => {
     if (!validateCandidate(candidate)) {
-      throw new Error(`Candidato ${index + 1} inválido: ${errorSummary(validateCandidate.errors)}`)
+      throw new Error(`Invalid candidate ${index + 1}: ${errorSummary(validateCandidate.errors)}`)
     }
   })
   if (!validateManifest(manifest)) {
-    throw new Error(`Manifest inválido: ${errorSummary(validateManifest.errors)}`)
+    throw new Error(`Invalid manifest: ${errorSummary(validateManifest.errors)}`)
   }
   if (!validateProfile(profile)) {
-    throw new Error(`Perfil inválido: ${errorSummary(validateProfile.errors)}`)
+    throw new Error(`Invalid profile: ${errorSummary(validateProfile.errors)}`)
   }
 }

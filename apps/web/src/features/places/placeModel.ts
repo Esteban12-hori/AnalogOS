@@ -1,21 +1,22 @@
 /**
- * Modelo puro del carrusel de lugares (docs/UX_REDESIGN.md §3.5, §1 #16; ADR-008, ADR-013).
- * Sin React ni DOM.
+ * Pure model of the places carousel (docs/UX_REDESIGN.md §3.5, §1 #16; ADR-008, ADR-013).
+ * No React or DOM.
  *
- * - Explorar: primero los candidatos de la búsqueda en su puesto GLOBAL (`splitByRole`; un filtro
- *   por país conserva ese puesto), después la referencia conocida (REF, nunca con puesto) y al
- *   final los ◆ del catálogo mundial (alfabéticos, sin %, sin ranking).
- * - Misión con evaluación: grupos por el estado de `MissionEvaluation` (motor del equipo); el
- *   puesto es el de la evaluación (solo priorizados) y la similitud es la del snapshot v3, sin
- *   recalcular. Los sitios que la evaluación no incluyó quedan «fuera del alcance».
- * - Un ◆ citado como punto que cae dentro de un sector es una insignia «coincide con» sobre ese ●.
- *   Esa clasificación (geometría) vive en classify.ts, que se carga diferida con el catálogo.
+ * - Explore: first the search candidates at their GLOBAL rank (`splitByRole`; a country filter
+ *   keeps that rank), then the known reference (REF, never with a rank) and finally
+ *   the ◆ of the world catalog (alphabetical, no %, no ranking).
+ * - Mission with evaluation: groups by the state of `MissionEvaluation` (team engine); the
+ *   rank is that of the evaluation (prioritized only) and the similarity is that of the v3 snapshot, without
+ *   recalculating. Sites that the evaluation did not include are "out of scope".
+ * - A ◆ cited as a point that falls inside a sector is a "coincides with" badge on that ●.
+ *   That classification (geometry) lives in classify.ts, which is loaded lazily with the catalog.
  */
 import type { CandidateSite, CountryCode, ReferenceAnalog } from '../../domain/contracts'
 import { availableCountries, filterByCountry, rankMap, splitByRole, type CountryFilter } from '../../domain/discovery'
 import { shortCandidateName } from '../../domain/formatting'
 import { MISSION_STATUS_LABEL, MISSION_STATUS_ORDER, missionOrder, missionSiteViews, type MissionSiteView, type SiteMissionStatus } from '../../domain/missionView'
 import type { MissionEvaluation } from '../../mission/types'
+import { displaySource } from '../../i18n/sourceText'
 
 export type ScoreSource = 'snapshot' | 'mission'
 
@@ -23,19 +24,19 @@ export interface EvaluatedPlace {
   kind: 'evaluated'
   id: string
   candidate: CandidateSite
-  /** Candidato de la búsqueda o referencia conocida (REF: nunca con puesto). */
+  /** Search candidate or known reference (REF: never with a rank). */
   role: 'candidate' | 'reference'
   country: CountryCode | null
-  /** Similitud 0–100 del snapshot v3, sin recalcular; null = sin %. */
+  /** 0–100 similarity from the v3 snapshot, without recalculating; null = no %. */
   similarity: number | null
   status: 'scored' | 'insufficient_data'
-  /** Explorar: puesto global entre candidatos. Misión: puesto de la evaluación (solo priorizados). */
+  /** Explore: global rank among candidates. Mission: rank in the evaluation (prioritized only). */
   rank: number | null
-  /** Confianza del snapshot. */
+  /** Snapshot confidence. */
   confidence: number | null
-  /** ◆ citados como punto que caen dentro del polígono de este sector (§1 #16). */
+  /** ◆ cited as a point that fall inside the polygon of this sector (§1 #16). */
   coincident: readonly ReferenceAnalog[]
-  /** Estado en la evaluación de Misión; null en Explorar o sin evaluación. */
+  /** State in the Mission evaluation; null in Explore or without evaluation. */
   mission: MissionSiteView | null
 }
 
@@ -43,7 +44,7 @@ export interface ReferencePlace {
   kind: 'reference'
   id: string
   analog: ReferenceAnalog
-  /** Sectores con todos sus vértices dentro de la región citada (siempre vacío para un punto). */
+  /** Sectors with all their vertices inside the cited region (always empty for a point). */
   containsSectorIds: readonly string[]
 }
 
@@ -52,7 +53,7 @@ export type Place = EvaluatedPlace | ReferencePlace
 export interface PlaceGroup {
   key: string
   label: string
-  /** Estado de Misión del grupo (para el estilo); null en Explorar. */
+  /** Mission state of the group (for styling); null in Explore. */
   status: SiteMissionStatus | null
   role: 'candidate' | 'reference' | null
   places: readonly EvaluatedPlace[]
@@ -60,37 +61,37 @@ export interface PlaceGroup {
 
 export interface PlaceModel {
   source: ScoreSource
-  /** Sectores evaluados en orden visual (los grupos, aplanados). */
+  /** Evaluated sectors in visual order (the groups, flattened). */
   evaluated: readonly EvaluatedPlace[]
   groups: readonly PlaceGroup[]
   references: readonly ReferencePlace[]
-  /** Candidatos de la búsqueda con puesto: el «de 6» de «#2 de 6» (nunca cuenta la REF). */
+  /** Search candidates with a rank: the "of 6" in "#2 of 6" (never counts the REF). */
   rankedCount: number
-  /** ◆ del catálogo que se muestran como insignia sobre un ● en vez de tarjeta propia. */
+  /** ◆ of the catalog that are shown as a badge on a ● instead of their own card. */
   coincidentCount: number
-  /** Países con candidatos (filtro solo si hay más de uno). */
+  /** Countries with candidates (filter only if there is more than one). */
   countries: readonly CountryCode[]
   country: CountryFilter
 }
 
-/** Resultado de la regla §1 #16 (classify.ts). */
+/** Result of the rule §1 #16 (classify.ts). */
 export interface ReferenceClassification {
-  /** site_id → ◆ que coinciden con ese sector. */
+  /** site_id → ◆ that coincide with that sector. */
   badges: ReadonlyMap<string, readonly ReferenceAnalog[]>
-  /** ◆ con tarjeta propia, en orden alfabético. */
+  /** ◆ with their own card, in alphabetical order. */
   references: readonly ReferencePlace[]
 }
 
-/** Sin catálogo (o mientras carga): ningún ◆. */
+/** Without catalog (or while loading): no ◆. */
 export const NO_REFERENCES: ReferenceClassification = Object.freeze({ badges: new Map(), references: [] })
 
 export interface PlaceModelInput {
   candidates: readonly CandidateSite[]
-  /** ◆ ya clasificados (`classifyReferences`); ausente = sin ◆. */
+  /** ◆ already classified (`classifyReferences`); absent = no ◆. */
   classification?: ReferenceClassification
-  /** Evaluación de Misión; null o ausente = Explorar (orden del snapshot). */
+  /** Mission evaluation; null or absent = Explore (snapshot order). */
   evaluation?: MissionEvaluation | null
-  /** Filtro por país de Explorar (conserva el puesto global). */
+  /** Explore country filter (keeps the global rank). */
   country?: CountryFilter
 }
 
@@ -112,7 +113,7 @@ export function buildPlaceModel({ candidates, classification = NO_REFERENCES, ev
       country: candidate.country ?? null,
       similarity: candidate.similarity,
       status: candidate.similarity === null ? 'insufficient_data' : 'scored',
-      // Sin % no hay puesto; la REF nunca lo tiene; en Misión, el de la evaluación.
+      // Without % there is no rank; the REF never has one; in Mission, that of the evaluation.
       rank: view ? view.rank : role === 'reference' || candidate.similarity === null ? null : ranks.get(candidate.site_id) ?? null,
       confidence: candidate.confidence,
       coincident: badges.get(candidate.site_id) ?? [],
@@ -130,8 +131,8 @@ export function buildPlaceModel({ candidates, classification = NO_REFERENCES, ev
     })
   } else {
     const shown = country === 'all' ? ranked : filterByCountry(ranked, country)
-    groups = [{ key: 'candidates', label: 'Candidatos de la búsqueda', status: null, role: 'candidate', places: shown.map(place) }]
-    if (known.length) groups.push({ key: 'reference', label: 'Referencia conocida · no sale de la búsqueda', status: null, role: 'reference', places: known.map(place) })
+    groups = [{ key: 'candidates', label: 'Search candidates', status: null, role: 'candidate', places: shown.map(place) }]
+    if (known.length) groups.push({ key: 'reference', label: 'Known reference · not from the search', status: null, role: 'reference', places: known.map(place) })
   }
 
   return {
@@ -146,26 +147,26 @@ export function buildPlaceModel({ candidates, classification = NO_REFERENCES, ev
   }
 }
 
-/** Nombre corto del sector («Pampa Yungay», sin «— sector de screening»). */
+/** Short name of the sector ("Pampa Yungay", without "— screening sector"). */
 export function placeName(name: string): string {
   return shortCandidateName(name).split(' — ')[0] ?? name
 }
 
-/** Nombre visible de una opción (también para la búsqueda por escritura). */
+/** Visible name of an option (also for type-ahead search). */
 export function placeLabelOf(place: Place): string {
-  return place.kind === 'evaluated' ? placeName(place.candidate.name) : place.analog.name
+  return place.kind === 'evaluated' ? placeName(place.candidate.name) : displaySource(place.analog.name)
 }
 
-/** Opciones del listbox en orden visual: primero los ● (por grupo), luego los ◆. */
+/** Listbox options in visual order: first the ● (by group), then the ◆. */
 export function placeOrder(model: PlaceModel): readonly Place[] {
   return [...model.evaluated, ...model.references]
 }
 
 // ---------------------------------------------------------------------------------------------
-// Teclado (patrón APG de listbox): flechas, Inicio/Fin y búsqueda por las primeras letras.
+// Keyboard (APG listbox pattern): arrows, Home/End and search by the first letters.
 // ---------------------------------------------------------------------------------------------
 
-/** Índice siguiente para una tecla de navegación; null si la tecla no navega. No da la vuelta. */
+/** Next index for a navigation key; null if the key does not navigate. Does not wrap around. */
 export function nextOptionIndex(key: string, index: number, count: number): number | null {
   if (count <= 0) return null
   if (key === 'ArrowRight' || key === 'ArrowDown') return Math.min(count - 1, index + 1)
@@ -180,8 +181,8 @@ function fold(text: string): string {
 }
 
 /**
- * Búsqueda por escritura: una sola letra salta a la SIGUIENTE opción que empieza con ella;
- * varias letras seguidas buscan desde la opción actual. null si nada coincide.
+ * Type-ahead search: a single letter jumps to the NEXT option that starts with it;
+ * several letters in a row search from the current option. null if nothing matches.
  */
 export function typeaheadIndex(labels: readonly string[], query: string, current: number): number | null {
   const needle = fold(query)
@@ -195,8 +196,8 @@ export function typeaheadIndex(labels: readonly string[], query: string, current
 }
 
 /**
- * Opciones visibles al menos en un 60 % dentro de la ventana [scroll, scroll + viewport].
- * Entra la geometría de cada opción a lo largo del eje del carrusel; devuelve null si no hay.
+ * Options visible at least 60 % within the window [scroll, scroll + viewport].
+ * Takes the geometry of each option along the carousel axis; returns null if there are none.
  */
 export function visibleRange(
   boxes: ReadonlyArray<{ start: number; size: number }>,
@@ -215,8 +216,8 @@ export function visibleRange(
   return first < 0 ? null : { first, last }
 }
 
-/** «1–4 de 11» (o «3 de 11» si solo cabe una). */
+/** "1–4 of 11" (or "3 of 11" if only one fits). */
 export function rangeLabel(range: { first: number; last: number } | null, total: number): string {
-  if (!range || total === 0) return `${total} lugares`
-  return range.first === range.last ? `${range.first + 1} de ${total}` : `${range.first + 1}–${range.last + 1} de ${total}`
+  if (!range || total === 0) return `${total} places`
+  return range.first === range.last ? `${range.first + 1} of ${total}` : `${range.first + 1}–${range.last + 1} of ${total}`
 }

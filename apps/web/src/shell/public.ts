@@ -1,6 +1,6 @@
 /**
- * API del armazón que las features PUEDEN importar (solo lectura). Cualquier otra cosa de
- * `shell/` es interna del integrador. Ver docs/BUILD_CONTRACTS.md.
+ * Shell API that features MAY import (read-only). Anything else in
+ * `shell/` is internal to the integrator. See docs/BUILD_CONTRACTS.md.
  */
 export type { AppData } from './appData'
 export { geologyStateOf, hasGeologyFor, isFixtureSnapshot } from './appData'

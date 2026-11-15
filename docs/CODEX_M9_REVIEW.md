@@ -1,60 +1,60 @@
-# Revisión Codex de M9
+# Codex Review of M9
 
-Estado: **aceptado y publicado en dev**, con geología y ambas operaciones de IA comprobadas desde navegador.
+Status: **accepted and published to dev**, with geology and both AI operations verified from the browser.
 
-## Revisión A — 2026-11-14
+## Review A — 2026-11-14
 
-Datos reales coherentes con la auditoría, 71 pruebas geológicas existentes correctas. Cinco casos independientes revelan brechas que deben corregirse antes de B:
+Real data consistent with the audit, 71 existing geological tests correct. Five independent cases reveal gaps that must be fixed before B:
 
-| Prioridad | Evidencia reproducida | Corrección necesaria |
+| Priority | Reproduced evidence | Required fix |
 |---|---|---|
-| P1 | MultiPolygon con dos copias del mismo cuadrado: las reparaciones coinciden, el área total baja 50 %, y `_diagnose` acepta. | Aplicar el límite de cambio total original/reparado además de la diferencia simétrica. |
-| P1 | Una coordenada NaN interna pasa `parse_features` porque los bounds siguen siendo finitos. | Validar estructura y todos los vértices antes de Shapely y antes de instalar caché. |
-| P1 | Refresh con Point en la capa chilena: falla el build, conserva el artefacto anterior pero reemplaza la caché válida. | Transacción raw+artefacto con validación completa en staging y rollback; mensajes veraces. |
-| P1 | Un sitio argentino puede citar request_ids de otro sector argentino y pasar el validador. | Enlazar adquisición, site_id, bbox exacta y rol de fuente. |
-| P2 | Un sitio chileno puede citar solo metadata CKAN en vez de la descarga de geometrías. | Exigir su adquisición de la capa; metadata puede ser adicional. |
+| P1 | MultiPolygon with two copies of the same square: the repairs match, the total area drops 50 %, and `_diagnose` accepts it. | Apply the total original/repaired change limit in addition to the symmetric difference. |
+| P1 | An internal NaN coordinate passes `parse_features` because the bounds remain finite. | Validate structure and all vertices before Shapely and before installing the cache. |
+| P1 | Refresh with a Point in the Chilean layer: the build fails, it keeps the previous artifact but replaces the valid cache. | Raw+artifact transaction with full validation in staging and rollback; truthful messages. |
+| P1 | An Argentine site can cite request_ids from another Argentine sector and pass the validator. | Link acquisition, site_id, exact bbox and source role. |
+| P2 | A Chilean site can cite only CKAN metadata instead of the geometry download. | Require its layer acquisition; metadata may be additional. |
 
-Reproducciones independientes: `/tmp/analogos-m9-independent-review.py` y `/tmp/analogos-m9-provenance-checks.json`. Incorporar regresiones permanentes.
+Independent reproductions: `/tmp/analogos-m9-independent-review.py` and `/tmp/analogos-m9-provenance-checks.json`. Incorporate permanent regressions.
 
-Otros ajustes: validar nombre/symlink antes de abrir archivos de caché; comprobar licencia CKAN antes de atribuir CC0; describir solo formatos realmente inspeccionados en esa adquisición; corregir SIGAM a «Sistema de Información Geológica Ambiental Minera»; alinear toda descripción del método con el código.
+Other adjustments: validate name/symlink before opening cache files; check the CKAN license before attributing CC0; describe only formats actually inspected in that acquisition; correct SIGAM to «Sistema de Información Geológica Ambiental Minera»; align every description of the method with the code.
 
-## Decisión técnica aprobada
+## Approved technical decision
 
-Codex aprueba la superposición completa en EPSG:6933 tras validar/reparar originales. Hace aditiva la partición y difiere de la auditoría exploratoria menos de 0,00005 puntos porcentuales. Mantener la auditoría original y documentar las aristas rectas en el plano, sin afirmar una integral geodésica exacta.
+Codex approves the full overlay in EPSG:6933 after validating/repairing the originals. It makes the partition additive and differs from the exploratory audit by less than 0,00005 percentage points. Keep the original audit and document the straight edges in the plane, without claiming an exact geodesic integral.
 
-Control independiente de siete AOI: diferencia relativa máxima de área proyectada/geodésica 5,13e-7. Cuatro geometrías inválidas reales: diferencias simétricas recortadas entre make_valid y buffer(0) iguales a cero. Eso no elimina el rechazo de otros casos materialmente diferentes.
+Independent control of seven AOIs: maximum relative difference between projected/geodesic area 5,13e-7. Four real invalid geometries: symmetric differences clipped between make_valid and buffer(0) equal to zero. That does not remove the rejection of other materially different cases.
 
-## Pendientes de aceptación
+## Pending acceptance items
 
-Corregir A, revisar B (ficha, exportación, errores y paquete), navegador escritorio/móvil/teclado, ZIP offline /AnalogOS/, regresión de M8/IA y dev. El empaquetador rechaza actualmente el JSON nuevo porque B está pendiente; no publicar A por separado. Ciencia, imágenes y núcleo IA protegidos por baseline de 49 archivos.
+Fix A, review B (sheet, export, errors and package), desktop/mobile/keyboard browser, offline ZIP /AnalogOS/, M8/AI regression and dev. The packager currently rejects the new JSON because B is pending; do not publish A separately. Science, images and AI core protected by a baseline of 49 files.
 
-## Revisión de correcciones — reconexión
+## Review of corrections — reconnection
 
-Codex repitió los tres casos adversos de geometría/transacción y los dos de procedencia: 5/5 correctos. 120 pruebas geológicas pasan y los 49 hashes permanecen intactos. Revisión de código detecta dos bordes adicionales, asignados a Claude antes de B: fallo de restauración del mismo par en `publish` mal informado como restaurado; anillo GeoJSON no cerrado aceptado silenciosamente por Shapely. No afectan los datos reales actuales, pero deben cerrarse antes de release.
+Codex repeated the three adversarial geometry/transaction cases and the two provenance cases: 5/5 correct. 120 geological tests pass and the 49 hashes remain intact. Code review detects two additional edge cases, assigned to Claude before B: restore failure of the same pair in `publish` wrongly reported as restored; unclosed GeoJSON ring silently accepted by Shapely. They do not affect the current real data, but must be closed before release.
 
-## Aceptación local de A y B — Codex, 2026-11-14
+## Local acceptance of A and B — Codex, 2026-11-14
 
-- Revisión independiente de código, contrato, geometrías, procedencia y recuperación ante errores; cinco hallazgos iniciales y dos bordes posteriores corregidos. Los 49 archivos protegidos de ciencia/visuales/perfiles/núcleo IA conservan sus hashes. Los datos geológicos coinciden con la auditoría exploratoria dentro de 0,00005 puntos porcentuales.
-- `source .venv/bin/activate && npm run verify`: 316 Python, 246 web correctos; dos pruebas de IA real opt-in omitidas. Typecheck servidor y build correctos. Nuevas pruebas de ficha conservan snapshot y estado «Sin calibrar».
-- Ajustes finales de Codex: texto geológico mínimo 12 px y controles más cómodos; mensajes de carga comprensibles; estado de descarga reiniciado al cambiar sector; advertencias visibles distinguen cartografía ya disponible de compatibilidad aún sin calibrar. Snapshot, puntuaciones y exportaciones previas intactos.
-- ZIP repetido idéntico, 31 entradas y 13.221.264 bytes; SHA-256 `eed868335c5374d20b05415a8627be9ec3f035c1dc10668bbe08f21e03f6520c`. Cada entrada coincide con dist. Sin raw/credenciales/investigación en el ZIP.
-- Navegador real sobre el ZIP extraído bajo `/AnalogOS/`, con conexiones externas bloqueadas: carga del globo, ficha geológica, estados de Chile ≈99 % y Argentina 50/0/100 %, detalles accesibles con Enter. Móvil 390×844 sin desborde horizontal (ancho documento 390; ficha geológica 326). Capturas en `submission/assets/analogos-m9-review.jpg` y `analogos-m9-mobile.jpg`.
-- Geología ausente (404) e inválida (sector argentino citando adquisición ajena) muestran «no disponible». Sin geología, el ejemplo manual completo prioriza cuatro de siete áreas y conserva tracción desconocida y factibilidad pendiente.
-- Descarga real en Chrome de `cl-win-s2500-w06970-geology-context.json`, validada en Python e idéntica al subconjunto reconstruido del paquete. Evidencia en `submission/evidence/m9-geology-export.json`. El observador de descargas no se utilizó; se leyó el archivo guardado por el navegador.
-- La prueba inicial de navegador usó por error una CSP de QA que bloqueaba `unsafe-eval`, requerido por Ajv existente. Se corrigió solo el servidor temporal de QA, manteniendo `connect-src self`; no se cambió CSP del producto. La apertura inicial también demoró en el controlador; no se atribuye al código de la app.
+- Independent review of code, contract, geometries, provenance and error recovery; five initial findings and two later edge cases fixed. The 49 protected science/visuals/profiles/AI core files retain their hashes. The geological data match the exploratory audit within 0,00005 percentage points.
+- `source .venv/bin/activate && npm run verify`: 316 Python, 246 web correct; two opt-in real AI tests skipped. Server typecheck and build correct. New sheet tests preserve the snapshot and the historical «Sin calibrar» (not calibrated) status.
+- Final Codex adjustments: minimum geological text 12 px and more comfortable controls; understandable loading messages; download status reset when changing sector; visible warnings distinguish already available cartography from compatibility still uncalibrated. Snapshot, scores and previous exports intact.
+- Repeated ZIP identical, 31 entries and 13.221.264 bytes; SHA-256 `eed868335c5374d20b05415a8627be9ec3f035c1dc10668bbe08f21e03f6520c`. Each entry matches dist. No raw/credentials/research in the ZIP.
+- Real browser on the ZIP extracted under `/AnalogOS/`, with external connections blocked: globe loading, geological sheet, states of Chile ≈99 % and Argentina 50/0/100 %, details accessible with Enter. Mobile 390×844 without horizontal overflow (document width 390; geological sheet 326). Screenshots in `submission/assets/analogos-m9-review.jpg` and `analogos-m9-mobile.jpg`.
+- Missing geology (404) and invalid geology (Argentine sector citing another's acquisition) show «not available». Without geology, the complete manual example prioritizes four of seven areas and retains unknown traction and pending feasibility.
+- Real download in Chrome of `cl-win-s2500-w06970-geology-context.json`, validated in Python and identical to the subset rebuilt from the package. Evidence in `submission/evidence/m9-geology-export.json`. The download observer was not used; the file saved by the browser was read.
+- The initial browser test mistakenly used a QA CSP that blocked `unsafe-eval`, required by the existing Ajv. Only the temporary QA server was corrected, keeping `connect-src self`; the product CSP was not changed. The initial opening also lagged in the driver; this is not attributed to the app code.
 
-La aceptación es de implementación y trazabilidad de cartografía regional. No valida el terreno, no calibra el criterio geológico ni habilita uso geológico en IA. Los hashes comprobados vinculan archivos de candidatos y peticiones; no constituyen una firma de autenticidad ni prueban por sí solos cada área calculada. El contraste espacial se realizó contra las fuentes y la auditoría.
+The acceptance covers implementation and traceability of regional cartography. It does not validate the terrain, does not calibrate the geological criterion, and does not enable geological use in AI. The verified hashes link candidate and request files; they are not a signature of authenticity and do not by themselves prove each calculated area. The spatial cross-check was carried out against the sources and the audit.
 
-## Publicación y regresión remota — Codex, 2026-11-14 (America/Santiago)
+## Publication and remote regression — Codex, 2026-11-14 (America/Santiago)
 
-**M9 completado y publicado en dev.** Código `34e76b9734efab2428013a13c6d0defb8d85d8f4`, Actions correcto: https://github.com/Esteban12-hori/AnalogOS/actions/runs/43658989969. Deploy https://analogos-nmyfr42k8-pruebas-730d0f41.vercel.app, alias https://analogos-dev.vercel.app/. El checkpoint posterior agrega solo documentos/evidencia con `[skip ci]` y conserva ese código desplegado. Main no cambió.
+**M9 completed and published to dev.** Code `34e76b9734efab2428013a13c6d0defb8d85d8f4`, Actions correct: https://github.com/Esteban12-hori/AnalogOS/actions/runs/43658989969. Deploy https://analogos-nmyfr42k8-pruebas-730d0f41.vercel.app, alias https://analogos-dev.vercel.app/. The subsequent checkpoint adds only documents/evidence with `[skip ci]` and retains that deployed code. Main did not change.
 
-- La función realmente empaquetada pasó el control de arranque (módulos/snapshot/contratos, GET 405 y POST sin clave 503). Se mantuvieron protección Vercel y configuración de credenciales.
-- Geología en dev: Chile 99,4 %, Argentina 100 % y referencia Yungay 99,1 % observados; unidades y escala correctas. Exportación argentina descargada y validada, idéntica a la reconstruida desde el paquete: `submission/evidence/m9-dev-geology-export.json`.
-- Regresión IA real: brief sintético con pendiente mediana regional ≤ 2,3°, preferencia no vegetada ≥ 95 %, permisos pendientes. Anthropic propuso tres requisitos editables; confirmación explícita y evaluación priorizaron una de siete áreas. La explicación destacó motivos existentes sin alterar números ni exclusiones. Permisos y factibilidad quedaron pendientes.
-- JSON de IA descargado desde dev, contrato validado y evaluación recalculada idéntica; reconstrucción completa con `buildMissionExport` también idéntica. Evidencia: `submission/evidence/m9-dev-ai-export.json`.
-- Borrador: `claude-sonnet-5-5`, `2026-11-15T00:38:32.854Z`, request `req_011Ch3nDHnwnQR73oKU4vndZ`, tokens 2177/1010, `end_turn`.
-- Explicación: `claude-sonnet-5-5`, `2026-11-15T00:39:27.098Z`, request `req_011Ch3nHb48fJE7MMfz5V45L`, tokens 5792/460, `end_turn`.
-- Capturas: `submission/assets/analogos-m9-dev.jpg` y `analogos-m9-dev-ai.jpg`. La IA sigue usando exclusivamente el motor/evidencia M8; no consume el nuevo contexto geológico.
+- The function as actually packaged passed the startup check (modules/snapshot/contracts, GET 405 and POST without key 503). Vercel protection and credential configuration were maintained.
+- Geology in dev: Chile 99,4 %, Argentina 100 % and Yungay reference 99,1 % observed; units and scale correct. Argentine export downloaded and validated, identical to the one rebuilt from the package: `submission/evidence/m9-dev-geology-export.json`.
+- Real AI regression: synthetic brief with regional median slope ≤ 2,3°, non-vegetated preference ≥ 95 %, permits pending. Anthropic proposed three editable requirements; explicit confirmation and evaluation prioritized one of seven areas. The explanation highlighted existing reasons without altering numbers or exclusions. Permits and feasibility remained pending.
+- AI JSON downloaded from dev, contract validated and evaluation recalculated identically; full rebuild with `buildMissionExport` also identical. Evidence: `submission/evidence/m9-dev-ai-export.json`.
+- Draft: `claude-sonnet-5-5`, `2026-11-15T00:38:32.854Z`, request `req_011Ch3nDHnwnQR73oKU4vndZ`, tokens 2177/1010, `end_turn`.
+- Explanation: `claude-sonnet-5-5`, `2026-11-15T00:39:27.098Z`, request `req_011Ch3nHb48fJE7MMfz5V45L`, tokens 5792/460, `end_turn`.
+- Screenshots: `submission/assets/analogos-m9-dev.jpg` and `analogos-m9-dev-ai.jpg`. The AI continues to use exclusively the M8 engine/evidence; it does not consume the new geological context.
 
-Aceptado por Codex tras revisar la implementación de Claude y corregir la presentación final. Claude queda sin nueva asignación. No se afirma validación de campo, exactitud absoluta ni ausencia universal de defectos; las pruebas cubren el alcance M9 y sus regresiones observadas.
+Accepted by Codex after reviewing Claude's implementation and correcting the final presentation. Claude has no new assignment. No claim is made of field validation, absolute accuracy or universal absence of defects; the tests cover the M9 scope and its observed regressions.

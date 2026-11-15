@@ -1,54 +1,54 @@
 /**
- * Modelo puro del composer (sin stores ni React). Nada aquí inventa cifras: el orden, los estados
- * y los puestos vienen de `MissionEvaluation` (motor determinista del equipo, ADR-009) y la
- * similitud es la del snapshot v3, sin recalcular.
+ * Pure composer model (no stores or React). Nothing here makes up figures: the order, statuses
+ * and rankings come from `MissionEvaluation` (the team's deterministic engine, ADR-009) and the
+ * similarity is that of the v3 snapshot, without recalculation.
  */
 import type { CandidateSite } from '../../domain/contracts'
 import { formatScore, shortCandidateName } from '../../domain/formatting'
 import { prioritizedCount } from '../../domain/missionView'
 import type { MissionEvaluation } from '../../mission/types'
 
-/** Nombre corto del lugar («Pampa Yungay», sin «— sector de screening»). */
+/** Short name of the place ("Pampa Yungay", without "— screening sector"). */
 export function placeName(name: string): string {
   return shortCandidateName(name).split(' — ')[0]?.trim() || name
 }
 
 const OUTCOME_TEXT: Readonly<Record<Exclude<MissionEvaluation['outcome'], 'evaluated'>, string>> = {
-  needs_window_selection: 'Hay evidencia de una ventana, no del punto: falta elegirla',
-  insufficient_coverage: 'Evidencia insuficiente para esta geometría: diagnóstico exportable',
-  unsupported_target: 'Objetivo no soportado: se conserva el pedido sin cálculo',
+  needs_window_selection: 'There is evidence for a window, not for the point: it still needs to be chosen',
+  insufficient_coverage: 'Insufficient evidence for this geometry: exportable diagnostic',
+  unsupported_target: 'Unsupported objective: the request is kept without calculation',
 }
 
 /**
- * Línea de resultado del composer: «2 de 6 candidatos priorizados · #1 Puna Norte · similitud v3
- * 82,4 (sin recalcular)», «Ninguna opción priorizada» o el diagnóstico del alcance. La REF no
- * cuenta en «N de M candidatos»; si quedó priorizada se nombra aparte.
+ * Composer result line: "2 of 6 prioritized candidates · #1 Puna Norte · v3 similarity
+ * 82,4 (not recalculated)", "No prioritized option" or the scope diagnosis. The REF does not
+ * count in "N of M candidates"; if it ended up prioritized, it is named separately.
  */
 export function resultLineText(evaluation: MissionEvaluation, candidates: readonly CandidateSite[]): string {
   if (evaluation.outcome !== 'evaluated') return OUTCOME_TEXT[evaluation.outcome]
   const prioritized = evaluation.options.filter((option) => option.status === 'priorizado_para_reconocimiento')
-  if (evaluation.none_prioritized || prioritized.length === 0) return `Ninguna opción priorizada de ${evaluation.options.length}`
+  if (evaluation.none_prioritized || prioritized.length === 0) return `No option prioritized out of ${evaluation.options.length}`
   const first = prioritized.find((option) => option.rank === 1) ?? prioritized[0]!
   const candidate = candidates.find((item) => item.site_id === first.site_id)
   const name = placeName(candidate?.name ?? first.name)
   const similarity = first.snapshot_scores.similarity
   const count = prioritizedCount(evaluation)
   return [
-    count.of > 0 ? `${count.candidates} de ${count.of} ${count.of === 1 ? 'candidato priorizado' : 'candidatos priorizados'}` : '',
-    count.reference ? (count.of > 0 ? 'REF también priorizada' : 'REF priorizada') : '',
+    count.of > 0 ? `${count.candidates} of ${count.of} ${count.of === 1 ? 'candidate prioritized' : 'candidates prioritized'}` : '',
+    count.reference ? (count.of > 0 ? 'REF also prioritized' : 'REF prioritized') : '',
     `#1 ${name}${first.role === 'reference' ? ' (REF)' : ''}`,
-    similarity === null ? 'sin similitud v3' : `similitud v3 ${formatScore(similarity)} (sin recalcular)`,
+    similarity === null ? 'no v3 similarity' : `v3 similarity ${formatScore(similarity)} (not recalculated)`,
   ].filter(Boolean).join(' · ')
 }
 
-/** Anuncio único por evaluación (mismo texto que la línea, con contexto). */
+/** Single announcement per evaluation (same text as the line, with context). */
 export function resultAnnouncement(evaluation: MissionEvaluation, candidates: readonly CandidateSite[]): string {
-  return `Evaluación lista. ${resultLineText(evaluation, candidates)}. Factibilidad territorial pendiente.`
+  return `Evaluation ready. ${resultLineText(evaluation, candidates)}. Territorial feasibility pending.`
 }
 
 export interface TextSegment {
   text: string
-  /** 'quote' = cita del brief en un requisito; 'unmeasured' = tema que el snapshot no mide. */
+  /** 'quote' = quote from the brief in a requirement; 'unmeasured' = topic that the snapshot does not measure. */
   mark: 'quote' | 'unmeasured' | null
 }
 
@@ -58,7 +58,7 @@ export interface TextMark {
   mark: 'quote' | 'unmeasured'
 }
 
-/** Ubica cada fragmento literal en el texto (primera aparición, sin distinguir mayúsculas). */
+/** Locates each literal fragment in the text (first occurrence, case-insensitive). */
 export function locateMarks(text: string, fragments: ReadonlyArray<{ text: string; mark: TextMark['mark'] }>): TextMark[] {
   const lower = text.toLocaleLowerCase('es')
   const out: TextMark[] = []
@@ -71,7 +71,7 @@ export function locateMarks(text: string, fragments: ReadonlyArray<{ text: strin
   return out
 }
 
-/** Parte el texto en tramos con y sin marca; los solapados se descartan (gana el primero). */
+/** Splits the text into marked and unmarked spans; overlapping ones are discarded (the first wins). */
 export function highlightSegments(text: string, marks: readonly TextMark[] | null): TextSegment[] {
   if (!marks || marks.length === 0) return [{ text, mark: null }]
   const sorted = [...marks]

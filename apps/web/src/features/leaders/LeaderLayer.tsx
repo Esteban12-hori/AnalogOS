@@ -1,8 +1,8 @@
 /**
- * Capa de líneas Tesla (slot `stage.overlay`). Este archivo va en el chunk principal y solo
- * decide si hay algo que dibujar: un sector evaluado seleccionado y el interruptor encendido.
- * El dibujo (modelo, layout, controlador y CSS) se carga en diferido (§6.1: líneas ≤4 KB) y se
- * precarga en reposo cuando el snapshot está listo. Con un ◆ seleccionado no se dibuja nada.
+ * Tesla lines layer (slot `stage.overlay`). This file goes in the main chunk and only
+ * decides whether there is anything to draw: a selected evaluated sector and the toggle switched on.
+ * The drawing (model, layout, controller and CSS) is lazy-loaded (§6.1: lines ≤4 KB) and is
+ * preloaded when idle once the snapshot is ready. With a ◆ selected, nothing is drawn.
  */
 import { lazy, Suspense, useEffect } from 'react'
 import { useUi } from '../../state/ui'
@@ -12,12 +12,12 @@ import { useLeadersEnabled } from './preference'
 import type { LeaderStageBridge } from './projector'
 
 const loadCanvas = () => import('./LeaderCanvas')
-// Si el chunk no carga (sin red, ZIP incompleto) la capa simplemente no se dibuja.
+// If the chunk fails to load (no network, incomplete ZIP), the layer simply isn't drawn.
 const LeaderCanvas = lazy(() => loadCanvas().catch(() => ({ default: () => null })))
 
-// Inyectados aquí (chunk principal, donde ya viven MapStage y MetricRail) para que la parte
-// diferida no importe índices de otras features: eso hace que Rolldown saque React del chunk
-// principal a chunks compartidos con más peticiones en la ruta crítica.
+// Injected here (main chunk, where MapStage and MetricRail already live) so that the lazy
+// part does not import indexes from other features: that makes Rolldown pull React out of the
+// main chunk into shared chunks with more requests on the critical path.
 const STAGE_BRIDGE: LeaderStageBridge = {
   subscribe: subscribeStageFrame,
   read: () => ({ projection: getStageProjection(), anchor: getStageAnchor() }),

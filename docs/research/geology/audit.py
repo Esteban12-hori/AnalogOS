@@ -1,7 +1,7 @@
-"""Auditoría exploratoria offline; NO modifica el snapshot ni calcula aptitud.
+"""Offline exploratory audit; it does NOT modify the snapshot or compute suitability.
 
-Usa la caché pública indicada en GEOLOGY_FEASIBILITY.md. Requiere shapely y
-pyproj en el entorno de investigación, sin añadir dependencias a la aplicación.
+Uses the public cache specified in GEOLOGY_FEASIBILITY.md. Requires shapely and
+pyproj in the research environment, without adding dependencies to the application.
 """
 import argparse
 import hashlib
@@ -69,7 +69,7 @@ def measure(site, records, layer, scale, fields):
     all_parts = [g for parts in groups.values() for g in parts]
     union = unary_union(all_parts)
     shapes = list(dissolved.values())
-    # Diferenciar solapamiento entre unidades de duplicación dentro de la misma.
+    # Distinguish overlap between units from duplication within the same unit.
     conflict = unary_union([g.intersection(h) for i, g in enumerate(shapes) for h in shapes[i+1:]])
 
     def pct(g):
@@ -104,7 +104,7 @@ def main():
     args = parser.parse_args()
     sites = read_json(args.candidates)
     raw = args.raw_dir
-    # El recurso rotulado SHP contiene realmente GeoJSON; comprobado en el ZIP.
+    # The resource labeled SHP actually contains GeoJSON; verified in the ZIP.
     with zipfile.ZipFile(raw / "cl-resource-labeled-shp.zip") as archive:
         names = [n for n in archive.namelist() if n.lower().endswith(".geojson")]
         assert len(names) == 1

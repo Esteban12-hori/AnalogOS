@@ -4,10 +4,11 @@ import type {
 } from '../../domain/contracts'
 import { countryLabels, isReference } from '../../domain/discovery'
 import { formatScore, shortCandidateName } from '../../domain/formatting'
+import { displaySource } from '../../i18n/sourceText'
 
 interface CandidateMapProps {
   candidates: CandidateSite[]
-  /** Posición global en el ranking de candidatos; las referencias no tienen. */
+  /** Global position in the candidate ranking; references have none. */
   rankOf: Map<string, number>
   outline: GeoJsonFeatureCollection
   search: SearchResults | null
@@ -19,7 +20,7 @@ interface CandidateMapProps {
 export interface MapFrame { west: number; south: number; east: number; north: number; width: number; height: number }
 
 const WIDTH = 680
-// Extensión del recuadro de ubicación: ambos países completos (sin islas oceánicas).
+// Extent of the location bounding box: both countries in full (without oceanic islands).
 const INSET = { west: -77, south: -56.5, east: -52.5, north: -16.5, width: 96, height: 152 }
 
 function ringsForGeometry(geometry: CandidateGeometry): Position[][] {
@@ -34,7 +35,7 @@ function geometryBbox(geometry: CandidateGeometry): [number, number, number, num
   ]
 }
 
-/** Encuadre adaptable: regiones de búsqueda y sitios, con margen y proporción legible. */
+/** Adaptive framing: search regions and sites, with margin and a legible aspect ratio. */
 export function mapFrame(candidates: readonly CandidateSite[], search: SearchResults | null): MapFrame {
   const boxes = [...(search?.regions.map((region) => region.bbox) ?? []), ...candidates.map((item) => geometryBbox(item.geometry))]
   if (!boxes.length) boxes.push([INSET.west, INSET.south, INSET.east, INSET.north])
@@ -45,7 +46,7 @@ export function mapFrame(candidates: readonly CandidateSite[], search: SearchRes
   const pad = Math.max(0.45, 0.14 * Math.max(east - west, north - south))
   west -= pad; east += pad; south -= pad; north += pad
   const cosine = Math.cos((((south + north) / 2) * Math.PI) / 180)
-  // Alto/ancho en terreno; se ensancha el lado corto para que el mapa no quede ni muy alto ni muy chato.
+  // Height/width on the ground; the short side is widened so the map is neither too tall nor too flat.
   const ratio = (north - south) / ((east - west) * cosine)
   if (ratio > 1.25) {
     const extra = ((north - south) / (1.25 * cosine) - (east - west)) / 2
@@ -108,10 +109,10 @@ export function CandidateMap({ candidates, rankOf, outline, search, precedents, 
     <div className="map-frame">
       <div className="map-heading">
         <div>
-          <span className="section-kicker">{search ? 'Piloto Chile–Argentina' : 'Explorador'}</span>
-          <h2>{search ? 'Área explorada' : 'Zonas de demostración'}</h2>
+          <span className="section-kicker">{search ? 'Chile–Argentina pilot' : 'Explorer'}</span>
+          <h2>{search ? 'Explored area' : 'Demo zones'}</h2>
         </div>
-        <span className="offline-chip">SVG local · funciona offline</span>
+        <span className="offline-chip">Local SVG · works offline</span>
       </div>
 
       <svg
@@ -119,8 +120,8 @@ export function CandidateMap({ candidates, rankOf, outline, search, precedents, 
         viewBox={`0 0 ${frame.width} ${frame.height}`}
         role="img"
         aria-label={search
-          ? `Mapa del piloto con ${search.counts.evaluated ?? 0} ventanas evaluadas de ${search.counts.attempted ?? search.windows.length}, ${candidates.length - references} candidatos y ${references} referencia conocida`
-          : `Mapa con ${candidates.length} zonas seleccionables`}
+          ? `Pilot map with ${search.counts.evaluated ?? 0} windows evaluated of ${search.counts.attempted ?? search.windows.length}, ${candidates.length - references} candidates and ${references} known reference`
+          : `Map with ${candidates.length} selectable zones`}
         preserveAspectRatio="xMidYMin meet"
       >
         <rect className="map-ocean" width={frame.width} height={frame.height} />
@@ -142,7 +143,7 @@ export function CandidateMap({ candidates, rankOf, outline, search, precedents, 
           <g className="search-layer" aria-hidden="true">
             {search.windows.map((item) => (
               <path className={`window ${windowClass[item.decision]}`} d={pathFor([bboxRing(item.bbox)], project)} key={item.window_id}>
-                <title>{`${item.name}: ${item.decision_reason}`}</title>
+                <title>{`${displaySource(item.name)}: ${displaySource(item.decision_reason)}`}</title>
               </path>
             ))}
             {search.regions.map((region) => {
@@ -176,7 +177,7 @@ export function CandidateMap({ candidates, rankOf, outline, search, precedents, 
                 role="button"
                 tabIndex={0}
                 aria-pressed={selected}
-                aria-label={`Seleccionar ${shortCandidateName(candidate.name)}${reference ? ', referencia conocida' : `, candidato ${label}`}, similitud ${formatScore(candidate.similarity)}`}
+                aria-label={`Select ${shortCandidateName(candidate.name)}${reference ? ', known reference' : `, candidate ${label}`}, similarity ${formatScore(candidate.similarity)}`}
                 onClick={() => onSelect(candidate.site_id)}
                 onKeyDown={(event) => activate(event, () => onSelect(candidate.site_id))}
               >
@@ -197,19 +198,19 @@ export function CandidateMap({ candidates, rankOf, outline, search, precedents, 
         </g>
       </svg>
 
-      <div className="map-legend" aria-label="Leyenda del mapa">
+      <div className="map-legend" aria-label="Map legend">
         {search ? (
           <>
-            <span><i className="legend-swatch candidate" /> Candidato preseleccionado</span>
-            <span><i className="legend-swatch reference" /> Referencia conocida</span>
-            <span><i className="legend-swatch evaluated" /> Ventana evaluada</span>
-            <span><i className="legend-swatch precedent" /> Contiene coordenada publicada</span>
-            <span><i className="legend-swatch point" /> Coordenada de muestreo publicada</span>
+            <span><i className="legend-swatch candidate" /> Preselected candidate</span>
+            <span><i className="legend-swatch reference" /> Known reference</span>
+            <span><i className="legend-swatch evaluated" /> Evaluated window</span>
+            <span><i className="legend-swatch precedent" /> Contains a published coordinate</span>
+            <span><i className="legend-swatch point" /> Published sampling coordinate</span>
           </>
         ) : (
-          <span><i className="legend-swatch candidate" /> Zona de demostración</span>
+          <span><i className="legend-swatch candidate" /> Demo zone</span>
         )}
-        <span><i className="legend-swatch outline" /> Contorno referencial, no límite oficial</span>
+        <span><i className="legend-swatch outline" /> Reference outline, not an official boundary</span>
       </div>
     </div>
   )

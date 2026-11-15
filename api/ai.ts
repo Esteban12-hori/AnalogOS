@@ -1,4 +1,4 @@
-// Función Vercel (Node). Toda la lógica vive en server/ai/ para poder probarla sin Vercel.
+// Vercel function (Node). All the logic lives in server/ai/ so it can be tested without Vercel.
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { nodeAiHandler } from '../server/ai/nodeAdapter'
 

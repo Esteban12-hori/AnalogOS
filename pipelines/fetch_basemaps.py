@@ -1,17 +1,17 @@
-"""Descarga y hornea los mapas base 2D oficiales (NASA GIBS) que usa la web al hacer zoom.
+"""Downloads and bakes the official 2D basemaps (NASA GIBS) that the website uses when zooming in.
 
-Solo es contexto visual: ninguna de estas imágenes entra al score.
+This is visual context only: none of these images enter the score.
 
-- Regional: NASA Blue Marble Next Generation (~500 m), sin nubes, una sola petición.
-- Sectores: HLS S30/L30 v2.0 (~30 m), mediana por píxel de varias fechas de 2025
-  para eliminar nubes y rellenar bordes de pasada.
+- Regional: NASA Blue Marble Next Generation (~500 m), cloud-free, a single request.
+- Sectors: HLS S30/L30 v2.0 (~30 m), per-pixel median of several dates from 2025
+  to remove clouds and fill in swath edges.
 
-Las imágenes se piden por WMS en EPSG:4326, se reproyectan a Web Mercator por filas
-(para que MapLibre las coloque sin distorsión en latitud) y se guardan como WebP con
-transparencia donde no hubo ninguna observación válida. Nada se inventa: los huecos
-quedan transparentes.
+The images are requested via WMS in EPSG:4326, and reprojected to Web Mercator row by row
+(so that MapLibre places them without latitude distortion) and saved as WebP with
+transparency where there was no valid observation. Nothing is invented: gaps
+remain transparent.
 
-Uso: ``python -m pipelines.fetch_basemaps`` (sin credenciales; GIBS es abierto).
+Usage: ``python -m pipelines.fetch_basemaps`` (no credentials; GIBS is open).
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ OUT_DIR = ROOT / "artifacts" / "basemaps"
 CANDIDATES = ROOT / "artifacts" / "science-v2" / "candidate-details.json"
 USER_AGENT = "AnalogOS-basemap-pipeline/1.0"
 
-try:  # Python de python.org en macOS no trae certificados raíz.
+try:  # The python.org Python on macOS does not ship root certificates.
     import certifi
 
     SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
@@ -58,9 +58,9 @@ REGION = {
     "source": "NASA Blue Marble: Next Generation (MODIS, 2004) vía NASA GIBS",
 }
 
-# HLS S30 (Sentinel-2A/B/C) y L30 (Landsat 8/9) pasan por órbitas distintas, así que
-# la cobertura de cada fecha depende del sector. Se sondean miniaturas de días de cuatro
-# meses de 2025 y se eligen fechas con cobertura casi completa, repartidas en el año.
+# HLS S30 (Sentinel-2A/B/C) and L30 (Landsat 8/9) pass over on different orbits, so
+# the coverage of each date depends on the sector. Thumbnails of days from four
+# months of 2025 are probed and dates with nearly complete coverage are chosen, spread across the year.
 HLS_LAYERS = ["HLS_S30_Nadir_BRDF_Adjusted_Reflectance", "HLS_L30_Nadir_BRDF_Adjusted_Reflectance"]
 PROBE_MONTHS = [1, 4, 7, 10]
 PROBE_PIXELS = 64
@@ -103,7 +103,7 @@ def _wms_png(layer: str, bounds: list[float], width: int, height: int, date: str
                 data = response.read()
             image = Image.open(io.BytesIO(data))
             return np.asarray(image.convert("RGBA")).astype(np.float32)
-        except Exception:  # noqa: BLE001 - red intermitente; se reintenta y luego se propaga
+        except Exception:  # noqa: BLE001 - intermittent network; retried and then propagated
             if attempt == 2:
                 raise
             time.sleep(2 * (attempt + 1))
@@ -115,7 +115,7 @@ def _mercator_y(latitude: float) -> float:
 
 
 def warp_rows_to_mercator(rgba: np.ndarray, south: float, north: float) -> np.ndarray:
-    """Remuestrea filas de una imagen equirectangular para que sean uniformes en Web Mercator."""
+    """Resamples rows of an equirectangular image so that they are uniform in Web Mercator."""
     height = rgba.shape[0]
     y_north, y_south = _mercator_y(north), _mercator_y(south)
     ys = y_north - (np.arange(height) + 0.5) / height * (y_north - y_south)
@@ -128,7 +128,7 @@ def warp_rows_to_mercator(rgba: np.ndarray, south: float, north: float) -> np.nd
 
 
 def median_composite(stack: list[np.ndarray]) -> tuple[np.ndarray, float]:
-    """Mediana por píxel ignorando píxeles transparentes o negros (sin dato)."""
+    """Per-pixel median ignoring transparent or black pixels (no data)."""
     rgb_layers = []
     for rgba in stack:
         rgb = rgba[..., :3].copy()
@@ -184,7 +184,7 @@ def build_region() -> dict:
 
 
 def select_hls_dates(bounds: list[float]) -> list[tuple[str, str]]:
-    """Devuelve pares (capa, fecha) con cobertura >= MIN_COVERAGE, repartidos en el año."""
+    """Returns (layer, date) pairs with coverage >= MIN_COVERAGE, spread across the year."""
     probes = []
     for layer in HLS_LAYERS:
         for month in PROBE_MONTHS:
@@ -211,9 +211,9 @@ def select_hls_dates(bounds: list[float]) -> list[tuple[str, str]]:
 
 
 def build_world() -> dict:
-    """Mundo completo en Web Mercator (±85,05°) para el mapa 2D cuando no hay conexión."""
+    """Full world in Web Mercator (±85,05°) for the 2D map when there is no connection."""
     rgba = _wms_png(WORLD["layer"], [-180.0, -90.0, 180.0, 90.0], WORLD["width"], WORLD["height"], None)
-    # Recorte a la banda Mercator y remuestreo por filas a una imagen cuadrada.
+    # Crop to the Mercator band and resample by rows to a square image.
     height = rgba.shape[0]
     top = round((90 - MERCATOR_MAX_LAT) / 180 * height)
     band = rgba[top: height - top]
@@ -237,10 +237,10 @@ def build_world() -> dict:
 
 
 def build_context_previews() -> list[dict]:
-    """WebP livianos de las vistas Sentinel-2 de ADR-005 para dibujarlas en el mapa.
+    """Lightweight WebP files of the Sentinel-2 views from ADR-005 to draw them on the map.
 
-    El PNG original no se toca: solo se convierte si su SHA-256 coincide con el del
-    índice, y el manifiesto guarda ese SHA para que la web descarte una copia desfasada.
+    The original PNG is not touched: it is converted only if its SHA-256 matches the one in the
+    index, and the manifest stores that SHA so that the website can discard an outdated copy.
     """
     if not VISUAL_INDEX.is_file():
         return []
@@ -250,7 +250,7 @@ def build_context_previews() -> list[dict]:
         source = VISUAL_INDEX.parent / site["image"]
         digest = hashlib.sha256(source.read_bytes()).hexdigest()
         if digest != site["sha256"]:
-            raise RuntimeError(f"El PNG de {site['site_id']} no coincide con su índice; no se deriva vista previa.")
+            raise RuntimeError(f"The PNG for {site['site_id']} does not match its index; no preview is derived.")
         out = OUT_DIR / f"s2-{site['site_id']}.webp"
         Image.open(source).convert("RGBA").save(out, "WEBP", quality=82, method=6)
         previews.append({
@@ -277,9 +277,9 @@ def build_sector(candidate: dict) -> dict:
             used.append(f"{layer.split('_')[1]}:{date}")
             layers_used.add(layer)
         except Exception as error:  # noqa: BLE001
-            print(f"  aviso: {layer} {date} no disponible ({error})")
+            print(f"  warning: {layer} {date} unavailable ({error})")
     if not stack:
-        raise RuntimeError(f"Sin imágenes HLS para {candidate['site_id']}")
+        raise RuntimeError(f"No HLS images for {candidate['site_id']}")
     composite, gaps = median_composite(stack)
     warped = warp_rows_to_mercator(composite, south, north)
     path = OUT_DIR / f"{candidate['site_id']}.webp"
@@ -301,19 +301,19 @@ def build_sector(candidate: dict) -> dict:
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--only-derived", action="store_true",
-                        help="Rehace solo el mundo y las vistas previas Sentinel-2; conserva región y sectores.")
+                        help="Rebuild only the world and the Sentinel-2 previews; keep region and sectors.")
     args = parser.parse_args(argv)
     if args.only_derived:
         manifest = json.loads((OUT_DIR / "basemaps.json").read_text())
         kept = [entry for entry in manifest["basemaps"] if entry["kind"] in ("regional", "sector")]
-        print("Mundo Blue Marble…")
+        print("Blue Marble world…")
         manifest["basemaps"] = [build_world(), *kept]
         manifest["context_previews"] = build_context_previews()
         (OUT_DIR / "basemaps.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
         return
     candidates = json.loads(CANDIDATES.read_text())
     candidates = candidates if isinstance(candidates, list) else candidates["candidates"]
-    print("Mundo y regional Blue Marble…")
+    print("Blue Marble world and regional…")
     entries = [build_world(), build_region()]
     for candidate in candidates:
         print(f"Sector {candidate['site_id']}…")
@@ -331,7 +331,7 @@ def main(argv: list[str] | None = None) -> None:
     (OUT_DIR / "basemaps.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
     for entry in entries:
         size = (ROOT / "artifacts" / entry["image"]).stat().st_size / 1e6
-        print(f"  {entry['id']}: {size:.2f} MB, huecos {entry['gap_fraction']:.2%}")
+        print(f"  {entry['id']}: {size:.2f} MB, gaps {entry['gap_fraction']:.2%}")
 
 
 if __name__ == "__main__":

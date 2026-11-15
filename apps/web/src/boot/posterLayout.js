@@ -1,6 +1,6 @@
-// Posición del póster del globo antes de que cargue React. Se incrusta en index.html junto con
-// shell/stageGeometry.js (features/boot/loadingHints.ts) y debe coincidir con domain/mapZoom.ts:
-// lo verifica tests/boot.test.ts. `insets` = márgenes base del tramo (baseStageInsets).
+// Position of the globe poster before React loads. It is embedded in index.html along with
+// shell/stageGeometry.js (features/boot/loadingHints.ts) and must match domain/mapZoom.ts:
+// this is verified by tests/boot.test.ts. `insets` = base insets of the segment (baseStageInsets).
 export function posterLayout(width, height, insets) {
   var HALF_OVER_RADIUS = 445 / 396.5
   var t = insets ? insets.top : 0

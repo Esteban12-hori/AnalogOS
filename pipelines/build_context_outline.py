@@ -1,8 +1,8 @@
-"""Contornos de Chile y Argentina para el mapa SVG, desde Natural Earth 1:50m.
+"""Outlines of Chile and Argentina for the SVG map, from Natural Earth 1:50m.
 
-Convierte el TopoJSON de ``world-atlas`` (Natural Earth, dominio público) en un
-GeoJSON con los dos países. Los contornos son contexto geográfico: no son
-límites oficiales ni una fuente de autoridad territorial.
+Converts the TopoJSON from ``world-atlas`` (Natural Earth, public domain) into a
+GeoJSON with the two countries. The outlines are geographic context: they are not
+official boundaries nor a source of territorial authority.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ COUNTRIES = {"152": ("CL", "Chile"), "032": ("AR", "Argentina")}
 
 
 def decode(topology: dict, geometry: dict) -> dict:
-    """Geometría TopoJSON (arcos cuantizados y delta-codificados) a MultiPolygon GeoJSON."""
+    """TopoJSON geometry (quantized, delta-encoded arcs) to GeoJSON MultiPolygon."""
     scale, translate = topology["transform"]["scale"], topology["transform"]["translate"]
 
     def arc(index: int) -> list[list[float]]:
@@ -42,7 +42,7 @@ def decode(topology: dict, geometry: dict) -> dict:
 
 
 def build(topology: dict) -> dict:
-    # Algunos territorios de Natural Earth no traen código numérico; no hacen falta aquí.
+    # Some Natural Earth territories do not come with a numeric code; they are not needed here.
     geometries = {item.get("id"): item for item in topology["objects"]["countries"]["geometries"]}
     return {
         "type": "FeatureCollection",
@@ -63,11 +63,11 @@ def main() -> None:
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args()
     if not args.source.exists():
-        raise SystemExit(f"Falta {args.source}; descárgalo de {SOURCE_URL}")
+        raise SystemExit(f"Missing {args.source}; download it from {SOURCE_URL}")
     outline = build(json.loads(args.source.read_text(encoding="utf-8")))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(outline, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
-    print(f"escrito {args.out} ({args.out.stat().st_size} bytes)")
+    print(f"wrote {args.out} ({args.out.stat().st_size} bytes)")
 
 
 if __name__ == "__main__":

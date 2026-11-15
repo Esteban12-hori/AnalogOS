@@ -1,4 +1,4 @@
-// Tipos de los validadores precompilados por scripts/build-validators.mjs.
+// Types of the validators precompiled by scripts/build-validators.mjs.
 import type { ErrorObject } from 'ajv'
 
 export interface StandaloneValidator {

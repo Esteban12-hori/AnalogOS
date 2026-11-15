@@ -1,4 +1,4 @@
-"""Cobertura geológica: geometría, ambigüedad, estados y reparación. Fixtures sintéticos."""
+"""Geological coverage: geometry, ambiguity, states and repair. Synthetic fixtures."""
 
 import pytest
 from shapely.geometry import MultiPolygon, Polygon, box
@@ -35,7 +35,7 @@ def test_hole_is_counted_as_unmapped_not_covered():
     ring = Polygon(square(-1, -26, 3).exterior.coords, [list(square(0.25, -24.75, 0.5).exterior.coords)])
     result = run([feature(1, ring)])
     assert result["availability"] == "partial"
-    assert result["area_fractions"]["unmapped"] == pytest.approx(0.25, rel=2e-3)  # hueco central de 0,5° x 0,5°
+    assert result["area_fractions"]["unmapped"] == pytest.approx(0.25, rel=2e-3)  # central gap of 0.5° x 0.5°
     assert abs(closure(result) - 1) < cov.SUM_TOLERANCE
 
 
@@ -47,7 +47,7 @@ def test_multipolygon_parts_dissolve_into_one_unit():
 
 
 def test_polygon_crossing_the_border_widely_is_clipped():
-    huge = box(-50, -60, 50, 10)  # cubre el sector y se extiende cientos de km fuera
+    huge = box(-50, -60, 50, 10)  # covers the sector and extends hundreds of km outside
     result = run([feature(1, huge)])
     assert result["availability"] == "available"
     assert sum(u["fraction_including_overlap"] for u in result["units"]) == pytest.approx(1.0)
@@ -69,7 +69,7 @@ def test_overlap_between_distinct_units_is_ambiguous_and_closes_to_one():
     f = result["area_fractions"]
     assert f["covered_ambiguous"] == pytest.approx(0.2, rel=3e-3)
     assert f["covered_unambiguous"] == pytest.approx(0.8, rel=1e-3)
-    assert result["availability"] == "partial"  # cubierta completa pero con ambigüedad
+    assert result["availability"] == "partial"  # full coverage but with ambiguity
     assert abs(closure(result) - 1) < cov.SUM_TOLERANCE
     assert sum(u["fraction_unambiguous"] for u in result["units"]) == pytest.approx(f["covered_unambiguous"], abs=1e-9)
     for unit in result["units"]:
@@ -77,7 +77,7 @@ def test_overlap_between_distinct_units_is_ambiguous_and_closes_to_one():
 
 
 def test_zero_coverage_when_only_the_bbox_touches():
-    touching = box(1.0, -26, 3, 2)  # comparte solo el borde este
+    touching = box(1.0, -26, 3, 2)  # shares only the east edge
     result = run([feature(1, touching)])
     assert result["availability"] == "no_coverage"
     assert result["units"] == [] and result["area_fractions"]["unmapped"] == pytest.approx(1.0)
@@ -113,10 +113,10 @@ def test_bowtie_repair_methods_disagree_so_entity_is_rejected_and_masked():
     diag = result["geometry_diagnostics"][0]
     assert diag["status"] == "rejected" and diag["feature_id"] == "2" and diag["rejection_reasons"]
     f = result["area_fractions"]
-    assert f["unusable_upper_bound"] > 0.15  # bbox de 0,6° x 0,6° recortada
+    assert f["unusable_upper_bound"] > 0.15  # clipped 0.6° x 0.6° bbox
     assert result["availability"] == "partial"
     ground = result["units"][0]
-    # La unidad solapada no se muestra como certeza dentro de la máscara.
+    # The overlapping unit is not shown as certain within the mask.
     assert ground["fraction_including_overlap"] == pytest.approx(1 - f["unusable_upper_bound"], abs=1e-9)
     assert abs(closure(result) - 1) < cov.SUM_TOLERANCE
     assert result["feature_counts"]["rejected"] == 1
@@ -182,24 +182,24 @@ def test_parse_features_validates_ranges_ids_and_types():
         cov.parse_features(line, "objectid")
 
 
-# --- Regresiones de la revisión A de Codex -----------------------------------------------------------------
+# --- Regressions from Codex review A -----------------------------------------------------------------
 
 def test_material_total_area_change_is_rejected_even_when_both_repair_methods_agree():
     aoi = box(-70, -25, -69, -24)
     piece = box(-69.9, -24.9, -69.1, -24.1)
-    duplicated = MultiPolygon([piece, piece])  # inválido: dos copias; ambos métodos dan un cuadrado
+    duplicated = MultiPolygon([piece, piece])  # invalid: two copies; both methods give a square
     result = cov.analyze_site(aoi, [feature("dup", duplicated), feature("ground", box(-71, -26, 0, 0), code="G")], LAYER)
     diag = result["geometry_diagnostics"][0]
     assert diag["status"] == "rejected"
-    assert diag["symmetric_difference_km2"] == 0.0  # el contraste simétrico entre métodos se conserva
+    assert diag["symmetric_difference_km2"] == 0.0  # the symmetric contrast between methods is preserved
     assert diag["total_area_relative_change"] == pytest.approx(0.5)
     assert any("total" in reason for reason in diag["rejection_reasons"])
-    assert result["area_fractions"]["unusable_upper_bound"] > 0  # máscara conservadora
+    assert result["area_fractions"]["unusable_upper_bound"] > 0  # conservative mask
     assert result["availability"] == "partial"
 
 
 def test_original_area_not_positive_is_rejected_with_mask():
-    collapsed = Polygon([(0.1, -24.5), (0.5, -24.5), (0.9, -24.5), (0.1, -24.5)])  # sin área
+    collapsed = Polygon([(0.1, -24.5), (0.5, -24.5), (0.9, -24.5), (0.1, -24.5)])  # no area
     assert not collapsed.is_valid
     result = run([feature(1, box(-1, -26, 2, 2), code="G"), feature(2, collapsed, code="Z")])
     diag = result["geometry_diagnostics"][0]
@@ -234,7 +234,7 @@ RING = [[-70, -25], [-69, -25], [-69, -24], [-70, -24], [-70, -25]]
     {"type": "Polygon", "coordinates": "texto"},
     {"type": "MultiPolygon", "coordinates": [[RING], [[[-70, -25], [-69, "?"], [-69, -24], [-70, -25]]]]},
     {"type": "MultiPolygon", "coordinates": [RING]},  # falta un nivel
-    {"type": "Polygon", "coordinates": [[[-70, 95], [-69, -25], [-69, -24], [-70, 95]]]},  # fuera de rango
+    {"type": "Polygon", "coordinates": [[[-70, 95], [-69, -25], [-69, -24], [-70, 95]]]},  # out of range
     {"type": "GeometryCollection", "geometries": []},
     "no-es-un-dict",
 ])

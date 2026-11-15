@@ -1,28 +1,28 @@
-# ADR-006 — Globo de fondo con paso automático a mapa 2D y fuentes oficiales por zoom
+# ADR-006 — Background globe with automatic switch to a 2D map and official sources by zoom
 
-- Estado: aceptado por el equipo humano (2026-11-14, decisión directa del usuario, sin revisión de Codex).
-- Fecha: 2026-11-14
-- Relación: amplía ADR-007 (globo three.js) y reutiliza ADR-005 (contexto Sentinel-2). Contradice la línea «mapa SVG, no MapLibre ni WebGL» de `CLAUDE.md`; el equipo humano la acepta igualmente y `CLAUDE.md` queda pendiente de actualizar.
+- Status: accepted by the human team (2026-11-14, direct user decision, without Codex review).
+- Date: 2026-11-14
+- Relation: extends ADR-007 (three.js globe) and reuses ADR-005 (Sentinel-2 context). Contradicts the line "SVG map, no MapLibre or WebGL" of `CLAUDE.md`; the human team accepts it anyway and `CLAUDE.md` remains pending update.
 
-## Contexto
+## Context
 
-El equipo pidió: el planeta como fondo y centro del sitio, sin columna de candidatos, sin información repetida, sin selector 3D/2D, la ficha flotando en liquid glass y que al hacer zoom se pase solo a un mapa 2D con la mejor imagen oficial disponible, con la fuente visible. Blue Marble del globo (~10 km/píxel) se pixela al acercarse.
+The team asked for: the planet as the background and center of the site, no candidate column, no repeated information, no 3D/2D selector, the card floating in liquid glass, and that zooming in automatically switches to a 2D map with the best available official imagery, with the source visible. The globe's Blue Marble (~10 km/pixel) becomes pixelated when zooming in.
 
-## Decisión
+## Decision
 
-1. **Escenario de fondo** (`MapStage`): globo three.js a pantalla completa. Al cruzar el zoom Mercator equivalente 5,6 pasa a un mapa MapLibre 2D con el mismo centro y escala; bajo 4,9 vuelve al globo (histéresis). Las equivalencias son funciones puras con tests (`domain/mapZoom.ts`).
-2. **Capas 2D, de abajo hacia arriba por calidad**:
-   - Blue Marble NG ~500 m del norte de Chile, copia local (`artifacts/basemaps/`, NASA GIBS).
-   - HLS S30 ~30 m en línea (NASA GIBS WMTS, varias fechas apiladas): solo mejora si hay conexión.
-   - Mediana HLS S30/L30 2025 ~30 m por sector con margen de 0,12°, local, sin nubes ni huecos (`pipelines/fetch_basemaps.py`).
-   - Sentinel-2 L2A de ADR-005 sobre cada polígono, local: la más nítida y la ya revisada.
-3. **Leyenda**: muestra la fuente principal visible según encuadre y zoom, más una línea con las que quedan debajo. Siempre dice que las imágenes no entran al score.
-4. **Sin WebGL** (ADR-001): se usa automáticamente el mapa SVG local, sin selector.
-5. La ficha flota en liquid glass, con un selector compacto 1·2·3 en lugar de la columna de ranking. El panel de ADR-005 cambia la miniatura por «Ver el sector en el mapa 2D» para no repetir la imagen.
+1. **Background stage** (`MapStage`): full-screen three.js globe. When the equivalent Mercator zoom crosses 5,6 it switches to a 2D MapLibre map with the same center and scale; below 4,9 it returns to the globe (hysteresis). The equivalences are pure functions with tests (`domain/mapZoom.ts`).
+2. **2D layers, from bottom to top by quality**:
+   - Blue Marble NG ~500 m of northern Chile, local copy (`artifacts/basemaps/`, NASA GIBS).
+   - HLS S30 ~30 m online (NASA GIBS WMTS, several dates stacked): it only improves things if there is a connection.
+   - HLS S30/L30 median 2025 ~30 m per sector with a margin of 0,12°, local, without clouds or gaps (`pipelines/fetch_basemaps.py`).
+   - Sentinel-2 L2A from ADR-005 over each polygon, local: the sharpest and the already reviewed one.
+3. **Legend**: shows the main source visible according to framing and zoom, plus a line with those that remain underneath. It always states that the images do not enter the score.
+4. **Without WebGL** (ADR-001): the local SVG map is used automatically, without a selector.
+5. The card floats in liquid glass, with a compact 1·2·3 selector instead of the ranking column. The ADR-005 panel replaces the thumbnail with "View the sector on the 2D map" so as not to repeat the image.
 
-## Consecuencias
+## Consequences
 
-- La demo central sigue offline: globo, Blue Marble regional, medianas HLS y Sentinel-2 son locales. Las teselas en línea son solo mejora; GIBS devuelve 500 intermitentes en teselas vacías, que el mapa tolera.
-- Se añaden `maplibre-gl` (chunk diferido de ~1,1 MB y worker propio) y ~1 MB de imágenes en `artifacts/basemaps/`.
-- `scripts/package_release.py` rechaza este build: su lista explícita no incluye los chunks diferidos, las texturas, el worker ni `basemaps/`. Hay que extenderla antes de empaquetar.
-- La mediana HLS que entrega GIBS se ve menos contrastada que la Sentinel-2 de ADR-005; se nota el borde del polígono, que además está dibujado.
+- The core demo remains offline: globe, regional Blue Marble, HLS medians and Sentinel-2 are local. The online tiles are only an enhancement; GIBS returns intermittent 500 on empty tiles, which the map tolerates.
+- `maplibre-gl` is added (deferred chunk of ~1,1 MB and its own worker) and ~1 MB of images in `artifacts/basemaps/`.
+- `scripts/package_release.py` rejects this build: its explicit list does not include the deferred chunks, the textures, the worker or `basemaps/`. It must be extended before packaging.
+- The HLS median delivered by GIBS looks less contrasted than the Sentinel-2 one from ADR-005; the polygon edge is noticeable, and it is also drawn.

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://analogos.cl/schemas/geology-context.schema.json",
   "title": "AnalogOS Geology Context v1",
-  "description": "Contexto geológico cartográfico por sector. Describe evidencia disponible; no expresa aptitud, confianza científica ni compatibilidad planetaria. Las reglas de cierre de áreas, estados y geometría exacta las comprueba además la validación semántica (pipelines/geology_contract.py).",
+  "description": "Map-based geological context per sector. It describes available evidence; it does not express suitability, scientific confidence or planetary compatibility. Area closure, status and exact geometry rules are additionally checked by the semantic validation (pipelines/geology_contract.py).",
   "type": "object",
   "additionalProperties": false,
   "required": ["kind", "schema_version", "status", "snapshot_version", "candidates_file", "candidates_sha256",

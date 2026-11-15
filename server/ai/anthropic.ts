@@ -22,7 +22,7 @@ export interface StructuredCall {
   user: string
   schema: Record<string, unknown>
   maxTokens: number
-  /** Plazo de ESTA llamada (por defecto el de la configuración); permite repartir un plazo total entre intentos. */
+  /** Deadline for THIS call (defaults to the one from the configuration); allows splitting a total deadline across attempts. */
   timeoutMs?: number
 }
 
@@ -34,8 +34,8 @@ export interface StructuredResult {
 const int = (v: unknown): number | null => (typeof v === 'number' && Number.isInteger(v) && v >= 0 ? v : null)
 
 /**
- * Una llamada a /v1/messages con salida JSON por esquema (output_config.format). Sin herramientas,
- * sin streaming, sin URL del cliente. Los cuerpos de error del proveedor jamás se reenvían.
+ * A call to /v1/messages with JSON output by schema (output_config.format). No tools,
+ * no streaming, no client URL. The provider's error bodies are never forwarded.
  */
 export async function callStructured(
   config: AiConfig,
@@ -46,14 +46,14 @@ export async function callStructured(
   if (!config.apiKey) throw new AiCallError('ai_unavailable')
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), call.timeoutMs ?? config.timeoutMs)
-  // Segunda red: si un fetch/cuerpo ignora la señal, la carrera igualmente corta al vencer el plazo.
+  // Second safety net: if a fetch/body ignores the signal, the race still cuts it off when the deadline expires.
   const abortion = new Promise<never>((_, reject) => {
     controller.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })))
   })
   const aborted = (error: unknown): boolean => (error as { name?: string } | null)?.name === 'AbortError'
   let response: Response
   let body: Record<string, unknown>
-  // El temporizador cubre headers Y lectura completa del cuerpo: se limpia solo al terminar todo.
+  // The timer covers headers AND the full reading of the body: it is cleared only when everything is finished.
   try {
     try {
       response = await Promise.race([abortion, fetchImpl(ANTHROPIC_ENDPOINT, {

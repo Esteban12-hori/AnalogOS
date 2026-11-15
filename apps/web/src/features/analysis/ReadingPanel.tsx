@@ -1,7 +1,7 @@
 /**
- * Panel «Lectura» (slots `left.reading`, `rail.reading`, `full.reading`).
- * En el chunk principal solo vive este envoltorio: la vista (ReadingView) y su CSS se descargan
- * al montarse. Mientras tanto se muestra un esqueleto estático (sin barrido: §2.2 regla 2).
+ * “Reading” panel (slots `left.reading`, `rail.reading`, `full.reading`).
+ * Only this wrapper lives in the main chunk: the view (ReadingView) and its CSS are downloaded
+ * on mount. In the meantime, a static skeleton is shown (without a sweep animation: §2.2 rule 2).
  */
 import { lazy, Suspense } from 'react'
 import type { ReadingPanelProps } from './index'
@@ -9,16 +9,16 @@ import './pill.css'
 
 const ReadingView = lazy(() => import('./deferred'))
 
-/** Precarga la vista (al pasar o enfocar la píldora). */
+/** Preloads the view (on hover or focus of the pill). */
 export function preloadReading(): void {
   void import('./deferred').catch(() => undefined)
 }
 
-export function ReadingSkeleton({ placement, label = 'Preparando la lectura…' }: { placement: ReadingPanelProps['placement']; label?: string }) {
+export function ReadingSkeleton({ placement, label = 'Preparing the reading…' }: { placement: ReadingPanelProps['placement']; label?: string }) {
   return (
-    <section className="analysis-skeleton" data-placement={placement} aria-busy="true" aria-label="Lectura">
-      <p className="analysis-skeleton-title">Lectura</p>
-      {/* Sin ✦: la Lectura en espera puede ser la determinista de Explorar (✦ = solo IA). */}
+    <section className="analysis-skeleton" data-placement={placement} aria-busy="true" aria-label="Reading">
+      <p className="analysis-skeleton-title">Reading</p>
+      {/* No ✦: the pending Reading may be the deterministic one from Explore (✦ = AI only). */}
       <p className="analysis-skeleton-label">{label}</p>
       <span className="analysis-skeleton-bar" aria-hidden="true" />
       <span className="analysis-skeleton-bar is-short" aria-hidden="true" />

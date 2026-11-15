@@ -1,25 +1,26 @@
 /**
- * Pestaña «Origen» de la ficha (ADR-008): de dónde sale el sitio y qué antecedentes publicados
- * tiene. Es el bloque «Origen y antecedentes» de la ficha del equipo (CandidateDetails, retirada
- * al integrar; ADR-013) con sus mismos textos: origen en la búsqueda o referencia conocida,
- * prioridad topográfica (que solo ordena la preselección), revisión bibliográfica y coincidencias
- * con su fuente. Un fixture no inventa metadata.
+ * “Origin” tab of the site sheet (ADR-008): where the site comes from and which published precedents
+ * it has. It is the “Origin and precedents” block of the team's sheet (CandidateDetails, removed when
+ * integrating; ADR-013) with the same content: origin in the search or known reference, topographic
+ * priority (which only orders the preselection), literature review and matches with their source.
+ * A fixture does not invent metadata.
  */
 import type { CandidateSite, PrecedentCatalog } from '../../domain/contracts'
 import { countryLabels, isReference, literatureLabels, matchDetails, relationLabels } from '../../domain/discovery'
 import { formatArea, formatScore } from '../../domain/formatting'
+import { SPANISH_SOURCE_TITLES, displaySource } from '../../i18n/sourceText'
 
 export function statusLabel(candidate: CandidateSite): string {
   if (candidate.status === 'fixture') return 'Fixture'
-  if (isReference(candidate)) return 'Referencia conocida'
-  if (candidate.role === 'candidate') return 'Candidato de la búsqueda'
+  if (isReference(candidate)) return 'Known reference'
+  if (candidate.role === 'candidate') return 'Search candidate'
   return candidate.status === 'candidate' ? 'Screening' : candidate.status
 }
 
 interface OriginSectionProps {
   candidate: CandidateSite
   precedents: PrecedentCatalog | null
-  /** Puesto global entre los candidatos de la búsqueda (la REF no tiene). */
+  /** Global rank among the search candidates (the REF has none). */
   rank: number | null
 }
 
@@ -34,50 +35,51 @@ export function OriginSection({ candidate, precedents, rank }: OriginSectionProp
         <b>{reference ? 'REF' : rank ?? '—'}</b> <span>{statusLabel(candidate)}</span>
       </p>
       <dl className="origin-list">
-        {candidate.country && <div><dt>País</dt><dd>{countryLabels[candidate.country]}</dd></div>}
-        <div><dt>Área aproximada</dt><dd>{formatArea(candidate.area_km2)}</dd></div>
-        <div><dt>Factibilidad territorial</dt><dd>Pendiente: permisos, acceso, áreas protegidas y propiedad no están evaluados.</dd></div>
+        {candidate.country && <div><dt>Country</dt><dd>{countryLabels[candidate.country]}</dd></div>}
+        <div><dt>Approximate area</dt><dd>{formatArea(candidate.area_km2)}</dd></div>
+        <div><dt>Territorial feasibility</dt><dd>Pending: permits, access, protected areas and ownership are not evaluated.</dd></div>
       </dl>
 
       {discovery && review && (
         <section className="origin-section" aria-labelledby={`origin-heading-${candidate.site_id}`}>
           <div className="subheading-row">
-            <h3 id={`origin-heading-${candidate.site_id}`}>Origen y antecedentes</h3>
+            <h3 id={`origin-heading-${candidate.site_id}`}>Origin and precedents</h3>
             <span>{literatureLabels[review.status]}</span>
           </div>
           <dl className="origin-list">
             <div>
-              <dt>Origen</dt>
+              <dt>Origin</dt>
               <dd>
                 {reference
-                  ? `Referencia conocida, tomada del snapshot ${discovery.source_snapshot ?? 'anterior'}. No sale de la búsqueda.`
-                  : `Búsqueda por rejilla: ventana ${discovery.window_id}, preselección n.º ${discovery.selection_rank}.`}
+                  ? `Known reference, taken from snapshot ${discovery.source_snapshot ?? 'previous'}. It does not come from the search.`
+                  : `Grid search: window ${discovery.window_id}, preselection no. ${discovery.selection_rank}.`}
               </dd>
             </div>
             {discovery.topographic_priority !== null && (
               <div>
-                <dt>Prioridad topográfica</dt>
-                <dd>{formatScore(discovery.topographic_priority)} / 100 · solo ordena la preselección; no es el score ni la confianza.</dd>
+                <dt>Topographic priority</dt>
+                <dd>{formatScore(discovery.topographic_priority)} / 100 · it only orders the preselection; it is not the score or the confidence.</dd>
               </div>
             )}
-            <div><dt>Nota</dt><dd>{discovery.note}</dd></div>
+            <div><dt>Note</dt><dd>{displaySource(discovery.note)}</dd></div>
             <div>
-              <dt>Revisión bibliográfica</dt>
-              <dd>{review.note} Catálogo {review.catalog_version}, revisado el {review.reviewed_at}.</dd>
+              <dt>Literature review</dt>
+              <dd>{displaySource(review.note)} Catalog {review.catalog_version}, reviewed on {review.reviewed_at}.</dd>
             </div>
           </dl>
           {matches.length > 0 && (
             <ul className="precedent-list">
               {matches.map((match) => (
                 <li key={match.precedent_id}>
-                  <strong>{match.name}</strong>
+                  <strong>{displaySource(match.name)}</strong>
                   <span>
                     {relationLabels[match.relation]}
-                    {match.points ? `: ${match.points.length} punto(s)` : ''}
-                    {match.distance_km !== undefined ? `: ${formatScore(match.distance_km)} km al centro (${match.nearest_point})` : ''}.
+                    {match.points ? `: ${match.points.length} point(s)` : ''}
+                    {match.distance_km !== undefined ? `: ${formatScore(match.distance_km)} km from the center (${match.nearest_point})` : ''}.
                   </span>
-                  <small>{match.spatialPrecision}</small>
-                  <a href={match.sourceUrl} target="_blank" rel="noreferrer">{match.sourceTitle} ↗</a>
+                  <small>{displaySource(match.spatialPrecision)}</small>
+                  <a href={match.sourceUrl} target="_blank" rel="noreferrer" lang={SPANISH_SOURCE_TITLES.has(match.sourceTitle) ? 'es' : undefined}>{displaySource(match.sourceTitle)} ↗</a>
+                  {SPANISH_SOURCE_TITLES.has(match.sourceTitle) && <small> (original title, Spanish)</small>}
                 </li>
               ))}
             </ul>
@@ -86,8 +88,8 @@ export function OriginSection({ candidate, precedents, rank }: OriginSectionProp
       )}
       {candidate.warnings.length > 0 && (
         <details className="origin-warnings">
-          <summary>Advertencias del snapshot · {candidate.warnings.length}</summary>
-          <ul>{candidate.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>
+          <summary>Snapshot warnings · {candidate.warnings.length}</summary>
+          <ul>{candidate.warnings.map((warning) => <li key={warning}>{displaySource(warning)}</li>)}</ul>
         </details>
       )}
     </div>

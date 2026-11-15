@@ -1,60 +1,60 @@
-# Contratos de construcción en paralelo (rediseño Explorar / Misión)
+# Parallel build contracts (Explore / Mission redesign)
 
-> **Documento histórico de reparto.** Las ramas ya están integradas en `dev` (`dd625b4`). ADR-013 y ADR-014 aceptados por Codex el 2026-11-15; revisión en `docs/CODEX_INTEGRATION_REVIEW.md`. No asigna nuevos constructores ni autoriza trabajo paralelo: la asignación vigente vive en `project/NEXT_TASK.md`.
+> **Historical assignment document.** The branches are already merged into `dev` (`dd625b4`). ADR-013 and ADR-014 accepted by Codex on 2026-11-15; review in `docs/CODEX_INTEGRATION_REVIEW.md`. It does not assign new builders or authorize parallel work: the current assignment lives in `project/NEXT_TASK.md`.
 
-Este documento reparte los incrementos 3 a 10 de `docs/UX_REDESIGN.md` §7.1 entre **8 constructores que trabajan a la vez en worktrees separados**. Cada uno edita solo su carpeta y los archivos que se le asignan aquí. Lo demás pertenece al **integrador**.
+This document distributes increments 3 to 10 of `docs/UX_REDESIGN.md` §7.1 among **8 builders working simultaneously in separate worktrees**. Each one edits only their own folder and the files assigned to them here. Everything else belongs to the **integrator**.
 
-- **Estado (2026-11-14):** las 8 ramas `build/*` quedaron fusionadas en `feature/mision-redesign`. Los ajustes del integrador y lo que sigue pendiente están en `project/STATUS.md`.
-- **Base:** rama `feature/mision-redesign`, en el commit que introduce este documento (`git log -1 -- docs/BUILD_CONTRACTS.md`). Ese commit trae los incrementos 0, 1 y 2: contratos, tokens, store, armazón y slots con stubs.
-- **Especificación:** `docs/UX_REDESIGN.md`. Decisiones: ADR-014 (escenario fijo, propuesto), ADR-015 y ADR-012 (sustituidos por ADR-009 del equipo) y ADR-013 (integración, propuesto), en `docs/decisions/`. Antes de integrar con dev se numeraban ADR-008, ADR-009 y ADR-010.
-- **Integración con dev (2026-11-14, ADR-013):** la interfaz de este reparto aloja ahora el snapshot v3, el planificador y la IA del equipo (`shared/mission`, `server/ai`). `engine` (§2.6) se retiró; `composer` (§2.7) y `analysis` (§2.8) cambiaron de interfaz, como se indica en cada sección. El plan completo está en `docs/INTEGRATION_PLAN.md`.
-- **Reglas del proyecto:** `CLAUDE.md` y `AGENTS.md`. Las más sensibles aquí:
-  - la IA nunca puntúa ni produce cifras;
-  - similitud, confianza y factibilidad van siempre separadas;
-  - nada se inventa: lo que no existe se muestra como «por calcular»;
-  - offline primero: la IA es opcional (tras ADR-013, la de Anthropic del equipo, solo con botones explícitos);
-  - TypeScript estricto y sin `any`;
-  - **0 dependencias npm nuevas** (§6.2);
-  - teclado, foco visible y `prefers-reduced-motion` obligatorios.
+- **Status (2026-11-14):** the 8 branches `build/*` were merged into `feature/mision-redesign`. The integrator's adjustments and what remains pending are in `project/STATUS.md`.
+- **Base:** branch `feature/mision-redesign`, at the commit that introduces this document (`git log -1 -- docs/BUILD_CONTRACTS.md`). That commit brings increments 0, 1 and 2: contracts, tokens, store, shell and slots with stubs.
+- **Specification:** `docs/UX_REDESIGN.md`. Decisions: ADR-014 (fixed stage, proposed), ADR-015 and ADR-012 (superseded by the team's ADR-009) and ADR-013 (integration, proposed), in `docs/decisions/`. Before integrating with dev they were numbered ADR-008, ADR-009 and ADR-010.
+- **Integration with dev (2026-11-14, ADR-013):** the interface of this assignment now hosts the v3 snapshot, the planner and the team's AI (`shared/mission`, `server/ai`). `engine` (§2.6) was retired; `composer` (§2.7) and `analysis` (§2.8) changed interface, as indicated in each section. The complete plan is in `docs/INTEGRATION_PLAN.md`.
+- **Project rules:** `CLAUDE.md` and `AGENTS.md`. The most sensitive ones here:
+  - the AI never scores or produces figures;
+  - similarity, confidence and feasibility are always kept separate;
+  - nothing is invented: what does not exist is shown as "to be calculated";
+  - offline first: the AI is optional (after ADR-013, the team's Anthropic one, only with explicit buttons);
+  - strict TypeScript and no `any`;
+  - **0 new npm dependencies** (§6.2);
+  - keyboard, visible focus and `prefers-reduced-motion` are mandatory.
 
 ---
 
-## 1. Reglas comunes para los 8 constructores
+## 1. Common rules for the 8 builders
 
-1. **Propiedad.** Edita solo tu carpeta `apps/web/src/features/<key>/` y los archivos que la tabla del §2 te asigna. Si necesitas cambiar un archivo compartido (§4), no lo toques: descríbelo en tu entrega y lo aplica el integrador.
-2. **Interfaz estable.** Tu `index.ts` exporta tipos y firmas que otras features ya consumen.
-   - **Puedes:** añadir exports y añadir campos **opcionales**.
-   - **No puedes:** renombrar, quitar ni cambiar el tipo de lo que ya está firmado.
-   - **Guardia:** `apps/web/src/tests/featureContracts.test.ts` falla si falta un export.
-3. **Consumo entre features.** Importa de otra feature solo desde su `index.ts` (`import { X } from '../places'`), nunca de un archivo interno.
-   - Del armazón, solo `apps/web/src/shell/public.ts`.
-   - Del estado compartido, solo `apps/web/src/state/ui.ts` (`useUi`, `uiActions`) y `apps/web/src/state/mission.ts` (`useMission`, `missionStore`).
-   - Para tipos de contrato: `domain/contracts.ts` y `domain/aiContracts.ts`, con `import type` cuando sea posible.
-4. **Implementación actual.** Hoy cada `index.ts` apunta a un **stub honesto**: no inventa cifras y rotula «por calcular». Reemplaza el stub por la implementación real dentro de tu carpeta.
+1. **Ownership.** Edit only your folder `apps/web/src/features/<key>/` and the files that the table in §2 assigns to you. If you need to change a shared file (§4), do not touch it: describe it in your delivery and the integrator applies it.
+2. **Stable interface.** Your `index.ts` exports types and signatures that other features already consume.
+   - **You may:** add exports and add **optional** fields.
+   - **You may not:** rename, remove or change the type of what is already signed.
+   - **Guard:** `apps/web/src/tests/featureContracts.test.ts` fails if an export is missing.
+3. **Cross-feature consumption.** Import from another feature only from its `index.ts` (`import { X } from '../places'`), never from an internal file.
+   - From the shell, only `apps/web/src/shell/public.ts`.
+   - From shared state, only `apps/web/src/state/ui.ts` (`useUi`, `uiActions`) and `apps/web/src/state/mission.ts` (`useMission`, `missionStore`).
+   - For contract types: `domain/contracts.ts` and `domain/aiContracts.ts`, with `import type` when possible.
+4. **Current implementation.** Today each `index.ts` points to an **honest stub**: it does not invent figures and labels "to be calculated". Replace the stub with the real implementation inside your folder.
 5. **Tests.**
-   - Van en tu carpeta: `features/<key>/*.test.ts(x)`. Vitest los recoge solo y corren en Node, sin jsdom. Prueba funciones puras y renderiza con `react-dom/server` (`renderToStaticMarkup`).
-   - No edites tests compartidos de `apps/web/src/tests/`.
-   - Si un test del stub deja de aplicar porque lo implementaste (p. ej. el de «por calcular» del motor), avisa al integrador.
-6. **Estilos.**
-   - Cada feature trae su propio CSS, importado por sus componentes, con prefijo de clase propio: `.places-*`, `.globe-*`, `.metrics-*`, `.leaders-*`, `.boot-*`, `.composer-*`, `.analysis-*`. Los stubs usan `*-stub`: bórralos.
-   - Usa los tokens de `shell/tokens.css`: `--ease-*`, `--dur-*`, `--stagger-*`, `--o-busy`, `--o-dim`, colores con significado, `--fs-*`, `--marker-bg`, `--focus-ring`.
-   - Usa los glifos de `GLYPH` (`shell/glyphs.ts`).
-   - **No** uses `backdrop-filter`: el blur pertenece solo a las superficies del armazón (≤3 en escritorio, 1 en móvil).
-   - **No** estilices clases del armazón (`.app`, `.dock`, `.rail`, `.sheet`, `.topbar`…).
-7. **Movimiento** (§2.2). Anima solo `transform` y `opacity`. Ningún bucle supera 4,8 s. Ninguna cifra se interpola. Con reduced motion: sin translate, scale ni rotate y con opacidad ≤150 ms.
-   - Lee la preferencia con `useReducedMotion()` o `prefersReducedMotion()`, que vienen de `shell/public`.
-   - No hay `setState` por cuadro: la manipulación directa va por ref o por variable CSS.
-8. **Anuncios.** No crees regiones `aria-live` propias. Usa `announce(texto)` o `announce(texto, 'alert')` de `shell/public`. Única excepción: el carrusel de métricas en móvil, según el patrón APG.
-9. **Peso** (§6.1). Lo que no cabe en el chunk principal se carga con `lazy()` o `import()`.
-   - Un módulo de validadores por chunk: `validators.generated.js` (snapshot, principal), `validators.analogs.generated.js` (catálogo ◆, vía `domain/referenceAnalogContract.ts`), `validators.interpretation.generated.js` (misión, vía `domain/interpretationContract.ts`) y `validators.mission.generated.js` (paquete y análisis, vía `domain/aiContracts.ts`). Los tres últimos solo desde código diferido.
-   - Presupuesto total del chunk principal: **+≤12 KB gz** de JS y **+≤5 KB gz** de CSS frente a `857b05f`. El armazón ya consumió +2,6 KB de JS y +1 KB de CSS.
-10. **Datos.** Toda cifra viene del snapshot (`data.snapshot`) o del motor (`features/engine`).
-    - Fixtures solo en `tests/fixtures/` y marcados `FIXTURE`.
-    - No regeneres `artifacts/science-v2/` ni `submission/`.
-11. **Entrega.**
-    - `npm run test` y `npm run build` en verde en tu worktree, y `/tmp/claude-venv314/bin/python -m pytest -q` si tocaste Python.
-    - Commit en tu rama con mensaje en español.
-    - Mensaje final con: archivos tocados, exports nuevos, cambios pedidos a archivos compartidos y riesgos.
+   - They go in your folder: `features/<key>/*.test.ts(x)`. Vitest picks them up automatically and they run in Node, without jsdom. Test pure functions and render with `react-dom/server` (`renderToStaticMarkup`).
+   - Do not edit shared tests in `apps/web/src/tests/`.
+   - If a stub test no longer applies because you implemented it (e.g. the engine's "to be calculated" one), notify the integrator.
+6. **Styles.**
+   - Each feature brings its own CSS, imported by its components, with its own class prefix: `.places-*`, `.globe-*`, `.metrics-*`, `.leaders-*`, `.boot-*`, `.composer-*`, `.analysis-*`. The stubs use `*-stub`: delete them.
+   - Use the tokens from `shell/tokens.css`: `--ease-*`, `--dur-*`, `--stagger-*`, `--o-busy`, `--o-dim`, colors with meaning, `--fs-*`, `--marker-bg`, `--focus-ring`.
+   - Use the glyphs from `GLYPH` (`shell/glyphs.ts`).
+   - Do **not** use `backdrop-filter`: blur belongs only to the shell surfaces (≤3 on desktop, 1 on mobile).
+   - Do **not** style shell classes (`.app`, `.dock`, `.rail`, `.sheet`, `.topbar`…).
+7. **Motion** (§2.2). Animate only `transform` and `opacity`. No loop exceeds 4,8 s. No figure is interpolated. With reduced motion: no translate, scale or rotate, and with opacity ≤150 ms.
+   - Read the preference with `useReducedMotion()` or `prefersReducedMotion()`, which come from `shell/public`.
+   - There is no per-frame `setState`: direct manipulation goes through a ref or a CSS variable.
+8. **Announcements.** Do not create your own `aria-live` regions. Use `announce(texto)` or `announce(texto, 'alert')` from `shell/public`. The only exception: the metrics carousel on mobile, following the APG pattern.
+9. **Weight** (§6.1). What does not fit in the main chunk is loaded with `lazy()` or `import()`.
+   - One validator module per chunk: `validators.generated.js` (snapshot, main), `validators.analogs.generated.js` (◆ catalog, via `domain/referenceAnalogContract.ts`), `validators.interpretation.generated.js` (mission, via `domain/interpretationContract.ts`) and `validators.mission.generated.js` (package and analysis, via `domain/aiContracts.ts`). The last three only from deferred code.
+   - Total main chunk budget: **+≤12 KB gz** of JS and **+≤5 KB gz** of CSS compared to `857b05f`. The shell has already consumed +2,6 KB of JS and +1 KB of CSS.
+10. **Data.** Every figure comes from the snapshot (`data.snapshot`) or from the engine (`features/engine`).
+    - Fixtures only in `tests/fixtures/` and marked `FIXTURE`.
+    - Do not regenerate `artifacts/science-v2/` or `submission/`.
+11. **Delivery.**
+    - `npm run test` and `npm run build` green in your worktree, and `/tmp/claude-venv314/bin/python -m pytest -q` if you touched Python.
+    - Commit on your branch with a message in Spanish.
+    - Final message with: files touched, new exports, changes requested to shared files and risks.
 
 ### Worktree
 
@@ -66,367 +66,367 @@ npm run test && npm run build
 
 ---
 
-## 2. Propiedad de archivos, slot e interfaz por feature
+## 2. File ownership, slot and interface per feature
 
-Todas las rutas son relativas a `apps/web/src/`, salvo que empiecen por la raíz del repo (`config/`, `tests/`, `artifacts/`).
+All paths are relative to `apps/web/src/`, unless they start from the repo root (`config/`, `tests/`, `artifacts/`).
 
-### 2.1 `places` · incremento 3 · PlaceRail y catálogo de ◆
+### 2.1 `places` · increment 3 · PlaceRail and ◆ catalog
 
-**Archivos propios:**
+**Owned files:**
 - `features/places/**`
-- `config/reference_analogs.json` (nuevo). Valida contra `contracts/reference-analog.schema.json` con `parseReferenceAnalogs`. Solo entran los ◆ con fuente citada.
+- `config/reference_analogs.json` (new). Validates against `contracts/reference-analog.schema.json` with `parseReferenceAnalogs`. Only ◆ entries with a cited source are included.
 
 **Slots:**
 
-| Slot | Dónde se monta | Componente |
+| Slot | Where it is mounted | Component |
 |---|---|---|
-| `dock.places` | ≥1100, fila superior del dock (contenedor de consulta `dock`) | `<PlaceRail placement="dock">` |
-| `sheet.tray.places` | <1100, bandeja S0 | `<PlaceRail placement="sheet">` |
-| `sheet.list` | S1/S2 sin selección | `<PlaceRail placement="sheet" listView>` |
-| `rail.reference` | riel con un ◆ seleccionado | `<ReferenceCard>` |
-| `sheet.reference` | hoja con un ◆ seleccionado | `<ReferenceCard>` |
+| `dock.places` | ≥1100, top row of the dock (query container `dock`) | `<PlaceRail placement="dock">` |
+| `sheet.tray.places` | <1100, S0 tray | `<PlaceRail placement="sheet">` |
+| `sheet.list` | S1/S2 with no selection | `<PlaceRail placement="sheet" listView>` |
+| `rail.reference` | rail with a ◆ selected | `<ReferenceCard>` |
+| `sheet.reference` | sheet with a ◆ selected | `<ReferenceCard>` |
 
-**Interfaz:**
-- `PlaceRail(props: PlaceRailProps)`, con `{ data, placement: 'dock' | 'sheet', listView?, onListViewChange? }`.
+**Interface:**
+- `PlaceRail(props: PlaceRailProps)`, with `{ data, placement: 'dock' | 'sheet', listView?, onListViewChange? }`.
 - `ReferenceCard({ data, analogId })`.
 - `useReferenceAnalogs(): ReferenceAnalogsState`.
 - `loadReferenceAnalogs(): Promise<ReferenceAnalogsState>`.
 - `ReferenceAnalogsState = loading | ready{analogs} | unavailable{reason}`.
 
-**Consume:**
+**Consumes:**
 - `useUi`: `selection`, `mode`, `missionPhase`, `hoverSiteId`.
-- `uiActions.select` (con `kind: 'reference'` para un ◆) y `uiActions.setHover`.
-- `useMission`: `scoring` y `profile`, para el orden y los % en Misión.
+- `uiActions.select` (with `kind: 'reference'` for a ◆) and `uiActions.setHover`.
+- `useMission`: `scoring` and `profile`, for the order and the % in Mission.
 - `rankCandidates`.
 
-**Notas:**
-- Se dibuja en cuanto `data.status === 'ready'`.
-- Durante la espera de la IA, los resultados previos van a `--o-busy` con `aria-busy` y sin `inert`.
-- `onListViewChange` todavía no se cablea: lo agrega el integrador si se necesita.
+**Notes:**
+- It is drawn as soon as `data.status === 'ready'`.
+- While waiting for the AI, the previous results go to `--o-busy` with `aria-busy` and without `inert`.
+- `onListViewChange` is not wired up yet: the integrator adds it if needed.
 
-### 2.2 `globe` · incremento 4 · marcadores ●◆○, vuelo y agrupación
+### 2.2 `globe` · increment 4 · ●◆○ markers, flight and grouping
 
-**Archivos propios:**
-- `features/globe/**`: `MapStage.tsx`, `MapStage.css`, `CandidateGlobe.tsx`, `CandidateGlobe.css`, `CandidateFlatMap.tsx`, `CandidateMap.tsx` y `stageBridge.ts`.
+**Owned files:**
+- `features/globe/**`: `MapStage.tsx`, `MapStage.css`, `CandidateGlobe.tsx`, `CandidateGlobe.css`, `CandidateFlatMap.tsx`, `CandidateMap.tsx` and `stageBridge.ts`.
 - `domain/globe.ts`.
-- `tests/globe.test.ts` y `tests/mapStage.test.ts`.
+- `tests/globe.test.ts` and `tests/mapStage.test.ts`.
 
-**Slot:** `stage`, el escenario a pantalla completa (`.stage`). Queda `inert` y en pausa en S2.
+**Slot:** `stage`, the full-screen stage (`.stage`). It remains `inert` and paused in S2.
 
-**Interfaz:**
-- `MapStage(props: MapStageProps)`, con estas props:
+**Interface:**
+- `MapStage(props: MapStageProps)`, with these props:
   - `candidates`, `chileOutline`, `visual`;
   - `selectedId: string | null`;
   - `onSelect`;
-  - `insets` (márgenes asentados → `setViewOffset` / `setPadding`);
-  - `baseInsets` (encuadre global, umbrales 2D, póster);
+  - `insets` (settled margins → `setViewOffset` / `setPadding`);
+  - `baseInsets` (global framing, 2D thresholds, poster);
   - `focusSignal`;
   - `paused?`;
   - `onMilestone?('globe' | 'texture', 'ok' | 'error')`;
-  - `hudSlot?: ReactNode` (franja de leyenda).
+  - `hudSlot?: ReactNode` (legend strip).
 - `contextLayers()`.
-- Canal por cuadro:
-  - `publishStageFrame({ projection, anchor })` (solo el globo publica);
+- Per-frame channel:
+  - `publishStageFrame({ projection, anchor })` (only the globe publishes);
   - `getStageProjection(): StageProjection | null`;
   - `getStageAnchor(): StageAnchor | null`;
   - `subscribeStageFrame(cb)`.
-- Tipos `ScreenPoint`, `StageProjection`, `StageAnchor`.
+- Types `ScreenPoint`, `StageProjection`, `StageAnchor`.
 
-**Consume:**
-- `useUi`: `selection`, `hoverSiteId`, `introPhase` (aterrizaje de la coreografía A, que escribe `boot`) y `cameraTouchedAt`.
-- `uiActions.touchCamera()` ante cualquier input de cámara.
-- `useReferenceAnalogs()` de `places`, para los ◆.
-- `useMission(scoring)`, para el orden de halos en la coreografía D.
+**Consumes:**
+- `useUi`: `selection`, `hoverSiteId`, `introPhase` (landing of choreography A, which writes `boot`) and `cameraTouchedAt`.
+- `uiActions.touchCamera()` on any camera input.
+- `useReferenceAnalogs()` from `places`, for the ◆ markers.
+- `useMission(scoring)`, for the halo order in choreography D.
 
-**Notas:**
-- Las funciones nuevas de geometría o vuelo van en `features/globe/`.
-- `domain/mapZoom.ts` es de `boot`: impórtalo, no lo edites.
+**Notes:**
+- New geometry or flight functions go in `features/globe/`.
+- `domain/mapZoom.ts` belongs to `boot`: import it, do not edit it.
 
-### 2.3 `metrics` · incremento 5 · MetricRail, buildMetricViews y S1
+### 2.3 `metrics` · increment 5 · MetricRail, buildMetricViews and S1
 
-**Archivos propios:**
+**Owned files:**
 - `features/metrics/**`.
-- `breakdown/**` (`ScoreBreakdown.tsx`, `score-breakdown.css`). Puedes reemplazarlo o retirarlo si tu `MetricRail` lo sustituye.
+- `breakdown/**` (`ScoreBreakdown.tsx`, `score-breakdown.css`). You may replace or remove it if your `MetricRail` supersedes it.
 
 **Slots:**
 
-| Slot | Dónde se monta | Componente |
+| Slot | Where it is mounted | Component |
 |---|---|---|
-| `rail.metrics` | riel de 340–380 px (≥1440, o pestaña «Métricas» en 1100–1439) | `<MetricRail variant="rail">` |
-| `full.metrics` | pestaña «Métricas» de la ficha completa (520 px o S2) | `<MetricRail variant="full">` |
+| `rail.metrics` | 340–380 px rail (≥1440, or the "Metrics" tab in 1100–1439) | `<MetricRail variant="rail">` |
+| `full.metrics` | "Metrics" tab of the full card (520 px or S2) | `<MetricRail variant="full">` |
 | `sheet.s1` | <1100, detent S1 | `<MetricRail variant="sheet">` |
 
-**Interfaz:**
+**Interface:**
 - `MetricRail({ data, site, variant, onShowOnMap? })`.
-- `buildMetricViews(input: BuildMetricViewsInput): MetricView[]`, función pura, ordenada por peso del perfil activo.
-- Tipo `MetricView`, con estos campos:
+- `buildMetricViews(input: BuildMetricViewsInput): MetricView[]`, a pure function, sorted by the weight of the active profile.
+- Type `MetricView`, with these fields:
   - `criterionId`, `label`, `weight`, `baseWeight`, `status`, `similarity`;
   - `siteValue`;
-  - `marsValue`: solo pendiente, rugosidad y relieve; null en el resto;
+  - `marsValue`: only slope, roughness and relief; null for the rest;
   - `rule`;
   - `vsMars`;
-  - `isLimiting` y `contribution`: el limitante sale de `contribution`;
+  - `isLimiting` and `contribution`: the limiting factor comes from `contribution`;
   - `saturates`;
   - `sharedRegionalWith`;
-  - `quality` y `datasetId`.
+  - `quality` and `datasetId`.
 
-**Consume:**
-- `useUi`: `activeCriterionId` y `previewCriterionId`; escribe con `setActiveCriterion` y `setPreviewCriterion`.
-- `useMission`: `profile.weights` y `scoring`, para las contribuciones con el perfil de misión.
+**Consumes:**
+- `useUi`: `activeCriterionId` and `previewCriterionId`; writes with `setActiveCriterion` and `setPreviewCriterion`.
+- `useMission`: `profile.weights` and `scoring`, for contributions with the mission profile.
 - `snapshot.marsReference`.
 
-**Notas:**
-- La cabecera del lugar (`● nombre` + ✕) la pone el armazón. Tu variante `sheet` muestra «% · ‹ ›» y el contenido.
+**Notes:**
+- The place header (`● nombre` + ✕) is provided by the shell. Your `sheet` variant shows "% · ‹ ›" and the content.
 
-### 2.4 `leaders` · incremento 6 · líneas Tesla
+### 2.4 `leaders` · increment 6 · Tesla lines
 
-**Archivos propios:** `features/leaders/**`.
+**Own files:** `features/leaders/**`.
 
 **Slots:**
 
-| Slot | Dónde se monta | Componente |
+| Slot | Where it is mounted | Component |
 |---|---|---|
-| `stage.overlay` | capa fija sobre el escenario, bajo los paneles (`pointer-events: none`) | `<LeaderLayer>` |
-| `stage.hud` | franja de leyenda del escenario, por `hudSlot` | `<LeaderToggle>` (interruptor «Líneas») |
+| `stage.overlay` | fixed layer over the stage, beneath the panels (`pointer-events: none`) | `<LeaderLayer>` |
+| `stage.hud` | stage legend strip, via `hudSlot` | `<LeaderToggle>` ("Lines" toggle) |
 
-**Interfaz:**
-- `LeaderLayer({ data })` y `LeaderToggle()`.
+**Interface:**
+- `LeaderLayer({ data })` and `LeaderToggle()`.
 - `pickPrincipalMetrics(views, count = 4)`.
-- `layoutLeaders(input: LeaderLayoutInput): LeaderLayout`, con `mode: 'lines' | 'docked' | 'chip'`.
-- Tipos `Rect`, `LeaderLayoutInput` y `LeaderLayout`.
+- `layoutLeaders(input: LeaderLayoutInput): LeaderLayout`, with `mode: 'lines' | 'docked' | 'chip'`.
+- Types `Rect`, `LeaderLayoutInput` and `LeaderLayout`.
 
-**Consume:**
-- Canal por cuadro de `globe`: `subscribeStageFrame`, `getStageAnchor` y `getStageProjection`.
-- `buildMetricViews` y `MetricView` de `metrics`.
-- `useUi`: `selection`, `activeCriterionId`, `stageInsets` (área segura) y `obstacles` (rects de paneles con `data-obstacle`).
+**Consumes:**
+- Per-frame channel of `globe`: `subscribeStageFrame`, `getStageAnchor` and `getStageProjection`.
+- `buildMetricViews` and `MetricView` of `metrics`.
+- `useUi`: `selection`, `activeCriterionId`, `stageInsets` (safe area) and `obstacles` (panel rects with `data-obstacle`).
 - `useMission(profile)`.
 
-**Notas:**
-- Nunca hace `setState` por cuadro.
-- No se dibuja con un ◆ seleccionado.
-- En móvil, una sola línea hasta el borde superior de la hoja.
+**Notes:**
+- It never performs `setState` per frame.
+- It is not drawn when a ◆ is selected.
+- On mobile, a single line up to the top edge of the sheet.
 
-### 2.5 `boot` · incremento 7 · Loading WOW «Órbita honesta»
+### 2.5 `boot` · increment 7 · Loading WOW "Honest orbit"
 
-**Archivos propios:**
-- `features/boot/**`, incluido `loadingHints.ts`: plugin de Vite, código de Node, nunca importado por la app.
-- `boot/posterLayout.js` y `boot/posterLayout.d.ts`.
-- `content/shell.ts`: HTML estático previo a React. Debe reflejar las cajas de `AppShell`.
+**Own files:**
+- `features/boot/**`, including `loadingHints.ts`: Vite plugin, Node code, never imported by the app.
+- `boot/posterLayout.js` and `boot/posterLayout.d.ts`.
+- `content/shell.ts`: static HTML prior to React. It must mirror the boxes of `AppShell`.
 - `data/preload.ts`.
 - `domain/mapZoom.ts`.
-- `tests/boot.test.ts` y `tests/mapZoom.test.ts`.
+- `tests/boot.test.ts` and `tests/mapZoom.test.ts`.
 
 **Slots:**
 
-| Slot | Dónde se monta | Componente |
+| Slot | Where it is mounted | Component |
 |---|---|---|
-| `stage.overlay` | sobre el escenario | `<BootLayer>` (anillo, satélite, bitácora, revelado) |
-| `topbar.status` | derecha de la barra superior | `<StatusChip>` (la bitácora se pliega en el chip) |
+| `stage.overlay` | over the stage | `<BootLayer>` (ring, satellite, log, reveal) |
+| `topbar.status` | right side of the top bar | `<StatusChip>` (the log collapses into the chip) |
 
-**Interfaz:**
-- `BootLayer({ data })` y `StatusChip({ data })`.
-- `OrbitLoader({ active, label, placement? })`, reutilizable para la espera de la IA.
-- `reportBootMilestone(m, status)`, `getBootMilestones()` y `useBootMilestones()`.
-- Tipos `BootMilestone = 'snapshot' | 'globe' | 'texture'` y `MilestoneStatus`.
+**Interface:**
+- `BootLayer({ data })` and `StatusChip({ data })`.
+- `OrbitLoader({ active, label, placement? })`, reusable for the AI wait.
+- `reportBootMilestone(m, status)`, `getBootMilestones()` and `useBootMilestones()`.
+- Types `BootMilestone = 'snapshot' | 'globe' | 'texture'` and `MilestoneStatus`.
 
-**Consume:**
-- `useUi(introPhase)`; escribe con `setIntroPhase`.
-- `useReferenceAnalogs()` de `places`, para «8 por calcular».
+**Consumes:**
+- `useUi(introPhase)`; writes with `setIntroPhase`.
+- `useReferenceAnalogs()` of `places`, for "8 to be computed".
 
-**El armazón ya cablea:**
-- `reportBootMilestone('snapshot', …)` al validar o fallar el snapshot.
+**The shell already wires:**
+- `reportBootMilestone('snapshot', …)` when the snapshot validates or fails.
 - `MapStage.onMilestone` → `globe` / `texture`.
 
-**Notas:**
-- `?intro=full` fuerza la intro.
-- El póster debe seguir coincidiendo al píxel con `baseStageInsets`: lo verifica `boot.test.ts`.
-- Si cambian las alturas reservadas, pídelo al integrador: viven en `shell/stageGeometry.js` y `shell/shell.css`.
+**Notes:**
+- `?intro=full` forces the intro.
+- The poster must keep matching `baseStageInsets` pixel for pixel: `boot.test.ts` verifies this.
+- If the reserved heights change, request it from the integrator: they live in `shell/stageGeometry.js` and `shell/shell.css`.
 
-### 2.6 `engine` · incremento 8 · motor de misión determinista (sin UI) — **retirado**
+### 2.6 `engine` · increment 8 · deterministic mission engine (no UI) — **retired**
 
-> **Retirado al integrar con dev (ADR-013; ADR-015 sustituido por ADR-009).** La evaluación es
-> `evaluateMission` del equipo (`shared/mission/evaluate.ts`): requisitos imprescindibles, luego
-> preferencias cumplidas, luego similitud v3, luego `site_id`. Se borraron `features/engine/**`,
-> `tests/fixtures/engine/**` y `tests/test_engine_parity.py`. Solo sobreviven los umbrales visuales
-> de espera (`PHASE_THRESHOLDS` 3/10 s, sin tiempo límite propio) en `features/composer/labels.ts`.
-> La robustez base se lee de `analysis-summary.json` (`domain/sensitivity.ts`). Se conserva el
-> contrato original como registro:
+> **Retired when integrating with dev (ADR-013; ADR-015 superseded by ADR-009).** The evaluation is
+> `evaluateMission` of the team (`shared/mission/evaluate.ts`): essential requirements, then
+> met preferences, then similarity v3, then `site_id`. `features/engine/**` was deleted,
+> `tests/fixtures/engine/**` and `tests/test_engine_parity.py`. Only the visual wait thresholds
+> (`PHASE_THRESHOLDS` 3/10 s, with no timeout of their own) in `features/composer/labels.ts` survive.
+> The base robustness is read from `analysis-summary.json` (`domain/sensitivity.ts`). The original
+> contract is kept as a record:
 
-**Archivos propios:**
+**Own files:**
 - `features/engine/**`.
-- `tests/fixtures/engine/**` (nuevo).
-- `tests/test_engine_parity.py` (nuevo): genera o verifica la paridad con `pipelines/scoring.py`.
+- `tests/fixtures/engine/**` (new).
+- `tests/test_engine_parity.py` (new): generates or verifies parity with `pipelines/scoring.py`.
 
-**Slot:** ninguno. Es una librería pura que se importa de forma diferida.
+**Slot:** none. It is a pure library that is imported lazily.
 
-**Interfaz:**
-- `aggregate(criteria, inputs, epsilon, minimumValidWeight): AggregateResult`: port de `pipelines/scoring.py`, paridad ≤1e-6.
+**Interface:**
+- `aggregate(criteria, inputs, epsilon, minimumValidWeight): AggregateResult`: port of `pipelines/scoring.py`, parity ≤1e-6.
 - `sensitivity(...)`.
-- `levelsToWeights(levels)` y `profileFromLevels(levels, base, label?)`, que produce el id `mission:<fnv>`.
+- `levelsToWeights(levels)` and `profileFromLevels(levels, base, label?)`, which produces the id `mission:<fnv>`.
 - `scoreMission({ profile, candidates, base }): MissionScoring`.
-- `matchMissionDemo(text): DemoMatch | null`, el matcher «DEMO · sin IA».
+- `matchMissionDemo(text): DemoMatch | null`, the "DEMO · no AI" matcher.
 - `nextMissionPhase(phase, event)`.
-- Constantes `MISSION_PRESETS`, `PHASE_THRESHOLDS` (3/10/20 s) y `ENGINE_VERSION`.
-- Tipos en `types.ts`: `MissionProfileDraft`, `ScoredSite`, `MissionScoring`, `MissionPreset`, `DemoMatch`, `MissionPhaseEvent`, `AggregateInput`, `AggregateResult`, `SensitivityResult`…
+- Constants `MISSION_PRESETS`, `PHASE_THRESHOLDS` (3/10/20 s) and `ENGINE_VERSION`.
+- Types in `types.ts`: `MissionProfileDraft`, `ScoredSite`, `MissionScoring`, `MissionPreset`, `DemoMatch`, `MissionPhaseEvent`, `AggregateInput`, `AggregateResult`, `SensitivityResult`…
 
-**Consume:** solo `domain/*`. No lee stores.
+**Consumes:** only `domain/*`. It does not read stores.
 
-**Notas:**
-- Al implementarlo, `ENGINE_VERSION` deja de terminar en `-stub`, y el test de stub de `featureContracts.test.ts` se salta solo.
-- `matchMissionDemo` devuelve un `mission-interpretation/1` con `engine: 'demo'`.
+**Notes:**
+- Once implemented, `ENGINE_VERSION` no longer ends in `-stub`, and the stub test of `featureContracts.test.ts` skips itself.
+- `matchMissionDemo` returns a `mission-interpretation/1` with `engine: 'demo'`.
 
-### 2.7 `composer` · incremento 9 · composer, «Tu misión», historial y coreografía de resultados
+### 2.7 `composer` · increment 9 · composer, "Your mission", history and results choreography
 
-**Archivos propios:** `features/composer/**`.
+**Own files:** `features/composer/**`.
 
 **Slots:**
 
-| Slot | Dónde se monta | Componente |
+| Slot | Where it is mounted | Component |
 |---|---|---|
-| `dock.composer` | ≥1100, fila inferior del dock | `<Composer placement="dock">`. El popover «Tu misión» de 1100–1439 lo abre el propio Composer. |
+| `dock.composer` | ≥1100, bottom row of the dock | `<Composer placement="dock">`. The "Your mission" popover of 1100–1439 is opened by the Composer itself. |
 | `sheet.tray.composer` | S0 | `<Composer placement="sheet">` |
-| `sheet.head` | cabecera de S1 | `<Composer placement="sheet-head" onRequestTray>` (botón «✦ Refinar») |
-| `left.mission` | ≥1440 en Misión, sección superior del panel izquierdo | `<MissionCard placement="panel">` |
-| `full.mission` | pestaña «Tu misión» de S2 | `<MissionCard placement="sheet">` |
+| `sheet.head` | S1 header | `<Composer placement="sheet-head" onRequestTray>` ("✦ Refine" button) |
+| `left.mission` | ≥1440 in Mission, top section of the left panel | `<MissionCard placement="panel">` |
+| `full.mission` | "Your mission" tab of S2 | `<MissionCard placement="sheet">` |
 
-**Interfaz:**
+**Interface:**
 - `Composer({ data, placement, onRequestTray? })`.
 - `MissionCard({ data, placement })`.
 - `focusComposer()`.
 
-**Orquesta la misión (tras ADR-013).** Es el **único escritor** de `state/mission.ts`, a través de
-`features/composer/missionController.ts` (chunk diferido): una sola instancia del planificador del
-equipo (`plannerReducer`, `buildRequest`, `evaluateMission`, `composeExplanation`,
-`buildMissionExport`, `aiClient`) compartida por el dock, «Tu misión», el carrusel, el globo, el riel,
-las líneas y la Lectura.
-1. «Enviar» → `set_journey('test')` + `set_brief` y abre «Tu misión» en los requisitos. **No llama a la IA.**
-2. Requisitos: manuales, «Usar ejemplo» (`exampleState`) o «✦ Proponer requisitos con IA» (`requestDraft`, borrador sin confirmar; fase `interpreting`).
-3. Confirmación explícita con los botones del equipo (fase `review`).
-4. `evaluateMission` (síncrono): escribe `missionStore` (`evaluation`, `explanation` de plantilla, `revision + 1`), deja el #1 recomendado en vista previa y hace un solo `announce()`.
-5. «✦ Destacar motivos con IA» (desde la Lectura): `requestExplanation` por el reductor (fase `analysis`).
-6. Editar tras evaluar: el reductor invalida; `missionStore.stale = true` y la petición en curso se aborta.
+**Orchestrates the mission (after ADR-013).** It is the **sole writer** of `state/mission.ts`, through
+`features/composer/missionController.ts` (lazy chunk): a single instance of the team's planner
+(`plannerReducer`, `buildRequest`, `evaluateMission`, `composeExplanation`,
+`buildMissionExport`, `aiClient`) shared by the dock, "Your mission", the carousel, the globe, the rail,
+the lines and the Reading.
+1. "Send" → `set_journey('test')` + `set_brief` and opens "Your mission" at the requirements. **It does not call the AI.**
+2. Requirements: manual, "Use example" (`exampleState`) or "✦ Propose requirements with AI" (`requestDraft`, unconfirmed draft; phase `interpreting`).
+3. Explicit confirmation with the team's buttons (phase `review`).
+4. `evaluateMission` (synchronous): writes `missionStore` (`evaluation`, template `explanation`, `revision + 1`), leaves the recommended #1 in preview and performs a single `announce()`.
+5. "✦ Highlight reasons with AI" (from the Reading): `requestExplanation` through the reducer (phase `analysis`).
+6. Editing after evaluating: the reducer invalidates; `missionStore.stale = true` and the in-flight request is aborted.
 
-**Interfaz añadida:** `registerMissionSnapshot(snapshot)`, `withController(fn)` y `MissionPrintHost` (informe imprimible único).
-M11: `MissionPrintHost` se monta siempre; sin evaluación vigente imprime un aviso (`printNoticeReason`). `printState.ts` registra qué resultado está montado en el informe, y «Imprimir informe» del resultado compacto solo se habilita cuando es el `planner.result` vigente. El compacto también ofrece «Ir a la Lectura» (`uiActions.requestReading()`).
+**Added interface:** `registerMissionSnapshot(snapshot)`, `withController(fn)` and `MissionPrintHost` (single printable report).
+M11: `MissionPrintHost` is always mounted; without a current evaluation it prints a notice (`printNoticeReason`). `printState.ts` records which result is mounted in the report, and "Print report" in the compact result is only enabled when it is the current `planner.result`. The compact view also offers "Go to the Reading" (`uiActions.requestReading()`).
 
-**Además:**
-- Muestra la espera con `OrbitLoader` de `boot`.
-- Hace un solo anuncio con `announce()`.
-- La tecla «/» y Esc (cancelar) son suyas.
+**Also:**
+- It shows the wait with `OrbitLoader` of `boot`.
+- It makes a single announcement with `announce()`.
+- The "/" key and Esc (cancel) belong to it.
 
-### 2.8 `analysis` · incremento 10 · hechos, evidencia, robustez, Lectura y lktron
+### 2.8 `analysis` · increment 10 · facts, evidence, robustness, Reading and lktron
 
-> **Tras ADR-013 (lktron retirado, ADR-012 sustituido por ADR-009 §7–9).** Interfaz vigente:
-> `ReadingPanel({ data, placement })` y `ReadingPill({ data })`. La Lectura tiene tres capas:
-> resultado (`MissionEvaluation`), motivos destacados (`ExplanationView` del equipo: plantilla sin ✦
-> o selección de Anthropic validada) y hechos del snapshot (`facts.ts`, sin paquete ni huella FNV,
-> acepta sitios `ar-`, la REF va aparte). Consume `useMission` (`evaluation`, `explanation`,
-> `planner.explain`) y llama a la IA solo con el botón, vía `withController(c => c.runExplain())`.
-> Se retiraron `LKTRON_ENABLED`, `interpretWithLktron`, `LktronResult`, `domain/aiContracts.ts`, el
-> análisis pregenerado y sus contratos. Se conserva el contrato original como registro:
+> **After ADR-013 (lktron removed, ADR-012 superseded by ADR-009 §7–9).** Current interface:
+> `ReadingPanel({ data, placement })` and `ReadingPill({ data })`. The Reading has three layers:
+> result (`MissionEvaluation`), highlighted reasons (`ExplanationView` of the team: template without ✦
+> or validated Anthropic selection) and snapshot facts (`facts.ts`, without package or FNV fingerprint,
+> accepts `ar-` sites, the REF goes separately). It consumes `useMission` (`evaluation`, `explanation`,
+> `planner.explain`) and calls the AI only with the button, via `withController(c => c.runExplain())`.
+> `LKTRON_ENABLED`, `interpretWithLktron`, `LktronResult`, `domain/aiContracts.ts`, the
+> pre-generated analysis and their contracts were removed. The original contract is kept as a record:
 
-**Archivos propios:**
+**Own files:**
 - `features/analysis/**`.
-- Análisis pregenerado nuevo, **fuera** de `artifacts/science-v2/`. Ruta sugerida: `artifacts/analysis/ai-analysis.default.json`, rotulado no científico.
-  - Si se empaqueta, pide al integrador extender `scripts/package_release.py`.
+- New pre-generated analysis, **outside** `artifacts/science-v2/`. Suggested path: `artifacts/analysis/ai-analysis.default.json`, labeled non-scientific.
+  - If it is packaged, ask the integrator to extend `scripts/package_release.py`.
 
 **Slots:**
 
-| Slot | Dónde se monta | Componente |
+| Slot | Where it is mounted | Component |
 |---|---|---|
-| `left.reading` | ≥1440 en Misión, sección inferior del panel izquierdo | `<ReadingPanel placement="panel">` |
-| `rail.reading` | 1100–1439, pestaña «Lectura IA» del riel | `<ReadingPanel placement="rail">` |
-| `full.reading` | pestaña «Lectura IA» de la ficha completa o S2 | `<ReadingPanel placement="full">` |
-| `sheet.reading` | <1100, S2 sin ● seleccionado tras «Ir a la Lectura» (M11) | `<ReadingPanel placement="full">` |
-| `pill.reading` | ≥1100 en Explorar y 1100–1439 en Misión (M11), arriba a la izquierda | `<ReadingPill openSignal={ui.readingRequest}>` |
+| `left.reading` | ≥1440 in Mission, bottom section of the left panel | `<ReadingPanel placement="panel">` |
+| `rail.reading` | 1100–1439, "AI Reading" tab of the rail | `<ReadingPanel placement="rail">` |
+| `full.reading` | "AI Reading" tab of the full sheet or S2 | `<ReadingPanel placement="full">` |
+| `sheet.reading` | <1100, S2 with no ● selected after "Go to the Reading" (M11) | `<ReadingPanel placement="full">` |
+| `pill.reading` | ≥1100 in Explore and 1100–1439 in Mission (M11), top left | `<ReadingPill openSignal={ui.readingRequest}>` |
 
-**Interfaz:**
-- `ReadingPanel({ data, placement })` y `ReadingPill({ data })`.
+**Interface:**
+- `ReadingPanel({ data, placement })` and `ReadingPill({ data })`.
 - `LKTRON_ENABLED: boolean`.
 - `interpretWithLktron(request, signal?): Promise<LktronResult<MissionInterpretation>>`.
-- Tipo `LktronResult<T>`.
+- Type `LktronResult<T>`.
 
-**Consume:**
-- `useMission`: `scoring`, `profile` e `interpretation`.
-- `useUi(missionPhase)`: cuando la fase es `analysis`, arma `evidence-packet/1` (FNV-1a 64), valida cada evento `ai-analysis/1` (§5.5) y termina con `setMissionPhase('done')`, también si solo hay hechos.
-- `buildMetricViews` de `metrics`.
-- `sensitivity` de `engine`, para la robustez con perfil de misión.
-- `OrbitLoader` de `boot`.
+**Consumes:**
+- `useMission`: `scoring`, `profile` and `interpretation`.
+- `useUi(missionPhase)`: when the phase is `analysis`, it builds `evidence-packet/1` (FNV-1a 64), validates each `ai-analysis/1` event (§5.5), and ends with `setMissionPhase('done')`, even if there are only facts.
+- `buildMetricViews` from `metrics`.
+- `sensitivity` from `engine`, for robustness with a mission profile.
+- `OrbitLoader` from `boot`.
 
-**Contratos:** `domain/aiContracts.ts` (`checkEvidencePacket`, `checkAiAnalysisEvent`, `checkMissionInterpretation`).
+**Contracts:** `domain/aiContracts.ts` (`checkEvidencePacket`, `checkAiAnalysisEvent`, `checkMissionInterpretation`).
 
 ---
 
-## 3. Estado compartido: quién escribe qué
+## 3. Shared state: who writes what
 
-| Campo | Escribe | Lee |
+| Field | Writes | Reads |
 |---|---|---|
-| `ui.mode` | armazón (pestañas), composer («/», Refinar) | todos |
-| `ui.selection` | armazón, places, globe (vía `onSelect`), composer (vista previa del #1) | todos |
+| `ui.mode` | shell (tabs), composer ("/", Refine) | all |
+| `ui.selection` | shell, places, globe (via `onSelect`), composer (preview of #1) | all |
 | `ui.hoverSiteId` | places | globe |
 | `ui.activeCriterionId` / `previewCriterionId` | metrics, analysis | leaders, metrics, analysis |
-| `ui.stageInsets` / `ui.obstacles` | **solo el armazón**, al asentarse | leaders, globe (vía props) |
+| `ui.stageInsets` / `ui.obstacles` | **shell only**, upon settling | leaders, globe (via props) |
 | `ui.missionPhase` | composer (`idle → interpreting → profile → scoring → analysis`, `error`, `cancelled`), analysis (`analysis → done`) | composer, places, analysis, boot |
 | `ui.introPhase` | boot | globe |
 | `ui.cameraTouchedAt` | globe (`touchCamera`), composer (`resetCameraTouch`) | composer |
-| `ui.readingRequest` | composer («Ir a la Lectura», `uiActions.requestReading()`, que también fija `mode: 'mision'`) | armazón (superficie según `readingRoute`), analysis (píldora) |
-| `missionStore` (`state/mission.ts`) | **solo composer** (incluido `geologyCatalog`, M10) | places, metrics, leaders, globe, analysis, informe imprimible |
-| `composerStore.geology` · `useGeology` · `geologyExportError` | controlador de misión; la casilla de la Lectura escribe `useGeology` (`setUseGeology`) | «Tu misión», Lectura |
-| `AppData.geology` (contexto geológico M9, opcional) | **solo `App.tsx`** (chunk diferido `loadAppGeology`) | ficha («Geología», Métricas, Fuentes); el armazón lo registra en el controlador (`registerMissionGeology`) |
-| `stageBridge` (por cuadro) | **solo globe** | leaders |
+| `ui.readingRequest` | composer ("Go to the Reading", `uiActions.requestReading()`, which also sets `mode: 'mision'`) | shell (surface according to `readingRoute`), analysis (pill) |
+| `missionStore` (`state/mission.ts`) | **composer only** (including `geologyCatalog`, M10) | places, metrics, leaders, globe, analysis, printable report |
+| `composerStore.geology` · `useGeology` · `geologyExportError` | mission controller; the Reading checkbox writes `useGeology` (`setUseGeology`) | "Your mission", Reading |
+| `AppData.geology` (M9 geological context, optional) | **only `App.tsx`** (deferred chunk `loadAppGeology`) | card ("Geology", Metrics, Sources); the shell registers it in the controller (`registerMissionGeology`) |
+| `stageBridge` (per frame) | **globe only** | leaders |
 
 ---
 
-## 4. Archivos compartidos: solo los edita el integrador
+## 4. Shared files: only the integrator edits them
 
-Si una feature necesita un cambio aquí, lo pide en su entrega.
+If a feature needs a change here, it requests it in its handoff.
 
-| Área | Archivos |
+| Area | Files |
 |---|---|
-| Armazón | `App.tsx`, `main.tsx`, `styles.css` y `shell/**`: `AppShell`, `RightRail`, `ModeTabs`, `Tabs`, `LiveRegion`, `announce`, `appData`, `public`, `layout`, `stageGeometry.js/.d.ts`, `shell.css`, `tokens.css`, `glyphs`, `placeLabel`, `useReducedMotion`, `useViewportLayout`, `sheet/**`, `detail/**` |
-| Estado | `state/store.ts`, `state/ui.ts`, `state/mission.ts` |
-| Dominio y contratos | `domain/contracts.ts`, `domain/aiContracts.ts`, `domain/formatting.ts`, `domain/scoring.ts`, `domain/marsReference.ts`, `domain/surfaceSeries.ts`, `domain/validators*.generated.*`, `scripts/build-validators.mjs` (+ `--check` en el build), `contracts/*.schema.json`, `tests/fixtures/contracts/**`, `tests/test_ai_contracts.py` |
-| Datos | `data/loadDemoSnapshot.ts`, `data/loadVisualContext.ts`, `data/loadBasemaps.ts` |
-| Contenido existente | `components/**` (Señal, Comparar, contexto satelital) y `liquid/**` |
-| Tests del armazón | `tests/featureContracts.test.ts`, `tests/shell.test.tsx`, `tests/uiStore.test.ts`, `tests/resolveDetent.test.ts`, `tests/reducedMotion.test.ts`, `tests/aiContracts.test.ts`, `tests/validators.test.ts`, `tests/snapshot.test.ts`, `tests/basemaps.test.ts`, `tests/surfaceSeries.test.ts`, `tests/visualContext.test.tsx` |
-| Configuración | `vite.config.ts`, `package.json`, `package-lock.json`, `tsconfig.json`, `vercel.json`, `scripts/**` |
-| Documentación | `docs/**` (incluidos los ADR), `project/**`, `README.md`, `CLAUDE.md`, `AGENTS.md` |
-| Artefactos | `artifacts/science-v2/**` y `submission/**`: **nadie los regenera** |
+| Shell | `App.tsx`, `main.tsx`, `styles.css` and `shell/**`: `AppShell`, `RightRail`, `ModeTabs`, `Tabs`, `LiveRegion`, `announce`, `appData`, `public`, `layout`, `stageGeometry.js/.d.ts`, `shell.css`, `tokens.css`, `glyphs`, `placeLabel`, `useReducedMotion`, `useViewportLayout`, `sheet/**`, `detail/**` |
+| State | `state/store.ts`, `state/ui.ts`, `state/mission.ts` |
+| Domain and contracts | `domain/contracts.ts`, `domain/aiContracts.ts`, `domain/formatting.ts`, `domain/scoring.ts`, `domain/marsReference.ts`, `domain/surfaceSeries.ts`, `domain/validators*.generated.*`, `scripts/build-validators.mjs` (+ `--check` in the build), `contracts/*.schema.json`, `tests/fixtures/contracts/**`, `tests/test_ai_contracts.py` |
+| Data | `data/loadDemoSnapshot.ts`, `data/loadVisualContext.ts`, `data/loadBasemaps.ts` |
+| Existing content | `components/**` (Signal, Compare, satellite context) and `liquid/**` |
+| Shell tests | `tests/featureContracts.test.ts`, `tests/shell.test.tsx`, `tests/uiStore.test.ts`, `tests/resolveDetent.test.ts`, `tests/reducedMotion.test.ts`, `tests/aiContracts.test.ts`, `tests/validators.test.ts`, `tests/snapshot.test.ts`, `tests/basemaps.test.ts`, `tests/surfaceSeries.test.ts`, `tests/visualContext.test.tsx` |
+| Configuration | `vite.config.ts`, `package.json`, `package-lock.json`, `tsconfig.json`, `vercel.json`, `scripts/**` |
+| Documentation | `docs/**` (including the ADRs), `project/**`, `README.md`, `CLAUDE.md`, `AGENTS.md` |
+| Artifacts | `artifacts/science-v2/**` and `submission/**`: **nobody regenerates them** |
 
 ---
 
-## 5. Mapa de slots del armazón
+## 5. Shell slot map
 
 ```
-┌ topbar ─ brand · ModeTabs (Explorar|Misión) · [topbar.status → boot.StatusChip] ─────┐
-│ aviso científico fijo                                                                 │
+┌ topbar ─ brand · ModeTabs (Explore|Mission) · [topbar.status → boot.StatusChip] ─────┐
+│ fixed scientific notice                                                               │
 ├──────────────┬────────────────────────────────────────────────┬──────────────────────┤
-│ ≥1440 Misión │  stage → globe.MapStage                         │ rail (≥1100, con     │
-│ left-panel   │  stage.overlay → leaders.LeaderLayer,           │ selección)           │
+│ ≥1440 Mission │  stage → globe.MapStage                         │ rail (≥1100, with    │
+│ left-panel   │  stage.overlay → leaders.LeaderLayer,           │ selection)           │
 │ left.mission │                 boot.BootLayer                  │  rail.metrics        │
 │ left.reading │  stage.hud (hudSlot) → leaders.LeaderToggle     │  rail.reading (1100– │
-│              │  pill.reading (Explorar) → analysis.ReadingPill │  1439, pestaña)      │
+│              │  pill.reading (Explore) → analysis.ReadingPill  │  1439, tab)          │
 │              │                                                 │  rail.reference      │
-│              ├─ dock (≥1100) ──────────────────────────────────┤  «Ver ficha → 520»:  │
+│              ├─ dock (≥1100) ──────────────────────────────────┤  «View sheet → 520»: │
 │              │  dock.places → places.PlaceRail                 │  full.metrics ·      │
-│              │  dock.composer → composer.Composer              │  full.reading · Señal│
-└──────────────┴─────────────────────────────────────────────────┴  Comparar · Método · │
-                                                                    Fuentes             │
-<1100: una hoja (#mode-panel)                                                            │
+│              │  dock.composer → composer.Composer              │  full.reading · Signal│
+└──────────────┴─────────────────────────────────────────────────┴  Compare · Method · │
+                                                                    Sources           │
+<1100: one sheet (#mode-panel)                                                          │
   S0 → sheet.tray.places + sheet.tray.composer                                            │
-  S1 → sheet.s1 (metrics) · sheet.head (composer «✦ Refinar») · sheet.list sin selección  │
-  S2 → ficha completa: full.metrics · full.reading · full.mission (Misión) · full.geology · Señal…       │
+  S1 → sheet.s1 (metrics) · sheet.head (composer «✦ Refine») · sheet.list with no selection  │
+  S2 → full sheet: full.metrics · full.reading · full.mission (Mission) · full.geology · Signal…       │
 ```
 
-Cada envoltorio lleva `data-slot="<nombre>"` en el DOM, para tests y QA. La ficha completa (riel 520 px y S2) suma la pestaña «Geología» (`full.geology`, contexto geológico oficial M9 del equipo) después de «Origen».
+Each wrapper carries `data-slot="<name>"` in the DOM, for tests and QA. The full card (520 px rail and S2) adds the "Geology" tab (`full.geology`, the team's official M9 geological context) after "Origin".
 
 ---
 
-## 6. Orden de integración sugerido
+## 6. Suggested integration order
 
-1. `engine`: puro, sin UI; desbloquea la paridad.
-2. `places`, `globe`, `metrics` y `boot`, en cualquier orden: tocan carpetas disjuntas.
-3. `leaders`: consume `globe` y `metrics`.
-4. `analysis` y `composer`: consumen `engine`, `boot.OrbitLoader` y `metrics`.
+1. `engine`: pure, no UI; unblocks parity.
+2. `places`, `globe`, `metrics` and `boot`, in any order: they touch disjoint folders.
+3. `leaders`: consumes `globe` and `metrics`.
+4. `analysis` and `composer`: consume `engine`, `boot.OrbitLoader` and `metrics`.
 
-El integrador fusiona cada rama en `feature/mision-redesign`. En cada paso corre `npm run test`, `npm run build`, pytest y la verificación en navegador, y actualiza `project/STATUS.md`.
+The integrator merges each branch into `feature/mision-redesign`. At each step it runs `npm run test`, `npm run build`, pytest and browser verification, and updates `project/STATUS.md`.

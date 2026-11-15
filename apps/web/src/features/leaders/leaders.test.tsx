@@ -60,12 +60,12 @@ afterEach(() => {
 })
 
 describe('LeaderToggle', () => {
-  it('es un interruptor accesible «Líneas» con su estado', () => {
+  it('is an accessible “Lines” toggle with its state', () => {
     const on = renderToStaticMarkup(<LeaderToggle />)
     expect(on).toContain('role="switch"')
     expect(on).toContain('aria-checked="true"')
     expect(on).toContain('type="button"')
-    expect(on).toContain('Líneas<span class="leaders-toggle-state" aria-hidden="true">: sí</span>')
+    expect(on).toContain('Lines<span class="leaders-toggle-state" aria-hidden="true">: on</span>')
     setLeadersEnabled(false)
     const off = renderToStaticMarkup(<LeaderToggle />)
     expect(off).toContain('aria-checked="false"')
@@ -74,7 +74,7 @@ describe('LeaderToggle', () => {
 })
 
 describe('LeaderLayer', () => {
-  it('sin selección, con un ◆ seleccionado o con las líneas apagadas no dibuja nada', () => {
+  it('without a selection, with a ◆ selected or with lines off it draws nothing', () => {
     expect(renderToStaticMarkup(<LeaderLayer data={data} />)).toBe('')
     uiActions.select('devon-island', 'reference')
     expect(renderToStaticMarkup(<LeaderLayer data={data} />)).toBe('')
@@ -83,51 +83,51 @@ describe('LeaderLayer', () => {
     expect(renderToStaticMarkup(<LeaderLayer data={data} />)).toBe('')
   })
 
-  it('con un sector evaluado carga el dibujo en diferido (sin bloquear el render)', () => {
+  it('with an evaluated sector it loads the drawing deferred (without blocking render)', () => {
     uiActions.select(yungay.site_id, 'evaluated')
     expect(() => renderToStaticMarkup(<LeaderLayer data={data} />)).not.toThrow()
   })
 })
 
 describe('LeaderStage', () => {
-  it('capa aria-hidden: el riel de métricas es la ruta accesible', () => {
+  it('aria-hidden layer: the metrics rail is the accessible route', () => {
     const html = stage()
     expect(html).toMatch(/^<div class="leaders-layer" data-mode="off" data-phase="waiting" aria-hidden="true">/)
   })
 
-  it('cuatro etiquetas en orden de peso con valores reales; ■ solo donde hay MOLA', () => {
+  it('four labels in weight order with real values; ■ only where there is MOLA', () => {
     const html = stage()
     const titles = [...html.matchAll(/<div class="leaders-title"><span>([^<]+)<\/span>/g)].map((match) => match[1])
-    expect(titles).toEqual(['Pendiente', 'Rugosidad', 'Suelo expuesto', 'Relieve local'])
+    expect(titles).toEqual(['Slope', 'Roughness', 'Bare ground', 'Local relief'])
     expect(html.match(/class="leaders-mars"/g)).toHaveLength(3)
-    expect(html).toContain('3,2°')
-    expect(html).toContain('2,2°')
-    expect(html).toContain('69 %')
-    expect(html).toContain('┆ regla')
-    expect(html).toContain('cumple la regla · no significa igual a Marte')
-    expect(html).toContain('limitante')
+    expect(html).toContain('3.2°')
+    expect(html).toContain('2.2°')
+    expect(html).toContain('69%')
+    expect(html).toContain('┆ rule')
+    expect(html).toContain('meets the rule · does not mean equal to Mars')
+    expect(html).toContain('limiting')
   })
 
-  it('encabezado de honestidad: todo el sector, medianas, vs ■ Jezero (MOLA)', () => {
+  it('honesty header: whole sector, medians, vs ■ Jezero (MOLA)', () => {
     const text = stage().replace(/<[^>]+>/g, '').replace(/<!-- -->/g, '')
-    expect(text).toContain('Todo el sector · ≈ 450 km² · medianas ~460–480 m · vs ■ Jezero (MOLA)')
+    expect(text).toContain('Whole sector · ≈ 450 km² · medians ~460–480 m · vs ■ Jezero (MOLA)')
   })
 
-  it('un trazo por etiqueta; la línea de un dato pendiente es discontinua (sin pathLength)', () => {
+  it('one stroke per label; the line of a pending value is dashed (no pathLength)', () => {
     const geology = leaderLabelModel(snapshotViews(yungay, { geologic_relevance: 0.5 }).find((view) => view.criterionId === 'geologic_relevance') ?? (() => { throw new Error('geo') })())
     const html = stage({ labels: [geology, ...labels.slice(0, 3)] })
     expect(html.match(/<path /g)).toHaveLength(4)
     expect(html).toMatch(/<path class="leaders-path" data-pending="" style="--i:0" d=""><\/path>/)
     expect(html.match(/pathLength="1"/g)).toHaveLength(3)
-    expect(html).toContain('por calcular')
+    expect(html).toContain('not yet calculated')
   })
 
-  it('marca la etiqueta y la línea del criterio activo en el riel', () => {
+  it('marks the label and the line of the active criterion in the rail', () => {
     const html = stage({ activeId: 'terrain_roughness' })
     expect(html.match(/data-active=""/g)?.length).toBe(3) // capa + trazo + etiqueta
   })
 
-  it('en móvil: una sola línea, sin etiquetas ni encabezado', () => {
+  it('on mobile: a single line, no labels or header', () => {
     const html = stage({ narrow: true, width: 390, height: 844 })
     expect(html.match(/<path /g)).toHaveLength(1)
     expect(html).not.toContain('leaders-label')
@@ -135,23 +135,23 @@ describe('LeaderStage', () => {
     expect(html).toContain('data-narrow=""')
   })
 
-  it('misión en curso: capa a --o-busy', () => {
+  it('mission in progress: layer at --o-busy', () => {
     expect(stage({ busy: true })).toContain('data-busy=""')
   })
 })
 
-describe('estilos de las líneas (§2.2 y §2.4)', () => {
+describe('line styles (§2.2 and §2.4)', () => {
   const css = readFileSync(resolve(__dirname, 'leaders.css'), 'utf8')
   const toggleCss = readFileSync(resolve(__dirname, 'leaders-toggle.css'), 'utf8')
 
-  it('sin blur y sin estilizar clases del armazón', () => {
+  it('no blur and no styling of shell classes', () => {
     for (const sheet of [css, toggleCss]) {
       expect(sheet).not.toMatch(/backdrop-filter/)
       expect(sheet).not.toMatch(/(^|[\s,}])\.(app|dock|rail|sheet|topbar|stage)\b/m)
     }
   })
 
-  it('los keyframes solo animan opacity, transform o stroke-dashoffset, sin bucles', () => {
+  it('keyframes only animate opacity, transform or stroke-dashoffset, no loops', () => {
     const frames = [...css.matchAll(/@keyframes [\w-]+ \{([^@]*?)\}\s*(?=@|\.|$)/g)].map((match) => match[1] ?? '')
     expect(frames.length).toBeGreaterThanOrEqual(3)
     for (const body of frames) {
@@ -161,7 +161,7 @@ describe('estilos de las líneas (§2.2 y §2.4)', () => {
     expect(css).not.toMatch(/infinite/)
   })
 
-  it('la coreografía está parametrizada en tokens y se apaga con reduced motion', () => {
+  it('the choreography is parameterized in tokens and turns off with reduced motion', () => {
     for (const token of ['--leaders-after-ring', '--leaders-line-dur', '--leaders-line-stagger', '--leaders-label-dur', '--leaders-label-shift', '--leaders-line-ease']) {
       expect(css).toContain(`${token}:`)
     }

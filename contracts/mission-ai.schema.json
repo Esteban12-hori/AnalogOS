@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://analogos.cl/schemas/mission-ai.schema.json",
   "title": "AnalogOS Mission AI contracts (M8)",
-  "description": "Salidas del modelo (acotadas), selección de explicación y registros de procedencia. La IA solo propone borradores y selecciona referencias; nunca produce hechos ni veredictos.",
+  "description": "Model outputs (bounded), explanation selection and provenance records. The AI only proposes drafts and selects references; it never produces facts or verdicts.",
   "$defs": {
     "draftItem": {
       "type": "object",

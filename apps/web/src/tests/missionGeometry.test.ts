@@ -16,20 +16,20 @@ const request = (scope: MissionRequest['scope']): MissionRequest => ({
   requirements: [], open_questions: [], scope, confirmed: true,
 })
 
-describe('geometría y cobertura', () => {
-  it('sector existente: geometría pedida = medida', () => {
+describe('geometry and coverage', () => {
+  it('existing sector: requested geometry = measured', () => {
     const r = resolveScope({ mode: 'sector', site_id: A }, candidates)
     expect(r.state).toBe('covered')
     expect(r.evaluated_site_ids).toEqual([A])
   })
-  it('sector inexistente se rechaza al evaluar', () => {
-    expect(() => evaluateMission(request({ mode: 'sector', site_id: 'cl-no-existe' }), bundle)).toThrow(/no existe/)
+  it('a nonexistent sector is rejected on evaluation', () => {
+    expect(() => evaluateMission(request({ mode: 'sector', site_id: 'cl-no-existe' }), bundle)).toThrow(/does not exist/)
   })
-  it('punto dentro: exige elegir ventana y aclara que no es el punto exacto', () => {
+  it('point inside: requires choosing a window and clarifies it is not the exact point', () => {
     const r = resolveScope({ mode: 'point', lon: -69.7, lat: -25.0, window_site_id: null }, candidates)
     expect(r.state).toBe('needs_window_selection')
     expect(r.evaluated_site_ids).toEqual([])
-    expect(r.notes.join(' ')).toMatch(/no del punto exacto/)
+    expect(r.notes.join(' ')).toMatch(/not for the exact point/)
     const ev = evaluateMission(request({ mode: 'point', lon: -69.7, lat: -25.0, window_site_id: null }), bundle)
     expect(ev.outcome).toBe('needs_window_selection')
     expect(ev.options).toEqual([])
@@ -38,16 +38,16 @@ describe('geometría y cobertura', () => {
     expect(chosen.resolution.state).toBe('window_selected')
     expect(chosen.options.map((o) => o.site_id)).toEqual([A])
   })
-  it('punto en borde compartido devuelve varias coincidencias y no elige solo', () => {
-    // lon -69.6 es borde este de A y oeste de cl-win-s2480-w06950; lat -24.9 borde norte de A y sur de la vecina.
+  it('a point on a shared edge returns several matches and does not choose by itself', () => {
+    // lon -69.6 is the east edge of A and the west edge of cl-win-s2480-w06950; lat -24.9 is the north edge of A and the south edge of its neighbor.
     const r = resolveScope({ mode: 'point', lon: -69.6, lat: -24.9, window_site_id: null }, candidates)
     expect(r.matches.length).toBeGreaterThan(1)
     expect(r.state).toBe('needs_window_selection')
   })
-  it('ventana elegida debe coincidir geométricamente', () => {
-    expect(() => evaluateMission(request({ mode: 'point', lon: -69.7, lat: -25.0, window_site_id: 'ar-win-s2620-w06750' }), bundle)).toThrow(/no coincide/)
+  it('a chosen window must match geometrically', () => {
+    expect(() => evaluateMission(request({ mode: 'point', lon: -69.7, lat: -25.0, window_site_id: 'ar-win-s2620-w06750' }), bundle)).toThrow(/does not geometrically match/)
   })
-  it('punto fuera: sin vecino más cercano, informe insuficiente exportable', () => {
+  it('point outside: no nearest neighbor, exportable insufficient report', () => {
     const ev = evaluateMission(request({ mode: 'point', lon: 10, lat: 10, window_site_id: null }), bundle)
     expect(ev.outcome).toBe('insufficient_coverage')
     expect(ev.options).toEqual([])
@@ -55,14 +55,14 @@ describe('geometría y cobertura', () => {
     expect(ev.data_request!.planned_sources.length).toBeGreaterThan(0)
     expect(ev.data_request!.planned_sources.every((s) => s.landing_url.length > 0)).toBe(true)
   })
-  it('bbox idéntico a la ventana (mismo decimal, con ruido de coma flotante) es cobertura completa', () => {
+  it('bbox identical to the window (same decimal, with floating-point noise) is full coverage', () => {
     const r = resolveScope({ mode: 'bbox', bbox: [-69.8, -25.1, -69.6, -24.9], window_site_id: null }, candidates)
     expect(r.state).toBe('covered')
     expect(r.evaluated_site_ids).toEqual([A])
     const noisy = resolveScope({ mode: 'bbox', bbox: [-69.8 + 1e-12, -25.1, -69.6 - 1e-12, -24.9], window_site_id: null }, candidates)
     expect(noisy.state).toBe('covered')
   })
-  it('un bbox casi igual NO hereda métricas: solo épsilon numérica, sin tolerancia científica', () => {
+  it('a nearly equal bbox does NOT inherit metrics: numeric epsilon only, no scientific tolerance', () => {
     for (const d of [0.0005, 0.0015, 0.002, 0.00001]) {
       const near = resolveScope({ mode: 'bbox', bbox: [-69.8 + d, -25.1 + d, -69.6 - d, -24.9 - d], window_site_id: null }, candidates)
       expect(near.state, `margen ${d}`).toBe('partial_coverage')
@@ -75,7 +75,7 @@ describe('geometría y cobertura', () => {
     expect(ev.outcome).toBe('insufficient_coverage')
     expect(ev.options).toEqual([])
   })
-  it('subbbox y bbox parcial no heredan métricas; la ventana solo entra por acción explícita', () => {
+  it('sub-bbox and partial bbox do not inherit metrics; the window only enters by explicit action', () => {
     const sub = resolveScope({ mode: 'bbox', bbox: [-69.75, -25.05, -69.65, -24.95], window_site_id: null }, candidates)
     expect(sub.state).toBe('partial_coverage')
     expect(sub.matches[0].relation).toBe('contains_bbox')
@@ -91,24 +91,24 @@ describe('geometría y cobertura', () => {
     expect(explicit.resolution.state).toBe('window_selected')
     expect(explicit.resolution.requested.approx_area_km2).toBeLessThan(explicit.resolution.measured[0].area_km2)
   })
-  it('bbox mayor que la ventana: cobertura parcial', () => {
+  it('bbox larger than the window: partial coverage', () => {
     const r = resolveScope({ mode: 'bbox', bbox: [-70, -25.3, -69.5, -24.7], window_site_id: null }, candidates)
     expect(r.state).toBe('partial_coverage')
     expect(r.matches.some((m) => m.relation === 'inside_bbox')).toBe(true)
   })
-  it('bbox fuera de piloto: sin cobertura', () => {
+  it('bbox outside the pilot: no coverage', () => {
     expect(resolveScope({ mode: 'bbox', bbox: [10, 10, 11, 11], window_site_id: null }, candidates).state).toBe('no_coverage')
   })
-  it('valida rangos, orden, finitud y tamaño', () => {
+  it('validates ranges, order, finiteness and size', () => {
     expect(validatePoint(Number.NaN, 0)).not.toEqual([])
     expect(validatePoint(181, 0)).not.toEqual([])
     expect(validatePoint(0, -91)).not.toEqual([])
     expect(validatePoint(-69.7, -25)).toEqual([])
-    expect(validateBbox([-69, -25, -70, -24]).join()).toMatch(/Orden de longitud/)
-    expect(validateBbox([-70, -24, -69, -25]).join()).toMatch(/Orden de latitud/)
+    expect(validateBbox([-69, -25, -70, -24]).join()).toMatch(/longitude order/)
+    expect(validateBbox([-70, -24, -69, -25]).join()).toMatch(/latitude order/)
     expect(validateBbox([-70, -25, Infinity, -24])).not.toEqual([])
     expect(validateBbox([-70, -25, -69.9999, -24])).not.toEqual([])
-    expect(validateBbox([-80, -40, -60, -20]).join()).toMatch(/supera/)
+    expect(validateBbox([-80, -40, -60, -20]).join()).toMatch(/exceeds/)
     expect(validateBbox([-70, -25, -69, -24])).toEqual([])
     expect(validateMissionRequest(request({ mode: 'bbox', bbox: [-69, -25, -70, -24], window_site_id: null })).ok).toBe(false)
     expect(validateMissionRequest(request({ mode: 'point', lon: 200, lat: 0, window_site_id: null })).ok).toBe(false)

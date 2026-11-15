@@ -1,6 +1,6 @@
 /**
- * Layout del escenario fijo (ADR-014, docs/UX_REDESIGN.md §2.1). Funciones puras: tramo,
- * anchos de paneles, alturas de la hoja y márgenes del escenario según el estado.
+ * Fixed stage layout (ADR-014, docs/UX_REDESIGN.md §2.1). Pure functions: breakpoint,
+ * panel widths, sheet heights and stage margins depending on the state.
  */
 import type { StageInsets, UiMode } from '../state/ui'
 import {
@@ -23,9 +23,9 @@ export interface ViewportLayout {
   width: number
   height: number
   tramo: StageTramo
-  /** Alto < 860 px: tarjetas de 112 px, filas de 44 px y 3 etiquetas Tesla. */
+  /** Height < 860 px: 112 px cards, 44 px rows and 3 Tesla labels. */
   compact: boolean
-  /** <1100 px, horizontal y alto ≤500 px: hoja lateral de 360 px. */
+  /** <1100 px, landscape and height ≤500 px: 360 px side sheet. */
   sideSheet: boolean
 }
 
@@ -45,7 +45,7 @@ export function railWidth(width: number): number {
   return Math.round(Math.min(g.railMax, Math.max(g.railMin, width * g.railVw)))
 }
 
-/** Alturas visibles de la hoja por detent (px desde el borde inferior). */
+/** Visible sheet heights per detent (px from the bottom edge). */
 export function sheetDetentHeights(width: number, height: number): Record<DetentId, number> {
   const s0 = sheetS0Height(height)
   const s2 = Math.max(s0, height - chromeTop(width))
@@ -57,16 +57,16 @@ export interface StageLayoutState {
   width: number
   height: number
   mode: UiMode
-  /** Riel derecho abierto (≥1100 con un lugar seleccionado). */
+  /** Right rail open (≥1100 with a selected place). */
   railOpen: boolean
-  /** «Ver ficha completa»: riel de 520 px. */
+  /** “See full details”: 520 px rail. */
   railFull: boolean
   detent: DetentId
 }
 
 /**
- * Márgenes que tapa la UI sobre el escenario en este estado. El globo los aplica como
- * desplazamiento (setViewOffset) y MapLibre como padding; no cambian la escala.
+ * Margins that the UI covers over the stage in this state. The globe applies them as an
+ * offset (setViewOffset) and MapLibre as padding; they do not change the scale.
  */
 export function stageInsetsFor(state: StageLayoutState): StageInsets {
   const g = STAGE_GEOMETRY
@@ -80,11 +80,11 @@ export function stageInsetsFor(state: StageLayoutState): StageInsets {
   }
   if (usesSideSheet(width, height)) return base
   const heights = sheetDetentHeights(width, height)
-  // En S2 el escenario queda inert y en pausa: se conserva el encuadre de S1.
+  // In S2 the stage is left inert and paused: the S1 framing is preserved.
   return { ...base, bottom: state.detent === 'S0' ? heights.S0 : heights.S1 }
 }
 
-/** Variables CSS que el armazón publica en su raíz (las features las leen, no las escriben). */
+/** CSS variables that the shell publishes on its root (features read them, they do not write them). */
 export function layoutCssVars(width: number, height: number): Record<string, string> {
   const heights = sheetDetentHeights(width, height)
   return {

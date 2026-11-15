@@ -1,6 +1,6 @@
-"""Descarga las entradas abiertas del snapshot científico preliminar.
+"""Downloads the open inputs of the preliminary science snapshot.
 
-No requiere credenciales. Reutiliza archivos que ya tienen el tamaño esperado.
+Requires no credentials. Reuses files that already have the expected size.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ TLS_CONTEXT = ssl.create_default_context(cafile=certifi.where())
 
 def _download(url: str, destination: Path, expected_bytes: int | None = None) -> None:
     if destination.exists() and (expected_bytes is None or destination.stat().st_size == expected_bytes):
-        print(f"reutilizado {destination}")
+        print(f"reused {destination}")
         return
     destination.parent.mkdir(parents=True, exist_ok=True)
     request = Request(url, headers={"User-Agent": USER_AGENT})
@@ -31,8 +31,8 @@ def _download(url: str, destination: Path, expected_bytes: int | None = None) ->
         while chunk := response.read(1024 * 1024):
             target.write(chunk)
     if expected_bytes is not None and destination.stat().st_size != expected_bytes:
-        raise RuntimeError(f"Tamaño inesperado para {destination}")
-    print(f"descargado {destination}")
+        raise RuntimeError(f"Unexpected size for {destination}")
+    print(f"downloaded {destination}")
 
 
 def _fetch_json(url: str) -> dict:
@@ -67,7 +67,7 @@ def fetch(config_path: Path) -> None:
     target = ROOT / power["file"]
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(points, ensure_ascii=False, indent=2, sort_keys=True) + "\n", "utf-8")
-    print(f"escrito {target}")
+    print(f"wrote {target}")
 
 
 def main() -> None:

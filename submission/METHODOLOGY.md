@@ -1,103 +1,103 @@
-# Metodología reproducible
+# Reproducible methodology
 
-## Perfil
+## Profile
 
-Objetivo P0: priorizar sectores para investigar pruebas terrestres de percepción, tracción, navegación y autonomía de rover. La salida no evalúa un sitio de base permanente ni autoriza una campaña.
+P0 objective: prioritize sectors for investigating terrestrial tests of perception, traction, navigation, and rover autonomy. The output does not evaluate a permanent base site and does not authorize a campaign.
 
-## Referencia planetaria
+## Planetary reference
 
-- Producto: MGS MOLA MEGDR `MEGT44N000HB`.
-- Archivo: 128 píxeles/grado, enteros big-endian de 16 bits.
-- Ventana: centro 18,38° N, 77,58° E; 1,6° × 1,6° alrededor del entorno regional de Jezero.
-- Escala nominal usada: ~451 m promedio entre el tamaño latitudinal y longitudinal de celda.
+- Product: MGS MOLA MEGDR `MEGT44N000HB`.
+- File: 128 pixels/degree, big-endian integers of 16 bits.
+- Window: center 18.38° N, 77.58° E; 1.6° × 1.6° around the regional environment of Jezero.
+- Nominal scale used: ~451 m average between the latitudinal and longitudinal cell size.
 
-Métricas derivadas:
+Derived metrics:
 
-- mediana de pendiente: 2,226°;
-- diferencia absoluta mediana entre celdas vecinas: 11,0 m;
-- relieve local mediano en ventana 3×3: 47,0 m.
+- median slope: 2.226°;
+- median absolute difference between neighboring cells: 11.0 m;
+- median local relief in a 3×3: window 47.0 m.
 
-## Terreno terrestre v2
+## Terrestrial terrain v2
 
-- Producto: NASADEM_HGT.001 de NASA LP DAAC, descargado con Earthdata Login.
-- Ventanas: 0,2° × 0,2° centradas en cada sector.
-- Transformación: mosaico de todos los tiles intersectados, recorte y media de bloques 16×16 antes de derivar métricas.
-- Escala de análisis resultante: ~473–476 m según latitud.
+- Product: NASADEM_HGT.001 from NASA LP DAAC, downloaded with Earthdata Login.
+- Windows: 0.2° × 0.2° centered on each sector.
+- Transformation: mosaic of all intersected tiles, cropping, and 16×16 block averaging before deriving metrics.
+- Resulting analysis scale: ~473–476 m depending on latitude.
 
-Yungay cruza cuatro tiles. El mosaico previo al recorte corrige el truncamiento de borde presente en v1. La máscara SWB de NASADEM se usa para screening de agua permanente.
+Yungay crosses four tiles. Mosaicking before cropping corrects the edge truncation present in v1. The NASADEM SWB mask is used for permanent water screening.
 
-La similitud de cada variable topográfica es la razón entre el menor y el mayor de los valores Tierra/Marte:
+The similarity of each topographic variable is the ratio between the smaller and the larger of the Earth/Mars values:
 
 ```text
 s = min(valor_tierra, valor_marte) / max(valor_tierra, valor_marte)
 ```
 
-Esto entrega 1 cuando las métricas coinciden y decrece de forma simétrica para valores mayores o menores. Es una métrica de screening, no una distribución de error físico.
+This yields 1 when the metrics match and decreases symmetrically for larger or smaller values. It is a screening metric, not a physical error distribution.
 
-## Superficie Sentinel-2
+## Sentinel-2 surface
 
-- Producto: Copernicus Sentinel-2 L2A mediante Statistical API.
-- Periodo: doce intervalos mensuales, enero–diciembre de 2025.
-- Resolución solicitada: 0,0003° (~30 m nominal).
-- Mosaico: menor nubosidad, con máximo 40 % de nube por escena.
-- Máscara válida: SCL 2, 4, 5 y 6; se excluyen NoData, saturado, sombra, nubes, cirrus, no clasificado y nieve.
+- Product: Copernicus Sentinel-2 L2A via the Statistical API.
+- Period: twelve monthly intervals, January–December 2025.
+- Requested resolution: 0.0003° (~30 m nominal).
+- Mosaic: lowest cloudiness, with a maximum of 40 % cloud per scene.
+- Valid mask: SCL 2, 4, 5 and 6; NoData, saturated, shadow, clouds, cirrus, unclassified, and snow are excluded.
 
-La fracción no vegetada es la media espacial de SCL clase 5 por mes y luego la mediana temporal. Su similitud es esa misma fracción porque el perfil de prueba requiere continuidad de superficie expuesta; no se presenta como analogía mineralógica con Marte. También se conservan NDVI y BSI para auditoría.
+The non-vegetated fraction is the spatial mean of SCL class 5 per month and then the temporal median. Its similarity is that same fraction because the test profile requires continuity of exposed surface; it is not presented as a mineralogical analogy with Mars. NDVI and BSI are also retained for auditing.
 
-NASA HLS S30 v2.0 se consulta mediante CMR como inventario independiente. Sus píxeles no entran al score para evitar doble conteo de observaciones Sentinel-2.
+NASA HLS S30 v2.0 is queried via CMR as an independent inventory. Its pixels do not enter the score, to avoid double counting Sentinel-2. observations
 
-## Contexto climático
+## Climate context
 
 NASA POWER Climatology Point API, 2001–2025:
 
-- precipitación anual aproximada = `PRECTOTCORR.ANN × 365,25`;
-- rango térmico superficial = `TS_MAX.ANN − TS_MIN.ANN`.
+- approximate annual precipitation = `PRECTOTCORR.ANN × 365,25`;
+- surface thermal range = `TS_MAX.ANN − TS_MIN.ANN`.
 
-La precipitación usa una preferencia decreciente con escala de 25 mm/año:
-
-```text
-s_aridez = 1 / (1 + precipitación_anual / 25)
-```
-
-El rango térmico satura a 45 °C:
+Precipitation uses a decreasing preference with a scale of 25 mm/year:
 
 ```text
-s_térmica = min(rango_térmico / 45, 1)
+s_aridity = 1 / (1 + annual_precipitation / 25)
 ```
 
-Ambos son requisitos de ingeniería versionados, no equivalencias climáticas completas con Marte. POWER representa la celda regional más cercana, no una estación local.
+The thermal range saturates at 45 °C:
 
-## Agregación
+```text
+s_thermal = min(thermal_range / 45, 1)
+```
 
-Para criterios válidos:
+Both are versioned engineering requirements, not full climate equivalences with Mars. POWER represents the nearest regional cell, not a local station.
+
+## Aggregation
+
+For valid criteria:
 
 ```text
 S = 100 × exp(Σ w′ᵢ × ln(max(sᵢ, 0,01)))
 ```
 
-Los pesos válidos se renormalizan. Si suman menos de 0,70, no se publica similitud. En v2 el peso válido es 0,90; solo geología permanece fuera del score.
+Valid weights are renormalized. If they sum to less than 0,70,, no similarity is published. In v2 the valid weight is 0.90; only geology remains outside the score.
 
-Confianza:
+Confidence:
 
 ```text
 C = 100 × Σ wᵢ × qᵢ
 ```
 
-Los datos faltantes aportan calidad cero. Confianza y similitud nunca se combinan.
+Missing data contribute zero quality. Confidence and similarity are never combined.
 
-Las calidades `qᵢ` son valores asignados por tipo de fuente (ADR-003), no incertidumbres medidas. Por eso la confianza casi no distingue entre los tres sectores (77,41–77,45): indica cuánta evidencia entró al score, no qué sector está mejor medido.
+The `qᵢ` qualities are values assigned by source type (ADR-003), not measured uncertainties. For that reason, confidence barely distinguishes among the three sectors (77.41–77.45): it indicates how much evidence entered the score, not which sector is better measured.
 
-En el perfil, `validated` significa «aprobado para screening por ADR-002 y ADR-003»; no hubo validación experta externa ni de campo. El campo `method: reference_distribution_distance` se implementa en v2 como la razón de medianas descrita arriba, no como una distancia entre distribuciones completas.
+In the profile, `validated` means "approved for screening by ADR-002 and ADR-003"; there was no external expert or field validation. The `method: reference_distribution_distance` field is implemented in v2 as the ratio of medians described above, not as a distance between full distributions.
 
-## Factibilidad
+## Feasibility
 
-Cada restricción declara autoridad, fuente, acción y razón. En v2 se completa el screening de agua permanente con NASADEM SWB y Sentinel-2. Áreas protegidas, urbano, acceso, propiedad y peligros a escala de rueda siguen pendientes; por ello todos los candidatos quedan `requires_review`.
+Each constraint declares authority, source, action, and reason. In v2, permanent water screening is completed with NASADEM SWB and Sentinel-2. Protected areas, urban areas, access, ownership, and wheel-scale hazards remain pending; therefore all candidates remain `requires_review`.
 
-## Sensibilidad
+## Sensitivity
 
-Cada peso se perturba individualmente −20 % y +20 %, renormalizando el conjunto. La estabilidad publicada es `100 − peor cambio absoluto del score`. No mide incertidumbre del raster, selección del perfil ni sensibilidad conjunta.
+Each weight is individually perturbed by −20 % and +20 %, renormalizing the set. The published stability is `100 − worst absolute score change`. It does not measure raster uncertainty, profile selection, or joint sensitivity.
 
-## Reproducibilidad
+## Reproducibility
 
 ```bash
 python -m pipelines.fetch_precision_data
@@ -105,29 +105,29 @@ python -m pipelines.build_precision_snapshot
 npm run verify
 ```
 
-El manifiesto guarda proveedor, producto, versión, URL, fecha, periodo, resolución, CRS, unidades, licencia, NoData, transformaciones y checksum SHA-256. Credenciales y tokens se omiten deliberadamente.
+The manifest stores provider, product, version, URL, date, period, resolution, CRS, units, license, NoData, transformations, and SHA-256 checksum. Credentials and tokens are deliberately omitted.
 
-## Búsqueda del piloto v3
+## v3 Pilot Search
 
-Lo anterior describe las fórmulas, que no cambian. El snapshot `science-screening-v3` las aplica a una búsqueda en lugar de a sectores elegidos de antemano.
+The above describes the formulas, which do not change. The `science-screening-v3` snapshot applies them to a search instead of to sectors chosen in advance.
 
-1. **Rejilla.** Dos regiones de prueba de 1° × 1° (interior de Antofagasta y Puna de Catamarca y Salta) divididas en 25 ventanas de 0,2° cada una: 50 ventanas de 442–449 km², con identificadores derivados del centro. Son una selección de prueba, no una muestra representativa.
-2. **Prioridad topográfica.** Para cada ventana se calculan pendiente, rugosidad y relieve con NASADEM agregado, y se ordena por la media geométrica de sus tres similitudes con pesos relativos 0,20/0,20/0,15. Solo ordena la preselección: no es el score ni la confianza.
-3. **Rechazos registrados.** Cobertura NASADEM < 95 %, agua permanente > 5 %, fallo de datos o presencia de coordenadas de muestreo publicadas dentro de la ventana. Cada ventana guarda su motivo.
-4. **Diversificación.** Hasta tres ventanas por país, con centros separados al menos 25 km y desempate por identificador. No se completa la lista a mano.
-5. **Caracterización.** Solo la preselección recibe Sentinel-2 mensual, POWER e inventario HLS, y se puntúa con las mismas fórmulas y pesos.
-6. **Referencia.** Yungay se recalcula con sus datos v2 y las mismas reglas; conserva 75,67 / 77,45 / 99,03 y queda fuera del ranking.
+1. **Grid.** Two test regions of 1° × 1° (interior of Antofagasta and Puna of Catamarca and Salta) divided into 25 windows of 0.2° each: 50 windows of 442–449 km², with identifiers derived from the center. They are a test selection, not a representative sample.
+2. **Topographic priority.** For each window, slope, roughness, and relief are computed with aggregated NASADEM, and windows are ranked by the geometric mean of their three similarities with relative weights 0.20/0.20/0,15. It only ranks the shortlist: it is not the score or the confidence.
+3. **Recorded rejections.** NASADEM coverage < 95 %, permanent water > 5 %, data failure, or presence of published sampling coordinates within the window. Each window stores its reason.
+4. **Diversification.** Up to three windows per country, with centers separated by at least 25 km and ties broken by identifier. The list is not completed by hand.
+5. **Characterization.** Only the shortlist receives monthly Sentinel-2, POWER, and HLS inventory, and it is scored with the same formulas and weights.
+6. **Reference.** Yungay is recalculated with its v2 data and the same rules; it retains 75.67 / 77.45 / 99.03 and is left out of the ranking.
 
-Correcciones para no generar confianza falsa, sin cambiar los valores v2:
+Corrections to avoid generating false confidence, without changing the v2 values:
 
-- la completitud Sentinel-2 se mide contra los 12 meses configurados y se descartan meses duplicados, fuera de periodo, incompletos, con error o con valores no finitos o fuera de rango;
-- la calidad topográfica se multiplica por la cobertura NASADEM válida;
-- POWER se valida (unidades, valor de relleno, rangos) antes de puntuar;
-- cada dato crudo se liga a su petición exacta; un dato de otra configuración detiene el build.
+- Sentinel-2 completeness is measured against the 12 configured months, and months that are duplicated, outside the period, incomplete, in error, or with non-finite or out-of-range values are discarded;
+- topographic quality is multiplied by the valid NASADEM coverage;
+- POWER is validated (units, fill value, ranges) before scoring;
+- each raw data item is linked to its exact request; data from a different configuration stops the build.
 
-NASA POWER entrega la celda MERRA-2 de 0,5° × 0,625° que contiene el punto. Esa celda es mayor que la ventana, así que el contexto climático no es lluvia medida en el sitio, puede coincidir entre ventanas vecinas y necesita contraste local. En la Puna da 562–767 mm/año y explica la mayor parte de la diferencia de los candidatos argentinos.
+NASA POWER delivers the 2 MERRA cell of 0.5° × 0.625° that contains the point. That cell is larger than the window, so the climate context is not rainfall measured at the site, it may coincide between neighboring windows, and it needs local contrast. In the Puna it gives 562–767 mm/year and explains most of the difference among the Argentine candidates.
 
-Antecedentes: un catálogo versionado distingue «contiene coordenada de muestreo publicada», «se superpone a un área de estudio», «cercanía (heurística de 25 km al centro)» y «antecedente regional». Ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad. Detalle en `docs/DISCOVERY_REPORT.md`.
+Prior work: a versioned catalog distinguishes “contains a published sampling coordinate,” “overlaps a study area,” “proximity (25 km heuristic to the center),” and “regional precedent.” No window is declared new, and not finding matches does not prove novelty. Details in `docs/DISCOVERY_REPORT.md`.
 
 ```bash
 python -m pipelines.fetch_discovery_data --stage tiles

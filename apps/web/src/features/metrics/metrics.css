@@ -1,9 +1,9 @@
 /*
- * Riel de métricas · detalle por criterio (chunk diferido). Prefijo .metrics-*.
- * Color con significado fijo: sector = azul · Jezero = naranja (solo como dato) ·
- * regla / pendiente = gris con trazo discontinuo · limitante = neutro claro (nunca naranja).
- * Movimiento: solo transform/opacity (y stroke-dashoffset en SVG pequeños); el acordeón usa
- * grid-template-rows dentro de contain: layout paint. Ninguna cifra se anima.
+ * Metrics rail · per-criterion detail (deferred chunk). Prefix .metrics-*.
+ * Color with fixed meaning: sector = blue · Jezero = orange (only as data) ·
+ * rule / pending = gray with dashed stroke · limiting = light neutral (never orange).
+ * Motion: only transform/opacity (and stroke-dashoffset in small SVGs); the accordion uses
+ * grid-template-rows inside contain: layout paint. No figure is animated.
  */
 .metrics-panel { display: grid; gap: 12px; min-width: 0; }
 
@@ -23,7 +23,7 @@
 .metrics-position { margin-left: auto; color: var(--muted-2); font-family: var(--mono); font-size: var(--fs-min); font-variant-numeric: tabular-nums; }
 .metrics-stepper.is-sheet .metrics-position { margin: 0; }
 
-/* Anillo de similitud (de ScoreBreakdown) */
+/* Similarity ring (from ScoreBreakdown) */
 .metrics-ring { position: relative; flex: none; display: inline-block; width: 46px; height: 46px; }
 .metrics-ring-sm { width: 30px; height: 30px; }
 .metrics-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -40,7 +40,7 @@
 .metrics-ring.is-empty > span { color: var(--pending); }
 @keyframes metricsDraw { from { stroke-dashoffset: 1; } }
 
-/* Acordeón del riel */
+/* Rail accordion */
 .metrics-accordion { display: grid; gap: 6px; contain: layout paint; }
 .metrics-row { border: 1px solid var(--line); border-radius: 14px; background: rgba(255, 255, 255, .018); transition: border-color var(--dur-2) var(--ease-standard), background-color var(--dur-2) var(--ease-standard); }
 .metrics-row[data-open] { border-color: var(--sel-line); background: rgba(255, 255, 255, .035); box-shadow: inset 0 2px 0 var(--sel-accent); }
@@ -70,7 +70,7 @@
 .metrics-badge.is-limiting { background: rgba(238, 246, 251, .12); color: #fff; box-shadow: inset 0 0 0 1px rgba(238, 246, 251, .35); }
 .metrics-badge.is-saturates { color: var(--muted); box-shadow: inset 0 0 0 1px var(--line-strong); text-transform: none; letter-spacing: .01em; }
 
-/* Cuerpo de una métrica */
+/* Body of a metric */
 .metrics-body { display: grid; gap: 10px; min-width: 0; }
 .metrics-readings { display: flex; flex-wrap: wrap; gap: 6px 18px; }
 .metrics-reading { display: grid; gap: 2px; }
@@ -166,7 +166,7 @@
 .metrics-card-head h4 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; font-size: var(--fs-13); letter-spacing: -.015em; }
 .metrics-card-head p { margin: 3px 0 0; color: var(--muted-2); font-size: var(--fs-min); }
 
-/* S1 móvil: pestañas + pista deslizable */
+/* S1 mobile: tabs + swipeable track */
 .metrics-carousel { display: grid; gap: 10px; min-width: 0; }
 .metrics-tabs { display: grid; grid-template-columns: repeat(var(--metrics-n, 7), minmax(0, 1fr)); gap: 2px; }
 .metrics-tab {

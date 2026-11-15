@@ -10,23 +10,23 @@ interface SurfaceSignalsProps {
   series: SurfaceSeriesBySite
 }
 
-/** Tiempo de la animación de salida antes de montar la serie de la nueva zona. */
+/** Duration of the exit animation before mounting the new zone's series. */
 const SWAP_MS = 420
 
 interface Metric {
   key: 'bsi' | 'ndvi'
   title: string
   description: string
-  /** Tono del brillo: azules de la paleta oscurecidos, porque la rampa los aclara (nunca naranja: es Marte). */
+  /** Glow tone: darkened blues from the palette, because the ramp lightens them (never orange: this is Mars). */
   accent: string
 }
 
 const METRICS: Metric[] = [
-  { key: 'bsi', title: 'BSI · suelo expuesto', description: 'Índice de suelo desnudo. Más alto, más superficie mineral expuesta.', accent: '#02679A' },
-  { key: 'ndvi', title: 'NDVI · vegetación', description: 'Índice de vegetación. Cerca de 0 indica superficie sin cobertura vegetal.', accent: '#3E7F9E' },
+  { key: 'bsi', title: 'BSI · bare soil', description: 'Bare soil index. Higher means more exposed mineral surface.', accent: '#02679A' },
+  { key: 'ndvi', title: 'NDVI · vegetation', description: 'Vegetation index. Near 0 indicates a surface without plant cover.', accent: '#3E7F9E' },
 ]
 
-/** Los extremos repiten el primer y último mes solo como entrada/salida visual de la curva. */
+/** The endpoints repeat the first and last month only as the visual entry/exit of the curve. */
 function padded(points: readonly MonthlySurfacePoint[], key: Metric['key']): number[] {
   const values = points.map((point) => point[key])
   return [values[0], ...values, values[values.length - 1]]
@@ -58,12 +58,12 @@ export function SurfaceSignals({ candidates, selectedId, series }: SurfaceSignal
     <section id="signals" className="signals-section glass" aria-labelledby="signals-title">
       <div className="signals-heading">
         <div>
-          <span className="section-kicker">Señal de superficie · Sentinel-2 L2A · 2025</span>
-          <h2 id="signals-title">{candidate ? shortCandidateName(candidate.name) : 'Sector seleccionado'} mes a mes</h2>
+          <span className="section-kicker">Surface signal · Sentinel-2 L2A · 2025</span>
+          <h2 id="signals-title">{candidate ? shortCandidateName(candidate.name) : 'Selected sector'} month by month</h2>
         </div>
         <p>
-          Doce mosaicos mensuales del snapshot. Son contexto observacional: la similitud se calcula en el pipeline
-          y estas curvas no la modifican. Arrastra o usa las flechas para recorrer los meses.
+          Twelve monthly mosaics from the snapshot. They are observational context: similarity is calculated in the pipeline
+          and these curves do not change it. Drag or use the arrow keys to move through the months.
         </p>
       </div>
 
@@ -77,11 +77,11 @@ export function SurfaceSignals({ candidates, selectedId, series }: SurfaceSignal
                 data={padded(points, metric.key)}
                 format={formatIndex}
                 labelAt={(index) => `${metric.title} · ${formatMonth(points[index - 1]?.from ?? '')}`}
-                deltaLabel="respecto del mes anterior."
-                firstLabel="Primer mes de la serie: sin mes anterior para comparar."
+                deltaLabel="compared with the previous month."
+                firstLabel="First month of the series: no previous month to compare with."
                 accent={metric.accent}
                 revealed={revealed}
-                ariaLabel={`${metric.title}, serie mensual 2025`}
+                ariaLabel={`${metric.title}, monthly series 2025`}
               />
               <figcaption>{metric.description}</figcaption>
             </figure>
@@ -89,8 +89,8 @@ export function SurfaceSignals({ candidates, selectedId, series }: SurfaceSignal
         </div>
       ) : (
         <div className="signals-empty">
-          <strong>Sin serie mensual para este sector</strong>
-          <span>Este snapshot no incluye observaciones Sentinel-2 por mes (por ejemplo, el fixture demo). No se interpolan valores.</span>
+          <strong>No monthly series for this sector</strong>
+          <span>This snapshot does not include monthly Sentinel-2 observations (for example, the demo fixture). Values are not interpolated.</span>
         </div>
       )}
     </section>

@@ -1,6 +1,6 @@
 /**
- * Trazos de las líneas Tesla (escritorio) y la línea única de móvil. Puro. Va en el chunk
- * diferido: index.ts no lo reexporta (solo sus tipos).
+ * Paths for the Tesla lines (desktop) and the single mobile line. Pure. Lives in the
+ * deferred chunk: index.ts does not re-export it (only its types).
  */
 import type { LeaderLayout, LeaderLayoutInput, Rect } from './index'
 import { attachOffset, containsPoint, finite, LEADER_GEOMETRY } from './layoutLeaders'
@@ -13,12 +13,12 @@ function r1(value: number): string {
 
 export interface LeaderPath {
   id: string
-  /** Trazo SVG del origen O a la etiqueta: O → bus → fila del título (solo tramos rectos). */
+  /** SVG path from origin O to the label: O → bus → title row (straight segments only). */
   d: string
   attach: Point
 }
 
-/** Trazos de cada etiqueta en modo 'lines'; vacío en 'docked' y 'chip'. */
+/** Paths for each label in 'lines' mode; empty in 'docked' and 'chip'. */
 export function leaderPaths(layout: LeaderLayout, labels: LeaderLayoutInput['labels']): LeaderPath[] {
   const { origin, busX } = layout
   if (layout.mode !== 'lines' || !origin || busX === undefined) return []
@@ -34,16 +34,16 @@ export function leaderPaths(layout: LeaderLayout, labels: LeaderLayoutInput['lab
 }
 
 // ---------------------------------------------------------------------------------------------
-// Móvil (<1100): una sola línea del anillo al borde superior de la hoja (§1 #5, §4.5 S1).
+// Mobile (<1100): a single line from the ring to the top edge of the sheet (§1 #5, §4.5 S1).
 // ---------------------------------------------------------------------------------------------
 
 export interface MobileLeaderInput {
   anchor: { x: number; y: number; radius: number; visible?: number }
-  /** Área segura (viewport menos stageInsets): el anillo tiene que verse dentro. */
+  /** Safe area (viewport minus stageInsets): the ring must be visible inside it. */
   safeArea: Rect
-  /** Fin de la línea: borde superior de la hoja, alineado con el slot activo (centrado). */
+  /** End of the line: top edge of the sheet, aligned with the active slot (centered). */
   end: Point
-  /** Paneles: la línea se corta antes del primero que cruce (salvo la hoja, donde termina). */
+  /** Panels: the line is cut off before the first one it crosses (except the sheet, where it ends). */
   obstacles: readonly Rect[]
 }
 
@@ -53,7 +53,7 @@ export interface MobileLeader {
   d: string
 }
 
-/** Parámetro t∈[0,1] en que el segmento p→q entra al rectángulo (Liang–Barsky); null si no lo toca. */
+/** Parameter t∈[0,1] at which segment p→q enters the rectangle (Liang–Barsky); null if it does not touch it. */
 function segmentEntry(p: Point, q: Point, rect: Rect): number | null {
   let t0 = 0
   let t1 = 1
@@ -83,8 +83,8 @@ function segmentEntry(p: Point, q: Point, rect: Rect): number | null {
 }
 
 /**
- * Una sola línea del borde del anillo al borde superior de la hoja. null si el lugar no se ve,
- * si la hoja queda por encima del anillo (S2) o si la línea sería demasiado corta.
+ * A single line from the edge of the ring to the top edge of the sheet. null if the place is not visible,
+ * if the sheet sits above the ring (S2), or if the line would be too short.
  */
 export function layoutMobileLeader(input: MobileLeaderInput): MobileLeader | null {
   const G = LEADER_GEOMETRY
@@ -95,20 +95,20 @@ export function layoutMobileLeader(input: MobileLeaderInput): MobileLeader | nul
   const dx = end.x - anchor.x
   const dy = end.y - anchor.y
   const distance = Math.hypot(dx, dy)
-  // La línea solo baja (o va de lado, con hoja lateral): nunca sube hacia una hoja en S2.
+  // The line only goes down (or sideways, with a side sheet): it never goes up toward a sheet in S2.
   if (dy < 0 || distance <= anchor.radius + G.mobileMinLength) return null
   const from = { x: anchor.x + (dx / distance) * anchor.radius, y: anchor.y + (dy / distance) * anchor.radius }
   let t = 1
   for (const obstacle of input.obstacles) {
     if (!finite(obstacle.x, obstacle.y, obstacle.width, obstacle.height)) continue
-    // La hoja contiene el punto justo después del final: es el destino, no un obstáculo.
+    // The sheet contains the point just after the end: it is the destination, not an obstacle.
     if (containsPoint(obstacle, end.x + Math.sign(dx) * 0.5, end.y + Math.sign(dy) * 0.5)) continue
     const entry = segmentEntry(from, end, obstacle)
     if (entry !== null && entry < t) t = entry
   }
   const span = Math.hypot(end.x - from.x, end.y - from.y)
   const length = span * t
-  // Recortada por un panel: termina 4 px antes, sin tocarlo.
+  // Clipped by a panel: it ends 4 px before it, without touching it.
   const reach = t < 1 ? length - Math.min(4, length) : length
   if (reach < G.mobileMinLength) return null
   const to = { x: from.x + ((end.x - from.x) / span) * reach, y: from.y + ((end.y - from.y) / span) * reach }

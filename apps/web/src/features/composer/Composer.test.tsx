@@ -1,6 +1,6 @@
-// Composer y «Tu misión» renderizados con react-dom/server (sin jsdom), sobre el planificador
-// compartido del equipo (ADR-013): «Enviar» nunca llama a la IA, la espera del borrador muestra la
-// fase real y «Cancelar», y «Tu misión» monta las piezas del equipo (sin niveles ni pesos propios).
+// Composer and “Your mission” rendered with react-dom/server (no jsdom), on the team's shared planner
+// (ADR-013): “Send” never calls the AI, waiting for the draft shows the real phase and “Cancel”, and
+// “Your mission” mounts the team's pieces (no levels or weights of its own).
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it } from 'vitest'
 import { initialPlannerState, plannerReducer } from '../../mission'
@@ -35,54 +35,54 @@ function mision(): void {
 }
 
 describe('composer · vista (SSR)', () => {
-  it('Explorar: píldora con la tecla «/», sin cifras', () => {
+  it('Explore: pill with the “/” key, no figures', () => {
     const html = renderToStaticMarkup(<Composer data={readyData} placement="dock" />)
     expect(html).toContain('composer-pill')
     expect(html).toContain('aria-keyshortcuts="/"')
-    expect(html).toContain('Describe la prueba que quieres hacer para Marte')
+    expect(html).toContain('Describe the Mars test you want to run')
     expect(text(html)).not.toMatch(/\d+,\d/)
   })
 
-  it('Misión en reposo: textarea de hasta 3000 caracteres, Enviar desactivado y la IA como opción, sin «DEMO»', () => {
+  it('Mission at rest: textarea up to 3000 characters, Send disabled and AI as an option, no “DEMO”', () => {
     mision()
     const html = renderToStaticMarkup(<MissionComposer data={readyData} placement="dock" />)
     expect(html).toContain('<textarea')
     expect(html).toContain('maxLength="3000"')
     expect(html).toMatch(/<button type="submit" class="composer-send" disabled="">/)
-    expect(html).toContain('Enviar')
-    expect(text(html)).toContain('la IA es opcional')
+    expect(html).toContain('Send')
+    expect(text(html)).toContain('the AI is optional')
     expect(html).not.toContain('DEMO')
     expect(html).not.toMatch(/\d+,\d\s*%/)
   })
 
-  it('mientras carga el snapshot no se puede enviar y lo dice', () => {
+  it('while the snapshot loads it cannot send and says so', () => {
     mision()
     const html = renderToStaticMarkup(<MissionComposer data={loading} placement="dock" />)
-    expect(html).toContain('Esperando el snapshot validado')
+    expect(html).toContain('Waiting for the validated snapshot')
   })
 
-  it('borrador de IA en curso: «Proponiendo requisitos…», aria-busy, Enviar → Cancelar', () => {
+  it('AI draft in progress: “Proposing requirements…”, aria-busy, Send → Cancel', () => {
     mision()
     uiStore.setState({ missionPhase: 'interpreting' })
     composerStore.setState({ draftStartedAt: Date.now(), wait: 'busy' })
     const html = renderToStaticMarkup(<MissionComposer data={readyData} placement="dock" />)
     expect(html).toContain('aria-busy="true"')
-    expect(html).toContain('Proponiendo requisitos')
+    expect(html).toContain('Proposing requirements')
     expect(html).toContain('data-stop=""')
-    expect(text(html)).toContain('Cancelar')
+    expect(text(html)).toContain('Cancel')
   })
 
-  it('a los 10 s: «tardando más de lo normal» con Cancelar; sin tiempo límite propio', () => {
+  it('at 10 s: “taking longer than usual” with Cancel; no time limit of its own', () => {
     mision()
     uiStore.setState({ missionPhase: 'interpreting' })
     composerStore.setState({ draftStartedAt: Date.now() - 11_000, wait: 'slow' })
     const html = renderToStaticMarkup(<MissionComposer data={readyData} placement="dock" />)
-    expect(text(html)).toContain('La IA está tardando más de lo normal')
-    expect(text(html)).toContain('Cancelar')
+    expect(text(html)).toContain('The AI is taking longer than usual')
+    expect(text(html)).toContain('Cancel')
     expect(html).not.toContain('Tiempo agotado')
   })
 
-  it('cancelado o no disponible: el mensaje se muestra neutro y el recorrido manual sigue', () => {
+  it('canceled or unavailable: the message is shown neutrally and the manual path continues', () => {
     mision()
     const planner = plannerReducer(plannerReducer(initialPlannerState(), { type: 'draft_start', requestId: 'r1' }), { type: 'draft_fail', requestId: 'r1', message: 'Solicitud cancelada: los requisitos no cambiaron y el recorrido manual sigue disponible.', unavailable: false })
     missionStore.setState({ ...INITIAL_MISSION_STATE, planner })
@@ -93,24 +93,24 @@ describe('composer · vista (SSR)', () => {
     expect(html).not.toContain('falló')
   })
 
-  it('resultados: «N de 6 candidatos priorizados · #1 ‹nombre› · similitud v3 X (sin recalcular)» y la pastilla con los requisitos', () => {
+  it('results: “N of 6 candidates prioritized · #1 ‹name› · v3 similarity X (not recalculated)” and the requirements pill', () => {
     mision()
     const { state, evaluation } = evaluateExample()
     missionStore.setState({ ...INITIAL_MISSION_STATE, planner: state, evaluation, revision: 1 })
     uiStore.setState({ missionPhase: 'done' })
     const html = renderToStaticMarkup(<MissionComposer data={readyData} placement="dock" />)
-    expect(text(html)).toMatch(/\d de 6 candidatos priorizados · #1 Interior de Antofagasta · 25,0° S, 69,7° O · similitud v3 94,9 \(sin recalcular\)/)
-    expect(html).toContain('Tu misión · 3 requisitos')
+    expect(text(html)).toMatch(/\d of 6 candidates prioritized · #1 Interior de Antofagasta · 25\.0° S, 69\.7° W · v3 similarity 94\.9 \(not recalculated\)/)
+    expect(html).toContain('Your mission · 3 requirements')
     expect(html).not.toMatch(/% de misión|motor determinista v/)
   })
 
-  it('S1: botón «Refinar»', () => {
+  it('S1: “Refine” button', () => {
     const html = renderToStaticMarkup(<Composer data={readyData} placement="sheet-head" onRequestTray={() => undefined} />)
     expect(html).toContain('composer-refine')
     expect(text(html)).toContain('Refinar')
   })
 
-  it('✦ es «solo IA»: ni la píldora, ni el formulario (también con resultados), ni «Refinar», ni el HTML estático lo llevan', () => {
+  it('✦ means “AI only”: neither the pill, nor the form (also with results), nor “Refine”, nor the static HTML carry it', () => {
     expect(renderToStaticMarkup(<Composer data={readyData} placement="dock" />)).not.toContain('✦')
     expect(renderToStaticMarkup(<Composer data={readyData} placement="sheet-head" onRequestTray={() => undefined} />)).not.toContain('✦')
     expect(staticShellHtml()).not.toContain('✦')
@@ -120,66 +120,66 @@ describe('composer · vista (SSR)', () => {
     missionStore.setState({ ...INITIAL_MISSION_STATE, planner: state, evaluation, revision: 1 })
     uiStore.setState({ missionPhase: 'done' })
     const done = renderToStaticMarkup(<MissionComposer data={readyData} placement="dock" />)
-    expect(done).toContain('similitud v3 94,9')
+    expect(done).toContain('v3 similarity 94.9')
     expect(done).not.toContain('✦')
     expect(done).not.toContain('data-done')
   })
 })
 
-describe('«Tu misión» (SSR)', () => {
-  it('monta el planificador del equipo en su variante compacta: recorridos y promesa, sin niveles ni pesos', () => {
+describe('“Your mission” (SSR)', () => {
+  it('mounts the team planner in its compact variant: paths and promise, no levels or weights', () => {
     mision()
     const html = renderToStaticMarkup(<MissionPanel data={readyData} placement="panel" promise="Prioriza qué sectores merecen reconocimiento para un ensayo de rover" />)
-    expect(html).toContain('Tu misión')
-    expect(html).toContain('Definir una prueba')
-    expect(html).toContain('Evaluar un sector')
+    expect(html).toContain('Your mission')
+    expect(html).toContain('Define a test')
+    expect(html).toContain('Evaluate a sector')
     expect(html).toContain('Prioriza qué sectores merecen reconocimiento para un ensayo de rover')
     expect(html).toContain('planner is-compact')
     expect(html).not.toMatch(/Clave|Importante|nivel ÷ suma|Perfil de tu misión/)
   })
 
-  it('«Borrar todo» no promete que nada se guarda: aquí hay historial local', () => {
+  it('“Clear all” does not promise that nothing is stored: there is local history here', () => {
     mision()
     missionController(v3Bundle).dispatch({ type: 'set_journey', journey: 'test' })
     const html = renderToStaticMarkup(<MissionPanel data={readyData} placement="panel" />)
-    expect(html).toContain('Borrar todo y empezar de nuevo')
+    expect(html).toContain('Clear everything and start over')
     expect(html).not.toContain('nada se guarda en el navegador')
-    expect(RESET_HINT).toContain('quedan en el historial de este navegador')
-    expect(html).toContain('quedan en el historial de este navegador')
+    expect(RESET_HINT).toContain('stay in this browser’s history')
+    expect(html).toContain('stay in this browser’s history')
   })
 
-  it('requisitos de la IA: «sin confirmar» hasta que usted confirma; luego «confirmados por usted»', () => {
-    expect(sourceLabel('anthropic', false)).toContain('sin confirmar')
-    expect(sourceLabel('anthropic', true)).toBe('Requisitos propuestos con IA · confirmados por usted')
-    expect(sourceLabel('manual', true)).toBe('Requisitos escritos por usted')
+  it('AI requirements: “unconfirmed” until you confirm; then “confirmed by you”', () => {
+    expect(sourceLabel('anthropic', false)).toContain('unconfirmed')
+    expect(sourceLabel('anthropic', true)).toBe('Requirements proposed with AI · confirmed by you')
+    expect(sourceLabel('manual', true)).toBe('Requirements written by you')
     mision()
     const controller = missionController(v3Bundle)
     controller.dispatch({ type: 'set_journey', journey: 'test' })
     controller.dispatch({ type: 'draft_start', requestId: 'd1' })
     controller.dispatch({ type: 'draft_ok', requestId: 'd1', proposal: AI_PROPOSAL, provenance: AI_PROVENANCE })
-    expect(text(renderToStaticMarkup(<MissionPanel data={readyData} placement="panel" />))).toContain('sin confirmar hasta que usted confirme')
+    expect(text(renderToStaticMarkup(<MissionPanel data={readyData} placement="panel" />))).toContain('unconfirmed until you confirm')
     controller.dispatch({ type: 'confirm' })
     expect(controller.getState().confirmed).toBe(true)
     expect(controller.evaluate()).toBe(true)
     const html = text(renderToStaticMarkup(<MissionPanel data={readyData} placement="panel" />))
-    expect(html).toContain('Requisitos propuestos con IA · confirmados por usted')
-    expect(html).not.toContain('sin confirmar')
+    expect(html).toContain('Requirements proposed with AI · confirmed by you')
+    expect(html).not.toContain('unconfirmed')
   })
 
-  it('sin snapshot: espera neutra, sin cifras', () => {
+  it('no snapshot: neutral wait, no figures', () => {
     const html = renderToStaticMarkup(<MissionPanel data={loading} placement="panel" />)
-    expect(html).toContain('Esperando el snapshot validado')
+    expect(html).toContain('Waiting for the validated snapshot')
   })
 })
 
 describe('sugerencias', () => {
-  it('se ofrecen antes de resultados y no tapan las tarjetas cuando hay resultados o una espera', () => {
+  it('offered before results and do not cover the cards when there are results or a wait', () => {
     expect(showSuggestions('idle', false)).toBe(true)
     expect(showSuggestions('review', false)).toBe(true)
     expect(showSuggestions('done', false)).toBe(false)
     expect(showSuggestions('analysis', false)).toBe(false)
     expect(showSuggestions('interpreting', true)).toBe(false)
-    // Con el popover de «Tu misión» abierto (<1440) no se enciman con él ni con las tarjetas.
+    // With the “Your mission” popover open (<1440) they do not overlap it or the cards.
     expect(showSuggestions('review', false, true)).toBe(false)
   })
 })

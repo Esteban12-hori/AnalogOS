@@ -1,8 +1,8 @@
-"""Descarga las fuentes autenticadas del snapshot científico v2.
+"""Downloads the authenticated sources for the v2 scientific snapshot.
 
-Las credenciales se leen desde ``.env`` y nunca se escriben en artefactos.
-NASA Earthdata aporta NASADEM y el inventario HLS; Copernicus Sentinel Hub
-calcula estadísticas Sentinel-2 L2A sin descargar escenas completas.
+Credentials are read from ``.env`` and are never written to artifacts.
+NASA Earthdata provides NASADEM and the HLS inventory; Copernicus Sentinel Hub
+computes Sentinel-2 L2A statistics without downloading full scenes.
 """
 
 from __future__ import annotations
@@ -109,7 +109,7 @@ def _granule_record(granule: dict) -> dict:
 def _fetch_earthdata(config: dict) -> None:
     auth = earthaccess.login(strategy="environment")
     if not getattr(auth, "authenticated", True):
-        raise RuntimeError("Earthdata Login rechazó las credenciales")
+        raise RuntimeError("Earthdata Login rejected the credentials")
 
     nasadem = config["nasadem"]
     hls = config["hls_inventory"]
@@ -162,7 +162,7 @@ def _fetch_earthdata(config: dict) -> None:
     ordered = [nasadem_granules[name] for name in sorted(nasadem_granules)]
     downloaded = earthaccess.download(ordered, local_path=target_dir)
     if len(downloaded) != len(ordered):
-        raise RuntimeError("No se descargaron todos los granules NASADEM esperados")
+        raise RuntimeError("Not all expected NASADEM granules were downloaded")
 
     inventory = {
         "generated_at": config["created_at"],
@@ -185,7 +185,7 @@ def _copernicus_token(config: dict) -> str:
     response.raise_for_status()
     token = response.json().get("access_token")
     if not token:
-        raise RuntimeError("Copernicus no devolvió un access token")
+        raise RuntimeError("Copernicus did not return an access token")
     return token
 
 
@@ -241,9 +241,9 @@ def _fetch_copernicus(config: dict) -> None:
         response.raise_for_status()
         result = response.json()
         if result.get("status") != "OK" or not result.get("data"):
-            raise RuntimeError(f"Respuesta Sentinel-2 incompleta para {site['site_id']}")
+            raise RuntimeError(f"Incomplete Sentinel-2 response for {site['site_id']}")
         sites[site["site_id"]] = {"request": request_payload, "response": result}
-        print(f"Copernicus {site['site_id']}: {len(result['data'])} intervalos")
+        print(f"Copernicus {site['site_id']}: {len(result['data'])} intervals")
 
     artifact = {
         "generated_at": config["created_at"],
@@ -289,7 +289,7 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     args = parser.parse_args()
     fetch(args.config)
-    print("Fuentes v2 descargadas; ninguna credencial fue persistida en los artefactos.")
+    print("v2 sources downloaded; no credential was persisted in the artifacts.")
 
 
 if __name__ == "__main__":

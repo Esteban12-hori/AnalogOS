@@ -1,4 +1,4 @@
-"""Contexto visual: paquete real versionado y lógica del pipeline, sin red ni credenciales."""
+"""Visual context: real versioned package and pipeline logic, with no network or credentials."""
 
 import copy
 import hashlib
@@ -24,7 +24,7 @@ CLOCK = lambda: "2026-01-02T03:04:05Z"  # noqa: E731
 
 
 def fake_png(width: int, height: int) -> bytes:
-    """PNG RGBA transparente y SINTÉTICO: solo existe dentro de los tests, nunca se publica."""
+    """Transparent, SYNTHETIC RGBA PNG: it exists only inside the tests and is never published."""
     def chunk(kind: bytes, data: bytes) -> bytes:
         return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
 
@@ -101,7 +101,7 @@ def test_real_package_matches_candidates_plan_and_images():
         assert 512 <= site["width"] <= 768 and 512 <= site["height"] <= 768
         assert site["request"]["evalscript"] == visual.EVALSCRIPT
         assert site["scenes_considered"] == len(site["returned_metadata"]["orbits"]) >= 1
-        # Imagen real del servicio, no el PNG sintético de estos tests.
+        # Real image from the service, not the synthetic PNG used in these tests.
         assert site["returned_metadata"]["evalscript_version"] == "analogos-s2-visual-v1"
         assert data != fake_png(site["width"], site["height"]) and len(data) > 100_000
 
@@ -152,7 +152,7 @@ def test_any_presented_metadata_inconsistent_with_plan_or_request_is_rejected(mu
     assert visual.load_valid_package(package, PLANS) is None
 
 
-# --- Petición y respuesta, sin red -------------------------------------------
+# --- Request and response, no network -------------------------------------------
 
 def test_request_is_public_fixed_and_derived_from_the_versioned_geometry():
     request = visual.build_request(PLANS[0])
@@ -167,7 +167,7 @@ def test_request_is_public_fixed_and_derived_from_the_versioned_geometry():
     assert [item["format"]["type"] for item in request["output"]["responses"]] == ["image/png", "application/json"]
     assert (request["output"]["width"], request["output"]["height"]) == (PLANS[0]["width"], 768)
     assert all(name in request["evalscript"] for name in ("B04", "B03", "B02", "dataMask", "Mosaicking.ORBIT"))
-    # Píxel aproximadamente cuadrado en terreno y escala declarada coherente.
+    # Approximately square pixel on the ground and a consistent declared scale.
     plan = PLANS[0]
     assert plan["extent_km"]["width"] / plan["width"] == pytest.approx(plan["extent_km"]["height"] / plan["height"], rel=0.01)
     assert plan["approx_meters_per_pixel"] == pytest.approx(1000 * plan["extent_km"]["height"] / plan["height"], abs=0.1)
@@ -176,27 +176,27 @@ def test_request_is_public_fixed_and_derived_from_the_versioned_geometry():
 def test_geometry_inconsistent_with_config_is_rejected():
     moved = copy.deepcopy(CANDIDATES)
     moved[0]["geometry"]["coordinates"][0][0][0] += 0.5
-    with pytest.raises(visual.VisualContextError, match="no coincide"):
+    with pytest.raises(visual.VisualContextError, match="does not match"):
         visual.site_plans(moved, CONFIG)
 
 
 @pytest.mark.parametrize("payload, message", [
-    (tar_of({"default.png": b"x", "userdata.json": b"{}", "../../evil.txt": b"x"}), "inesperada"),
-    (tar_of({"default.png": b"x", "userdata.json": b"{}", "/etc/cron.d/evil": b"x"}), "inesperada"),
-    (tar_of({"userdata.json": b"{}"}, symlinks=("default.png",)), "inesperada"),
-    (tar_of({"default.png": b"x"}), "TAR esperado"),
-    (tar_of({"default.png": b"x", "userdata.json": b"[1, 2]"}), "no es un objeto"),
-    (b"<html>error con SECRETO-DE-PRUEBA en el cuerpo</html>", "TAR esperado"),
+    (tar_of({"default.png": b"x", "userdata.json": b"{}", "../../evil.txt": b"x"}), "Unexpected entry"),
+    (tar_of({"default.png": b"x", "userdata.json": b"{}", "/etc/cron.d/evil": b"x"}), "Unexpected entry"),
+    (tar_of({"userdata.json": b"{}"}, symlinks=("default.png",)), "Unexpected entry"),
+    (tar_of({"default.png": b"x"}), "expected TAR"),
+    (tar_of({"default.png": b"x", "userdata.json": b"[1, 2]"}), "is not an object"),
+    (b"<html>error con SECRETO-DE-PRUEBA en el cuerpo</html>", "expected TAR"),
 ])
 def test_tar_response_is_read_in_memory_and_only_expected_entries(payload: bytes, message: str, tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     with pytest.raises(visual.VisualContextError, match=message) as error:
         visual.parse_response(payload)
     assert "SECRETO" not in str(error.value)
-    assert list(tmp_path.iterdir()) == []  # nada se extrajo a disco
+    assert list(tmp_path.iterdir()) == []  # nothing was extracted to disk
 
 
-# --- Construcción, caché y preservación ---------------------------------------
+# --- Construction, cache and preservation ---------------------------------------
 
 def test_build_fetches_once_per_site_then_reuses_the_valid_package_without_network(tmp_path: Path):
     out, transport = tmp_path / "visual-context", Transport()
@@ -235,9 +235,9 @@ def test_api_error_keeps_the_previous_package_without_mixing_generations(tmp_pat
 
 def test_wrong_dimensions_or_no_scenes_are_errors_and_uncertifiable_counts_are_not_invented(tmp_path: Path):
     out = tmp_path / "visual-context"
-    with pytest.raises(visual.VisualContextError, match="dimensiones"):
+    with pytest.raises(visual.VisualContextError, match="dimensions"):
         visual.build(out, lambda request: fake_tar(request, size=(64, 64)), clock=CLOCK)
-    with pytest.raises(visual.VisualContextError, match="no devolvió escenas"):
+    with pytest.raises(visual.VisualContextError, match="returned no scenes"):
         visual.build(out, lambda request: fake_tar(request, {**fake_userdata(request), "orbits": []}), clock=CLOCK)
     assert not out.exists()
 
@@ -248,7 +248,7 @@ def test_wrong_dimensions_or_no_scenes_are_errors_and_uncertifiable_counts_are_n
     assert all(site["scenes_considered"] == 1 for site in index["sites"])
 
 
-# --- Reemplazo del paquete ----------------------------------------------------
+# --- Package replacement ----------------------------------------------------
 
 def swap_dirs(tmp_path: Path) -> tuple[Path, Path]:
     staging, target = tmp_path / "nuevo", tmp_path / "visual-context"
@@ -288,7 +288,7 @@ def test_swap_failure_with_failed_rollback_reports_real_state_and_keeps_the_back
         visual._swap(staging, target)
     backups = [path for path in tmp_path.iterdir() if path.name.startswith(".visual-context.previo.")]
     assert len(backups) == 1 and (backups[0] / "marca.txt").read_text("utf-8") == "anterior"
-    assert str(backups[0]) in str(error.value) and "no existe ahora" in str(error.value)
+    assert str(backups[0]) in str(error.value) and "does not exist now" in str(error.value)
     assert not target.exists()
 
 
@@ -299,7 +299,7 @@ def test_swap_cleanup_failure_reports_new_package_installed_and_leftover_backup(
         raise OSError("permiso denegado simulado")
 
     monkeypatch.setattr(visual.shutil, "rmtree", cannot_remove)
-    with pytest.raises(visual.PackageStateError, match="quedó instalado") as error:
+    with pytest.raises(visual.PackageStateError, match="was installed") as error:
         visual._swap(staging, target)
     assert (target / "marca.txt").read_text("utf-8") == "nuevo"
     backups = [path for path in tmp_path.iterdir() if path.name.startswith(".visual-context.previo.")]
@@ -318,10 +318,10 @@ def test_main_only_claims_the_previous_package_is_untouched_when_true(monkeypatc
     assert visual.main(["--out", str(tmp_path / "visual-context")]) == 1
     message = capsys.readouterr().err
     assert str(error) in message
-    assert ("no se modificó" in message) is claims_untouched
+    assert ("was not modified" in message) is claims_untouched
 
 
-# --- Cliente Copernicus (sin red: transporte simulado) -------------------------
+# --- Copernicus client (no network: simulated transport) -------------------------
 
 class Response:
     def __init__(self, status_code: int, payload: dict | None = None, content: bytes = b""):
@@ -392,7 +392,7 @@ def test_client_retries_transient_failures_a_bounded_number_of_times(credentials
 
     attempts = []
     client = visual.CopernicusClient(post=always_down, sleep=attempts.append, env_file=tmp_path / "no-existe.env")
-    with pytest.raises(visual.VisualContextError, match=r"fallo de red \(ConnectionError\)"):
+    with pytest.raises(visual.VisualContextError, match=r"network failure \(ConnectionError\)"):
         client.fetch_tar({})
     assert len(attempts) == visual.ATTEMPTS - 1
 
@@ -407,5 +407,5 @@ def test_client_rejects_missing_credentials_and_non_official_endpoints_before_se
     with pytest.raises(visual.VisualContextError, match="COPERNICUS_CLIENT_ID"):
         client.fetch_tar({})
     for url in ("https://example.org/token", "http://sh.dataspace.copernicus.eu/process/v1"):
-        with pytest.raises(visual.VisualContextError, match="no oficial"):
+        with pytest.raises(visual.VisualContextError, match="Non-official"):
             client._request(url)

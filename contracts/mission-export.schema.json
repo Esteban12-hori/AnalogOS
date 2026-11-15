@@ -1,10 +1,26 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://analogos.cl/schemas/mission-export.schema.json",
-  "title": "AnalogOS Mission Export (M8)",
-  "description": "Exportación reproducible: solicitud confirmada, reglas y versiones, snapshot, geometría pedida vs medida (dentro de evaluation.resolution), evaluación, evidencias, límites y provenance de IA si existe. Sin marcas de tiempo propias: la misma entrada produce los mismos bytes.",
+  "title": "AnalogOS Mission Export (M8; versions 1.0.0 and 1.1.0)",
+  "description": "Reproducible export: confirmed request, rules and versions, snapshot, requested vs measured geometry (inside evaluation.resolution), evaluation, evidence, limits and AI provenance if any. No timestamps of its own: the same input produces the same bytes.",
   "type": "object",
   "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "export_version": { "const": "1.0.0" } }, "required": ["export_version"] },
+      "then": {
+        "not": { "required": ["language"] },
+        "properties": { "evaluation": { "properties": { "evaluation_version": { "const": "1.0.0" } } } }
+      }
+    },
+    {
+      "if": { "properties": { "export_version": { "const": "1.1.0" } }, "required": ["export_version"] },
+      "then": {
+        "required": ["language"],
+        "properties": { "evaluation": { "properties": { "evaluation_version": { "const": "1.1.0" } } } }
+      }
+    }
+  ],
   "required": [
     "export_version",
     "request",
@@ -16,7 +32,17 @@
   ],
   "properties": {
     "export_version": {
-      "const": "1.0.0"
+      "enum": ["1.0.0", "1.1.0"],
+      "description": "1.0.0 = historical export with frozen Spanish wording; 1.1.0 = English wording plus the language block. Must equal evaluation.evaluation_version."
+    },
+    "language": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authored_text", "source_evidence_note"],
+      "properties": {
+        "authored_text": { "const": "en" },
+        "source_evidence_note": { "type": "string", "minLength": 1 }
+      }
     },
     "request": {
       "$ref": "https://analogos.cl/schemas/mission-request.schema.json"

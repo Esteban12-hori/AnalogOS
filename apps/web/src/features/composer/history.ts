@@ -1,12 +1,12 @@
 /**
- * Historial de pruebas del visitante (recientes ⟲, «Historial» y Deshacer de «Tu misión»).
- * Es una comodidad local: vive en localStorage de este navegador, nunca se envía a ningún
- * servicio y la UI funciona igual si el almacenamiento falla o está bloqueado (try/catch).
+ * Visitor test history (recent ⟲, "History" and Undo in "Your mission").
+ * It is a local convenience: it lives in this browser's localStorage, is never sent to any
+ * service, and the UI works the same if storage fails or is blocked (try/catch).
  *
- * Formato v2 (ADR-013, docs/INTEGRATION_PLAN.md §3.7): se guardan el brief, el recorrido, el
- * alcance y SOLO los requisitos escritos o editados por el usuario. Nunca se guardan propuestas
- * intactas de la IA, su procedencia ni resultados: al restaurar, el usuario vuelve a confirmar y
- * la evaluación determinista se recalcula. La clave v1 (niveles por criterio) se ignora.
+ * Format v2 (ADR-013, docs/INTEGRATION_PLAN.md §3.7): the brief, the journey, the
+ * scope and ONLY the requirements written or edited by the user are saved. Intact AI proposals,
+ * their provenance, and results are never saved: on restore, the user confirms again and
+ * the deterministic evaluation is recalculated. The v1 key (levels per criterion) is ignored.
  */
 import type { EditableRequirement, JourneyId, ScopeInput } from '../../mission/plannerState'
 import type { MetricId } from '../../mission/types'
@@ -18,9 +18,9 @@ export interface HistoryEntry {
   journey: JourneyId
   brief: string
   scope: ScopeInput
-  /** Requisitos con origin 'user' (los de la IA sin editar no se guardan). */
+  /** Requirements with origin 'user' (unedited AI ones are not saved). */
   requirements: EditableRequirement[]
-  /** Resumen para la lista («3 requisitos · catálogo»). */
+  /** Summary for the list ("3 requirements · catalog"). */
   label: string
 }
 
@@ -90,7 +90,7 @@ function parseRequirement(raw: unknown): EditableRequirement | null {
   }
 }
 
-/** Valida en el límite: lo guardado puede venir de otra versión o estar alterado. */
+/** Validates at the boundary: what is stored may come from another version or may have been tampered with. */
 export function parseHistory(raw: unknown): HistoryEntry[] {
   if (!Array.isArray(raw)) return []
   const out: HistoryEntry[] = []
@@ -109,20 +109,20 @@ export function parseHistory(raw: unknown): HistoryEntry[] {
   return out
 }
 
-/** Solo lo que el usuario escribió o editó: las propuestas intactas de la IA no se guardan. */
+/** Only what the user wrote or edited: intact AI proposals are not saved. */
 export function userRequirements(requirements: readonly EditableRequirement[]): EditableRequirement[] {
   return requirements.filter((requirement) => requirement.origin === 'user')
 }
 
 function scopeLabel(scope: ScopeInput): string {
-  if (scope.mode === 'catalog') return 'las siete áreas'
-  if (scope.mode === 'sector') return 'un sector'
-  return scope.mode === 'point' ? 'un punto' : 'un rectángulo'
+  if (scope.mode === 'catalog') return 'the seven areas'
+  if (scope.mode === 'sector') return 'a sector'
+  return scope.mode === 'point' ? 'a point' : 'a rectangle'
 }
 
 export function entryLabel(requirements: readonly EditableRequirement[], scope: ScopeInput): string {
   const count = requirements.length
-  return `${count} ${count === 1 ? 'requisito' : 'requisitos'} · ${scopeLabel(scope)}`
+  return `${count} ${count === 1 ? 'requirement' : 'requirements'} · ${scopeLabel(scope)}`
 }
 
 export function entryFrom(
@@ -141,18 +141,18 @@ export function entryFrom(
   }
 }
 
-/** Huella de lo que se restauraría: dos entradas iguales no se repiten en la lista. */
+/** Fingerprint of what would be restored: two identical entries are not repeated in the list. */
 export function entrySignature(entry: Pick<HistoryEntry, 'journey' | 'brief' | 'scope' | 'requirements'>): string {
   return JSON.stringify([entry.journey, entry.brief, entry.scope, entry.requirements])
 }
 
-/** Más nueva primero; la misma prueba no se repite: sube al principio. */
+/** Newest first; the same test is not repeated: it moves to the top. */
 export function addHistory(list: readonly HistoryEntry[], entry: HistoryEntry, max = HISTORY_MAX): HistoryEntry[] {
   const key = entrySignature(entry)
   return [entry, ...list.filter((item) => entrySignature(item) !== key)].slice(0, max)
 }
 
-/** Textos recientes únicos para el menú ⟲. */
+/** Unique recent texts for the ⟲ menu. */
 export function recentTexts(list: readonly HistoryEntry[], max = 5): string[] {
   const seen = new Set<string>()
   const out: string[] = []
@@ -180,14 +180,14 @@ export function saveHistory(list: readonly HistoryEntry[], storage: StorageLike 
     if (list.length === 0) storage?.removeItem(HISTORY_KEY)
     else storage?.setItem(HISTORY_KEY, JSON.stringify(list))
   } catch {
-    // Almacenamiento lleno o bloqueado: el historial queda solo en memoria.
+    // Storage full or blocked: the history stays in memory only.
   }
 }
 
-const time = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: '2-digit' })
-const dayTime = new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+const time = new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit' })
+const dayTime = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
-/** «14:32» si es de hoy; «13 nov, 14:32» si no. */
+/** “2:32 PM” if it is from today; “Nov 13, 2:32 PM” otherwise. */
 export function formatWhen(at: number, now: number = Date.now()): string {
   const date = new Date(at)
   const today = new Date(now)

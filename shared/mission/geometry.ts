@@ -1,12 +1,13 @@
 import type { CandidateSite } from '../domain/contracts'
+import { DEFAULT_EVALUATION_VERSION, missionText, type ScopeNotes } from './text'
 import type { MissionScope, ScopeResolution, WindowMatch } from './types'
 
-export type Bbox = [number, number, number, number] // [oeste, sur, este, norte]
+export type Bbox = [number, number, number, number] // [west, south, east, north]
 
 /**
- * Única tolerancia: épsilon NUMÉRICA de serialización/coma flotante (los bordes publicados traen ruido
- * como -69.60000000000001). ~0,1 mm: NO es una tolerancia científica. Una geometría distinta de la
- * ventana, por poco que sea, no hereda sus estadísticos; solo entra eligiendo la ventana explícitamente.
+ * Sole tolerance: NUMERIC epsilon for serialization/floating point (published edges carry noise
+ * like -69.60000000000001). ~0,1 mm: this is NOT a scientific tolerance. A geometry different from the
+ * window, however slightly, does not inherit its statistics; it only enters by explicitly choosing the window.
  */
 export const GEOMETRY_EPSILON_DEG = 1e-9
 const POINT_EPS = GEOMETRY_EPSILON_DEG
@@ -19,7 +20,7 @@ export function rectAreaKm2(b: Bbox): number {
   return EARTH_RADIUS_KM ** 2 * (b[2] - b[0]) * rad * (Math.sin(b[3] * rad) - Math.sin(b[1] * rad))
 }
 
-/** Bbox del anillo exterior. Devuelve null si el polígono no es un rectángulo alineado a los ejes. */
+/** Bbox of the outer ring. Returns null if the polygon is not an axis-aligned rectangle. */
 export function siteRectangle(site: CandidateSite): Bbox | null {
   if (site.geometry.type !== 'Polygon') return null
   const ring = site.geometry.coordinates[0]
@@ -35,28 +36,28 @@ export function siteRectangle(site: CandidateSite): Bbox | null {
 
 export function validateBbox(b: unknown): string[] {
   if (!Array.isArray(b) || b.length !== 4 || !b.every((x) => typeof x === 'number' && Number.isFinite(x))) {
-    return ['bbox debe ser [oeste, sur, este, norte] con números finitos.']
+    return ['bbox must be [west, south, east, north] with finite numbers.']
   }
   const [w, s, e, n] = b as Bbox
   const issues: string[] = []
-  if (w < -180 || e > 180 || w > 180 || e < -180) issues.push('Longitud fuera de [-180, 180].')
-  if (s < -90 || n > 90 || s > 90 || n < -90) issues.push('Latitud fuera de [-90, 90].')
-  if (w >= e) issues.push('Orden de longitud inválido: oeste debe ser menor que este (no se admite cruzar el antimeridiano).')
-  if (s >= n) issues.push('Orden de latitud inválido: sur debe ser menor que norte.')
+  if (w < -180 || e > 180 || w > 180 || e < -180) issues.push('Longitude outside [-180, 180].')
+  if (s < -90 || n > 90 || s > 90 || n < -90) issues.push('Latitude outside [-90, 90].')
+  if (w >= e) issues.push('Invalid longitude order: west must be less than east (crossing the antimeridian is not supported).')
+  if (s >= n) issues.push('Invalid latitude order: south must be less than north.')
   if (!issues.length) {
-    if (e - w < MIN_SPAN_DEG || n - s < MIN_SPAN_DEG) issues.push(`El bbox es menor que ${MIN_SPAN_DEG}° por lado.`)
-    if (e - w > MAX_SPAN_DEG || n - s > MAX_SPAN_DEG) issues.push(`El bbox supera ${MAX_SPAN_DEG}° por lado.`)
+    if (e - w < MIN_SPAN_DEG || n - s < MIN_SPAN_DEG) issues.push(`The bbox is smaller than ${MIN_SPAN_DEG}° per side.`)
+    if (e - w > MAX_SPAN_DEG || n - s > MAX_SPAN_DEG) issues.push(`The bbox exceeds ${MAX_SPAN_DEG}° per side.`)
   }
   return issues
 }
 
 export function validatePoint(lon: unknown, lat: unknown): string[] {
   if (typeof lon !== 'number' || typeof lat !== 'number' || !Number.isFinite(lon) || !Number.isFinite(lat)) {
-    return ['Coordenadas deben ser números finitos.']
+    return ['Coordinates must be finite numbers.']
   }
   const issues: string[] = []
-  if (lon < -180 || lon > 180) issues.push('Longitud fuera de [-180, 180].')
-  if (lat < -90 || lat > 90) issues.push('Latitud fuera de [-90, 90].')
+  if (lon < -180 || lon > 180) issues.push('Longitude outside [-180, 180].')
+  if (lat < -90 || lat > 90) issues.push('Latitude outside [-90, 90].')
   return issues
 }
 
@@ -73,12 +74,13 @@ function windowOf(site: CandidateSite, box: Bbox) {
 }
 
 /**
- * Resuelve qué ventanas del snapshot tienen evidencia para la geometría pedida.
- * Nunca hereda métricas de una geometría distinta: solo una ventana idéntica (dentro de la
- * tolerancia) o elegida de forma explícita (`window_site_id`) pasa a `evaluated_site_ids`.
- * Los sitios con polígono no rectangular se excluyen del cruce (y el test de datos lo detecta).
+ * Resolves which snapshot windows have evidence for the requested geometry.
+ * It never inherits metrics from a different geometry: only an identical window (within the
+ * tolerance) or one chosen explicitly (`window_site_id`) passes to `evaluated_site_ids`.
+ * Sites with a non-rectangular polygon are excluded from the cross-match (and the data test detects this).
+ * `notes` only changes the wording of `notes` (text pack of the record version); never the resolution itself.
  */
-export function resolveScope(scope: MissionScope, sites: CandidateSite[]): ScopeResolution {
+export function resolveScope(scope: MissionScope, sites: CandidateSite[], notes: ScopeNotes = missionText(DEFAULT_EVALUATION_VERSION).scopeNotes): ScopeResolution {
   const rects = sites
     .map((site) => ({ site, box: siteRectangle(site) }))
     .filter((x): x is { site: CandidateSite; box: Bbox } => x.box !== null)
@@ -97,7 +99,7 @@ export function resolveScope(scope: MissionScope, sites: CandidateSite[]): Scope
     res.state = 'covered'
     res.measured = rects.map((r) => windowOf(r.site, r.box))
     res.evaluated_site_ids = rects.map((r) => r.site.site_id).sort()
-    res.notes.push('Comparación entre las ventanas con evidencia del snapshot; cada una con sus propias métricas.')
+    res.notes.push(notes.catalog)
     return res
   }
 
@@ -105,14 +107,14 @@ export function resolveScope(scope: MissionScope, sites: CandidateSite[]): Scope
     const hit = rects.find((r) => r.site.site_id === scope.site_id)
     const res = base('sector')
     if (!hit) {
-      res.notes.push(`El sector «${scope.site_id}» no existe en el snapshot.`)
+      res.notes.push(notes.sectorMissing(scope.site_id))
       return res
     }
     res.state = 'covered'
     res.requested = { bbox: hit.box, point: null, approx_area_km2: round(rectAreaKm2(hit.box)) }
     res.measured = [windowOf(hit.site, hit.box)]
     res.evaluated_site_ids = [hit.site.site_id]
-    res.notes.push('Geometría pedida y medida coinciden: es la ventana completa del snapshot.')
+    res.notes.push(notes.sectorCovered)
     return res
   }
 
@@ -130,18 +132,14 @@ export function resolveScope(scope: MissionScope, sites: CandidateSite[]): Scope
       }))
       .sort((a, b) => a.site_id.localeCompare(b.site_id))
     if (!res.matches.length) {
-      res.notes.push('El punto está fuera de las ventanas con evidencia. No se usa el vecino más cercano.')
+      res.notes.push(notes.pointOutside)
       return res
     }
-    res.notes.push('Hay evidencia de la ventana que contiene el punto, no del punto exacto: las métricas son medianas de la ventana completa.')
+    res.notes.push(notes.pointWindow)
     const chosen = scope.window_site_id ? res.matches.find((m) => m.site_id === scope.window_site_id) : null
     if (!chosen) {
       res.state = 'needs_window_selection'
-      res.notes.push(
-        res.matches.length > 1
-          ? 'El punto cae en varias ventanas: elija explícitamente una antes de evaluar.'
-          : 'Elija explícitamente la ventana antes de evaluar.',
-      )
+      res.notes.push(res.matches.length > 1 ? notes.pointChooseMany : notes.pointChooseOne)
       return res
     }
     const hit = rects.find((r) => r.site.site_id === chosen.site_id)!
@@ -179,7 +177,7 @@ export function resolveScope(scope: MissionScope, sites: CandidateSite[]): Scope
   }
   res.matches.sort((a, b) => a.site_id.localeCompare(b.site_id))
   if (!res.matches.length) {
-    res.notes.push('El bbox no se superpone con ninguna ventana con evidencia. No se usa el vecino más cercano.')
+    res.notes.push(notes.bboxNone)
     return res
   }
   const identical = res.matches.filter((m) => m.relation === 'identical')
@@ -188,20 +186,18 @@ export function resolveScope(scope: MissionScope, sites: CandidateSite[]): Scope
     res.state = 'covered'
     res.measured = [windowOf(hit.site, hit.box)]
     res.evaluated_site_ids = [hit.site.site_id]
-    res.notes.push('El bbox coincide con la ventana completa (épsilon numérica 1e-9°).')
+    res.notes.push(notes.bboxIdentical)
     return res
   }
   res.state = 'partial_coverage'
-  res.notes.push(
-    'El bbox no coincide con una ventana completa (subárea, cobertura parcial o mayor que la ventana): ninguna métrica agregada se hereda de la ventana.',
-  )
+  res.notes.push(notes.bboxPartial)
   const chosen = scope.window_site_id ? res.matches.find((m) => m.site_id === scope.window_site_id) : null
   if (chosen) {
     const hit = rects.find((r) => r.site.site_id === chosen.site_id)!
     res.state = 'window_selected'
     res.measured = [windowOf(hit.site, hit.box)]
     res.evaluated_site_ids = [chosen.site_id]
-    res.notes.push('Se evalúa la ventana completa elegida explícitamente; no equivale a la geometría pedida.')
+    res.notes.push(notes.bboxSelected)
   }
   return res
 }

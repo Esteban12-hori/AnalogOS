@@ -1,7 +1,7 @@
 /*
- * Tarjeta «Tu misión» (chunk de misión). Prefijo .composer-*. Sin blur: vive dentro del panel
- * izquierdo, de la hoja S2 o del popover del composer. Texto de IA con ✦ + regla lateral de
- * 2 px en hielo al 50 %. Error neutro con ✕. Pendiente = gris con trazo discontinuo.
+ * “Your mission” card (mission chunk). Prefix .composer-*. No blur: it lives inside the left panel,
+ * the S2 sheet or the composer popover. AI text with ✦ + side rule of
+ * 2 px in ice at 50 %. Neutral error with ✕. Pending = gray with a dashed stroke.
  */
 .composer-card:focus-visible { outline: var(--focus-ring); outline-offset: -2px; border-radius: 12px; }
 .composer-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
@@ -39,7 +39,7 @@
 .composer-row[data-pending] .composer-row-note { text-decoration: underline dashed var(--pending); text-underline-offset: 3px; }
 .composer-row-level { color: var(--text); font-size: var(--fs-12); }
 .composer-row-weight { display: grid; justify-items: end; font-size: var(--fs-13); font-variant-numeric: tabular-nums; font-weight: 650; white-space: nowrap; }
-/* Editando: nombre y peso en la primera línea; el control de niveles debajo, a todo el ancho. */
+/* Editing: name and weight on the first line; the levels control below, at full width. */
 .composer-row[data-editing] { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "label weight" "levels levels"; row-gap: 4px; padding: 6px 0; }
 .composer-row[data-editing] .composer-row-label { grid-area: label; }
 .composer-row[data-editing] .composer-row-weight { grid-area: weight; }
@@ -47,7 +47,7 @@
 .composer-row-dir { color: var(--earth-bright); font-size: var(--fs-min); }
 .composer-row-base { color: var(--muted); font-size: var(--fs-min); font-weight: 500; }
 
-/* Control segmentado de niveles: radios nativos (flechas = cambiar nivel). */
+/* Segmented level control: native radios (arrows = change level). */
 .composer-levels { display: inline-flex; margin: 0; padding: 2px; border: 1px solid var(--line-strong); border-radius: 999px; }
 .composer-level { position: relative; display: grid; place-items: center; min-width: 40px; min-height: 26px; padding: 0 6px; border-radius: 999px; color: var(--muted); cursor: pointer; font-size: var(--fs-min); font-weight: 650; }
 .composer-level input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
@@ -76,9 +76,9 @@
 .composer-card[data-placement="popover"] .composer-row:not([data-editing]) { grid-template-columns: minmax(0, 1fr) auto 58px; }
 .composer-card[data-placement="sheet"] { font-size: var(--fs-body); }
 
-/* «Tu misión» integrada (ADR-013): el planificador del equipo en su variante compacta, dentro del
-   panel izquierdo (360 px), del popover (≤460 px) o de la pestaña de S2. Solo tamaños y márgenes:
-   la estructura, los textos y los controles son los del equipo. */
+/* Integrated “Your mission” (ADR-013): the team's planner in its compact variant, inside the
+   left panel (360 px), the popover (≤460 px) or the S2 tab. Sizes and margins only:
+   the structure, texts and controls are the team's. */
 .mission-card { display: grid; gap: 10px; }
 .mission-card .planner.is-compact { width: auto; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
 .planner.is-compact button { min-height: 34px; padding: 0 12px; font-size: var(--fs-12); }
@@ -86,7 +86,7 @@
 .planner.is-compact button.pl-card { min-height: 0; padding: 10px 12px; border-radius: 14px; }
 .planner.is-compact .pl-card strong { font-size: var(--fs-13); }
 .planner.is-compact .pl-card span { font-size: var(--fs-min); line-height: 1.35; }
-/* Con un recorrido elegido, las dos tarjetas quedan como selector: sin la descripción. */
+/* With a route chosen, the two cards become a selector: without the description. */
 .planner.is-compact .pl-entry:has(.pl-card.on) .pl-card span { display: none; }
 .planner.is-compact .pl-steps { gap: 4px; margin: 8px 0 6px; }
 .planner.is-compact .pl-steps button { min-height: 30px; padding: 0 8px; font-size: var(--fs-min); }
@@ -108,7 +108,7 @@
 .planner.is-compact .pl-group h4 { margin: 0 0 6px; font-size: var(--fs-13); }
 .planner.is-compact .pl-diag, .planner.is-compact .pl-export { margin: 12px 0; padding: 10px 12px; }
 .planner.is-compact .pl-nav { margin-top: 10px; }
-/* «Ir a la Lectura» (M11, ronda 2): junto al resumen del resultado, objetivo táctil de 44 px. */
+/* “Go to the Reading” (M11, round 2): next to the result summary, touch target of 44 px. */
 .planner.is-compact .pl-reading-cta { margin: 10px 0 12px; }
 .planner.is-compact .pl-reading-link { min-height: 44px; padding: 0 18px; }
 .pl-clist { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
@@ -123,9 +123,9 @@
 .pl-copt-prefs { display: block; margin-top: 4px; color: var(--muted); }
 .pl-copt .pl-blockers { margin: 6px 0 0; font-size: var(--fs-min); }
 .mission-extras { display: grid; gap: 8px; margin-top: 8px; }
-/* Orientación geológica (M10) plegada después de exportar: el resumen lleva el rótulo del equipo
-   y el número de sectores; dentro, sin el marco exterior (ya está en la tarjeta o el popover) y sin
-   repetir a la vista el título del resumen (sigue en el árbol: nombra la sección). */
+/* Geological orientation (M10) collapsed after exporting: the summary carries the team's label
+   and the number of sectors; inside, without the outer frame (it is already in the card or the popover) and without
+   visibly repeating the summary title (it remains in the tree: it names the section). */
 .planner.is-compact .pl-geo-fold { margin: 12px 0; }
 .planner.is-compact .pl-geo-fold > summary { flex-wrap: wrap; gap: 4px 8px; min-height: 36px; font-size: var(--fs-13); font-weight: 650; }
 .planner.is-compact .pl-geo-fold > summary .pl-tag { min-height: 22px; padding: 1px 8px; font-size: var(--fs-12); }

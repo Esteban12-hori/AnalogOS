@@ -1,12 +1,12 @@
-"""Etapa 1 de la búsqueda v3: rejilla regional, prioridad topográfica y preselección.
+"""Stage 1 of search v3: regional grid, topographic priority, and shortlisting.
 
-Evalúa todas las ventanas de ``config/discovery_search_v3.json`` con el mismo
-código NASADEM del snapshot v2, registra por qué cada una se rechaza, se
-descarta o se selecciona, y escribe ``artifacts/science-v3/search-results.json``.
+Evaluates all windows of ``config/discovery_search_v3.json`` with the same
+NASADEM code as the v2 snapshot, records why each one is rejected,
+discarded, or selected, and writes ``artifacts/science-v3/search-results.json``.
 
-La «prioridad topográfica» solo ordena la preselección: no es el score final ni
-una medida de confianza. Ninguna ventana se elige a mano y una ventana con
-antecedentes los conserva; no encontrar antecedentes no prueba novedad.
+The "topographic priority" only orders the shortlist: it is neither the final score nor
+a measure of confidence. No window is chosen by hand, and a window with
+prior work retains it; finding no prior work does not prove novelty.
 """
 
 from __future__ import annotations
@@ -39,7 +39,7 @@ def _coordinate(value: float, negative: str, positive: str, digits: int) -> str:
 
 
 def window_id(country: str, latitude: float, longitude: float) -> str:
-    """ID estable derivado del centro, p. ej. ``cl-win-s2460-w06990``."""
+    """Stable ID derived from the center, e.g. ``cl-win-s2460-w06990``."""
     return f"{country.lower()}-win-{_coordinate(latitude, 's', 'n', 4)}-{_coordinate(longitude, 'w', 'e', 5)}"
 
 
@@ -50,14 +50,14 @@ def window_bbox(window: dict) -> list[float]:
 
 
 def grid_windows(config: dict) -> list[dict]:
-    """Ventanas no solapadas derivadas de origen y paso; nunca dibujadas a mano."""
+    """Non-overlapping windows derived from origin and step; never drawn by hand."""
     size = config["window_size_degree"]
     windows = []
     for region in config["regions"]:
         west, south, east, north = region["bbox"]
         if not (math.isclose(west + region["columns"] * size, east, abs_tol=1e-9)
                 and math.isclose(south + region["rows"] * size, north, abs_tol=1e-9)):
-            raise ValueError(f"{region['region_id']}: la bbox no es un múltiplo exacto del tamaño de ventana.")
+            raise ValueError(f"{region['region_id']}: the bbox is not an exact multiple of the window size.")
         for row in range(region["rows"]):
             for column in range(region["columns"]):
                 latitude = round(south + (row + 0.5) * size, 6)
@@ -73,12 +73,12 @@ def grid_windows(config: dict) -> list[dict]:
                     "half_size_degree": size / 2,
                 })
     if len(windows) > config["limits"]["max_windows"] or len({w["window_id"] for w in windows}) != len(windows):
-        raise ValueError("La rejilla supera el máximo de ventanas autorizado o repite identificadores.")
+        raise ValueError("The grid exceeds the authorized maximum number of windows or repeats identifiers.")
     return windows
 
 
 def required_tiles(windows: list[dict]) -> list[str]:
-    """Teselas NASADEM que tocará el lector v2 (misma regla de ``floor`` por coordenada)."""
+    """NASADEM tiles that the v2 reader will touch (same rule as ``floor`` per coordinate)."""
     tiles = set()
     for window in windows:
         west, south, east, north = window_bbox(window)
@@ -89,16 +89,16 @@ def required_tiles(windows: list[dict]) -> list[str]:
 
 
 def distance_km(first: tuple[float, float], second: tuple[float, float]) -> float:
-    """Distancia geodésica WGS84 entre dos pares (longitud, latitud)."""
+    """WGS84 geodesic distance between two (longitude, latitude) pairs."""
     return _GEOD.line_length([first[0], second[0]], [first[1], second[1]]) / 1000
 
 
 def precedent_matches(window: dict, catalog: dict, proximity_km: float) -> list[dict]:
-    """Relación de la ventana con cada antecedente; como mucho una entrada por antecedente.
+    """Relationship of the window to each prior work; at most one entry per prior work.
 
-    Distingue contener una coordenada de muestreo publicada, superponerse a un área
-    de estudio publicada, estar cerca de una coordenada (heurística) y pertenecer a
-    una región con antecedentes. Un punto no delimita toda una campaña.
+    Distinguishes containing a published sampling coordinate, overlapping a published study
+    area, being near a coordinate (heuristic), and belonging to
+    a region with prior work. A point does not delimit an entire campaign.
     """
     west, south, east, north = window_bbox(window)
     center = (window["longitude"], window["latitude"])
@@ -128,7 +128,7 @@ def precedent_matches(window: dict, catalog: dict, proximity_km: float) -> list[
 
 
 def literature_status(window_id_: str, matches: list[dict], catalog: dict) -> str:
-    """Estado de revisión bibliográfica de una ventana; nunca afirma novedad."""
+    """Literature review status of a window; it never asserts novelty."""
     if any(match["relation"] in OVERLAP_RELATIONS for match in matches):
         return "known_analogue_overlap"
     if matches:
@@ -138,7 +138,7 @@ def literature_status(window_id_: str, matches: list[dict], catalog: dict) -> st
 
 
 def topographic_priority(metrics: dict, mola: dict, stage1: dict) -> tuple[dict, float | None]:
-    """Media geométrica ponderada de las tres similitudes topográficas (0–100). Solo ordena."""
+    """Weighted geometric mean of the three topographic similarities (0–100). It only orders."""
     values = {criterion: metrics[key] for criterion, key in TOPOGRAPHY.items()}
     if not all(isinstance(value, (int, float)) and math.isfinite(value) for value in values.values()):
         return {criterion: None for criterion in TOPOGRAPHY}, None
@@ -148,11 +148,12 @@ def topographic_priority(metrics: dict, mola: dict, stage1: dict) -> tuple[dict,
 
 
 def window_metrics(window: dict, science_config: dict, metrics_for) -> tuple[dict | None, str | None]:
-    """Métricas de una ventana o el motivo del fallo de datos.
+    """Metrics of a window or the reason for the data failure.
 
-    Solo captura fallos de datos esperados (tesela ausente, dañada o ventana sin
-    píxeles válidos); un error de programación se propaga y aborta la búsqueda.
+    Only captures expected data failures (missing or corrupted tile, or window without
+    valid pixels); a programming error propagates and aborts the search.
     """
+    # Frozen output text (Spanish): failure reasons are written to search-results.json as `decision_reason`.
     try:
         return metrics_for(window, science_config), None
     except FileNotFoundError as error:
@@ -163,7 +164,7 @@ def window_metrics(window: dict, science_config: dict, metrics_for) -> tuple[dic
 
 def evaluate_window(window: dict, metrics: dict | None, mola: dict, config: dict, catalog: dict,
                     failure: str | None = None) -> dict:
-    """Registro completo de una ventana: métricas, prioridad, antecedentes y elegibilidad."""
+    """Complete record of a window: metrics, priority, prior work, and eligibility."""
     stage1 = config["stage1"]
     matches = precedent_matches(window, catalog, config["precedents"]["proximity_km"])
     status = literature_status(window["window_id"], matches, catalog)
@@ -186,8 +187,9 @@ def evaluate_window(window: dict, metrics: dict | None, mola: dict, config: dict
         "blocked_by": None,
     }
     if metrics is None:
-        return record  # se intentó evaluar, pero no hay métricas: sin prioridad ni preselección
+        return record  # evaluation was attempted, but there are no metrics: no priority or shortlisting
     similarities, priority = topographic_priority(metrics, mola, stage1)
+    # Frozen output text (Spanish): `decision_reason` strings below are part of the search artifacts. Do not translate.
     valid, water = metrics["source_valid_fraction"], metrics["permanent_water_fraction"]
     if valid < stage1["min_valid_fraction"] or priority is None:
         decision = ("rejected_coverage", f"Cobertura NASADEM válida {valid:.1%}; mínimo {stage1['min_valid_fraction']:.0%}.")
@@ -211,7 +213,7 @@ def evaluate_window(window: dict, metrics: dict | None, mola: dict, config: dict
 
 
 def select_shortlist(records: list[dict], selection: dict, limit: int) -> list[str]:
-    """Diversificación voraz y determinista; anota en cada registro por qué quedó fuera."""
+    """Greedy, deterministic diversification; annotates in each record why it was left out."""
     chosen: list[dict] = []
     per_country: dict[str, int] = {}
     eligible = sorted((r for r in records if r["decision"] == "eligible"),
@@ -259,7 +261,7 @@ def summarize(config: dict, catalog: dict, mola: dict, records: list[dict], shor
         "limits": config["limits"],
         "mola_reference": {key: mola[key] for key in ("name", "nominal_spacing_meter", *TOPOGRAPHY.values())},
         "regions": regions,
-        # «attempted» cuenta todas las ventanas; «evaluated», solo las que tienen métricas válidas.
+        # "attempted" counts all windows; "evaluated" counts only those with valid metrics.
         "counts": {"attempted": len(records), "evaluated": sum(r["nasadem"] is not None for r in records),
                    **dict(sorted(counts.items()))},
         "explored_area_km2": round(sum(r["area_km2"] for r in records), 1),
@@ -269,7 +271,7 @@ def summarize(config: dict, catalog: dict, mola: dict, records: list[dict], shor
 
 
 def discover(config: dict, catalog: dict, science_config: dict, metrics_for=_nasadem_metrics, mola: dict | None = None) -> dict:
-    """Ejecuta la etapa 1 completa. ``metrics_for`` y ``mola`` permiten probar la lógica sin datos crudos."""
+    """Runs the full stage 1. ``metrics_for`` and ``mola`` make it possible to test the logic without raw data."""
     mola = mola or _mola_reference(science_config)
     records = []
     for window in grid_windows(config):
@@ -297,8 +299,8 @@ def main() -> None:
     results = discover(*load_inputs(args.config))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(_dump(results), encoding="utf-8")
-    print(f"escrito {args.out}")
-    print(f"ventanas: {results['counts']}; preselección: {results['shortlist']}")
+    print(f"wrote {args.out}")
+    print(f"windows: {results['counts']}; shortlist: {results['shortlist']}")
 
 
 if __name__ == "__main__":

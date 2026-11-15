@@ -1,11 +1,11 @@
-/* Liquid glass global.
-   Se carga después de styles.css y CandidateGlobe.css: redefine superficies, no layout.
-   Capas de cada superficie:
-   1) tinte translúcido + desenfoque del fondo (backdrop-filter),
-   2) brillo especular que sigue al cursor (--lg-x/--lg-y vía useLiquidPointer; --lg-a se anima al hover),
-   3) borde de luz iridiscente en ::after (máscara de 1px),
-   4) sombras internas: arista superior brillante y cáustica azul en la base.
-   En Chromium los controles sobre el mapa usan además refracción real (filtro SVG #lg-refract). */
+/* Global liquid glass.
+   Loaded after styles.css and CandidateGlobe.css: it redefines surfaces, not layout.
+   Layers of each surface:
+   1) translucent tint + background blur (backdrop-filter),
+   2) specular highlight that follows the cursor (--lg-x/--lg-y via useLiquidPointer; --lg-a is animated on hover),
+   3) iridescent light border on ::after (1px mask),
+   4) inner shadows: bright top edge and blue caustic at the base.
+   In Chromium, the controls over the map additionally use real refraction (SVG filter #lg-refract). */
 
 @property --lg-a { syntax: "<number>"; inherits: false; initial-value: 0; }
 
@@ -22,7 +22,7 @@
   --lg-sheen: linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, .015));
 }
 
-/* Fondo vivo: el vidrio refracta estas manchas. */
+/* Living background: the glass refracts these blobs. */
 .lg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 .lg-backdrop { position: fixed; inset: 0; z-index: -2; overflow: hidden; pointer-events: none; }
 .lg-blob { position: absolute; border-radius: 50%; will-change: transform; }
@@ -33,9 +33,9 @@
 @keyframes lgDriftB { to { transform: translate(-18vw, -14vh) scale(.9); } }
 @keyframes lgDriftC { to { transform: translate(-12vw, -10vh) scale(1.08); } }
 
-/* --- Grupos de superficie ------------------------------------------------------------------ */
+/* --- Surface groups ------------------------------------------------------------------------ */
 
-/* Todas las superficies: especular animable y borde de luz. */
+/* All surfaces: animatable specular highlight and light border. */
 .glass, .candidate-card, .comparison-card, .metric, .criterion-row, .sb-card, .method-steps li, .two-column-notes > div,
 .warning-box, .ranking-note, .signals-empty, .detail-actions button, .fixture-pill, .view-switch, .view-note,
 .globe-loading, .map-legend, .map-heading > div, .offline-chip, .error-state button {
@@ -47,7 +47,7 @@
 .warning-box, .ranking-note, .signals-empty, .detail-actions button, .fixture-pill, .view-switch, .view-note,
 .globe-loading, .map-legend, .map-heading > div, .offline-chip, .error-state button):hover { --lg-a: 1; }
 
-/* Las que no tienen posición propia necesitan relative para anclar el borde. */
+/* Those without their own positioning need relative to anchor the border. */
 .glass, .candidate-card, .comparison-card, .metric, .criterion-row, .sb-card, .method-steps li, .two-column-notes > div,
 .warning-box, .ranking-note, .signals-empty, .detail-actions button, .fixture-pill, .view-switch, .view-note,
 .map-heading > div, .offline-chip, .error-state button { position: relative; }
@@ -78,8 +78,8 @@
   backdrop-filter: var(--lg-blur-panel);
   box-shadow: var(--lg-inner), var(--lg-drop);
 }
-/* Paneles con scroll interno: un ::after absoluto se desplazaría con el contenido y cruzaría
-   la ficha; ahí el borde de luz se dibuja con sombras internas, que quedan fijas al marco. */
+/* Panels with internal scroll: an absolute ::after would move with the content and cross
+   the detail sheet; there the light border is drawn with inner shadows, which stay fixed to the frame. */
 .glass:is(.details-panel, .lg-scroll)::after { display: none; }
 .glass:is(.details-panel, .lg-scroll) {
   border-color: rgba(255, 255, 255, .12);
@@ -87,7 +87,7 @@
   background-attachment: local, scroll, scroll;
 }
 
-/* Tarjetas dentro de paneles: sin backdrop-filter propio (el panel ya desenfoca), solo luz. */
+/* Cards inside panels: no backdrop-filter of their own (the panel already blurs), only light. */
 .candidate-card, .comparison-card, .metric, .criterion-row, .sb-card, .method-steps li, .two-column-notes > div, .signals-empty {
   border-color: rgba(255, 255, 255, .04);
   background: var(--lg-spec), var(--lg-sheen), var(--lg-tint-card);
@@ -95,7 +95,7 @@
 }
 .candidate-card:hover, .comparison-card:hover { border-color: rgba(63, 180, 236, .3); }
 
-/* Selección = gota de agua azul */
+/* Selection = blue water drop */
 .candidate-card.selected, .comparison-card.selected {
   border-color: rgba(120, 205, 245, .5);
   background:
@@ -106,7 +106,7 @@
 }
 .candidate-card.selected::before { opacity: 0; }
 
-/* Avisos: vidrio teñido de naranja */
+/* Notices: orange-tinted glass */
 .warning-box, .ranking-note {
   border-color: rgba(252, 115, 77, .18);
   background: var(--lg-spec), linear-gradient(180deg, rgba(255, 180, 150, .08), rgba(255, 255, 255, 0) 45%), rgba(252, 115, 77, .1);
@@ -116,7 +116,7 @@
   background: linear-gradient(140deg, rgba(255, 220, 205, .55) 0%, rgba(255, 255, 255, .06) 30%, rgba(255, 255, 255, 0) 50%, rgba(252, 115, 77, .3) 75%, rgba(255, 220, 205, .3) 100%);
 }
 
-/* Flotantes sobre el mapa/globo y controles: desenfoque propio + refracción en Chromium. */
+/* Floating elements over the map/globe and controls: own blur + refraction in Chromium. */
 .map-heading > div, .map-legend, .offline-chip, .view-switch, .view-note, .globe-loading, .fixture-pill, .detail-actions button {
   border-color: rgba(255, 255, 255, .06);
   background: var(--lg-spec), var(--lg-sheen), var(--lg-tint-float);
@@ -131,7 +131,7 @@
 .fixture-pill { background: var(--lg-spec), var(--lg-sheen), rgba(252, 115, 77, .16); }
 .fixture-pill::after { background: linear-gradient(140deg, rgba(255, 220, 205, .6), rgba(255, 255, 255, 0) 45%, rgba(252, 115, 77, .4)); }
 
-/* Segmentos activos de los selectores: gota azul como en la navbar */
+/* Active segments of the selectors: blue drop as in the navbar */
 .view-switch button[aria-pressed="true"] {
   background: radial-gradient(120% 140% at 30% 0%, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 55%), rgba(2, 151, 222, .55);
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, .9), inset 0 -2px 6px rgba(2, 151, 222, .4), inset 0 0 0 1px rgba(255, 255, 255, .35), 0 6px 16px -6px rgba(2, 151, 222, .7);
@@ -144,19 +144,19 @@
   background: var(--lg-spec), radial-gradient(120% 140% at 30% 0%, rgba(255, 255, 255, .45), transparent 55%), rgba(2, 151, 222, .7);
 }
 
-/* Física al presionar: la superficie se comprime como una gota. */
+/* Physics on press: the surface compresses like a drop. */
 .candidate-card:active, .comparison-card:active, .detail-actions button:active, .view-switch button:active, .error-state button:active {
   transform: scale(.975, .965);
   transition-duration: .08s;
 }
 
-/* La barra superior es tinte sólido SIN blur (§2.4, §6.1): la define shell/shell.css. */
+/* The top bar is a solid tint WITHOUT blur (§2.4, §6.1): it is defined by shell/shell.css. */
 
-/* El fondo detrás del vidrio es la escena, no un bloque sólido */
+/* The background behind the glass is the scene, not a solid block */
 body { background: var(--navy); }
 body::before { z-index: -1; }
 
-/* Selector de candidato y contexto visual de la ficha (rediseño de layout). */
+/* Candidate selector and visual context of the detail sheet (layout redesign). */
 .candidate-switch, .visual-on-map {
   position: relative;
   isolation: isolate;

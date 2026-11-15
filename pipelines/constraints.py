@@ -1,7 +1,7 @@
-"""Evaluación trazable de restricciones de factibilidad.
+"""Traceable evaluation of feasibility constraints.
 
-Las restricciones nunca alteran la similitud. Producen una decisión separada y
-mensajes que conservan autoridad, fuente y motivo para la ficha del candidato.
+Constraints never alter similarity. They produce a separate decision and
+messages that preserve authority, source and reason for the candidate's record.
 """
 
 from __future__ import annotations
@@ -18,11 +18,11 @@ def _source_is_valid(source_url: str) -> bool:
 
 
 def evaluate_constraints(checks: list[dict]) -> dict:
-    """Devuelve factibilidad y advertencias sin mezclarla con el score.
+    """Returns feasibility and warnings without mixing them with the score.
 
-    Cada check requiere: ``constraint_id``, ``authority``, ``source_url``,
-    ``action``, ``state``, ``triggered`` y ``reason``. Un check no evaluado
-    obliga a revisión humana, aunque ``triggered`` sea falso.
+    Each check requires: ``constraint_id``, ``authority``, ``source_url``,
+    ``action``, ``state``, ``triggered`` and ``reason``. An unevaluated check
+    requires human review, even if ``triggered`` is false.
     """
     warnings: list[str] = []
     excluded = False
@@ -36,15 +36,15 @@ def evaluate_constraints(checks: list[dict]) -> dict:
             ) if key not in check
         }
         if missing:
-            raise ValueError(f"Restricción incompleta; faltan: {', '.join(sorted(missing))}")
+            raise ValueError(f"Incomplete constraint; missing: {', '.join(sorted(missing))}")
         if check["action"] not in VALID_ACTIONS:
-            raise ValueError(f"Acción de restricción inválida: {check['action']}")
+            raise ValueError(f"Invalid constraint action: {check['action']}")
         if check["state"] not in VALID_STATES:
-            raise ValueError(f"Estado de restricción inválido: {check['state']}")
+            raise ValueError(f"Invalid constraint state: {check['state']}")
         if not check["authority"].strip():
-            raise ValueError("Toda restricción debe declarar una autoridad.")
+            raise ValueError("Every constraint must declare an authority.")
         if not _source_is_valid(check["source_url"]):
-            raise ValueError("Toda restricción debe declarar una URL http(s) válida.")
+            raise ValueError("Every constraint must declare a valid http(s) URL.")
 
         prefix = f"{check['constraint_id']} · {check['authority']}"
         source = check["source_url"]

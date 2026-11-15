@@ -4,9 +4,9 @@ import { shortCandidateName } from '../../domain/formatting'
 import { buildScope, describeEditable, describeScope, resolveScope, validateBbox, validatePoint, type PlannerState } from '../../mission'
 
 /**
- * Resumen previo a confirmar: muestra las condiciones EFECTIVAS que usará el motor (umbral, unidad,
- * escala, importancia) y la geometría pedida, para que no dependan del texto del brief, que puede
- * conservar un valor antiguo.
+ * Summary shown before confirming: it displays the EFFECTIVE conditions that the engine will use (threshold, unit,
+ * scale, importance) and the requested geometry, so that they do not depend on the brief text, which may
+ * retain an outdated value.
  */
 export function ConfirmSummary({ state, candidates }: { state: PlannerState; candidates: CandidateSite[] }) {
   const lines = useMemo(() => {
@@ -18,23 +18,23 @@ export function ConfirmSummary({ state, candidates }: { state: PlannerState; can
   }, [state.scope, candidates])
   return (
     <dl className="pl-summary">
-      <div><dt>Objetivo</dt><dd>{state.target.kind === 'rover' ? 'Rover marciano (referencia Jezero)' : `No soportado: ${state.target.stated || '—'}`}</dd></div>
+      <div><dt>Objective</dt><dd>{state.target.kind === 'rover' ? 'Mars rover (Jezero reference)' : `Not supported: ${state.target.stated || '—'}`}</dd></div>
       <div>
-        <dt>Geometría</dt>
+        <dt>Geometry</dt>
         <dd>
-          {lines ? (<><span>{lines.requested}</span><small className="pl-sumline">{lines.state}{state.scope.mode !== 'catalog' && lines.measured.length ? ` · ${lines.measured[0]}` : ''}</small></>) : 'Sin elegir o incompleta'}
+          {lines ? (<><span>{lines.requested}</span><small className="pl-sumline">{lines.state}{state.scope.mode !== 'catalog' && lines.measured.length ? ` · ${lines.measured[0]}` : ''}</small></>) : 'Not chosen or incomplete'}
         </dd>
       </div>
       <div>
-        <dt>Condiciones que se evaluarán</dt>
+        <dt>Conditions that will be evaluated</dt>
         <dd>
-          {state.requirements.length === 0 ? 'Ninguna' : (
+          {state.requirements.length === 0 ? 'None' : (
             <ul className="pl-sumlist">{state.requirements.map((r) => <li key={r.requirement_id}>{describeEditable(r)}</li>)}</ul>
           )}
-          <small className="pl-sumline">El cálculo usa exactamente estas condiciones, no los números que aparezcan en el texto del brief.</small>
+          <small className="pl-sumline">The calculation uses exactly these conditions, not the numbers that appear in the brief text.</small>
         </dd>
       </div>
-      <div><dt>Texto</dt><dd>{state.brief ? `${state.brief.slice(0, 160)}${state.brief.length > 160 ? '…' : ''}` : 'Sin texto'}</dd></div>
+      <div><dt>Text</dt><dd>{state.brief ? `${state.brief.slice(0, 160)}${state.brief.length > 160 ? '…' : ''}` : 'No text'}</dd></div>
     </dl>
   )
 }

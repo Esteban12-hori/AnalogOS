@@ -1,14 +1,14 @@
 /**
- * Riel de métricas (docs/UX_REDESIGN.md §3.6; ADR-008/009/013). Tres variantes:
- *  - 'rail'  (≥1100, 340–380 px): cifras del lugar + acordeón-carrusel por criterio.
- *  - 'full'  (ficha de 520 px o S2): cifras del lugar + tarjetas completas con visualización.
- *  - 'sheet' (<1100, S1): «‹ % ›» para cambiar de lugar + pestañas y pista deslizable.
+ * Metrics rail (docs/UX_REDESIGN.md §3.6; ADR-008/009/013). Three variants:
+ *  - 'rail'  (≥1100, 340–380 px): place figures + accordion-carousel per criterion.
+ *  - 'full'  (520 px detail panel or S2): place figures + full cards with visualization.
+ *  - 'sheet' (<1100, S1): "‹ % ›" to switch places + tabs and a swipeable track.
  *
- * Este archivo va en el chunk principal y pinta al instante lo que no depende del detalle:
- * similitud, confianza, estabilidad y factibilidad, cada una por separado (nunca se combinan),
- * siempre del snapshot. En Misión con evaluación añade el estado del lugar y la capa de
- * requisitos (✓ cumple · ✕ no cumple · ○ no evaluable) de la evaluación del equipo.
- * El detalle por criterio (MetricDetails) se carga en diferido.
+ * This file goes in the main chunk and instantly renders whatever does not depend on the detail:
+ * similarity, confidence, stability and feasibility, each one separately (never combined),
+ * always from the snapshot. In Mission with an evaluation, it adds the place status and the layer of
+ * requirements (✓ meets · ✕ does not meet · ○ not evaluable) from the team's evaluation.
+ * The per-criterion detail (MetricDetails) is loaded lazily.
  */
 import { Component, lazy, Suspense, type ErrorInfo, type ReactNode } from 'react'
 import type { CandidateSite } from '../../domain/contracts'
@@ -29,7 +29,7 @@ import { similarityTone } from '../../domain/similarityScale'
 const loadDetails = () => import('./MetricDetails')
 const MetricDetails = lazy(loadDetails)
 
-/** Precarga el detalle cuando la página terminó de cargar y el hilo está libre. */
+/** Preloads the detail once the page has finished loading and the thread is idle. */
 function preloadWhenIdle(): void {
   const idle = (callback: () => void) => {
     if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(callback, { timeout: 4000 })
@@ -48,13 +48,13 @@ class DetailsBoundary extends Component<{ children: ReactNode }, { failed: boole
   }
   componentDidCatch(error: Error, info: ErrorInfo): void {
     void info
-    console.error('features/metrics: no se pudo cargar el detalle por criterio', error)
+    console.error('features/metrics: the per-criterion detail could not be loaded', error)
   }
   render(): ReactNode {
     if (this.state.failed) {
       return (
         <p className="metrics-note metrics-error" role="alert">
-          <span aria-hidden="true">{GLYPH.fail}</span> No se pudo cargar el detalle por criterio. Las cifras del lugar siguen siendo válidas; recarga la página para reintentar.
+          <span aria-hidden="true">{GLYPH.fail}</span> The per-criterion detail could not be loaded. The place figures are still valid; reload the page to try again.
         </p>
       )
     }
@@ -63,85 +63,85 @@ class DetailsBoundary extends Component<{ children: ReactNode }, { failed: boole
 }
 
 function DetailsPending() {
-  return <p className="metrics-note metrics-pending" aria-busy="true">Cargando el detalle por criterio…</p>
+  return <p className="metrics-note metrics-pending" aria-busy="true">Loading the per-criterion detail…</p>
 }
 
 function profileLine(context: MetricContext): string {
-  const calibration = context.profileStatus === 'needs_calibration' ? ' · necesita calibración' : ''
-  return `${context.profileLabel.replace(/^perfil/, 'Perfil')}${calibration} · similitud v3 del snapshot`
+  const calibration = context.profileStatus === 'needs_calibration' ? ' · needs calibration' : ''
+  return `${context.profileLabel.replace(/^base profile/, 'Base profile')}${calibration} · snapshot v3 similarity`
 }
 
-/** «Candidato · Chile» / «REF · Referencia conocida · Chile» y el enlace a la pestaña Origen. */
+/** "Candidate · Chile" / "REF · Known reference · Chile" and the link to the Origin tab. */
 function RoleLine({ context }: { context: MetricContext }) {
   const country = context.country ? countryLabels[context.country] : null
   return (
     <p className="metrics-role">
-      {context.role === 'reference' ? <b className="metrics-ref">REF · Referencia conocida</b> : <span>Candidato de la búsqueda</span>}
+      {context.role === 'reference' ? <b className="metrics-ref">REF · Known reference</b> : <span>Search candidate</span>}
       {country && <span> · {country}</span>}
-      <span> · Factibilidad territorial: pendiente</span>
+      <span> · Territorial feasibility: pending</span>
     </p>
   )
 }
 
-/** Una fila de requisito: ✓/✕/○, lo exigido, lo observado y el motivo (todo de la evaluación). */
+/** A requirement row: ✓/✕/○, what is required, what is observed and the reason (all from the evaluation). */
 export function RequirementRow({ result }: { result: RequirementResult }) {
   return (
     <li className="metrics-req" data-status={result.status}>
       <span className="metrics-req-mark" aria-hidden="true">{REQUIREMENT_MARK[result.status]}</span>
       <span className="metrics-req-body">
-        <b>{result.label}</b> <small>({result.importance === 'critical' ? 'imprescindible' : 'preferencia'} · {REQUIREMENT_STATUS_LABEL[result.status]})</small>
-        <span className="metrics-req-line">Exigido: {result.required}{result.kind === 'measurable' ? ` · observado: ${fmtObserved(result.observed_value, result.observed_unit)}` : ''}</span>
+        <b>{result.label}</b> <small>({result.importance === 'critical' ? 'must-have' : 'preference'} · {REQUIREMENT_STATUS_LABEL[result.status]})</small>
+        <span className="metrics-req-line">Required: {result.required}{result.kind === 'measurable' ? ` · observed: ${fmtObserved(result.observed_value, result.observed_unit)}` : ''}</span>
         <span className="metrics-req-reason">{result.reason}</span>
       </span>
     </li>
   )
 }
 
-/** Estado del lugar en la evaluación y requisitos del sitio (área, país) y no medidos. */
+/** Place status in the evaluation and site requirements (area, country) and unmeasured ones. */
 function MissionSummary({ layer, rank, reference }: { layer: MissionLayer; rank: number | null; reference: boolean }) {
   const option = layer.option
   const preferences = option ? preferencesText(option) : null
   return (
-    <section className="metrics-mission" aria-label="Resultado de tu misión" data-stale={layer.stale ? '' : undefined}>
+    <section className="metrics-mission" aria-label="Your mission result" data-stale={layer.stale ? '' : undefined}>
       <p className="metrics-mission-status" data-status={layer.status}>
         {rank !== null && <b>#{rank} · </b>}
         {reference && <b>REF · </b>}
         {MISSION_STATUS_LABEL[layer.status]}
         {preferences && <small> · {preferences}</small>}
       </p>
-      {layer.stale && <p className="metrics-note">Editó la prueba: este estado es de la evaluación anterior hasta que confirme y evalúe de nuevo.</p>}
+      {layer.stale && <p className="metrics-note">You edited the test: this status belongs to the previous evaluation until you confirm and evaluate again.</p>}
       {layer.siteRows.length + layer.unmeasured.length > 0 && (
-        <ul className="metrics-reqs" aria-label="Requisitos del sitio y sin medición">
+        <ul className="metrics-reqs" aria-label="Site requirements and unmeasured ones">
           {layer.siteRows.map((result) => <RequirementRow key={result.requirement_id} result={result} />)}
           {layer.unmeasured.map((result) => <RequirementRow key={result.requirement_id} result={result} />)}
         </ul>
       )}
-      <p className="metrics-coverage">Cálculo determinista · reglas {layer.rulesVersion} · los pesos del riel son los del snapshot</p>
+      <p className="metrics-coverage">Deterministic calculation · rules {layer.rulesVersion} · the rail weights are the snapshot ones</p>
     </section>
   )
 }
 
-/** Cifras del lugar (riel y ficha): similitud · confianza · estabilidad · factibilidad. */
+/** Place figures (rail and detail panel): similarity · confidence · stability · feasibility. */
 function Summary({ context, site }: { context: MetricContext; site: CandidateSite }) {
   const figures = context.figures
   const scored = figures.similarity !== null
   const confidence = figures.confidence
   return (
-    <section className="metrics-summary" aria-label="Cifras del lugar">
+    <section className="metrics-summary" aria-label="Place figures">
       <div className="metrics-score">
         <span className="metrics-score-glyph" aria-hidden="true">{scored ? GLYPH.evaluated : GLYPH.insufficient}</span>
         <strong className={scored ? 'metrics-score-value' : 'metrics-score-value is-empty'} data-sim-tone={similarityTone(figures.similarity) ?? undefined}>
           <FadeNumber value={figures.similarity}>{siteSimilarityText(figures)}</FadeNumber>
-          {scored && <small> %</small>}
+          {scored && <small>%</small>}
         </strong>
         <span className="metrics-score-label">
-          similitud v3{context.kind === 'base' && context.rank !== null ? ` · #${context.rank} de ${context.rankedCount}` : ''}
-          {context.mission?.status === 'objetivo_no_soportado' ? ' · perfil rover Marte · no aplica a este objetivo' : context.kind === 'mission' ? ' · sin recalcular' : ''}
+          v3 similarity{context.kind === 'base' && context.rank !== null ? ` · #${context.rank} of ${context.rankedCount}` : ''}
+          {context.mission?.status === 'objetivo_no_soportado' ? ' · Mars rover profile · does not apply to this objective' : context.kind === 'mission' ? ' · not recalculated' : ''}
         </span>
       </div>
       {figures.similarityState === 'insufficient' && (
         <p className="metrics-note">
-          Peso válido bajo el mínimo del perfil ({formatWhole(context.minimumValidWeight * 100)} %): no se calcula un % para este lugar.
+          Valid weight below the profile minimum ({formatWhole(context.minimumValidWeight * 100)}%): no % is calculated for this place.
         </p>
       )}
       <p className="metrics-profile">{profileLine(context)}</p>
@@ -149,16 +149,16 @@ function Summary({ context, site }: { context: MetricContext; site: CandidateSit
       {context.mission && <MissionSummary layer={context.mission} rank={context.rank} reference={context.role === 'reference'} />}
       <dl className="metrics-figures">
         <div className="metrics-fig metrics-fig-confidence">
-          <dt>Confianza</dt>
-          <dd>{confidence === null ? <span className="metrics-fig-pending">sin calcular</span> : <FadeNumber value={confidence}>{formatScore(confidence)}</FadeNumber>}</dd>
+          <dt>Confidence</dt>
+          <dd>{confidence === null ? <span className="metrics-fig-pending">not calculated</span> : <FadeNumber value={confidence}>{formatScore(confidence)}</FadeNumber>}</dd>
           {confidence !== null && <i className="metrics-confidence-bar" aria-hidden="true"><em style={{ transform: `scaleX(${Math.max(0, Math.min(1, confidence / 100))})` }} /></i>}
         </div>
         <div className="metrics-fig">
-          <dt>Estabilidad</dt>
-          <dd>{figures.stability === null ? <span className="metrics-fig-pending">sin calcular</span> : <FadeNumber value={figures.stability}>{formatScore(figures.stability)}</FadeNumber>}</dd>
+          <dt>Stability</dt>
+          <dd>{figures.stability === null ? <span className="metrics-fig-pending">not calculated</span> : <FadeNumber value={figures.stability}>{formatScore(figures.stability)}</FadeNumber>}</dd>
         </div>
         <div className="metrics-fig">
-          <dt>Factibilidad</dt>
+          <dt>Feasibility</dt>
           <dd>{feasibilityLabels[figures.feasibility]}</dd>
         </div>
       </dl>
@@ -169,7 +169,7 @@ function Summary({ context, site }: { context: MetricContext; site: CandidateSit
   )
 }
 
-/** S1: «‹ #1 de 3 · 75,7 % ›» para recorrer los lugares en el orden vigente. */
+/** S1: "‹ #1 of 3 · 75,7 % ›" to browse the places in the current order. */
 function SheetSummary({ context, site, data }: { context: MetricContext; site: CandidateSite; data: AppData }) {
   const figures = context.figures
   const order = context.order
@@ -182,47 +182,47 @@ function SheetSummary({ context, site, data }: { context: MetricContext; site: C
     if (!target) return
     uiActions.select(target.site_id, 'evaluated')
     const position = order.indexOf(target.site_id) + 1
-    announce(`${siteShortName(target.name)}, lugar ${position} de ${order.length}`)
+    announce(`${siteShortName(target.name)}, place ${position} of ${order.length}`)
   }
   const confidence = figures.confidence
   const stability = figures.stability
   return (
-    <section className="metrics-summary metrics-summary-sheet" aria-label="Cifras del lugar">
-      <div className="metrics-sitenav" role="group" aria-label="Cambiar de lugar">
+    <section className="metrics-summary metrics-summary-sheet" aria-label="Place figures">
+      <div className="metrics-sitenav" role="group" aria-label="Change place">
         <button
           type="button"
           className="metrics-step"
           aria-disabled={previous === null}
-          aria-label={previous ? `Lugar anterior: ${siteShortName(previous.name)}` : 'No hay lugar anterior'}
+          aria-label={previous ? `Previous place: ${siteShortName(previous.name)}` : 'No previous place'}
           onClick={() => go(previous)}
         >
           ‹
         </button>
         <p className="metrics-sitenav-score">
           <strong data-sim-tone={similarityTone(figures.similarity) ?? undefined}>
-            {context.rank !== null && <span className="metrics-rank">#{context.rank}{context.kind === 'base' ? ` de ${context.rankedCount}` : ''} · </span>}
-            {/* La REF nunca aparece sin su rótulo: en Misión el motor del equipo puede darle puesto. */}
+            {context.rank !== null && <span className="metrics-rank">#{context.rank}{context.kind === 'base' ? ` of ${context.rankedCount}` : ''} · </span>}
+            {/* The REF never appears without its label: in Mission the team's engine may give it a rank. */}
             {context.role === 'reference' && <span className="metrics-rank">REF · </span>}
             <FadeNumber value={figures.similarity}>{siteSimilarityText(figures)}</FadeNumber>
             {figures.similarity !== null && ' %'}
           </strong>
-          <small>{context.mission ? MISSION_STATUS_LABEL[context.mission.status] : 'similitud v3 · perfil base'}</small>
+          <small>{context.mission ? MISSION_STATUS_LABEL[context.mission.status] : 'v3 similarity · base profile'}</small>
         </p>
         <button
           type="button"
           className="metrics-step"
           aria-disabled={next === null}
-          aria-label={next ? `Lugar siguiente: ${siteShortName(next.name)}` : 'No hay lugar siguiente'}
+          aria-label={next ? `Next place: ${siteShortName(next.name)}` : 'No next place'}
           onClick={() => go(next)}
         >
           ›
         </button>
       </div>
       <p className="metrics-figline">
-        <span>Confianza {confidence === null ? 'sin calcular' : formatScore(confidence)}</span>
-        <span>Estabilidad {stability === null ? 'sin calcular' : formatScore(stability)}</span>
+        <span>Confidence {confidence === null ? 'not calculated' : formatScore(confidence)}</span>
+        <span>Stability {stability === null ? 'not calculated' : formatScore(stability)}</span>
         <span>{feasibilityLabels[figures.feasibility]}</span>
-        <span>Factibilidad territorial: pendiente</span>
+        <span>Territorial feasibility: pending</span>
       </p>
     </section>
   )
@@ -230,10 +230,10 @@ function SheetSummary({ context, site, data }: { context: MetricContext; site: C
 
 export function MetricRail({ data, site, variant, onShowOnMap }: MetricRailProps) {
   const context = useMetricContext(data, site)
-  // Tras una edición, la capa de Misión queda a --o-busy (sin inert) hasta reevaluar.
+  // After an edit, the Mission layer stays at --o-busy (without inert) until re-evaluation.
   const busy = context?.mission?.stale === true
   if (!context) {
-    return <p className="metrics-note" aria-busy="true">Cargando snapshot validado…</p>
+    return <p className="metrics-note" aria-busy="true">Loading validated snapshot…</p>
   }
   return (
     <div className="metrics" data-variant={variant} data-busy={busy ? '' : undefined} aria-busy={busy || undefined}>

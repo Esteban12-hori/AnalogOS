@@ -1,6 +1,6 @@
-// Controlador de misión (ADR-013) con dobles: UNA instancia del planificador del equipo para dock,
-// «Tu misión», carrusel, riel y Lectura. Sin llamadas automáticas a la IA; nunca confirma solo; una
-// edición invalida el escenario y aborta en red; historial v2 sin procedencia de la IA.
+// Mission controller (ADR-013) with test doubles: ONE instance of the team planner for the dock,
+// "Your mission", carousel, rail, and Reading. No automatic calls to the AI; it never confirms on its own; an
+// edit invalidates the scenario and aborts the in-flight network request; history v2 has no AI provenance.
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { emptyScope, type AiProvenance, type DraftProposal } from '../../mission'
 import type { AiClientResult } from '../../mission/aiClient'
@@ -83,8 +83,8 @@ function evaluated(h: Harness) {
 
 afterEach(() => vi.restoreAllMocks())
 
-describe('controlador de misión', () => {
-  it('«Enviar» abre el recorrido «Definir una prueba» con el brief y NO llama a la IA', () => {
+describe('mission controller', () => {
+  it('“Send” opens the “Define a test” path with the brief and does NOT call the AI', () => {
     const h = harness()
     const controller = createMissionController(h.deps)
     controller.submitBrief('Probar navegación autónoma en terreno llano')
@@ -93,14 +93,14 @@ describe('controlador de misión', () => {
     expect(h.mission.getState().planner).toBe(controller.getState())
     expect(h.phases.at(-1)).toBe('review')
     expect(h.composer.getState().stepRequest?.step).toBe('describe')
-    // El foco va al texto cargado (PlannerView), aunque el paso «describir» ya estuviera abierto.
+    // Focus goes to the loaded text (PlannerView), even if the "describe" step was already open.
     expect(h.composer.getState().stepRequest?.target).toBe('brief')
     expect(h.composer.getState().openRequest).toBe(1)
     controller.submitBrief('Otra vez')
     expect(h.composer.getState().stepRequest?.nonce).toBe(2)
   })
 
-  it('un solo planificador: evaluar publica la evaluación, sube la revisión, anuncia una vez y previsualiza el #1', () => {
+  it('a single planner: evaluating publishes the evaluation, bumps the revision, announces once and previews #1', () => {
     const h = harness()
     const controller = evaluated(h)
     const state = h.mission.getState()
@@ -111,15 +111,15 @@ describe('controlador de misión', () => {
     expect(state.source).toBe('example')
     expect(state.evaluatedRequest?.requirements.map((requirement) => requirement.requirement_id)).toEqual(['ex1', 'ex2', 'ex3'])
     expect(h.announcements).toHaveLength(1)
-    expect(h.announcements[0]).toMatch(/^Evaluación lista\. \d de 6 candidatos priorizados /)
+    expect(h.announcements[0]).toMatch(/^Evaluation ready\. \d of 6 candidates prioritized /)
     expect(h.selections).toEqual([[state.evaluation!.recommended_site_ids[0], 'evaluated', true]])
     expect(h.phases.at(-1)).toBe('done')
-    // Ninguna llamada a la IA en todo el recorrido manual.
+    // No AI calls during the entire manual flow.
     expect(h.deps.requestDraft).not.toHaveBeenCalled()
     expect(h.deps.requestExplanation).not.toHaveBeenCalled()
   })
 
-  it('sin confirmar no se evalúa; nunca se confirma solo después de la IA', async () => {
+  it('without confirming nothing is evaluated; never auto-confirmed after the AI', async () => {
     const h = harness()
     const controller = createMissionController(h.deps)
     controller.submitBrief('Rover en terreno llano')
@@ -138,7 +138,7 @@ describe('controlador de misión', () => {
     expect(h.composer.getState().draftStartedAt).toBeNull()
   })
 
-  it('«Cancelar» aborta en red y el rótulo dice «cancelada», no «no disponible»', async () => {
+  it('“Cancel” aborts the network call and the label says “canceled”, not “unavailable”', async () => {
     const h = harness()
     const controller = createMissionController(h.deps)
     controller.submitBrief('Rover')
@@ -150,7 +150,7 @@ describe('controlador de misión', () => {
     expect(h.announcements).toContain(CANCELLED_DRAFT)
   })
 
-  it('editar tras evaluar invalida (stale) y aborta la petición de IA en curso', () => {
+  it('editing after evaluating invalidates (stale) and aborts the AI request in flight', () => {
     const h = harness()
     const controller = evaluated(h)
     controller.runExplain()
@@ -161,25 +161,25 @@ describe('controlador de misión', () => {
     const state = h.mission.getState()
     expect(controller.getState().result).toBeNull()
     expect(state.stale).toBe(true)
-    expect(state.evaluation).not.toBeNull() // referencia visual atenuada hasta reevaluar
+    expect(state.evaluation).not.toBeNull() // dimmed visual reference until re-evaluation
     expect(h.phases.at(-1)).toBe('review')
-    // Borrar todo descarta también la referencia visual.
+    // Clearing everything also discards the visual reference.
     controller.dispatch({ type: 'reset' })
     expect(h.mission.getState()).toMatchObject({ evaluation: null, stale: false, explanation: null })
   })
 
-  it('exportar: JSON del equipo con la IA en null cuando no se usó', () => {
+  it('export: team JSON with AI as null when it was not used', () => {
     const h = harness()
     const controller = evaluated(h)
     controller.exportJson()
     expect(h.downloads).toHaveLength(1)
     const [name, content] = h.downloads[0]!
-    expect(name).toMatch(/^analogos-recomendacion-[0-9a-f]{8}\.json$/)
+    expect(name).toMatch(/^analogos-recommendation-[0-9a-f]{8}\.json$/)
     const doc = JSON.parse(content) as { ai: { draft: unknown; explanation: unknown } }
     expect(doc.ai).toEqual({ draft: null, explanation: null })
   })
 
-  it('historial v2: guarda brief, alcance y requisitos del usuario; nunca propuestas intactas de la IA', async () => {
+  it('history v2: stores brief, scope and user requirements; never untouched AI proposals', async () => {
     const h = harness()
     const controller = createMissionController(h.deps)
     controller.submitBrief('Rover')
@@ -194,14 +194,14 @@ describe('controlador de misión', () => {
     expect(entry?.brief).toBe('Rover')
     expect(entry?.requirements.map((requirement) => [requirement.origin, requirement.kind === 'measurable' ? requirement.metric_id : null])).toEqual([['user', 'country']])
     expect(JSON.stringify(h.persisted.at(-1))).not.toMatch(/claude|anthropic|req_t/)
-    // Restaurar usa acciones existentes del reductor y deja la prueba sin confirmar.
+    // Restore uses existing reducer actions and leaves the test unconfirmed.
     controller.restore(entry!.id)
     expect(controller.getState()).toMatchObject({ brief: 'Rover', confirmed: false, result: null })
     expect(controller.getState().requirements.map((requirement) => requirement.requirement_id)).toEqual(['u1'])
     expect(h.composer.getState().stepRequest?.step).toBe('confirm')
   })
 
-  it('Deshacer vuelve a la prueba evaluada anterior (sin confirmar)', () => {
+  it('Undo returns to the previously evaluated test (unconfirmed)', () => {
     const h = harness()
     const controller = evaluated(h)
     controller.addMetricRequirement('polygon_area_km2')
@@ -214,7 +214,7 @@ describe('controlador de misión', () => {
     expect(controller.getState().confirmed).toBe(false)
   })
 
-  it('«Evaluar este sector» fija el alcance en esa ventana y abre los requisitos', () => {
+  it('“Evaluate this sector” sets the scope to that window and opens the requirements', () => {
     const h = harness()
     const controller = createMissionController(h.deps)
     controller.startSector('ar-win-s2580-w06710')
@@ -222,7 +222,7 @@ describe('controlador de misión', () => {
     expect(h.composer.getState().stepRequest?.step).toBe('describe')
   })
 
-  it('enviar el brief después de elegir AR6 conserva su geometría hasta evaluar', () => {
+  it('sending the brief after choosing AR6 keeps its geometry until evaluation', () => {
     const h = harness()
     const controller = createMissionController(h.deps)
     controller.startSector('ar-win-s2580-w06710')
@@ -238,8 +238,8 @@ describe('controlador de misión', () => {
   })
 })
 
-describe('fases y espera', () => {
-  it('phaseFor: borrador → interpreting; explicación → analysis; resultado → done; edición → review', () => {
+describe('phases and waiting', () => {
+  it('phaseFor: draft → interpreting; explanation → analysis; result → done; edit → review', () => {
     const h = harness()
     const controller = createMissionController(h.deps)
     expect(phaseFor(controller.getState())).toBe('idle')
@@ -247,7 +247,7 @@ describe('fases y espera', () => {
     expect(phaseFor(controller.getState())).toBe('review')
   })
 
-  it('umbrales visuales sin tiempo límite propio: 300 ms, 3 s y 10 s', () => {
+  it('visual thresholds without a time limit of their own: 300 ms, 3 s and 10 s', () => {
     expect(PHASE_THRESHOLDS).toEqual({ counterMs: 3000, slowMs: 10_000 })
     expect(PHASE_THRESHOLDS).not.toHaveProperty('timeoutMs')
     expect(waitStage(QUIET_MS - 1)).toBe('quiet')
@@ -260,7 +260,7 @@ describe('fases y espera', () => {
 })
 
 describe('historial (formato v2)', () => {
-  it('valida en el límite e ignora la clave v1 de niveles', () => {
+  it('validates at the limit and ignores the v1 levels key', () => {
     expect(HISTORY_KEY).toBe('analogos.composer.history.v2')
     expect(parseHistory([{ id: 'a', at: 1, text: 'x', source: 'demo', label: 'y', levels: {}, presetId: null }])).toEqual([])
     expect(parseHistory('nada')).toEqual([])
@@ -268,7 +268,7 @@ describe('historial (formato v2)', () => {
     expect(loadHistory(storage)).toEqual([])
   })
 
-  it('descarta requisitos de la IA y valores mal formados', () => {
+  it('discards AI requirements and malformed values', () => {
     const entry = { id: 'a', at: 1, journey: 'test', brief: 'x', label: '1 requisito', scope: emptyScope(), requirements: [{ kind: 'unmeasured', requirement_id: 'u1', label: 'Tracción', importance: 'preference', origin: 'ai', source_quote: null, topic_id: 'traction', detail: '' }] }
     expect(parseHistory([entry])).toEqual([])
     const user = { ...entry, requirements: [{ ...entry.requirements[0], origin: 'user' }] }

@@ -1,7 +1,7 @@
-// Canal geológico (M10 del equipo) portado al controlador de misión de la interfaz integrada: mismas
-// garantías que `usePlanner` — opt-in explícito, catálogo cerrado de la evaluación vigente, la IA no
-// produce cifras ni ordena (recálculo y huellas idénticos), reintento sin geología y exportación M10
-// validable y reconstruible sin tocar la exportación M8.
+// Geological channel (the team's M10) ported to the integrated interface's mission controller: same
+// guarantees as `usePlanner` — explicit opt-in, closed catalog of the current assessment, the AI does not
+// produce figures or rank (identical recalculation and fingerprints), retry without geology, and M10 export
+// that is verifiable and reconstructible without touching the M8 export.
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { buildGeologyCatalog, deterministicGeologyRefs } from '../../../../../shared/geology/guidance'
 import { validateAnyMissionExport } from '../../../../../shared/geology/exportWrapper'
@@ -59,7 +59,7 @@ function evaluate(h: ReturnType<typeof harness>) {
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
 
-/** Respuesta de la IA para la llamada `index` (selección M8 mínima y referencias geológicas elegidas). */
+/** AI response for the `index` call (minimal M8 selection and chosen geological references). */
 function answer(h: ReturnType<typeof harness>, index: number, geologyRefIds: string[] | null) {
   const call = h.calls[index]!
   const result = h.controller.getState().result!
@@ -76,8 +76,8 @@ function answer(h: ReturnType<typeof harness>, index: number, geologyRefIds: str
 
 afterEach(() => vi.restoreAllMocks())
 
-describe('controlador de misión · canal geológico', () => {
-  it('sin contexto (cargando o ausente): canal no disponible con el motivo, sin catálogo ni exportación geológica', () => {
+describe('mission controller · geology channel', () => {
+  it('without context (loading or absent): channel unavailable with the reason, no geology catalog or export', () => {
     const h = harness()
     expect(geologyChannel({ status: 'loading' })).toEqual({ available: false, unavailableReason: GEOLOGY_LOADING_REASON })
     evaluate(h)
@@ -88,12 +88,12 @@ describe('controlador de misión · canal geológico', () => {
     expect(h.mission.getState().geologyCatalog).toBeNull()
     h.controller.exportGeologyJson()
     expect(h.downloads).toHaveLength(0)
-    // La explicación de requisitos funciona igual: sin huella geológica en la petición.
+    // The requirements explanation works the same way: no geological fingerprint in the request.
     h.controller.runExplain()
     expect(h.calls[0]!.geologyContextFp).toBeUndefined()
   })
 
-  it('con contexto: catálogo cerrado de la evaluación vigente, publicado para Tu misión y el informe', () => {
+  it('with context: closed catalog of the current evaluation, published for Your mission and the report', () => {
     const h = harness()
     const result = evaluate(h)
     h.controller.setGeology(ready)
@@ -102,13 +102,13 @@ describe('controlador de misión · canal geológico', () => {
     expect(catalog).toEqual(buildGeologyCatalog(result, context, contextFp))
     const ui = h.controller.api(h.controller.getState()).geologyUi
     expect(ui.available).toBe(true)
-    expect(ui.useGeology).toBe(true) // casilla activa por defecto, como en usePlanner
+    expect(ui.useGeology).toBe(true) // checkbox on by default, as in usePlanner
     expect(ui.catalog).toBe(catalog)
-    // Recibir el contexto no evalúa ni reordena nada.
+    // Receiving the context does not evaluate or reorder anything.
     expect(h.controller.getState().result).toBe(result)
   })
 
-  it('opt-in: envía SOLO la huella del contexto y acepta la selección ligada al catálogo exacto; recálculo y huellas idénticos', async () => {
+  it('opt-in: sends ONLY the context fingerprint and accepts the selection tied to the exact catalog; identical recomputation and fingerprints', async () => {
     const h = harness(ready)
     const result = evaluate(h)
     const before = { request: result.request_fingerprint, evaluation: evaluationFingerprint(result), options: result.options.map((option) => [option.site_id, option.status, option.rank]) }
@@ -122,13 +122,13 @@ describe('controlador de misión · canal geológico', () => {
     const state = h.controller.getState()
     expect(state.explain.status).toBe('done')
     expect(state.explain.geologyRecord?.selection.ref_ids).toEqual(picked)
-    // La IA no produce cifras ni ordena: el resultado es el mismo objeto y el recálculo da las mismas huellas.
+    // The AI does not produce figures or rank: the result is the same object and the recalculation yields the same fingerprints.
     expect(state.result).toBe(result)
     const recomputed = evaluateMission(buildRequest(state).request!, v3Bundle)
     expect({ request: recomputed.request_fingerprint, evaluation: evaluationFingerprint(recomputed), options: recomputed.options.map((option) => [option.site_id, option.status, option.rank]) }).toEqual(before)
   })
 
-  it('sin opt-in (casilla desmarcada o «Reintentar sin geología»): no se envía la huella y una respuesta con geología se descarta', async () => {
+  it('without opt-in (checkbox unticked or “Retry without geology”): the fingerprint is not sent and a response with geology is discarded', async () => {
     const h = harness(ready)
     evaluate(h)
     h.composer.setState({ useGeology: false })
@@ -136,7 +136,7 @@ describe('controlador de misión · canal geológico', () => {
     expect(h.calls[0]!.geologyContextFp).toBeUndefined()
     answer(h, 0, [buildGeologyCatalog(h.controller.getState().result!, context, contextFp).refs[0]!.ref_id])
     await flush()
-    expect(h.controller.getState().explain.status).toBe('error') // geología no pedida: nunca se acepta
+    expect(h.controller.getState().explain.status).toBe('error') // geology not requested: never accepted
     h.composer.setState({ useGeology: true })
     h.controller.runExplain(false)
     expect(h.calls[1]!.geologyContextFp).toBeUndefined()
@@ -146,7 +146,7 @@ describe('controlador de misión · canal geológico', () => {
     expect(h.controller.getState().explain.geologyRecord).toBeNull()
   })
 
-  it('fallo solo del canal geológico: error con opción de reintentar sin geología', async () => {
+  it('failure of the geology channel only: error with an option to retry without geology', async () => {
     const h = harness(ready)
     evaluate(h)
     h.controller.runExplain()
@@ -158,7 +158,7 @@ describe('controlador de misión · canal geológico', () => {
     expect(h.controller.getState().explain.geologyFailed).toBe(false)
   })
 
-  it('cambiar el contexto descarta la selección geológica (no se muestra con otro paquete)', async () => {
+  it('changing the context discards the geology selection (not shown with another package)', async () => {
     const h = harness(ready)
     evaluate(h)
     h.controller.runExplain()
@@ -170,20 +170,20 @@ describe('controlador de misión · canal geológico', () => {
     expect(h.mission.getState().geologyCatalog).toBeNull()
   })
 
-  it('exportación con geología: envoltorio M10 validable, determinista sin IA y con la selección de la IA cuando la hay', async () => {
+  it('export with geology: validatable M10 wrapper, deterministic without AI and with the AI selection when present', async () => {
     const h = harness(ready)
     const result = evaluate(h)
     h.controller.exportGeologyJson()
     expect(h.downloads).toHaveLength(1)
     const [name, text] = h.downloads[0]!
-    expect(name).toBe(`analogos-recomendacion-geologia-${evaluationFingerprint(result).slice(0, 8)}.json`)
+    expect(name).toBe(`analogos-recommendation-geology-${evaluationFingerprint(result).slice(0, 8)}.json`)
     const deterministic = JSON.parse(text) as unknown
-    expect(validateAnyMissionExport(deterministic, { bundle: v3Bundle })).toEqual({ format: 'mission-geology-export-1', issues: [] })
+    expect(validateAnyMissionExport(deterministic, { bundle: v3Bundle })).toEqual({ format: 'mission-geology-export-2', issues: [] })
     expect(JSON.stringify(deterministic)).toContain(deterministicGeologyRefs(buildGeologyCatalog(result, context, contextFp)).ref_ids[0]!)
-    // La exportación M8 1.0 sigue siendo la misma de siempre.
+    // The M8 export without geology remains independent; the new ones are 1.1.0 (English).
     h.controller.exportJson()
-    expect(validateAnyMissionExport(JSON.parse(h.downloads[1]![1]) as unknown, { bundle: v3Bundle }).format).toBe('mission-export-1.0')
-    // Con la selección de la IA aceptada.
+    expect(validateAnyMissionExport(JSON.parse(h.downloads[1]![1]) as unknown, { bundle: v3Bundle })).toEqual({ format: 'mission-export-1.1', issues: [] })
+    // With the AI selection accepted.
     h.controller.runExplain()
     const picked = [buildGeologyCatalog(result, context, contextFp).refs.at(-1)!.ref_id]
     answer(h, 0, picked)

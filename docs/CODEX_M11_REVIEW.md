@@ -1,59 +1,59 @@
-# M11 — revisión de Lectura móvil e impresión
+# M11 — Mobile Reading and Print Review
 
-Fecha: 2026-11-15. Dirección y aceptación: Codex. Implementación: Claude Code (sesión `e2bcb604-46ab-458e-b977-7fb6ede8eb6c`), revisada en tres rondas. Base: `ce86a879905cb927d9881aae6ab564d9082f39fc`.
+Date: 2026-11-15. Direction and acceptance: Codex. Implementation: Claude Code (session `e2bcb604-46ab-458e-b977-7fb6ede8eb6c`), reviewed in three rounds. Base: `ce86a879905cb927d9881aae6ab564d9082f39fc`.
 
-## Decisión
+## Decision
 
-**Código aceptado por Codex tras revisión y pruebas independientes.** Dan pidió delegar y revisar antes de publicar dev; amplió después el encargo a revisión del conjunto y promoción a main/producción. La publicación y la reprueba remotas se registran al final de este documento.
+**Code accepted by Codex after independent review and testing.** Dan asked to delegate and review before publishing dev; he later extended the assignment to a review of the whole and promotion to main/production. Remote publication and re-testing are recorded at the end of this document.
 
-## Resultado de producto
+## Product outcome
 
-- «Ir a la Lectura» aparece junto al resumen del resultado, antes de las alternativas. En Chrome 390×844: y≈459 px, alto 44 px; ya es visible sin recorrer la lista completa. Antes estaba en y≈1470 px y medía 34 px.
-- Abre la pestaña de la hoja móvil, la Lectura independiente si no hay selección o es una referencia mundial, la píldora en 1100–1439 o el panel izquierdo en ≥1440. Solo cambia la UI: conserva selección, alcance, requisitos y cálculo; no solicita IA.
-- Un único informe de la evaluación vigente. Mientras se monta, imprimir está deshabilitado. Tras editar, Ctrl+P muestra un aviso; no conserva el informe anterior para imprimir.
-- Impresión paginada fuera del escenario fijo; tablas de criterios con anchos legibles, cabeceras repetidas, enlaces completos y geología con la misma evidencia y límites que la pantalla. Codex agrupó procedencia y huellas para que no queden separadas al cambiar de página.
+- "Go to the Reading" appears next to the result summary, before the alternatives. In Chrome 390×844: and y≈459 px, height 44 px; it is now visible without scrolling through the full list. Previously it was at y≈1470 px and measured 34 px.
+- It opens the mobile sheet tab, the standalone Reading if there is no selection or it is a world reference, the pill at 1100–1439 or the left panel at ≥1440. Only the UI changes: it preserves selection, scope, requirements and calculation; it does not request AI.
+- A single report for the current evaluation. While it is mounting, printing is disabled. After editing, Ctrl+P shows a notice; it does not keep the previous report for printing.
+- Paginated printing outside the fixed stage; criteria tables with legible widths, repeated headers, full links, and geology with the same evidence and limits as on screen. Codex grouped provenance and fingerprints so they are not separated when the page changes.
 
-## Evidencia independiente
+## Independent evidence
 
-| Comprobación | Resultado |
+| Check | Result |
 |---|---|
-| 390×844, resultado de siete sectores | CTA visible, 44 px; Enter abre Lectura, foco en el título |
-| 1280×800 | Abre la píldora en Misión sin depender de selección; Escape cierra y devuelve el foco |
-| 1440×900 | Enfoca la Lectura del panel izquierdo; un único informe montado |
-| Sin selección móvil | Lectura independiente en S2; Atrás vuelve a la bandeja |
-| Referencia mundial MDRS seleccionada | Lectura abre sin sustituir la referencia; Escape vuelve a su ficha |
-| Ningún sector priorizado (umbral sintético 0,001°) | Resultado válido, CTA operativo, informe coherente |
-| Punto sintético (0°, 0°), fuera de cobertura | Diagnóstico de evidencia insuficiente y Lectura accesible; sin heredar geología ni medidas de otra ventana |
-| Editar tras evaluar | Informe anterior retirado; impresión nativa de una página con aviso de reevaluación |
-| PDF nativo completo | Guardado desde Chrome, todas las páginas renderizadas y revisadas |
+| 390×844, seven-sector result | CTA visible, 44 px; Enter opens Reading, focus on the title |
+| 1280×800 | Opens the pill in Mission without depending on selection; Escape closes and returns focus |
+| 1440×900 | Focuses the left-panel Reading; a single report mounted |
+| No mobile selection | Standalone Reading in S2; Back returns to the tray |
+| MDRS world reference selected | Reading opens without replacing the reference; Escape returns to its card |
+| No sector prioritized (synthetic threshold 0,001°) | Valid result, CTA operational, consistent report |
+| Synthetic point (0°, 0°), outside coverage | Diagnosis of insufficient evidence and Reading accessible; without inheriting geology or measurements from another window |
+| Editing after evaluating | Previous report removed; native one-page print with re-evaluation notice |
+| Full native PDF | Saved from Chrome, all pages rendered and reviewed |
 
-El PDF anterior al arreglo tenía **una sola página**, cortada después de geometría. El definitivo usa Letter, márgenes Default y escala Default (100 %), con encabezados/pies del navegador: **18 páginas, ninguna vacía**, siete sectores, Yungay REF, resultados, cuatro orientaciones geológicas y tres exclusiones, SERNAGEOMIN/SEGEMAR, unidades/cobertura/límites/fuentes y procedencia completa. El número de páginas cambia con las opciones del usuario; la integridad del contenido es el criterio. La vista anterior con escala 90 % y márgenes mínimos daba 12 páginas.
+The PDF prior to the fix had **a single page**, cut off after geometry. The final one uses Letter, Default margins and Default scale (100 %), with browser headers/footers: **18 pages, none empty**, seven sectors, Yungay REF, results, four geological orientations and three exclusions, SERNAGEOMIN/SEGEMAR, units/coverage/limits/sources and full provenance. The number of pages changes with the user's options; content integrity is the criterion. The earlier preview with 90 % scale and minimum margins gave 12 pages.
 
 - PDF: `submission/evidence/m11-seven-sectors-print.pdf`, SHA-256 `76e1f2949ac3422782acebbf007b404d6a89ff60cc260c2269d3fadddd8fedb8`.
-- Captura móvil: `submission/assets/m11-mobile-reading.jpg`.
-- Prueba manual sintética: ejemplo de la app, no requisitos operacionales ni validación de campo.
-- Huella de solicitud del ejemplo: `85b453d5edfb38589a781ff74c532526789409c63efbefd73e786b6bf88d5c6b`; evaluación `035031fc7b243fd927baaf05b2bc3c98a8b8ae6a6788e121c94e9329898e2eb6`.
+- Mobile screenshot: `submission/assets/m11-mobile-reading.jpg`.
+- Synthetic manual test: app example, not operational requirements or field validation.
+- Request fingerprint of the example: `85b453d5edfb38589a781ff74c532526789409c63efbefd73e786b6bf88d5c6b`; evaluation `035031fc7b243fd927baaf05b2bc3c98a8b8ae6a6788e121c94e9329898e2eb6`.
 
-## Pruebas y paquete
+## Tests and package
 
-- `PATH="$PWD/.venv/bin:$PATH" npm run verify`: **333 Python, 799 web**, 3 opt-in omitidos; tipos servidor y build correctos. Log de Codex: `/tmp/analogos-m11-codex-verify.log`.
-- Tras el ajuste final de agrupación de procedencia: 35 tests relacionados y build correctos; logs `/tmp/analogos-m11-print-final-tests.log` y `/tmp/analogos-m11-print-final-build.log`. No se añadieron tests que solo busquen reglas CSS.
-- ZIP regenerado con `PATH="$PWD/.venv/bin:$PATH" python scripts/package_release.py`, CRC y checksum verificados: **73 entradas, 14799960 bytes**, SHA-256 `e2edb58317fc51e85ef5bc4adf9d46a09b7255531bd332341e96e0b9e6f81c30`.
-- `git diff --check` limpio. Sin cambios en shared/, server/, api/, artifacts/, contratos, dependencias o CI. Ninguna clave de Anthropic en el build distribuido. `outputs/` ajeno preservado.
+- `PATH="$PWD/.venv/bin:$PATH" npm run verify`: **333 Python, 799 web**, 3 opt-in skipped; server types and build correct. Codex log: `/tmp/analogos-m11-codex-verify.log`.
+- After the final provenance grouping adjustment: 35 related tests and build correct; logs `/tmp/analogos-m11-print-final-tests.log` and `/tmp/analogos-m11-print-final-build.log`. No tests were added that merely look for CSS rules.
+- ZIP regenerated with `PATH="$PWD/.venv/bin:$PATH" python scripts/package_release.py`, CRC and checksum verified: **73 entries, 14799960 bytes**, SHA-256 `e2edb58317fc51e85ef5bc4adf9d46a09b7255531bd332341e96e0b9e6f81c30`.
+- `git diff --check` clean. No changes in shared/, server/, api/, artifacts/, contracts, dependencies or CI. No Anthropic key in the distributed build. Unrelated `outputs/` preserved.
 
-## Alcance de la comprobación
+## Scope of the verification
 
-Se probó Chrome y sus tamaños de viewport; no equivale a probar gestos/teclado virtual de un dispositivo iOS físico ni todos los motores de impresión. El flujo manual local funciona sin endpoint de IA. La prueba de fallo de teselas GIBS por bloqueo de red sigue separada del arreglo M11; las imágenes locales y SVG son el respaldo existente. No se amplía la ciencia ni la cobertura del piloto.
+Chrome and its viewport sizes were tested; this is not equivalent to testing gestures/virtual keyboard on a physical iOS device or all print engines. The local manual flow works without an AI endpoint. The GIBS tile failure test via network blocking remains separate from the M11 fix; the local images and SVG are the existing fallback. The science and the pilot's coverage are not expanded.
 
-## Publicación
+## Publication
 
-**Completado y verificado.** Código `e5e91390b2eea261b1f8d46f3b17786b2bb295dc` publicado sin force en dev y luego main.
+**Completed and verified.** Code `e5e91390b2eea261b1f8d46f3b17786b2bb295dc` published without force to dev and then main.
 
-- Dev: [Actions 43686593750](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43686593750), correcto. Recorrido publicado de siete sectores, CTA móvil visible de 44 px, Lectura con foco y un informe con siete tablas/geología/procedencia comprobados en `https://analogos-dev.vercel.app/`.
-- Producción: [Actions 43686863876](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43686863876), correcto, incluida comprobación de la función empaquetada. `https://analogos.vercel.app/` responde HTTP 200; GET /api/ai devuelve 405 method_not_allowed, como corresponde.
-- IA **real** en producción desde Chrome: elegir AR6 → Evaluar este sector → enviar brief sintético en el dock → proponer cuatro requisitos con Claude → revisar/confirmar explícitamente → evaluar **solo AR6** → CTA móvil → Lectura → explicación con geología. Resultado: 1 de 1 priorizado, 1 de 3 preferencias cumplida, 2 sin medición; la cartografía no las convierte en medidas.
-- Borrador: `claude-sonnet-5-5`, `req_011Ch4GRLhf2qaDPw9s9n74t`, `2026-11-15T06:48:27.845Z`, tokens 2221/1107, end_turn.
-- Explicación/geología: `claude-sonnet-5-5`, `req_011Ch4GYHwfPJwQELdTSRFD4`, `2026-11-15T06:49:57.535Z`, tokens 7174/332, end_turn. Tres referencias válidas de SEGEMAR: material superficial en dos unidades y contraste mapa-terreno en Galán.
-- Exportación descargada desde la aplicación: `submission/evidence/m11-production-geology-export.json`, SHA-256 `15b6f1a374b1738fdd0efed4ff77c46e428f53a6dd599365f7f9a93cc54adaaa`. Validada con `validateAnyMissionExport` y reconstruida idéntica con `buildMissionGeologyExport`, usando snapshot v3 y contexto geológico oficiales. Solicitud `dbb1d0867b4fb6d6d08d9f40ea9a0b2111d653485d0fb90e78ee74ad9bb8a159`; evaluación `e6c8fbf94658b7447a1c64b3ae998c4f89bd3ff1659004248845d7bedf2f0174`.
-- Captura real publicada: `submission/assets/m11-production-mobile.jpg`. Sin errores de consola en los recorridos local/dev/producción. Tamaño de prueba restablecido; márgenes/escala de impresión devueltos a las preferencias anteriores después de guardar la evidencia.
-- El checkpoint posterior `[skip ci]` añade únicamente evidencia y continuidad, sin alterar el código ni el ZIP desplegados. El desarrollo queda en dev; Claude sin nueva asignación.
+- Dev: [Actions 43686593750](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43686593750), successful. Published seven-sector walkthrough, visible mobile CTA of 44 px, Reading with focus and a report with seven tables/geology/provenance verified in `https://analogos-dev.vercel.app/`.
+- Production: [Actions 43686863876](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43686863876), successful, including verification of the packaged function. `https://analogos.vercel.app/` responds HTTP 200; GET /api/ai returns 405 method_not_allowed, as expected.
+- **Real** AI in production from Chrome: choose AR6 → Evaluate this sector → send synthetic brief in the dock → propose four requirements with Claude → explicitly review/confirm → evaluate **AR6 only** → mobile CTA → Reading → explanation with geology. Result: 1 of 1 prioritized, 1 of 3 preferences met, 2 without measurement; the mapping does not turn them into measurements.
+- Draft: `claude-sonnet-5-5`, `req_011Ch4GRLhf2qaDPw9s9n74t`, `2026-11-15T06:48:27.845Z`, tokens 2221/1107, end_turn.
+- Explanation/geology: `claude-sonnet-5-5`, `req_011Ch4GYHwfPJwQELdTSRFD4`, `2026-11-15T06:49:57.535Z`, tokens 7174/332, end_turn. Three valid SEGEMAR references: surface material in two units and map-terrain contrast in Galán.
+- Export downloaded from the application: `submission/evidence/m11-production-geology-export.json`, SHA-256 `15b6f1a374b1738fdd0efed4ff77c46e428f53a6dd599365f7f9a93cc54adaaa`. Validated with `validateAnyMissionExport` and rebuilt identically with `buildMissionGeologyExport`, using official snapshot v3 and geological context. Request `dbb1d0867b4fb6d6d08d9f40ea9a0b2111d653485d0fb90e78ee74ad9bb8a159`; evaluation `e6c8fbf94658b7447a1c64b3ae998c4f89bd3ff1659004248845d7bedf2f0174`.
+- Real published screenshot: `submission/assets/m11-production-mobile.jpg`. No console errors in the local/dev/production walkthroughs. Test size restored; print margins/scale returned to the previous preferences after saving the evidence.
+- The subsequent checkpoint `[skip ci]` adds only evidence and continuity, without altering the deployed code or ZIP. Development remains on dev; Claude has no new assignment.

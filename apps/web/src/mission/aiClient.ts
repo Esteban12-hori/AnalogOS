@@ -1,5 +1,5 @@
-// Cliente del endpoint /api/ai: un solo punto de salida, con tiempo límite, respuesta validada y
-// errores amigables. Nunca deja una promesa colgada: toda vía termina en {ok:true} u {ok:false}.
+// Client for the /api/ai endpoint: a single exit point, with a timeout, a validated response, and
+// friendly errors. It never leaves a promise hanging: every path ends in {ok:true} or {ok:false}.
 import Ajv2020 from 'ajv/dist/2020'
 import aiSchema from '../../../../contracts/mission-ai.schema.json'
 import requestSchema from '../../../../contracts/mission-request.schema.json'
@@ -19,23 +19,23 @@ export const CLIENT_TIMEOUT_MS = 45_000
 export type AiClientResult<T> = { ok: true; value: T } | { ok: false; message: string; unavailable: boolean; code?: string }
 
 const FRIENDLY: Record<string, string> = {
-  ai_unavailable: 'La asistencia de IA no está disponible en este momento o en esta versión.',
-  ai_timeout: 'La IA tardó demasiado en responder.',
-  ai_rate_limited: 'El proveedor de IA limitó las solicitudes; reintente más tarde.',
-  ai_refused: 'La IA no pudo procesar este contenido.',
-  ai_truncated: 'La respuesta de la IA quedó incompleta y se descartó.',
-  ai_invalid_output: 'La respuesta de la IA no cumplió el formato esperado y se descartó.',
-  ai_upstream_error: 'El servicio de IA devolvió un error.',
-  rate_limited: 'Demasiadas solicitudes seguidas; espere un minuto.',
-  origin_not_allowed: 'Esta página no está autorizada para usar la IA.',
-  stale_request: 'El contenido cambió; vuelva a confirmar antes de pedir la explicación.',
-  invalid_request: 'La solicitud no es válida; revise los requisitos.',
-  nothing_to_explain: 'No hay opciones evaluadas que explicar.',
-  geology_context_unavailable: 'El servidor no tiene un contexto geológico válido para esta versión, así que no se pidió orientación geológica.',
-  geology_context_stale: 'El contexto geológico del servidor es de otra versión que el que muestra esta página, así que no se pidió orientación geológica.',
+  ai_unavailable: 'AI assistance is not available right now or in this version.',
+  ai_timeout: 'The AI took too long to respond.',
+  ai_rate_limited: 'The AI provider rate-limited the requests; try again later.',
+  ai_refused: 'The AI could not process this content.',
+  ai_truncated: 'The AI response was incomplete and was discarded.',
+  ai_invalid_output: 'The AI response did not have the expected format and was discarded.',
+  ai_upstream_error: 'The AI service returned an error.',
+  rate_limited: 'Too many requests in a row; wait a minute.',
+  origin_not_allowed: 'This page is not authorized to use the AI.',
+  stale_request: 'The content changed; confirm again before asking for the explanation.',
+  invalid_request: 'The request is not valid; check the requirements.',
+  nothing_to_explain: 'There are no evaluated options to explain.',
+  geology_context_unavailable: 'The server has no valid geology context for this version, so no geological guidance was requested.',
+  geology_context_stale: 'The server geology context is a different version from the one this page shows, so no geological guidance was requested.',
 }
 const UNAVAILABLE = new Set(['ai_unavailable', 'ai_upstream_error', 'ai_timeout', 'origin_not_allowed'])
-const NO_IA = 'No se pudo usar la IA. Puede continuar manualmente: nada de lo que ya hizo se perdió.'
+const NO_IA = 'The AI could not be used. You can continue manually: nothing you already did was lost.'
 
 async function post(body: Record<string, unknown>, fetchImpl: typeof fetch, url: string, signal?: AbortSignal): Promise<AiClientResult<Record<string, unknown>>> {
   const controller = new AbortController()
@@ -51,23 +51,23 @@ async function post(body: Record<string, unknown>, fetchImpl: typeof fetch, url:
     try {
       json = await Promise.race([res.json(), new Promise<never>((_, reject) => controller.signal.addEventListener('abort', () => reject(new Error('abort'))))])
     } catch {
-      // Sin cuerpo JSON: típico del ZIP estático (404/HTML) o de un corte de red.
-      return { ok: false, unavailable: true, message: `La IA no está disponible en esta versión o sin conexión. ${NO_IA}` }
+      // No JSON body: typical of the static ZIP (404/HTML) or of a network outage.
+      return { ok: false, unavailable: true, message: `The AI is not available in this version or offline. ${NO_IA}` }
     }
     if (!json || typeof json !== 'object') return { ok: false, unavailable: true, message: NO_IA }
     const obj = json as Record<string, unknown>
     if (obj.ok === true) return { ok: true, value: obj }
     const code = typeof (obj.error as { code?: unknown } | undefined)?.code === 'string' ? (obj.error as { code: string }).code : 'ai_upstream_error'
-    return { ok: false, code, unavailable: UNAVAILABLE.has(code) || !res.ok && !FRIENDLY[code], message: `${FRIENDLY[code] ?? 'La IA devolvió un error.'} ${NO_IA}` }
+    return { ok: false, code, unavailable: UNAVAILABLE.has(code) || !res.ok && !FRIENDLY[code], message: `${FRIENDLY[code] ?? 'The AI returned an error.'} ${NO_IA}` }
   } catch {
-    return { ok: false, unavailable: true, message: signal?.aborted ? 'Solicitud cancelada.' : `La IA no respondió a tiempo o no hay conexión. ${NO_IA}` }
+    return { ok: false, unavailable: true, message: signal?.aborted ? 'Request canceled.' : `The AI did not respond in time or there is no connection. ${NO_IA}` }
   } finally {
     clearTimeout(timer)
     signal?.removeEventListener('abort', onAbort)
   }
 }
 
-const invalid = (): AiClientResult<never> => ({ ok: false, unavailable: false, message: `La respuesta de la IA no tiene el formato esperado y se descartó. ${NO_IA}` })
+const invalid = (): AiClientResult<never> => ({ ok: false, unavailable: false, message: `The AI response does not have the expected format and was discarded. ${NO_IA}` })
 
 export async function requestDraft(args: { requestId: string; brief: string; url: string; fetchImpl?: typeof fetch; signal?: AbortSignal }): Promise<AiClientResult<{ proposal: DraftProposal; provenance: AiProvenance }>> {
   const r = await post({ operation: 'draft', client_request_id: args.requestId, brief: args.brief }, args.fetchImpl ?? fetch, args.url, args.signal)
@@ -80,7 +80,7 @@ export async function requestDraft(args: { requestId: string; brief: string; url
 export interface ExplainGeologyValue { contextFp: string; catalogFp: string; selection: { ref_ids: string[] } }
 export interface ExplainValue { requestFp: string; evaluationFp: string; selection: ExplanationSelection; provenance: AiProvenance; geology?: ExplainGeologyValue }
 
-/** Mensaje y código de los errores que solo afectan al canal geológico (la UI ofrece reintentar sin geología). */
+/** Message and code of the errors that affect only the geological channel (the UI offers to retry without geology). */
 export const GEOLOGY_ERROR_CODES = ['geology_context_unavailable', 'geology_context_stale'] as const
 
 export async function requestExplanation(args: { requestId: string; request: MissionRequest; requestFp: string; url: string; geologyContextFp?: string; fetchImpl?: typeof fetch; signal?: AbortSignal }): Promise<AiClientResult<ExplainValue>> {
@@ -99,7 +99,7 @@ export async function requestExplanation(args: { requestId: string; request: Mis
     if (!g || !fp(g.context_fingerprint) || !fp(g.catalog_fingerprint) || !Array.isArray(ids) || !ids.every((x) => typeof x === 'string')) return invalid()
     geology = { contextFp: g.context_fingerprint, catalogFp: g.catalog_fingerprint, selection: { ref_ids: ids as string[] } }
   } else if (v.geology !== undefined) {
-    return invalid() // nunca se acepta orientación geológica que el usuario no pidió
+    return invalid() // geological guidance that the user did not request is never accepted
   }
   return { ok: true, value: { requestFp: v.request_fingerprint, evaluationFp: v.evaluation_fingerprint, selection: v.selection as ExplanationSelection, provenance: v.provenance as AiProvenance, ...(geology ? { geology } : {}) } }
 }

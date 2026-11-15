@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://analogos.cl/schemas/geology-export.schema.json",
-  "title": "AnalogOS Geology Export v1",
-  "description": "Exportación geológica independiente de UN sector: subconjunto autodescriptivo del paquete geology-context-v1 con solo las peticiones que lo respaldan. Contrato autocontenido (sus $defs duplican los de geology-context; una prueba vigila que no diverjan). No es el paquete completo ni su hash; no expresa aptitud.",
+  "title": "AnalogOS Geology Export (v1 and v2)",
+  "description": "Standalone geological export of ONE sector: a self-describing subset of the geology-context-v1 package with only the requests that support it. Self-contained contract (its $defs duplicate those of geology-context; a test guards that they do not diverge). It is not the full package or its hash; it does not express suitability.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -22,7 +22,8 @@
       "const": "analogos-geology-export"
     },
     "schema_version": {
-      "const": 1
+      "enum": [1, 2],
+      "description": "1 = historical per-site export (Spanish export_info); 2 = same content with English export_info. The source package (package_schema_version) stays 1."
     },
     "status": {
       "const": "preliminary_geological_context"

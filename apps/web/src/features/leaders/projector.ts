@@ -1,10 +1,10 @@
 /**
- * Proyector globo/2D de las líneas Tesla. Puro: recibe la proyección que publica el escenario
- * (features/globe, `StageProjection` en modo 'globe' o 'flat') y devuelve en px CSS del
- * viewport la extensión del sector, el ancla del anillo, el área segura y el borde de la hoja.
+ * Globe/2D projector for the Tesla lines. Pure: it receives the projection published by the stage
+ * (features/globe, `StageProjection` in 'globe' or 'flat' mode) and returns, in viewport CSS px,
+ * the sector's extent, the ring anchor, the safe area and the sheet edge.
  *
- * El sector es un polígono (zona, no pin): las líneas salen del borde de su anillo y el ancho
- * proyectado decide el modo acoplado (>45 % del área libre).
+ * The sector is a polygon (a zone, not a pin): the lines leave from the edge of its ring and the projected
+ * width decides the docked mode (>45 % of the free area).
  */
 import type { CandidateGeometry, Position } from '../../domain/contracts'
 import type { StageAnchor, StageProjection } from '../globe'
@@ -16,7 +16,7 @@ export interface SectorBounds {
   minY: number
   maxX: number
   maxY: number
-  /** Visibilidad media 0–1 de los vértices muestreados (0 los que no se proyectan). */
+  /** Mean visibility 0–1 of the sampled vertices (0 those that are not projected). */
   visible: number
 }
 
@@ -33,18 +33,18 @@ export interface StageFrameInput {
 }
 
 /**
- * Canal por cuadro de features/globe, inyectado desde LeaderLayer (chunk principal). La parte
- * diferida no importa `../globe` ni `../metrics`: Rolldown sacaría React del chunk principal a
- * chunks compartidos (más peticiones en la ruta crítica).
+ * Per-frame channel from features/globe, injected from LeaderLayer (main chunk). The deferred
+ * part does not import `../globe` or `../metrics`: Rolldown would move React out of the main chunk into
+ * shared chunks (more requests on the critical path).
  */
 export interface LeaderStageBridge {
   subscribe(listener: () => void): () => void
   read(): StageFrameInput
 }
 
-/** Radio mínimo del anillo derivado de la proyección (un sector a escala global mide pocos px). */
+/** Minimum ring radius derived from the projection (a global-scale sector measures only a few px). */
 export const MIN_DERIVED_RADIUS = 10
-/** Vértices máximos proyectados por cuadro. */
+/** Maximum vertices projected per frame. */
 export const MAX_PROJECTED_POINTS = 64
 
 function outerRings(geometry: CandidateGeometry): Position[][] {
@@ -52,7 +52,7 @@ function outerRings(geometry: CandidateGeometry): Position[][] {
   return geometry.coordinates.flatMap((polygon) => (polygon[0] ? [polygon[0]] : []))
 }
 
-/** Proyecta los anillos exteriores del sector (muestreados) y devuelve su caja en pantalla. */
+/** Projects the sector's outer rings (sampled) and returns their on-screen box. */
 export function projectSector(projection: StageProjection, geometry: CandidateGeometry, maxPoints = MAX_PROJECTED_POINTS): SectorBounds | null {
   const points = outerRings(geometry).flat()
   if (points.length === 0) return null
@@ -81,7 +81,7 @@ export function projectSector(projection: StageProjection, geometry: CandidateGe
   return { minX, minY, maxX, maxY, visible: visibleSum / sampled }
 }
 
-/** Ancla derivada de la caja proyectada: centro y radio que la circunscribe (mínimo 10 px). */
+/** Anchor derived from the projected box: center and the radius that circumscribes it (minimum 10 px). */
 export function anchorFromBounds(bounds: SectorBounds): LeaderAnchor {
   const width = bounds.maxX - bounds.minX
   const height = bounds.maxY - bounds.minY
@@ -94,9 +94,9 @@ export function anchorFromBounds(bounds: SectorBounds): LeaderAnchor {
 }
 
 /**
- * Ancla del sector seleccionado en este cuadro. Usa el anillo que publica el escenario si es
- * de este sector; si no, lo deriva de la proyección del polígono. null si no hay ni lo uno ni
- * lo otro (el escenario no publica o el sector no se ve).
+ * Anchor of the sector selected in this frame. It uses the ring published by the stage if it belongs
+ * to this sector; otherwise, it derives it from the polygon's projection. null if neither one nor
+ * the other is available (the stage does not publish or the sector is not visible).
  */
 export function resolveAnchor(siteId: string, geometry: CandidateGeometry, stage: StageFrameInput): { anchor: LeaderAnchor | null; bounds: SectorBounds | null } {
   const bounds = stage.projection ? projectSector(stage.projection, geometry) : null
@@ -110,14 +110,14 @@ export function resolveAnchor(siteId: string, geometry: CandidateGeometry, stage
   return { anchor: bounds ? anchorFromBounds(bounds) : null, bounds }
 }
 
-/** Ancho del sector en pantalla / ancho del área libre (decide el modo acoplado). */
+/** Sector width on screen / free area width (decides the docked mode). */
 export function polygonWidthFraction(bounds: SectorBounds | null, anchor: LeaderAnchor | null, safeArea: Rect): number {
   if (safeArea.width <= 0) return 0
   if (bounds) return Math.max(0, bounds.maxX - bounds.minX) / safeArea.width
   return anchor ? (2 * anchor.radius) / safeArea.width : 0
 }
 
-/** Área segura: viewport menos los márgenes asentados del escenario (ui.stageInsets). */
+/** Safe area: viewport minus the stage's settled margins (ui.stageInsets). */
 export function safeAreaFor(viewport: { width: number; height: number }, insets: StageInsets): Rect {
   return {
     x: insets.left,
@@ -127,7 +127,7 @@ export function safeAreaFor(viewport: { width: number; height: number }, insets:
   }
 }
 
-/** Copia plana de rects (DOMRectReadOnly → Rect) descartando los vacíos o no finitos. */
+/** Flat copy of rects (DOMRectReadOnly → Rect), discarding empty or non-finite ones. */
 export function toRects(list: ReadonlyArray<{ x: number; y: number; width: number; height: number }>): Rect[] {
   return list
     .filter((rect) => [rect.x, rect.y, rect.width, rect.height].every(Number.isFinite) && rect.width > 0 && rect.height > 0)
@@ -135,10 +135,10 @@ export function toRects(list: ReadonlyArray<{ x: number; y: number; width: numbe
 }
 
 /**
- * Fin de la línea móvil: borde superior de la hoja, alineado con el slot activo, que está
- * centrado. Con hoja lateral (horizontal bajo), su borde izquierdo a la altura del anillo.
- * Si un panel pegado al borde inferior (la hoja medida al asentarse) está más arriba que el
- * margen, manda el panel: en S2 la hoja queda sobre el anillo y no se dibuja nada.
+ * End of the moving line: top edge of the sheet, aligned with the active slot, which is
+ * centered. With a side sheet (horizontal bottom), its left edge at the height of the ring.
+ * If a panel attached to the bottom edge (the sheet measured once settled) is higher than the
+ * margin, the panel governs: in S2 the sheet sits above the ring and nothing is drawn.
  */
 export function sheetEdge(
   viewport: { width: number; height: number },

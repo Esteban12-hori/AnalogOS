@@ -1,7 +1,7 @@
-"""Fixtures válidos e inválidos de los contratos propios del rediseño (catálogo de ◆).
+"""Valid and invalid fixtures for the redesign's own contracts (◆ catalog).
 
-La misma tabla `tests/fixtures/contracts/expectations.json` la prueba Vitest con los
-validadores Ajv precompilados; aquí se comprueba con jsonschema que ambos coinciden.
+The same `tests/fixtures/contracts/expectations.json` table is tested by the Vitest test with the
+precompiled Ajv validators; here we use jsonschema to verify that both agree.
 """
 
 import json

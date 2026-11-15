@@ -32,12 +32,12 @@ function req(requirements: Requirement[], over: Partial<MissionRequest> = {}): M
   }
 }
 
-describe('datos y huella', () => {
-  it('los siete polígonos del snapshot son rectángulos alineados (supuesto del cruce geométrico)', () => {
+describe('data and fingerprint', () => {
+  it('the seven snapshot polygons are aligned rectangles (assumption of the geometric intersection)', () => {
     expect(candidates).toHaveLength(7)
     expect(candidates.every((c) => siteRectangle(c) !== null)).toBe(true)
   })
-  it('SHA-256 coincide con vectores conocidos y el JSON canónico ignora el orden de claves', () => {
+  it('SHA-256 matches known vectors and canonical JSON ignores key order', () => {
     expect(sha256Hex('abc')).toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad')
     expect(sha256Hex('')).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
     expect(sha256Hex('a'.repeat(200))).toHaveLength(64)
@@ -46,8 +46,8 @@ describe('datos y huella', () => {
   })
 })
 
-describe('motor de evaluación', () => {
-  it('sin requisitos prioriza por similitud v3 y desempata por ID; incluye Yungay como referencia', () => {
+describe('evaluation engine', () => {
+  it('without requirements prioritizes by v3 similarity and breaks ties by ID; includes Yungay as reference', () => {
     const ev = evaluateMission(req([]), bundle)
     expect(ev.outcome).toBe('evaluated')
     expect(ev.options).toHaveLength(7)
@@ -59,7 +59,7 @@ describe('motor de evaluación', () => {
     expect(validateMissionEvaluation(ev)).toEqual([])
   })
 
-  it('un requisito medible cambia la selección y conserva países y similitudes originales', () => {
+  it('a measurable requirement changes the selection and keeps original countries and similarities', () => {
     const all = evaluateMission(req([]), bundle)
     const strict = evaluateMission(req([slope('<=', 2.2)]), bundle)
     expect(strict.recommended_site_ids.length).toBeLessThan(all.recommended_site_ids.length)
@@ -69,34 +69,34 @@ describe('motor de evaluación', () => {
     expect(strict.evidence.length).toBeGreaterThan(0)
   })
 
-  it('un crítico imposible deja cero priorizados y es válido no recomendar ninguno', () => {
+  it('an impossible critical requirement leaves zero prioritized and recommending none is valid', () => {
     const ev = evaluateMission(req([slope('<=', 0.001)]), bundle)
     expect(ev.recommended_site_ids).toEqual([])
     expect(ev.none_prioritized).toBe(true)
     expect(ev.options.every((o) => o.status === 'no_cumple_requisitos')).toBe(true)
   })
 
-  it('un crítico no evaluable nunca aprueba aunque la similitud sea 94,87', () => {
+  it('a non-evaluable critical requirement never passes even with similarity 94.87', () => {
     const ev = evaluateMission(req([unmeasured('critical')]), bundle)
     expect(ev.recommended_site_ids).toEqual([])
     expect(ev.options.every((o) => o.status === 'evidencia_insuficiente')).toBe(true)
     expect(ev.pending_requirements).toHaveLength(1)
   })
 
-  it('el incumplimiento observado domina sobre un crítico desconocido', () => {
+  it('an observed failure dominates over an unknown critical requirement', () => {
     const ev = evaluateMission(req([unmeasured('critical'), slope('<=', 0.001)]), bundle)
     expect(ev.options.every((o) => o.status === 'no_cumple_requisitos')).toBe(true)
   })
 
-  it('preferencias desconocidas no excluyen ni cuentan como cumplidas y rotulan comparabilidad parcial', () => {
+  it('unknown preferences neither exclude nor count as met and label partial comparability', () => {
     const ev = evaluateMission(req([unmeasured('preference')]), bundle)
     expect(ev.options.every((o) => o.status === 'priorizado_para_reconocimiento')).toBe(true)
     expect(ev.options[0].preferences).toEqual({ met: 0, unmet: 0, unknown: 1, total: 1 })
     expect(ev.comparability).toBe('partial')
   })
 
-  it('las preferencias satisfechas ordenan antes que la similitud', () => {
-    // Pendiente <= 2.5: cumplen solo algunas ventanas; las que cumplen suben aunque tengan menor similitud.
+  it('satisfied preferences order before similarity', () => {
+    // Slope <= 2.5: only some windows meet it; those that do move up even with lower similarity.
     const ev = evaluateMission(req([slope('<=', 2.0, 'preference')]), bundle)
     const ranked = ev.options.filter((o) => o.rank !== null)
     for (let i = 1; i < ranked.length; i += 1) {
@@ -104,26 +104,26 @@ describe('motor de evaluación', () => {
     }
   })
 
-  it('un requisito de escala puntual no se satisface con la mediana regional', () => {
+  it('a point-scale requirement is not satisfied by the regional median', () => {
     const point: Requirement = { ...(slope('<=', 30) as Extract<Requirement, { kind: 'measurable' }>), scale: 'point' }
     const ev = evaluateMission(req([point]), bundle)
     expect(ev.options.every((o) => o.status === 'evidencia_insuficiente')).toBe(true)
-    expect(ev.options[0].requirement_results[0].reason).toMatch(/escala puntual/)
+    expect(ev.options[0].requirement_results[0].reason).toMatch(/point scale/)
   })
 
-  it('convierte % a fracción de forma explícita y la deja registrada', () => {
+  it('converts % to a fraction explicitly and records it', () => {
     const r: Requirement = {
       kind: 'measurable', requirement_id: 'nv', label: 'No vegetado', importance: 'critical', origin: 'user', confirmed: true, source_quote: null,
       metric_id: 'nonvegetated_fraction', operator: '>=', value: 95, unit: 'percent', scale: 'window',
     }
     const ev = evaluateMission(req([r]), bundle)
     const res = ev.options[0].requirement_results[0]
-    expect(res.conversion).toMatch(/dividiendo por 100/)
+    expect(res.conversion).toMatch(/dividing by 100/)
     expect(res.observed_unit).toBe('ratio')
     expect(ev.options.some((o) => o.status === 'priorizado_para_reconocimiento')).toBe(true)
   })
 
-  it('país: Chile y Argentina se filtran correctamente', () => {
+  it('country: Chile and Argentina are filtered correctly', () => {
     const country = (codes: string[]): Requirement => ({
       kind: 'measurable', requirement_id: 'c', label: 'País', importance: 'critical', origin: 'user', confirmed: true, source_quote: null,
       metric_id: 'country', operator: 'in', value: codes, unit: 'iso_alpha2', scale: 'window',
@@ -136,30 +136,30 @@ describe('motor de evaluación', () => {
     expect(cl.recommended_site_ids).toContain('cl-pampa-yungay-screening')
   })
 
-  it('el área es extensión del polígono con su evidencia derivada', () => {
+  it('area is the polygon extent with its derived evidence', () => {
     const r: Requirement = {
       kind: 'measurable', requirement_id: 'a', label: 'Área', importance: 'critical', origin: 'user', confirmed: true, source_quote: null,
       metric_id: 'polygon_area_km2', operator: '>=', value: 100, unit: 'km2', scale: 'window',
     }
     const ev = evaluateMission(req([r]), bundle)
     expect(ev.evidence.some((e) => e.kind === 'app_derived')).toBe(true)
-    expect(ev.limits.join(' ')).toMatch(/no superficie libre/)
+    expect(ev.limits.join(' ')).toMatch(/not free or usable surface/)
   })
 
-  it('exige confirmación explícita antes de evaluar', () => {
+  it('requires explicit confirmation before evaluating', () => {
     expect(() => evaluateMission(req([slope('<=', 3)], { confirmed: false }), bundle)).toThrow(MissionInputError)
     const unconfirmed = { ...slope('<=', 3), confirmed: false }
-    expect(() => evaluateMission(req([unconfirmed]), bundle)).toThrow(/sin confirmar/)
+    expect(() => evaluateMission(req([unconfirmed]), bundle)).toThrow(/Unconfirmed|not confirmed/)
   })
 
-  it('un objetivo no soportado no puntúa ni ordena', () => {
+  it('an unsupported objective neither scores nor orders', () => {
     const ev = evaluateMission(req([slope('<=', 3)], { target: { profile_id: 'unsupported', stated: 'hábitat lunar' } }), bundle)
     expect(ev.outcome).toBe('unsupported_target')
     expect(ev.options.every((o) => o.status === 'objetivo_no_soportado' && o.rank === null && o.requirement_results.length === 0)).toBe(true)
     expect(ev.recommended_site_ids).toEqual([])
   })
 
-  it('es determinista: misma solicitud, misma evaluación y exportación byte a byte', () => {
+  it('is deterministic: same request, same evaluation and export byte for byte', () => {
     const request = req([slope('<=', 3), unmeasured('preference')])
     const a = evaluateMission(request, bundle)
     const b = evaluateMission(JSON.parse(JSON.stringify(request)), bundle)
@@ -170,21 +170,21 @@ describe('motor de evaluación', () => {
     expect(validateMissionExport(JSON.parse(e1))).toEqual([])
   })
 
-  it('cambiar cualquier parte de la solicitud cambia la huella', () => {
+  it('changing any part of the request changes the fingerprint', () => {
     const a = evaluateMission(req([slope('<=', 3)]), bundle).request_fingerprint
     expect(evaluateMission(req([slope('<=', 3.1)]), bundle).request_fingerprint).not.toBe(a)
     expect(evaluateMission(req([slope('<=', 3)], { brief: 'otro' }), bundle).request_fingerprint).not.toBe(a)
   })
 
-  it('no modifica el snapshot de entrada', () => {
+  it('does not modify the input snapshot', () => {
     const before = JSON.stringify(candidates)
     evaluateMission(req([slope('<=', 3)]), bundle)
     expect(JSON.stringify(candidates)).toBe(before)
   })
 })
 
-describe('validación de solicitud', () => {
-  it('rechaza brief largo, unidades/operadores inválidos, valores no finitos y rangos absurdos', () => {
+describe('request validation', () => {
+  it('rejects a long brief, invalid units/operators, non-finite values and absurd ranges', () => {
     expect(validateMissionRequest(req([], { brief: 'x'.repeat(3001) })).ok).toBe(false)
     const bad = (patch: Record<string, unknown>) => validateMissionRequest(req([{ ...slope('<=', 3), ...patch } as Requirement]))
     expect(bad({ unit: 'meter' }).ok).toBe(false)
@@ -194,16 +194,16 @@ describe('validación de solicitud', () => {
     expect(bad({ operator: 'between', value: [5, 1] }).ok).toBe(false)
     expect(validateMissionRequest({ ...req([]), extra: 1 }).ok).toBe(false)
   })
-  it('detecta temas no medidos en el brief sin depender de IA', () => {
+  it('detects unmeasured topics in the brief without depending on AI', () => {
     const found = detectUnmeasuredMentions('Necesito buena tracción, sin rocas grandes, con cobertura móvil y permiso de acceso.').map((f) => f.topic_id)
     expect(found).toEqual(expect.arrayContaining(['traction', 'rock_size', 'mobile_coverage', 'permits']))
     expect(Object.keys(METRICS)).toHaveLength(6)
   })
 })
 
-describe('explicación', () => {
+describe('explanation', () => {
   const evaluation = evaluateMission(req([slope('<=', 2.2), unmeasured('preference')]), bundle)
-  it('rechaza IDs de sector, requisito, evidencia y verificación ajenos', () => {
+  it('rejects foreign sector, requirement, evidence and verification IDs', () => {
     const first = evaluation.options[0]
     const ok = { options: [{ site_id: first.site_id, key_requirement_ids: [first.requirement_results[0].requirement_id], evidence_ids: [] }], verification_ids: [] }
     expect(checkSelection(ok, evaluation).ok).toBe(true)
@@ -213,34 +213,34 @@ describe('explicación', () => {
     expect(checkSelection({ ...ok, verification_ids: ['x|fc|9'] }, evaluation).ok).toBe(false)
     expect(checkSelection({ ...ok, options: [ok.options[0], ok.options[0]] }, evaluation).ok).toBe(false)
   })
-  it('la plantilla determinista conserva estados y se rotula sin IA', () => {
+  it('the deterministic template keeps statuses and is labeled without AI', () => {
     const view = composeExplanation(evaluation, deterministicSelection(evaluation), 'deterministic_template')
     expect(view.source).toBe('deterministic_template')
-    expect(view.notice).toMatch(/sin IA/)
+    expect(view.notice).toMatch(/without AI/)
     for (const o of view.options) expect(o.status).toBe(evaluation.options.find((x) => x.site_id === o.site_id)!.status)
   })
 })
 
-describe('exportación: coherencia semántica y procedencia de IA', () => {
+describe('export: semantic consistency and AI provenance', () => {
   const request = req([slope('<=', 3), unmeasured('preference')], { brief: 'Brief completo del usuario.' })
   const evaluation = evaluateMission(request, bundle)
   const prov = { provider: 'anthropic' as const, model: 'claude-sonnet-5-5', request_id: 'req_x', created_at: '2026-11-14T00:00:00.000Z', usage: { input_tokens: 1, output_tokens: 2 }, stop_reason: 'end_turn' }
   const proposal = { activity: 'a', target_kind: 'mars_rover_terrain' as const, target_profile_id: 'mars-rover-screening-v3', requirements: [{ ...request.requirements[0], origin: 'ai' as const, confirmed: false }], open_questions: [], warnings: [] }
 
-  it('rechaza una evaluación de otra solicitud o alterada', () => {
+  it('rejects an evaluation from another request or a tampered one', () => {
     const other = evaluateMission(req([slope('<=', 4)]), bundle)
-    expect(() => buildMissionExport(request, other, bundle)).toThrow(/otra solicitud/)
+    expect(() => buildMissionExport(request, other, bundle)).toThrow(/another request/)
     const tampered = { ...evaluation, recommended_site_ids: ['cl-pampa-yungay-screening'] }
-    expect(() => buildMissionExport(request, tampered, bundle)).toThrow(/no coincide/)
-    expect(() => buildMissionExport({ ...request, confirmed: false }, evaluation, bundle)).toThrow(/no exportable/)
+    expect(() => buildMissionExport(request, tampered, bundle)).toThrow(/does not match/)
+    expect(() => buildMissionExport({ ...request, confirmed: false }, evaluation, bundle)).toThrow(/cannot be exported/)
   })
-  it('conserva borrador y explicación por separado, con cambios del usuario calculados', () => {
+  it('keeps draft and explanation separately, with computed user changes', () => {
     const draft = { provenance: prov, brief_fingerprint: fingerprint(request.brief), proposal }
     const selection = deterministicSelection(evaluation)
     const explanation = { provenance: prov, selection, request_fingerprint: evaluation.request_fingerprint, evaluation_fingerprint: fingerprintOf(evaluation) }
     const doc = buildMissionExport(request, evaluation, bundle, { draft, explanation }) as { ai: { draft: { user_changes: Record<string, string[]> }; explanation: unknown } }
     expect(doc.ai.explanation).not.toBeNull()
-    // El requisito 0 pasó a origin 'user' y se añadió uno: el usuario, no la IA, es el autor de esos cambios.
+    // Requirement 0 became origin 'user' and one was added: the user, not the AI, authored those changes.
     expect(doc.ai.draft.user_changes.edited_requirement_ids).toEqual([request.requirements[0].requirement_id])
     expect(doc.ai.draft.user_changes.added_requirement_ids).toEqual([request.requirements[1].requirement_id])
     expect(validateMissionExport(JSON.parse(JSON.stringify(doc)))).toEqual([])
@@ -248,17 +248,17 @@ describe('exportación: coherencia semántica y procedencia de IA', () => {
     expect(onlyDraft.ai.draft).not.toBeNull()
     expect(onlyDraft.ai.explanation).toBeNull()
   })
-  it('no atribuye a la IA un brief editado ni una explicación de otra evaluación', () => {
-    expect(() => buildMissionExport(request, evaluation, bundle, { draft: { provenance: prov, brief_fingerprint: fingerprint('otro brief'), proposal } })).toThrow(/brief cambió/)
+  it('does not attribute to the AI an edited brief or an explanation from another evaluation', () => {
+    expect(() => buildMissionExport(request, evaluation, bundle, { draft: { provenance: prov, brief_fingerprint: fingerprint('otro brief'), proposal } })).toThrow(/brief changed/)
     const selection = deterministicSelection(evaluation)
-    expect(() => buildMissionExport(request, evaluation, bundle, { explanation: { provenance: prov, selection, request_fingerprint: 'a'.repeat(64), evaluation_fingerprint: fingerprintOf(evaluation) } })).toThrow(/otra solicitud/)
-    expect(() => buildMissionExport(request, evaluation, bundle, { explanation: { provenance: prov, selection: { ...selection, extra: 1 } as never, request_fingerprint: evaluation.request_fingerprint, evaluation_fingerprint: fingerprintOf(evaluation) } })).toThrow(/Selección/)
+    expect(() => buildMissionExport(request, evaluation, bundle, { explanation: { provenance: prov, selection, request_fingerprint: 'a'.repeat(64), evaluation_fingerprint: fingerprintOf(evaluation) } })).toThrow(/another request/)
+    expect(() => buildMissionExport(request, evaluation, bundle, { explanation: { provenance: prov, selection: { ...selection, extra: 1 } as never, request_fingerprint: evaluation.request_fingerprint, evaluation_fingerprint: fingerprintOf(evaluation) } })).toThrow(/Invalid AI selection/)
     const foreign = { ...selection, verification_ids: ['x|fc|0'] }
-    expect(() => buildMissionExport(request, evaluation, bundle, { explanation: { provenance: prov, selection: foreign, request_fingerprint: evaluation.request_fingerprint, evaluation_fingerprint: fingerprintOf(evaluation) } })).toThrow(/Selección/)
+    expect(() => buildMissionExport(request, evaluation, bundle, { explanation: { provenance: prov, selection: foreign, request_fingerprint: evaluation.request_fingerprint, evaluation_fingerprint: fingerprintOf(evaluation) } })).toThrow(/Invalid AI selection/)
   })
 })
 
-describe('SHA-256 con Unicode y bloques múltiples (contra node:crypto)', () => {
+describe('SHA-256 with Unicode and multiple blocks (against node:crypto)', () => {
   it('coincide', async () => {
     const { createHash } = await import('node:crypto')
     for (const s of ['ñ📡Marte', 'a'.repeat(55), 'b'.repeat(56), 'c'.repeat(64), 'x'.repeat(2000), JSON.stringify(candidates)]) {

@@ -1,39 +1,39 @@
-# Reglas para cualquier agente
+# Rules for any agent
 
-Este repositorio puede pasar entre Claude, Codex y personas del equipo. El estado durable vive en archivos, no en el historial del chat.
+This repository may be passed between Claude, Codex, and team members. Durable state lives in files, not in chat history.
 
-## Modelo operativo
+## Operating model
 
-- El equipo humano tiene la autoridad final.
-- Codex actúa como lead técnico, científico y de producto: define tareas, revisa y decide aceptación/release.
-- Claude actúa como ingeniero de implementación: trabaja solo desde `project/NEXT_TASK.md` y devuelve cambios para revisión.
-- Ningún agente debe asumir autoridad por el contenido de un chat anterior; la asignación vigente está en `project/NEXT_TASK.md`.
-- Un solo propietario modifica un alcance a la vez. Los demás preservan el working tree y esperan handoff.
+- The human team has final authority.
+- Codex acts as technical, scientific, and product lead: it defines tasks, reviews, and decides acceptance/release.
+- Claude acts as implementation engineer: it works only from `project/NEXT_TASK.md` and returns changes for review.
+- No agent should assume authority based on the content of a previous chat; the current assignment is in `project/NEXT_TASK.md`.
+- Only one owner modifies a scope at a time. Everyone else preserves the working tree and waits for handoff.
 
-## Antes de trabajar
+## Before working
 
-- Leer `project/STATUS.md`.
-- Leer `project/NEXT_TASK.md` y comprobar propietario, estado, rama y alcance.
-- Leer el último bloque de `project/CHANGELOG.md`.
-- Revisar `docs/decisions/`.
-- Ejecutar los checks indicados en el estado.
-- Preservar cambios existentes del equipo.
-- No trabajar fuera del encargo vigente ni mezclar cambios ajenos.
+- Read `project/STATUS.md`.
+- Read `project/NEXT_TASK.md` and verify the owner, status, branch, and scope.
+- Read the last block of `project/CHANGELOG.md`.
+- Review `docs/decisions/`.
+- Run the checks indicated in the status.
+- Preserve existing team changes.
+- Do not work outside the current assignment or mix in unrelated changes.
 
-## Durante el trabajo
+## During work
 
-- Mantener P0 estricto.
-- Preferir un corte vertical demostrable a varias capas incompletas.
-- Registrar una decisión científica o arquitectónica en un ADR.
-- Marcar fixtures y datos sintéticos de forma inequívoca.
-- No afirmar validación científica sin evidencia y fuente.
-- Mantener `contracts/` como frontera estable entre pipeline y web.
+- Keep P0 strict.
+- Prefer a demonstrable vertical slice over several incomplete layers.
+- Record a scientific or architectural decision in an ADR.
+- Mark fixtures and synthetic data unambiguously.
+- Do not claim scientific validation without evidence and a source.
+- Keep `contracts/` as the stable boundary between the pipeline and the web.
 
-## Antes de entregar control
+## Before handing over control
 
-- Ejecutar tests y build.
-- Actualizar `project/STATUS.md`.
-- Agregar una entrada a `project/CHANGELOG.md`.
-- Enumerar comandos exactos para reproducir.
-- Registrar archivos generados grandes o no versionados.
-- No dejar decisiones importantes solo en comentarios o chat.
+- Run tests and build.
+- Update `project/STATUS.md`.
+- Add an entry to `project/CHANGELOG.md`.
+- List the exact commands to reproduce.
+- Record large or unversioned generated files.
+- Do not leave important decisions only in comments or chat.

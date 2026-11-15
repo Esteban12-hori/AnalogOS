@@ -1,8 +1,8 @@
 /**
- * Regla §1 #16 de docs/UX_REDESIGN.md: la geometría decide si un ◆ es insignia o tarjeta propia.
- * - Punto citado dentro del polígono de un sector → insignia «coincide con» sobre ese ●.
- * - Región → ◆ propio; «contiene N sectores» solo con los sectores que caen enteros en su caja.
- * Módulo diferido: se carga junto con el catálogo (referenceAnalogs.ts), fuera del chunk principal.
+ * Rule §1 #16 of docs/UX_REDESIGN.md: geometry decides whether a ◆ is a badge or its own card.
+ * - Cited point inside a sector's polygon → "coincides with" badge on that ●.
+ * - Region → its own ◆; "contains N sectors" only counts the sectors that fall entirely within its bounding box.
+ * Deferred module: it is loaded together with the catalog (referenceAnalogs.ts), outside the main chunk.
  */
 import type { CandidateSite, ReferenceAnalog } from '../../domain/contracts'
 import { geometryInsideBbox, pointInGeometry } from './geometry'

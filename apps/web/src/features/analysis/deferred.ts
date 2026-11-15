@@ -1,2 +1,2 @@
-/** Único punto de entrada diferido de features/analysis: la vista de la Lectura. */
+/** Single deferred entry point of features/analysis: the Reading view. */
 export { default } from './ReadingView'

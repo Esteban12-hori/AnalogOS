@@ -1,28 +1,30 @@
-# Prompt para que Codex retome el control
+# Prompt for Codex to resume control
 
-**Checkpoint vigente 2026-11-15:** M11 implementado por Claude y aceptado por Codex tras tres rondas y QA real de Lectura móvil/PDF. Leer primero STATUS y docs/CODEX_M11_REVIEW.md. Publicado sin force en dev/main, código e5e91390b2eea261b1f8d46f3b17786b2bb295dc; Actions dev 43686593750 y producción 43686863876 correctos. IA real AR6 y exportación validadas en producción. El checkpoint posterior [skip ci] solo registra evidencia y continuidad. Desarrollo en dev; Claude sin nueva asignación. Los pendientes móviles/impresión citados en los antecedentes de abajo ya se resolvieron. No iniciar otro milestone.
+**Current checkpoint — ENGLISH-DEFAULT (2026-11-15):** Dan explicitly requested English throughout the repository and application, retaining `README.es.md`. Codex accepted Claude’s Phase A after independent verification: 335 Python / 868 web tests passed, 3 opt-in skipped, types/build passed and all 77 protected files unchanged. Phase B (English UI, AI, reports and dynamic display text) is assigned to Claude in `project/NEXT_TASK.md`. Codex owns the concurrent documentation translations. Read `project/ENGLISH_PROGRESS.md` and NEXT_TASK before editing. This work is not yet released; historical checkpoints below do not cancel the active assignment.
 
-Cuando Claude haya terminado, pide a Codex:
+**Historical M11 checkpoint 2026-11-15:** M11 implemented by Claude and accepted by Codex after three rounds and real QA of mobile Reading/PDF. Read STATUS and docs/CODEX_M11_REVIEW.md first. Published without force to dev/main, code e5e91390b2eea261b1f8d46f3b17786b2bb295dc; Actions dev 43686593750 and production 43686863876 correct. Real AI AR6 and export validated in production. The subsequent [skip ci] checkpoint only records evidence and continuity. Development on dev; Claude has no new assignment. The mobile/printing pending items cited in the background below have already been resolved. Do not start another milestone.
+
+When Claude has finished, ask Codex:
 
 ```text
-Retoma AnalogOS desde /Users/dan/Documents/Codex/2026-09-08/ana/analogos-chile.
+Resume AnalogOS at /Users/dan/Documents/Codex/2026-09-08/ana/analogos-chile.
 
-No asumas que el resumen del chat es correcto. Lee AGENTS.md, project/NEXT_TASK.md, project/STATUS.md, el último bloque de project/CHANGELOG.md y todos los ADR. Revisa el diff y ejecuta los comandos de build/test registrados. Comprueba visualmente la aplicación y valida los artefactos contra contracts/.
+Do not assume the chat summary is correct. Read AGENTS.md, project/NEXT_TASK.md, project/STATUS.md, the latest entry in project/CHANGELOG.md and all ADRs. Review the diff and run the recorded build/test commands. Inspect the application visually and validate artifacts against contracts/.
 
-Después:
-1. informa qué está realmente funcionando;
-2. identifica deuda, inconsistencias o desvíos del spec;
-3. corrige fallas críticas dentro del milestone activo;
-4. si el milestone está cerrado, informa el siguiente gate de project/BACKLOG.md sin iniciar otro alcance no autorizado;
-5. actualiza project/STATUS.md y project/CHANGELOG.md.
+Then:
+1. report what is actually working;
+2. identify debt, inconsistencies or deviations from the specification;
+3. fix critical issues within the active milestone;
+4. if the milestone is closed, report the next gate from project/BACKLOG.md without starting an unauthorized scope;
+5. update project/STATUS.md and project/CHANGELOG.md.
 
-Codex es el lead técnico, científico y de producto. Revisa la entrega de Claude antes de aceptarla y escribe la siguiente unidad de trabajo en project/NEXT_TASK.md. Claude implementa; no decide aceptación, release ni cambios de alcance.
+Codex is the technical, scientific and product lead. Review Claude's delivery before accepting it and write the next unit of work in project/NEXT_TASK.md. Claude implements; it does not decide acceptance, releases or scope changes.
 
-Mantén P0 estricto: rover marciano/Jezero, piloto Chile–Argentina de 50 ventanas, PDS/MOLA, static-first, evaluación determinista y demo offline. Snapshot activo science-v3; seis candidatos y Yungay como referencia fuera del ranking histórico (alternativa conocida evaluable para una prueba). Conserva v2, ciencia, perfiles y datos originales.
+Keep P0 strict: Mars rover/Jezero, the Chile–Argentina pilot of 50 windows, PDS/MOLA, a static-first architecture, deterministic evaluation and an offline demo. The active snapshot is science-v3: six candidates and Yungay as a reference outside the historical discovery ranking, while remaining a known alternative that can be evaluated for a test. Preserve v2, the science, profiles and original data.
 
-Entrega vigente: rediseño Explorar/Misión integrado por Gus/Claude en dd625b4 y aceptado por Codex. Corrección publicada en https://analogos-dev.vercel.app/: código 9c183fb8cc5d8adbc717f931efd64bf877ddb0b0, Actions 43681551867 correcto. Enviar un brief desde el dock conserva el sector elegido. ADR-013/014 aceptados; Yungay se mantiene fuera del ranking de descubrimiento y como alternativa conocida evaluable/priorizable en Misión, siempre REF (ADR-009 §5). Leer docs/CODEX_INTEGRATION_REVIEW.md y docs/DEV_AI_VERIFICATION.md: borrador y explicación geológica Anthropic reales desde la interfaz integrada, exportación validada y reconstruida con datos oficiales. Verificación: 333 Python/784 web, 3 web opt-in omitidos, tipos/build correctos. M8/M9/M10 y sus datos se conservan. Anthropic selecciona comprobaciones respaldadas por SERNAGEOMIN/SEGEMAR; no cambia score, evaluación ni mide tracción. Pendientes acotados: acceso directo a Lectura móvil, GIBS sin red, impresión nativa e iOS real. Los checkpoints anteriores describen sus versiones históricas.
+Historical integration checkpoint: Gus/Claude integrated the Explore/Mission redesign in dd625b4, and Codex accepted it. The correction was published at https://analogos-dev.vercel.app/: code 9c183fb8cc5d8adbc717f931efd64bf877ddb0b0, successful Actions 43681551867. Sending a brief from the dock preserves the selected sector. ADR-013/014 were accepted; Yungay remains outside the discovery ranking and can be evaluated/prioritized as a known Mission alternative, always REF (ADR-009 §5). Read docs/CODEX_INTEGRATION_REVIEW.md and docs/DEV_AI_VERIFICATION.md: real Anthropic draft and geological explanation were tested from the integrated interface, and the export was validated and rebuilt from official data. Verification at that checkpoint: 333 Python/784 web tests, 3 opt-in web tests skipped, types/build passed. M8/M9/M10 and their data are preserved. Anthropic selects checks supported by SERNAGEOMIN/SEGEMAR; it does not change scores or evaluation, or measure traction. At that time, mobile Reading access, offline GIBS, native printing and physical iOS testing remained pending. Later checkpoints supersede these historical pending items.
 
-Producción posterior autorizada por Dan: main avanzó a 7e8c7798186e02a5014f6bf8b79554b7faa84c3c, igual que dev. Actions producción 43682694089 y dev 43682693561 correctos. README actualizado para Explorar/Misión; screenshot tomado desde la nueva producción después del despliegue. Ambas operaciones Anthropic y geología AR6 verificadas realmente en https://analogos.vercel.app/; exportación validada/reconstruida. Lee docs/PRODUCTION_RELEASE.md y el bloque superior de STATUS. El checkpoint documental/capturas posterior lleva [skip ci] y conserva el código desplegado; el desarrollo continúa en dev.
+Subsequent production promotion authorized by Dan: main advanced to 7e8c7798186e02a5014f6bf8b79554b7faa84c3c, matching dev. Production Actions 43682694089 and dev Actions 43682693561 succeeded. The README was updated for Explore/Mission; the screenshot was captured from the new production after deployment. Both Anthropic operations and AR6 geology were tested live at https://analogos.vercel.app/; the export was validated and rebuilt. Read docs/PRODUCTION_RELEASE.md and the top of STATUS. The subsequent documentation/screenshot checkpoint used [skip ci] and preserved deployed code; development continues on dev.
 
-Respeta NEXT_TASK accepted: Claude queda sin asignación; no inicies otro milestone sin nuevo encargo. Conserva protección Vercel y secretos solo en runtime. No afirmes cobertura global, novedad ni aptitud de campo. No agregues SAR, perfil lunar, regiones, pesos u otra infraestructura fuera del alcance autorizado. Las futuras promociones a main requieren un encargo; esta publicación ya quedó completada.
+Always follow the current NEXT_TASK owner and status. At the historical accepted checkpoints, Claude had no new assignment. Preserve Vercel protection and keep secrets in server runtime only. Do not claim worldwide coverage, novelty or field suitability. Do not add SAR, a lunar profile, regions, weights or infrastructure outside the authorized scope. Future promotions to main require an assignment; the historical publication described above was already completed.
 ```

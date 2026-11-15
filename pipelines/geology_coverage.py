@@ -1,15 +1,15 @@
-"""Cobertura geológica por sector: recorte, reparación conservadora y partición de áreas.
+"""Geological coverage per sector: clipping, conservative repair and area partitioning.
 
-Lógica pura (sin red). La validez y la reparación se evalúan sobre las coordenadas originales lon/lat
-(CRS84). Después los vértices se proyectan a EPSG:6933 (cilíndrica equivalente de Lambert) y TODA la
-superposición (recorte, disolución, solapes, huecos) se hace en ese plano, con aristas rectas en él. Así
-las áreas son aditivas: operar en grados y medir en el plano producía discrepancias de ~1e-7 del sector
-porque una arista recta en lon/lat no es recta tras proyectar. Ninguna fracción se renormaliza: sin
-cobertura + cubierta sin ambigüedad + ambigua + zona no utilizable suman 1 solo si la geometría lo hace,
-y el contrato lo comprueba con tolerancia.
+Pure logic (no network). Validity and repair are evaluated on the original lon/lat coordinates
+(CRS84). Afterwards the vertices are projected to EPSG:6933 (Lambert cylindrical equal-area) and ALL the
+overlay (clipping, dissolve, overlaps, gaps) is done in that plane, with straight edges in it. This way
+areas are additive: operating in degrees and measuring in the plane produced discrepancies of ~1e-7 of the sector
+because a straight edge in lon/lat is not straight after projection. No fraction is renormalized: without
+coverage + unambiguous cover + ambiguous + unusable zone add up to 1 only if the geometry does so,
+and the contract checks it with a tolerance.
 
-Los umbrales de reparación y de disponibilidad son criterios de ingeniería provisionales aprobados por
-Codex para esta versión; no son un estándar científico ni validan la cartografía.
+The repair and availability thresholds are provisional engineering criteria approved by
+Codex for this version; they are not a scientific standard and do not validate the cartography.
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box, sha
 from shapely.ops import unary_union
 from shapely.validation import explain_validity
 
-from pipelines.geology_policy import (  # noqa: F401  (se reexportan: la política vive en geology_policy)
+from pipelines.geology_policy import (  # noqa: F401  (re-exported: the policy lives in geology_policy)
     AREA_CRS, AREA_FLOOR_M2, AVAILABLE_TOLERANCE, CLIP_CRS, FRACTION_DECIMALS, POLICY, REPAIR_AOI_FRACTION_LIMIT,
     REPAIR_ENTITY_RELATIVE_LIMIT, REPAIR_TOTAL_AREA_LIMIT, SUM_TOLERANCE, availability,
 )
@@ -35,19 +35,19 @@ from pipelines.geology_policy import (  # noqa: F401  (se reexportan: la políti
 _TO_AREA = Transformer.from_crs(4326, 6933, always_xy=True).transform
 
 class GeologyError(ValueError):
-    """Los datos o la geometría no permiten construir un resultado fiable."""
+    """The data or the geometry do not allow building a reliable result."""
 
 
 @dataclass(frozen=True)
 class Feature:
     feature_id: str
     properties: dict
-    geometry: object  # shapely, sin modificar
+    geometry: object  # shapely, unmodified
 
 
 @dataclass(frozen=True)
 class LayerConfig:
-    """Identidad de unidad y campos descriptivos de una capa; no clasifica litologías."""
+    """Unit identity and descriptive fields of a layer; it does not classify lithologies."""
     source_id: str
     identity_fields: tuple[str, ...]
     code_field: str
@@ -62,12 +62,12 @@ def processing_versions() -> dict:
 
 
 def project(geometry):
-    """Vértices lon/lat -> plano EPSG:6933. Las aristas pasan a ser rectas en el plano."""
+    """Lon/lat vertices -> EPSG:6933. plane. Edges become straight in the plane."""
     return geometry if geometry.is_empty else shapely.transform(geometry, _project)
 
 
 def area_m2(planar_geometry) -> float:
-    """Área (m²) de una geometría YA proyectada al plano equivalente."""
+    """Area (m²) of a geometry ALREADY projected to the equal-area plane."""
     if planar_geometry is None or planar_geometry.is_empty:
         return 0.0
     return float(planar_geometry.area)
@@ -79,7 +79,7 @@ def _project(coords):
 
 
 def polygonal(geometry):
-    """Solo las partes de dimensión 2; nada de líneas o puntos de contacto."""
+    """Only the parts of dimension 2; no lines or contact points."""
     if geometry is None or geometry.is_empty:
         return Polygon()
     if isinstance(geometry, (Polygon, MultiPolygon)):
@@ -108,87 +108,88 @@ def _check_position(position, where: str) -> None:
     if not isinstance(position, (list, tuple)) or len(position) != 2 or not all(
         isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) for v in position
     ):
-        raise GeologyError(f"{where}: vértice malformado, no 2D o no finito.")
+        raise GeologyError(f"{where}: malformed, non-2D or non-finite vertex.")
     if not (-180 <= position[0] <= 180 and -90 <= position[1] <= 90):
-        raise GeologyError(f"{where}: vértice fuera de lon/lat válidos.")
+        raise GeologyError(f"{where}: vertex outside valid lon/lat.")
 
 
 def _check_polygon(rings, where: str) -> None:
     if not isinstance(rings, (list, tuple)) or not rings:
-        raise GeologyError(f"{where}: polígono sin anillos.")
+        raise GeologyError(f"{where}: polygon without rings.")
     for ring in rings:
         if not isinstance(ring, (list, tuple)) or len(ring) < 4:
-            raise GeologyError(f"{where}: anillo malformado o con menos de 4 vértices.")
+            raise GeologyError(f"{where}: malformed ring or fewer than 4 vertices.")
         for position in ring:
             _check_position(position, where)
-        if list(ring[0]) != list(ring[-1]):  # GeoJSON exige el primer vértice repetido; Shapely cerraría en silencio
-            raise GeologyError(f"{where}: anillo sin cierre exacto (el último vértice no repite el primero).")
+        if list(ring[0]) != list(ring[-1]):  # GeoJSON requires the first vertex to be repeated; Shapely would close silently
+            raise GeologyError(f"{where}: ring without exact closure (the last vertex does not repeat the first).")
 
 
 def check_geometry_dict(geometry, where: str) -> None:
-    """Estructura y cada vértice de un Polygon/MultiPolygon GeoJSON, ANTES de construir geometrías Shapely.
+    """Structure and every vertex of a GeoJSON Polygon/MultiPolygon, BEFORE building Shapely geometries.
 
-    Los bounds no bastan: una coordenada NaN interna puede dejar bounds finitos. No se ignora ninguna hoja
-    malformada.
+    The bounds are not enough: an internal NaN coordinate can leave finite bounds. No malformed leaf is ignored
+    .
     """
     if not isinstance(geometry, dict) or geometry.get("type") not in ("Polygon", "MultiPolygon"):
-        raise GeologyError(f"{where}: la geometría no es Polygon ni MultiPolygon.")
+        raise GeologyError(f"{where}: the geometry is neither Polygon nor MultiPolygon.")
     coordinates = geometry.get("coordinates")
     if geometry["type"] == "Polygon":
         _check_polygon(coordinates, where)
     else:
         if not isinstance(coordinates, (list, tuple)) or not coordinates:
-            raise GeologyError(f"{where}: MultiPolygon sin polígonos.")
+            raise GeologyError(f"{where}: MultiPolygon without polygons.")
         for polygon in coordinates:
             _check_polygon(polygon, where)
 
 
 def parse_features(collection: dict, id_property: str) -> tuple[list[Feature], int]:
-    """Entidades con geometría; devuelve también cuántas llegaron nulas o vacías.
+    """Features with geometry; also returns how many arrived null or empty.
 
-    Valida tipo, rango lon/lat y finitud. El identificador sale de ``id`` o, si falta, de la propiedad.
+    Validates type, lon/lat range and finiteness. The identifier comes from ``id`` or, if missing, from the property.
     """
     if not isinstance(collection, dict) or collection.get("type") != "FeatureCollection" \
             or not isinstance(collection.get("features"), list):
-        raise GeologyError("La respuesta no es una FeatureCollection.")
+        raise GeologyError("The response is not a FeatureCollection.")
     result, empty, seen = [], 0, set()
     for raw in collection["features"]:
         if not isinstance(raw, dict) or raw.get("type") != "Feature" or not isinstance(raw.get("properties"), dict):
-            raise GeologyError("Entidad con forma inesperada.")
+            raise GeologyError("Feature with an unexpected shape.")
         properties = raw["properties"]
         feature_id = raw.get("id")
         if feature_id is None:
             feature_id = properties.get(id_property)
         if feature_id is None or str(feature_id) in seen:
-            raise GeologyError("Identificador de entidad ausente o repetido.")
+            raise GeologyError("Feature identifier missing or repeated.")
         seen.add(str(feature_id))
         if raw.get("geometry") is None:
             empty += 1
             continue
         geometry_dict = raw["geometry"]
         if isinstance(geometry_dict, dict) and geometry_dict.get("coordinates") == []:
-            empty += 1  # geometría vacía explícita
+            empty += 1  # explicit empty geometry
             continue
-        check_geometry_dict(geometry_dict, f"entidad {feature_id}")
+        check_geometry_dict(geometry_dict, f"feature {feature_id}")
         try:
             geometry = shape(geometry_dict)
         except (ValueError, TypeError, KeyError, AttributeError, shapely.errors.ShapelyError):
-            raise GeologyError(f"Geometría ilegible en la entidad {feature_id}.") from None
+            raise GeologyError(f"Unreadable geometry in feature {feature_id}.") from None
         result.append(Feature(str(feature_id), properties, geometry))
     return result, empty
 
 
 def _km2(square_meters: float) -> float | None:
-    """km² con 9 decimales; None si no es finito (JSON no admite NaN ni infinitos)."""
+    """km² with 9 decimals; None if not finite (JSON does not support NaN or infinities)."""
     return round(square_meters / 1e6, 9) if math.isfinite(square_meters) else None
 
 
 def _diagnose(feature: Feature, aoi, aoi_area: float) -> tuple[object | None, dict]:
-    """Reparación de una geometría inválida con dos métodos y límites independientes.
+    """Repair of an invalid geometry with two methods and independent limits.
 
-    Devuelve (recorte aceptado | None, registro). Nunca se recorta el original inválido.
+    Returns (accepted clip | None, record). The invalid original is never clipped.
     """
     geometry = feature.geometry
+    # Frozen output text (Spanish): method, rejection reasons and limitation strings are stored in the geology package.
     record: dict = {
         "feature_id": feature.feature_id,
         "validity_reason": explain_validity(geometry),
@@ -217,7 +218,7 @@ def _diagnose(feature: Feature, aoi, aoi_area: float) -> tuple[object | None, di
         if not _usable(control):
             reasons.append("buffer(0) no produjo polígonos válidos no vacíos")
         if _usable(primary) and _usable(control):
-            # El contraste simétrico entre métodos se conserva aunque otro criterio ya haya rechazado.
+            # The symmetric contrast between methods is retained even if another criterion has already rejected.
             clip_primary, clip_control = polygonal(primary.intersection(aoi)), polygonal(control.intersection(aoi))
             primary_area, control_area = area_m2(clip_primary), area_m2(clip_control)
             difference = area_m2(clip_primary.symmetric_difference(clip_control))
@@ -264,11 +265,11 @@ def description_present(value) -> bool:
 
 
 def analyze_site(aoi_lonlat, features: list[Feature], layer: LayerConfig) -> dict:
-    """Partición del sector. ``features`` ya vienen de la fuente de ESTE sector (sin heredar de otros)."""
+    """Sector partition. ``features`` already come from the source of THIS sector (without inheriting from others)."""
     aoi = project(aoi_lonlat)
     aoi_area = area_m2(aoi)
     if aoi_area <= 0:
-        raise GeologyError("El sector tiene área cero.")
+        raise GeologyError("The sector has zero area.")
     counts = {"bbox_candidates": 0, "positive_area": 0, "no_positive_intersection": 0,
               "invalid_geometry": 0, "repaired_accepted": 0, "rejected": 0}
     groups: dict[tuple, list] = {}

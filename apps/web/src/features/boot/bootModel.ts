@@ -1,8 +1,8 @@
 /**
- * Modelo puro del Loading WOW «Órbita honesta» (docs/UX_REDESIGN.md §2.3 A, §3.3, §4.3, §4.4).
- * Sin DOM ni React: lo usan el HTML estático (content/shell.ts, vía el plugin loadingHints en
- * Node), BootLayer, StatusChip, OrbitLoader y los tests. Ninguna cifra se inventa: los textos
- * solo reflejan hitos reales que reporta el armazón.
+ * Pure model of the "Honest orbit" Loading WOW (docs/UX_REDESIGN.md §2.3 A, §3.3, §4.3, §4.4).
+ * No DOM or React: used by the static HTML (content/shell.ts, via the loadingHints plugin in
+ * Node), BootLayer, StatusChip, OrbitLoader and the tests. No figure is invented: the texts
+ * only reflect real milestones reported by the shell.
  */
 import { posterLayout } from '../../boot/posterLayout.js'
 import { baseStageInsets } from '../../shell/stageGeometry.js'
@@ -11,26 +11,26 @@ export type BootMilestone = 'snapshot' | 'globe' | 'texture'
 export type MilestoneStatus = 'pending' | 'ok' | 'error'
 export type Milestones = Readonly<Record<BootMilestone, MilestoneStatus>>
 
-/** 'full' = ?intro=full (video) · 'normal' = primera vez en la sesión · 'quiet' = solo el aterrizaje. */
+/** 'full' = ?intro=full (video) · 'normal' = first time in the session · 'quiet' = only the landing. */
 export type IntroMode = 'full' | 'normal' | 'quiet'
 
 export const INTRO_SESSION_KEY = 'analogos.intro'
 
 export const BOOT_TIMING = {
-  /** Antes de esto no se ven órbita ni bitácora: anti-parpadeo y carga desde caché (<300 ms). */
+  /** Before this, neither orbit nor log is visible: anti-flicker and loading from cache (<300 ms). */
   fastMs: 300,
-  /** Desde el revelado hasta que la bitácora se pliega en el chip (~1,6 s). */
+  /** From the reveal until the log folds into the chip (~1,6 s). */
   foldAfterMs: 1600,
-  /** ?intro=full: la órbita se ve al menos hasta este instante (ms desde la navegación). */
+  /** ?intro=full: the orbit stays visible at least until this instant (ms since navigation). */
   fullHoldMs: 1500,
-  /** Satélite: 2 vueltas de 2,4 s como máximo; después, estado estático con tiempo transcurrido. */
+  /** Satellite: at most 2 laps of 2,4 s; afterwards, a static state with elapsed time. */
   loopMs: 2400,
   loops: 2,
 } as const
 
-/** Retraso de entrada de la órbita en la espera de la IA (§2.3 C: 0–300 ms, nada). */
+/** Entry delay of the orbit while waiting for the AI (§2.3 C: 0–300 ms, nothing). */
 export const ORBIT_DELAY_MS = BOOT_TIMING.fastMs
-/** Duración de una vuelta de la órbita: la luz del composer usa la misma para ir en fase. */
+/** Duration of one orbit lap: the composer light uses the same one to stay in phase. */
 export const ORBIT_LOOP_MS = BOOT_TIMING.loopMs
 
 export function resolveIntroMode(search: string, playedThisSession: boolean): IntroMode {
@@ -38,9 +38,9 @@ export function resolveIntroMode(search: string, playedThisSession: boolean): In
   return playedThisSession ? 'quiet' : 'normal'
 }
 
-// ---- Máquina del arranque ---------------------------------------------------------------
+// ---- Boot state machine ---------------------------------------------------------------
 
-/** orbit → reveal (3D visible: onda, aterrizaje) → fold (bitácora al chip, 280 ms) → done. */
+/** orbit → reveal (3D visible: wave, landing) → fold (log into the chip, 280 ms) → done. */
 export type BootPhase = 'orbit' | 'reveal' | 'fold' | 'done'
 
 export interface BootState {
@@ -49,14 +49,14 @@ export interface BootState {
 }
 
 export type BootEvent =
-  /** El globo 3D ya se ve (o no habrá globo: error o SVG). `at` = ms desde la navegación. */
+  /** The 3D globe is already visible (or there will be no globe: error or SVG). `at` = ms since navigation. */
   | { type: 'visible'; at: number }
-  /** pointerdown, rueda o tecla: salta al estado final, sin animación. */
+  /** pointerdown, wheel or key: jumps to the final state, without animation. */
   | { type: 'interaction' }
-  /** reveal: pasaron ~1,6 s · fold: terminó el pliegue. */
+  /** reveal: ~1,6 s have passed · fold: the fold has finished. */
   | { type: 'timer' }
 
-/** Duración del pliegue de la bitácora en el chip (--dur-3) + margen. */
+/** Duration of the log folding into the chip (--dur-3) + margin. */
 export const FOLD_MS = 300
 
 export function initialBootState(mode: IntroMode): BootState {
@@ -66,7 +66,7 @@ export function initialBootState(mode: IntroMode): BootState {
 export function bootReducer(state: BootState, event: BootEvent): BootState {
   if (event.type === 'visible') {
     if (state.phase !== 'orbit') return state
-    // Todo cargó desde caché antes de 300 ms: sin órbita ni bitácora, solo el aterrizaje.
+    // Everything loaded from cache before 300 ms: no orbit or log, only the landing.
     return { phase: 'reveal', mode: state.mode === 'normal' && event.at < BOOT_TIMING.fastMs ? 'quiet' : state.mode }
   }
   if (event.type === 'interaction') return state.phase === 'orbit' || state.phase === 'reveal' ? { ...state, phase: 'done' } : state
@@ -75,30 +75,30 @@ export function bootReducer(state: BootState, event: BootEvent): BootState {
   return state
 }
 
-/** Tiempo hasta el próximo `timer` en cada fase (null = no hay temporizador). */
+/** Time until the next `timer` in each phase (null = no timer). */
 export function phaseTimer(phase: BootPhase): number | null {
   return phase === 'reveal' ? BOOT_TIMING.foldAfterMs : phase === 'fold' ? FOLD_MS : null
 }
 
-/** Fase de intro que lee el globo: aterriza solo durante el revelado y con el globo listo. */
+/** Intro phase read by the globe: it lands only during the reveal and with the globe ready. */
 export function introPhaseFor(state: BootState, globe: MilestoneStatus): 'pending' | 'play' | 'done' {
   if (state.phase === 'orbit') return 'pending'
   if (state.phase === 'reveal') return globe === 'ok' ? 'play' : 'done'
   return 'done'
 }
 
-/** ¿El globo 3D ya se ve? Escritorio: globo listo y póster retirado. Móvil (sin póster): globo listo. */
+/** Is the 3D globe already visible? Desktop: globe ready and poster removed. Mobile (no poster): globe ready. */
 export function stageVisible(milestones: Milestones, hasPoster: boolean, posterHidden: boolean): boolean {
   if (milestones.globe === 'error') return true
   return milestones.globe === 'ok' && (!hasPoster || posterHidden)
 }
 
-/** Espera antes de revelar: con ?intro=full la órbita se sostiene para poder grabarla. */
+/** Wait before revealing: with ?intro=full the orbit is held so that it can be recorded. */
 export function revealDelay(mode: IntroMode, at: number): number {
   return mode === 'full' ? Math.max(0, BOOT_TIMING.fullHoldMs - at) : 0
 }
 
-// ---- Bitácora ---------------------------------------------------------------------------
+// ---- Log ---------------------------------------------------------------------------
 
 /** ok = ✓ · run = en curso (•) · wait = en espera (·) · fail = ✕ */
 export type LineState = 'ok' | 'run' | 'wait' | 'fail'
@@ -111,22 +111,22 @@ export interface BootLine {
 
 export const LINE_GLYPH: Readonly<Record<LineState, string>> = { ok: '✓', run: '•', wait: '·', fail: '✕' }
 
-/** [nombre, en curso, cumplido, fallido] de cada hito. */
+/** [name, in progress, completed, failed] of each milestone. */
 const LINE_TEXT: Readonly<Record<BootMilestone, readonly [string, string, string, string]>> = {
-  snapshot: ['Snapshot científico', 'validando', 'validado', 'no se pudo validar'],
-  globe: ['Globo 3D', 'cargando', 'listo', 'no disponible · mapa SVG local'],
-  texture: ['Imagen NASA Blue Marble nítida', 'cargando', 'lista', 'no disponible'],
+  snapshot: ['Scientific snapshot', 'validating', 'validated', 'could not be validated'],
+  globe: ['3D globe', 'loading', 'ready', 'not available · local SVG map'],
+  texture: ['Sharp NASA Blue Marble image', 'loading', 'ready', 'not available'],
 }
 
-/** «science-screening-v2» → «v2». Si no hay sufijo de versión, la versión completa. */
+/** "science-screening-v2" → "v2". If there is no version suffix, the full version. */
 export function snapshotLabel(version: string | null | undefined): string | null {
   if (!version) return null
   return /(?:^|[-_ ])(v\d+)$/i.exec(version)?.[1]?.toLowerCase() ?? version
 }
 
 /**
- * Líneas de la bitácora a partir de hitos reales. `elapsedS` (segundos desde la navegación) se
- * agrega a las líneas en curso cuando la órbita ya quedó quieta. La imagen nítida espera al globo.
+ * Log lines built from real milestones. `elapsedS` (seconds since navigation) is
+ * appended to the in-progress lines when the orbit has already stopped. The sharp image waits for the globe.
  */
 export function bootLines(milestones: Milestones, version: string | null = null, elapsedS: number | null = null): BootLine[] {
   const label = snapshotLabel(version)
@@ -134,7 +134,7 @@ export function bootLines(milestones: Milestones, version: string | null = null,
     const [name, run, ok, fail] = LINE_TEXT[id]
     const status = milestones[id]
     if (id === 'texture' && status === 'pending' && milestones.globe !== 'ok') {
-      return { id, state: 'wait', text: milestones.globe === 'error' ? `${name} · sin globo 3D` : name }
+      return { id, state: 'wait', text: milestones.globe === 'error' ? `${name} · no 3D globe` : name }
     }
     if (status === 'ok') return { id, state: 'ok', text: `${name}${id === 'snapshot' && label ? ` ${label}` : ''} · ${ok}` }
     if (status === 'error') return { id, state: 'fail', text: `${name} · ${fail}` }
@@ -144,57 +144,57 @@ export function bootLines(milestones: Milestones, version: string | null = null,
 
 export const INITIAL_MILESTONES: Milestones = Object.freeze({ snapshot: 'pending', globe: 'pending', texture: 'pending' })
 
-// ---- Chip de estado ---------------------------------------------------------------------
+// ---- Status chip -----------------------------------------------------------------------
 
 export interface ChipInput {
   status: 'loading' | 'ready' | 'error'
   version: string | null
-  /** Candidatos de la búsqueda (con puesto); en snapshots históricos, todos los evaluados. */
+  /** Search candidates (with rank); in historical snapshots, all those evaluated. */
   evaluated: number
-  /** Referencias conocidas (REF, sin puesto); 0 en snapshots históricos. */
+  /** Known references (REF, no rank); 0 in historical snapshots. */
   references?: number
-  /** ◆ del catálogo publicado (null = catálogo no disponible: no se menciona). */
+  /** ◆ of the published catalog (null = catalog not available: not mentioned). */
   pendingAnalogs: number | null
 }
 
 /**
- * «Snapshot v3 · 6 candidatos · 1 REF · 7 ◆ por calcular» (con referencias, ADR-008) o
- * «Snapshot v2 · 3 evaluados · 8 por calcular» (históricos). Sin catálogo de ◆, no se menciona.
+ * "Snapshot v3 · 6 candidates · 1 REF · 7 ◆ to be computed" (with references, ADR-008) or
+ * "Snapshot v2 · 3 evaluated · 8 to be computed" (historical). Without a ◆ catalog, it is not mentioned.
  */
 export function chipText({ status, version, evaluated, references = 0, pendingAnalogs }: ChipInput): string {
-  if (status === 'loading') return 'Cargando snapshot validado…'
-  if (status === 'error') return 'Snapshot no disponible'
+  if (status === 'loading') return 'Loading validated snapshot…'
+  if (status === 'error') return 'Snapshot not available'
   const label = snapshotLabel(version)
   const parts = [`Snapshot${label ? ` ${label}` : ''}`]
   if (references > 0) {
-    parts.push(`${evaluated} ${evaluated === 1 ? 'candidato' : 'candidatos'}`, `${references} REF`)
-    if (pendingAnalogs !== null && pendingAnalogs > 0) parts.push(`${pendingAnalogs} ◆ por calcular`)
+    parts.push(`${evaluated} ${evaluated === 1 ? 'candidate' : 'candidates'}`, `${references} REF`)
+    if (pendingAnalogs !== null && pendingAnalogs > 0) parts.push(`${pendingAnalogs} ◆ not yet calculated`)
   } else {
-    parts.push(`${evaluated} ${evaluated === 1 ? 'evaluado' : 'evaluados'}`)
-    if (pendingAnalogs !== null && pendingAnalogs > 0) parts.push(`${pendingAnalogs} por calcular`)
+    parts.push(`${evaluated} evaluated`)
+    if (pendingAnalogs !== null && pendingAnalogs > 0) parts.push(`${pendingAnalogs} not yet calculated`)
   }
   return parts.join(' · ')
 }
 
-/** Anuncio único al validarse el snapshot: «6 candidatos y 1 referencia conocida». */
+/** Single announcement when the snapshot is validated: "6 candidates and 1 known reference". */
 export function snapshotAnnouncement(version: string, evaluated: number, references: number): string {
   const counted = references > 0
-    ? `${evaluated} ${evaluated === 1 ? 'candidato' : 'candidatos'} y ${references} ${references === 1 ? 'referencia conocida' : 'referencias conocidas'}`
-    : `${evaluated} ${evaluated === 1 ? 'lugar evaluado' : 'lugares evaluados'}`
-  return `Snapshot científico ${snapshotLabel(version)} validado: ${counted}.`
+    ? `${evaluated} ${evaluated === 1 ? 'candidate' : 'candidates'} and ${references} ${references === 1 ? 'known reference' : 'known references'}`
+    : `${evaluated} ${evaluated === 1 ? 'evaluated place' : 'evaluated places'}`
+  return `Scientific snapshot ${snapshotLabel(version)} validated: ${counted}.`
 }
 
-// ---- Geometría de la órbita -------------------------------------------------------------
+// ---- Orbit geometry -------------------------------------------------------------
 
-/** Semilado del póster sobre el radio del disco (mismo valor que GLOBE_POSTER y posterLayout). */
+/** Half-side of the poster over the radius of the disc (same value as GLOBE_POSTER and posterLayout). */
 export const POSTER_HALF_OVER_RADIUS = 445 / 396.5
 /**
- * Anillo orbital (boot.css): diámetro = 0,94 · lado del póster, justo fuera del disco y dentro de
- * la atmósfera. Desde 1100 px se inclina (−12°) y se abre en horizontal (×1,32).
+ * Orbital ring (boot.css): diameter = 0,94 · poster side, just outside the disc and inside
+ * the atmosphere. From 1100 px it tilts (−12°) and opens horizontally (×1,32).
  */
 export const RING = { overPoster: 0.94, tiltDeg: -12, stretchX: 1.32 } as const
 
-/** Semiejes en pantalla de la órbita (inclinada o no): para verificar que no invade barra ni dock. */
+/** Semi-axes of the orbit on screen (tilted or not): to verify that it does not encroach on the bar or dock. */
 export function ringExtent(size: number, wide: boolean): { halfWidth: number; halfHeight: number } {
   const r = (size * RING.overPoster) / 2
   if (!wide) return { halfWidth: r, halfHeight: r }
@@ -204,21 +204,21 @@ export function ringExtent(size: number, wide: boolean): { halfWidth: number; ha
 }
 
 export interface OrbitGeometry {
-  /** Centro del globo en píxeles CSS. */
+  /** Center of the globe in CSS pixels. */
   x: number
   y: number
-  /** Lado del póster (globo + atmósfera). */
+  /** Side of the poster (globe + atmosphere). */
   size: number
-  /** Radio del disco del globo, sin atmósfera. */
+  /** Radius of the globe disc, without atmosphere. */
   radius: number
-  /** Borde inferior del área libre base: la bitácora queda sobre la franja de leyenda. */
+  /** Bottom edge of the base free area: the log sits above the legend strip. */
   freeBottom: number
 }
 
 /**
- * Misma fórmula que el póster previo a React (posterLayout + baseStageInsets): radio de la
- * vista global y centro del área libre base. `center` permite seguir los márgenes asentados
- * (setViewOffset) sin cambiar la escala.
+ * Same formula as the pre-React poster (posterLayout + baseStageInsets): radius of the
+ * global view and center of the base free area. `center` allows following the settled margins
+ * (setViewOffset) without changing the scale.
  */
 export function orbitGeometry(width: number, height: number, center?: { x: number; y: number }): OrbitGeometry {
   const insets = baseStageInsets(width, height)
@@ -233,7 +233,7 @@ export function orbitGeometry(width: number, height: number, center?: { x: numbe
   }
 }
 
-/** Variables CSS de la capa de arranque (el script en línea del HTML escribe las mismas). */
+/** CSS variables of the boot layer (the inline script in the HTML writes the same ones). */
 export function orbitVars(geometry: OrbitGeometry): Record<string, string> {
   return { '--boot-x': `${geometry.x}px`, '--boot-y': `${geometry.y}px`, '--boot-s': `${geometry.size}px`, '--boot-fb': `${geometry.freeBottom}px` }
 }

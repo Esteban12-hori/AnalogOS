@@ -1,8 +1,8 @@
 /*
- * Escenario de fondo: el globo/mapa ocupa todo el viewport detrás del armazón (ADR-014).
- * Las variables --inset-* (márgenes asentados de la UI) las fija MapStage desde sus props:
- * la leyenda, los controles y el chip «Centrar en» se ubican en el área libre.
- * Sin blur: marcadores, etiquetas y chips usan --marker-bg (§2.4).
+ * Background stage: the globe/map fills the entire viewport behind the shell (ADR-014).
+ * The --inset-* variables (the UI's settled margins) are set by MapStage from its props:
+ * the legend, the controls, and the "Center on" chip are placed in the free area.
+ * No blur: markers, labels, and chips use --marker-bg (§2.4).
  */
 .map-stage {
   --free-x: calc(var(--inset-left, 0px) + (100% - var(--inset-left, 0px) - var(--inset-right, 0px)) / 2);
@@ -18,12 +18,12 @@
 .flat-map .maplibregl-canvas { outline: none; }
 .flat-map:focus-visible { outline: var(--focus-ring, 2px solid #3FB4EC); outline-offset: -4px; }
 
-/* Carga del globo o del mapa. */
+/* Globe or map loading. */
 .globe-loading { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid var(--line, rgba(191, 219, 207, .13)); border-radius: 10px; background: var(--marker-bg, rgba(2, 7, 10, .88)); color: var(--muted, #94AABA); font-size: var(--fs-min, 10px); white-space: nowrap; }
 .globe-loading .loader { width: 16px; height: 16px; }
 .globe-loading-page { position: absolute; top: var(--free-y, 50%); left: var(--free-x, 50%); transform: translate(-50%, -50%); }
 
-/* Franja de leyenda: glifos, fuente activa e interruptores del HUD, justo sobre el dock o la hoja. */
+/* Legend strip: glyphs, active source, and HUD toggles, right above the dock or the sheet. */
 .map-stage .stage-dock {
   position: absolute;
   z-index: 5;
@@ -58,7 +58,7 @@
 .stage-note { position: absolute; z-index: 5; bottom: calc(var(--inset-bottom, 0px) + 8px); left: 16px; margin: 0; }
 .map-stage-fallback .map-frame { position: absolute; inset: 0; }
 
-/* Cámara: + − ⌂ en el borde derecho del área libre. */
+/* Camera: + − ⌂ on the right edge of the free area. */
 .stage-controls {
   position: absolute;
   z-index: 5;
@@ -86,7 +86,7 @@
 .stage-controls button:hover { border-color: var(--blue-line, rgba(2, 151, 222, .45)); }
 .stage-controls button:focus-visible, .stage-center-chip:focus-visible { outline: var(--focus-ring, 2px solid #3FB4EC); outline-offset: var(--focus-offset, 3px); }
 
-/* «Centrar en ‹#1›»: los resultados llegaron mientras el usuario movía la cámara. */
+/* "Center on ‹#1›": the results arrived while the user was moving the camera. */
 .stage-center-chip {
   position: absolute;
   z-index: 5;
@@ -117,7 +117,7 @@
   .stage-legend { display: none; }
 }
 
-/* Panel de contexto satelital en la ficha cuando la imagen ya se ve en el mapa. */
+/* Satellite context panel in the detail card when the imagery is already visible on the map. */
 .visual-on-map { display: grid; gap: 6px; padding: 12px; border: 1px solid var(--line, rgba(190, 225, 245, .14)); border-radius: 14px; background: rgba(255, 255, 255, .03); }
 .visual-on-map button { justify-self: start; min-height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--blue, #0297DE); color: #fff; cursor: pointer; font-size: 12px; font-weight: 650; }
 .visual-on-map button:focus-visible, .visual-on-map a:focus-visible { outline: var(--focus-ring, 2px solid #3FB4EC); outline-offset: 2px; }
@@ -125,10 +125,10 @@
 .visual-on-map small { color: var(--muted, #94AABA); font-size: var(--fs-min, 10px); line-height: 1.4; }
 .visual-on-map a { color: var(--blue-bright, #3FB4EC); font-size: 11px; text-decoration: none; }
 
-/* El mapa 2D se monta antes de usarse: invisible pero con tamaño real, para que MapLibre cargue todo. */
+/* The 2D map is mounted before it is used: invisible but with real size, so that MapLibre loads everything. */
 .stage-layer.is-dormant { visibility: hidden; pointer-events: none; }
 
-/* Póster del globo: visible al instante, se funde con el globo 3D cuando este está listo. */
+/* Globe poster: visible instantly, fades into the 3D globe when it is ready. */
 .globe-poster { position: absolute; z-index: 0; max-width: none; pointer-events: none; user-select: none; transition: opacity .45s ease; }
 .globe-poster.is-hidden { opacity: 0; }
 

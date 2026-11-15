@@ -1,9 +1,9 @@
 /**
- * Órbita de la espera de la IA alrededor del globo (§2.3 C, §4.4): la pide OrbitLoader con
- * `placement="globe"`. Chunk diferido: se descarga la primera vez que se pide. Va en fase con el
- * composer (ambos parten al activarse la espera, +300 ms), solo se ve con la vista global en
- * pantalla y se cierra con un fundido al llegar los resultados. El canal por cuadro del globo llega
- * por props (así este chunk no arrastra módulos del principal).
+ * AI wait orbit around the globe (§2.3 C, §4.4): requested by OrbitLoader with
+ * `placement="globe"`. Deferred chunk: it is downloaded the first time it is requested. It is in phase with the
+ * composer (both start when the wait is activated, +300 ms), is only visible while the global view is on
+ * screen, and closes with a fade when the results arrive. The globe's per-frame channel arrives
+ * via props (so this chunk does not drag in modules from the main one).
  */
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { globeScreenCenter } from '../../domain/mapZoom'
@@ -14,9 +14,9 @@ import { ORBIT_DELAY_MS, orbitGeometry, orbitVars } from './bootModel'
 import { now, useStageOrbit, type OrbitRequest } from './milestones'
 
 /**
- * La órbita solo acompaña a la vista global. Sin canal por cuadro (el globo aún no publica) se
- * asume la vista global. Con canal: modo globo, el piloto Chile–Argentina (punto de vista inicial) cerca del centro
- * y una escala parecida a la de la vista global (40° de arco ≈ r·sen 40°; al acercarse crece).
+ * The orbit only accompanies the global view. Without a per-frame channel (the globe is not publishing yet), the
+ * global view is assumed. With a channel: globe mode, the Chile–Argentina pilot (initial point of view) near the center
+ * and a scale similar to that of the global view (40° of arc ≈ r·sin 40°; it grows as you zoom in).
  */
 export function globalViewOnScreen(projection: Pick<StageProjection, 'mode' | 'project'> | null, center: { x: number; y: number }, radius: number): boolean {
   if (!projection) return true
@@ -34,7 +34,7 @@ export interface StageFrameBridge {
 
 export default function StageOrbit({ bridge }: { bridge: StageFrameBridge }) {
   const request = useStageOrbit()
-  // Última espera: se mantiene 280 ms al cerrarse (o sale de inmediato si nunca llegó a verse).
+  // Last wait: it is kept for 280 ms when closing (or exits immediately if it was never seen).
   const [last, setLast] = useState<OrbitRequest | null>(request)
   useEffect(() => {
     if (request) return setLast(request)
@@ -53,7 +53,7 @@ function WaitOrbit({ request, closing, bridge }: { request: OrbitRequest; closin
   const root = useRef<HTMLDivElement>(null)
   const { x, y, radius } = geometry
   useEffect(() => {
-    // Por cuadro y sin setState: solo se alterna un atributo.
+    // Per frame and without setState: only an attribute is toggled.
     const check = () => root.current?.toggleAttribute('data-offview', !globalViewOnScreen(bridge.getProjection(), { x, y }, radius))
     check()
     return bridge.subscribe(check)

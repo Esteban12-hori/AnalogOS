@@ -1,71 +1,71 @@
-# Contexto geológico M9 — operación, reproducción y fuentes
+# M9 Geological Context — operation, reproduction and sources
 
-Paquete: `artifacts/geology-context-v1/index.json` (versionado). Contrato: `contracts/geology-context.schema.json`. Decisiones: `docs/decisions/ADR-010-geology-context.md`.
+Package: `artifacts/geology-context-v1/index.json` (versioned). Contract: `contracts/geology-context.schema.json`. Decisions: `docs/decisions/ADR-010-geology-context.md`.
 
-## Comandos
+## Commands
 
 ```sh
 source .venv/bin/activate
 python -m pip install -e '.[dev]'              # incluye shapely>=2.2,<2.3
-python -m pipelines.build_geology_context --refresh   # descarga pública nueva (CKAN + ZIP Chile + 3 WFS) y reconstruye
-python -m pipelines.build_geology_context --offline   # reconstruye solo desde data/raw/geology-context-v1/ (sin red)
-python -m pipelines.build_geology_context             # usa la caché si es válida; si no, descarga
+python -m pipelines.build_geology_context --refresh   # new public download (CKAN + Chile ZIP + 3 WFS) and rebuilds
+python -m pipelines.build_geology_context --offline   # rebuilds only from data/raw/geology-context-v1/ (no network)
+python -m pipelines.build_geology_context             # uses the cache if valid; otherwise, downloads
 python -m pytest tests/test_geology_coverage.py tests/test_geology_fetch.py tests/test_geology_context.py -q
 ```
 
-Sin credenciales: el pipeline no usa `.env`; las peticiones llevan solo `Accept` y `User-Agent` (comprobado en pruebas). Caché nueva y paquete nuevo se preparan aparte, se validan por completo y recién entonces se reemplazan en pareja con rollback: un fallo de HTTP, análisis, contrato o publicación deja lo anterior. No hay atomicidad frente a un corte de energía entre ambos reemplazos (pueden quedar directorios ocultos `.previo`). El rebuild offline es idéntico byte a byte.
+No credentials: the pipeline does not use `.env`; requests carry only `Accept` and `User-Agent` (verified in tests). The new cache and new package are prepared separately, fully validated, and only then replaced as a pair with rollback: an HTTP, parsing, contract or publication failure leaves the previous state in place. There is no atomicity against a power outage between the two replacements (hidden `.previo` directories may remain). The offline rebuild is byte-for-byte identical.
 
-## Fuentes y condiciones
+## Sources and terms
 
-| Fuente | Autoridad original / distribuidor | Escala | Petición | Licencia declarada |
+| Source | Original authority / distributor | Scale | Request | Declared license |
 |---|---|---:|---|---|
-| Geología Base | SERNAGEOMIN / MMA | 1:1.000.000 | CKAN `package_show?id=geologia-base`; se usa el recurso ZIP cuyo contenido real es GeoJSON | CC0 solo si CKAN declara `license_id` = `cc-zero`; si cambia, el build se rechaza |
-| `sigam:e250K_UnidadGeologica` | SEGEMAR / SIGAM, Sistema de Información Geológica Ambiental Minera (WFS) | 1:250.000 | WFS 1.0.0 GetFeature por sector, `srsName=EPSG:4326`, bbox exacta, `maxFeatures=2000` | CC BY 4.0 declarada por la página de geoservicios; alcance registrado, sin licencia adicional |
+| Geología Base | SERNAGEOMIN / MMA | 1:1,000,000 | CKAN `package_show?id=geologia-base`; the ZIP resource whose actual content is GeoJSON is used | CC0 only if CKAN declares `license_id` = `cc-zero`; if it changes, the build is rejected |
+| `sigam:e250K_UnidadGeologica` | SEGEMAR / SIGAM, Sistema de Información Geológica Ambiental Minera (WFS) | 1:250,000 | WFS 1.0.0 GetFeature per sector, `srsName=EPSG:4326`, exact bbox, `maxFeatures=2000` | CC BY 4.0 declared by the geoservices page; scope recorded, no additional license |
 
-URLs exactas, SHA-256, bytes y `acquired_at` de cada respuesta están en `sources[].requests[]` del paquete. La fecha del levantamiento es `null`; `catalog_modified_at` es solo la actualización del registro del catálogo.
+Exact URLs, SHA-256, bytes and `acquired_at` of each response are in the package's `sources[].requests[]`. The survey date is `null`; `catalog_modified_at` is only the update of the catalog record.
 
-## Datos grandes no versionados (ignorados)
+## Large unversioned data (ignored)
 
-`data/raw/geology-context-v1/` (~6,9 MB: `acquisition.json`, `ckan-package_show.json`, `cl-geologia-base.zip`, tres `ar-<site_id>.json`). Ya existente e ignorada: `data/raw/geology-feasibility-20261114/` (20,9 MB, investigación; no se publica ni entra al paquete). El raw no entra al bundle ni al ZIP.
+`data/raw/geology-context-v1/` (~6.9 MB: `acquisition.json`, `ckan-package_show.json`, `cl-geologia-base.zip`, three `ar-<site_id>.json`). Already existing and ignored: `data/raw/geology-feasibility-20261114/` (20.9 MB, research; it is not published and does not enter the package). The raw data does not enter the bundle or the ZIP.
 
-## Cómo leer un sector
+## How to read a sector
 
-- `availability` define evidencia: `available` (cobertura completa, sin ambigüedad, sin rechazos ni descripciones ausentes), `partial`, `no_coverage` (esta capa no cubre el sector), `unavailable`.
-- `area_fractions`: `unmapped + covered_unambiguous + covered_ambiguous + unusable_upper_bound = 1`. Mostrar porcentaje y estado por separado; cobertura no es precisión.
-- `units[]`: identidad de fuente, código, nombre, descripción original (o `null`), fracción con y sin ambigüedad, y propiedades originales de cada entidad.
-- `geometry_diagnostics[]`: reparaciones aceptadas/rechazadas con áreas antes/después.
-- `verification_questions[]`: orientación editorial, no mediciones.
+- `availability` defines evidence: `available` (full coverage, no ambiguity, no rejections or missing descriptions), `partial`, `no_coverage` (this layer does not cover the sector), `unavailable`.
+- `area_fractions`: `unmapped + covered_unambiguous + covered_ambiguous + unusable_upper_bound = 1`. Show percentage and status separately; coverage is not accuracy.
+- `units[]`: source identity, code, name, original description (or `null`), fraction with and without ambiguity, and the original properties of each feature.
+- `geometry_diagnostics[]`: accepted/rejected repairs with areas before/after.
+- `verification_questions[]`: editorial guidance, not measurements.
 
-## Límites
+## Limits
 
-Cartografía regional, no campo. Validez/reparación en lon/lat; recorte y superposición en el plano EPSG:6933 con aristas rectas en él (no es una integral geodésica exacta; diferencia con la auditoría exploratoria < 0,00005 pp). Umbrales de reparación y de estado provisionales. No modifica score, confianza, restricciones, IA ni M8.
+Regional cartography, not fieldwork. Validity/repair in lon/lat; clipping and overlay in the EPSG:6933 plane with straight edges in it (not an exact geodesic integral; difference from the exploratory audit < 0.00005 pp). Repair and status thresholds are provisional. It does not modify score, confidence, restrictions, AI or M8.
 
-## Producto (fase B)
+## Product (phase B)
 
-- **Ficha «Contexto geológico»** en la ficha de cada sector, dentro del diseño existente: resumen compacto (estado de evidencia, barra de reparto del área, cobertura, sin cobertura, solape entre unidades distintas, unidades sin descripción, escala y fuente) y tres detalles expandibles: *Unidades cartografiadas* (código, nombre y descripción originales, porcentaje con y sin solape, hoja, IDs de entidad), *Fuente, escala y procedencia* (autoridad, distribuidor, capa, escala como denominador, CRS, licencia con su alcance, atribución, fecha del mapa «no informada», fecha del registro del catálogo aparte, petición/hash/hora de cada descarga, procesamiento, límites) y *Qué verificar en terreno* (orientación editorial, no mediciones).
-- **Estados**: `available` «Cobertura cartográfica completa», `partial`, `no_coverage` «Sin cobertura en esta capa», `unavailable` «Evidencia no utilizable». Definen evidencia, nunca aptitud. Redondeo honesto: «<0,1 %», «>99,9 %» y «100 %» solo con cobertura exacta.
-- **Lo que no hace**: no cambia score, confianza, restricciones ni M8; la ficha M9 en sí no usa IA (desde M10, la explicación con IA puede consumir este paquete solo con opt-in: ver la sección «Orientación geológica con IA (M10)»); no hay mapa litológico, filtros ni requisitos litológicos; no se rellenan huecos con capas más generales; nada de «apto», tracción, granulometría o equivalencia química. «Geología sin calibrar» del puntaje se mantiene.
-- **Carga**: `apps/web/src/data/loadGeologyContext.ts` lee solo `geology-context-v1/index.json` del build (nunca proveedores geológicos), con timeout de 8 s que cubre la lectura del cuerpo y tope de 2 MB, y valida contrato y semántica contra los candidatos ya cargados (`apps/web/src/domain/geologyContext.ts`, espejo de `pipelines/geology_contract.py`): geometría exacta, procedencia por sector (rol, `site_id`, bbox de la URL sin redondeo), fracciones, estado recalculado, política, URL https permitidas. Ausente, lento, enorme o inválido ⇒ «no disponible» y la selección, el ranking y M8 siguen igual. La web no calcula SHA-256: el hash del archivo de candidatos y cada `request_id` los verifican el pipeline y el empaquetador.
-- **Exportación** `<site_id>-geology-context.json` (botón «Descargar contexto geológico (JSON)»): contrato autocontenido `contracts/geology-export.schema.json` (sus `$defs` duplican los del paquete; una prueba vigila que no diverjan). Es un **subconjunto** de un solo sector con las peticiones que lo respaldan más la fuente y la metadata; `export_info.full_candidates_file_sha256` es el hash del archivo completo de candidatos y el subset **no** es ese archivo. Se valida antes de descargar. Las exportaciones de M8 y del candidato no cambian. La exportación de referencia `tests/fixtures/geology-export-ar-win-s2640-w06730.json` fija la paridad Python/web; si se reconstruye el paquete con otras fechas, regenerarla con el comando indicado en el mensaje de `test_python_export_matches_the_golden_…`.
+- **“Geological context” card** in each sector's card, within the existing design: compact summary (evidence status, area breakdown bar, coverage, no coverage, overlap between distinct units, units without description, scale and source) and three expandable details: *Mapped units* (original code, name and description, percentage with and without overlap, sheet, feature IDs), *Source, scale and provenance* (authority, distributor, layer, scale as denominator, CRS, license with its scope, attribution, map date “not reported”, catalog record date separately, request/hash/time of each download, processing, limits) and *What to verify in the field* (editorial guidance, not measurements).
+- **Statuses**: `available` “Complete cartographic coverage”, `partial`, `no_coverage` “No coverage in this layer”, `unavailable` “Evidence not usable”. They define evidence, never suitability. Honest rounding: “<0.1 %”, “>99.9 %” and “100 %” only with exact coverage.
+- **What it does not do**: it does not change score, confidence, restrictions or M8; the M9 card itself does not use AI (since M10, the AI explanation can consume this package only with opt-in: see the section “AI geological guidance (M10)”); there is no lithological map, filters or lithological requirements; gaps are not filled with more general layers; nothing about “suitable”, traction, grain size or chemical equivalence. The score's “Uncalibrated geology” is maintained.
+- **Loading**: `apps/web/src/data/loadGeologyContext.ts` reads only `geology-context-v1/index.json` from the build (never geological providers), with a timeout of 8 s that covers reading the body and a cap of 2 MB, and validates contract and semantics against the already loaded candidates (`apps/web/src/domain/geologyContext.ts`, mirror of `pipelines/geology_contract.py`): exact geometry, per-sector provenance (role, `site_id`, URL bbox without rounding), fractions, recomputed status, policy, allowed https URLs. Absent, slow, huge or invalid ⇒ “not available” and the selection, ranking and M8 remain the same. The web does not compute SHA-256:; the hash of the candidates file and each `request_id` are verified by the pipeline and the packager.
+- **Export** `<site_id>-geology-context.json` (button “Download geological context (JSON)”): self-contained contract `contracts/geology-export.schema.json` (its `$defs` duplicate those of the package; a test ensures they do not diverge). It is a **subset** for a single sector with the requests that back it plus the source and metadata; `export_info.full_candidates_file_sha256` is the hash of the complete candidates file and the subset is **not** that file. It is validated before download. The M8 and candidate exports do not change. The reference export `tests/fixtures/geology-export-ar-win-s2640-w06730.json` fixes the Python/web parity; if the package is rebuilt with other dates, regenerate it with the command indicated in the message of `test_python_export_matches_the_golden_…`.
 
-## Empaquetado
+## Packaging
 
-`npm run release:package` admite `geology-context-v1/index.json` como único archivo de esa carpeta. Opcional: sin carpeta, el ZIP sale igual que antes. Con carpeta, el paquete debe validar completo con el validador único `pipelines/geology_contract.py` (contrato y semántica, incluido el SHA-256 de los bytes de `science-v3/candidate-details.json` del build); si no, el empaquetado se detiene y la entrega anterior se conserva. El validador se importa solo en ese caso y no arrastra Shapely, pyproj ni requests (sí `jsonschema`, dependencia ya existente de los pipelines; las constantes y reglas puras viven en `pipelines/geology_policy.py`). El raw, la investigación y la auditoría no entran al bundle ni al ZIP.
+`npm run release:package` accepts `geology-context-v1/index.json` as the only file in that folder. Optional: without the folder, the ZIP comes out the same as before. With the folder, the package must fully validate with the single validator `pipelines/geology_contract.py` (contract and semantics, including the SHA-256 of the bytes of the build's `science-v3/candidate-details.json`); otherwise, packaging stops and the previous delivery is kept. The validator is imported only in that case and does not pull in Shapely, pyproj or requests (but does pull in `jsonschema`, an already existing dependency of the pipelines; the constants and pure rules live in `pipelines/geology_policy.py`). The raw data, the research and the audit do not enter the bundle or the ZIP.
 
-## Orientación geológica con IA (M10)
+## AI geological guidance (M10)
 
-Capa **separada** del resultado determinista de requisitos (ADR-011). Tras confirmar una prueba y evaluarla, la pantalla de resultados muestra «Orientación geológica para esta prueba»: por sector evaluado y no descartado, hasta 3 comprobaciones (par unidad oficial + propósito) con la unidad/fuente que las respalda, y siempre los límites (cobertura, hueco, solape, escala, fecha del mapa desconocida).
+**Separate** layer from the deterministic requirements result (ADR-011). After confirming a test and evaluating it, the results screen shows “Geological guidance for this test”: per evaluated and non-discarded sector, up to 3 checks (official unit + purpose pair) with the unit/source that backs them, and always the limits (coverage, gap, overlap, scale, unknown map date).
 
-- **Sin IA** (siempre disponible con el paquete cargado): orientación general determinista rotulada «Orientación general sin IA»; no depende del objetivo.
-- **Con IA (opt-in, casilla en «Interpretación con IA»)**: la IA recibe el objetivo confirmado (brief, actividad, requisitos) y las unidades oficiales, y solo **elige** referencias de un catálogo cerrado que calcula el servidor. No escribe texto: las frases son plantillas fijas «orientación editorial, no medición». Propósitos: `verificar_hueco_cartografico`, `resolver_ambiguedad`, `confirmar_descripcion_ausente`, `correspondencia_mapa_terreno`, `caracterizar_material_superficial` (granulometría/compactación/fricción **a medir**, nunca inferidas), `diversidad_litologica_muestreo`, `contrastar_escala`.
-- Topes: 3 por sector, 12 en total, sin obligación de llenarlos. Propósito solo si aplica (hueco solo con zona sin polígono o no utilizable, ambigüedad solo con solape, etc.); sin cobertura no hay referencias.
-- Sectores `partial` conservan sus unidades del área cubierta; el hueco/solape se muestra siempre y no se localizan unidades dentro de él. Sector descartado por requisitos: sin orientación («la geología no lo rehabilita»). Con punto/bbox: solo geología de la **ventana completa**, rotulada así; sin ventana elegida no se emiten unidades.
-- No cambia ranking, estados, score ni confianza; cartografía regional no prueba tracción, mecánica de suelos, equivalencia marciana, seguridad ni permisos.
+- **Without AI** (always available with the package loaded): deterministic general guidance labeled “General guidance without AI”; it does not depend on the objective.
+- **With AI (opt-in, checkbox in “AI interpretation”)**: the AI receives the confirmed objective (brief, activity, requirements) and the official units, and only **chooses** references from a closed catalog computed by the server. It does not write text: the sentences are fixed templates “editorial guidance, not measurement”. Purposes: `verificar_hueco_cartografico`, `resolver_ambiguedad`, `confirmar_descripcion_ausente`, `correspondencia_mapa_terreno`, `caracterizar_material_superficial` (grain size/compaction/friction **to be measured**, never inferred), `diversidad_litologica_muestreo`, `contrastar_escala`.
+- Caps: 3 per sector, 12 in total, with no obligation to fill them. A purpose only if it applies (gap only with a zone without a polygon or not usable, ambiguity only with overlap, etc.); without coverage there are no references.
+- `partial` sectors keep their units from the covered area; the gap/overlap is always shown and no units are located within it. Sector discarded by requirements: no guidance (“geology does not rehabilitate it”). With point/bbox: only geology of the **full window**, labeled as such; without a chosen window no units are emitted.
+- It does not change ranking, statuses, score or confidence; regional cartography does not prove traction, soil mechanics, Martian equivalence, safety or permits.
 
-### Exportación
+### Export
 
-«Descargar JSON» sigue siendo la exportación M8 1.0 sin cambios. «Descargar JSON con orientación geológica» genera un wrapper `analogos-mission-geology-export` v1 (`contracts/mission-geology-export.schema.json`) que embebe esa exportación M8 intacta y agrega, en `geology_guidance`: modo (`ai`/`deterministic`), identidad del contexto (`context_fingerprint` = SHA-256 del JSON canónico completo validado, **no** hash de bytes; declarada porque el archivo solo trae los sectores usados), un subconjunto validable por sector (contrato `geology-export` de M9), catálogo recalculable, selección, guía y, en modo `ai`, la procedencia de la MISMA llamada que la explicación M8. `validateMissionGeologyExport` (`shared/geology/exportWrapper.ts`) recalcula catálogo, selección y guía y rechaza manipulación.
+“Download JSON” remains the M8 export 1.0 unchanged. “Download JSON with geological guidance” generates a `analogos-mission-geology-export` v1 wrapper (`contracts/mission-geology-export.schema.json`) that embeds that M8 export intact and adds, in `geology_guidance`: mode (`ai`/`deterministic`), context identity (`context_fingerprint` = SHA-256 of the full validated canonical JSON, **not** a byte hash; declared because the file only carries the used sectors), a validatable subset per sector (M9 contract `geology-export`), recomputable catalog, selection, guidance and, in `ai` mode, the provenance of the SAME call as the M8 explanation. `validateMissionGeologyExport` (`shared/geology/exportWrapper.ts`) recomputes catalog, selection and guidance and rejects tampering.
 
-### Operación
+### Operation
 
-El servidor lee `artifacts/geology-context-v1/index.json` y `artifacts/science-v3/candidate-details.json` (ambos incluidos en la función por `vercel.json` → `functions.api/ai.ts.includeFiles`), valida con `shared/geology/context.ts` (el mismo validador que la web) y compara el SHA-256 de los bytes de candidatos. Ausente = canal no disponible, M8 intacto. Presente pero inválido/divergente = `geology_context_unavailable`/`geology_context_stale` (409) **antes** de llamar al proveedor, con opción explícita en la UI de reintentar sin geología.
+The server reads `artifacts/geology-context-v1/index.json` and `artifacts/science-v3/candidate-details.json` (both included in the function via `vercel.json` → `functions.api/ai.ts.includeFiles`), validates with `shared/geology/context.ts` (the same validator as the web) and compares the SHA-256 of the candidates' bytes. Absent = channel not available, M8 intact. Present but invalid/divergent = `geology_context_unavailable`/`geology_context_stale` (409) **before** calling the provider, with an explicit option in the UI to retry without geology.

@@ -1,19 +1,19 @@
-// La web y la función de IA deben evaluar EXACTAMENTE el mismo bundle (ADR-009/013): si el
-// snapshot se filtrara o transformara antes de `evaluateMission`, toda explicación de Anthropic
-// terminaría en «no corresponde al cálculo vigente» (huellas distintas).
+// The web app and the AI function must evaluate EXACTLY the same bundle (ADR-009/013): if the
+// snapshot were filtered or transformed before `evaluateMission`, every Anthropic explanation
+// would end up as "does not correspond to the current calculation" (different fingerprints).
 import { describe, expect, it } from 'vitest'
 import { loadTrustedBundle } from '../../../../server/ai/facts'
 import { canonicalJson, evaluateMission, evaluationFingerprint, fingerprint } from '../mission'
 import { evaluateExample, v3Bundle } from './v3Support'
 
-describe('paridad del bundle web ↔ servidor', () => {
-  it('el bundle que registra la web es byte a byte el que carga la función', () => {
+describe('web ↔ server bundle parity', () => {
+  it('the bundle registered by the web app is byte for byte the one the function loads', () => {
     const server = loadTrustedBundle()
     expect(canonicalJson(v3Bundle)).toBe(canonicalJson(server))
     expect(fingerprint(v3Bundle)).toBe(fingerprint(server))
   })
 
-  it('la misma solicitud da la misma evaluación y la misma huella en ambos lados', () => {
+  it('the same request gives the same evaluation and the same fingerprint on both sides', () => {
     const { request, evaluation } = evaluateExample()
     const server = evaluateMission(request, loadTrustedBundle())
     expect(server.request_fingerprint).toBe(evaluation.request_fingerprint)

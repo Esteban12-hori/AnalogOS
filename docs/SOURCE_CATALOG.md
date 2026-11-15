@@ -1,22 +1,22 @@
-# Catálogo de fuentes
+# Source Catalog
 
-## Recursos oficiales del desafío
+## Official Challenge Resources
 
-| ID | Recurso | Prioridad | URL | Nota |
+| ID | Resource | Priority | URL | Note |
 |---|---|---:|---|---|
-| R1 | NASA Earthdata Search | P0 | https://search.earthdata.nasa.gov/search | Descarga y metadatos de Tierra |
-| R2 | NASA Worldview | Validación | https://worldview.earthdata.nasa.gov/ | Inspección visual, no score directo |
-| R3 | NASA PDS | P0 | https://pds.nasa.gov/ | Archivo planetario |
-| R4 | NASA LRO | P1 | https://science.nasa.gov/mission/lro/ | Perfil lunar futuro |
-| R5 | LRO Diviner | P1 | https://science.nasa.gov/mission/lro/spacecraft-and-instruments/ | Firma térmica lunar |
-| R6 | CSA RCM | P2 | https://www.csa-asc.gc.ca/eng/satellites/radarsat/access-to-data/about.asp | Acceso/licencia con fricción |
-| R7 | RADARSAT-1 | P1 | https://www.csa-asc.gc.ca/eng/satellites/radarsat1/data-access.asp | Archivo abierto |
-| R8 | Tutorial SAR CSA | Aprendizaje | https://github.com/asc-csa/Synthetic_Aperture_Radar_Tutorial | Guía Python/QGIS |
-| R9 | Copernicus Data Space | P0/P1 | https://dataspace.copernicus.eu/ | Sentinel-2; Sentinel-1 opcional |
-| R10 | ESA Open Science Catalog | P2 | https://opensciencedata.esa.int/ | Descubrimiento de productos |
-| R11 | JAXA G-Portal | P2 | https://gportal.jaxa.jp/ | Registro para descargar |
+| R1 | NASA Earthdata Search | P0 | https://search.earthdata.nasa.gov/search | Earth data download and metadata |
+| R2 | NASA Worldview | Validation | https://worldview.earthdata.nasa.gov/ | Visual inspection, not a direct score |
+| R3 | NASA PDS | P0 | https://pds.nasa.gov/ | Planetary archive |
+| R4 | NASA LRO | P1 | https://science.nasa.gov/mission/lro/ | Future lunar profile |
+| R5 | LRO Diviner | P1 | https://science.nasa.gov/mission/lro/spacecraft-and-instruments/ | Lunar thermal signature |
+| R6 | CSA RCM | P2 | https://www.csa-asc.gc.ca/eng/satellites/radarsat/access-to-data/about.asp | Access/license with friction |
+| R7 | RADARSAT-1 | P1 | https://www.csa-asc.gc.ca/eng/satellites/radarsat1/data-access.asp | Open archive |
+| R8 | CSA SAR Tutorial | Learning | https://github.com/asc-csa/Synthetic_Aperture_Radar_Tutorial | Python/QGIS guide |
+| R9 | Copernicus Data Space | P0/P1 | https://dataspace.copernicus.eu/ | Sentinel-2; Sentinel-1 optional |
+| R10 | ESA Open Science Catalog | P2 | https://opensciencedata.esa.int/ | Product discovery |
+| R11 | JAXA G-Portal | P2 | https://gportal.jaxa.jp/ | Registration required to download |
 
-## APIs y documentación
+## APIs and Documentation
 
 - NASA CMR: https://cmr.earthdata.nasa.gov/search/site/docs/search/api.html
 - NASA POWER: https://power.larc.nasa.gov/docs/services/api/
@@ -25,24 +25,24 @@
 - Copernicus docs: https://documentation.dataspace.copernicus.eu/
 - IDE Chile: https://www.ide.cl/
 - SERNAGEOMIN: https://www.sernageomin.cl/geologia-general/
-- Portal Geomin: https://portalgeomin.sernageomin.cl/
-- Geología Base (SERNAGEOMIN vía MMA, CKAN, CC0 declarada): https://lineasdebasepublicas.mma.gob.cl/datos_abiertos/dataset/geologia-base
-- Geoservicios SIGAM/SEGEMAR (WFS, CC BY 4.0 declarada por la página): https://sigam.segemar.gov.ar/sigam/geoservicios/ — usos y límites en `docs/GEOLOGY_CONTEXT.md`
+- Geomin Portal: https://portalgeomin.sernageomin.cl/
+- Base Geology (SERNAGEOMIN via MMA, CKAN, CC0 declared): https://lineasdebasepublicas.mma.gob.cl/datos_abiertos/dataset/geologia-base
+- SIGAM/SEGEMAR Geoservices (WFS, CC BY 4.0 declared by the page): https://sigam.segemar.gov.ar/sigam/geoservicios/ — uses and limits in `docs/GEOLOGY_CONTEXT.md`
 
-## Accesos a preparar
+## Access to Prepare
 
-- Earthdata Login probado con `earthaccess`; descarga NASADEM y consulta HLS operativas.
-- OAuth Copernicus Data Space probado; Statistical API Sentinel-2 L2A operativo.
-- No hacer depender P0 de RCM ni JAXA.
-- Registrar en el manifiesto cualquier restricción de redistribución.
+- Earthdata Login tested with `earthaccess`; NASADEM download and HLS query operational.
+- Copernicus Data Space OAuth tested; Sentinel-2 L2A Statistical API operational.
+- Do not make P0 depend on RCM or JAXA.
+- Record any redistribution restriction in the manifest.
 
-## Productos congelados en v2
+## Products Frozen in v2
 
-- `NASADEM_HGT.001`: seis archives ZIP, incluida máscara SWB, descargados con Earthdata Login.
-- `HLSS30 v2.0`: inventario CMR 2025 por AOI; sus píxeles no entran al score.
-- `sentinel-2-l2a`: Statistical API, 12 intervalos mensuales de 2025, ~30 m nominal.
-- MOLA `MEGT44N000HB` y NASA POWER 2001–2025 se conservan desde v1.
+- `NASADEM_HGT.001`: six ZIP archives, including the SWB mask, downloaded with Earthdata Login.
+- `HLSS30 v2.0`: CMR inventory 2025 per AOI; its pixels do not enter the score.
+- `sentinel-2-l2a`: Statistical API, 12 monthly intervals of 2025, ~30 m nominal.
+- MOLA `MEGT44N000HB` and NASA POWER 2001–2025 are retained from v1.
 
-## Regla de selección
+## Selection Rule
 
-Preferir fuente primaria, oficial, con licencia clara y metadatos suficientes. Worldview y visores sirven para inspección; el score debe usar el producto de datos subyacente.
+Prefer a primary, official source with a clear license and sufficient metadata. Worldview and viewers are for inspection; the score must use the underlying data product.

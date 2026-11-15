@@ -1,53 +1,53 @@
-# Resultados y lectura correcta
+# Results and correct interpretation
 
-## Búsqueda del piloto (`science-screening-v3`)
+## Pilot search (`science-screening-v3`)
 
-| Etapa | Resultado |
+| Stage | Result |
 |---|---|
-| Regiones de prueba | Interior de Antofagasta (Chile) y Puna de Catamarca y Salta (Argentina) |
-| Ventanas de 0,2° evaluadas | 50 de 50 (≈ 22.274 km²) |
-| Excluidas por contener coordenadas de muestreo publicadas | 4 |
-| Descartadas por cercanía a una ventana mejor | 2 |
-| Preseleccionadas y caracterizadas con todas las fuentes | 6 (3 por país) |
+| Test regions | Interior of Antofagasta (Chile) and Puna of Catamarca and Salta (Argentina) |
+| 0.2° windows evaluated | 50 of 50 (≈ 22,274 km²) |
+| Excluded for containing published sampling coordinates | 4 |
+| Discarded for proximity to a better window | 2 |
+| Shortlisted and characterized with all sources | 6 (3 per country) |
 
-## Ranking de candidatos
+## Candidate ranking
 
-| Rank | Candidato | Similitud | Confianza | Estabilidad | Estado |
+| Rank | Candidate | Similarity | Confidence | Stability | Status |
 |---:|---|---:|---:|---:|---|
-| 1 | Interior de Antofagasta · 25,0° S, 69,7° O | 94,87 | 77,45 | 99,33 | requiere revisión |
-| 2 | Interior de Antofagasta · 24,8° S, 69,5° O | 91,87 | 77,45 | 99,03 | requiere revisión |
-| 3 | Interior de Antofagasta · 25,2° S, 69,5° O | 90,35 | 77,36 | 99,08 | requiere revisión |
-| 4 | Puna de Catamarca y Salta · 26,2° S, 67,5° O | 63,85 | 77,00 | 95,88 | requiere revisión |
-| 5 | Puna de Catamarca y Salta · 26,4° S, 67,3° O | 53,68 | 77,25 | 96,81 | requiere revisión |
-| 6 | Puna de Catamarca y Salta · 25,8° S, 67,1° O | 49,43 | 77,40 | 96,81 | requiere revisión |
+| 1 | Interior of Antofagasta · 25.0° S, 69.7° W | 94.87 | 77.45 | 99.33 | requires review |
+| 2 | Interior of Antofagasta · 24.8° S, 69.5° W | 91.87 | 77.45 | 99.03 | requires review |
+| 3 | Interior of Antofagasta · 25.2° S, 69.5° W | 90.35 | 77.36 | 99.08 | requires review |
+| 4 | Puna of Catamarca and Salta · 26.2° S, 67.5° W | 63.85 | 77.00 | 95.88 | requires review |
+| 5 | Puna of Catamarca and Salta · 26.4° S, 67.3° W | 53.68 | 77.25 | 96.81 | requires review |
+| 6 | Puna of Catamarca and Salta · 25.8° S, 67.1° W | 49.43 | 77.40 | 96.81 | requires review |
 
-Referencia conocida, fuera del ranking: Pampa Yungay, 75,67 / 77,45 / 99,03, idéntica al snapshot v2.
+Known reference, outside the ranking: Pampa Yungay, 75.67 / 77.45 / 99,03, identical to the v2 snapshot.
 
-La estabilidad mide solo el peor cambio del score al perturbar un peso por vez ±20 %. No cubre incertidumbre de datos, perfiles alternativos ni perturbaciones simultáneas.
+Stability measures only the worst change in the score when perturbing one weight at a time by ±20 %. It does not cover data uncertainty, alternative profiles or simultaneous perturbations.
 
-## Por qué el orden es el que es
+## Why the order is what it is
 
-| Variable | MOLA Jezero | Candidato 1 (Chile) | Candidato 4 (Argentina) | Yungay (referencia) |
+| Variable | MOLA Jezero | Candidate 1 (Chile) | Candidate 4 (Argentina) | Yungay (reference) |
 |---|---:|---:|---:|---:|
-| Pendiente mediana | 2,226° | 2,169° | 2,568° | 3,207° |
-| Diferencia vecina mediana | 11,0 m | 11,291 m | 12,654 m | 16,564 m |
-| Relieve local 3×3 mediano | 47,0 m | 46,797 m | 55,867 m | 75,125 m |
-| Superficie no vegetada | requisito terrestre | 100,0 % | 99,4 % | 100,0 % |
-| Precipitación de contexto (POWER) | no aplica | 10,96 mm/año | 588,05 mm/año | 7,30 mm/año |
+| Median slope | 2.226° | 2.169° | 2.568° | 3.207° |
+| Median neighboring difference | 11.0 m | 11.291 m | 12.654 m | 16.564 m |
+| Median local relief 3×3 | 47.0 m | 46.797 m | 55.867 m | 75.125 m |
+| Non-vegetated surface | terrestrial requirement | 100.0 % | 99.4 % | 100.0 % |
+| Context precipitation (POWER) | not applicable | 10.96 mm/year | 588.05 mm/year | 7.30 mm/year |
 
-- Los candidatos chilenos superan a Yungay porque su topografía a ~480 m se parece más a la del entorno de Jezero.
-- El mejor candidato argentino tiene topografía comparable a la de los chilenos, pero el contexto climático POWER le asigna 588 mm/año. Ese valor es de una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: no es lluvia medida en el sitio y requiere contraste local. No se ajustaron pesos ni valores para compensarlo.
-- Dos candidatos chilenos tienen valores POWER coincidentes: posible celda compartida, no observaciones independientes.
+- The Chilean candidates outrank Yungay because their topography at ~480 m resembles that of the Jezero surroundings more closely.
+- The best Argentine candidate has topography comparable to that of the Chilean ones, but the POWER climate context assigns it 588 mm/year. That value comes from a MERRA-2 cell of 0.5° × 0.625°, larger than the window: it is not rainfall measured at the site and requires local verification. No weights or values were adjusted to compensate for it.
+- Two Chilean candidates have coinciding POWER values: a possible shared cell, not independent observations.
 
-## Qué no demuestra el resultado
+## What the result does not demonstrate
 
-- No hay análogos nuevos confirmados. Ambas regiones tienen antecedentes publicados y el catálogo revisado es incompleto.
-- No demuestra que un candidato sea mejor sitio que Yungay, que tiene dos décadas de trabajo de campo.
-- No evalúa obstáculos, granulometría o tracción a escala de rueda.
-- No reproduce gravedad, atmósfera, presión, radiación o química marcianas.
-- No evalúa propiedad, permisos, accesos, seguridad o impacto ambiental en ninguno de los dos países.
-- No completa relevancia geológica ni composición o mecánica de suelo.
-- Una ventana de ~440 km² no es un terreno íntegramente libre ni apto: las imágenes muestran trazas lineales y estructuras que deben contrastarse con cartografía oficial.
-- No es una búsqueda nacional ni global: son dos regiones de prueba.
+- There are no newly confirmed analogs. Both regions have published precedents and the reviewed catalog is incomplete.
+- It does not demonstrate that any candidate is a better site than Yungay, which has two decades of fieldwork.
+- It does not evaluate obstacles, grain size distribution or traction at wheel scale.
+- It does not reproduce Martian gravity, atmosphere, pressure, radiation or chemistry.
+- It does not evaluate ownership, permits, access, safety or environmental impact in either country.
+- It does not complete geological relevance or soil composition or mechanics.
+- A window of ~440 km² is not entirely free of obstructions or suitable: the images show linear traces and structures that must be checked against official cartography.
+- It is not a national or global search: it covers two test regions.
 
-El detalle de cada ventana, los antecedentes y las búsquedas bibliográficas están en `docs/DISCOVERY_REPORT.md`. El ranking histórico del snapshot v2 (Yungay, Domeyko, María Elena) se conserva en `artifacts/science-v2/`.
+The details of each window, the precedents and the literature searches are in `docs/DISCOVERY_REPORT.md`. The historical ranking of the v2 snapshot (Yungay, Domeyko, María Elena) is preserved in `artifacts/science-v2/`.

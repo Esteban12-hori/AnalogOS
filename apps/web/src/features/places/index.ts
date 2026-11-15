@@ -1,40 +1,40 @@
 /**
- * features/places — carrusel de lugares (PlaceRail) y catálogo de análogos ◆ (incremento 3).
- * Slots: `dock.places` (≥1100), `sheet.tray.places` y `sheet.list` (<1100), `rail.reference` y
- * `sheet.reference` (un ◆ seleccionado).
+ * features/places — places carousel (PlaceRail) and analog catalog ◆ (increment 3).
+ * Slots: `dock.places` (≥1100), `sheet.tray.places` and `sheet.list` (<1100), `rail.reference` and
+ * `sheet.reference` (one selected ◆).
  *
- * INTERFAZ ESTABLE: tipos y firmas de este archivo (docs/BUILD_CONTRACTS.md §2.1).
- * Añadido en el incremento 3 (solo exports nuevos; nada cambió de firma):
- * - `buildPlaceModel` y sus tipos: orden de lugares (candidatos en su puesto global, REF aparte,
- *   ◆ alfabéticos; en Misión, grupos por estado de la evaluación del equipo).
- * - `classifyReferences(analogs, candidates)`: regla §1 #16 (punto-en-polígono → insignia
- *   «coincide con» o ◆ propio), reutilizable por el globo. Usa el clasificador geométrico que
- *   `loadReferenceAnalogs` trae en un chunk diferido; antes de cargar devuelve «sin ◆».
- * - `referenceAnalogsFrom` (en ./analogCatalog, diferido): valida un catálogo ya leído (tests y herramientas).
- * La geometría (classify.ts, geometry.ts) no se reexporta aquí a propósito: así no entra al
- * chunk principal.
+ * STABLE INTERFACE: types and signatures of this file (docs/BUILD_CONTRACTS.md §2.1).
+ * Added in increment 3 (new exports only; no signature changed):
+ * - `buildPlaceModel` and its types: place ordering (candidates in their global position, REF separate,
+ *   ◆ alphabetical; in Mission, groups by team evaluation status).
+ * - `classifyReferences(analogs, candidates)`: rule §1 #16 (point-in-polygon → badge
+ *   “coincides with” or own ◆), reusable by the globe. It uses the geometric classifier that
+ *   `loadReferenceAnalogs` brings in a deferred chunk; before it loads it returns “no ◆”.
+ * - `referenceAnalogsFrom` (in ./analogCatalog, deferred): validates an already-read catalog (tests and tools).
+ * The geometry (classify.ts, geometry.ts) is deliberately not re-exported here: this way it does not enter the
+ * main chunk.
  */
 import type { ReferenceAnalog } from '../../domain/contracts'
 import type { AppData } from '../../shell/public'
 
 export interface PlaceRailProps {
   data: AppData
-  /** 'dock' = fila superior del dock (≥1100). 'sheet' = bandeja S0 o lista de la hoja (<1100). */
+  /** 'dock' = top row of the dock (≥1100). 'sheet' = S0 tray or sheet list (<1100). */
   placement: 'dock' | 'sheet'
-  /** Solo en 'sheet': «Ver lista» reemplaza la bandeja por la lista completa (S1/S2 sin selección). */
+  /** Only in 'sheet': “View list” replaces the tray with the full list (S1/S2 with no selection). */
   listView?: boolean
   /**
-   * Pide al armazón abrir o cerrar la vista de lista (el armazón decide el detent). Sin él, en el
-   * dock «Ver lista» alterna la vista dentro del propio dock y en la hoja el botón no aparece.
+   * Asks the shell to open or close the list view (the shell decides the detent). Without it, in the
+   * dock “View list” toggles the view within the dock itself and in the sheet the button does not appear.
    */
   onListViewChange?: (open: boolean) => void
-  /** Promesa del producto (App.tsx): nota del estado inicial de Explorar. */
+  /** Product promise (App.tsx): note on the initial state of Explore. */
   promise?: string
 }
 
 export interface ReferenceCardProps {
   data: AppData
-  /** id del análogo ◆ seleccionado (ui.selection.kind === 'reference'). */
+  /** id of the selected analog ◆ (ui.selection.kind === 'reference'). */
   analogId: string
 }
 

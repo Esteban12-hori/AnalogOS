@@ -64,7 +64,7 @@ export interface CandidateSite {
   limitations: string[]
   field_checks: string[]
   evidence: Evidence[]
-  // Metadata v3 (opcional en snapshots históricos; obligatoria por contrato en v3).
+  // Metadata v3 (optional in historical snapshots; mandatory by contract in v3).
   country?: CountryCode
   role?: 'candidate' | 'reference'
   discovery?: Discovery
@@ -244,7 +244,7 @@ const validateSearch = ajv.compile(searchSchema) as ValidateFunction<SearchResul
 const validatePrecedents = ajv.compile(precedentSchema) as ValidateFunction<PrecedentCatalog>
 
 function errorSummary(errors: ErrorObject[] | null | undefined): string {
-  if (!errors?.length) return 'error de contrato desconocido'
+  if (!errors?.length) return 'unknown contract error'
   return errors.map((error) => `${error.instancePath || '/'} ${error.message ?? ''}`.trim()).join('; ')
 }
 
@@ -254,30 +254,30 @@ export function assertSnapshotContracts(
   profile: unknown,
 ): asserts candidates is CandidateSite[] {
   if (!Array.isArray(candidates)) {
-    throw new Error('candidate-details.json debe contener una lista.')
+    throw new Error('candidate-details.json must contain a list.')
   }
   candidates.forEach((candidate, index) => {
     if (!validateCandidate(candidate)) {
-      throw new Error(`Candidato ${index + 1} inválido: ${errorSummary(validateCandidate.errors)}`)
+      throw new Error(`Invalid candidate ${index + 1}: ${errorSummary(validateCandidate.errors)}`)
     }
   })
   if (!validateManifest(manifest)) {
-    throw new Error(`Manifest inválido: ${errorSummary(validateManifest.errors)}`)
+    throw new Error(`Invalid manifest: ${errorSummary(validateManifest.errors)}`)
   }
   if (!validateProfile(profile)) {
-    throw new Error(`Perfil inválido: ${errorSummary(validateProfile.errors)}`)
+    throw new Error(`Invalid profile: ${errorSummary(validateProfile.errors)}`)
   }
 }
 
-/** Valida los resultados de búsqueda y el catálogo de antecedentes de un snapshot v3. */
+/** Validates the search results and the background catalog of a v3 snapshot. */
 export function assertDiscoveryContracts(
   search: unknown,
   precedents: unknown,
 ): asserts search is SearchResults {
   if (!validateSearch(search)) {
-    throw new Error(`Resultados de búsqueda inválidos: ${errorSummary(validateSearch.errors)}`)
+    throw new Error(`Invalid search results: ${errorSummary(validateSearch.errors)}`)
   }
   if (!validatePrecedents(precedents)) {
-    throw new Error(`Catálogo de antecedentes inválido: ${errorSummary(validatePrecedents.errors)}`)
+    throw new Error(`Invalid precedent catalog: ${errorSummary(validatePrecedents.errors)}`)
   }
 }

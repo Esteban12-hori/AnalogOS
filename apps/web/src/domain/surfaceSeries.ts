@@ -1,8 +1,8 @@
-// Series mensuales Sentinel-2 L2A por sitio, leídas de analysis-summary.json.
-// Solo se muestran; no participan en el score (que viene de pipelines/scoring.py).
+// Monthly Sentinel-2 L2A series per site, read from analysis-summary.json.
+// They are only displayed; they do not take part in the score (which comes from pipelines/scoring.py).
 
 export interface MonthlySurfacePoint {
-  /** Inicio del intervalo mensual (ISO 8601). */
+  /** Start of the monthly interval (ISO 8601). */
   from: string
   ndvi: number
   bsi: number
@@ -18,8 +18,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
 
 /**
- * Valida en el límite del sistema. Descarta meses incompletos en vez de inventar valores:
- * una serie con huecos se muestra con los meses que sí tienen dato, en orden cronológico.
+ * Validates at the system boundary. Discards incomplete months instead of inventing values:
+ * a series with gaps is displayed with the months that do have data, in chronological order.
  */
 export function parseSurfaceSeries(summary: unknown): Map<string, MonthlySurfacePoint[]> {
   const result = new Map<string, MonthlySurfacePoint[]>()
@@ -40,14 +40,14 @@ export function parseSurfaceSeries(summary: unknown): Map<string, MonthlySurface
   return result
 }
 
-const monthFormat = new Intl.DateTimeFormat('es-CL', { month: 'short', year: 'numeric', timeZone: 'UTC' })
+const monthFormat = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })
 
 export function formatMonth(iso: string): string {
   const date = new Date(iso)
   return Number.isNaN(date.getTime()) ? iso : monthFormat.format(date).replace('.', '')
 }
 
-/** Índice espectral con tres decimales y coma decimal (es-CL). */
+/** Spectral index with three decimals and a decimal point (en-US). */
 export function formatIndex(value: number): string {
-  return value.toFixed(3).replace('.', ',')
+  return value.toFixed(3)
 }

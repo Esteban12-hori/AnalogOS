@@ -1,8 +1,8 @@
 /**
- * «Ir a la Lectura» (M11): a qué superficie lleva el pedido según el tramo, sin tocar la selección.
- *   ≥1440 → Lectura del panel izquierdo (Misión) · 1100–1439 → píldora «Lectura» (también en Misión)
- *   <1100 → hoja S2: con un ● del snapshot, la pestaña «Lectura» de su ficha; sin selección o con un
- *   ◆ de referencia, la vista «Lectura» de la hoja. Volver regresa a S1 (con selección) o a S0.
+ * «Go to Reading» (M11): which surface the request leads to depending on the breakpoint, without touching the selection.
+ *   ≥1440 → Reading in the left panel (Mission) · 1100–1439 → «Reading» pill (also in Mission)
+ *   <1100 → sheet S2: with a ● from the snapshot, the «Reading» tab of its card; with no selection or with a
+ *   reference ◆, the sheet's «Reading» view. Back returns to S1 (with a selection) or to S0.
  */
 import type { UiSelection } from '../state/ui'
 import type { DetentId, StageTramo } from './layout'
@@ -11,7 +11,7 @@ export type ReadingSurface = 'left' | 'pill' | 'sheet-tab' | 'sheet-reading'
 
 export interface ReadingRoute {
   surface: ReadingSurface
-  /** Solo en la hoja: detent al que vuelven Atrás, Esc, «← Volver» y ✕ de la Lectura. */
+  /** Sheet only: the detent that Back, Esc, «← Back» and the Reading's ✕ return to. */
   back: DetentId | null
 }
 
@@ -22,7 +22,7 @@ export function readingRoute(tramo: StageTramo, selection: UiSelection | null, s
   return { surface: 'sheet-reading', back: selection ? 'S1' : 'S0' }
 }
 
-/** Título de la Lectura dentro de cada superficie (la vista es diferida: puede tardar en montarse). */
+/** Title of the Reading within each surface (the view is deferred: it may take a while to mount). */
 export const READING_TITLE_SELECTOR: Readonly<Record<ReadingSurface, string>> = {
   left: '.left-panel [data-slot="left.reading"] .analysis-head h2',
   pill: '.reading-pill-slot .analysis-head h2',
@@ -30,13 +30,13 @@ export const READING_TITLE_SELECTOR: Readonly<Record<ReadingSurface, string>> = 
   'sheet-reading': '.sheet [data-slot="sheet.reading"] .analysis-head h2',
 }
 
-/** Tope del reintento de foco (la vista de la Lectura llega en un chunk diferido). */
+/** Cap on the focus retry (the Reading view arrives in a deferred chunk). */
 export const READING_FOCUS_TIMEOUT_MS = 2500
 
 /**
- * Lleva el foco al título de la Lectura cuando aparece. Reintento acotado por tiempo y cancelable:
- * se abandona si el usuario pulsa una tecla o toca la pantalla antes, para no robarle el foco.
- * Devuelve la función que lo cancela.
+ * Moves focus to the Reading title when it appears. Retry bounded by time and cancelable:
+ * it is abandoned if the user presses a key or touches the screen beforehand, so as not to steal their focus.
+ * Returns the function that cancels it.
  */
 export function focusWhenReady(root: ParentNode, selector: string, timeoutMs = READING_FOCUS_TIMEOUT_MS): () => void {
   let frame = 0
@@ -52,7 +52,7 @@ export function focusWhenReady(root: ParentNode, selector: string, timeoutMs = R
     if (done) return
     const el = root.querySelector<HTMLElement>(selector)
     if (el && el.isConnected && !el.closest('[inert]') && !el.closest('[hidden]')) {
-      // Sin preventScroll: el panel con scroll propio lleva el título a la vista.
+      // No preventScroll: the panel with its own scroll brings the title into view.
       el.focus()
       if (document.activeElement === el) return stop()
     }

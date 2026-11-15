@@ -1,6 +1,6 @@
-// Toda descarga de la ficha usa `buildExport` del equipo (aviso de honestidad y alcance de la
-// búsqueda): el botón de la pestaña Fuentes ya no exporta el candidato en bruto con el mismo
-// nombre de archivo que «Exportar ficha (JSON)» de la cabecera.
+// Every download from the record uses the team's `buildExport` (honesty notice and search scope):
+// the button on the Sources tab no longer exports the raw candidate with the same
+// file name as the header's "Export record (JSON)".
 import { isValidElement, type ReactElement, type ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { v3Snapshot } from '../../tests/v3Support'
@@ -11,7 +11,7 @@ vi.mock('../actions', async (importOriginal) => ({ ...(await importOriginal<type
 const { SourcesTab } = await import('./SourcesTab')
 const { siteExportText } = await import('../actions')
 
-/** Busca un elemento en el árbol devuelto por el componente (sin DOM ni render). */
+/** Finds an element in the tree returned by the component (no DOM or render). */
 function findButton(node: ReactNode, label: string): ReactElement<{ onClick: () => void; children: ReactNode }> | null {
   if (Array.isArray(node)) {
     for (const child of node) {
@@ -31,18 +31,18 @@ describe('Fuentes · «Descargar ficha (JSON)»', () => {
   const site = v3Snapshot.candidates[0]!
   const search = v3Snapshot.search
 
-  it('usa la misma exportación que la cabecera (buildExport con el alcance de la búsqueda)', () => {
+  it('uses the same export as the header (buildExport with the search scope)', () => {
     const tree = SourcesTab({ site, manifest: v3Snapshot.manifest, search, visual: { status: 'loading' }, onShowOnMap: () => undefined })
-    const button = findButton(tree, 'Descargar ficha (JSON)')
+    const button = findButton(tree, 'Download site record (JSON source record)')
     expect(button).not.toBeNull()
     button!.props.onClick()
     expect(exportSiteJson).toHaveBeenCalledWith(site, search)
   })
 
-  it('la ficha exportada trae el aviso de honestidad y search_context', () => {
+  it('the exported sheet carries the honesty notice and search_context', () => {
     const doc = JSON.parse(siteExportText(site, search)) as Record<string, unknown>
     expect(Object.keys(doc)).toEqual(['exported_from', 'notice', 'site', 'search_context'])
-    expect(doc.notice).toBe('Screening preliminar: no aprueba el sitio, no autoriza acceso y no declara novedad.')
+    expect(doc.notice).toBe('Preliminary screening: it does not approve the site, authorize access or declare novelty. The site object is the source record from the snapshot, kept in its original wording (mostly Spanish).')
     expect(doc.search_context).not.toBeNull()
     expect((doc.site as { site_id: string }).site_id).toBe(site.site_id)
   })

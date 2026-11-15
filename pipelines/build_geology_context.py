@@ -1,13 +1,13 @@
-"""Construye ``artifacts/geology-context-v1/index.json`` desde la caché raw validada.
+"""Builds ``artifacts/geology-context-v1/index.json`` from the validated raw cache.
 
-Contexto geológico cartográfico por sector, independiente de ``science-v3`` (que no se toca). Sin red si la
-caché es válida; sin credenciales. No hay hora de construcción: las fechas del paquete salen de los
-registros de adquisición, de modo que reconstruir sin red da bytes idénticos.
+Cartographic geological context per sector, independent of ``science-v3`` (which is not touched). No network if the
+cache is valid; no credentials. There is no build time: the package dates come from the
+acquisition records, so rebuilding without a network yields identical bytes.
 
-Transacción: la caché nueva (si hubo descarga) y el paquete se preparan en directorios hermanos; se
-construye el índice y se valida (JSON Schema + semántica) ANTES de instalar nada; luego se reemplazan
-caché y paquete en pareja con rollback. Cualquier error (HTTP, análisis, contrato, publicación) deja la
-caché y el paquete anteriores. No hay atomicidad frente a un corte de energía entre los dos reemplazos.
+Transaction: the new cache (if there was a download) and the package are prepared in sibling directories; the
+index is built and validated (JSON Schema + semantics) BEFORE anything is installed; then the
+cache and package are replaced as a pair with rollback. Any error (HTTP, parsing, contract, publication) leaves the
+previous cache and package in place. There is no atomicity against a power failure between the two replacements.
 
     python -m pipelines.build_geology_context [--refresh] [--offline]
 """
@@ -93,7 +93,7 @@ def _request_entries(acquisition: dict, roles: tuple[str, ...]) -> list[dict]:
 
 
 def _format_narration(layer: dict) -> str:
-    """Formatos realmente inspeccionados en ESTA adquisición, no una observación fija."""
+    """Formats actually inspected in THIS acquisition, not a fixed observation."""
     parts = [f"el recurso rotulado «{layer.get('labeled_format')}» (id {layer.get('resource_id')}) contenía "
              f"{'GeoJSON' if layer['actual_format'] == 'geojson' else layer['actual_format']} y fue el usado"]
     for item in layer.get("rejected_resources", []):
@@ -107,8 +107,8 @@ def _sources(acquisition: dict, chile_total: int, chile_null: int, catalog: dict
     license_id = catalog.get("license_id")
     if license_id != "cc-zero":
         raise GeologyError(
-            f"CKAN declara la licencia {license_id!r}, no cc-zero: la atribución de este paquete requiere revisión "
-            "antes de publicarse. Se rechaza la construcción."
+            f"CKAN declares the license {license_id!r}, not cc-zero: attribution for this package needs review "
+            "before publication. The build is rejected."
         )
     chile = {
         "source_id": CL_ID, "country": "CL",
@@ -197,12 +197,12 @@ def load_candidates(path: Path) -> tuple[list[dict], bytes]:
     candidates = json.loads(data.decode("utf-8"))
     ids = [candidate["site_id"] for candidate in candidates]
     if len(ids) != 7 or len(set(ids)) != 7:
-        raise GeologyError("Se esperan exactamente siete sectores distintos en el snapshot.")
+        raise GeologyError("Exactly seven distinct sectors are expected in the snapshot.")
     if len({candidate["data_snapshot_version"] for candidate in candidates}) != 1:
-        raise GeologyError("Los sectores no comparten una única versión de snapshot.")
+        raise GeologyError("The sectors do not share a single snapshot version.")
     for candidate in candidates:
         if candidate["country"] not in LAYERS or candidate["geometry"]["type"] != "Polygon":
-            raise GeologyError(f"{candidate['site_id']}: país o geometría no soportados.")
+            raise GeologyError(f"{candidate['site_id']}: unsupported country or geometry.")
     return candidates, data
 
 
@@ -247,21 +247,21 @@ def build_index(candidates: list[dict], candidates_bytes: bytes, acquisition: di
 def build(out_dir: Path = OUT_DIR, raw_dir: Path = RAW_DIR, candidates_path: Path = CANDIDATES, *,
           http: Http | None = None, refresh: bool = False, offline: bool = False,
           replace=os.replace) -> tuple[dict, bool]:
-    """Devuelve ``(índice, caché_reutilizada)``. Todo error deja intactos caché y paquete anteriores."""
+    """Returns ``(index, cache_reused)``. Any error leaves the previous cache and package intact."""
     candidates, data = load_candidates(candidates_path)
     raw = prepare_raw(raw_dir, candidates, http=http, refresh=refresh, offline=offline)
     staging = None
     try:
         shown = candidates_path.relative_to(ROOT).as_posix() if candidates_path.is_relative_to(ROOT) else candidates_path.name
         index = build_index(candidates, data, raw.acquisition, shown)
-        validate_package(index, candidates, data)  # contrato Y semántica antes de instalar nada
+        validate_package(index, candidates, data)  # contract AND semantics before installing anything.
         out_dir.parent.mkdir(parents=True, exist_ok=True)
         staging = Path(tempfile.mkdtemp(dir=out_dir.parent, prefix=f".{out_dir.name}."))
         (staging / "index.json").write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         validate_package(json.loads((staging / "index.json").read_text(encoding="utf-8")), candidates, data)
         staging.chmod(0o755)
         pairs = ([(raw.staging, raw_dir)] if raw.staging is not None else []) + [(staging, out_dir)]
-        publish(pairs, replace)  # caché primero: un artefacto nunca apunta a una caché no instalada
+        publish(pairs, replace)  # cache first: an artifact never points to a cache that is not installed
     finally:
         for temporary in (staging, raw.staging):
             if temporary is not None:
@@ -271,23 +271,23 @@ def build(out_dir: Path = OUT_DIR, raw_dir: Path = RAW_DIR, candidates_path: Pat
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--refresh", action="store_true", help="descarga de nuevo aunque la caché sea válida")
-    parser.add_argument("--offline", action="store_true", help="no usa red; falla si la caché no es válida")
+    parser.add_argument("--refresh", action="store_true", help="download again even if the cache is valid")
+    parser.add_argument("--offline", action="store_true", help="no network access; fails if the cache is not valid")
     args = parser.parse_args(argv)
     try:
         index, reused = build(refresh=args.refresh, offline=args.offline)
     except PackageStateError as error:
-        print(f"ERROR de contexto geológico: {error}", file=sys.stderr)
+        print(f"Geology context ERROR: {error}", file=sys.stderr)
         return 1
     except (GeologyError, ContractError, OSError, KeyError, ValueError) as error:
-        print(f"ERROR de contexto geológico: {error}\nSe conserva el estado anterior de la caché y del paquete "
-              "(los reemplazos se deshacen; sin garantía ante un corte de energía a mitad de ellos).", file=sys.stderr)
+        print(f"Geology context ERROR: {error}\nThe previous state of the cache and the package is kept "
+              "(replacements are undone; no guarantee against a power cut in the middle of them).", file=sys.stderr)
         return 1
-    print(f"Contexto geológico ({'caché reutilizada, sin red' if reused else 'descarga nueva'}): {OUT_DIR}")
+    print(f"Geology context ({'cache reused, no network' if reused else 'new download'}): {OUT_DIR}")
     for site in index["sites"]:
         f = site["area_fractions"]
-        print(f"  {site['site_id']}: {site['availability']}, cubierta {f['covered_total']:.6%}, sin cobertura "
-              f"{f['unmapped']:.6%}, ambigua {f['covered_ambiguous']:.6%}, unidades {len(site['units'])}")
+        print(f"  {site['site_id']}: {site['availability']}, covered {f['covered_total']:.6%}, no coverage "
+              f"{f['unmapped']:.6%}, ambiguous {f['covered_ambiguous']:.6%}, units {len(site['units'])}")
     return 0
 
 

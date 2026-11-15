@@ -1,14 +1,14 @@
-"""Contexto visual Sentinel-2 offline para los candidatos del snapshot v2.
+"""Offline Sentinel-2 visual context for the v2 snapshot candidates.
 
-Pide a la Process API de Copernicus Sentinel Hub una vista RGB por candidato y
-deja en ``artifacts/visual-context/`` tres PNG y un ``index.json`` público con
-su procedencia. No toca ``artifacts/science-v2/`` ni el perfil: la imagen es
-contexto para la inspección visual y no participa en ningún score.
+Requests one RGB view per candidate from the Copernicus Sentinel Hub Process API and
+leaves three PNGs in ``artifacts/visual-context/`` and a public ``index.json`` with
+their provenance. It does not touch ``artifacts/science-v2/`` or the profile: the image is
+context for visual inspection and does not take part in any score.
 
-Si el paquete local es válido se reutiliza sin red ni credenciales; ``--refresh``
-fuerza una consulta nueva. Las credenciales se leen del entorno o de ``.env``
-y solo viajan a los dos hosts oficiales. Nunca se registran tokens, cabeceras
-ni cuerpos de respuesta. Ante cualquier error el paquete anterior queda intacto.
+If the local package is valid, it is reused without network access or credentials; ``--refresh``
+forces a new query. Credentials are read from the environment or from ``.env``
+and are sent only to the two official hosts. Tokens, headers
+and response bodies are never logged. On any error the previous package is left intact.
 """
 
 from __future__ import annotations
@@ -58,7 +58,7 @@ ATTEMPTS = 3
 TRANSIENT_STATUS = {429, 500, 502, 503, 504}
 _GEOD = Geod(ellps="WGS84")
 
-# Evalscript público: se guarda tal cual en index.json para reproducir la petición.
+# Public evalscript: it is saved as is in index.json so the request can be reproduced.
 EVALSCRIPT = """//VERSION=3
 // AnalogOS Chile - contexto visual Sentinel-2 L2A (analogos-s2-visual-v1).
 // Color natural: reflectancia x GAIN; sampleType AUTO recorta a [0, 1] y cuantiza a 8 bits.
@@ -137,11 +137,11 @@ PRODUCT = {
 
 
 class VisualContextError(ValueError):
-    """La consulta, la respuesta o el paquete local no son utilizables."""
+    """The query, the response or the local package are not usable."""
 
 
 class PackageStateError(VisualContextError):
-    """El reemplazo del paquete quedó a medias; el mensaje describe el estado real en disco."""
+    """The package replacement was left half done; the message describes the actual state on disk."""
 
 
 def _utc_now() -> str:
@@ -149,7 +149,7 @@ def _utc_now() -> str:
 
 
 def configured_bboxes(sites: list[dict]) -> dict[str, list[float]]:
-    """Bbox esperada por sitio a partir de centro y medio lado (sitios v2 o ventanas de la rejilla v3)."""
+    """Expected bbox per site from center and half-side (v2 sites or v3 grid windows)."""
     return {
         site.get("site_id") or site["window_id"]: [
             site["longitude"] - site["half_size_degree"], site["latitude"] - site["half_size_degree"],
@@ -160,21 +160,21 @@ def configured_bboxes(sites: list[dict]) -> dict[str, list[float]]:
 
 
 def site_plans(candidates: list[dict], config: dict | None = None, expected: dict[str, list[float]] | None = None) -> list[dict]:
-    """Deriva bbox y tamaño de cada vista desde la geometría versionada del candidato.
+    """Derives the bbox and size of each view from the candidate's versioned geometry.
 
-    ``expected`` liga cada sitio a la configuración que lo generó; por defecto, los sitios del config v2.
+    ``expected`` ties each site to the configuration that generated it; by default, the sites of the v2 config.
     """
     expected = expected if expected is not None else configured_bboxes(config["sites"])
     plans = []
     for candidate in candidates:
         site_id = candidate["site_id"]
         if candidate["geometry"]["type"] != "Polygon" or site_id not in expected:
-            raise VisualContextError(f"{site_id}: geometría o configuración no compatibles con el snapshot.")
+            raise VisualContextError(f"{site_id}: geometry or configuration not compatible with the snapshot.")
         ring = candidate["geometry"]["coordinates"][0]
         longitudes, latitudes = [point[0] for point in ring], [point[1] for point in ring]
         bbox = [round(value, 6) for value in (min(longitudes), min(latitudes), max(longitudes), max(latitudes))]
         if any(abs(actual - wanted) > 1e-6 for actual, wanted in zip(bbox, expected[site_id])):
-            raise VisualContextError(f"{site_id}: la geometría del candidato no coincide con la configuración versionada.")
+            raise VisualContextError(f"{site_id}: the candidate geometry does not match the versioned configuration.")
         west, south, east, north = bbox
         middle = (south + north) / 2
         width_m = _GEOD.line_length([west, east], [middle, middle])
@@ -184,19 +184,19 @@ def site_plans(candidates: list[dict], config: dict | None = None, expected: dic
             "name": candidate["name"],
             "snapshot_version": candidate["data_snapshot_version"],
             "bbox": bbox,
-            # Ancho proporcional a la latitud para que el píxel sea aproximadamente cuadrado en terreno.
+            # Width proportional to latitude so that the pixel is approximately square on the ground.
             "width": round(HEIGHT_PX * width_m / height_m),
             "height": HEIGHT_PX,
             "extent_km": {"width": round(width_m / 1000, 2), "height": round(height_m / 1000, 2)},
             "approx_meters_per_pixel": round(height_m / HEIGHT_PX, 1),
         })
     if len({plan["snapshot_version"] for plan in plans}) != 1:
-        raise VisualContextError("Los candidatos no comparten una única versión de snapshot.")
+        raise VisualContextError("The candidates do not share a single snapshot version.")
     return plans
 
 
 def build_request(plan: dict) -> dict:
-    """Cuerpo público de la Process API; no contiene credenciales."""
+    """Public body of the Process API; it contains no credentials."""
     return {
         "input": {
             "bounds": {"bbox": plan["bbox"], "properties": {"crs": CRS}},
@@ -222,34 +222,34 @@ def build_request(plan: dict) -> dict:
 
 
 def parse_response(payload: bytes) -> tuple[bytes, dict]:
-    """Lee en memoria las dos entradas esperadas del TAR; nunca extrae rutas a disco."""
+    """Reads into memory the two expected entries of the TAR; it never extracts paths to disk."""
     members: dict[str, bytes] = {}
     try:
         with tarfile.open(fileobj=io.BytesIO(payload), mode="r:") as archive:
             for member in archive:
                 if member.name not in ("default.png", "userdata.json") or not member.isfile():
-                    raise VisualContextError(f"Entrada inesperada en la respuesta TAR: {member.name!r}")
+                    raise VisualContextError(f"Unexpected entry in the TAR response: {member.name!r}")
                 if member.size > MAX_MEMBER_BYTES or member.name in members:
-                    raise VisualContextError(f"Entrada duplicada o demasiado grande en el TAR: {member.name!r}")
+                    raise VisualContextError(f"Duplicate or oversized entry in the TAR: {member.name!r}")
                 members[member.name] = archive.extractfile(member).read()
         userdata = json.loads(members["userdata.json"])
         image = members["default.png"]
     except (tarfile.TarError, KeyError, json.JSONDecodeError) as error:
-        raise VisualContextError(f"La respuesta no es el TAR esperado ({type(error).__name__}).") from None
+        raise VisualContextError(f"The response is not the expected TAR ({type(error).__name__}).") from None
     if not isinstance(userdata, dict):
-        raise VisualContextError("userdata.json no es un objeto.")
+        raise VisualContextError("userdata.json is not an object.")
     return image, userdata
 
 
 def png_size(data: bytes) -> tuple[int, int]:
-    """Ancho y alto de un PNG RGBA de 8 bits; rechaza cualquier otro formato."""
+    """Width and height of an 8-bit RGBA PNG; rejects any other format."""
     if data[:8] != b"\x89PNG\r\n\x1a\n" or data[12:16] != b"IHDR" or data[24:26] != b"\x08\x06":
-        raise VisualContextError("La imagen no es un PNG RGBA de 8 bits.")
+        raise VisualContextError("The image is not an 8-bit RGBA PNG.")
     return struct.unpack(">II", data[16:24])
 
 
 def _static_header(plans: list[dict]) -> dict:
-    """Campos del índice que no dependen de la respuesta: deben coincidir con las constantes vigentes."""
+    """Index fields that do not depend on the response: they must match the current constants."""
     return {
         "kind": KIND,
         "schema_version": SCHEMA_VERSION,
@@ -262,7 +262,7 @@ def _static_header(plans: list[dict]) -> dict:
 
 
 def _static_site(plan: dict) -> dict:
-    """Campos de un sitio que salen solo del candidato versionado y de la petición."""
+    """Fields of a site that come only from the versioned candidate and the request."""
     return {
         "site_id": plan["site_id"],
         "name": plan["name"],
@@ -277,18 +277,18 @@ def _static_site(plan: dict) -> dict:
 
 
 def _scene_summary(plan: dict, userdata: dict) -> dict:
-    """Escenas consideradas y, si es certificable, usadas; todo derivado de la metadata devuelta."""
+    """Scenes considered and, if certifiable, used; everything derived from the returned metadata."""
     orbits = userdata.get("orbits") if isinstance(userdata, dict) else None
     if not isinstance(orbits, list) or not orbits or not all(isinstance(orbit, dict) for orbit in orbits):
         raise VisualContextError(
-            f"{plan['site_id']}: el servicio no devolvió escenas para {TIME_RANGE['from']}–{TIME_RANGE['to']}."
+            f"{plan['site_id']}: the service returned no scenes for {TIME_RANGE['from']}–{TIME_RANGE['to']}."
         )
     counts = userdata.get("pixels_by_orbit_index")
     without_data = userdata.get("pixels_without_data")
     total = plan["width"] * plan["height"]
     scenes_used, valid_fraction = None, None
-    # Solo se certifica qué órbitas aportaron píxeles si los contadores del evalscript
-    # cuadran con la rejilla pedida; si no, quedan solo las escenas consideradas.
+    # Only certify which orbits contributed pixels if the evalscript counters
+    # match the requested grid; otherwise, only the scenes considered remain.
     countable = (
         isinstance(counts, dict) and isinstance(without_data, int)
         and all(str(index).isdigit() and isinstance(pixels, int) for index, pixels in counts.items())
@@ -311,9 +311,9 @@ def _scene_summary(plan: dict, userdata: dict) -> dict:
 
 
 def describe_site(plan: dict, image: bytes, userdata: dict, queried_at: str) -> dict:
-    """Entrada del índice para un sitio: plan y petición, hash del PNG y metadata devuelta."""
+    """Index entry for a site: plan and request, PNG hash and returned metadata."""
     if png_size(image) != (plan["width"], plan["height"]):
-        raise VisualContextError(f"{plan['site_id']}: el PNG no tiene las dimensiones pedidas.")
+        raise VisualContextError(f"{plan['site_id']}: the PNG does not have the requested dimensions.")
     return {
         **_static_site(plan),
         "sha256": hashlib.sha256(image).hexdigest(),
@@ -328,39 +328,39 @@ def _check_timestamp(value: object, field: str) -> None:
     try:
         datetime.strptime(str(value), "%Y-%m-%dT%H:%M:%SZ")
     except ValueError:
-        raise VisualContextError(f"«{field}» no es una hora UTC válida.") from None
+        raise VisualContextError(f"«{field}» is not a valid UTC time.") from None
 
 
 def validate_package(directory: Path, index: dict, plans: list[dict]) -> None:
-    """Todo lo que el índice presenta debe coincidir con el plan, la petición, el PNG o la metadata devuelta.
+    """Everything the index presents must match the plan, the request, the PNG or the returned metadata.
 
-    Así no se acepta un índice con bbox, periodo, colección, transformación,
-    identidad, snapshot o dimensiones distintos de los que respaldan las imágenes.
+    This way an index is not accepted with a bbox, period, collection, transformation,
+    identity, snapshot or dimensions different from those that back the images.
     """
     for key, expected in _static_header(plans).items():
         if index.get(key) != expected:
-            raise VisualContextError(f"El índice declara «{key}» distinto del vigente para este snapshot.")
+            raise VisualContextError(f"The index declares «{key}» different from the current one for this snapshot.")
     _check_timestamp(index.get("generated_at"), "generated_at")
     sites = index["sites"]
     if not isinstance(sites, list) or len(sites) != len(plans):
-        raise VisualContextError("El paquete visual no cubre exactamente los candidatos actuales.")
+        raise VisualContextError("The visual package does not cover exactly the current candidates.")
     for site, plan in zip(sites, plans):
         site_id = plan["site_id"]
         expected = {**_static_site(plan), **_scene_summary(plan, site["returned_metadata"])}
         for key, value in expected.items():
             if site.get(key) != value:
                 raise VisualContextError(
-                    f"{site_id}: «{key}» no coincide con el candidato, la petición o la metadata devuelta."
+                    f"{site_id}: «{key}» does not match the candidate, the request or the returned metadata."
                 )
         _check_timestamp(site.get("queried_at"), f"{site_id}.queried_at")
         image = directory / expected["image"]
         if image.is_symlink() or not image.is_file():
-            raise VisualContextError(f"{site_id}: falta la imagen {expected['image']}.")
+            raise VisualContextError(f"{site_id}: the image {expected['image']} is missing.")
         data = image.read_bytes()
         if hashlib.sha256(data).hexdigest() != site.get("sha256") or len(data) != site.get("bytes"):
-            raise VisualContextError(f"{site_id}: el SHA-256 o el tamaño de la imagen no coinciden con el índice.")
+            raise VisualContextError(f"{site_id}: the image SHA-256 or size does not match the index.")
         if png_size(data) != (plan["width"], plan["height"]):
-            raise VisualContextError(f"{site_id}: dimensiones de imagen inesperadas.")
+            raise VisualContextError(f"{site_id}: unexpected image dimensions.")
 
 
 def load_valid_package(directory: Path, plans: list[dict]) -> dict | None:
@@ -373,15 +373,15 @@ def load_valid_package(directory: Path, plans: list[dict]) -> dict | None:
 
 
 def _swap(staging: Path, target: Path) -> None:
-    """Sustituye el paquete completo; si falla, vuelve a dejar el anterior en su sitio.
+    """Replaces the whole package; if it fails, it puts the previous one back in place.
 
-    Si tampoco se puede restaurar o limpiar, lanza PackageStateError con el estado
-    real en disco y conserva el respaldo. Sin atomicidad frente a cortes abruptos.
+    If it also cannot be restored or cleaned up, it raises PackageStateError with the actual
+    state on disk and keeps the backup. No atomicity against abrupt interruptions.
     """
     backup = target.with_name(f".{target.name}.previo.{os.getpid()}")
     had_previous = target.exists()
     if had_previous:
-        os.replace(target, backup)  # si falla aquí, nada cambió
+        os.replace(target, backup)  # if it fails here, nothing changed
     try:
         os.replace(staging, target)
     except OSError as error:
@@ -390,8 +390,8 @@ def _swap(staging: Path, target: Path) -> None:
                 os.replace(backup, target)
             except OSError as rollback_error:
                 raise PackageStateError(
-                    f"No se pudo instalar el paquete nuevo ({error}) ni restaurar el anterior ({rollback_error}). "
-                    f"{target} no existe ahora; el paquete anterior quedó intacto en {backup}."
+                    f"Could not install the new package ({error}) nor restore the previous one ({rollback_error}). "
+                    f"{target} does not exist now; the previous package was left intact in {backup}."
                 ) from rollback_error
         raise
     if had_previous:
@@ -399,13 +399,13 @@ def _swap(staging: Path, target: Path) -> None:
             shutil.rmtree(backup)
         except OSError as error:
             raise PackageStateError(
-                f"El paquete nuevo quedó instalado en {target}, pero no se pudo eliminar el respaldo del "
-                f"anterior ({error}). Borra {backup} antes de construir o empaquetar."
+                f"The new package was installed in {target}, but the backup of the "
+                f"previous one could not be removed ({error}). Delete {backup} before building or packaging."
             ) from error
 
 
 def _reusable(plan: dict, package: Path | None) -> tuple[dict, bytes] | None:
-    """Entrada e imagen de otro paquete para el mismo sitio y exactamente la misma petición."""
+    """Entry and image from another package for the same site and exactly the same request."""
     if package is None:
         return None
     try:
@@ -421,10 +421,10 @@ def _reusable(plan: dict, package: Path | None) -> tuple[dict, bytes] | None:
 def build(out_dir: Path, fetch_tar, *, refresh: bool = False, clock=_utc_now,
           candidates_path: Path = CANDIDATES, config_path: Path = CONFIG,
           plans: list[dict] | None = None, reuse_from: Path | None = None, max_new: int | None = None) -> tuple[dict, bool]:
-    """Devuelve ``(índice, reutilizado)``. ``fetch_tar(request) -> bytes`` hace la consulta.
+    """Returns ``(index, reused)``. ``fetch_tar(request) -> bytes`` makes the query.
 
-    ``plans`` permite otro snapshot; ``reuse_from`` copia sin red las vistas idénticas de otro
-    paquete (misma petición y hash); ``max_new`` acota las consultas nuevas.
+    ``plans`` allows another snapshot; ``reuse_from`` copies identical views from another
+    package without network access (same request and hash); ``max_new`` limits new queries.
     """
     if plans is None:
         candidates = json.loads(candidates_path.read_text(encoding="utf-8"))
@@ -435,14 +435,14 @@ def build(out_dir: Path, fetch_tar, *, refresh: bool = False, clock=_utc_now,
             return existing, True
 
     out_dir.parent.mkdir(parents=True, exist_ok=True)
-    # Generación completa en un directorio hermano: nunca se mezclan imágenes de dos consultas.
+    # Full generation in a sibling directory: images from two queries are never mixed.
     staging = Path(tempfile.mkdtemp(dir=out_dir.parent, prefix=f".{out_dir.name}."))
     try:
         sites = []
         reused = {plan["site_id"]: _reusable(plan, reuse_from) for plan in plans}
         new = [plan["site_id"] for plan in plans if reused[plan["site_id"]] is None]
         if max_new is not None and len(new) > max_new:
-            raise VisualContextError(f"Harían falta {len(new)} imágenes nuevas; el límite autorizado es {max_new}.")
+            raise VisualContextError(f"{len(new)} new images would be needed; the authorized limit is {max_new}.")
         for plan in plans:
             if reused[plan["site_id"]] is not None:
                 entry, image = reused[plan["site_id"]]
@@ -472,7 +472,7 @@ def build(out_dir: Path, fetch_tar, *, refresh: bool = False, clock=_utc_now,
 
 
 def v3_options() -> dict:
-    """Planes del snapshot v3: ventanas de la rejilla versionada y la referencia v2; Yungay se reutiliza."""
+    """v3 snapshot plans: windows of the versioned grid and the v2 reference; Yungay is reused."""
     from pipelines.discover_candidates import DEFAULT_CONFIG, grid_windows
 
     search = json.loads(DEFAULT_CONFIG.read_text(encoding="utf-8"))
@@ -485,7 +485,7 @@ def v3_options() -> dict:
 
 
 class CopernicusClient:
-    """Token por client credentials y Process API, solo contra hosts oficiales."""
+    """Token via client credentials and Process API, only against official hosts."""
 
     def __init__(self, post=None, sleep=time.sleep, env_file: Path = ROOT / ".env") -> None:
         self._post, self._sleep, self._env_file = post, sleep, env_file
@@ -497,7 +497,7 @@ class CopernicusClient:
             load_dotenv(self._env_file)
         missing = [name for name in CREDENTIAL_NAMES if not os.environ.get(name)]
         if missing:
-            raise VisualContextError(f"Faltan credenciales Copernicus: {', '.join(missing)} (entorno o .env).")
+            raise VisualContextError(f"Missing Copernicus credentials: {', '.join(missing)} (environment or .env).")
         return {
             "grant_type": "client_credentials",
             "client_id": os.environ[CREDENTIAL_NAMES[0]],
@@ -507,17 +507,17 @@ class CopernicusClient:
     def _request(self, url: str, **kwargs):
         target = urlsplit(url)
         if target.scheme != "https" or target.hostname not in OFFICIAL_HOSTS:
-            raise VisualContextError(f"Endpoint no oficial rechazado: {target.hostname}")
+            raise VisualContextError(f"Non-official endpoint rejected: {target.hostname}")
         if self._post is None:
             import requests
             self._post = requests.post
-        outcome = "sin respuesta"
+        outcome = "no response"
         for attempt in range(ATTEMPTS):
             try:
-                # Sin redirecciones: credenciales y token no salen de los hosts oficiales.
+                # No redirects: credentials and token do not leave the official hosts.
                 response = self._post(url, timeout=180, allow_redirects=False, **kwargs)
-            except OSError as error:  # requests.RequestException hereda de OSError
-                outcome = f"fallo de red ({type(error).__name__})"
+            except OSError as error:  # requests.RequestException inherits from OSError
+                outcome = f"network failure ({type(error).__name__})"
             else:
                 if response.status_code == 200:
                     return response
@@ -526,8 +526,8 @@ class CopernicusClient:
                     break
             if attempt + 1 < ATTEMPTS:
                 self._sleep(3 * (attempt + 1))
-        # El cuerpo y las cabeceras se omiten a propósito: podrían reflejar credenciales.
-        raise VisualContextError(f"{target.hostname} no respondió correctamente: {outcome}.")
+        # The body and headers are deliberately omitted: they could reflect credentials.
+        raise VisualContextError(f"{target.hostname} did not respond correctly: {outcome}.")
 
     def _authorized(self, url: str, accept: str, payload: dict):
         if self._token is None:
@@ -536,7 +536,7 @@ class CopernicusClient:
             except (KeyError, TypeError, ValueError) as error:
                 if isinstance(error, VisualContextError):
                     raise
-                raise VisualContextError("Copernicus no devolvió un access token.") from None
+                raise VisualContextError("Copernicus did not return an access token.") from None
         return self._request(
             url,
             headers={"Authorization": f"Bearer {self._token}", "Accept": accept, "Content-Type": "application/json"},
@@ -547,24 +547,24 @@ class CopernicusClient:
         return self._authorized(PROCESS_URL, "application/tar", request).content
 
     def post_json(self, url: str, payload: dict) -> dict:
-        """POST autenticado a otro endpoint oficial de Sentinel Hub (p. ej. Statistical API)."""
+        """Authenticated POST to another official Sentinel Hub endpoint (e.g. Statistical API)."""
         try:
             result = self._authorized(url, "application/json", payload).json()
         except ValueError as error:
             if isinstance(error, VisualContextError):
                 raise
-            raise VisualContextError(f"{urlsplit(url).hostname} devolvió una respuesta que no es JSON.") from None
+            raise VisualContextError(f"{urlsplit(url).hostname} returned a response that is not JSON.") from None
         if not isinstance(result, dict):
-            raise VisualContextError(f"{urlsplit(url).hostname} devolvió un JSON inesperado.")
+            raise VisualContextError(f"{urlsplit(url).hostname} returned unexpected JSON.")
         return result
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
-    parser.add_argument("--refresh", action="store_true", help="consulta de nuevo aunque el paquete local sea válido")
+    parser.add_argument("--refresh", action="store_true", help="query again even if the local package is valid")
     parser.add_argument("--snapshot", choices=("v2", "v3"), default="v2",
-                        help="v3: candidatos de la búsqueda y referencia, en artifacts/visual-context-v3/")
+                        help="v3: search candidates and reference, in artifacts/visual-context-v3/")
     args = parser.parse_args(argv)
     options: dict = {}
     if args.snapshot == "v3":
@@ -574,17 +574,17 @@ def main(argv: list[str] | None = None) -> int:
     try:
         index, reused = build(args.out, CopernicusClient().fetch_tar, refresh=args.refresh, **options)
     except PackageStateError as error:
-        print(f"ERROR de contexto visual: {error}", file=sys.stderr)
+        print(f"Visual context ERROR: {error}", file=sys.stderr)
         return 1
     except (VisualContextError, OSError) as error:
-        print(f"ERROR de contexto visual: {error}\nEl paquete anterior, si existía, no se modificó.", file=sys.stderr)
+        print(f"Visual context ERROR: {error}\nThe previous package, if any, was not modified.", file=sys.stderr)
         return 1
-    origin = "reutilizado sin red" if reused else "consultado a Copernicus"
-    print(f"Contexto visual {origin}: {args.out}")
+    origin = "reused without network" if reused else "queried from Copernicus"
+    print(f"Visual context {origin}: {args.out}")
     for site in index["sites"]:
-        used = "no certificadas" if site["scenes_used"] is None else len(site["scenes_used"])
+        used = "not certified" if site["scenes_used"] is None else len(site["scenes_used"])
         print(f"  {site['site_id']}: {site['width']}×{site['height']} px, "
-              f"{site['scenes_considered']} órbitas consideradas, usadas: {used}, sha256 {site['sha256'][:12]}…")
+              f"{site['scenes_considered']} orbits considered, used: {used}, sha256 {site['sha256'][:12]}…")
     return 0
 
 

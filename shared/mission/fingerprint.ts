@@ -1,9 +1,9 @@
-// Huella determinista (JSON canónico + SHA-256 puro y síncrono) para invalidar
-// resultados y descartar respuestas tardías sin depender de WebCrypto (file://).
+// Deterministic fingerprint (canonical JSON + pure, synchronous SHA-256) to invalidate
+// results and discard late responses without relying on WebCrypto (file://).
 
 export function canonicalJson(value: unknown): string {
   if (value === null || typeof value !== 'object') {
-    if (typeof value === 'number' && !Number.isFinite(value)) throw new Error('Valor no finito en JSON canónico')
+    if (typeof value === 'number' && !Number.isFinite(value)) throw new Error('Non-finite value in canonical JSON')
     return JSON.stringify(value)
   }
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`

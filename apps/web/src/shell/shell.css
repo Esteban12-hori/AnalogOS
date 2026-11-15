@@ -1,9 +1,9 @@
 /*
- * Armazón del escenario fijo (ADR-014). Archivo del integrador.
- * Alturas reservadas = shell/stageGeometry.js (lo verifica tests/shell.test.ts):
+ * Fixed-stage shell (ADR-014). Integrator's file.
+ * Reserved heights = shell/stageGeometry.js (verified by tests/shell.test.ts):
  *   --topbar-h 52/56 px · --banner-h 22 px · --gap 12 px · --dock-h 256/218 px ·
  *   --sheet-s0 248/216 px · --left-w 360 px · --rail-full-w 520 px.
- * Vidrio: ≤3 superficies con blur en escritorio (panel izquierdo, riel, dock); 1 en móvil (hoja).
+ * Glass: ≤3 surfaces with blur on desktop (left panel, rail, dock); 1 on mobile (sheet).
  */
 html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 body { min-height: 0; }
@@ -38,11 +38,11 @@ body { min-height: 0; }
 .app[data-rail="open"] { --dock-right: calc(var(--rail-w) + var(--gap)); }
 .app[data-rail="full"] { --dock-right: calc(var(--rail-full-w) + var(--gap)); }
 
-/* ---- Escenario y capa superior (líneas, arranque) ------------------------------------- */
+/* ---- Stage and top layer (lines, startup) ------------------------------------- */
 .stage { position: fixed; inset: 0; z-index: 0; }
 .stage-overlay { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
 
-/* ---- Barra superior: tinte sin blur ---------------------------------------------------- */
+/* ---- Top bar: tint without blur ---------------------------------------------------- */
 .topbar {
   position: fixed;
   top: 0;
@@ -91,7 +91,7 @@ body { min-height: 0; }
 .science-note.is-fixture { color: #FFD6C9; }
 .science-note.is-fixture > span:first-child { background: var(--muted); }
 
-/* Pestañas de modo (APG) con pulgar CSS */
+/* Mode tabs (APG) with CSS thumb */
 .mode-tabs { position: relative; display: inline-grid; grid-auto-columns: 1fr; grid-auto-flow: column; padding: 3px; border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255, 255, 255, .04); }
 .mode-tabs [role="tab"], .mode-tabs .mode-static { position: relative; z-index: 1; display: grid; place-items: center; min-width: 96px; min-height: 36px; padding: 0 16px; border: 0; border-radius: 999px; background: none; color: var(--muted); cursor: pointer; font-size: var(--fs-13); font-weight: 650; transition: color var(--dur-2) var(--ease-standard); }
 .mode-tabs [role="tab"][aria-selected="true"], .mode-tabs .mode-static[data-selected] { color: #fff; }
@@ -100,7 +100,7 @@ body { min-height: 0; }
 .mode-thumb[data-mode="mision"] { transform: translateX(100%); }
 .mode-dot { display: inline-block; width: 6px; height: 6px; margin-left: 6px; border-radius: 50%; background: var(--ice); vertical-align: middle; }
 
-/* ---- Superficies de vidrio (≤3 en escritorio) ------------------------------------------ */
+/* ---- Glass surfaces (≤3 on desktop) --------------------------------------------------- */
 .left-panel, .rail, .dock, .sheet {
   border: 1px solid var(--glass-edge);
   background: var(--glass-tint);
@@ -111,7 +111,7 @@ body { min-height: 0; }
 
 .reading-pill-slot { position: fixed; top: calc(var(--chrome-top) + var(--gap)); left: var(--gap); z-index: 10; }
 
-/* Panel izquierdo «Misión» (≥1440, modo Misión) */
+/* Left panel “Mission” (≥1440, Mission mode) */
 .left-panel {
   position: fixed;
   top: calc(var(--chrome-top) + var(--gap));
@@ -129,7 +129,7 @@ body { min-height: 0; }
   animation: shellRiseIn var(--dur-3) var(--ease-enter) both;
 }
 
-/* Riel derecho: el lugar */
+/* Right rail: the place */
 .rail {
   position: fixed;
   top: calc(var(--chrome-top) + var(--gap));
@@ -157,7 +157,7 @@ body { min-height: 0; }
 .rail-body { flex: 1; min-height: 0; padding: 14px 16px 16px; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 .rail-empty { color: var(--muted); font-size: var(--fs-13); }
 
-/* Dock inferior: lugares arriba, composer pegado al borde (entre los paneles laterales) */
+/* Bottom dock: places on top, composer attached to the edge (between the side panels) */
 .dock {
   position: fixed;
   right: calc(var(--dock-right) + var(--gap));
@@ -175,7 +175,7 @@ body { min-height: 0; }
 }
 .dock-places { min-height: 0; overflow: hidden; }
 
-/* ---- Hoja única <1100 px: S0 bandeja · S1 lugar · S2 ficha ----------------------------- */
+/* ---- Single sheet <1100 px: S0 tray · S1 place · S2 card ----------------------------- */
 .sheet {
   --sheet-shown: var(--sheet-visible-kb, var(--sheet-visible, var(--sheet-s0)));
   position: fixed;
@@ -212,21 +212,21 @@ body { min-height: 0; }
 .sheet[data-keyboard] .sheet-tray { height: auto; }
 .sheet-tray-places { min-height: 0; overflow: hidden; }
 
-/* ---- Ficha completa (riel de 520 px o S2) ---------------------------------------------- */
+/* ---- Full site sheet (520 px rail or S2) ----------------------------------------------- */
 .full-detail { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; }
 .detail-tabs { display: flex; gap: 2px; margin: 0 0 12px; overflow-x: auto; border-bottom: 1px solid var(--line); scrollbar-width: none; }
 .detail-tabs [role="tab"] { flex: none; min-height: 40px; padding: 0 12px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); cursor: pointer; font-size: var(--fs-12); font-weight: 650; }
 .detail-tabs [role="tab"]:hover { color: var(--text); }
 .detail-tabs [role="tab"][aria-selected="true"] { border-bottom-color: var(--blue-bright); color: var(--text); }
 .detail-tabs [role="tab"]:focus-visible, .detail-panel:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
-/* Pestañas fuera de la vista: ese borde de la tira se difumina (Tabs.tsx marca data-more-start/end;
-   28 px = TAB_EDGE_FADE, la pestaña activa se lleva fuera del difuminado). */
+/* Tabs out of view: that edge of the strip fades (Tabs.tsx sets data-more-start/end;
+   28 px = TAB_EDGE_FADE, the active tab is brought out of the fade). */
 .detail-tabs[data-more-end] { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
 .detail-tabs[data-more-start] { -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px); mask-image: linear-gradient(90deg, transparent, #000 28px); }
 .detail-tabs[data-more-start][data-more-end] { -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
 .detail-panel { min-width: 0; }
 .tab-loading { color: var(--muted); font-size: var(--fs-12); }
-/* Las secciones antiguas pierden su vidrio dentro de la ficha (≤3 blur). */
+/* The old sections lose their glass inside the card (≤3 blur). */
 .full-detail .glass { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .full-detail .glass::after { display: none; }
 .full-detail .signals-grid, .full-detail .comparison-grid, .full-detail .method-steps, .full-detail .two-column-notes { grid-template-columns: 1fr; }
@@ -279,45 +279,45 @@ body { min-height: 0; }
   .mode-thumb { transition: none; }
 }
 
-/* ---- Armazón estático previo a React (content/shell.ts): mismas cajas, sin contenido ------ */
+/* ---- Static shell prior to React (content/shell.ts): same boxes, no content ------ */
 @media (max-width: 1099px) { .app[data-static] .dock { display: none; } }
 @media (min-width: 1100px) { .app[data-static] .sheet { display: none; } }
 
-/* ---- Integración globe ↔ leaders ------------------------------------------------------------
-   El globo dibuja el rótulo del lugar seleccionado a la derecha del pin. Si la columna de líneas
-   Tesla también queda a la derecha, sus etiquetas lo taparían: mientras se ven las líneas, el pin
-   seleccionado queda solo con su anillo (nombre y % siguen en el riel o la hoja). */
+/* ---- Globe ↔ leaders integration ------------------------------------------------------------
+   The globe draws the selected place's label to the right of the pin. If the Tesla line
+   column is also on the right, its labels would cover it: while the lines are visible, the pin
+   selected is left with only its ring (name and % remain in the rail or the sheet). */
 .app:has(.leaders-layer[data-mode="lines"][data-side="right"]) .globe-pin.is-selected .globe-pin-label { opacity: 0; }
-/* Hoja lateral (horizontal): la única línea sale hacia la derecha a la altura del anillo y
-   cruzaría el rótulo del pin; como en escritorio, el rótulo cede (el nombre está en la hoja). */
+/* Side sheet (horizontal): the single line exits to the right at the height of the ring and
+   would cross the pin's label; as on desktop, the label yields (the name is in the sheet). */
 .app:has(.sheet[data-side]):has(.leaders-mobile .leaders-path[d]:not([d=""])) .globe-pin.is-selected .globe-pin-label { opacity: 0; }
 
-/* ---- Landmarks: <main> no altera el layout (todo es position: fixed) --------------------- */
+/* ---- Landmarks: <main> does not alter the layout (everything is position: fixed) --------------------- */
 .app-main { display: contents; }
 
-/* ---- Atribución de los datos que producen los % (siempre visible, §4.3) ------------------ */
+/* ---- Attribution of the data that produce the % (always visible, §4.3) ------------------ */
 .stage-data-credit { flex-basis: 100%; margin: 0; color: var(--muted); font-size: var(--fs-min); line-height: 1.35; }
 
-/* ---- Foco sobre imágenes del escenario: anillo + halo oscuro (≥3:1 con cualquier fondo) --- */
+/* ---- Focus on stage images: ring + dark halo (≥3:1 on any background) --- */
 .globe-pin-button:focus-visible,
 .globe-cluster-chip:focus-visible,
 .globe-cluster-item:focus-visible,
 .stage-controls button:focus-visible,
 .stage-dock button:focus-visible,
 .stage-center-chip:focus-visible { outline: var(--focus-ring); outline-offset: 2px; box-shadow: var(--focus-halo); }
-/* Un pin atenuado cerca del horizonte recupera la opacidad completa al recibir el foco. */
+/* A dimmed pin near the horizon regains full opacity when it receives focus. */
 .globe-pin:focus-within { opacity: 1 !important; }
 
-/* ---- El anillo de foco no se recorta dentro de contenedores con overflow (§1.20) ---------- */
+/* ---- The focus ring is not clipped inside containers with overflow (§1.20) ---------- */
 .places-tool:focus-visible { outline-offset: -2px; }
-/* El contador cambia de ancho sin mover las flechas ni «Ver lista» (CLS 0). */
+/* The counter changes width without moving the arrows or “View list” (CLS 0). */
 .places-count { min-width: 9ch; text-align: right; }
 
-/* ---- Objetivos táctiles ≥44 px con puntero grueso: área invisible centrada, sin cambiar el
-        dibujo ni las alturas que reserva stageGeometry.js ----------------------------------- */
+/* ---- Touch targets ≥44 px with coarse pointer: invisible centered area, without changing the
+        drawing or the heights that stageGeometry.js reserves ----------------------------------- */
 @media (pointer: coarse) {
-  /* Conmutador y flechas del carrusel: alto real de 44 px (la cabecera va pegada al borde con
-     overflow: un área invisible quedaría recortada o bajo las tarjetas). */
+  /* Carousel toggle and arrows: real height of 44 px (the header sits flush against the edge with
+     overflow: an invisible area would be clipped or end up under the cards). */
   .places-tool { min-width: 44px; min-height: 44px; }
   .places-arrow { width: 44px; }
   .sheet-handle, .rail-close, .sheet-close, .sheet-back, .sheet-more, .rail-action,
@@ -337,31 +337,31 @@ body { min-height: 0; }
     height: max(100%, 44px);
     transform: translate(-50%, -50%);
   }
-  /* La manija crece hacia arriba (fuera de la hoja): no tapa el conmutador de la bandeja. */
+  /* The handle grows upward (outside the sheet): it does not cover the tray toggle. */
   .sheet-handle::after { top: auto; bottom: 0; transform: translateX(-50%); }
 }
 
-/* Hoja lateral (horizontal bajo): la bandeja usa el alto de la hoja, no el de la S0 inferior. */
+/* Side sheet (low horizontal): the tray uses the sheet's height, not that of the lower S0. */
 .sheet[data-side] .sheet-tray { height: 100%; }
 
-/* Panel izquierdo (≥1440, Misión): dos regiones con scroll propio. Con un resultado vigente,
-   «Tu misión» (resultado compacto) ocupa como máximo ~45 % y la Lectura el resto: el veredicto y
-   el limitante quedan a la vista sin desplazar (§4.2). Antes de evaluar, o al editar, manda el
-   planificador del equipo: la Lectura (solo hechos del snapshot) queda en una franja de ~22 %. */
+/* Left panel (≥1440, Mission): two regions with their own scroll. With a current result,
+   “Your mission” (compact result) takes up at most ~45 % and the Reading the rest: the verdict and
+   the limiting factor stay in view without scrolling (§4.2). Before evaluating, or when editing, the
+   team planner takes precedence: the Reading (only snapshot facts) stays in a strip of ~22 %. */
 .left-panel { display: flex; flex-direction: column; overflow: hidden; }
 .left-panel > [data-slot="left.mission"] { flex: 0 1 auto; min-height: 0; max-height: 45%; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 .left-panel > [data-slot="left.reading"] { flex: 1 1 0; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 .left-panel[data-focus="mission"] > [data-slot="left.mission"] { flex: 1 1 auto; max-height: none; }
 .left-panel[data-focus="mission"] > [data-slot="left.reading"] { flex: 0 1 auto; min-height: 96px; max-height: 22%; }
-/* «Siguiente →» siempre a mano mientras se recorre un paso largo. */
+/* “Next →” always at hand while going through a long step. */
 .left-panel .planner.is-compact .pl-nav { position: sticky; bottom: 0; z-index: 1; margin: 10px 0 0; padding: 8px 0; border-top: 1px solid var(--glass-edge); background: rgb(4, 10, 14); }
 
-/* Informe imprimible de la misión (ADR-013): uno por página, montado en la raíz mientras haya una
-   evaluación vigente. En pantalla no se ve; al imprimir es lo único visible. */
+/* Printable mission report (ADR-013): one per page, mounted at the root whenever there is a
+   current evaluation. On screen it is not visible; when printing it is the only thing visible. */
 .mission-print { display: none; }
-/* M11: el escenario fijo (html/body/#root a 100 % con overflow oculto y .app fixed) recortaba el
-   informe a una página; al imprimir todo vuelve al flujo normal y pagina. Sin informe vigente el
-   host imprime un aviso (nunca una página vacía ni un informe viejo). */
+/* M11: the fixed stage (html/body/#root at 100 % with hidden overflow and .app fixed) clipped the
+   report to one page; when printing, everything returns to normal flow and paginates. Without a current report the
+   host prints a notice (never an empty page or an old report). */
 @page { margin: 16mm 14mm; }
 @media print {
   html, body, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; overscroll-behavior: auto; }
@@ -371,19 +371,19 @@ body { min-height: 0; }
   .app > :not(.mission-print), [popover] { display: none !important; }
   .app > .mission-print { display: block !important; position: static; }
   .mission-print a { color: #000 !important; text-decoration: underline; overflow-wrap: anywhere; }
-  /* Enlaces: la URL completa queda impresa (salvo cuando el texto ya es la URL). */
+  /* Links: the full URL is printed (except when the text is already the URL). */
   .mission-print a[href^="http"]:not(.pl-url)::after { content: " (" attr(href) ")"; font-size: 8.5pt; overflow-wrap: anywhere; }
   .mission-print h1, .mission-print h2, .mission-print h3 { break-after: avoid-page; page-break-after: avoid; }
   .mission-print p, .mission-print li, .mission-print td, .mission-print th, .mission-print code { overflow-wrap: anywhere; }
   .mission-print thead { display: table-header-group; }
-  /* Bloque corto: las versiones y sus huellas se conservan juntas al cambiar de página. */
+  /* Short block: the versions and their fingerprints are kept together when the page changes. */
   .mission-print .pl-print-provenance { break-inside: avoid; page-break-inside: avoid; }
   .mission-print tr { break-inside: avoid; page-break-inside: avoid; }
   .mission-print .pl-table-wrap { overflow: visible !important; }
   .mission-print .pl-table { min-width: 0 !important; }
-  /* Ronda 3: tabla de criterios (seis columnas) con layout fijo y anchos equilibrados; con layout
-     automático, overflow-wrap:anywhere dejaba «Requisito» y «Observado» en ~6 % y partía palabras.
-     Las palabras solo se parten si no caben; los enlaces largos sí se parten. */
+  /* Round 3: criteria table (six columns) with fixed layout and balanced widths; with automatic layout,
+     overflow-wrap:anywhere left “Requirement” and “Observed” at ~6 % and broke words.
+     Words are only broken if they do not fit; long links are broken. */
   .mission-print .pl-criteria-table { table-layout: fixed; width: 100%; }
   .mission-print .pl-criteria-table th, .mission-print .pl-criteria-table td { overflow-wrap: break-word; word-break: normal; hyphens: manual; }
   .mission-print .pl-criteria-table a, .mission-print .pl-criteria-table code { overflow-wrap: anywhere; }
@@ -401,8 +401,8 @@ body { min-height: 0; }
   .mission-print table { width: 100%; border-collapse: collapse; font-size: 9pt; }
   .mission-print th, .mission-print td { padding: 2pt 4pt; border: 1px solid #888; text-align: left; vertical-align: top; }
   .mission-print .pl-pre { white-space: pre-wrap; }
-  /* Secciones largas (un sector con su tabla, la geología de un sector) SÍ se parten entre páginas:
-     evitarlo dejaba huecos o recortes. Solo la figura se mantiene entera. */
+  /* Long sections (a sector with its table, the geology of a sector) DO break across pages:
+     avoiding it left gaps or clipping. Only the figure is kept whole. */
   .mission-print .pl-print-opt, .mission-print .pl-print-only .pl-print-opt { break-inside: auto !important; page-break-inside: auto !important; }
   .mission-print svg { max-width: 340px; break-inside: avoid; }
   .mission-print .pl-fig-bg { fill: #fff; }
@@ -412,7 +412,7 @@ body { min-height: 0; }
   .mission-print .pl-fig-label { fill: #000; }
 }
 
-/* Acciones del lugar (ADR-013): «Evaluar este sector» y «Exportar ficha (JSON)». */
+/* Place actions (ADR-013): “Evaluate this sector” and “Export card (JSON)”. */
 .rail-subactions { display: flex; justify-content: flex-end; gap: 6px; margin: 0 0 8px; }
 .detail-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .detail-role { margin: 0; color: var(--muted); font-size: var(--fs-12); }

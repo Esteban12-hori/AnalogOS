@@ -1,7 +1,7 @@
 /**
- * Un cuadro de las líneas Tesla: de la escena (contenido medido + layout asentado) y del cuadro
- * del escenario (proyección + ancla) a posiciones en pantalla. Puro; lo llama el controlador en
- * cada cuadro de cámara sin pasar por React.
+ * One frame of the Tesla lines: from the scene (measured content + settled layout) and from the stage's frame
+ * (projection + anchor) to screen positions. Pure; the controller calls it on
+ * every camera frame without going through React.
  */
 import type { CandidateGeometry } from '../../domain/contracts'
 import type { StageInsets } from '../../state/ui'
@@ -12,25 +12,25 @@ import { polygonWidthFraction, resolveAnchor, safeAreaFor, sheetEdge, type Stage
 
 export type Size = { width: number; height: number }
 
-/** Lo que cambia con el contenido o el layout asentado (nunca por cuadro). */
+/** What changes with the content or the settled layout (never per frame). */
 export interface LeaderScene {
   siteId: string
   geometry: CandidateGeometry
-  /** <1100 px: una sola línea hasta el borde superior de la hoja. */
+  /** <1100 px: a single line up to the top edge of the sheet. */
   narrow: boolean
-  /** Horizontal bajo: hoja lateral de 360 px. */
+  /** Short landscape: 360 px side sheet. */
   sideSheet: boolean
   compact: boolean
   viewport: Size
   insets: StageInsets
   obstacles: readonly Rect[]
-  /** Etiquetas medidas, en orden de prioridad (vacío en móvil). */
+  /** Measured labels, in priority order (empty on mobile). */
   labels: ReadonlyArray<{ id: string; width: number; height: number }>
   header: Size | null
   chip: Size | null
 }
 
-/** Memoria de histéresis entre cuadros. */
+/** Hysteresis memory between frames. */
 export interface LeaderMemory {
   side: 'left' | 'right' | null
   count: number | undefined
@@ -38,7 +38,7 @@ export interface LeaderMemory {
 
 export const FRESH_MEMORY: LeaderMemory = Object.freeze({ side: null, count: undefined })
 
-/** 'off' = el escenario no publica o no hay nada que dibujar. */
+/** 'off' = the stage does not publish or there is nothing to draw. */
 export type LeaderFrameMode = 'off' | 'lines' | 'docked' | 'chip' | 'mobile'
 
 export interface LeaderFrame {
@@ -59,7 +59,7 @@ function off(side: 'left' | 'right'): LeaderFrame {
 
 export function computeLeaderFrame(scene: LeaderScene, stage: StageFrameInput, memory: LeaderMemory): LeaderFrame {
   const side = memory.side ?? 'right'
-  // Sin proyección ni ancla el escenario no sabe dónde está el sector: no se dibuja nada.
+  // Without a projection or an anchor the stage does not know where the sector is: nothing is drawn.
   if (!stage.projection && !stage.anchor) return off(side)
   const { anchor, bounds } = resolveAnchor(scene.siteId, scene.geometry, stage)
   const safeArea = safeAreaFor(scene.viewport, scene.insets)
@@ -73,7 +73,7 @@ export function computeLeaderFrame(scene: LeaderScene, stage: StageFrameInput, m
 
   if (scene.labels.length === 0) return off(side)
   const layout = layoutLeaders({
-    // Sin ancla (el sector quedó detrás del globo o fuera del encuadre): visible 0 → chip.
+    // Without an anchor (the sector ended up behind the globe or outside the framing): visible 0 → chip.
     anchor: anchor ?? { x: safeArea.x + safeArea.width / 2, y: safeArea.y + safeArea.height / 2, radius: 0, visible: 0 },
     labels: scene.labels,
     safeArea,
@@ -98,7 +98,7 @@ export function computeLeaderFrame(scene: LeaderScene, stage: StageFrameInput, m
   }
 }
 
-/** Memoria para el cuadro siguiente: el lado y la cantidad mostrados (un 'off' no la borra). */
+/** Memory for the next frame: the side and the count shown (an 'off' does not erase it). */
 export function nextMemory(previous: LeaderMemory, frame: LeaderFrame): LeaderMemory {
   if (frame.mode === 'off' || frame.mode === 'mobile') return previous
   return { side: frame.side, count: frame.count }

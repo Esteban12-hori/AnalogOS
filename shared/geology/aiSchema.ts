@@ -1,5 +1,5 @@
-// Esquema de SALIDA con canal geológico (opt-in). Extiende el de M8 sin modificarlo: el campo extra se separa
-// antes de validar la selección M8 con su contrato intacto.
+// OUTPUT schema with geological channel (opt-in). Extends the M8 one without modifying it: the extra field is separated
+// before validating the M8 selection with its contract intact.
 import { EXPLAIN_SCHEMA } from '../mission/aiSchemas'
 
 export const EXPLAIN_GEOLOGY_SCHEMA = {

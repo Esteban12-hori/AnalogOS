@@ -1,15 +1,15 @@
 /**
- * Contratos de datos de la web. Los TIPOS del snapshot, la búsqueda y los antecedentes son los de
- * shared/domain/contracts.ts (compartidos con la función Node de IA, ADR-009); aquí solo se
- * reexportan como tipos, para no arrastrar Ajv en runtime al navegador.
- *
- * La validación en el límite usa validadores precompilados (scripts/build-validators.mjs) con los
- * mismos esquemas y mensajes:
- * - snapshotContracts.ts: candidatos, manifiesto y perfil (chunk principal).
- * - discoveryContracts.ts: búsqueda y antecedentes v3 (chunk diferido).
- * - referenceAnalogContract.ts: catálogo de ◆ (chunk diferido).
- * Este archivo los reexporta para tests y herramientas; el código del chunk principal importa
- * los valores en tiempo de ejecución desde su módulo concreto (criteria, snapshotContracts).
+ * Web data contracts. The snapshot, search, and background TYPES are those of
+ * shared/domain/contracts.ts (shared with the AI Node function, ADR-009); here they are only
+ * re-exported as types, so as not to drag Ajv into the browser at runtime.
+
+ * Validation at the boundary uses precompiled validators (scripts/build-validators.mjs) with the
+ * same schemas and messages:
+ * - snapshotContracts.ts: candidates, manifest, and profile (main chunk).
+ * - discoveryContracts.ts: search and v3 background (deferred chunk).
+ * - referenceAnalogContract.ts: ◆ catalog (deferred chunk).
+ * This file re-exports them for tests and tooling; the main chunk code imports
+ * the runtime values from their specific module (criteria, snapshotContracts).
  */
 export type {
   CandidateGeometry,
@@ -45,8 +45,8 @@ export { assertSnapshotContracts, errorSummary } from './snapshotContracts'
 export { assertDiscoveryContracts } from './discoveryContracts'
 
 // ---------------------------------------------------------------------------
-// Análogos de referencia (◆): contracts/reference-analog.schema.json
-// No tienen similitud, confianza ni ranking: el contrato no ofrece dónde ponerlos.
+// Reference analogs (◆): contracts/reference-analog.schema.json
+// They have no similarity, confidence, or ranking: the contract offers no place to put them.
 // ---------------------------------------------------------------------------
 
 export interface ReferenceAnalogSource {
@@ -55,7 +55,7 @@ export interface ReferenceAnalogSource {
   publisher?: string
 }
 
-/** Punto citado con radio de incertidumbre: se dibuja como «zona aproximada», nunca como pin. */
+/** Cited point with an uncertainty radius: it is drawn as an "approximate zone", never as a pin. */
 export interface ApproximatePointLocation {
   kind: 'approximate_point'
   lon: number
@@ -63,7 +63,7 @@ export interface ApproximatePointLocation {
   radius_km: number
 }
 
-/** Región extensa como caja [oeste, sur, este, norte]. */
+/** Extensive region as a box [west, south, east, north]. */
 export interface RegionLocation {
   kind: 'region'
   bbox: [number, number, number, number]

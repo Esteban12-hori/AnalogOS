@@ -1,8 +1,8 @@
 /*
- * Extras del composer (chunk de misión): chips «Refinar» y recientes ⟲. Prefijo .composer-*.
+ * Composer extras (mission chunk): «Refine» chips and recent items ⟲. Prefix .composer-*.
  */
-/* Chips «Refinar»: aparecen al enfocar el composer, sobre él; el dock no crece. */
-/* Franja con fondo sólido: en el dock queda sobre las tarjetas del carrusel y debe leerse sin mezclarse. */
+/* «Refine» chips: they appear when the composer is focused, above it; the dock does not grow. */
+/* Strip with a solid background: in the dock it sits over the carousel cards and must be readable without blending in. */
 .composer-chips { position: absolute; right: 8px; bottom: calc(100% + 6px); left: 8px; z-index: 3; display: none; align-items: center; gap: 6px; padding: 4px 6px; overflow-x: auto; border-radius: 999px; background: var(--marker-bg); scrollbar-width: none; }
 .composer:focus-within .composer-chips { display: flex; animation: composerIn var(--dur-2) var(--ease-enter) both; }
 .composer-chips-label { flex: none; color: var(--muted); font-family: var(--mono); font-size: var(--fs-min); letter-spacing: var(--caps-tracking); text-transform: uppercase; }

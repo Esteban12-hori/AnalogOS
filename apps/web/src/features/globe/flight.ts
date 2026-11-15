@@ -1,20 +1,20 @@
 /**
- * Vuelo de cámara del globo (docs/UX_REDESIGN.md §2.2 regla 4). Funciones puras, sin three.js:
+ * Globe camera flight (docs/UX_REDESIGN.md §2.2 rule 4). Pure functions, no three.js:
  *
- *   duración = clamp(650 + 7·Δθ° + 250·|log2(h1/h0)|, 650, 1800) ms
- *   curva    = easeInOutCubic ≡ cubic-bezier(.65, 0, .35, 1)
- *   arco de altitud solo si Δθ > 25°
+ *   duration = clamp(650 + 7·Δθ° + 250·|log2(h1/h0)|, 650, 1800) ms
+ *   curve    = easeInOutCubic ≡ cubic-bezier(.65, 0, .35, 1)
+ *   altitude arc only if Δθ > 25°
  *
- * La dirección se interpola por slerp y la altitud en escala logarítmica (los cambios de zoom se
- * perciben uniformes). Con reduced motion la cámara corta: duración 0.
+ * The direction is interpolated by slerp and the altitude on a logarithmic scale (zoom changes are
+ * perceived as uniform). With reduced motion the camera cuts: duration 0.
  */
 import type { Vec3 } from '../../domain/globe'
 
 export const FLIGHT_MIN_MS = 650
 export const FLIGHT_MAX_MS = 1800
-/** Por encima de este ángulo el vuelo sube en arco para que se lea el desplazamiento. */
+/** Above this angle the flight rises in an arc so that the movement is readable. */
 export const ARC_THRESHOLD_DEG = 25
-/** Subida máxima del arco sobre la altitud interpolada (fracción). */
+/** Maximum rise of the arc over the interpolated altitude (fraction). */
 export const ARC_MAX_LIFT = 0.8
 
 const DEG = Math.PI / 180
@@ -23,27 +23,27 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
 
-/** Duración del vuelo en ms según el ángulo recorrido (grados) y las altitudes inicial y final. */
+/** Flight duration in ms according to the angle traveled (degrees) and the initial and final altitudes. */
 export function flightDurationMs(deltaDeg: number, fromAltitude: number, toAltitude: number): number {
   const zoomTerm = fromAltitude > 0 && toAltitude > 0 ? Math.abs(Math.log2(toAltitude / fromAltitude)) : 0
   return clamp(FLIGHT_MIN_MS + 7 * Math.abs(deltaDeg) + 250 * zoomTerm, FLIGHT_MIN_MS, FLIGHT_MAX_MS)
 }
 
-/** easeInOutCubic: 0→0, 0,5→0,5, 1→1, simétrica. */
+/** easeInOutCubic: 0→0, 0.5→0.5, 1→1, symmetric. */
 export function easeInOutCubic(t: number): number {
   const x = clamp(t, 0, 1)
   return x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2
 }
 
-/** Subida relativa del arco: 0 hasta 25°, crece con el ángulo y se satura en ARC_MAX_LIFT. */
+/** Relative rise of the arc: 0 up to 25°, grows with the angle and saturates at ARC_MAX_LIFT. */
 export function arcLift(deltaDeg: number): number {
   if (deltaDeg <= ARC_THRESHOLD_DEG) return 0
   return Math.min(ARC_MAX_LIFT, (deltaDeg - ARC_THRESHOLD_DEG) / 100)
 }
 
 /**
- * Altitud en el progreso `eased` (0–1): interpolación geométrica h0→h1 más el arco
- * (1 + lift·sin(π·e)), que vale 0 en ambos extremos y es máximo a mitad del vuelo.
+ * Altitude at progress `eased` (0–1): geometric interpolation h0→h1 plus the arc
+ * (1 + lift·sin(π·e)), which equals 0 at both ends and is maximal at mid-flight.
  */
 export function flightAltitude(eased: number, fromAltitude: number, toAltitude: number, deltaDeg: number): number {
   const e = clamp(eased, 0, 1)
@@ -62,7 +62,7 @@ export function normalize(v: Vec3): Vec3 {
   return [v[0] / l, v[1] / l, v[2] / l]
 }
 
-/** Ángulo entre dos direcciones, en grados. */
+/** Angle between two directions, in degrees. */
 export function angleBetweenDeg(a: Vec3, b: Vec3): number {
   const na = normalize(a)
   const nb = normalize(b)
@@ -70,7 +70,7 @@ export function angleBetweenDeg(a: Vec3, b: Vec3): number {
   return Math.acos(dot) / DEG
 }
 
-/** Slerp entre direcciones unitarias; resuelve los casos paralelo y antipodal. */
+/** Slerp between unit directions; handles the parallel and antipodal cases. */
 export function slerpDirection(from: Vec3, to: Vec3, t: number): Vec3 {
   const a = normalize(from)
   const b = normalize(to)
@@ -78,8 +78,8 @@ export function slerpDirection(from: Vec3, to: Vec3, t: number): Vec3 {
   const omega = Math.acos(dot)
   if (omega < 1e-6) return b
   if (Math.PI - omega < 1e-6) {
-    // Antípodas: cualquier gran círculo sirve; se elige uno estable perpendicular a `a`
-    // y se recorre en dos cuartos de vuelta.
+    // Antipodes: any great circle works; a stable one perpendicular to `a` is chosen
+    // and it is traveled in two quarter turns.
     const helper: Vec3 = Math.abs(a[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0]
     const perpendicular = normalize([
       a[1] * helper[2] - a[2] * helper[1],
@@ -95,9 +95,9 @@ export function slerpDirection(from: Vec3, to: Vec3, t: number): Vec3 {
 }
 
 export interface CameraPose {
-  /** Dirección unitaria desde el centro del globo hacia la cámara. */
+  /** Unit direction from the center of the globe toward the camera. */
   direction: Vec3
-  /** Altitud sobre la superficie (unidades de escena). */
+  /** Altitude above the surface (scene units). */
   altitude: number
 }
 
@@ -105,11 +105,11 @@ export interface FlightPlan {
   from: CameraPose
   to: CameraPose
   deltaDeg: number
-  /** 0 = corte (reduced motion o vuelo nulo). */
+  /** 0 = cut (reduced motion or zero-length flight). */
   durationMs: number
 }
 
-/** Plan de vuelo entre dos poses. `reducedMotion` lo convierte en corte. */
+/** Flight plan between two poses. `reducedMotion` turns it into a cut. */
 export function planFlight(from: CameraPose, to: CameraPose, reducedMotion = false): FlightPlan {
   const deltaDeg = angleBetweenDeg(from.direction, to.direction)
   return {
@@ -120,7 +120,7 @@ export function planFlight(from: CameraPose, to: CameraPose, reducedMotion = fal
   }
 }
 
-/** Pose del vuelo a los `elapsedMs` y si ya terminó (el último cuadro cae exacto en el destino). */
+/** Flight pose at `elapsedMs` and whether it has already finished (the last frame lands exactly on the destination). */
 export function sampleFlight(plan: FlightPlan, elapsedMs: number): CameraPose & { done: boolean } {
   if (plan.durationMs <= 0 || elapsedMs >= plan.durationMs) return { ...plan.to, done: true }
   const eased = easeInOutCubic(Math.max(0, elapsedMs) / plan.durationMs)

@@ -9,23 +9,23 @@ import { AppShell } from './shell/AppShell'
 type SnapshotState = Pick<AppData, 'status' | 'snapshot' | 'error'>
 
 /**
- * Promesa del producto (la misma que el planificador del equipo, ADR-009): prioriza para
- * reconocimiento; no aprueba terreno. El armazón la muestra en el estado inicial de Explorar y
- * en la cabecera de Misión.
+ * Product promise (the same as the team planner, ADR-009): it prioritizes for
+ * reconnaissance; it does not approve terrain. The shell shows it in the initial Explore state and
+ * in the Mission header.
  */
 const PRODUCT_PROMISE =
-  'Prioriza qué sectores merecen reconocimiento para un ensayo de rover, con medidas regionales y verificaciones de campo pendientes. No mide tracción ni aprueba terreno.'
+  'Prioritizes which sectors deserve reconnaissance for a rover test, with regional measurements and pending field checks. It does not measure traction or approve terrain.'
 
 /**
- * Carga los datos en el límite del sistema (snapshot validado contra los contratos y contexto
- * visual opcional) y entrega el armazón. El armazón se dibuja sin esperar los datos.
+ * Loads the data at the system boundary (snapshot validated against the contracts and optional
+ * visual context) and delivers the shell. The shell is drawn without waiting for the data.
  */
 function App() {
   const [state, setState] = useState<SnapshotState>({ status: 'loading', snapshot: null, error: null })
   const [visual, setVisual] = useState<VisualContextState>({ status: 'loading' })
   const [geology, setGeology] = useState<AppGeology | undefined>(undefined)
 
-  // El contexto visual es opcional: se carga aparte y nunca bloquea ni rompe el snapshot.
+  // The visual context is optional: it is loaded separately and never blocks or breaks the snapshot.
   useEffect(() => {
     let active = true
     void loadVisualContext().then((next) => {
@@ -36,9 +36,9 @@ function App() {
     }
   }, [])
 
-  // El contexto geológico oficial (M9) es opcional: se valida contra los candidatos ya cargados y
-  // nunca bloquea la ficha ni la misión. Su validador (Ajv en runtime) va en un chunk diferido, que se
-  // pide en un momento ocioso para no competir con el arranque del globo.
+  // The official geological context (M9) is optional: it is validated against the already loaded candidates and
+  // never blocks the detail sheet or the mission. Its validator (Ajv at runtime) goes in a deferred chunk, which is
+  // requested at an idle moment so as not to compete with the globe startup.
   const candidatesForGeology = state.status === 'ready' && state.snapshot ? state.snapshot.candidates : null
   useEffect(() => {
     if (!candidatesForGeology) return
@@ -46,7 +46,7 @@ function App() {
     const start = () => {
       void import('./data/loadAppGeology')
         .then((module) => module.loadAppGeology(candidatesForGeology))
-        .catch((): AppGeology => ({ state: { status: 'unavailable', reason: 'No se pudo cargar el módulo del contexto geológico.' }, readySites: new Set() }))
+        .catch((): AppGeology => ({ state: { status: 'unavailable', reason: 'The geological context module could not be loaded.' }, readySites: new Set() }))
         .then((next) => {
           if (active) setGeology(next)
         })
@@ -68,7 +68,7 @@ function App() {
       })
       .catch((error: unknown) => {
         if (!active) return
-        const message = error instanceof Error ? error.message : 'Error desconocido al cargar el snapshot.'
+        const message = error instanceof Error ? error.message : 'Unknown error while loading the snapshot.'
         setState({ status: 'error', snapshot: null, error: message })
       })
     return () => {
@@ -80,10 +80,10 @@ function App() {
     return (
       <main className="system-state error-state">
         <LiquidBackdrop />
-        <span>✕ Error de datos</span>
-        <h1>No pudimos abrir la demostración.</h1>
+        <span>✕ Data error</span>
+        <h1>We could not open the demo.</h1>
         <p role="alert">{state.error}</p>
-        <button type="button" onClick={() => window.location.reload()}>Reintentar</button>
+        <button type="button" onClick={() => window.location.reload()}>Retry</button>
       </main>
     )
   }

@@ -1,20 +1,20 @@
 /**
- * Geometría pura del escenario (incremento 4): punto-en-polígono, regiones y zonas aproximadas.
- * Sin three.js ni DOM. Coordenadas siempre [lon, lat] en grados WGS84.
+ * Pure scene geometry (increment 4): point-in-polygon, regions and approximate zones.
+ * No three.js or DOM. Coordinates are always [lon, lat] in WGS84 degrees.
  *
- * Regla de datos (docs/UX_REDESIGN.md §1.16): un ◆ cuyo punto citado cae dentro de un sector
- * evaluado se muestra como insignia «coincide con» sobre ese ●; una región tiene su ◆ propio, y
- * «contiene N sectores» solo se afirma si este test de punto-en-polígono lo respalda.
+ * Data rule (docs/UX_REDESIGN.md §1.16): a ◆ whose cited point falls inside an evaluated
+ * sector is shown as a "matches" badge on that ●; a region has its own ◆, and
+ * "contains N sectors" is only claimed if this point-in-polygon test supports it.
  */
 import type { CandidateGeometry, Position, ReferenceAnalog } from '../../domain/contracts'
 
 const DEG = Math.PI / 180
-/** Radio medio terrestre (km), el mismo de domain/mapZoom. */
+/** Mean Earth radius (km), the same as in domain/mapZoom. */
 export const EARTH_RADIUS_KM = 6371.0088
 
 /**
- * Punto en anillo por paridad de cruces (ray casting) en el plano lon/lat. Suficiente para
- * sectores de decenas de km lejos de los polos. El anillo puede venir cerrado o abierto.
+ * Point in ring by crossing parity (ray casting) in the lon/lat plane. Sufficient for
+ * sectors of tens of km far from the poles. The ring may be closed or open.
  */
 export function pointInRing(point: Position, ring: readonly Position[]): boolean {
   const [x, y] = point
@@ -30,7 +30,7 @@ export function pointInRing(point: Position, ring: readonly Position[]): boolean
   return inside
 }
 
-/** Punto dentro de un Polygon (fuera de sus huecos) o de cualquier parte de un MultiPolygon. */
+/** Point inside a Polygon (outside its holes) or inside any part of a MultiPolygon. */
 export function pointInGeometry(point: Position, geometry: CandidateGeometry): boolean {
   const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
   return polygons.some(([outer, ...holes]) => outer !== undefined && pointInRing(point, outer) && !holes.some((hole) => pointInRing(point, hole)))
@@ -38,19 +38,19 @@ export function pointInGeometry(point: Position, geometry: CandidateGeometry): b
 
 export type Bbox = readonly [west: number, south: number, east: number, north: number]
 
-/** ¿El punto cae en la caja [oeste, sur, este, norte]? Admite cajas que cruzan el antimeridiano. */
+/** Does the point fall within the box [west, south, east, north]? Supports boxes that cross the antimeridian. */
 export function bboxContains([lon, lat]: Position, [west, south, east, north]: Bbox): boolean {
   if (lat < south || lat > north) return false
   return west <= east ? lon >= west && lon <= east : lon >= west || lon <= east
 }
 
-/** Anillo cerrado de la caja (para dibujarla como zona aproximada). */
+/** Closed ring of the box (to draw it as an approximate zone). */
 export function bboxRing([west, south, east, north]: Bbox): Position[] {
   const eastUnwrapped = west <= east ? east : east + 360
   return [[west, south], [eastUnwrapped, south], [eastUnwrapped, north], [west, north], [west, south]]
 }
 
-/** Centro de la caja, con el antimeridiano resuelto. */
+/** Center of the box, with the antimeridian resolved. */
 export function bboxCenter([west, south, east, north]: Bbox): Position {
   const eastUnwrapped = west <= east ? east : east + 360
   let lon = (west + eastUnwrapped) / 2
@@ -58,14 +58,14 @@ export function bboxCenter([west, south, east, north]: Bbox): Position {
   return [lon, (south + north) / 2]
 }
 
-/** Todos los vértices de los anillos exteriores caen dentro de la caja (test punto-en-polígono). */
+/** All vertices of the outer rings fall within the box (point-in-polygon test). */
 export function geometryInsideBbox(geometry: CandidateGeometry, bbox: Bbox): boolean {
   const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
   const vertices = polygons.flatMap((polygon) => polygon[0] ?? [])
   return vertices.length > 0 && vertices.every((vertex) => bboxContains(vertex, bbox))
 }
 
-/** Punto a `distanceKm` desde `origin` con rumbo `bearingDeg` sobre la esfera. */
+/** Point at `distanceKm` from `origin` with bearing `bearingDeg` on the sphere. */
 export function destinationPoint([lon, lat]: Position, distanceKm: number, bearingDeg: number): Position {
   const delta = distanceKm / EARTH_RADIUS_KM
   const theta = bearingDeg * DEG
@@ -79,7 +79,7 @@ export function destinationPoint([lon, lat]: Position, distanceKm: number, beari
   return [lon2, phi2 / DEG]
 }
 
-/** Distancia angular (grados de arco) entre dos puntos lon/lat. */
+/** Angular distance (degrees of arc) between two lon/lat points. */
 export function angularDistanceDeg([lon1, lat1]: Position, [lon2, lat2]: Position): number {
   const dPhi = (lat2 - lat1) * DEG
   const dLambda = (lon2 - lon1) * DEG
@@ -87,15 +87,15 @@ export function angularDistanceDeg([lon1, lat1]: Position, [lon2, lat2]: Positio
   return (2 * Math.asin(Math.min(1, Math.sqrt(h)))) / DEG
 }
 
-/** Punto representativo de un análogo ◆: el punto citado o el centro de su región. */
+/** Representative point of a ◆ analog: the cited point or the center of its region. */
 export function analogCenter(analog: Pick<ReferenceAnalog, 'location'>): Position {
   const { location } = analog
   return location.kind === 'approximate_point' ? [location.lon, location.lat] : bboxCenter(location.bbox)
 }
 
 /**
- * Contorno de la «zona aproximada» de un ◆: círculo geodésico del radio citado o la caja de la
- * región. Siempre se dibuja discontinuo: nunca es un deslinde ni un pin exacto.
+ * Outline of the "approximate zone" of a ◆: geodesic circle of the cited radius or the box of the
+ * region. It is always drawn dashed: it is never a boundary survey or an exact pin.
  */
 export function approximateZoneRing(analog: Pick<ReferenceAnalog, 'location'>, segments = 48): Position[] {
   const { location } = analog

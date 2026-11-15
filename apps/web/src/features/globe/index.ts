@@ -1,14 +1,14 @@
 /**
- * features/globe — escenario: globo 3D, paso a mapa 2D, marcadores ●◆○, vuelo y agrupación
- * (incremento 4). Slot: `stage` del armazón (capa de fondo, pantalla completa).
+ * features/globe — stage: 3D globe, transition to 2D map, ●◆○ markers, flight and clustering
+ * (increment 4). Slot: `stage` of the shell (background layer, full screen).
  *
- * INTERFAZ ESTABLE: `MapStage` y sus props, y el canal por cuadro de `stageBridge`.
- *  - MapStage añade la prop OPCIONAL `onSelectReference` (◆); sin ella escribe
- *    `ui.selection` con `kind: 'reference'`. Lee del store: selection (vista previa), hoverSiteId,
- *    introPhase, cameraTouchedAt y mode; de la misión, scoring y revision; de places, los ◆.
- *  - stageBridge publica en cada cuadro del globo y en cada `move` del 2D (ver stageBridge.ts).
- * Las funciones puras (geometry.ts, flight.ts, markers.ts, keyboard.ts) no se reexportan aquí
- * para no arrastrarlas al chunk principal: viven en los chunks diferidos del globo y del 2D.
+ * STABLE INTERFACE: `MapStage` and its props, and the per-frame channel of `stageBridge`.
+ *  - MapStage adds the OPTIONAL prop `onSelectReference` (◆); without it, it writes
+ *    `ui.selection` with `kind: 'reference'`. It reads from the store: selection (preview), hoverSiteId,
+ *    introPhase, cameraTouchedAt and mode; from the mission, scoring and revision; from places, the ◆.
+ *  - stageBridge publishes on every globe frame and on every `move` of the 2D map (see stageBridge.ts).
+ * The pure functions (geometry.ts, flight.ts, markers.ts, keyboard.ts) are not re-exported here
+ * so as not to drag them into the main chunk: they live in the deferred chunks of the globe and the 2D map.
  */
 export { MapStage, contextLayers } from './MapStage'
 export type { MapStageProps, StageMilestone } from './MapStage'

@@ -1,4 +1,4 @@
-/** Región única de anuncios (role=status con debounce + role=alert). Ver shell/announce.ts. */
+/** Single announcement region (role=status with debounce + role=alert). See shell/announce.ts. */
 import { useEffect, useState } from 'react'
 import { ANNOUNCE_DEBOUNCE_MS, subscribeAnnouncements } from './announce'
 

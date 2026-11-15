@@ -25,12 +25,12 @@ def test_profile_with_bad_weights_is_rejected(tmp_path):
     profile["criteria"][0]["weight"] = 0.5
     path = tmp_path / "profile.json"
     path.write_text(json.dumps(profile), "utf-8")
-    with pytest.raises(ContractError, match="pesos"):
+    with pytest.raises(ContractError, match="weights"):
         load_profile(path)
 
 
 def test_committed_demo_snapshot_matches_pipeline_output(snapshot):
-    """artifacts/demo no puede quedar desfasado respecto de fixtures + pipeline."""
+    """artifacts/demo must not drift from fixtures + pipeline."""
     for name, content in snapshot.items():
         assert (DEFAULT_OUT / name).read_text("utf-8") == dump(content), (
             f"{name} desactualizado: ejecutar python -m pipelines.build_demo --profile {PROFILE}")
@@ -43,7 +43,7 @@ def test_demo_candidates_are_three_labelled_fixtures(snapshot):
     assert all("fixture" in c["site_id"] and "FIXTURE" in c["limitations"][0] for c in candidates)
     assert all(c["data_snapshot_version"] == snapshot["manifest.json"]["snapshot_version"]
                for c in candidates)
-    # Los tres estados que la UI debe mostrar: completo, con faltantes, insuficiente.
+    # The three states that the UI must display: complete, with missing items, insufficient.
     a, b, c = candidates
     assert a["similarity"] is not None and b["similarity"] is not None
     assert b["confidence"] < a["confidence"]

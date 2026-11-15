@@ -1,12 +1,12 @@
-// Geometría base del escenario (ADR-014). JavaScript plano y sin imports: el plugin
-// loadingHints lo incrusta en index.html para ubicar el póster del globo antes de React.
-// Fuente única de las alturas reservadas: shell/shell.css debe usar los mismos valores
-// (lo verifica tests/shell.test.ts). Archivo del integrador.
+// Base stage geometry (ADR-014). Plain JavaScript with no imports: the loadingHints plugin
+// embeds it in index.html to position the globe poster before React.
+// Single source for the reserved heights: shell/shell.css must use the same values
+// (verified by tests/shell.test.ts). Integrator's file.
 export var STAGE_GEOMETRY = {
-  /** Tramos: <medium = hoja; medium–wide = sin panel izquierdo; ≥wide = panel izquierdo. */
+  /** Ranges: <medium = sheet; medium–wide = no left panel; ≥wide = left panel. */
   medium: 1100,
   wide: 1440,
-  /** Con alto menor: variantes compactas (tarjetas de 112 px, filas de 44 px). */
+  /** With smaller height: compact variants (112 px cards, 44 px rows). */
   compactHeight: 860,
   /** Horizontal bajo: hoja lateral. */
   sideSheetMaxHeight: 500,
@@ -17,7 +17,7 @@ export var STAGE_GEOMETRY = {
   gap: 12,
   dockTall: 256,
   dockCompact: 218,
-  /** Bandeja S0 de la hoja; compacta con alto < sheetCompactHeight. */
+  /** S0 tray of the sheet; compact when height < sheetCompactHeight. */
   sheetS0Tall: 248,
   sheetS0Compact: 216,
   sheetCompactHeight: 700,
@@ -36,33 +36,33 @@ export function stageTramo(width) {
   return width >= g.wide ? 'wide' : width >= g.medium ? 'medium' : 'narrow'
 }
 
-/** Alto de la barra superior + aviso científico. */
+/** Height of the top bar + scientific notice. */
 export function chromeTop(width) {
   var g = STAGE_GEOMETRY
   return (width >= g.medium ? g.topbarWide : g.topbarNarrow) + g.banner
 }
 
-/** Alto reservado del dock (≥1100). */
+/** Reserved height of the dock (≥1100). */
 export function dockHeight(height) {
   var g = STAGE_GEOMETRY
   return height < g.compactHeight ? g.dockCompact : g.dockTall
 }
 
-/** Alto de la bandeja S0 (<1100). */
+/** Height of the S0 tray (<1100). */
 export function sheetS0Height(height) {
   var g = STAGE_GEOMETRY
   return height < g.sheetCompactHeight ? g.sheetS0Compact : g.sheetS0Tall
 }
 
-/** Hoja lateral: <1100 px de ancho, horizontal y alto ≤500 px. */
+/** Side sheet: <1100 px wide, landscape and height ≤500 px. */
 export function usesSideSheet(width, height) {
   var g = STAGE_GEOMETRY
   return width < g.medium && height <= g.sideSheetMaxHeight && width > height
 }
 
 /**
- * Márgenes base del escenario: Explorar, sin selección, hoja en S0. Fijan el encuadre
- * global del globo, los umbrales globo↔2D y el póster; no cambian al abrir riel u hoja.
+ * Base stage margins: Explore, no selection, sheet in S0. They set the overall
+ * framing of the globe, the globe↔2D thresholds and the poster; they do not change when opening the rail or the sheet.
  */
 export function baseStageInsets(width, height) {
   var g = STAGE_GEOMETRY

@@ -1,16 +1,16 @@
 /**
- * Capa de marcadores ●◆○ del escenario (incremento 4, docs/UX_REDESIGN.md §3.1). Funciones puras
- * compartidas por el globo (proyección en useFrame) y el mapa 2D (agrupación nativa de MapLibre):
+ * ●◆○ marker layer of the scene (increment 4, docs/UX_REDESIGN.md §3.1). Pure functions
+ * shared by the globe (projection in useFrame) and the 2D map (native MapLibre clustering):
  *
- *  - modelo de cada marcador a partir del snapshot v3 (candidatos con puesto global; la REF sin
- *    número), de la evaluación de Misión del equipo (estado y puesto, nunca un %) y del catálogo de ◆;
- *  - visibilidad continua según la orientación: smoothstep(.05, .25) sobre el horizonte;
- *  - agrupación en pantalla a menos de 36 px, con conteos por tipo (nunca promedios);
- *  - presupuesto de rótulos;
- *  - textos y etiquetas accesibles.
+ *  - model of each marker based on the v3 snapshot (candidates with a global rank; the REF without a
+ *    number), the team's Mission evaluation (status and rank, never a %) and the ◆ catalog;
+ *  - continuous visibility according to orientation: smoothstep(.05, .25) over the horizon;
+ *  - on-screen clustering below 36 px, with counts by type (never averages);
+ *  - label budget;
+ *  - accessible texts and labels.
  *
- * Toda cifra viene del snapshot; en Misión el marcador codifica estado o rol, nunca aptitud.
- * Un ◆ nunca lleva %, puesto ni ranking.
+ * Every figure comes from the snapshot; in Mission the marker encodes status or role, never suitability.
+ * A ◆ never carries a %, rank or ranking.
  */
 import type { CandidateSite, Position, ReferenceAnalog } from '../../domain/contracts'
 import { countryLabels, rankMap, splitByRole } from '../../domain/discovery'
@@ -19,67 +19,68 @@ import { geometryCenter, outerRings, type Vec3 } from '../../domain/globe'
 import { MISSION_STATUS_LABEL, MISSION_STATUS_ORDER, missionSiteViews, type SiteMissionStatus } from '../../domain/missionView'
 import type { MissionEvaluation } from '../../mission/types'
 import { GLYPH } from '../../shell/public'
+import { displaySource } from '../../i18n/sourceText'
 import { analogCenter, approximateZoneRing, geometryInsideBbox, pointInGeometry } from './geometry'
 
 // ---------------------------------------------------------------------------
 // Modelo
 // ---------------------------------------------------------------------------
 
-/** ● evaluado · ○ datos insuficientes · ◆ análogo emblemático por calcular. */
+/** ● evaluated · ○ insufficient data · ◆ emblematic analog pending calculation. */
 export type MarkerKind = 'evaluated' | 'insufficient' | 'reference'
 
 export interface MarkerModel {
   id: string
   kind: MarkerKind
-  /** Tipo con que se escribe `ui.selection`. */
+  /** Type with which `ui.selection` is written. */
   selectionKind: 'evaluated' | 'reference'
-  /** Ancla del marcador [lon, lat]: centro aproximado del sector o punto citado del ◆. */
+  /** Marker anchor [lon, lat]: approximate center of the sector or cited point of the ◆. */
   center: Position
-  /** Nombre corto para el rótulo. */
+  /** Short name for the label. */
   name: string
-  /** Explorar: puesto global entre candidatos. Misión: puesto de la evaluación (priorizados). */
+  /** Explore: global rank among candidates. Mission: rank from the evaluation (prioritized). */
   rank: number | null
-  /** Similitud 0–100 del snapshot (solo Explorar); null si no hay o en Misión (sin %). */
+  /** 0–100 similarity from the snapshot (Explore only); null if there is none or in Mission (no %). */
   score: number | null
   scoreSource: 'snapshot' | null
-  /** Candidato de la búsqueda, referencia conocida (rótulo «REF», nunca número) o ◆. */
+  /** Search candidate, known reference (label «REF», never a number) or ◆. */
   role: 'candidate' | 'reference' | 'analog'
-  /** Estado en la evaluación de Misión; null en Explorar o sin evaluación. */
+  /** Status in the Mission evaluation; null in Explore or without evaluation. */
   missionStatus: SiteMissionStatus | null
-  /** País para rotular un grupo («Chile», «Argentina»); '' si no consta. */
+  /** Country to label a cluster («Chile», «Argentina»); '' if not recorded. */
   group: string
-  /** Contorno: polígono del sector o zona aproximada del ◆ (siempre discontinua). */
+  /** Outline: sector polygon or approximate zone of the ◆ (always dashed). */
   outline: Position[] | null
-  /** Nombres de ◆ cuyo punto citado cae dentro de este sector: insignia «coincide con». */
+  /** Names of ◆ whose cited point falls inside this sector: «coincides with» badge. */
   coincides: string[]
-  /** ◆ región: sectores evaluados que contiene según punto-en-polígono; null si ninguno. */
+  /** ◆ region: evaluated sectors it contains according to point-in-polygon; null if none. */
   contains: number | null
-  /** Prioridad estable 0..n-1: ● por puesto, ● por calcular, ○ y ◆ en orden alfabético. */
+  /** Stable priority 0..n-1: ● by rank, ● pending calculation, ○ and ◆ in alphabetical order. */
   order: number
 }
 
 export interface MarkerInput {
   candidates: readonly CandidateSite[]
   analogs: readonly ReferenceAnalog[]
-  /** Evaluación de Misión (estados y puestos del equipo); null = Explorar (snapshot). */
+  /** Mission evaluation (team statuses and ranks); null = Explore (snapshot). */
   evaluation: MissionEvaluation | null
 }
 
-/** Nombre corto («Pampa Yungay», sin «— sector de screening» ni el rótulo de fixture). */
+/** Short name («Pampa Yungay», without «— screening sector» or the fixture label). */
 export function placeName(name: string): string {
   return shortCandidateName(name).split(' — ')[0] ?? name
 }
 
-/** País del sector según el snapshot (`country`); si no consta, no se afirma. */
+/** Sector country according to the snapshot (`country`); if not recorded, none is asserted. */
 function candidateGroup(candidate: CandidateSite): string {
   return candidate.country ? countryLabels[candidate.country] : ''
 }
 
 const collator = new Intl.Collator('es-CL')
 
-/** Marcadores del escenario en orden estable de prioridad. */
+/** Scene markers in stable priority order. */
 export function buildMarkerModels({ candidates, analogs, evaluation }: MarkerInput): MarkerModel[] {
-  // Puesto global de la búsqueda (el mismo que el carrusel, Comparar y el mapa SVG del equipo).
+  // Global search rank (the same as the carousel, Compare and the team's SVG map).
   const ranks = rankMap(splitByRole(candidates).ranked)
   const views = missionSiteViews(evaluation, candidates.map((candidate) => candidate.site_id))
 
@@ -98,7 +99,7 @@ export function buildMarkerModels({ candidates, analogs, evaluation }: MarkerInp
       tier = MISSION_STATUS_ORDER.indexOf(view.status)
     } else {
       kind = candidate.similarity === null ? 'insufficient' : 'evaluated'
-      // Sin % no hay puesto (○); la REF nunca lo tiene.
+      // Without a % there is no rank (○); the REF never has one.
       rank = role === 'reference' || kind === 'insufficient' ? null : ranks.get(candidate.site_id) ?? null
       tier = kind === 'insufficient' ? 2 : rank === null ? 1 : 0
     }
@@ -130,8 +131,8 @@ export function buildMarkerModels({ candidates, analogs, evaluation }: MarkerInp
       const host = candidates.find((candidate) => pointInGeometry(point, candidate.geometry))
       const sector = host ? sectors.find((item) => item.id === host.site_id) : undefined
       if (sector) {
-        // El punto citado cae dentro de un sector evaluado: insignia sobre ese ●, sin ◆ propio.
-        sector.coincides.push(analog.name)
+        // The cited point falls inside an evaluated sector: badge on that ●, no ◆ of its own.
+        sector.coincides.push(displaySource(analog.name))
         continue
       }
     }
@@ -142,13 +143,13 @@ export function buildMarkerModels({ candidates, analogs, evaluation }: MarkerInp
       kind: 'reference',
       selectionKind: 'reference',
       center: analogCenter(analog),
-      name: analog.name,
+      name: displaySource(analog.name),
       rank: null,
       score: null,
       scoreSource: null,
       role: 'analog',
       missionStatus: null,
-      group: analog.country,
+      group: displaySource(analog.country),
       outline: approximateZoneRing(analog),
       coincides: [],
       contains: contained > 0 ? contained : null,
@@ -162,10 +163,10 @@ export function buildMarkerModels({ candidates, analogs, evaluation }: MarkerInp
 }
 
 // ---------------------------------------------------------------------------
-// Visibilidad continua según la orientación
+// Continuous visibility according to orientation
 // ---------------------------------------------------------------------------
 
-/** Bordes de la visibilidad continua (§3.1). */
+/** Edges of the continuous visibility (§3.1). */
 export const VISIBILITY_EDGES = [0.05, 0.25] as const
 
 export function smoothstep(edge0: number, edge1: number, x: number): number {
@@ -175,9 +176,9 @@ export function smoothstep(edge0: number, edge1: number, x: number): number {
 }
 
 /**
- * Orientación de un punto de la esfera respecto de la cámara, normalizada al horizonte:
- * 0 en el limbo (el punto queda justo en el borde visible), 1 bajo la cámara, <0 detrás.
- * Con la cámara en `d`, un punto de radio `r` es visible si cos(ángulo) > r/d.
+ * Orientation of a point on the sphere relative to the camera, normalized to the horizon:
+ * 0 at the limb (the point sits right at the visible edge), 1 below the camera, <0 behind.
+ * With the camera at `d`, a point of radius `r` is visible if cos(angle) > r/d.
  */
 export function horizonFacing(point: Vec3, camera: Vec3, radius: number): number {
   const lp = Math.hypot(...point)
@@ -188,22 +189,22 @@ export function horizonFacing(point: Vec3, camera: Vec3, radius: number): number
   return (cos - horizon) / (1 - horizon)
 }
 
-/** 0–1: opacidad del marcador según su orientación (smoothstep(.05, .25)). */
+/** 0–1: marker opacity according to its orientation (smoothstep(.05, .25)). */
 export function markerVisibility(facing: number): number {
   return smoothstep(VISIBILITY_EDGES[0], VISIBILITY_EDGES[1], facing)
 }
 
 // ---------------------------------------------------------------------------
-// Agrupación en pantalla
+// On-screen clustering
 // ---------------------------------------------------------------------------
 
 export const CLUSTER_RADIUS_PX = 36
-/** Bajo esta visibilidad el marcador está oculto (detrás del globo): ni se agrupa ni se enfoca. */
+/** Below this visibility the marker is hidden (behind the globe): it is neither clustered nor focused. */
 export const HIDDEN_BELOW = 0.02
 export const CLUSTER_MIN_VISIBLE = HIDDEN_BELOW
 /**
- * Bajo esta visibilidad (casi en el horizonte) el marcador se ve pero no recibe el foco: su anillo
- * y su rótulo quedarían bajo 3:1. Sigue al alcance desde el carrusel y la lista (WCAG 2.4.11).
+ * Below this visibility (almost at the horizon) the marker is visible but does not receive focus: its ring
+ * and its label would end up under 3:1. It remains reachable from the carousel and the list (WCAG 2.4.11).
  */
 export const FOCUS_MIN_VISIBLE = 0.25
 
@@ -215,14 +216,14 @@ export interface ScreenRect {
 }
 
 /**
- * ¿El ancla del marcador queda bajo la UI (barra, dock, riel, hoja, franja del HUD)? Entonces no
- * debe recibir el foco del teclado: quedaría oculto tras el panel (WCAG 2.4.11). Función pura.
+ * Is the marker anchor under the UI (bar, dock, rail, sheet, HUD strip)? Then it must not
+ * receive keyboard focus: it would be hidden behind the panel (WCAG 2.4.11). Pure function.
  */
 export function pinOccluded(x: number, y: number, obstacles: readonly ScreenRect[]): boolean {
   return obstacles.some((rect) => x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom)
 }
 
-/** Un marcador o grupo sale del orden de foco si está oculto, casi en el horizonte o tapado. */
+/** A marker or cluster is removed from the focus order if it is hidden, almost at the horizon or covered. */
 export function pinUnfocusable(x: number, y: number, visible: number, obstacles: readonly ScreenRect[]): boolean {
   return visible < FOCUS_MIN_VISIBLE || pinOccluded(x, y, obstacles)
 }
@@ -235,7 +236,7 @@ export interface ScreenMarker {
   visible: number
   order: number
   group: string
-  /** Ancho estimado del rótulo (px), para no encimar rótulos. */
+  /** Estimated label width (px), to avoid overlapping labels. */
   labelWidth?: number
 }
 
@@ -246,29 +247,29 @@ export interface MarkerCounts {
 }
 
 export interface MarkerCluster {
-  /** Ids de los miembros ordenados, unidos por «|»: estable entre cuadros. */
+  /** Sorted member ids, joined by «|»: stable across frames. */
   key: string
-  /** Ids en orden de prioridad. */
+  /** Ids in priority order. */
   members: string[]
   x: number
   y: number
   counts: MarkerCounts
-  /** País común a todos los miembros, o '' si difieren o no consta. */
+  /** Country common to all members, or '' if they differ or it is not recorded. */
   group: string
-  /** Visibilidad del miembro menos visible. */
+  /** Visibility of the least visible member. */
   visible: number
 }
 
 export interface ClusterResult {
   clusters: MarkerCluster[]
-  /** Ids que quedaron dentro de algún grupo. */
+  /** Ids that ended up inside some cluster. */
   clustered: ReadonlySet<string>
 }
 
 export interface ClusterOptions {
   radius?: number
   minVisible?: number
-  /** Nunca se agrupan (selección y hover): conservan su anillo propio. */
+  /** Never clustered (selection and hover): they keep their own ring. */
   exclude?: Iterable<string | null | undefined>
 }
 
@@ -279,8 +280,8 @@ export function countKinds(kinds: Iterable<MarkerKind>): MarkerCounts {
 }
 
 /**
- * Agrupación codiciosa y determinista: en orden de prioridad, cada marcador libre siembra un
- * grupo con todos los libres a menos de `radius` px de él. Un grupo necesita 2 miembros.
+ * Greedy, deterministic clustering: in priority order, each free marker seeds a
+ * cluster with all free markers within `radius` px of it. A cluster needs 2 members.
  */
 export function clusterMarkers(markers: readonly ScreenMarker[], options: ClusterOptions = {}): ClusterResult {
   const radius = options.radius ?? CLUSTER_RADIUS_PX
@@ -311,13 +312,13 @@ export function clusterMarkers(markers: readonly ScreenMarker[], options: Cluste
   return { clusters, clustered: assigned }
 }
 
-/** A menos de esta distancia del lugar seleccionado, un grupo taparía su rótulo. */
+/** Within this distance of the selected place, a cluster would cover its label. */
 export const NEAR_SELECTION_PX = 44
 const BELOW_RING_PX = 16
 
 /**
- * Un grupo pegado al lugar seleccionado se corre justo bajo su anillo y queda compacto (solo
- * glifos): el rótulo del seleccionado y el anillo de las líneas Tesla quedan libres.
+ * A group attached to the selected place is shifted just below its ring and stays compact (glyphs
+ * only): the selected place's label and the ring of the Tesla lines are left clear.
  */
 export function placeNearSelection(
   cluster: { x: number; y: number },
@@ -327,28 +328,28 @@ export function placeNearSelection(
   return { x: selected.x, y: selected.y + selected.radius + BELOW_RING_PX, compact: true }
 }
 
-/** Huella de la partición: solo cuando cambia se vuelve a pintar la lista de grupos. */
+/** Partition fingerprint: the group list is repainted only when it changes. */
 export function clusterSignature(result: ClusterResult): string {
   return result.clusters.map((cluster) => cluster.key).join(';')
 }
 
 // ---------------------------------------------------------------------------
-// Presupuesto de rótulos
+// Label budget
 // ---------------------------------------------------------------------------
 
-/** Rótulos simultáneos como máximo: 5 desde 1100 px, 3 en la hoja móvil. */
+/** Maximum simultaneous labels: 5 from 1100 px, 3 on the mobile sheet. */
 export function labelBudget(narrow: boolean): number {
   return narrow ? 3 : 5
 }
 
-/** Cerca del horizonte el marcador sigue visible pero sin rótulo. */
+/** Near the horizon the marker remains visible but without a label. */
 export const LABEL_MIN_VISIBLE = 0.3
 
 const LABEL_HALF_HEIGHT = 12
 const LABEL_OFFSET_X = 11
 const DEFAULT_LABEL_WIDTH = 120
 
-/** Ancho aproximado del rótulo: ~7 px por carácter a 12 px, más relleno y línea guía. */
+/** Approximate label width: ~7 px per character at 12 px, plus padding and leader line. */
 export function estimateLabelWidth(text: string): number {
   return Math.round(text.length * 7 + 34)
 }
@@ -365,8 +366,8 @@ function overlaps(a: Box, b: Box): boolean {
 }
 
 /**
- * Qué marcadores sueltos llevan rótulo: selección, hover y luego por prioridad, sin pasar del
- * presupuesto y sin encimar un rótulo sobre otro ya ubicado (el que choca queda solo con su glifo).
+ * Which standalone markers get a label: selection, hover, and then by priority, without exceeding the
+ * budget and without overlapping a label on top of another one already placed (the one that collides keeps only its glyph).
  */
 export function assignLabels(
   markers: readonly ScreenMarker[],
@@ -387,14 +388,14 @@ export function assignLabels(
 }
 
 // ---------------------------------------------------------------------------
-// Anillo del lugar en pantalla (ancla de las líneas Tesla)
+// Place ring on screen (anchor of the Tesla lines)
 // ---------------------------------------------------------------------------
 
-/** Radio mínimo del anillo del lugar (px): el sector puede medir menos de un píxel en la vista global. */
+/** Minimum radius of the place ring (px): the sector may measure less than a pixel in the global view. */
 export const RING_MIN_PX = 14
 const RING_PADDING_PX = 4
 
-/** Radio del anillo: cubre el polígono proyectado más un margen, nunca menos de RING_MIN_PX. */
+/** Ring radius: covers the projected polygon plus a margin, never less than RING_MIN_PX. */
 export function ringRadius(center: { x: number; y: number }, outline: ReadonlyArray<{ x: number; y: number }>): number {
   let max = 0
   for (const point of outline) max = Math.max(max, Math.hypot(point.x - center.x, point.y - center.y))
@@ -409,22 +410,22 @@ export function markerGlyph(kind: MarkerKind): string {
   return kind === 'reference' ? GLYPH.reference : kind === 'insufficient' ? GLYPH.insufficient : GLYPH.evaluated
 }
 
-/** «75,7 %» con 1 decimal fijo (similitud v3 del snapshot); null si el marcador no tiene %. */
+/** "75,7 %" with 1 fixed decimal (v3 similarity from the snapshot); null if the marker has no %. */
 export function markerScoreText(model: Pick<MarkerModel, 'score'>): string | null {
-  return model.score === null ? null : `${formatScore(model.score)} %`
+  return model.score === null ? null : `${formatScore(model.score)}%`
 }
 
-/** Distintivo del rótulo: «#2» para un puesto, «REF» para la referencia conocida, null si no hay. */
+/** Label badge: "#2" for a rank, "REF" for the known reference, null if there is none. */
 export function markerBadgeText(model: Pick<MarkerModel, 'rank' | 'role'>): string | null {
   if (model.rank !== null) return `#${model.rank}${model.role === 'reference' ? ' · REF' : ''}`
   return model.role === 'reference' ? 'REF' : null
 }
 
-/** Estado sin cifra: el de la evaluación de Misión, «datos insuficientes» (○) o «por calcular» (◆). */
+/** Status without a figure: that of the Mission evaluation, "insufficient data" (○) or "to be calculated" (◆). */
 export function markerStatusText(model: Pick<MarkerModel, 'kind' | 'score'> & Partial<Pick<MarkerModel, 'missionStatus'>>): string | null {
-  if (model.missionStatus) return MISSION_STATUS_LABEL[model.missionStatus].toLocaleLowerCase('es')
-  if (model.kind === 'insufficient') return 'datos insuficientes'
-  if (model.kind === 'reference' || model.score === null) return 'por calcular'
+  if (model.missionStatus) return MISSION_STATUS_LABEL[model.missionStatus].toLocaleLowerCase('en')
+  if (model.kind === 'insufficient') return 'insufficient data'
+  if (model.kind === 'reference' || model.score === null) return 'not yet calculated'
   return null
 }
 
@@ -432,44 +433,44 @@ function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`
 }
 
-/** Texto visible del rótulo (para estimar su ancho). */
+/** Visible label text (to estimate its width). */
 export function markerLabelText(model: MarkerModel): string {
   return [
     markerBadgeText(model) ?? '',
     model.name,
     markerScoreText(model) ?? '',
     markerStatusText(model) ?? '',
-    model.contains !== null ? `contiene ${model.contains} sectores` : '',
-    model.coincides.length ? `◆ coincide con ${model.coincides.join(' · ')}` : '',
+    model.contains !== null ? `contains ${model.contains} sectors` : '',
+    model.coincides.length ? `◆ matches ${model.coincides.join(' · ')}` : '',
   ].filter(Boolean).join('  ')
 }
 
-/** Etiqueta accesible del botón del marcador (el rótulo visible queda aria-hidden). */
+/** Accessible label of the marker button (the visible label stays aria-hidden). */
 export function markerAriaLabel(model: MarkerModel): string {
   const parts = [model.name]
   if (model.kind === 'reference') {
-    parts.push(`${model.group ? `${model.group}, ` : ''}análogo emblemático por calcular, zona aproximada`)
-    if (model.contains) parts.push(`contiene ${plural(model.contains, 'sector evaluado', 'sectores evaluados')}`)
+    parts.push(`${model.group ? `${model.group}, ` : ''}emblematic analog not yet calculated, approximate area`)
+    if (model.contains) parts.push(`contains ${plural(model.contains, 'evaluated sector', 'evaluated sectors')}`)
   } else if (model.missionStatus) {
-    if (model.role === 'reference') parts.push('referencia conocida')
-    parts.push(`${model.rank !== null ? `puesto ${model.rank}, ` : ''}${MISSION_STATUS_LABEL[model.missionStatus].toLocaleLowerCase('es')}`)
+    if (model.role === 'reference') parts.push('known reference')
+    parts.push(`${model.rank !== null ? `rank ${model.rank}, ` : ''}${MISSION_STATUS_LABEL[model.missionStatus].toLocaleLowerCase('en')}`)
   } else if (model.kind === 'insufficient') {
-    parts.push('datos insuficientes')
+    parts.push('insufficient data')
   } else {
-    if (model.role === 'reference') parts.push('referencia conocida, fuera del ranking')
-    if (model.score !== null) parts.push(`${model.rank !== null ? `puesto ${model.rank}, ` : ''}similitud ${markerScoreText(model)}`)
+    if (model.role === 'reference') parts.push('known reference, outside the ranking')
+    if (model.score !== null) parts.push(`${model.rank !== null ? `rank ${model.rank}, ` : ''}similarity ${markerScoreText(model)}`)
   }
   if (model.group && model.kind !== 'reference') parts.push(model.group)
-  if (model.coincides.length) parts.push(`coincide con ${model.coincides.join(' y ')}`)
+  if (model.coincides.length) parts.push(`matches ${model.coincides.join(' and ')}`)
   return parts.join(', ')
 }
 
-/** Conteos no nulos en el orden ● ○ ◆. */
+/** Non-zero counts in the order ● ○ ◆. */
 export function clusterParts(counts: MarkerCounts): Array<{ kind: MarkerKind; count: number }> {
   return (['evaluated', 'insufficient', 'reference'] as const).filter((kind) => counts[kind] > 0).map((kind) => ({ kind, count: counts[kind] }))
 }
 
-/** Texto del chip de grupo: «Chile · 3 ● · 1 ◆». Solo conteos, nunca promedios. */
+/** Group chip text: "Chile · 3 ● · 1 ◆". Counts only, never averages. */
 export function clusterText(counts: MarkerCounts, group: string): string {
   return [group, ...clusterParts(counts).map(({ kind, count }) => `${count} ${markerGlyph(kind)}`)].filter(Boolean).join(' · ')
 }
@@ -477,14 +478,14 @@ export function clusterText(counts: MarkerCounts, group: string): string {
 export function clusterAriaLabel(counts: MarkerCounts, group: string, open: boolean): string {
   const total = counts.evaluated + counts.insufficient + counts.reference
   const parts = [
-    counts.evaluated ? plural(counts.evaluated, 'evaluado', 'evaluados') : '',
-    counts.insufficient ? plural(counts.insufficient, 'con datos insuficientes', 'con datos insuficientes') : '',
-    counts.reference ? plural(counts.reference, 'análogo por calcular', 'análogos por calcular') : '',
+    counts.evaluated ? plural(counts.evaluated, 'evaluated', 'evaluated') : '',
+    counts.insufficient ? plural(counts.insufficient, 'with insufficient data', 'with insufficient data') : '',
+    counts.reference ? plural(counts.reference, 'analog not yet calculated', 'analogs not yet calculated') : '',
   ].filter(Boolean)
-  return `Grupo de ${total} lugares${group ? ` en ${group}` : ''}: ${parts.join(', ')}. ${open ? 'Ocultar' : 'Mostrar'} lista`
+  return `Group of ${total} places${group ? ` in ${group}` : ''}: ${parts.join(', ')}. ${open ? 'Hide' : 'Show'} list`
 }
 
-/** Glifos apilados del grupo (máx. 4), en orden de prioridad. */
+/** Stacked glyphs of the group (max. 4), in priority order. */
 export function clusterStack(kinds: readonly MarkerKind[]): string {
   return kinds.slice(0, 4).map(markerGlyph).join('')
 }

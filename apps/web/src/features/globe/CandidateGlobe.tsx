@@ -43,13 +43,13 @@ import { uiStore } from '../../state/ui'
 import './CandidateGlobe.css'
 
 // ============================================================================
-// Configuración visual (paleta con significado fijo: selección = hielo + azul)
+// Visual configuration (palette with fixed meaning: selection = ice + blue)
 // ============================================================================
 
 const RADIUS = 2
 const MIN_DISTANCE = RADIUS * 1.06
 const MAX_DISTANCE = RADIUS * 7
-/** Centro del piloto Chile–Argentina (Antofagasta y la Puna): punto de vista inicial y de «Vista global». */
+/** Center of the Chile–Argentina pilot (Antofagasta and the Puna): initial viewpoint and the "Global view" viewpoint. */
 const HOME: Position = [-68.6, -25]
 const ATMOSPHERE_COLOR = '#3FB4EC'
 const ATMOSPHERE_REST = 0.6
@@ -58,20 +58,20 @@ const FOOTPRINT_SELECTED_COLOR = '#EAF4FA'
 const FOOTPRINT_PENDING_COLOR = '#6F889A'
 const ZONE_COLOR = '#94AABA'
 const OUTLINE_COLOR = '#9FD9F6'
-/** Margen sobre el umbral de entrada al 2D para que un vuelo de acercamiento lo cruce. */
+/** Margin above the 2D entry threshold so that an approach flight crosses it. */
 const ENTER_MARGIN = 0.05
 
 type ControlsRef = ComponentRef<typeof OrbitControls>
 type LineObject = ComponentRef<typeof Line>
 
-/** Encuadres que pide el escenario. `nonce` permite repetir la misma vista. */
+/** Framings requested by the stage. `nonce` allows the same view to be repeated. */
 export type GlobeView =
   | { kind: 'global'; nonce: number }
-  /** Acercarse al lugar seleccionado hasta ceder al mapa 2D. */
+  /** Zoom in on the selected place until handing over to the 2D map. */
   | { kind: 'close'; nonce: number }
-  /** Volver desde el mapa 2D al mismo centro y escala (corte). */
+  /** Return from the 2D map to the same center and scale (cut). */
   | { kind: 'at'; nonce: number; at: FlatHandoff }
-  /** Botones + / −: medio nivel de zoom en el centro actual. */
+  /** + / − buttons: half a zoom level at the current center. */
   | { kind: 'zoom'; nonce: number; delta: number }
 
 export interface FlatHandoff {
@@ -80,7 +80,7 @@ export interface FlatHandoff {
   zoom: number
 }
 
-/** Pedido de centrar un marcador (selección o «Centrar en ‹#1›»); `nonce` lo repite. */
+/** Request to center a marker (selection or "Center on ‹#1›"); `nonce` repeats it. */
 export interface FlyRequest {
   id: string
   nonce: number
@@ -100,26 +100,26 @@ interface CandidateGlobeProps {
   onActivate: (model: MarkerModel) => void
   view: GlobeView
   fly: FlyRequest | null
-  /** Si es `false` el render se pausa (vista 2D activa, S2 o pestaña oculta). */
+  /** If it is `false` rendering is paused (2D view active, S2, or hidden tab). */
   active: boolean
-  /** Márgenes asentados de la UI: el globo se centra en el área libre (setViewOffset x/y). */
+  /** Settled UI margins: the globe is centered in the free area (setViewOffset x/y). */
   insets: ViewInsets
-  /** Márgenes base del tramo: fijan el encuadre global (no cambian al abrir riel u hoja). */
+  /** Base margins of the section: they fix the global framing (they do not change when the rail or sheet opens). */
   baseInsets: ViewInsets
-  /** Umbrales globo ↔ 2D según el panel visible. */
+  /** Globe ↔ 2D thresholds depending on the visible panel. */
   thresholds: FlatThresholds
-  /** <1100 px: presupuesto de rótulos menor. */
+  /** <1100 px: smaller label budget. */
   narrow: boolean
-  /** Coreografía A (la escribe features/boot). */
+  /** Choreography A (written by features/boot). */
   intro: IntroState
-  /** Aumenta con cada resultado de misión: halos en el orden nuevo (coreografía D). */
+  /** Increases with each mission result: halos in the new order (choreography D). */
   resultsRevision: number
   onReady?: () => void
   onApproach?: () => void
   onDetailReady?: () => void
   onEnterFlat: (handoff: FlatHandoff) => void
   onContextLost: () => void
-  /** Cualquier input del usuario sobre la cámara (ui.touchCamera). */
+  /** Any user input on the camera (ui.touchCamera). */
   onCameraInput: () => void
   /** Tecla Inicio: vista global. */
   onHome: () => void
@@ -133,8 +133,8 @@ const surfacePoint = ([lon, lat]: Position, scale = 1) => toVector(latLngToVec3(
 // ============================================================================
 
 /**
- * Carga progresiva: la textura 1K (~60 KB) pinta el globo de inmediato y la 2K/4K la
- * reemplaza al llegar.
+ * Progressive loading: the 1K texture (~60 KB) paints the globe immediately and the 2K/4K one
+ * replaces it when it arrives.
  */
 function Earth({ onReady, onDetailReady }: { onReady: () => void; onDetailReady?: () => void }) {
   const [previewMap, bumpMap] = useTexture([GLOBE_TEXTURES.preview, GLOBE_TEXTURES.bump])
@@ -227,19 +227,19 @@ function Atmosphere({ material }: { material: THREE.ShaderMaterial }) {
 }
 
 // ============================================================================
-// Contorno de Chile (se traza en la coreografía A) y contornos de zonas
+// Outline of Chile (drawn in choreography A) and zone outlines
 // ============================================================================
 
 interface OutlineTrace {
-  /** 0–1: fracción de segmentos visibles. */
+  /** 0–1: fraction of visible segments. */
   progress: number
   lines: Map<number, { object: LineObject; segments: number }>
 }
 
 function applyTrace(trace: OutlineTrace): void {
   for (const { object, segments } of trace.lines.values()) {
-    // Siempre `visible`: así los búferes del contorno se suben en el primer cuadro, junto con el
-    // globo (una sola tarea larga), y el trazo solo limita cuántos segmentos se dibujan.
+    // Always `visible`: this way the outline buffers are uploaded in the first frame, together with the
+    // globe (a single long task), and the stroke only limits how many segments are drawn.
     object.geometry.instanceCount = trace.progress >= 1 ? Infinity : Math.ceil(segments * trace.progress)
   }
 }
@@ -278,7 +278,7 @@ function ChileOutline({ outline, trace }: { outline: GeoJsonFeatureCollection; t
   )
 }
 
-/** Contorno de un sector (polígono, nunca pin) o zona aproximada de un ◆ (siempre discontinua). */
+/** Outline of a sector (polygon, never a pin) or approximate zone of a ◆ (always dashed). */
 function ZoneLine({ ring, color, width, dashed }: { ring: Position[]; color: string; width: number; dashed: boolean }) {
   const { points, dash } = useMemo(() => {
     const dense = densifyRing(ring, 0.05).map((position) => surfacePoint(position, 1.0025))
@@ -291,7 +291,7 @@ function ZoneLine({ ring, color, width, dashed }: { ring: Position[]; color: str
 }
 
 // ============================================================================
-// Cámara: vuelos con duración por fórmula, arco de altitud y cancelación por input
+// Camera: flights with formula-based duration, altitude arc, and cancellation by input
 // ============================================================================
 
 interface ActiveFlight {
@@ -303,25 +303,25 @@ interface ActiveFlight {
 }
 
 interface FlightTarget {
-  /** Centro de destino; por defecto, el centro apuntado (destino del vuelo en curso o actual). */
+  /** Destination center; by default, the targeted center (destination of the current flight or the current one). */
   center?: Position
-  /** Distancia explícita (unidades de escena). */
+  /** Explicit distance (scene units). */
   distance?: number
-  /** Distancia de la vista global del panel. */
+  /** Distance of the panel's global view. */
   global?: boolean
-  /** Zoom Mercator equivalente (vuelta desde el 2D). */
+  /** Equivalent Mercator zoom (return from 2D). */
   zoom?: number
-  /** Justo pasado el umbral del 2D: el globo cede al mapa al aterrizar. */
+  /** Just past the 2D threshold: the globe yields to the map on landing. */
   enterFlat?: boolean
-  /** Medio nivel de zoom, etc., relativo a la altitud apuntada. */
+  /** Half a zoom level, etc., relative to the targeted altitude. */
   zoomDelta?: number
 }
 
 interface CameraApi {
   flyTo(target: FlightTarget, options?: { instant?: boolean; pulseId?: string | null }): void
-  /** Centro y distancia apuntados: destino del vuelo en curso o la pose actual. */
+  /** Targeted center and distance: destination of the current flight or the current pose. */
   aim(): { center: Position; distance: number }
-  /** Punto lon/lat del globo bajo un punto de pantalla (null si cae en el espacio). */
+  /** lon/lat point of the globe under a screen point (null if it falls in space). */
   pick(clientX: number, clientY: number, rect: DOMRect): Position | null
 }
 
@@ -370,7 +370,7 @@ function CameraRig({ apiRef, flightRef, controlsRef, baseInsets, thresholds, onA
         else if (target.enterFlat) distance = distanceForZoom(thresholds.enter + ENTER_MARGIN, center[1])
         else if (target.zoomDelta !== undefined) {
           let zoom = zoomAt(aim.distance, center[1]) + target.zoomDelta
-          // Si el paso queda al borde del umbral, se cruza de verdad: el globo cede al 2D al aterrizar.
+          // If the step ends up at the edge of the threshold, it is actually crossed: the globe yields to 2D on landing.
           if (target.zoomDelta > 0 && zoom >= thresholds.enter - ENTER_MARGIN) zoom = Math.max(zoom, thresholds.enter + ENTER_MARGIN)
           distance = distanceForZoom(zoom, center[1])
         }
@@ -381,8 +381,8 @@ function CameraRig({ apiRef, flightRef, controlsRef, baseInsets, thresholds, onA
           { direction: latLngToVec3(center[1], center[0], 1), altitude: distance - RADIUS },
           options.instant === true || prefersReducedMotion(),
         )
-        // Durante el vuelo se suspenden ZoomWatcher y onApproach: si el destino se acerca al 2D,
-        // el mapa se instancia ya, en paralelo con el vuelo.
+        // During the flight ZoomWatcher and onApproach are suspended: if the destination approaches 2D,
+        // the map is instantiated right away, in parallel with the flight.
         if (zoomAt(distance, center[1]) >= thresholds.global + 0.15) latest.current.onApproach?.()
         flightRef.current = { plan, start: performance.now(), pulseId: options.pulseId ?? null, targetCenter: center, targetDistance: distance }
         invalidate()
@@ -410,13 +410,13 @@ function CameraRig({ apiRef, flightRef, controlsRef, baseInsets, thresholds, onA
         flightRef.current = null
         latest.current.onFlightEnd(flight.pulseId)
       } else {
-        // Con frameloop="demand" el vuelo pide su siguiente cuadro mientras dure (≤1,8 s).
+        // With frameloop="demand" the flight requests its next frame for as long as it lasts (≤1,8 s).
         invalidate()
       }
     }
     const controls = controlsRef.current
     if (controls) {
-      // Rotar más lento cuanto más cerca de la superficie.
+      // Rotate more slowly the closer to the surface.
       controls.rotateSpeed = THREE.MathUtils.clamp((camera.position.length() - RADIUS) / RADIUS, 0.04, 0.45)
       controls.update()
     }
@@ -432,7 +432,7 @@ function SunLight() {
   const offset = useMemo(() => new THREE.Vector3(), [])
   const { camera } = useThree()
   useFrame(() => {
-    // La luz acompaña a la cámara (desde arriba a la izquierda) para que la zona observada esté iluminada.
+    // The light follows the camera (from the top left) so that the observed area is lit.
     offset.copy(SUN_OFFSET).applyQuaternion(camera.quaternion).multiplyScalar(camera.position.length())
     light.current?.position.copy(camera.position).add(offset)
   })
@@ -440,8 +440,8 @@ function SunLight() {
 }
 
 /**
- * Centra el globo en el área libre entre márgenes: desplaza la ventana de la cámara la mitad
- * de la diferencia entre lados opuestos. No cambia la escala: solo traslada la imagen.
+ * Centers the globe in the free area between margins: it shifts the camera window by half
+ * the difference between opposite sides. It does not change the scale: it only translates the image.
  */
 function ViewOffset({ insets }: { insets: ViewInsets }) {
   const { camera, size, invalidate } = useThree()
@@ -458,8 +458,8 @@ function ViewOffset({ insets }: { insets: ViewInsets }) {
 }
 
 /**
- * Avisa una vez cuando la cámara supera el zoom de entrada al mapa 2D. Solo se arma después de
- * ver un zoom menor al umbral, y se suspende durante los vuelos (§2.2 regla 4).
+ * Notifies once when the camera exceeds the zoom for entering the 2D map. It is only armed after
+ * seeing a zoom below the threshold, and it is suspended during flights (§2.2 rule 4).
  */
 interface ZoomWatcherProps {
   active: boolean
@@ -501,7 +501,7 @@ function ZoomWatcher({ active, thresholds, flightRef, onEnterFlat, onApproach }:
 }
 
 // ============================================================================
-// Coreografía A: brillo de atmósfera 0,6→1→0,6 y trazo del contorno de Chile
+// Choreography A: atmosphere glow 0,6→1→0,6 and drawing of the outline of Chile
 // ============================================================================
 
 const GLOW_MS = 900
@@ -526,7 +526,7 @@ function IntroEffects({ intro, atmosphere, trace }: { intro: IntroState; atmosph
     if (intro === 'play' && !prefersReducedMotion()) {
       start.current = performance.now()
     } else {
-      // pending: el contorno espera su trazo; done (o reduced motion): estado final.
+      // pending: the outline awaits its stroke; done (or reduced motion): final state.
       start.current = null
       apply(intro === 'pending' ? 0 : 1, ATMOSPHERE_REST)
     }
@@ -549,7 +549,7 @@ function IntroEffects({ intro, atmosphere, trace }: { intro: IntroState; atmosph
 }
 
 // ============================================================================
-// Proyector de marcadores: un solo useFrame para todos (frameloop «demand»)
+// Marker projector: a single useFrame for all of them (frameloop "demand")
 // ============================================================================
 
 interface MarkerProjectorProps {
@@ -586,7 +586,7 @@ function MarkerProjector({ runtime, models, selection, hoverId, narrow, active }
     return { x: ((scratch.x + 1) / 2) * width, y: ((1 - scratch.y) / 2) * height }
   }, [camera, scratch])
 
-  // Proyección viva para las líneas Tesla: lee la cámara en el momento de la llamada.
+  // Live projection for the Tesla lines: reads the camera at the moment of the call.
   const projection = useMemo<StageProjection>(() => {
     const point = new THREE.Vector3()
     return {
@@ -603,7 +603,7 @@ function MarkerProjector({ runtime, models, selection, hoverId, narrow, active }
     }
   }, [camera, toScreen])
 
-  // Con frameloop «demand», cualquier cambio de datos, selección u hover pide un cuadro.
+  // With frameloop "demand", any change in data, selection, or hover requests a frame.
   useEffect(() => {
     if (active) invalidate()
   }, [items, selection, hoverId, narrow, active, invalidate])
@@ -622,7 +622,7 @@ function MarkerProjector({ runtime, models, selection, hoverId, narrow, active }
     const selectedId = selection?.id ?? null
     const result = clusterMarkers(screen, { exclude: [selectedId, hoverId] })
     const labels = assignLabels(screen, { budget: labelBudget(narrow), clustered: result.clustered, selectedId, hoverId })
-    // Anillo de cada lugar: cubre el polígono (o la zona del ◆ seleccionado) proyectado.
+    // Ring of each place: covers the projected polygon (or the zone of the selected ◆).
     const radii = screen.map((marker, index) => {
       const item = items[index]
       const ringed = item !== undefined && marker.visible >= HIDDEN_BELOW && item.outline.length > 0 && (item.model.kind !== 'reference' || marker.id === selectedId)
@@ -632,7 +632,7 @@ function MarkerProjector({ runtime, models, selection, hoverId, narrow, active }
     const selectedScreen = screen[selectedIndex]
     const selectedRing = selectedScreen ? { x: selectedScreen.x, y: selectedScreen.y, radius: radii[selectedIndex] ?? RING_MIN_PX } : null
 
-    // Paneles que tapan el escenario (barra, dock, riel, hoja, HUD): lo que queda debajo no se enfoca.
+    // Panels that cover the stage (bar, dock, rail, sheet, HUD): what is beneath them is not focused.
     const obstacles = uiStore.getState().obstacles
     for (const cluster of result.clusters) {
       const placed = placeNearSelection(cluster, selectedRing)
@@ -647,7 +647,7 @@ function MarkerProjector({ runtime, models, selection, hoverId, narrow, active }
     }
     const nextSignature = clusterSignature(result)
     if (nextSignature !== signature.current) {
-      // Solo al cambiar la partición se vuelve a pintar la lista de grupos (no por cuadro).
+      // The list of groups is repainted only when the partition changes (not per frame).
       signature.current = nextSignature
       runtime.clusterList = result.clusters
       const keys = new Set(result.clusters.map((cluster) => cluster.key))
@@ -671,7 +671,7 @@ function MarkerProjector({ runtime, models, selection, hoverId, narrow, active }
         setDataFlag(element, 'hidden', hidden)
         setDataFlag(element, 'clustered', clustered)
         setDataFlag(element, 'label', labels.has(marker.id))
-        // Oculto, agrupado, casi en el horizonte o tapado por un panel: fuera del orden de foco.
+        // Hidden, grouped, almost on the horizon, or covered by a panel: outside the focus order.
         const inert = hidden || clustered || pinUnfocusable(marker.x, marker.y, marker.visible, obstacles)
         if (element.inert !== inert) element.inert = inert
         const ring = `${radius.toFixed(1)}px`
@@ -686,7 +686,7 @@ function MarkerProjector({ runtime, models, selection, hoverId, narrow, active }
   return null
 }
 
-/** Entrega `invalidate` del Canvas a la capa DOM, que vive fuera de él. */
+/** Delivers `invalidate` from the Canvas to the DOM layer, which lives outside it. */
 function RuntimeBinder({ runtime }: { runtime: GlobeMarkerRuntime }) {
   const { invalidate } = useThree()
   useEffect(() => {
@@ -702,7 +702,7 @@ function RuntimeBinder({ runtime }: { runtime: GlobeMarkerRuntime }) {
 // Componente principal
 // ============================================================================
 
-/** Si la intro no arranca en este tiempo tras el globo listo, se muestra el estado final. */
+/** If the intro does not start within this time after the globe is ready, the final state is shown. */
 const INTRO_PENDING_LIMIT_MS = 1500
 
 export default function CandidateGlobe({
@@ -744,7 +744,7 @@ export default function CandidateGlobe({
     onReadyRef.current?.()
   }, [])
 
-  // La intro la escribe boot; si nunca pasa de «pending», no se esconden los datos para siempre.
+  // The intro is written by boot; if it never gets past "pending", the data is not hidden forever.
   const [pendingExpired, setPendingExpired] = useState(false)
   useEffect(() => {
     if (!ready || intro !== 'pending') return
@@ -765,7 +765,7 @@ export default function CandidateGlobe({
     [candidates],
   )
 
-  // ---- Encuadres pedidos por el escenario ----------------------------------------------------
+  // ---- Framings requested by the stage ----------------------------------------------------
   const onFlightEnd = useCallback((pulseId: string | null) => {
     const element = pulseId ? runtime.pins.get(pulseId) : undefined
     if (element && !prefersReducedMotion()) pulsePin(element)
@@ -784,7 +784,7 @@ export default function CandidateGlobe({
       const target = selection ? modelsRef.current.get(selection.id)?.center : undefined
       api.flyTo({ center: target ?? api.aim().center, enterFlat: true })
     }
-    // Solo reacciona a pedidos nuevos (nonce).
+    // Reacts only to new requests (nonce).
   }, [view]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const lastFly = useRef(fly?.nonce ?? 0)
@@ -796,7 +796,7 @@ export default function CandidateGlobe({
     apiRef.current?.flyTo({ center: model.center }, { pulseId: model.id })
   }, [fly, active])
 
-  // ---- Coreografía D: halos en el orden nuevo, cada 120 ms --------------------------------------
+  // ---- Choreography D: halos in the new order, every 120 ms --------------------------------------
   const lastRevision = useRef(resultsRevision)
   useEffect(() => {
     if (resultsRevision === lastRevision.current) return
@@ -805,13 +805,13 @@ export default function CandidateGlobe({
     playHalos(runtime.pins, models.filter((model) => model.kind === 'evaluated' && model.rank !== null).map((model) => model.id), 120)
   }, [resultsRevision, models, active, runtime])
 
-  // ---- Input directo: cualquier gesto cancela el vuelo y cuenta como «tocó la cámara» -------------
+  // ---- Direct input: any gesture cancels the flight and counts as "touched the camera" -------------
   const onControlsStart = () => {
     flightRef.current = null
     onCameraInput()
   }
 
-  // ---- Teclado y doble clic ---------------------------------------------------------------------
+  // ---- Keyboard and double click -----------------------------------------------------------------
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return
     const action = cameraKeyAction(event.key, event.shiftKey)
@@ -831,7 +831,7 @@ export default function CandidateGlobe({
     api.flyTo({ center: point, zoomDelta: 0.5 })
   }
 
-  // La cámara nace ya en el encuadre global del panel: sin animación inicial (el póster coincide).
+  // The camera is born already in the panel's global framing: no initial animation (the poster matches).
   const [initialPosition] = useState(() => {
     const width = typeof window === 'undefined' ? 1600 : window.innerWidth
     const height = typeof window === 'undefined' ? 1000 : window.innerHeight
@@ -845,8 +845,8 @@ export default function CandidateGlobe({
         className="globe-surface"
         tabIndex={0}
         role="application"
-        aria-roledescription="globo 3D"
-        aria-label={`Globo terrestre con ${candidates.length} sectores evaluados. Flechas: girar 10°, con Mayús 30°. Más y menos: acercar o alejar. Inicio: vista global.`}
+        aria-roledescription="3D globe"
+        aria-label={`Earth globe with ${candidates.length} evaluated sectors. Arrows: rotate 10°, with Shift 30°. Plus and minus: zoom in or out. Home: global view.`}
         onKeyDown={onKeyDown}
         onDoubleClick={onDoubleClick}
       >
@@ -854,7 +854,7 @@ export default function CandidateGlobe({
           className="globe-canvas"
           gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
           dpr={[1, 1.5]}
-          // Dibujo a demanda: sin interacción ni animación no se redibuja (0 dibujos en reposo).
+          // On-demand drawing: without interaction or animation there is no redraw (0 draws at rest).
           frameloop={active ? 'demand' : 'never'}
           camera={{ fov: 40, near: 0.01, far: 100, position: initialPosition }}
           onCreated={({ gl }) => {
@@ -863,7 +863,7 @@ export default function CandidateGlobe({
         >
           <ambientLight intensity={0.55} />
           <SunLight />
-          {/* Fallback nulo: un <Html> de drei como fallback falla al retirarse con React 19. */}
+          {/* Null fallback: a drei <Html> as a fallback fails when removed with React 19. */}
           <Suspense fallback={null}>
             <Earth onReady={markReady} onDetailReady={onDetailReady} />
             <ChileOutline outline={outline} trace={trace} />
@@ -904,7 +904,7 @@ export default function CandidateGlobe({
           <ViewOffset insets={insets} />
           <ZoomWatcher active={active} thresholds={thresholds} flightRef={flightRef} onEnterFlat={onEnterFlat} onApproach={onApproach} />
           <IntroEffects intro={effectiveIntro} atmosphere={atmosphere} trace={trace} />
-          {/* Después de la cámara: los marcadores se proyectan con la pose final del cuadro. */}
+          {/* After the camera: markers are projected using the frame's final pose. */}
           <MarkerProjector runtime={runtime} models={models} selection={selection} hoverId={hoverId} narrow={narrow} active={active} />
           <RuntimeBinder runtime={runtime} />
         </Canvas>
@@ -915,7 +915,7 @@ export default function CandidateGlobe({
       {!ready && (
         <div className="globe-loading globe-loading-page">
           <span className="loader" aria-hidden="true" />
-          Cargando texturas locales…
+          Loading local textures…
         </div>
       )}
     </>

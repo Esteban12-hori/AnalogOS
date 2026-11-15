@@ -1,34 +1,34 @@
 /**
- * Decide el detent de destino al soltar la hoja (ADR-014). Función pura.
+ * Decides the target detent when the sheet is released (ADR-014). Pure function.
  *
- * - Cancelación: pointercancel, entrada no finita o movimiento menor que el umbral de arrastre
- *   (DETENT_SLOP_PX sin velocidad) → vuelve al detent de origen.
- * - Umbral de velocidad: con |vy| ≥ DETENT_FLICK_VELOCITY se va al siguiente detent en la
- *   dirección del gesto, contado desde la posición actual (un gesto rápido nunca retrocede).
- * - Histéresis: sin velocidad, gana el detent más cercano, pero el de origen se considera
- *   DETENT_HYSTERESIS_PX más cerca. Cerca del punto medio la hoja se queda donde estaba, en
- *   ambos sentidos, y no salta al soltar un arrastre indeciso.
+ * - Cancellation: pointercancel, non-finite input, or movement smaller than the drag threshold
+ *   (DETENT_SLOP_PX without velocity) → returns to the origin detent.
+ * - Velocity threshold: with |vy| ≥ DETENT_FLICK_VELOCITY it moves to the next detent in the
+ *   direction of the gesture, counted from the current position (a fast gesture never moves backward).
+ * - Hysteresis: without velocity, the nearest detent wins, but the origin detent is considered
+ *   DETENT_HYSTERESIS_PX closer. Near the midpoint the sheet stays where it was, in
+ *   both directions, and does not jump when an undecided drag is released.
  */
 
 /** px/ms; ~450 px/s. */
 export const DETENT_FLICK_VELOCITY = 0.45
-/** Ventaja del detent de origen al resolver por distancia. */
+/** Advantage of the origin detent when resolving by distance. */
 export const DETENT_HYSTERESIS_PX = 48
-/** Por debajo de esto, soltar sin velocidad es un toque y no mueve la hoja. */
+/** Below this, releasing without velocity is a tap and does not move the sheet. */
 export const DETENT_SLOP_PX = 8
 
 export interface ResolveDetentOptions {
-  /** Índice del detent donde empezó el arrastre. */
+  /** Index of the detent where the drag started. */
   from: number
-  /** pointercancel o gesto abortado. */
+  /** pointercancel or aborted gesture. */
   cancelled?: boolean
 }
 
 /**
- * @param y altura visible de la hoja al soltar (px desde el borde inferior)
- * @param vy velocidad en px/ms; positiva = la hoja crece (dedo hacia arriba)
- * @param detents alturas visibles de cada detent, en orden ascendente
- * @returns índice del detent de destino
+ * @param y visible sheet height on release (px from the bottom edge)
+ * @param vy velocity in px/ms; positive = the sheet grows (finger moving up)
+ * @param detents visible heights of each detent, in ascending order
+ * @returns index of the target detent
  */
 export function resolveDetent(y: number, vy: number, detents: readonly number[], { from, cancelled = false }: ResolveDetentOptions): number {
   const last = detents.length - 1

@@ -8,9 +8,9 @@ import { usePlanner } from './usePlanner'
 export type { PlannerIntent } from './PlannerView'
 
 /**
- * Planificador autónomo del equipo: su propio estado (usePlanner) y la vista completa. La interfaz
- * integrada usa `PlannerView` con el planificador compartido (ADR-013); este envoltorio conserva la
- * firma y el comportamiento del panel original, incluido el contexto geológico opcional (M10).
+ * Standalone team planner: its own state (usePlanner) and the full view. The integrated interface
+ * uses `PlannerView` with the shared planner (ADR-013); this wrapper retains the
+ * signature and behavior of the original panel, including the optional geological context (M10).
  */
 export function PlannerPanel({ snapshot, intent, geology }: { snapshot: DemoSnapshot; intent: PlannerIntent | null; geology?: GeologyContextState }) {
   const bundle = useMemo<EvidenceBundle>(() => ({ candidates: snapshot.candidates, manifest: snapshot.manifest, profile: snapshot.profile }), [snapshot])

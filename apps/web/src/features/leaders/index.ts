@@ -1,15 +1,15 @@
 /**
- * features/leaders — líneas de métricas estilo Tesla en espacio de pantalla (incremento 6,
- * docs/UX_REDESIGN.md §3.4). Slots: `stage.overlay` (capa sobre el escenario, bajo los paneles;
- * pointer-events: none) y `stage.hud` (interruptor «Líneas» en la franja de leyenda del escenario).
+ * features/leaders — Tesla-style metric lines in screen space (increment 6,
+ * docs/UX_REDESIGN.md §3.4). Slots: `stage.overlay` (layer over the stage, beneath the panels;
+ * pointer-events: none) and `stage.hud` («Lines» toggle in the stage legend strip).
  *
- * Consume: canal por cuadro de features/globe (getStageAnchor/getStageProjection/
- * subscribeStageFrame), buildMetricViews de features/metrics y del store `ui` selection,
- * activeCriterionId, stageInsets y obstacles. Nunca hace setState por cuadro: cada cuadro de
- * cámara lo aplica `createLeaderController` escribiendo directo en el DOM (transform y `d`).
+ * Consumes: the per-frame channel from features/globe (getStageAnchor/getStageProjection/
+ * subscribeStageFrame), buildMetricViews from features/metrics and from the `ui` store: selection,
+ * activeCriterionId, stageInsets and obstacles. Never calls setState per frame: on each
+ * camera frame it applies `createLeaderController` by writing directly to the DOM (transform and `d`).
  *
- * INTERFAZ ESTABLE: tipos y firmas de este archivo. Los campos añadidos respecto del stub del
- * incremento 2 son todos OPCIONALES (docs/BUILD_CONTRACTS.md §1.2).
+ * STABLE INTERFACE: types and signatures in this file. The fields added relative to the stub of the
+ * increment 2 are all OPTIONAL (docs/BUILD_CONTRACTS.md §1.2).
  */
 import type { MetricView } from '../metrics'
 import type { AppData } from '../../shell/public'
@@ -27,52 +27,52 @@ export interface Rect {
 
 export interface LeaderLayoutInput {
   /**
-   * Centro y radio del anillo del lugar en pantalla: todas las líneas salen de su borde.
-   * `visible` (0–1, opcional; 1 por omisión): por debajo de 0,5 el lugar no se ve → chip.
+   * Center and radius of the place's ring on screen: all lines start from its edge.
+   * `visible` (0–1, optional; 1 by default): below 0,5 the place is not visible → chip.
    */
   anchor: { x: number; y: number; radius: number; visible?: number }
-  /** Etiquetas a ubicar (ancho/alto medidos), en orden de prioridad. */
+  /** Labels to place (measured width/height), in priority order. */
   labels: ReadonlyArray<{ id: string; width: number; height: number }>
-  /** Área segura: viewport menos stageInsets. */
+  /** Safe area: viewport minus stageInsets. */
   safeArea: Rect
   /** Paneles a evitar (ui.obstacles). */
   obstacles: readonly Rect[]
-  /** Lado elegido en el cuadro anterior (histéresis). */
+  /** Side chosen in the previous frame (hysteresis). */
   previousSide: 'left' | 'right' | null
-  /** Ancho del polígono / ancho del área libre: >0,45 → modo acoplado sin líneas. */
+  /** Polygon width / free area width: >0,45 → docked mode without lines. */
   polygonWidthFraction: number
-  /** Alto < 860 px: máximo 3 etiquetas. */
+  /** Height < 860 px: maximum 3 labels. */
   compact: boolean
-  /** Etiquetas mostradas en el cuadro anterior (0 = chip): crecer exige holgura extra (histéresis). */
+  /** Labels shown in the previous frame (0 = chip): growing requires extra clearance (hysteresis). */
   previousCount?: number
-  /** Encabezado «Todo el sector · …» sobre la columna (medido). Si no cabe, no se dibuja la columna. */
+  /** «Whole sector · …» heading above the column (measured). If it doesn't fit, the column is not drawn. */
   header?: { width: number; height: number } | null
-  /** Tamaño del chip «Métricas en el panel →» (medido) para ubicarlo en modo 'chip'. */
+  /** Size of the «Metrics in the panel →» chip (measured) to position it in 'chip' mode. */
   chip?: { width: number; height: number } | null
 }
 
 export interface LeaderLayout {
-  /** 'lines' = etiquetas con líneas; 'docked' = acopladas sin líneas; 'chip' = 0 etiquetas («Métricas en el panel →»). */
+  /** 'lines' = labels with lines; 'docked' = docked without lines; 'chip' = 0 labels («Metrics in the panel →»). */
   mode: 'lines' | 'docked' | 'chip'
   side: 'left' | 'right'
-  /** Esquina superior izquierda de cada etiqueta (px CSS del viewport), en orden de prioridad. */
+  /** Top-left corner of each label (viewport CSS px), in priority order. */
   placements: ReadonlyArray<{ id: string; x: number; y: number }>
-  /** Etiquetas ubicadas: 4, 3, 2 o 0 (nunca 1). */
+  /** Placed labels: 4, 3, 2 or 0 (never 1). */
   count?: number
-  /** Punto único del borde del anillo del que salen todas las líneas (solo 'lines'). */
+  /** Single point on the ring's edge from which all lines start (only 'lines'). */
   origin?: { x: number; y: number }
-  /** x del bus vertical que reúne las líneas antes del origen (solo 'lines'). */
+  /** x of the vertical bus that gathers the lines before the origin (only 'lines'). */
   busX?: number
-  /** Esquina superior izquierda del encabezado (si se pidió y cupo). */
+  /** Top-left corner of the heading (if requested and it fit). */
   header?: { x: number; y: number }
-  /** Esquina superior izquierda del chip (solo 'chip', si se pidió y cupo). */
+  /** Top-left corner of the chip (only 'chip', if requested and it fit). */
   chip?: { x: number; y: number }
 }
 
 export { LeaderLayer } from './LeaderLayer'
 export { LeaderToggle } from './LeaderToggle'
-// `layoutLeaders`, `LEADER_GEOMETRY` y `pickPrincipalMetrics` viven en el chunk diferido de las
-// líneas: se importan directo de './layoutLeaders' y './principal' (§6.1). Aquí solo tipos.
+// `layoutLeaders`, `LEADER_GEOMETRY` and `pickPrincipalMetrics` live in the deferred chunk of the
+// lines: they are imported directly from './layoutLeaders' and './principal' (§6.1). Only types here.
 export type { LeaderPath, MobileLeader, MobileLeaderInput } from './leaderPaths'
 export { getLeadersEnabled, setLeadersEnabled, useLeadersEnabled } from './preference'
 export type { MetricView }

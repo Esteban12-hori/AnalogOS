@@ -1,4 +1,4 @@
-// Manejador agnóstico del framework (testeable sin red ni Vercel). POST /api/ai, same-origin.
+// Framework-agnostic handler (testable without network or Vercel). POST /api/ai, same-origin.
 import { MAX_BRIEF_CHARS } from '../../shared/mission/catalog'
 import type { EvidenceBundle } from '../../shared/mission/types'
 import { AiCallError, type AiErrorCode } from './anthropic'
@@ -11,8 +11,8 @@ export const MAX_BODY_BYTES = 24 * 1024
 
 export interface AiHttpRequest {
   method: string
-  headers: HeaderBag // claves en minúscula
-  /** Cuerpo ya leído (string) o parseado por la plataforma (objeto). */
+  headers: HeaderBag // lowercase keys
+  /** Body already read (string) or parsed by the platform (object). */
   body: unknown
   clientKey: string
 }
@@ -27,7 +27,7 @@ export interface AiDeps {
   now: () => number
   limiter: RateLimiter
   bundle: EvidenceBundle
-  /** Paquete geológico del servidor (perezoso para no leer disco si el cliente no lo pide). Ausente = no disponible. */
+  /** Server geological package (lazy so as not to read from disk if the client does not request it). Absent = not available. */
   geology?: () => ServerGeology
 }
 
@@ -45,26 +45,26 @@ type ErrorCode =
   | 'geology_context_unavailable'
   | 'geology_context_stale'
 
-// Mensajes fijos: nunca se refleja texto del proveedor, de la clave ni del cuerpo del cliente.
+// Fixed messages: text from the provider, the key, or the client body is never reflected.
 const ERRORS: Record<ErrorCode, [number, string]> = {
-  method_not_allowed: [405, 'Solo se admite POST.'],
-  origin_not_allowed: [403, 'Origen no permitido.'],
-  unsupported_media_type: [415, 'El contenido debe ser application/json.'],
-  payload_too_large: [413, 'La solicitud supera el tamaño permitido.'],
-  bad_request: [400, 'Solicitud mal formada.'],
-  rate_limited: [429, 'Demasiadas solicitudes; espere un minuto.'],
-  invalid_request: [422, 'La solicitud no es válida o no está confirmada.'],
-  stale_request: [409, 'La solicitud cambió; vuelva a confirmarla.'],
-  nothing_to_explain: [422, 'No hay opciones evaluadas que explicar.'],
-  geology_context_unavailable: [409, 'El servidor no tiene un contexto geológico válido para esta versión. Puede reintentar sin geología.'],
-  geology_context_stale: [409, 'El contexto geológico del servidor es otro (versión distinta). Recargue la página o reintente sin geología.'],
-  ai_unavailable: [503, 'La asistencia de IA no está disponible. El recorrido manual sigue funcionando.'],
-  ai_timeout: [504, 'La IA tardó demasiado en responder.'],
-  ai_rate_limited: [503, 'El proveedor de IA limitó las solicitudes; reintente más tarde.'],
-  ai_refused: [422, 'La IA rechazó procesar este contenido.'],
-  ai_truncated: [502, 'La respuesta de la IA quedó incompleta y se descartó.'],
-  ai_invalid_output: [502, 'La respuesta de la IA no cumplió el contrato y se descartó.'],
-  ai_upstream_error: [502, 'Error del proveedor de IA.'],
+  method_not_allowed: [405, 'Only POST is allowed.'],
+  origin_not_allowed: [403, 'Origin not allowed.'],
+  unsupported_media_type: [415, 'The content must be application/json.'],
+  payload_too_large: [413, 'The request exceeds the allowed size.'],
+  bad_request: [400, 'Malformed request.'],
+  rate_limited: [429, 'Too many requests; wait a minute.'],
+  invalid_request: [422, 'The request is invalid or not confirmed.'],
+  stale_request: [409, 'The request changed; confirm it again.'],
+  nothing_to_explain: [422, 'There are no evaluated options to explain.'],
+  geology_context_unavailable: [409, 'The server has no valid geology context for this version. You can retry without geology.'],
+  geology_context_stale: [409, 'The server has a different geology context (another version). Reload the page or retry without geology.'],
+  ai_unavailable: [503, 'AI assistance is not available. The manual flow still works.'],
+  ai_timeout: [504, 'The AI took too long to respond.'],
+  ai_rate_limited: [503, 'The AI provider rate-limited the requests; try again later.'],
+  ai_refused: [422, 'The AI declined to process this content.'],
+  ai_truncated: [502, 'The AI response was incomplete and was discarded.'],
+  ai_invalid_output: [502, 'The AI response did not meet the contract and was discarded.'],
+  ai_upstream_error: [502, 'AI provider error.'],
 }
 
 const BASE_HEADERS = { 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'content-type': 'application/json; charset=utf-8' }
@@ -127,7 +127,7 @@ export async function handleAiRequest(req: AiHttpRequest, deps: AiDeps): Promise
     return fail('bad_request', clientId)
   }
 
-  // Canal geológico opt-in: se resuelve ANTES de la clave y del proveedor (el paquete se carga y valida de verdad).
+  // Opt-in geological channel: resolved BEFORE the key and the provider (the package is actually loaded and validated).
   const geologyFp = op === 'explain' && typeof body.geology_context_fingerprint === 'string' ? body.geology_context_fingerprint : undefined
   let geology: ServerGeology | undefined
   if (geologyFp !== undefined) {
@@ -158,6 +158,6 @@ export async function handleAiRequest(req: AiHttpRequest, deps: AiDeps): Promise
   } catch (error) {
     if (error instanceof AiCallError) return fail(error.code, clientId)
     if (error instanceof ExplainInputError) return fail(error.code, clientId, error.issues.length ? { issues: error.issues } : {})
-    return fail('ai_upstream_error', clientId) // error inesperado: sin detalle ni stack hacia el cliente
+    return fail('ai_upstream_error', clientId) // unexpected error: no detail or stack sent to the client
   }
 }

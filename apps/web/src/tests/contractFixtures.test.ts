@@ -1,6 +1,6 @@
-// Fixtures válidos e inválidos de los contratos propios del rediseño (catálogo de ◆) con los
-// validadores Ajv precompilados. tests/test_contract_fixtures.py prueba la misma tabla con
-// jsonschema. Los contratos lktron (interpretación, paquete y análisis) se retiraron (ADR-012).
+// Valid and invalid fixtures for the redesign's own contracts (◆ catalog) with the
+// precompiled Ajv validators. tests/test_contract_fixtures.py tests the same table with
+// jsonschema. The lktron contracts (interpretation, package, and analysis) were retired (ADR-012).
 import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { ErrorObject } from 'ajv'
@@ -25,8 +25,8 @@ function documents(contract: string, name: string): unknown[] {
 
 const pointer = (error: ErrorObject) => error.instancePath || '/'
 
-describe('fixtures de contrato (validadores precompilados)', () => {
-  it('cada archivo de fixture tiene una expectativa declarada', () => {
+describe('contract fixtures (precompiled validators)', () => {
+  it('every fixture file has a declared expectation', () => {
     for (const contract of Object.keys(VALIDATORS)) {
       const onDisk = readdirSync(resolve(fixtures, contract)).sort()
       expect(onDisk).toEqual(Object.keys(expectations[contract] ?? {}).sort())
@@ -36,7 +36,7 @@ describe('fixtures de contrato (validadores precompilados)', () => {
   for (const [contract, files] of Object.entries(expectations)) {
     const validate = VALIDATORS[contract]
     for (const [name, expected] of Object.entries(files)) {
-      it(`${contract}/${name} → ${expected.valid ? 'válido' : `inválido en ${expected.path} (${expected.keyword})`}`, () => {
+      it(`${contract}/${name} → ${expected.valid ? 'valid' : `invalid at ${expected.path} (${expected.keyword})`}`, () => {
         expect(validate).toBeDefined()
         if (!validate) return
         for (const document of documents(contract, name)) {
@@ -52,11 +52,11 @@ describe('fixtures de contrato (validadores precompilados)', () => {
   }
 })
 
-describe('envoltorio tipado del catálogo de ◆', () => {
-  it('parseReferenceAnalogs devuelve la lista o lanza con un resumen legible', () => {
+describe('typed wrapper of the ◆ catalog', () => {
+  it('parseReferenceAnalogs returns the list or throws with a readable summary', () => {
     const [catalog] = documents('reference-analog', 'valid.catalog.json')
     expect(parseReferenceAnalogs(catalog).map((analog) => analog.status)).toEqual(['por_calcular', 'por_calcular'])
     const [bad] = documents('reference-analog', 'invalid.with-similarity.json')
-    expect(() => parseReferenceAnalogs(bad)).toThrow(/Catálogo de análogos inválido/)
+    expect(() => parseReferenceAnalogs(bad)).toThrow(/Invalid analog catalog/)
   })
 })

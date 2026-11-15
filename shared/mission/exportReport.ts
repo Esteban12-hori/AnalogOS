@@ -1,7 +1,8 @@
-import { ORDERING_RULE, RULES_VERSION } from './catalog'
+import { RULES_VERSION } from './catalog'
 import { evaluateMission, evaluationFingerprint } from './evaluate'
 import { checkSelection, type ExplanationSelection } from './explanation'
 import { canonicalJson, fingerprint } from './fingerprint'
+import { EXPORT_LANGUAGE_1_1, isEvaluationVersion, missionText } from './text'
 import type { EvidenceBundle, MissionEvaluation, MissionRequest, Requirement } from './types'
 import { validateMissionExport, validateMissionRequest } from './validate'
 
@@ -14,7 +15,7 @@ export interface AiProvenance {
   stop_reason: string | null
 }
 
-/** Borrador devuelto por la IA tal como llegó (antes de que el usuario lo edite). */
+/** Draft returned by the AI exactly as it arrived (before the user edits it). */
 export interface DraftProposal {
   activity: string
   target_kind: 'mars_rover_terrain' | 'other_or_unclear'
@@ -24,7 +25,7 @@ export interface DraftProposal {
   warnings: string[]
 }
 
-/** Lo que la UI conserva de una llamada de borrador: procedencia, brief enviado y propuesta original. */
+/** What the UI keeps from a draft call: provenance, submitted brief, and original proposal. */
 export interface AiDraftRecord {
   provenance: AiProvenance
   brief_fingerprint: string
@@ -38,14 +39,10 @@ export interface AiExplanationRecord {
   evaluation_fingerprint: string
 }
 
-export const STATUS_DEFINITIONS: Record<string, string> = {
-  priorizado_para_reconocimiento: 'Cumple todos los requisitos imprescindibles evaluables; merece reconocimiento. No es aprobación ni autorización.',
-  no_cumple_requisitos: 'Incumple al menos un requisito imprescindible con valor observado.',
-  evidencia_insuficiente: 'Falta evidencia o escala adecuada para algún requisito imprescindible; no se aprueba.',
-  objetivo_no_soportado: 'El objetivo no corresponde al único perfil soportado (rover marciano, Jezero, v3).',
-}
+// English definitions for the UI; each export carries the ones of its own version (missionText).
+export const STATUS_DEFINITIONS: Record<string, string> = missionText('1.1.0').statusDefinitions
 
-/** Cambios del usuario respecto de la propuesta de la IA, calculados (no declarados). */
+/** User changes relative to the AI's proposal, computed (not declared). */
 export function userChangesFrom(proposal: DraftProposal, request: MissionRequest) {
   const proposed = new Map(proposal.requirements.map((r) => [r.requirement_id, r]))
   const current = new Map(request.requirements.map((r) => [r.requirement_id, r]))
@@ -68,9 +65,11 @@ export class MissionExportError extends Error {
 }
 
 /**
- * Exportación JSON reproducible y validada. Sin reloj: misma entrada, mismos bytes.
- * Rechaza (lanza MissionExportError) si evaluación, huellas, borrador o selección no corresponden a la
- * solicitud dada: nunca empaqueta resultados de otra solicitud ni atribuye a la IA cambios del usuario.
+ * Reproducible, validated JSON export. No clock: same input, same bytes.
+ * Rejects (throws MissionExportError) if the evaluation, fingerprints, draft, or selection do not correspond to the
+ * given request: it never packages results from another request nor attributes user changes to the AI.
+ * The export version is the evaluation's version (1.0.0 frozen Spanish, 1.1.0 English with a language block);
+ * any other version is rejected, never reinterpreted.
  */
 export function buildMissionExport(
   request: MissionRequest,
@@ -78,19 +77,22 @@ export function buildMissionExport(
   bundle: EvidenceBundle,
   ai: { draft?: AiDraftRecord | null; explanation?: AiExplanationRecord | null } = {},
 ): Record<string, unknown> {
+  const version = evaluation?.evaluation_version
+  if (!isEvaluationVersion(version)) throw new MissionExportError(`Unsupported evaluation version: ${String(version).slice(0, 40)}.`)
+  const text = missionText(version)
   const checked = validateMissionRequest(request, { requireConfirmed: true })
-  if (!checked.ok) throw new MissionExportError(`Solicitud no exportable: ${checked.issues.join('; ')}`)
+  if (!checked.ok) throw new MissionExportError(`Request cannot be exported: ${checked.issues.join('; ')}`)
   const reqFp = fingerprint(checked.request)
-  if (evaluation.request_fingerprint !== reqFp) throw new MissionExportError('La evaluación pertenece a otra solicitud.')
-  // Recalcula con el mismo motor: la evaluación debe ser exactamente la de esta solicitud y este snapshot.
-  if (canonicalJson(evaluateMission(checked.request, bundle)) !== canonicalJson(evaluation)) {
-    throw new MissionExportError('La evaluación no coincide con la que produce el motor para esta solicitud.')
+  if (evaluation.request_fingerprint !== reqFp) throw new MissionExportError('The evaluation belongs to another request.')
+  // Recomputes with the same engine: the evaluation must be exactly that of this request and this snapshot.
+  if (canonicalJson(evaluateMission(checked.request, bundle, { version })) !== canonicalJson(evaluation)) {
+    throw new MissionExportError('The evaluation does not match the one the engine produces for this request.')
   }
   const evalFp = evaluationFingerprint(evaluation)
 
   let draft: Record<string, unknown> | null = null
   if (ai.draft) {
-    if (ai.draft.brief_fingerprint !== fingerprint(request.brief)) throw new MissionExportError('El brief cambió después del borrador de IA: no se atribuye a la IA.')
+    if (ai.draft.brief_fingerprint !== fingerprint(request.brief)) throw new MissionExportError('The brief changed after the AI draft: it is not attributed to the AI.')
     draft = {
       provenance: ai.draft.provenance,
       brief_fingerprint: ai.draft.brief_fingerprint,
@@ -102,18 +104,18 @@ export function buildMissionExport(
   let explanation: AiExplanationRecord | null = null
   if (ai.explanation) {
     if (ai.explanation.request_fingerprint !== reqFp || ai.explanation.evaluation_fingerprint !== evalFp) {
-      throw new MissionExportError('La explicación de IA pertenece a otra solicitud o evaluación.')
+      throw new MissionExportError('The AI explanation belongs to another request or evaluation.')
     }
     const sel = checkSelection(ai.explanation.selection, evaluation)
-    if (!sel.ok) throw new MissionExportError(`Selección de IA inválida: ${sel.reason}`)
+    if (!sel.ok) throw new MissionExportError(`Invalid AI selection: ${sel.reason}`)
     explanation = { ...ai.explanation, selection: sel.selection }
   }
 
   const doc = {
-    export_version: '1.0.0',
+    export_version: version,
     request,
     evaluation_fingerprint: evalFp,
-    rules: { rules_version: RULES_VERSION, ordering_rule: ORDERING_RULE, status_definitions: STATUS_DEFINITIONS },
+    rules: { rules_version: RULES_VERSION, ordering_rule: text.orderingRule, status_definitions: text.statusDefinitions },
     snapshot: {
       snapshot_version: bundle.manifest.snapshot_version,
       profile_id: bundle.profile.id,
@@ -123,8 +125,9 @@ export function buildMissionExport(
     },
     evaluation,
     ai: { draft, explanation },
+    ...(version === '1.0.0' ? {} : { language: EXPORT_LANGUAGE_1_1 }),
   }
   const issues = validateMissionExport(doc)
-  if (issues.length) throw new MissionExportError(`Exportación inválida: ${issues.join('; ')}`)
+  if (issues.length) throw new MissionExportError(`Invalid export: ${issues.join('; ')}`)
   return doc
 }

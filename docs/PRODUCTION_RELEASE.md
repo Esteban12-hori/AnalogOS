@@ -1,57 +1,57 @@
-# Actualización de producción M11 — 2026-11-15
+# M11 Production Update — 2026-11-15
 
-Código `e5e91390b2eea261b1f8d46f3b17786b2bb295dc`, promovido desde dev después de revisión de Codex a las tres entregas de Claude. [Actions producción 43686863876](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43686863876) y [dev 43686593750](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43686593750) correctos.
+Code `e5e91390b2eea261b1f8d46f3b17786b2bb295dc`, promoted from dev after Codex's review of Claude's three deliverables. Production [Actions 43686863876](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43686863876) and [dev 43686593750](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43686593750) succeeded.
 
-Lectura móvil con acción visible de 44 px y navegación que conserva la misión. Impresión completa y paginada con geología y fuentes, sin informe obsoleto tras editar. PDF de siete sectores guardado y revisado (18 páginas con Letter y escala/márgenes predeterminados). 333 Python/799 web, 3 opt-in omitidos, tipos/build correctos; validación posterior del ajuste final documentada.
+Mobile Reading with a visible 44 px action and navigation that preserves the mission. Full and paginated printing with geology and sources, with no outdated report after editing. Seven-sector PDF saved and reviewed (18 pages with Letter and default scale/margins). 333 Python/799 web, 3 opt-in skipped, types/build correct; later validation of the final adjustment documented.
 
-En https://analogos.vercel.app/ se comprobaron nuevamente borrador y explicación geológica reales de Claude para AR6 desde la nueva Lectura móvil. JSON validado y reconstruido idéntico. Evidencia, procedencia, hashes y límites: [revisión M11](CODEX_M11_REVIEW.md). El checkpoint posterior [skip ci] registra solo evidencia/documentación; conserva el código y ZIP desplegados.
+In https://analogos.vercel.app/, Claude's real draft and geological explanation for AR6 were checked again from the new mobile Reading. JSON validated and rebuilt identically. Evidence, provenance, hashes and limits: [M11 review](CODEX_M11_REVIEW.md). The subsequent [skip ci] checkpoint records only evidence/documentation; it preserves the deployed code and ZIP.
 
 ---
 
-## Publicación anterior (antecedente)
+## Previous release (background)
 
-# Publicación de AnalogOS en producción — 2026-11-15
+# AnalogOS Production Release — 2026-11-15
 
-**Estado: publicado y comprobado por Codex.** Dan autorizó actualizar el README y promover toda la versión revisada de dev a main, y precisó este orden: publicar primero y luego reemplazar el screenshot con una captura de la nueva producción.
+**Status: published and verified by Codex.** Dan authorized updating the README and promoting the entire reviewed version from dev to main, and specified this order: publish first and then replace the screenshot with a capture of the new production.
 
-## Versión y publicación
+## Version and release
 
-- Código desplegado: `7e8c7798186e02a5014f6bf8b79554b7faa84c3c`.
-- Producción: https://analogos.vercel.app/ — [Actions 43682694089 correcto](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43682694089).
-- Dev: https://analogos-dev.vercel.app/ — [Actions 43682693561 correcto](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43682693561).
-- `main` avanzó de `437b515` a la entrega completa de dev, sin force ni pérdida de historia. No existe rama master. Main y dev se sincronizaron en el mismo commit.
-- El checkpoint posterior de captura/documentación/evidencia usa `[skip ci]`: no cambia el código desplegado ni el ZIP. Ambas ramas reciben ese checkpoint; el desarrollo continúa en dev.
+- Deployed code: `7e8c7798186e02a5014f6bf8b79554b7faa84c3c`.
+- Production: https://analogos.vercel.app/ — [Actions 43682694089 succeeded](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43682694089).
+- Dev: https://analogos-dev.vercel.app/ — [Actions 43682693561 succeeded](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43682693561).
+- `main` advanced from `437b515` to the complete dev delivery, without force or loss of history. There is no master branch. Main and dev were synchronized at the same commit.
+- The subsequent capture/documentation/evidence checkpoint uses `[skip ci]`: it does not change the deployed code or the ZIP. Both branches receive that checkpoint; development continues in dev.
 
-## README y captura
+## README and screenshot
 
-El README presenta Explorar/Misión, cómo partir de un sector, Tu misión y Lectura, geología, uso móvil y análogos por calcular, y enlaza a la aplicación pública. Conserva el alcance real del piloto y el rol de Yungay como referencia conocida.
+The README presents Explore/Mission, how to start from a sector, Your mission and Reading, geology, mobile use and analogs to be calculated, and links to the public application. It preserves the real scope of the pilot and the role of Yungay as a known reference.
 
-**El screenshot se tomó después de publicar main**, desde `https://analogos.vercel.app/`, modo Explorar con el primer candidato seleccionado: `submission/assets/analogos-production.jpg`. JPEG original del navegador, 218.607 bytes, SHA-256 `bcfbd0e5f313030bf3d973f6edeb3f19984509a133bc06d71836fb372a5c0ffe`. No es una maqueta ni una captura de la versión anterior.
+**The screenshot was taken after publishing main**, from `https://analogos.vercel.app/`, in Explore mode with the first candidate selected: `submission/assets/analogos-production.jpg`. Original browser JPEG, 218.607 bytes, SHA-256 `bcfbd0e5f313030bf3d973f6edeb3f19984509a133bc06d71836fb372a5c0ffe`. It is not a mockup or a capture of the previous version.
 
-## IA de producción
+## Production AI
 
-El workflow ahora entrega el secreto Anthropic existente a dev y main **solo en runtime**; no se imprime, versiona ni envía al build/navegador. Se conserva el modelo, los límites y las validaciones del servidor. Sin secreto, la publicación se detiene. No se modificó la protección de dev ni se añadieron cuentas o autenticación.
+The workflow now delivers the existing Anthropic secret to dev and main **only at runtime**; it is not printed, versioned or sent to the build/browser. The model, limits and server validations are preserved. Without the secret, publication stops. The dev protection was not modified and no accounts or authentication were added.
 
-La nueva página pública carga sin la barrera de acceso de dev (HTTP 200). El endpoint real responde 405 a GET (`Solo se admite POST.`). Desde la interfaz publicada se probó:
+The new public page loads without dev's access barrier (HTTP 200). The real endpoint responds 405 to GET (`Solo se admite POST.`). From the published interface, the following was tested:
 
-1. AR6 → Evaluar este sector → escribir un brief sintético en el dock → Enviar: mantiene AR6.
-2. Borrador real Anthropic: cuatro requisitos sin confirmar (pendiente mediana regional ≤9°, preferencia no vegetada ≥95 %, orientación geológica y tracción como pendientes no medidos). Son umbrales de demostración, no criterios operativos oficiales.
-3. Confirmación explícita y evaluación: una sola ventana AR6, priorizada para reconocimiento; una de tres preferencias satisfecha y dos sin dato. Sin autorización de terreno.
-4. Explicación real con geología: tres referencias válidas de SEGEMAR 1:250.000, material superficial de Galán y depósitos aluviales/coluviales y correspondencia mapa–terreno de Galán. La IA no cambió evaluación, datos ni puestos.
-5. Exportación descargada `submission/evidence/production-geology-export.json`, aceptada sin incidencias por `validateAnyMissionExport` y reconstruida idéntica mediante `buildMissionGeologyExport` con snapshot/contexto oficiales. SHA-256 `3fa32ea9c4ffd0137e8ab6d520a2c3eb114ad0126c26078c27821d1f006aedcd`. Captura de respaldo: `submission/assets/analogos-production-ai.jpg`.
+1. AR6 → Evaluate this sector → write a synthetic brief in the dock → Send: keeps AR6.
+2. Real Anthropic draft: four unconfirmed requirements (regional median slope ≤9°, non-vegetated preference ≥95 %, geological orientation and traction as unmeasured pending items). These are demonstration thresholds, not official operational criteria.
+3. Explicit confirmation and evaluation: a single AR6 window, prioritized for reconnaissance; one of three preferences satisfied and two without data. No field authorization.
+4. Real explanation with geology: three valid SEGEMAR references 1:250.000, Galán surface material and alluvial/colluvial deposits and Galán map–terrain correspondence. The AI did not change evaluation, data or posts.
+5. Export downloaded `submission/evidence/production-geology-export.json`, accepted without incident by `validateAnyMissionExport` and rebuilt identically through `buildMissionGeologyExport` with official snapshot/context. SHA-256 `3fa32ea9c4ffd0137e8ab6d520a2c3eb114ad0126c26078c27821d1f006aedcd`. Backup capture: `submission/assets/analogos-production-ai.jpg`.
 
-| Operación | Procedencia de la respuesta aceptada |
+| Operation | Provenance of the accepted response |
 |---|---|
-| Borrador | `claude-sonnet-5-5`, `req_011Ch4C8fgUYoQgoF8HZmeBX`, `2026-11-15T05:52:16.354Z`, 2217 tokens de entrada / 1379 de salida |
-| Explicación y geología | `claude-sonnet-5-5`, `req_011Ch4CDE41TMGKqYLUsgFLD`, `2026-11-15T05:53:11.040Z`, 7156 / 314 tokens |
+| Draft | `claude-sonnet-5-5`, `req_011Ch4C8fgUYoQgoF8HZmeBX`, `2026-11-15T05:52:16.354Z`, 2217 input tokens / 1379 output |
+| Explanation and geology | `claude-sonnet-5-5`, `req_011Ch4CDE41TMGKqYLUsgFLD`, `2026-11-15T05:53:11.040Z`, 7156 / 314 tokens |
 
-Ambas respuestas terminaron en `end_turn`. La procedencia registra la respuesta aceptada, no el consumo agregado de un posible reintento interno.
+Both responses ended in `end_turn`. The provenance records the accepted response, not the aggregate consumption of a possible internal retry.
 
-## Comprobaciones y límites
+## Checks and limits
 
-- `source .venv/bin/activate && npm run verify`: **333 Python y 784 web** correctos, 3 web opt-in omitidos; tipos del servidor y build correctos.
-- Paso shell de deploy ejecutado con CLI simulada, sin credenciales reales, para dev/main con y sin clave: cuatro casos correctos; main incluye `--prod`, ausencia de clave impide llamar a Vercel y la clave no aparece en la salida. Ambos workflows reales comprobaron después el arranque de la función empaquetada antes de publicar.
-- Rutas locales e imagen del README verificadas. Ciencia, contratos, core, frontend y ZIP no cambiaron respecto de la integración aceptada; esta promoción agrega documentación y habilita la configuración de IA en runtime de producción.
-- Se conservan los pendientes de `CODEX_INTEGRATION_REVIEW.md`: acceso directo a Lectura desde popover móvil, GIBS sin red, impresión nativa e iOS real. La publicación no valida los sitios en campo ni amplía la cobertura.
-- Rate limiting en memoria por instancia y comprobación de Origin conservados; no equivalen a autenticación ni a una cuota distribuida. Detalle en `AI_SETUP.md`.
-- `outputs/` preexistente permaneció fuera de los commits. No hay nueva asignación a Claude.
+- `source .venv/bin/activate && npm run verify`: **333 Python and 784 web** correct, 3 opt-in web skipped; server types and build correct.
+- Deploy shell step run with a simulated CLI, without real credentials, for dev/main with and without key: four correct cases; main includes `--prod`, absence of the key prevents calling Vercel and the key does not appear in the output. Both real workflows then verified startup of the packaged function before publishing.
+- Local paths and README image verified. Science, contracts, core, frontend and ZIP did not change with respect to the accepted integration; this promotion adds documentation and enables the AI configuration at production runtime.
+- The pending items from `CODEX_INTEGRATION_REVIEW.md` are preserved: direct access to Reading from the mobile popover, GIBS offline, native printing and real iOS. The release does not validate the sites in the field or expand coverage.
+- In-memory rate limiting per instance and Origin checking are preserved; they are not equivalent to authentication or a distributed quota. Details in `AI_SETUP.md`.
+- Pre-existing `outputs/` remained outside the commits. There is no new assignment to Claude.

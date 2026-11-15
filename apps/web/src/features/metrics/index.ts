@@ -1,16 +1,16 @@
 /**
- * features/metrics — riel de métricas (MetricRail), modelo puro `buildMetricViews` y contenido
- * de S1 en móvil (incremento 5, docs/UX_REDESIGN.md §3.6).
- * Slots: `rail.metrics` (≥1100, riel de 340–380 px), `full.metrics` (pestaña «Métricas»
- * de la ficha completa, 520 px o S2) y `sheet.s1` (<1100).
+ * features/metrics — metric rail (MetricRail), pure model `buildMetricViews` and S1 content
+ * on mobile (increment 5, docs/UX_REDESIGN.md §3.6).
+ * Slots: `rail.metrics` (≥1100, 340–380 px rail), `full.metrics` ("Metrics" tab
+ * of the full sheet, 520 px or S2) and `sheet.s1` (<1100).
  *
- * INTERFAZ ESTABLE: tipos y firmas de este archivo. Solo se han AÑADIDO campos opcionales
- * (`MetricView.measure`, `MetricView.rule.consistent`) y exports nuevos (`resolveMetricContext`,
- * `useMetricViews`, `limitingView`, constantes del catálogo); nada se quitó ni cambió de tipo.
+ * STABLE INTERFACE: types and signatures of this file. Only optional fields have been ADDED
+ * (`MetricView.measure`, `MetricView.rule.consistent`) and new exports (`resolveMetricContext`,
+ * `useMetricViews`, `limitingView`, catalog constants); nothing was removed or had its type changed.
  *
- * Implementación: `MetricRail` (chunk principal) pinta al instante las cifras del lugar
- * (similitud, confianza, estabilidad y factibilidad, siempre separadas) y carga en diferido
- * el detalle por criterio (acordeón en el riel, tarjetas en la ficha, carrusel en S1).
+ * Implementation: `MetricRail` (main chunk) instantly renders the site's figures
+ * (similarity, confidence, stability and feasibility, always kept separate) and lazy-loads
+ * the per-criterion detail (accordion in the rail, cards in the sheet, carousel in S1).
  */
 import type { CandidateSite, CriterionId, CriterionStatus, MissionProfile } from '../../domain/contracts'
 import type { MarsReference } from '../../domain/marsReference'
@@ -20,44 +20,44 @@ export interface MetricRailProps {
   data: AppData
   /** Lugar evaluado seleccionado (ui.selection.kind === 'evaluated'). */
   site: CandidateSite
-  /** 'rail' = riel compacto; 'full' = pestaña Métricas de la ficha completa; 'sheet' = S1. */
+  /** 'rail' = compact rail; 'full' = Metrics tab of the full sheet; 'sheet' = S1. */
   variant: 'rail' | 'full' | 'sheet'
-  /** Pide «ver el sector en el mapa 2D» (el armazón encuadra el escenario). */
+  /** Requests "view the sector on the 2D map" (the shell frames the scene). */
   onShowOnMap?: () => void
 }
 
-/** Una métrica lista para dibujar. Toda cifra viene del snapshot o del motor; nada se inventa. */
+/** A metric ready to be drawn. Every figure comes from the snapshot or the engine; nothing is invented. */
 export interface MetricView {
   criterionId: CriterionId
   label: string
-  /** Qué mide el criterio, en una línea (opcional: añadido en el incremento 5). */
+  /** What the criterion measures, in one line (optional: added in increment 5). */
   measure?: string
-  /** Peso del perfil activo (0–1); 0 = excluido. */
+  /** Weight of the active profile (0–1); 0 = excluded. */
   weight: number
-  /** Peso del perfil base del snapshot (0–1). */
+  /** Weight of the snapshot's base profile (0–1). */
   baseWeight: number
-  /** Estado del dato en el snapshot (no cambia con el perfil; el peso 0 indica «excluido»). */
+  /** Status of the data in the snapshot (does not change with the profile; the 0 weight indicates "excluded"). */
   status: CriterionStatus
-  /** Similitud del criterio 0–100 (entera al mostrar); null = sin dato. */
+  /** Similarity of the criterion 0–100 (integer when displayed); null = no data. */
   similarity: number | null
-  /** Valor del sector: número crudo, unidad y texto ya formateado (es-CL). */
+  /** Sector value: raw number, unit and already formatted text (es-CL). */
   siteValue: { raw: number | string | null; unit: string; text: string }
-  /** ■ Jezero: solo pendiente, rugosidad y relieve (MOLA). null en el resto: nunca se inventa. */
+  /** ■ Jezero: only slope, roughness and relief (MOLA). null for the rest: never invented. */
   marsValue: { raw: number; unit: string; text: string } | null
   /**
-   * ┆ Regla del perfil para criterios bounded_preference; null si no aplica.
-   * `satisfied` = la regla llegó a su tope («cumple la regla»); null sin dato o sin verificar.
-   * `consistent` = la regla reproduce la similitud del snapshot (null = no hay regla conocida).
+   * ┆ Profile rule for bounded_preference criteria; null if not applicable.
+   * `satisfied` = the rule reached its cap ("meets the rule"); null if no data or unverified.
+   * `consistent` = the rule reproduces the snapshot's similarity (null = no known rule).
    */
   rule: { text: string; satisfied: boolean | null; consistent?: boolean | null } | null
-  /** Dirección y razón sector/Jezero (solo con marsValue). `ratio` = sector ÷ Jezero. */
+  /** Direction and sector/Jezero ratio (only with marsValue). `ratio` = sector ÷ Jezero. */
   vsMars: { direction: 'more_demanding' | 'less_demanding' | 'similar'; ratio: number } | null
-  /** Limitante = contribución más negativa (campo `contribution` del pipeline o del motor). */
+  /** Limiting factor = most negative contribution (`contribution` field of the pipeline or the engine). */
   isLimiting: boolean
   contribution: number | null
-  /** «satura» / «cumple la regla · no significa igual a Marte». */
+  /** "saturates" / "meets the rule · does not mean equal to Mars". */
   saturates: boolean
-  /** Otros site_ids con el mismo valor regional (p. ej. aridez POWER compartida). */
+  /** Other site_ids with the same regional value (e.g., shared POWER aridity). */
   sharedRegionalWith: readonly string[]
   quality: number
   datasetId: string
@@ -65,18 +65,18 @@ export interface MetricView {
 
 export interface BuildMetricViewsInput {
   site: CandidateSite
-  /** Todos los sectores evaluados (para valores regionales compartidos y «mejor de N»). */
+  /** All evaluated sectors (for shared regional values and "best of N"). */
   sites: readonly CandidateSite[]
   profile: MissionProfile
-  /** Pesos del perfil de misión activo; null = perfil base del snapshot. */
+  /** Weights of the active mission profile; null = snapshot base profile. */
   weights: Readonly<Partial<Record<CriterionId, number>>> | null
-  /** Contribuciones del motor TS con perfil de misión; null = usar `contribution` del snapshot. */
+  /** Contributions from the TS engine with a mission profile; null = use the snapshot's `contribution`. */
   contributions: Readonly<Partial<Record<CriterionId, number | null>>> | null
   marsReference: MarsReference | null
 }
 
 export { MetricRail } from './MetricRail'
-// El modelo puro (`buildMetricViews`, `limitingView`, constantes del catálogo) y `useMetricViews`
-// se importan DIRECTO de './buildMetricViews' y './useMetricViews' desde código diferido: si este
-// índice los reexportara, viajarían en el chunk principal (§6.1).
+// The pure model (`buildMetricViews`, `limitingView`, catalog constants) and `useMetricViews`
+// are imported DIRECTLY from './buildMetricViews' and './useMetricViews' in deferred code: if this
+// index re-exported them, they would travel in the main chunk (§6.1).
 export { resolveMetricContext, type MetricContext, type SiteFigures } from './metricContext'

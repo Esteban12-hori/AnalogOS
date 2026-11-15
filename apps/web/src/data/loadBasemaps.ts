@@ -1,13 +1,14 @@
 /**
- * Manifiesto de mapas base 2D horneados por `pipelines/fetch_basemaps.py` (NASA GIBS).
- * Si falta o es inválido, el mapa 2D sigue funcionando sin imágenes locales.
+ * Manifest of 2D base maps baked by `pipelines/fetch_basemaps.py` (NASA GIBS).
+ * If it is missing or invalid, the 2D map keeps working without local images.
  */
+import { displaySource } from '../i18n/sourceText'
 
 export type Bounds = [west: number, south: number, east: number, north: number]
 
 export interface Basemap {
   id: string
-  /** `context`: vista Sentinel-2 por candidato de ADR-005 (no viene del manifiesto de mapas base). */
+  /** `context`: Sentinel-2 view per ADR-005 candidate (does not come from the base map manifest). */
   kind: 'world' | 'regional' | 'sector' | 'context'
   label: string
   bounds: Bounds
@@ -23,7 +24,7 @@ function isBounds(value: unknown): value is Bounds {
   return Array.isArray(value) && value.length === 4 && value.every((item) => typeof item === 'number' && Number.isFinite(item))
 }
 
-/** Validación en el límite del sistema: descarta entradas mal formadas en vez de romper el mapa. */
+/** Validation at the system boundary: discards malformed entries instead of breaking the map. */
 export function parseBasemaps(data: unknown): Basemap[] {
   if (typeof data !== 'object' || data === null || !Array.isArray((data as { basemaps?: unknown }).basemaps)) return []
   return ((data as { basemaps: unknown[] }).basemaps).filter((entry): entry is Basemap => {
@@ -44,7 +45,7 @@ export function parseBasemaps(data: unknown): Basemap[] {
   })
 }
 
-/** Versión WebP liviana de una vista Sentinel-2 de ADR-005, ligada al SHA-256 de su PNG. */
+/** Lightweight WebP version of an ADR-005, Sentinel-2 view tied to the SHA-256 of its PNG. */
 export interface ContextPreview {
   site_id: string
   image: string
@@ -83,7 +84,7 @@ export async function loadBasemaps(): Promise<BasemapManifest> {
   }
 }
 
-/** Intersección de dos cajas [oeste, sur, este, norte]. */
+/** Intersection of two boxes [west, south, east, north]. */
 export function boundsIntersect(a: Bounds, b: Bounds): boolean {
   return a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1]
 }
@@ -95,15 +96,15 @@ export interface ActiveSource {
 }
 
 export interface OnlineLayers {
-  /** Teselas Blue Marble de GIBS cargadas al menos una vez. */
+  /** GIBS Blue Marble tiles loaded at least once. */
   blueMarble: boolean
-  /** Fechas HLS en línea si alguna tesela cargó; `null` si no hay conexión o no se pidieron. */
+  /** Online HLS dates if any tile loaded; `null` if there is no connection or none were requested. */
   hls: string[] | null
 }
 
 /**
- * Fuentes que realmente se ven en la vista: imágenes locales que intersectan el
- * encuadre a un zoom en que aportan detalle, más la capa global en línea si cargó.
+ * Sources that are actually visible in the view: local images that intersect the
+ * frame at a zoom level where they provide detail, plus the global online layer if it loaded.
  */
 export function activeSources(view: Bounds, zoom: number, basemaps: Basemap[], online: OnlineLayers): ActiveSource[] {
   const visible = basemaps.filter((basemap) => boundsIntersect(view, basemap.bounds))
@@ -114,30 +115,30 @@ export function activeSources(view: Bounds, zoom: number, basemaps: Basemap[], o
   const sources: ActiveSource[] = []
   const first = contexts[0]
   if (first) {
-    sources.push({ id: 'sentinel2-context', label: first.label, detail: `${first.source} · ${contexts.length} sector(es)` })
+    sources.push({ id: 'sentinel2-context', label: displaySource(first.label), detail: `${displaySource(first.source)} · ${contexts.length} sector(s)` })
   }
   if (sectors.length) {
     const dates = sectors.flatMap((sector) => sector.dates.map((item) => item.split(':')[1] ?? item)).sort()
     sources.push({
       id: 'hls',
       label: 'NASA HLS S30/L30 · ~30 m',
-      detail: `Mediana por píxel ${dates[0] ?? ''} – ${dates.at(-1) ?? ''} · ${sectors.length} sector(es)`,
+      detail: `Per-pixel median ${dates[0] ?? ''} – ${dates.at(-1) ?? ''} · ${sectors.length} sector(s)`,
     })
   }
   if (online.hls?.length && zoom >= 8) {
     sources.push({
       id: 'hls-online',
-      label: 'NASA HLS S30 en línea · ~30 m',
-      detail: `NASA GIBS · fecha única por píxel ${online.hls[0]} – ${online.hls.at(-1)} (puede haber nubes)`,
+      label: 'NASA HLS S30 online · ~30 m',
+      detail: `NASA GIBS · single date per pixel ${online.hls[0]} – ${online.hls.at(-1)} (clouds possible)`,
     })
   }
   if (regional.length) {
-    sources.push({ id: 'bluemarble-local', label: 'NASA Blue Marble NG · ~500 m', detail: 'Copia local · norte de Chile' })
+    sources.push({ id: 'bluemarble-local', label: 'NASA Blue Marble NG · ~500 m', detail: 'Local copy · northern Chile' })
   }
   if (online.blueMarble) {
-    sources.push({ id: 'gibs-online', label: 'NASA Blue Marble NG en línea · ~500 m', detail: 'NASA GIBS · resto del mundo' })
+    sources.push({ id: 'gibs-online', label: 'NASA Blue Marble NG online · ~500 m', detail: 'NASA GIBS · rest of the world' })
   } else if (world.length) {
-    sources.push({ id: 'world-local', label: 'NASA Blue Marble NG · ~20 km', detail: 'Copia local mundial (sin conexión)' })
+    sources.push({ id: 'world-local', label: 'NASA Blue Marble NG · ~20 km', detail: 'Local world copy (offline)' })
   }
   return sources
 }

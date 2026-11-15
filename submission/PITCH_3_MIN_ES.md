@@ -1,5 +1,7 @@
 # Pitch de 3 minutos
 
+[English](PITCH_3_MIN_EN.md) · **Español**
+
 ## 0:00–0:25 — Problema
 
 «Este lugar parece Marte» suena atractivo, pero no es una especificación de ingeniería. Un equipo que quiere probar un rover necesita algo más concreto: qué sitio reproduce las condiciones relevantes para percepción, tracción y navegación, con qué evidencia y qué falta validar. Y señalar análogos ya famosos, como Yungay, no demuestra que sepamos buscar.
@@ -12,7 +14,7 @@ Creamos AnalogOS, un sistema de exploración de análogos planetarios. No declar
 
 Tomamos como referencia el entorno de Jezero con MOLA de NASA PDS. Recorrimos una rejilla de 50 ventanas de unos 20 kilómetros en dos regiones de prueba y calculamos su topografía NASADEM a la misma escala que MOLA, cerca de 480 metros. Con eso ordenamos la preselección.
 
-Después contrastamos cada ventana con antecedentes publicados. Cuatro contenían coordenadas de muestreo de un estudio de 2003 y quedaron fuera del ranking, a la vista. Solo las seis preseleccionadas recibieron doce mosaicos mensuales Sentinel-2 y contexto climático NASA POWER. La geología sigue fuera del score: no inventamos valores.
+Después contrastamos cada ventana con antecedentes publicados. Cuatro contenían coordenadas de muestreo de un estudio de 2003 y quedaron fuera del ranking, a la vista. Solo las seis preseleccionadas recibieron doce mosaicos mensuales Sentinel-2 y contexto climático NASA POWER. La cartografía geológica oficial ya orienta preguntas de reconocimiento, pero la geología sigue fuera del score: no inventamos valores calibrados.
 
 ## 1:30–2:15 — Resultado y demo
 
@@ -22,8 +24,8 @@ Hay que leerlo bien. Ningún candidato es un análogo nuevo confirmado: ambas re
 
 ## 2:15–2:45 — Diferenciador
 
-El sistema busca en lugar de listar: la rejilla sale de un algoritmo y cada descarte queda registrado con su motivo. Nunca oculta un antecedente para aparentar un descubrimiento. El score es determinista, la confianza no altera la similitud y la factibilidad no se deduce del parecido con Marte. La app funciona offline con un snapshot validado por contratos.
+El sistema busca en lugar de listar: la rejilla sale de un algoritmo y cada descarte queda registrado con su motivo. Nunca oculta un antecedente para aparentar un descubrimiento. El score es determinista, la confianza no altera la similitud y la factibilidad no se deduce del parecido con Marte. El flujo manual funciona offline con un snapshot validado por contratos. La IA opcional propone requisitos y destaca evidencia existente; el usuario confirma los requisitos y el motor los evalúa.
 
 ## 2:45–3:00 — Cierre
 
-El siguiente paso es cruzar los candidatos con capas oficiales de ambos países, sumar geología, contrastar el clima con datos locales y ampliar la búsqueda a más regiones. AnalogOS transforma una impresión visual en una hipótesis medible y auditable. No dice «este lugar es Marte»; dice «investiguemos este lugar, por estas razones y con estos límites».
+Los siguientes pasos son el reconocimiento en terreno, la calibración geológica, las comprobaciones territoriales, la verificación del clima con datos locales y la ampliación a más regiones. AnalogOS transforma una impresión visual en una hipótesis medible y auditable. No dice «este lugar es Marte»; dice «investiguemos este lugar, por estas razones y con estos límites».

@@ -1,13 +1,13 @@
 /**
- * features/boot — Loading WOW «Órbita honesta» (incremento 7): póster/silueta, anillo, satélite y
- * bitácora de hitos reales ya en el HTML (plugin loadingHints + content/shell.ts), revelado del
- * arranque, chip de estado y la órbita reutilizable para la espera de la IA.
- * Slots: `stage.overlay` (BootLayer), `topbar.status` (StatusChip). Exporta OrbitLoader para
- * composer y analysis. El plugin de Vite vive en ./loadingHints.ts (código de Node: no lo
- * importes desde la app).
+ * features/boot — «Honest Orbit» loading WOW (increment 7): poster/silhouette, ring, satellite and
+ * log of real milestones already in the HTML (loadingHints plugin + content/shell.ts), startup
+ * reveal, status chip and the reusable orbit for the AI wait.
+ * Slots: `stage.overlay` (BootLayer), `topbar.status` (StatusChip). Exports OrbitLoader for
+ * composer and analysis. The Vite plugin lives in ./loadingHints.ts (Node code: do not
+ * import it from the app).
  *
- * INTERFAZ ESTABLE: tipos y firmas de este archivo. Exports añadidos (compatibles):
- * ORBIT_DELAY_MS y ORBIT_LOOP_MS, para que la luz del composer vaya en fase con la órbita.
+ * STABLE INTERFACE: types and signatures in this file. Added exports (compatible):
+ * ORBIT_DELAY_MS and ORBIT_LOOP_MS, so that the composer light stays in phase with the orbit.
  */
 import type { AppData } from '../../shell/public'
 
@@ -22,11 +22,11 @@ export interface StatusChipProps {
 }
 
 export interface OrbitLoaderProps {
-  /** Mientras es true, la órbita marca la espera (2 vueltas de 2,4 s como máximo, luego estática). */
+  /** While true, the orbit marks the wait (at most 2 loops of 2,4 s, then static). */
   active: boolean
-  /** Texto de la fase real (p. ej. «Perfil recibido · validado · paso 2 de 4»). */
+  /** Text of the real phase (e.g. «Profile received · validated · step 2 of 4»). */
   label: string
-  /** 'globe' = alrededor del globo en el escenario; 'inline' = junto a un texto. */
+  /** 'globe' = around the globe on the stage; 'inline' = next to a text. */
   placement?: 'globe' | 'inline'
 }
 

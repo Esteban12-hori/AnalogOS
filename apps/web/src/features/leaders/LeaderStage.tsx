@@ -1,7 +1,7 @@
 /**
- * DOM de las líneas Tesla. React lo monta una vez por contenido; cada cuadro de cámara lo
- * mueve el controlador (transform y `d`) sin pasar por React. Toda la capa es aria-hidden:
- * duplica el riel de métricas, que es la ruta accesible (y la que lee el lector de pantalla).
+ * DOM of the Tesla lines. React mounts it once per content; on each camera frame the
+ * controller moves it (transform and `d`) without going through React. The entire layer is aria-hidden:
+ * it duplicates the metrics rail, which is the accessible path (and the one the screen reader reads).
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, type CSSProperties } from 'react'
 import type { CandidateGeometry } from '../../domain/contracts'
@@ -26,13 +26,13 @@ export interface LeaderStageProps {
   height: number
   insets: StageInsets
   obstacles: ReadonlyArray<{ x: number; y: number; width: number; height: number }>
-  /** Criterio activo o en vista previa en el riel: se resalta su etiqueta y su línea. */
+  /** Active or previewed criterion in the rail: its label and its line are highlighted. */
   activeId: string | null
-  /** Misión en curso: resultados previos a --o-busy. */
+  /** Mission in progress: results prior to --o-busy. */
   busy: boolean
-  /** Cambia con cada selección o resultado nuevo: vuelve a esperar a la cámara y a trazar. */
+  /** Changes with each new selection or result: it waits again for the camera and redraws. */
   drawKey: string
-  /** Canal por cuadro del escenario (features/globe), inyectado por LeaderLayer. */
+  /** Per-frame channel of the stage (features/globe), injected by LeaderLayer. */
   bridge: LeaderStageBridge
 }
 
@@ -45,9 +45,9 @@ function indexStyle(index: number): CSSProperties {
 }
 
 /**
- * Slots del escenario que tapan la capa sin ser `data-obstacle` del armazón: la franja del HUD
- * (la caja posicionada que aloja el interruptor «Líneas», slot `stage.hud`) y la píldora
- * «✦ Lectura» (slot `pill.reading`). Ni etiquetas ni líneas pueden cruzarlos.
+ * Stage slots that cover the layer without being `data-obstacle` of the frame: the HUD strip
+ * (the positioned box that hosts the "Lines" toggle, slot `stage.hud`) and the "✦ Reading"
+ * pill (slot `pill.reading`). Neither labels nor lines may cross them.
  */
 function slotHosts(): HTMLElement[] {
   if (typeof document === 'undefined') return []
@@ -89,12 +89,12 @@ export function LeaderStage(props: LeaderStageProps) {
   }
   const controller = controllerRef.current
 
-  // Selección o resultado nuevo: ocultar y esperar a que la cámara llegue.
+  // New selection or result: hide and wait for the camera to arrive.
   useLayoutEffect(() => {
     controller.restart()
   }, [controller, props.drawKey])
 
-  // Contenido o layout asentado: medir una vez (nunca por cuadro) y recalcular.
+  // Content or layout settled: measure once (never per frame) and recalculate.
   const latest = useRef(props)
   latest.current = props
   const refresh = useCallback(() => {
@@ -121,11 +121,11 @@ export function LeaderStage(props: LeaderStageProps) {
   const { siteId, geometry, sideSheet, compact, width, height, insets, obstacles } = props
   useLayoutEffect(() => {
     refresh()
-    // Un cuadro después: el HUD se reubica con las variables de márgenes del escenario.
+    // One frame later: the HUD repositions itself using the stage's margin variables.
     const frame = requestAnimationFrame(refresh)
     return () => cancelAnimationFrame(frame)
   }, [refresh, siteId, geometry, labels, header, narrow, sideSheet, compact, width, height, insets, obstacles])
-  // El HUD crece en 2D (fuentes) y la píldora cambia de texto: se remide al cambiar de tamaño.
+  // The HUD grows in 2D (fonts) and the pill changes text: it is remeasured when the size changes.
   useEffect(() => {
     if (typeof ResizeObserver === 'undefined') return
     const observer = new ResizeObserver(() => refresh())
@@ -133,7 +133,7 @@ export function LeaderStage(props: LeaderStageProps) {
     return () => observer.disconnect()
   }, [refresh])
 
-  // Cada cuadro de cámara va directo al controlador.
+  // Each camera frame goes straight to the controller.
   useEffect(() => {
     const unsubscribe = bridge.subscribe(controller.frame)
     return () => {
@@ -171,7 +171,7 @@ export function LeaderStage(props: LeaderStageProps) {
                 className="leaders-path"
                 data-pending={label.pending ? '' : undefined}
                 data-active={activeId === label.id ? '' : undefined}
-                // pathLength normaliza el trazo progresivo; la línea discontinua (sin dato) no lo usa.
+                // pathLength normalizes the progressive stroke; the dashed line (no data) does not use it.
                 pathLength={label.pending ? undefined : 1}
                 style={indexStyle(index)}
                 d=""
@@ -186,13 +186,13 @@ export function LeaderStage(props: LeaderStageProps) {
         <>
           <div ref={headerEl} className="leaders-header" data-placed="0">
             <div className="leaders-header-text">
-              Todo el sector
+              Whole sector
               {header.area && <> · {header.area}</>}
-              {header.scale ? <> · medianas {header.scale}</> : <> · medianas</>}
+              {header.scale ? <> · medians {header.scale}</> : <> · medians</>}
               {header.vsMars && (
                 <> · vs <span className="leaders-mars-glyph">{GLYPH.jezero}</span> Jezero (MOLA)</>
               )}
-              {header.mission && <> · con tus requisitos</>}
+              {header.mission && <> · with your requirements</>}
             </div>
           </div>
 
@@ -214,7 +214,7 @@ export function LeaderStage(props: LeaderStageProps) {
           ))}
 
           <div ref={chipEl} className="leaders-chip" data-placed="0">
-            <span className="leaders-chip-card">Métricas en el panel <span className="leaders-chip-arrow">→</span></span>
+            <span className="leaders-chip-card">Metrics in the panel <span className="leaders-chip-arrow">→</span></span>
           </div>
         </>
       )}
@@ -228,14 +228,14 @@ function LeaderCard({ label }: { label: LeaderLabelModel }) {
     <div className="leaders-card">
       <div className="leaders-title">
         <span>{label.title}</span>
-        {label.limiting && <span className="leaders-tag">limitante</span>}
+        {label.limiting && <span className="leaders-tag">limiting</span>}
       </div>
       <div className="leaders-values">
         <span className="leaders-site"><span className="leaders-site-glyph">{GLYPH.evaluated}</span> {label.siteText}</span>
         {reference.kind === 'mars' && (
           <span className="leaders-mars"><span className="leaders-mars-glyph">{GLYPH.jezero}</span> {reference.text}</span>
         )}
-        {reference.kind === 'rule' && <span className="leaders-rule">{GLYPH.rule} regla</span>}
+        {reference.kind === 'rule' && <span className="leaders-rule">{GLYPH.rule} rule</span>}
         {reference.kind === 'none' && <span className="leaders-nomars">{NO_MARS_TEXT}</span>}
       </div>
       <div className="leaders-sim" data-sim-tone={similarityTone(label.similarity, 0) ?? undefined}>
@@ -243,7 +243,7 @@ function LeaderCard({ label }: { label: LeaderLabelModel }) {
           <>
             <span className="leaders-bar"><span style={{ transform: `scaleX(${label.similarity / 100})` }} /></span>
             <span className="leaders-pct">{label.similarityText}</span>
-            <span className="leaders-sim-word">similitud</span>
+            <span className="leaders-sim-word">similarity</span>
           </>
         ) : (
           <>

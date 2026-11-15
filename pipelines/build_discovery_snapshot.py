@@ -1,9 +1,9 @@
-"""Construye el snapshot v3: candidatos de la búsqueda y Yungay como referencia conocida.
+"""Builds the v3 snapshot: candidates from the search and Yungay as the known reference.
 
-Usa las mismas fórmulas, pesos y tolerancias del snapshot v2 (``score_inputs``,
-``aggregate`` y ``sensitivity``). Los candidatos salen de la preselección de
-``pipelines.discover_candidates``; Yungay se recalcula con sus datos v2 y debe
-conservar sus valores. Es un screening: no aprueba sitios ni declara novedad.
+Uses the same formulas, weights and tolerances as the v2 snapshot (``score_inputs``,
+``aggregate`` and ``sensitivity``). The candidates come from the preselection in
+``pipelines.discover_candidates``; Yungay is recomputed with its v2 data and must
+retain its values. This is a screening: it does not approve sites or declare novelty.
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ REFERENCE_DATASETS = {
     "hls": "nasa-earthdata-hls-s30-inventory-2025-v1",
 }
 PRECEDENTS_DATASET = "analog-precedents-catalog-v1"
-# Autoridad territorial por país para las restricciones no evaluadas. No implica permiso alguno.
+# Territorial authority per country for the restrictions not evaluated. It does not imply any permit.
 TERRITORIAL = {
     "CL": {"name": "IDE Chile", "url": "https://www.ide.cl/", "geology": "SERNAGEOMIN"},
     "AR": {"name": "IDERA", "url": "https://www.idera.gob.ar/", "geology": "SEGEMAR"},
@@ -86,7 +86,7 @@ LITERATURE_NOTE = {
 
 
 def expected_months(time_start: str, time_end: str) -> list[str]:
-    """Inicios de mes (UTC) que debe cubrir la serie, p. ej. los 12 de 2025."""
+    """Month starts (UTC) that the series must cover, e.g. the 12 of 2025."""
     current = datetime.strptime(time_start, "%Y-%m-%dT%H:%M:%SZ")
     end = datetime.strptime(time_end, "%Y-%m-%dT%H:%M:%SZ")
     months = []
@@ -104,33 +104,34 @@ def _finite(value: object) -> bool:
 
 
 class SourceMismatch(ValueError):
-    """Un dato crudo en caché pertenece a otra petición (otra bbox, periodo, producto o transformación)."""
+    """Cached raw data belongs to a different request (a different bbox, period, product or transformation)."""
 
 
 def cached_response(store: dict, site_id: str, request: object, label: str) -> dict | None:
-    """Entrada cruda de un sitio solo si corresponde exactamente a la petición vigente.
+    """Raw entry for a site only if it corresponds exactly to the current request.
 
-    Sin entrada o con fallo registrado devuelve ``None`` (dato faltante). Si la entrada
-    es de otra petición se detiene el build: nunca se atribuyen datos viejos al experimento.
+    With no entry or with a recorded failure it returns ``None`` (missing data). If the entry
+    belongs to a different request, the build stops: old data is never attributed to the experiment.
     """
     entry = store["sites"].get(site_id)
     if entry is None or entry.get("status") != "ok":
         return None
     if entry.get("request_key") != request_key(request) or entry.get("request") != request:
         raise SourceMismatch(
-            f"{label} de {site_id} en caché no corresponde a la configuración vigente; "
-            "ejecuta python -m pipelines.fetch_discovery_data --stage sources."
+            f"cached {label} for {site_id} does not match the current configuration; "
+            "run python -m pipelines.fetch_discovery_data --stage sources."
         )
     return entry
 
 
-# Bandas del evalscript de superficie y su rango físico: fracciones 0–1 e índices normalizados −1–1.
+# Surface evalscript bands and their physical range: 0–1 fractions and normalized indices −1–1.
 SENTINEL_BANDS = {"nonvegetated": (0.0, 1.0), "vegetation": (0.0, 1.0), "water": (0.0, 1.0), "ndvi": (-1.0, 1.0), "bsi": (-1.0, 1.0)}
 POWER_UNITS = {"PRECTOTCORR": "mm/day", "TS": "C", "TS_MAX": "C", "TS_MIN": "C"}
 
 
 def _row_problem(row: dict, months: dict[str, str], seen: set[str]) -> str | None:
-    """Motivo por el que una fila mensual no es utilizable, o ``None`` si lo es."""
+    """Reason why a monthly row is not usable, or ``None`` if it is."""
+    # Frozen output text (Spanish): rejection reasons are stored in the snapshot artifacts. Do not translate.
     interval = row.get("interval") if isinstance(row.get("interval"), dict) else {}
     start = interval.get("from")
     if start not in months:
@@ -159,10 +160,10 @@ def _row_problem(row: dict, months: dict[str, str], seen: set[str]) -> str | Non
 
 
 def checked_sentinel(site_id: str, entry: dict | None, copernicus: dict) -> tuple[dict | None, list[dict]]:
-    """Métricas Sentinel-2 solo con meses únicos, dentro del periodo, sin error y con datos finitos.
+    """Sentinel-2 metrics only with unique months, within the period, without error and with finite data.
 
-    Devuelve ``(métricas | None, intervalos rechazados)``. La completitud se mide
-    contra los meses configurados, no contra los que devolvió la API.
+    Returns ``(metrics | None, rejected intervals)``. Completeness is measured
+    against the configured months, not against those returned by the API.
     """
     starts = expected_months(copernicus["time_start"], copernicus["time_end"])
     months = dict(zip(starts, [*starts[1:], copernicus["time_end"]]))
@@ -185,10 +186,10 @@ def checked_sentinel(site_id: str, entry: dict | None, copernicus: dict) -> tupl
 
 
 def checked_power(site_id: str, response: object, request_url: str) -> tuple[dict | None, str | None]:
-    """Climatología POWER solo si trae las unidades esperadas y valores anuales reales.
+    """POWER climatology only if it has the expected units and real annual values.
 
-    Un valor de relleno (``fill_value``, normalmente −999), no finito o incoherente deja
-    el contexto climático como faltante; nunca se convierte en precipitación o temperatura.
+    A fill value (``fill_value``, normally −999), non-finite or inconsistent leaves
+    the climate context as missing; it is never converted into precipitation or temperature.
     """
     if not isinstance(response, dict):
         return None, "respuesta POWER con formato inesperado"
@@ -209,7 +210,7 @@ def checked_power(site_id: str, response: object, request_url: str) -> tuple[dic
 
 
 def constraint_checks(country: str, earth: dict, sentinel: dict | None) -> list[dict]:
-    """Restricciones v2 con la autoridad territorial del país; las no evaluadas siguen pendientes."""
+    """v2 restrictions with the country's territorial authority; those not evaluated remain pending."""
     checks = _constraint_checks(earth, sentinel or {"maximum_monthly_water_fraction": 0.0})
     authority = TERRITORIAL[country]
     for check in checks:
@@ -227,7 +228,7 @@ def _missing(dataset_id: str, explanation: str) -> dict:
 
 
 def site_inputs(country: str, earth: dict, sentinel: dict | None, climate: dict | None, mola: dict, datasets: dict) -> dict:
-    """``score_inputs`` de v2; un criterio sin dato real queda como faltante, nunca con un valor supuesto."""
+    """``score_inputs`` from v2; a criterion without real data remains missing, never with an assumed value."""
     geology = (f"Requiere cartografía geológica oficial ({TERRITORIAL[country]['geology']}) y revisión experta; "
                "permanece fuera del score v3.")
     inputs = score_inputs(
@@ -252,7 +253,7 @@ def literature_review(status: str, matches: list[dict], catalog: dict) -> dict:
 def site_entry(*, site_id: str, name: str, country: str, role: str, geometry: dict, profile: dict, config: dict,
                earth: dict, sentinel: dict | None, climate: dict | None, hls_count: int | None, mola: dict,
                datasets: dict, discovery: dict, review: dict, catalog: dict, extra_warnings: list[str]) -> tuple[dict, dict]:
-    """Ficha contractual de un sitio y su análisis auditable."""
+    """Contractual record of a site and its auditable analysis."""
     inputs = site_inputs(country, earth, sentinel, climate, mola, datasets)
     aggregation = profile["aggregation"]
     score = aggregate(profile["criteria"], inputs, aggregation["epsilon"], aggregation["minimum_valid_weight"])
@@ -330,7 +331,7 @@ def _dataset(base: dict, **changes) -> dict:
 
 def manifest_datasets(config: dict, science_config: dict, reference_tiles: list[str], search_tiles: list[str],
                       raw: dict, log: dict, texts: dict) -> list[dict]:
-    """Manifiesto real: fuentes v2 de la referencia, fuentes nuevas de la búsqueda y derivados."""
+    """Real manifest: v2 sources of the reference, new sources from the search and derivatives."""
     inventory_v2, nasadem_records = _nasadem_inventory(science_config)
     v2 = {item["dataset_id"]: item for item in _dataset_manifest(science_config, "", raw["power_v2"], nasadem_records)}
     keep = ["nasa-pds-mola-meg128-jezero-v1", REFERENCE_DATASETS["sentinel2"], REFERENCE_DATASETS["hls"], REFERENCE_DATASETS["power"]]
@@ -340,8 +341,8 @@ def manifest_datasets(config: dict, science_config: dict, reference_tiles: list[
     def latest(store: dict) -> str:
         return max(entry["acquired_at"] for entry in store["sites"].values())
 
-    # Las fuentes de la etapa 2 solo se declaran si realmente se adquirieron: una búsqueda sin
-    # preselección produce un experimento negativo sin datasets inventados.
+    # The sources of stage 2 are only declared if they were actually acquired: a search without
+    # preselection produces a negative experiment without invented datasets.
     if raw["sentinel2"]["sites"]:
         datasets.append(_dataset(
             v2[REFERENCE_DATASETS["sentinel2"]], dataset_id=SEARCH_DATASETS["sentinel2"],
@@ -371,7 +372,7 @@ def manifest_datasets(config: dict, science_config: dict, reference_tiles: list[
         filename = f"NASADEM_HGT_{tile}.zip"
         acquired = log.get("tiles", {}).get(filename)
         if acquired is None:
-            raise ValueError(f"Falta el registro de adquisición de {filename}; ejecuta "
+            raise ValueError(f"The acquisition record for {filename} is missing; run "
                              "python -m pipelines.fetch_discovery_data --stage tiles.")
         datasets.append(_dataset(
             template, dataset_id=f"nasadem-{tile}-v1", product=filename.removesuffix(".zip"),
@@ -417,7 +418,7 @@ def build(config_path: Path, profile_path: Path) -> dict[str, object]:
     profile = load_profile(profile_path)
     sources = config["sources"]
     def store(name: str) -> dict:
-        # Sin preselección la etapa 2 no se ejecuta y estos archivos pueden no existir.
+        # Without preselection, stage 2 is not run and these files may not exist.
         path = ROOT / sources[name]
         return json.loads(path.read_text("utf-8")) if path.exists() else {"sites": {}}
 
@@ -468,7 +469,7 @@ def build(config_path: Path, profile_path: Path) -> dict[str, object]:
         entries.append(entry)
         analyses.append(analysis)
 
-    # Valores POWER idénticos sugieren una celda compartida, pero la respuesta no identifica la celda.
+    # Identical POWER values suggest a shared cell, but the response does not identify the cell.
     for entry, analysis in zip(entries, analyses):
         power = analysis["nasa_power"]
         matching = sorted(other["site_id"] for other in analyses if other is not analysis and power and other["nasa_power"]
@@ -506,7 +507,7 @@ def build(config_path: Path, profile_path: Path) -> dict[str, object]:
     analyses.append(analysis)
     assert literature_status(site["site_id"], matches, catalog) == "known_analogue_overlap", "Yungay debe contener coordenadas publicadas"
 
-    # Observaciones visuales preliminares: van a la ficha como advertencia y nunca cambian score ni factibilidad.
+    # Preliminary visual observations: they go into the record as a warning and never change the score or feasibility.
     observations = json.loads((ROOT / sources["visual_observations"]).read_text("utf-8"))
     for item, analysis in zip(entries, analyses):
         seen = observations["sites"].get(item["site_id"])
@@ -547,8 +548,8 @@ def main() -> None:
     args.out.mkdir(parents=True, exist_ok=True)
     for name, content in build(args.config, args.profile).items():
         (args.out / name).write_text(_dump(content), encoding="utf-8")
-        print(f"escrito {args.out / name}")
-    print("AVISO: snapshot v3 de screening; ningún candidato se declara nuevo ni validado.")
+        print(f"wrote {args.out / name}")
+    print("WARNING: v3 screening snapshot; no candidate is declared new or validated.")
 
 
 if __name__ == "__main__":

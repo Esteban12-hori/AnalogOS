@@ -12,7 +12,7 @@ import { parseSensitivity, type SensitivityResult } from '../domain/sensitivity'
 import { parseSurfaceSeries, type SurfaceSeriesBySite } from '../domain/surfaceSeries'
 
 export const SNAPSHOT_PATH: string = import.meta.env.VITE_SNAPSHOT_PATH ?? 'science-v3'
-/** El snapshot v3 trae búsqueda, antecedentes y contornos de ambos países; los históricos, no. */
+/** The v3 snapshot includes search, background data and boundaries for both countries; the historical ones do not. */
 export const IS_DISCOVERY_SNAPSHOT = SNAPSHOT_PATH === 'science-v3'
 
 export interface DemoSnapshot {
@@ -22,25 +22,25 @@ export interface DemoSnapshot {
   outline: GeoJsonFeatureCollection
   search: SearchResults | null
   precedents: PrecedentCatalog | null
-  /** Series mensuales Sentinel-2; vacío si el snapshot no las trae (p. ej. el fixture demo). */
+  /** Monthly Sentinel-2 series; empty if the snapshot does not include them (e.g., the demo fixture). */
   surfaceSeries: SurfaceSeriesBySite
-  /** Medianas MOLA de Jezero; null si el snapshot no las trae. */
+  /** Jezero MOLA medians; null if the snapshot does not include them. */
   marsReference: MarsReference | null
-  /** Sensibilidad del orden por sitio (analysis-summary.json); ausente o vacía si no la trae. */
+  /** Per-site ranking sensitivity (analysis-summary.json); absent or empty if the snapshot does not include it. */
   sensitivity?: ReadonlyMap<string, SensitivityResult>
 }
 
 async function fetchJson(path: string): Promise<unknown> {
   const response = await fetch(`${import.meta.env.BASE_URL}${SNAPSHOT_PATH}/${path}`)
   if (!response.ok) {
-    throw new Error(`No se pudo cargar ${path} (${response.status}).`)
+    throw new Error(`${path} could not be loaded (${response.status}).`)
   }
   return response.json() as Promise<unknown>
 }
 
 export async function loadDemoSnapshot(): Promise<DemoSnapshot> {
-  // Todo en paralelo (index.html ya los precarga). analysis-summary.json es opcional: un
-  // snapshot sin él sigue siendo válido.
+  // Everything in parallel (index.html already preloads them). analysis-summary.json is optional: a
+  // snapshot without it is still valid.
   const [candidateData, manifestData, profileData, outlineData, searchData, precedentData, summaryData] = await Promise.all([
     fetchJson('candidate-details.json'),
     fetchJson('manifest.json'),
@@ -53,14 +53,14 @@ export async function loadDemoSnapshot(): Promise<DemoSnapshot> {
 
   assertSnapshotContracts(candidateData, manifestData, profileData)
   if (IS_DISCOVERY_SNAPSHOT) {
-    // Validadores de búsqueda y antecedentes en un chunk diferido (solo los necesita v3).
+    // Search and background data validators in a deferred chunk (only v3 needs them).
     const discovery: typeof import('../domain/discoveryContracts') = await import('../domain/discoveryContracts')
     discovery.assertDiscoveryContracts(searchData, precedentData)
   }
 
   const outline = outlineData as GeoJsonFeatureCollection
   if (outline.type !== 'FeatureCollection' || !Array.isArray(outline.features)) {
-    throw new Error('El contorno de contexto no tiene formato GeoJSON FeatureCollection.')
+    throw new Error('The context outline is not a GeoJSON FeatureCollection.')
   }
 
   return {

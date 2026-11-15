@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { similarityTone, similarityToneLabel } from '../domain/similarityScale'
 
-describe('escala de color de la similitud', () => {
-  it('asigna rojo, amarillo, azul y verde por tramos', () => {
+describe('similarity color scale', () => {
+  it('assigns red, yellow, blue and green by band', () => {
     expect(similarityTone(0)).toBe('low')
     expect(similarityTone(49.9)).toBe('low')
     expect(similarityTone(50)).toBe('mid')
@@ -13,22 +13,22 @@ describe('escala de color de la similitud', () => {
     expect(similarityTone(100)).toBe('high')
   })
 
-  it('clasifica el número como se muestra (redondeado)', () => {
-    expect(similarityTone(69.6, 0)).toBe('good') // se ve «70»: azul, como dice la leyenda
-    expect(similarityTone(69.94)).toBe('mid') // se ve «69,9»
-    expect(similarityTone(69.96)).toBe('good') // se ve «70,0»
-    expect(similarityTone(89.96)).toBe('high') // se ve «90,0»
+  it('classifies the number as displayed (rounded)', () => {
+    expect(similarityTone(69.6, 0)).toBe('good') // it looks «70»: blue, as the legend says
+    expect(similarityTone(69.94)).toBe('mid') // shown as “69.9”
+    expect(similarityTone(69.96)).toBe('good') // shown as “70.0”
+    expect(similarityTone(89.96)).toBe('high') // shown as “90.0”
   })
 
-  it('sin cifra no hay color', () => {
+  it('no figure, no color', () => {
     expect(similarityTone(null)).toBeNull()
     expect(similarityTone(undefined)).toBeNull()
     expect(similarityTone(Number.NaN)).toBeNull()
   })
 
-  it('el texto accesible nombra el tramo', () => {
-    expect(similarityToneLabel(94.9)).toBe('similitud muy alta (90–100)')
-    expect(similarityToneLabel(63.9)).toBe('similitud media (50–69)')
+  it('the accessible text names the band', () => {
+    expect(similarityToneLabel(94.9)).toBe('very high similarity (90–100)')
+    expect(similarityToneLabel(63.9)).toBe('medium similarity (50–69)')
     expect(similarityToneLabel(null)).toBeNull()
   })
 })

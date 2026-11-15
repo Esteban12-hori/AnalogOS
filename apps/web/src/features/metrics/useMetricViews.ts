@@ -1,7 +1,7 @@
 /**
- * Hook de conveniencia para otras features (leaders, analysis): las vistas de métricas del lugar
- * con el mismo perfil activo que usa el riel. Archivo aparte para que el chunk principal no
- * arrastre `buildMetricViews` si nadie lo usa ahí.
+ * Convenience hook for other features (leaders, analysis): the place's metric views
+ * with the same active profile used by the rail. Separate file so that the main chunk does not
+ * pull in `buildMetricViews` if nobody uses it there.
  */
 import { useMemo } from 'react'
 import type { AppData } from '../../shell/public'
@@ -10,8 +10,8 @@ import type { MetricView } from './index'
 import { useMetricContext } from './metricContext'
 
 /**
- * Vistas de métricas del lugar con el perfil activo: la misma regla que usa el riel, para que
- * las líneas (leaders) y la Lectura (analysis) no diverjan. [] si no hay snapshot o lugar.
+ * The place's metric views with the active profile: the same rule used by the rail, so that
+ * the lines (leaders) and the Reading (analysis) do not diverge. [] if there is no snapshot or place.
  */
 export function useMetricViews(data: AppData, siteId: string | null): MetricView[] {
   const site = useMemo(

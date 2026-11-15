@@ -1,62 +1,62 @@
-# Revisión y aceptación M8 — Codex
+# M8 Review and Acceptance — Codex
 
-**Actualización de entrega:** M8 se publicó en dev y ambas operaciones de IA se verificaron realmente el 2026-11-14. Evidencia vigente, corrección de runtime y checksum final en `docs/DEV_AI_VERIFICATION.md`. El resto de este documento conserva el checkpoint de aceptación local previo a la publicación.
+**Delivery update:** M8 was published to dev and both AI operations were actually verified on 2026-11-14. Current evidence, runtime correction and final checksum are in `docs/DEV_AI_VERIFICATION.md`. The rest of this document preserves the local acceptance checkpoint prior to publication.
 
-Fecha: 2026-11-14. Implementación: Claude Code, supervisada por Codex con dos devoluciones y correcciones verificadas. Base: `4d197e17893dc4eef2dc5c9771c79813c909b657`, rama local `dev`. Sin commit, push ni publicación de M8.
+Date: 2026-11-14. Implementation: Claude Code, supervised by Codex with two returns for rework and verified corrections. Base: `4d197e17893dc4eef2dc5c9771c79813c909b657`, local branch `dev`. No commit, push or publication of M8.
 
-## Decisión
+## Decision
 
-Aceptada la implementación local del planificador para responsables de campañas de robótica planetaria. Permite definir un ensayo o elegir un sector, revisar y confirmar requisitos, recibir una priorización reproducible y exportar el diagnóstico. Anthropic funciona realmente como ayuda opcional para proponer requisitos y destacar razones ya calculadas.
+The local implementation of the planner for planetary robotics campaign managers is accepted. It allows defining a trial or choosing a sector, reviewing and confirming requirements, receiving a reproducible prioritization and exporting the diagnosis. Anthropic works in practice as an optional aid to propose requirements and highlight reasons that were already computed.
 
-La aceptación cubre software e integración local, no aptitud de campo ni un despliegue remoto verificado. El perfil disponible es rover marciano/Jezero; la evidencia corresponde a seis candidatos de Chile y Argentina más Yungay como referencia conocida. No se adquirieron datos para geometrías nuevas ni se habilitó búsqueda global en vivo.
+The acceptance covers software and local integration, not field suitability or a verified remote deployment. The available profile is Mars rover/Jezero; the evidence corresponds to six candidates in Chile and Argentina plus Yungay as a known reference. No data were acquired for new geometries and no live global search was enabled.
 
-## Evidencia independiente
+## Independent evidence
 
-| Comprobación | Resultado |
+| Check | Result |
 |---|---|
-| `source .venv/bin/activate && npm run verify` | 177 pruebas Python, 196 web, 2 pruebas de IA real omitidas por defecto; typecheck del servidor y build correctos |
-| Auditoría adicional de Codex | 10/10 casos pasan, separada de las pruebas escritas por Claude |
-| Baseline de ciencia, contexto visual, configuración y contratos existentes | Los 38 archivos conservan sus hashes |
-| Empaquetado repetido | Dos ejecuciones producen el mismo ZIP; sus 30 entradas coinciden byte por byte con `apps/web/dist` |
-| Clave y paquete | La clave real no aparece en archivos versionables ni en las entradas del ZIP; `.env` ignorado; sin función servidor en el paquete estático |
-| Navegador escritorio | Ambos recorridos, confirmación, resultados, edición que invalida resultados, errores de coordenadas, exportaciones JSON y funcionamiento con IA real |
-| Móvil | 390 × 844, controles y textos legibles, ancho de documento 390 px; sin desbordamiento horizontal observado |
-| Teclado | Entrada al recorrido y confirmación con Enter; foco/anuncio de paso presentes |
-| ZIP bajo `/AnalogOS/` | Aplicación y datos locales cargan; red externa bloqueada en la prueba; IA ausente da error claro y el recorrido manual continúa |
-| Informe imprimible | Contenido y condiciones efectivas comprobados con pruebas de renderizado y revisión de CSS; vista nativa de impresión pendiente de inspección visual |
+| `source .venv/bin/activate && npm run verify` | 177 Python tests, 196 web tests, 2 real AI tests skipped by default; server typecheck and build correct |
+| Additional Codex audit | 10/10 cases pass, separate from the tests written by Claude |
+| Baseline of science, visual context, configuration and existing contracts | The 38 files retain their hashes |
+| Repeated packaging | Two runs produce the same ZIP; its 30 entries match byte for byte with `apps/web/dist` |
+| Key and package | The real key does not appear in versionable files or in the ZIP entries; `.env` ignored; no server function in the static package |
+| Desktop browser | Both flows, confirmation, results, editing that invalidates results, coordinate errors, JSON exports and operation with real AI |
+| Mobile | 390 × 844, controls and text legible, document width 390 px; no horizontal overflow observed |
+| Keyboard | Entering the flow and confirming with Enter; step focus/announcement present |
+| ZIP under `/AnalogOS/` | Application and local data load; external network blocked in the test; absent AI gives a clear error and the manual flow continues |
+| Printable report | Content and effective conditions verified with rendering tests and CSS review; native print view pending visual inspection |
 
-La auditoría independiente incluye selección sensible al umbral (pendiente regional ≤ 2,3° deja un sector; ≤ 0° deja cero), Yungay evaluable como referencia, subpolígono que no hereda estadísticas, rechazo de exportación de otra solicitud, escala puntual no convertida en mediana regional, timeout durante lectura del cuerpo, huellas SHA-256 compatibles con Node, respuesta vigente con huella equivocada que termina en error, procedencia conservada tras reintento fallido y umbral diminuto que nunca se muestra como cero.
+The independent audit includes threshold-sensitive selection (regional slope ≤ 2,3° leaves one sector; ≤ 0° leaves zero), Yungay evaluable as a reference, a subpolygon that does not inherit statistics, rejection of an export from another request, a point-scale value not converted into a regional median, timeout during body reading, SHA-256 fingerprints compatible with Node, a current response with the wrong fingerprint that ends in error, provenance preserved after a failed retry, and a tiny threshold that is never displayed as zero.
 
-Los archivos temporales de auditoría de esta sesión fueron `/tmp/analogos-m8-audit.test.ts`, `/tmp/analogos-m8-audit.config.mjs` y `/tmp/analogos-m8-final-verify.log`. Las regresiones correspondientes también se incorporaron a las pruebas del repositorio. No se cuentan las nueve pruebas de snapshot repetidas durante el build como pruebas adicionales.
+The temporary audit files of this session were `/tmp/analogos-m8-audit.test.ts`, `/tmp/analogos-m8-audit.config.mjs` and `/tmp/analogos-m8-final-verify.log`. The corresponding regressions were also incorporated into the repository tests. The nine snapshot tests repeated during the build are not counted as additional tests.
 
-## Anthropic real
+## Real Anthropic
 
-Codex verificó desde la interfaz, con entradas de ejemplo inocuas y `claude-sonnet-5-5`:
+Codex verified from the interface, with harmless example inputs and `claude-sonnet-5-5`:
 
-| Operación | Fecha UTC | Request ID | Tokens entrada/salida |
+| Operation | UTC date | Request ID | Input/output tokens |
 |---|---|---|---|
-| Destacar razones de una evaluación | 2026-11-14T20:20:48.843Z | `req_011Ch3SZfUu5fd5ACoQKqHWc` | 4365 / 398 |
-| Proponer requisitos editables | 2026-11-14T20:25:27.672Z | `req_011Ch3SuvcnEHTWXVzW1LFvG` | 2162 / 846 |
+| Highlight reasons of an evaluation | 2026-11-14T20:20:48.843Z | `req_011Ch3SZfUu5fd5ACoQKqHWc` | 4365 / 398 |
+| Propose editable requirements | 2026-11-14T20:25:27.672Z | `req_011Ch3SuvcnEHTWXVzW1LFvG` | 2162 / 846 |
 
-Ambas terminaron con `end_turn`. Se descargaron y revisaron los JSON desde el navegador: procedencia de borrador y explicación separadas, requisitos confirmados, geometría, evaluación y fuentes coherentes. Resumen local sin secretos: `../outputs/analogos-m8-browser-ai-smoke.json` respecto de la raíz del repositorio. Las pruebas reales adicionales de Claude constan en `project/M8_PROGRESS.md`.
+Both ended with `end_turn`. The JSON files were downloaded and reviewed from the browser: draft provenance and explanation kept separate, confirmed requirements, geometry, evaluation and sources coherent. Local summary without secrets: `../outputs/analogos-m8-browser-ai-smoke.json` relative to the repository root. The additional real tests by Claude are recorded in `project/M8_PROGRESS.md`.
 
-Después de estas llamadas solo se ajustaron textos/formato de presentación; se repitieron pruebas completas y build. No se presenta la prueba local como comprobación de la función desplegada en Vercel.
+After these calls only presentation text/formatting was adjusted; full tests and build were repeated. The local test is not presented as verification of the function deployed on Vercel.
 
-## Correcciones exigidas durante la supervisión
+## Corrections required during supervision
 
-- Geometría: coincidencia exacta con tolerancia solo numérica; ni una subárea casi idéntica recibe medidas del polígono completo. Punto dentro de ventana exige seleccionarla explícitamente; fuera de cobertura produce diagnóstico, sin vecino sustituto.
-- IA: JSON estricto, cifras y países anclados a la cita del brief, distinción entre máximos puntuales y medianas regionales. Timeout cubre cabeceras y cuerpo. El servidor recalcula hechos desde el snapshot y nunca acepta scores del cliente.
-- Estado: edición invalida confirmación y resultado; respuestas tardías no contaminan otro pedido; huella incorrecta de una respuesta vigente termina en error. Un reintento fallido conserva la procedencia del borrador aún utilizado.
-- Exportación: revalida solicitud y evaluación; conserva borrador original, cambios del usuario y explicación por separado. No exporta resultados de otra solicitud.
-- Presentación: confirmación muestra umbrales reales, unidades y escala; informe contiene condiciones y geometría incluso sin opciones. Preferencias desconocidas dejan comparación parcial. Tracción, permisos y máximos puntuales no se anuncian como medidos.
-- Ajuste final de Codex: números extremadamente pequeños conservan notación científica en vez de redondearse a cero; etiqueta de cobertura válida tanto para una ventana como para el catálogo. Regresión en `missionFormat.test.tsx`.
+- Geometry: exact match with numerical tolerance only; not even a nearly identical subarea receives measurements from the full polygon. A point inside a window requires selecting it explicitly; outside coverage it produces a diagnosis, with no substitute neighbor.
+- AI: strict JSON, figures and countries anchored to the brief's quotation, distinction between point-scale maxima and regional medians. Timeout covers headers and body. The server recomputes facts from the snapshot and never accepts scores from the client.
+- State: editing invalidates confirmation and result; late responses do not contaminate another request; an incorrect fingerprint on a current response ends in error. A failed retry preserves the provenance of the draft still in use.
+- Export: revalidates request and evaluation; keeps the original draft, user changes and explanation separate. It does not export results from another request.
+- Presentation: confirmation shows actual thresholds, units and scale; the report contains conditions and geometry even without options. Unknown preferences leave a partial comparison. Traction, permits and point-scale maxima are not announced as measured.
+- Final Codex adjustment: extremely small numbers keep scientific notation instead of being rounded to zero; coverage label valid for both a window and the catalog. Regression in `missionFormat.test.tsx`.
 
-## Artefacto y reproducción
+## Artifact and reproduction
 
-- ZIP vigente: `submission/analogos-static.zip`, **12.987.711 bytes**, **30 entradas**.
+- Current ZIP: `submission/analogos-static.zip`, **12.987.711 bytes**, **30 entries**.
 - SHA-256: `440b295e936613eea74e43e74cd2f978defd2e8c01b72e7bedcdd359b8d2b5da`.
-- Checksum propio: `submission/analogos-static.zip.sha256`; `SHA256SUMS.txt` corresponde al ZIP histórico v2 y se conserva.
-- Captura revisada: `submission/assets/analogos-m8-review.png`.
+- Own checksum: `submission/analogos-static.zip.sha256`; `SHA256SUMS.txt` corresponds to the historical v2 ZIP and is retained.
+- Reviewed screenshot: `submission/assets/analogos-m8-review.png`.
 
 ```bash
 source .venv/bin/activate && npm run verify
@@ -65,13 +65,13 @@ npm run release:package
 npm run preview -- --host 127.0.0.1 --port 4187 --strictPort
 ```
 
-La vista local queda en `http://127.0.0.1:4187/` mientras el proceso siga activo. `npm run test:ai-live` realiza llamadas reales y requiere la configuración local descrita en `docs/AI_SETUP.md`; no forma parte de las pruebas por defecto.
+The local view remains at `http://127.0.0.1:4187/` while the process is still active. `npm run test:ai-live` makes real calls and requires the local configuration described in `docs/AI_SETUP.md`; it is not part of the default tests.
 
-## Pendientes y límites de aceptación
+## Pending items and acceptance limits
 
-1. Publicar y probar la función en Vercel en una etapa de entrega posterior: configurar variables del proveedor en el entorno correcto y verificar inclusión de artefactos, duración y recorrido real. No se tocaron secretos remotos, autenticación ni workflows.
-2. Revisar visualmente la impresión nativa en el equipo de presentación. El intento desde IAB no permitió observar el diálogo y el acceso a la aplicación nativa fue rechazado por seguridad; no se eludió la restricción ni se afirma haber impreso un PDF.
-3. Validar utilidad con responsables de campañas; integrar territorio, bibliografía adicional y contraste climático local. Los datos agregados no miden tracción ni obstáculos a escala de rueda, y no autorizan acceso.
-4. El límite de frecuencia es básico, en memoria y por instancia; el control de origen no sustituye autenticación. Debe revisarse si se amplía la exposición del servicio.
+1. Publish and test the function on Vercel in a later delivery stage: configure provider variables in the correct environment and verify inclusion of artifacts, duration and the real flow. No remote secrets, authentication or workflows were touched.
+2. Visually review native printing on the presentation machine. The attempt from IAB did not allow observing the dialog and access to the native application was rejected for security reasons; the restriction was not circumvented and no claim is made that a PDF was printed.
+3. Validate usefulness with campaign managers; integrate territory, additional bibliography and local climate contrast. The aggregated data do not measure traction or wheel-scale obstacles, and do not authorize access.
+4. The rate limit is basic, in-memory and per instance; origin control does not replace authentication. It must be reviewed if the service's exposure is expanded.
 
-Claude queda sin una nueva asignación. La siguiente tarea debe constar explícitamente en `project/NEXT_TASK.md`.
+Claude is left without a new assignment. The next task must be explicitly recorded in `project/NEXT_TASK.md`.

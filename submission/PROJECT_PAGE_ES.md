@@ -1,5 +1,7 @@
 # AnalogOS
 
+[English](PROJECT_PAGE_EN.md) · **Español**
+
 Exploración de análogos planetarios · Piloto Chile–Argentina
 
 ## Descripción breve
@@ -12,7 +14,7 @@ Decir que un lugar «parece Marte» no basta para planificar una prueba. Un equi
 
 ## Nuestra solución
 
-AnalogOS convierte una pregunta de misión en un perfil medible y lo aplica a una búsqueda documentada. Para el piloto preguntamos: ¿qué sector reproduce mejor condiciones relevantes para probar percepción, tracción, navegación y autonomía de un rover?
+AnalogOS convierte la descripción de una prueba en requisitos que el usuario revisa y confirma, y los evalúa sobre una búsqueda documentada. El perfil actual admite pruebas de rover marciano con Jezero como referencia regional. Pregunta qué sectores tienen condiciones medidas relevantes, qué requisitos no se cumplen y qué sigue siendo desconocido. La tracción y el comportamiento a escala de rueda requieren mediciones en terreno.
 
 El sistema:
 
@@ -22,7 +24,9 @@ El sistema:
 4. Contrasta cada ventana con un catálogo de antecedentes: si contiene coordenadas de muestreo publicadas, queda fuera del ranking y visible como antecedente.
 5. Caracteriza la preselección con doce mosaicos mensuales Sentinel-2 L2A y contexto climático NASA POWER.
 6. Calcula una similitud explicable mediante media geométrica ponderada y muestra confianza, datos faltantes, estabilidad y factibilidad sin mezclarlos.
-7. Muestra una imagen satelital real por sitio, exporta una ficha auditable y funciona offline con un snapshot versionado.
+7. Muestra una imagen satelital real por sitio, exporta una ficha auditable y permite el flujo manual offline con un snapshot versionado.
+8. Evalúa requisitos confirmados por el usuario de forma independiente del puntaje de similitud. La asistencia opcional de Anthropic propone requisitos o selecciona motivos y comprobaciones geológicas existentes; no calcula puntajes ni aprueba sitios.
+9. Integra cartografía oficial de SERNAGEOMIN y SEGEMAR como una capa geológica separada, con cobertura, fuentes, incertidumbre y preguntas de reconocimiento explícitas. El equipo puede exportar JSON e imprimir un informe completo.
 
 ## Resultado preliminar
 
@@ -57,18 +61,18 @@ Lo que este resultado no dice: ningún candidato es un análogo nuevo confirmado
 - HLS Sentinel-2 v2.0 mediante CMR, usado como inventario independiente.
 - NASA POWER Climatology API, periodo 2001–2025.
 
-Datos asociados: Copernicus Sentinel-2 L2A mediante Statistical API y Process API; contornos Natural Earth.
+Datos asociados: Copernicus Sentinel-2 L2A mediante Statistical API y Process API; cartografía geológica oficial de SERNAGEOMIN y SEGEMAR; contornos Natural Earth.
 
 ## Limitaciones y próximos pasos
 
-Es un screening de escritorio, no una selección oficial. No representa gravedad, atmósfera, radiación ni mecánica de suelo marcianas; la comparación topográfica de ~460–480 m no detecta obstáculos a escala de rueda. Geología, áreas protegidas, urbano, propiedad y acceso siguen pendientes en ambos países. NASA POWER describe una celda de 0,5° × 0,625°, mayor que cada ventana. El catálogo de antecedentes es incompleto.
+Es un screening de escritorio, no una selección oficial. No representa gravedad, atmósfera, radiación ni mecánica de suelo marcianas; la comparación topográfica de ~460–480 m no detecta obstáculos a escala de rueda. El contexto geológico oficial está integrado, pero su compatibilidad no está calibrada y permanece fuera del puntaje de similitud. Áreas protegidas, urbano, propiedad y acceso siguen pendientes de comprobaciones territoriales en ambos países. NASA POWER describe una celda de 0,5° × 0,625°, mayor que cada ventana. El catálogo de antecedentes es incompleto.
 
-Los siguientes pasos son cruzar los candidatos con capas oficiales de IDE Chile e IDERA, incorporar geología de SERNAGEOMIN y SEGEMAR, contrastar el clima con datos locales, completar la revisión bibliográfica y ampliar la búsqueda a más regiones.
+Los siguientes pasos son cruzar los candidatos con capas oficiales de IDE Chile e IDERA, validar las unidades geológicas cartografiadas en terreno y calibrar su relevancia para pruebas específicas, contrastar el clima con datos locales, completar la revisión bibliográfica y ampliar la búsqueda a más regiones.
 
 ## Impacto
 
-El enfoque reduce el espacio de búsqueda y hace defendible la planificación inicial de campañas robóticas, educación, investigación geológica y pruebas de sistemas autónomos. El mismo motor admite otras regiones y otros perfiles sin cambiar el contrato de datos ni la interfaz de decisión.
+El enfoque reduce el espacio de búsqueda y hace defendible la planificación inicial de campañas robóticas, educación, investigación geológica y pruebas de sistemas autónomos. Se busca extender el método a más regiones. Nuevas regiones requieren adquirir y validar datos; otros perfiles de misión todavía no están soportados.
 
 ## Tecnologías
 
-Python, earthaccess, Sentinel Hub Statistical y Process API, NumPy, PyProj, JSON Schema, React, TypeScript, Vite y SVG. El frontend es estático, accesible por teclado y no depende de servicios externos durante la demo.
+Python, earthaccess, Sentinel Hub Statistical y Process API, NumPy, PyProj, JSON Schema, React, TypeScript, Vite, three.js, MapLibre y SVG. El frontend usa evidencia incluida y permite el flujo manual offline. La asistencia opcional de Anthropic funciona mediante un endpoint de servidor; las teselas de mapa en línea también son opcionales.

@@ -1,5 +1,9 @@
 # Demo de 2 minutos
 
+[English](DEMO_SCRIPT_2_MIN_EN.md) · **Español**
+
+La interfaz está en inglés. Los nombres de controles se traducen aquí para explicar el recorrido; el guion en inglés contiene sus rótulos y un ejemplo opcional de misión AR6.
+
 ## Preparación
 
 - Servir `submission/analogos-static.zip` descomprimido por HTTP, en la raíz o en `/AnalogOS/`, o ejecutar `npm run dev`.

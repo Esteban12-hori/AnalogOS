@@ -32,25 +32,25 @@ function render(candidate: CandidateSite, state: VisualContextState, options: { 
   )
 }
 
-describe('índice de contexto visual real', () => {
-  it('es válido y cubre exactamente los sitios del snapshot v3', () => {
+describe('real visual context index', () => {
+  it('is valid and covers exactly the v3 snapshot sites', () => {
     const index = parseVisualContext(realIndex)
     expect(index.sites.map((site) => site.site_id)).toEqual(candidates.map((candidate) => candidate.site_id))
     expect(index.sites.every((site) => site.image === `${site.site_id}.png`)).toBe(true)
     expect(candidates.every((candidate) => candidate.data_snapshot_version === index.snapshot_version)).toBe(true)
   })
 
-  it('rechaza índices de otro tipo o con rutas de imagen fuera del paquete', () => {
+  it('rejects indexes of another kind or with image paths outside the package', () => {
     const index = parseVisualContext(realIndex)
-    expect(() => parseVisualContext({ ...index, kind: 'otro' })).toThrow(/tipo o versión/)
+    expect(() => parseVisualContext({ ...index, kind: 'otro' })).toThrow(/unknown kind or version/)
     for (const image of ['../science-v2/manifest.json', 'https://example.org/a.png', 'carpeta/a.png']) {
       const sites = [{ ...index.sites[0], image }, ...index.sites.slice(1)]
-      expect(() => parseVisualContext({ ...index, sites })).toThrow(/imagen no permitida/)
+      expect(() => parseVisualContext({ ...index, sites })).toThrow(/image not allowed/)
     }
     expect(() => parseVisualContext(null)).toThrow()
   })
 
-  it('rechaza metadata malformada antes de renderizar y deja el panel en "no disponible"', async () => {
+  it('rejects malformed metadata before rendering and leaves the panel “unavailable”', async () => {
     const index = parseVisualContext(realIndex)
     const withSite = (changes: Record<string, unknown>) => ({
       ...index, sites: [{ ...index.sites[0], ...changes }, ...index.sites.slice(1)],
@@ -63,7 +63,7 @@ describe('índice de contexto visual real', () => {
       withSite({ scenes_used: [{ ...scene, fraction: 1.5 }] }),
       withSite({ scenes_used: [{ ...scene, pixels: -1 }] }),
       withSite({ scenes_used: 'todas' }),
-      withSite({ image: index.sites[1].image }), // imagen de otro candidato
+      withSite({ image: index.sites[1].image }), // image of another candidate
       withSite({ site_id: index.sites[1].site_id, image: index.sites[1].image }), // site_id repetido
       withSite({ bbox: [0, 0, 0, 1] }),
       withSite({ bbox: [-70, -24, -69, null] }),
@@ -77,31 +77,31 @@ describe('índice de contexto visual real', () => {
       { ...index, sites: 'ninguno' },
     ]
     for (const data of malformed) {
-      expect(() => parseVisualContext(data)).toThrow(/no válido/)
+      expect(() => parseVisualContext(data)).toThrow(/Invalid visual context/)
       vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200, json: async () => data })))
       const state = await loadVisualContext('./')
       expect(state.status).toBe('unavailable')
-      expect(render(candidates[0], state)).toContain('Imagen satelital no disponible')
+      expect(render(candidates[0], state)).toContain('Satellite image not available')
     }
     vi.unstubAllGlobals()
   })
 })
 
-describe('rutas y selección', () => {
-  it('resuelve los archivos locales en raíz, ruta relativa y subcarpeta', () => {
+describe('paths and selection', () => {
+  it('resolves local files at the root, relative path and subfolder', () => {
     expect(visualContextUrl('/', 'index.json')).toBe('/visual-context-v3/index.json')
     expect(visualContextUrl('./', 'a.png')).toBe('./visual-context-v3/a.png')
     expect(visualContextUrl('/AnalogOS/', 'a.png')).toBe('/AnalogOS/visual-context-v3/a.png')
   })
 
-  it('entrega la imagen propia de cada candidato real', () => {
+  it('delivers each real candidate its own image', () => {
     for (const candidate of candidates) {
       const selection = selectVisualSite(ready, candidate)
       expect(selection.status === 'ready' && selection.site.image).toBe(`${candidate.site_id}.png`)
     }
   })
 
-  it('deja sin imagen a fixtures, otros snapshots, candidatos sin entrada y estados no listos', () => {
+  it('leaves fixtures, other snapshots, candidates without an entry and non-ready states without an image', () => {
     expect(selectVisualSite(ready, fixtures[0]).status).toBe('unavailable')
     expect(selectVisualSite(ready, { ...candidates[0], data_snapshot_version: 'otro-snapshot' }).status).toBe('unavailable')
     expect(selectVisualSite(ready, { ...candidates[0], site_id: 'cl-sin-imagen' }).status).toBe('unavailable')
@@ -110,45 +110,45 @@ describe('rutas y selección', () => {
   })
 })
 
-describe('panel de contexto satelital', () => {
-  it('muestra imagen local, periodo, atribución, nota preliminar y procedencia', () => {
+describe('satellite context panel', () => {
+  it('shows local image, period, attribution, preliminary note and provenance', () => {
     const html = render(candidates[0], ready, { baseUrl: '/AnalogOS/' })
     expect(html).toContain(`src="/AnalogOS/visual-context-v3/${candidates[0].site_id}.png"`)
     expect(html).toContain('href="/AnalogOS/visual-context-v3/index.json"')
-    expect(html).toContain('Mosaico de diciembre de 2025')
+    expect(html).toContain('December 2025 mosaic')
     expect(html).toContain('Copernicus Sentinel')
-    expect(html).toContain('No cambia similitud, confianza ni factibilidad')
-    expect(html).toContain('2025-12-01 a 2026-01-01 (UTC)')
-    expect(html).toMatch(/alt="Vista Sentinel-2 en color natural del sector [^"]+"/)
-    // La web solo enlaza archivos locales: ninguna URL de la API de Copernicus.
+    expect(html).toContain('It does not change similarity, confidence or feasibility')
+    expect(html).toContain('2025-12-01 to 2026-01-01 (UTC)')
+    expect(html).toMatch(/alt="Natural-color Sentinel-2 view of sector [^"]+"/)
+    // The web app only links local files: no Copernicus API URL.
     expect(html).not.toContain('dataspace.copernicus.eu')
     expect(html).not.toMatch(/(src|href)="https?:/)
   })
 
-  it('cambia de imagen al cambiar de candidato', () => {
+  it('changes image when the candidate changes', () => {
     const sources = candidates.map((candidate) => /src="([^"]+)"/.exec(render(candidate, ready))?.[1])
     expect(new Set(sources).size).toBe(candidates.length)
   })
 
-  it('informa "no disponible" sin imagen en fixtures, índice ausente o archivo de imagen fallido', () => {
+  it('reports “unavailable” without an image for fixtures, missing index or failed image file', () => {
     const cases = [
       render(fixtures[0], ready),
       render(candidates[0], { status: 'unavailable', reason: 'Este build no incluye contexto visual (404).' }),
       render(candidates[0], ready, { imageFailed: true }),
     ]
     for (const html of cases) {
-      expect(html).toContain('Imagen satelital no disponible')
-      expect(html).toContain('El ranking y la ficha no dependen de ella')
+      expect(html).toContain('Satellite image not available')
+      expect(html).toContain('The ranking and the site sheet do not depend on it')
       expect(html).not.toContain('<img')
     }
-    expect(render(candidates[0], { status: 'loading' })).toContain('Cargando contexto satelital')
+    expect(render(candidates[0], { status: 'loading' })).toContain('Loading satellite context')
   })
 })
 
 describe('loadVisualContext', () => {
   afterEach(() => vi.unstubAllGlobals())
 
-  it('pide solo el índice local y nunca lanza', async () => {
+  it('requests only the local index and never throws', async () => {
     const fetchMock = vi.fn(async () => ({ ok: true, status: 200, json: async () => realIndex }))
     vi.stubGlobal('fetch', fetchMock)
     expect((await loadVisualContext('/AnalogOS/')).status).toBe('ready')
@@ -160,7 +160,7 @@ describe('loadVisualContext', () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ kind: 'otro' }) })))
     expect(await loadVisualContext('./')).toMatchObject({ status: 'unavailable' })
 
-    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('sin red') }))
-    expect(await loadVisualContext('./')).toEqual({ status: 'unavailable', reason: 'sin red' })
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('no network') }))
+    expect(await loadVisualContext('./')).toEqual({ status: 'unavailable', reason: 'no network' })
   })
 })

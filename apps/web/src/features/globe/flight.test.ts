@@ -16,8 +16,8 @@ import {
 
 const unit = (v: Vec3) => Math.hypot(...v)
 
-describe('fórmula de duración del vuelo', () => {
-  it('es clamp(650 + 7·Δθ° + 250·|log2(h1/h0)|, 650, 1800)', () => {
+describe('flight duration formula', () => {
+  it('is clamp(650 + 7·Δθ° + 250·|log2(h1/h0)|, 650, 1800)', () => {
     expect(flightDurationMs(0, 3, 3)).toBe(650)
     expect(flightDurationMs(50, 3, 3)).toBe(650 + 7 * 50)
     expect(flightDurationMs(10, 4, 2)).toBe(650 + 70 + 250)
@@ -25,7 +25,7 @@ describe('fórmula de duración del vuelo', () => {
     expect(flightDurationMs(20, 1, 8)).toBe(650 + 140 + 750)
   })
 
-  it('se acota a [650, 1800] ms', () => {
+  it('is bounded to [650, 1800] ms', () => {
     expect(flightDurationMs(180, 3, 3)).toBe(FLIGHT_MAX_MS)
     expect(flightDurationMs(90, 1, 64)).toBe(FLIGHT_MAX_MS)
     expect(flightDurationMs(0, 0, 0)).toBe(FLIGHT_MIN_MS)
@@ -34,7 +34,7 @@ describe('fórmula de duración del vuelo', () => {
 })
 
 describe('easeInOutCubic', () => {
-  it('fija extremos y mitad, es simétrica y monótona', () => {
+  it('fixes ends and midpoint, is symmetric and monotonic', () => {
     expect(easeInOutCubic(0)).toBe(0)
     expect(easeInOutCubic(0.5)).toBe(0.5)
     expect(easeInOutCubic(1)).toBe(1)
@@ -50,8 +50,8 @@ describe('easeInOutCubic', () => {
   })
 })
 
-describe('arco de altitud', () => {
-  it('solo sube si Δθ > 25° y se satura', () => {
+describe('altitude arc', () => {
+  it('only rises if Δθ > 25° and saturates', () => {
     expect(arcLift(0)).toBe(0)
     expect(arcLift(ARC_THRESHOLD_DEG)).toBe(0)
     expect(arcLift(26)).toBeGreaterThan(0)
@@ -59,7 +59,7 @@ describe('arco de altitud', () => {
     expect(arcLift(180)).toBe(arcLift(500))
   })
 
-  it('respeta los extremos y culmina a mitad del vuelo', () => {
+  it('respects the ends and peaks at mid-flight', () => {
     expect(flightAltitude(0, 3, 1.5, 90)).toBeCloseTo(3, 12)
     expect(flightAltitude(1, 3, 1.5, 90)).toBeCloseTo(1.5, 12)
     const geometricMid = Math.sqrt(3 * 1.5)
@@ -69,8 +69,8 @@ describe('arco de altitud', () => {
   })
 })
 
-describe('slerp de la dirección', () => {
-  it('mantiene la norma, respeta extremos y reparte el ángulo', () => {
+describe('direction slerp', () => {
+  it('keeps the norm, respects the ends and splits the angle', () => {
     const a: Vec3 = [1, 0, 0]
     const b: Vec3 = [0, 0, -1]
     const mid = slerpDirection(a, b, 0.5)
@@ -81,7 +81,7 @@ describe('slerp de la dirección', () => {
     expect(angleBetweenDeg(end, b)).toBeCloseTo(0, 6)
   })
 
-  it('resuelve direcciones antípodas sin NaN', () => {
+  it('resolves antipodal directions without NaN', () => {
     const a: Vec3 = [0, 0, 1]
     const b: Vec3 = [0, 0, -1]
     for (const t of [0, 0.25, 0.5, 0.75, 1]) {
@@ -94,17 +94,17 @@ describe('slerp de la dirección', () => {
   })
 })
 
-describe('plan y muestreo del vuelo', () => {
+describe('flight plan and sampling', () => {
   const from = { direction: [1, 0, 0] as Vec3, altitude: 8 }
   const to = { direction: [0, 0, 1] as Vec3, altitude: 4 }
 
-  it('usa la fórmula con el ángulo real entre poses', () => {
+  it('uses the formula with the real angle between poses', () => {
     const plan = planFlight(from, to)
     expect(plan.deltaDeg).toBeCloseTo(90, 9)
     expect(plan.durationMs).toBe(flightDurationMs(90, 8, 4))
   })
 
-  it('el último cuadro cae exacto en el destino y marca done', () => {
+  it('the last frame lands exactly on the destination and marks done', () => {
     const plan = planFlight(from, to)
     const mid = sampleFlight(plan, plan.durationMs / 2)
     expect(mid.done).toBe(false)
@@ -113,7 +113,7 @@ describe('plan y muestreo del vuelo', () => {
     expect(end).toEqual({ direction: [0, 0, 1], altitude: 4, done: true })
   })
 
-  it('con reduced motion la cámara corta: duración 0 y destino inmediato', () => {
+  it('with reduced motion the camera cuts: duration 0 and immediate destination', () => {
     const plan = planFlight(from, to, true)
     expect(plan.durationMs).toBe(0)
     expect(sampleFlight(plan, 0)).toEqual({ direction: [0, 0, 1], altitude: 4, done: true })

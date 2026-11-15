@@ -1,7 +1,7 @@
 /**
- * Chip de estado de la barra superior (slot `topbar.status`): «● Snapshot v2 · 3 evaluados ·
- * 8 por calcular». Al terminar el arranque, la bitácora se pliega aquí. Los ◆ «por calcular» solo
- * se cuentan si el catálogo publicado está disponible; nunca se inventan.
+ * Top-bar status chip (slot `topbar.status`): "● Snapshot v2 · 3 evaluated ·
+ * 8 pending calculation". When startup finishes, the log collapses into here. The ◆ "pending calculation" ones are only
+ * counted if the published catalog is available; they are never invented.
  */
 import { useMemo } from 'react'
 import { GLYPH } from '../../shell/public'
@@ -12,8 +12,8 @@ import type { StatusChipProps } from './index'
 export function StatusChip({ data }: StatusChipProps) {
   const analogs = useReferenceAnalogs()
   const status = data.status === 'loading' ? 'loading' : data.snapshot ? 'ready' : 'error'
-  // Se cuentan los ◆ que se dibujan como tarjeta: uno que coincide con un sector evaluado va como
-  // insignia de ese sector (§1 #16), igual que en el carrusel.
+  // The ◆ items drawn as a card are counted: one that matches an evaluated sector goes as a
+  // badge of that sector (§1 #16), just as in the carousel.
   const candidates = data.snapshot?.candidates
   const pending = useMemo(
     () => (analogs.status === 'ready' && candidates ? classifyReferences(analogs.analogs, candidates).references.length : null),

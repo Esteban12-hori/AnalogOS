@@ -1,38 +1,38 @@
 /**
- * Armazón estático de la primera pantalla. Lo escribe en index.html el plugin loadingHints
- * (features/boot/loadingHints.ts) para que barra, dock, bandeja y la capa de arranque se pinten
- * antes de que cargue la app; React lo reemplaza al montar con las mismas cajas (CLS 0).
- * Debe reflejar shell/AppShell.tsx (mismas clases y alturas reservadas, shell/shell.css) y la capa
- * de arranque debe reflejar features/boot/BootLayer.tsx (lo verifica tests/boot.test.ts).
- * Este módulo corre también en Node (configuración de Vite): sin DOM.
+ * Static scaffold of the first screen. The loadingHints plugin (features/boot/loadingHints.ts) writes it into index.html
+ * so that the bar, dock, tray and boot layer are painted
+ * before the app loads; React replaces it on mount with the same boxes (CLS 0).
+. * It must mirror shell/AppShell.tsx (same classes and reserved heights, shell/shell.css), and the boot
+ * layer must mirror features/boot/BootLayer.tsx (verified by tests/boot.test.ts).
+. * This module also runs in Node (Vite configuration): no DOM.
  */
 import { bootLines, INITIAL_MILESTONES, LINE_GLYPH } from '../features/boot/bootModel'
 
 export const SHELL_TEXT = {
   brand: 'AnalogOS',
-  brandTagline: 'Piloto Chile–Argentina',
-  statusLoading: 'Cargando snapshot validado…',
-  scienceNote: 'SCREENING CIENTÍFICO PRELIMINAR · DATOS REALES · NO ES AUTORIZACIÓN DE TERRENO',
-  scienceNoteShort: 'PRELIMINAR · NO AUTORIZA TERRENO',
-  composerPrompt: 'Describe la prueba que quieres hacer para Marte…',
+  brandTagline: 'Chile–Argentina pilot',
+  statusLoading: 'Loading validated snapshot…',
+  scienceNote: 'PRELIMINARY SCIENTIFIC SCREENING · REAL DATA · NOT A TERRAIN AUTHORIZATION',
+  scienceNoteShort: 'PRELIMINARY · NOT A TERRAIN AUTHORIZATION',
+  composerPrompt: 'Describe the Mars test you want to run…',
 } as const
 
 const escape = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 export interface StaticShellOptions {
-  /** URL del póster del globo (solo ≥1100 px, vía <source media>). Sin ella no hay póster. */
+  /** URL of the globe poster (only ≥1100 px, via <source media>). Without it there is no poster. */
   posterUrl?: string
   /**
-   * Atribución de datos del snapshot («Datos: NASADEM · …», shell/attribution.ts), calculada en el
-   * build desde su manifiesto: se pinta con el HTML, igual que la línea del escenario de React.
+   * Snapshot data attribution ("Data: NASADEM · …", shell/attribution.ts), computed at
+   * build time from its manifest: it is painted with the HTML, just like the React stage line.
    */
   credit?: string
 }
 
 /**
- * Capa de arranque previa a React (slot stage.overlay): póster (escritorio) o silueta CSS (móvil),
- * anillo orbital con satélite y bitácora con los hitos en su estado inicial real. Se posiciona con
- * las variables --boot-* que escribe el script en línea del <head>.
+ * Pre-React boot layer (slot stage.overlay): poster (desktop) or CSS silhouette (mobile),
+ * orbital ring with satellite and log with the milestones in their actual initial state. It is positioned with
+ * the --boot-* variables written by the inline script in the <head>.
  */
 export function staticBootHtml({ posterUrl }: StaticShellOptions = {}): string {
   const poster = posterUrl
@@ -48,7 +48,7 @@ export function staticBootHtml({ posterUrl }: StaticShellOptions = {}): string {
   )
 }
 
-/** Marcado estático equivalente al primer render de AppShell (sin datos ni interacción). */
+/** Static markup equivalent to the first render of AppShell (no data or interaction). */
 export function staticShellHtml(options: StaticShellOptions = {}): string {
   const t = SHELL_TEXT
   const loading = `<div class="place-stub" aria-busy="true"><p class="place-stub-note">${escape(t.statusLoading)}</p></div>`
@@ -60,7 +60,7 @@ export function staticShellHtml(options: StaticShellOptions = {}): string {
     '<header class="topbar">' +
     `<div class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><strong>${escape(t.brand)}</strong><small>${escape(t.brandTagline)}</small></span></div>` +
     '<div class="mode-tabs" aria-hidden="true"><span class="mode-thumb" data-mode="explorar"></span>' +
-    '<span class="mode-static" data-selected="">Explorar</span><span class="mode-static">Misión</span></div>' +
+    '<span class="mode-static" data-selected="">Explore</span><span class="mode-static">Mission</span></div>' +
     `<div class="topbar-status"><span class="status-chip" data-state="loading"><span class="status-dot"></span>${escape(t.statusLoading)}</span></div>` +
     `<p class="science-note" role="note"><span aria-hidden="true"></span><span class="note-long">${escape(t.scienceNote)}</span><span class="note-short">${escape(t.scienceNoteShort)}</span></p>` +
     '</header>' +

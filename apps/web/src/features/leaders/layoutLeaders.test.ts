@@ -4,7 +4,7 @@ import { attachOffset, layoutLeaders, LEADER_GEOMETRY } from './layoutLeaders'
 import { layoutMobileLeader, leaderPaths } from './leaderPaths'
 
 const G = LEADER_GEOMETRY
-// Escritorio 1440×900 con el riel abierto: márgenes del armazón (topbar 78, riel 380+24, dock 256+24).
+// Desktop 1440×900 with the rail open: frame margins (topbar 78, rail 380+24, dock 256+24).
 const SAFE: Rect = { x: 0, y: 78, width: 1440 - 404, height: 900 - 78 - 280 }
 const LABELS = [
   { id: 'slope', width: 168, height: 62 },
@@ -51,7 +51,7 @@ function overlaps(a: Rect, b: Rect): boolean {
 
 type Segment = { x1: number; y1: number; x2: number; y2: number; id: string }
 
-/** Tramos rectos de cada línea: O → bus (tronco), bus vertical, bus → etiqueta. */
+/** Straight segments of each line: O → bus (trunk), vertical bus, bus → label. */
 function segments(layout: LeaderLayout, data: LeaderLayoutInput): Segment[] {
   const { origin, busX } = layout
   if (!origin || busX === undefined) return []
@@ -64,7 +64,7 @@ function segments(layout: LeaderLayout, data: LeaderLayoutInput): Segment[] {
 
 const between = (value: number, a: number, b: number) => value > Math.min(a, b) + EPS && value < Math.max(a, b) - EPS
 
-/** Cruce propio: un tramo horizontal y uno vertical que se cortan en el interior de ambos. */
+/** Self-crossing: a horizontal segment and a vertical one that intersect in the interior of both. */
 function crosses(a: Segment, b: Segment): boolean {
   const aHorizontal = Math.abs(a.y1 - a.y2) < EPS
   const bHorizontal = Math.abs(b.y1 - b.y2) < EPS
@@ -73,7 +73,7 @@ function crosses(a: Segment, b: Segment): boolean {
   return between(v.x1, h.x1, h.x2) && between(h.y1, v.y1, v.y2)
 }
 
-/** ¿El tramo pasa por el interior de la caja? (tocar el borde, como el enganche propio, no cuenta). */
+/** Does the segment pass through the interior of the box? (touching the edge, like the line's own attachment point, does not count). */
 function pierces(segment: Segment, box: Rect): boolean {
   const inner = { x: box.x + 0.5, y: box.y + 0.5, width: box.width - 1, height: box.height - 1 }
   const minX = Math.min(segment.x1, segment.x2)
@@ -83,7 +83,7 @@ function pierces(segment: Segment, box: Rect): boolean {
   return minX < inner.x + inner.width && maxX > inner.x && minY < inner.y + inner.height && maxY > inner.y
 }
 
-/** Invariantes de §3.4: sin cruces, dentro del área segura, sin paneles y degradación 4/3/2/0. */
+/** Invariants of §3.4: no crossings, inside the safe area, no panels, and degradation 4/3/2/0. */
 function expectInvariants(data: LeaderLayoutInput, layout: LeaderLayout) {
   const max = Math.min(data.compact ? 3 : 4, data.labels.length)
   expect([0, 2, 3, 4]).toContain(layout.count)
@@ -100,8 +100,8 @@ function expectInvariants(data: LeaderLayoutInput, layout: LeaderLayout) {
   expect(layout.placements).toHaveLength(layout.count ?? -1)
   const list = boxes(layout, data)
   for (const box of list) {
-    expect(inside(box, data.safeArea), `${box.id} dentro del área segura`).toBe(true)
-    for (const obstacle of data.obstacles) expect(overlaps(box, obstacle), `${box.id} sin paneles`).toBe(false)
+    expect(inside(box, data.safeArea), `${box.id} inside the safe area`).toBe(true)
+    for (const obstacle of data.obstacles) expect(overlaps(box, obstacle), `${box.id} off panels`).toBe(false)
   }
   for (let i = 0; i < list.length; i += 1) {
     for (let j = i + 1; j < list.length; j += 1) {
@@ -110,7 +110,7 @@ function expectInvariants(data: LeaderLayoutInput, layout: LeaderLayout) {
       if (a && b) expect(overlaps(a, b), `${a.id} × ${b.id}`).toBe(false)
     }
   }
-  // Orden de prioridad de arriba abajo.
+  // Priority order from top to bottom.
   const ys = layout.placements.map((placement) => placement.y)
   expect([...ys].sort((a, b) => a - b)).toEqual(ys)
 
@@ -123,20 +123,20 @@ function expectInvariants(data: LeaderLayoutInput, layout: LeaderLayout) {
   const { origin } = layout
   expect(origin).toBeDefined()
   if (!origin) return
-  // Origen único en el borde del anillo, del lado de la columna.
+  // Single origin on the ring's edge, on the column side.
   expect(origin.y).toBeCloseTo(data.anchor.y)
   expect(Math.abs(origin.x - data.anchor.x)).toBeCloseTo(data.anchor.radius)
   const safeBox = data.safeArea
   for (const segment of segs) {
     expect(inside({ x: Math.min(segment.x1, segment.x2), y: Math.min(segment.y1, segment.y2), width: Math.abs(segment.x2 - segment.x1), height: Math.abs(segment.y2 - segment.y1) }, safeBox)).toBe(true)
-    for (const obstacle of data.obstacles) expect(pierces(segment, obstacle), 'línea bajo un panel').toBe(false)
-    for (const box of list) expect(pierces(segment, box), `línea ${segment.id} atraviesa ${box.id}`).toBe(false)
+    for (const obstacle of data.obstacles) expect(pierces(segment, obstacle), 'line under a panel').toBe(false)
+    for (const box of list) expect(pierces(segment, box), `line ${segment.id} crosses ${box.id}`).toBe(false)
   }
   for (const a of segs) for (const b of segs) if (a.id !== b.id) expect(crosses(a, b), `${a.id} cruza ${b.id}`).toBe(false)
 }
 
-describe('layoutLeaders · columna con líneas', () => {
-  it('ubica 4 etiquetas del lado con más espacio, sin solaparse y dentro del área segura', () => {
+describe('layoutLeaders · column with lines', () => {
+  it('places 4 labels on the side with more room, without overlap and inside the safe area', () => {
     const data = input()
     const layout = layoutLeaders(data)
     expect(layout.mode).toBe('lines')
@@ -147,7 +147,7 @@ describe('layoutLeaders · columna con líneas', () => {
     expectInvariants(data, layout)
   })
 
-  it('con el anillo cerca del borde derecho, la columna va a la izquierda', () => {
+  it('with the ring near the right edge, the column goes left', () => {
     const data = input({ anchor: { x: 900, y: 340, radius: 14 } })
     const layout = layoutLeaders(data)
     expect(layout.side).toBe('left')
@@ -155,7 +155,7 @@ describe('layoutLeaders · columna con líneas', () => {
     expectInvariants(data, layout)
   })
 
-  it('todas las líneas salen del mismo punto del borde del anillo y llegan a la fila del título', () => {
+  it('all lines leave from the same point on the ring edge and reach the title row', () => {
     const data = input()
     const layout = layoutLeaders(data)
     const paths = leaderPaths(layout, data.labels)
@@ -171,7 +171,7 @@ describe('layoutLeaders · columna con líneas', () => {
     }
   })
 
-  it('esquiva un panel moviendo la columna en vertical o cambiando de lado', () => {
+  it('avoids a panel by moving the column vertically or switching sides', () => {
     const panel = { x: 500, y: 200, width: 420, height: 200 }
     const data = input({ obstacles: [panel] })
     const layout = layoutLeaders(data)
@@ -180,9 +180,9 @@ describe('layoutLeaders · columna con líneas', () => {
   })
 })
 
-describe('layoutLeaders · histéresis', () => {
-  it('conserva el lado anterior mientras muestre tantas etiquetas como el otro', () => {
-    // Libre: más espacio a la derecha; pero la izquierda también cabe con 4.
+describe('layoutLeaders · hysteresis', () => {
+  it('keeps the previous side as long as it shows as many labels as the other', () => {
+    // Free: more space on the right; but the left side also fits with 4.
     const data = input({ anchor: { x: 470, y: 340, radius: 14 } })
     expect(layoutLeaders(data).side).toBe('right')
     const kept = layoutLeaders({ ...data, previousSide: 'left', previousCount: 4 })
@@ -191,7 +191,7 @@ describe('layoutLeaders · histéresis', () => {
     expectInvariants({ ...data, previousSide: 'left' }, kept)
   })
 
-  it('no alterna de lado cuadro a cuadro mientras el anillo cruza el centro', () => {
+  it('does not alternate sides frame by frame while the ring crosses the center', () => {
     let side: 'left' | 'right' | null = null
     let count: number | undefined
     const sides: string[] = []
@@ -205,41 +205,41 @@ describe('layoutLeaders · histéresis', () => {
     expect(flips).toBeLessThanOrEqual(1)
   })
 
-  it('cambia de lado solo cuando el otro muestra más etiquetas', () => {
+  it('switches sides only when the other shows more labels', () => {
     const data = input({ anchor: { x: 160, y: 340, radius: 14 }, previousSide: 'left', previousCount: 4 })
     const layout = layoutLeaders(data)
     expect(layout.side).toBe('right')
     expect(layout.count).toBe(4)
   })
 
-  it('crecer de 3 a 4 exige holgura: en el borde exacto se queda en 3', () => {
-    // Alto mínimo para 4 etiquetas sin holgura.
+  it('growing from 3 to 4 requires slack: at the exact edge it stays at 3', () => {
+    // Minimum height for 4 labels with no slack.
     const need = HEADER.height + G.headerGap + LABELS.reduce((sum, label) => sum + label.height, 0) + 3 * G.gap + 2 * G.margin
     const safe = (height: number): Rect => ({ x: 0, y: 78, width: SAFE.width, height })
     const anchor = (height: number) => ({ x: 420, y: 78 + height / 2, radius: 14 })
     expect(layoutLeaders(input({ safeArea: safe(need), anchor: anchor(need) })).count).toBe(4)
     expect(layoutLeaders(input({ safeArea: safe(need), anchor: anchor(need), previousSide: 'right', previousCount: 3 })).count).toBe(3)
     expect(layoutLeaders(input({ safeArea: safe(need + G.hysteresis), anchor: anchor(need + G.hysteresis), previousSide: 'right', previousCount: 3 })).count).toBe(4)
-    // Bajar no espera: si 4 ya no caben, pasa a 3 aunque antes hubiera 4.
+    // Moving down does not wait: if 4 no longer fit, it switches to 3 even if before there had been 4.
     expect(layoutLeaders(input({ safeArea: safe(need - 1), anchor: anchor(need - 1), previousSide: 'right', previousCount: 4 })).count).toBe(3)
   })
 
-  it('salir del chip también exige holgura', () => {
+  it('leaving the chip also requires slack', () => {
     const anchor = { x: 40, y: 278, radius: 14 }
     const widest = Math.max(...LABELS.slice(0, 2).map((label) => label.width))
-    // Ancho tal que la distancia anillo→columna quede entre el mínimo y el mínimo + holgura.
+    // Width such that the ring→column distance falls between the minimum and the minimum + slack.
     const reach = G.reachMin + G.hysteresis / 2
     const tiny = { x: 0, y: 78, width: anchor.x + anchor.radius + reach + widest + G.margin, height: 400 }
     const two = { safeArea: tiny, anchor, header: null, labels: LABELS.slice(0, 2) }
     expect(layoutLeaders(input(two)).count).toBe(2)
-    // El mismo espacio, viniendo del chip: no alcanza la holgura extra.
+    // The same space, coming from the chip: the extra slack is not reached.
     expect(layoutLeaders(input({ ...two, previousSide: 'right', previousCount: 0 })).mode).toBe('chip')
     expect(layoutLeaders(input({ ...two, safeArea: { ...tiny, width: tiny.width + G.hysteresis }, previousSide: 'right', previousCount: 0 })).count).toBe(2)
   })
 })
 
-describe('layoutLeaders · degradación 4 → 3 → 2 → 0', () => {
-  it('al encoger el área segura baja de a una etiqueta, nunca muestra 1 y termina en chip', () => {
+describe('layoutLeaders · degradation 4 → 3 → 2 → 0', () => {
+  it('shrinking the safe area drops one label at a time, never shows 1 and ends in the chip', () => {
     const counts: number[] = []
     for (let height = 420; height >= 60; height -= 10) {
       const data = input({ safeArea: { x: 0, y: 78, width: SAFE.width, height }, anchor: { x: 420, y: 78 + height / 2, radius: 14 } })
@@ -254,17 +254,17 @@ describe('layoutLeaders · degradación 4 → 3 → 2 → 0', () => {
     expect(new Set(counts)).toEqual(new Set([4, 3, 2, 0]))
   })
 
-  it('con alto compacto (<860 px) muestra 3 como máximo', () => {
+  it('with compact height (<860 px) shows 3 at most', () => {
     const layout = layoutLeaders(input({ compact: true }))
     expect(layout.count).toBe(3)
     expect(layout.placements.map((placement) => placement.id)).toEqual(['slope', 'terrain_roughness', 'bare_ground_fraction'])
   })
 
-  it('con una sola métrica no dibuja una etiqueta suelta: chip', () => {
+  it('with a single metric it does not draw a lone label: chip', () => {
     expect(layoutLeaders(input({ labels: LABELS.slice(0, 1) })).mode).toBe('chip')
   })
 
-  it('chip «Métricas en el panel →» si el sector no se ve o queda fuera del área segura', () => {
+  it('chip “Metrics in the panel →” if the sector is not visible or is outside the safe area', () => {
     const behind = layoutLeaders(input({ anchor: { x: 420, y: 340, radius: 14, visible: 0.2 } }))
     expect(behind.mode).toBe('chip')
     expect(behind.chip).toBeDefined()
@@ -273,17 +273,17 @@ describe('layoutLeaders · degradación 4 → 3 → 2 → 0', () => {
     expectInvariants(input(), behind)
   })
 
-  it('con el sector a la vista, el chip va bajo el anillo: no tapa el rótulo del pin («#1 … 94,9 %»)', () => {
+  it('with the sector in view, the chip goes under the ring: it does not cover the pin label (“#1 … 94.9%”)', () => {
     const data = input({ labels: LABELS.slice(0, 1) })
     const layout = layoutLeaders(data)
     expect(layout.mode).toBe('chip')
     expect(layout.chip).toBeDefined()
-    // El rótulo del pin ocupa la fila del ancla (≈ ±11 px): el chip empieza bajo el anillo.
+    // The pin's label occupies the anchor row (≈ ±11 px): the chip starts below the ring.
     expect(layout.chip!.y).toBeGreaterThanOrEqual(data.anchor.y + data.anchor.radius)
     expectInvariants(data, layout)
   })
 
-  it('el chip conserva el lado anterior para no saltar al volver', () => {
+  it('the chip keeps the previous side so it does not jump back', () => {
     const layout = layoutLeaders(input({ anchor: { x: 420, y: 340, radius: 14, visible: 0 }, previousSide: 'left', previousCount: 4 }))
     expect(layout.mode).toBe('chip')
     expect(layout.side).toBe('left')
@@ -291,7 +291,7 @@ describe('layoutLeaders · degradación 4 → 3 → 2 → 0', () => {
 })
 
 describe('layoutLeaders · modo acoplado', () => {
-  it('con el polígono a más del 45 % del ancho, etiquetas contra el borde y sin líneas', () => {
+  it('with the polygon wider than 45% of the width, labels against the edge and no lines', () => {
     const data = input({ polygonWidthFraction: 0.6, anchor: { x: 520, y: 340, radius: 300 } })
     const layout = layoutLeaders(data)
     expect(layout.mode).toBe('docked')
@@ -307,12 +307,12 @@ describe('layoutLeaders · modo acoplado', () => {
     expectInvariants(data, layout)
   })
 
-  it('justo en el 45 % sigue con líneas', () => {
+  it('exactly at 45% it keeps the lines', () => {
     expect(layoutLeaders(input({ polygonWidthFraction: 0.45 })).mode).toBe('lines')
   })
 })
 
-/** Generador determinista (LCG) para la prueba de propiedades. */
+/** Deterministic generator (LCG) for the property test. */
 function rng(seed: number): () => number {
   let state = seed >>> 0
   return () => {
@@ -321,8 +321,8 @@ function rng(seed: number): () => number {
   }
 }
 
-describe('layoutLeaders · propiedades (800 escenarios aleatorios con semilla fija)', () => {
-  it('sin cruces, dentro del área segura, sin paneles y con 4/3/2/0 etiquetas', () => {
+describe('layoutLeaders · properties (800 random scenarios with a fixed seed)', () => {
+  it('no crossings, inside the safe area, off panels and with 4/3/2/0 labels', () => {
     const random = rng(20261114)
     const between = (min: number, max: number) => min + random() * (max - min)
     let lines = 0
@@ -353,22 +353,22 @@ describe('layoutLeaders · propiedades (800 escenarios aleatorios con semilla fi
       if (layout.mode === 'lines') lines += 1
       else if (layout.mode === 'docked') docked += 1
       else chips += 1
-      // Determinista: la misma entrada da la misma salida.
+      // Deterministic: the same input gives the same output.
       expect(layoutLeaders(data)).toEqual(layout)
     }
-    // La muestra ejercita los tres modos.
+    // The sample exercises all three modes.
     expect(lines).toBeGreaterThan(100)
     expect(docked).toBeGreaterThan(20)
     expect(chips).toBeGreaterThan(20)
   })
 })
 
-describe('layoutMobileLeader · una sola línea hasta la hoja', () => {
-  // Móvil 390×844 en S1: hoja de 456 px (54dvh), barra 74 px.
+describe('layoutMobileLeader · a single line to the sheet', () => {
+  // Mobile 390×844 in S1: sheet of 456 px (54dvh), bar 74 px.
   const safe = { x: 0, y: 74, width: 390, height: 844 - 74 - 456 }
   const end = { x: 195, y: 844 - 456 }
 
-  it('sale del borde del anillo hacia el borde superior de la hoja, centrado', () => {
+  it('leaves the ring edge toward the top edge of the sheet, centered', () => {
     const line = layoutMobileLeader({ anchor: { x: 195, y: 230, radius: 12 }, safeArea: safe, end, obstacles: [] })
     expect(line).not.toBeNull()
     expect(line?.from).toEqual({ x: 195, y: 242 })
@@ -377,14 +377,14 @@ describe('layoutMobileLeader · una sola línea hasta la hoja', () => {
     expect(line?.d).toBe(`M195 242L195 ${end.y}`)
   })
 
-  it('en diagonal, el origen queda sobre el borde del anillo en dirección a la hoja', () => {
+  it('diagonally, the origin sits on the ring edge in the direction of the sheet', () => {
     const line = layoutMobileLeader({ anchor: { x: 80, y: 200, radius: 10 }, safeArea: safe, end, obstacles: [] })
     expect(line).not.toBeNull()
     if (!line) return
     expect(Math.hypot(line.from.x - 80, line.from.y - 200)).toBeCloseTo(10)
   })
 
-  it('no cruza contenido: se corta antes de un panel intermedio; la hoja de destino no cuenta', () => {
+  it('does not cross content: it stops before an intermediate panel; the target sheet does not count', () => {
     const strip = { x: 8, y: end.y - 48, width: 374, height: 40 }
     const sheet = { x: 0, y: end.y, width: 390, height: 456 }
     const line = layoutMobileLeader({ anchor: { x: 195, y: 160, radius: 12 }, safeArea: safe, end, obstacles: [strip, sheet] })
@@ -394,14 +394,14 @@ describe('layoutMobileLeader · una sola línea hasta la hoja', () => {
     expect(free?.to.y).toBeCloseTo(end.y)
   })
 
-  it('nada si el lugar no se ve, si la hoja está encima del anillo (S2) o si la línea es muy corta', () => {
+  it('nothing if the place is not visible, if the sheet is over the ring (S2) or if the line is too short', () => {
     expect(layoutMobileLeader({ anchor: { x: 195, y: 230, radius: 12, visible: 0.1 }, safeArea: safe, end, obstacles: [] })).toBeNull()
     expect(layoutMobileLeader({ anchor: { x: 195, y: 230, radius: 12 }, safeArea: safe, end: { x: 195, y: 74 }, obstacles: [] })).toBeNull()
     expect(layoutMobileLeader({ anchor: { x: 195, y: end.y - 20, radius: 12 }, safeArea: safe, end, obstacles: [] })).toBeNull()
     expect(layoutMobileLeader({ anchor: { x: 195, y: 600, radius: 12 }, safeArea: safe, end, obstacles: [] })).toBeNull()
   })
 
-  it('con hoja lateral la línea va de lado hasta su borde izquierdo', () => {
+  it('with a side sheet the line goes sideways to its left edge', () => {
     const side = { x: 0, y: 74, width: 844 - 360, height: 390 - 74 }
     const line = layoutMobileLeader({ anchor: { x: 240, y: 220, radius: 12 }, safeArea: side, end: { x: 484, y: 220 }, obstacles: [] })
     expect(line?.from).toEqual({ x: 252, y: 220 })

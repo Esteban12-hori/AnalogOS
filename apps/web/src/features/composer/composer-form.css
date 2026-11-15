@@ -1,7 +1,7 @@
 /*
- * Formulario del composer en Misión. Prefijo .composer-*. Sin backdrop-filter.
- * Solo se animan transform y opacity; la luz del borde da 2 vueltas de 2,4 s como máximo (en
- * fase con la órbita) y luego queda fija. Reduced motion: sin giro ni desplazamientos.
+ * Composer form in Mission. Prefix .composer-*. No backdrop-filter.
+ * Only transform and opacity are animated; the border light makes at most 2 turns of 2,4 s (in
+ * phase with the orbit) and then stays fixed. Reduced motion: no spinning or movement.
  */
 .composer { container: composer / inline-size; animation: composerIn var(--dur-2) var(--ease-enter) 60ms both; }
 .composer-form:focus-within { border-color: var(--sel-line); box-shadow: 0 0 0 1px var(--sel-line); }
@@ -30,11 +30,11 @@
   outline-offset: var(--focus-offset);
 }
 
-/* Luz orbital del borde: anillo enmascarado con un haz cónico que gira (solo transform). */
+/* Orbital border light: masked ring with a rotating conic beam (transform only). */
 .composer-light { position: absolute; inset: -1px; z-index: 0; padding: 1.5px; overflow: hidden; border-radius: inherit; pointer-events: none; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: composerFade var(--dur-2) var(--ease-standard) both; }
 .composer-light-beam { position: absolute; top: 50%; left: 50%; width: max(110%, 120px); aspect-ratio: 1; background: conic-gradient(from 0deg, transparent 0 62%, rgba(63, 180, 236, .15) 74%, var(--earth-bright) 86%, var(--sel-ring) 89%, transparent 93%); transform: translate(-50%, -50%) rotate(0deg); animation: composerOrbit var(--loop-orbit) linear var(--loop-max-iterations) both; }
 
-/* Línea de estado: fase real, contador, avisos y acciones de la espera (altura fija: CLS 0). */
+/* Status line: actual phase, counter, notices and wait actions (fixed height: CLS 0). */
 .composer-status-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .composer-status-text[data-tone="error"], .composer-status-text[data-tone="ok"] { color: var(--text); }
 .composer-status-text[data-tone="ok"] > span[aria-hidden="true"] { color: var(--earth-bright); }
@@ -44,16 +44,16 @@
 .composer-status-text > .composer-tag:first-child { margin-left: 0; }
 .composer-link { flex: none; min-height: 18px; padding: 0 2px; border: 0; background: none; color: var(--text); cursor: pointer; font: inherit; font-weight: 650; text-decoration: underline; text-underline-offset: 2px; }
 
-/* Popovers (capa superior del navegador): «Tu misión» <1440 y recientes ⟲. Fondo sólido, sin blur. */
+/* Popovers (browser top layer): "Your mission" <1440 and recents ⟲. Solid background, no blur. */
 .composer-popover { position: fixed; inset: auto; z-index: 30; margin: 0; padding: 12px; overflow: auto; overscroll-behavior: contain; border: 1px solid var(--glass-edge); border-radius: 16px; background: var(--surface-solid); color: var(--text); box-shadow: 0 24px 60px -30px rgba(0, 0, 0, .9); }
 .composer-popover:popover-open { animation: composerPop var(--dur-3) var(--ease-sheet) both; }
 .composer-popover-title { margin: 0 0 8px; color: var(--muted); font-family: var(--mono); font-size: var(--fs-caps); letter-spacing: var(--caps-tracking); text-transform: uppercase; }
 .composer-mission-popover { padding: 14px 16px; background: rgba(2, 7, 10, .98); }
 
-/* Bandeja móvil: línea de estado alineada con el borde de la hoja. */
+/* Mobile tray: status line aligned with the sheet edge. */
 .composer[data-placement="sheet"] .composer-status { padding: 0 6px; }
 
-/* Contenedor angosto (bandeja móvil, dock estrecho): una sola fila con más campo para escribir. */
+/* Narrow container (mobile tray, narrow dock): a single row with more room to type. */
 @container composer (max-width: 520px) {
   .composer-form { gap: 6px; padding-left: 8px; }
   .composer-profile { max-width: none; padding: 0 8px; }

@@ -1,12 +1,12 @@
 /**
- * Tipos de la Lectura (features/analysis). Solo tipos: los importan el chunk principal y el
- * código diferido sin arrastrar código. La Lectura tiene tres capas separadas (ADR-013):
- * resultado (MissionEvaluation), motivos destacados (ExplanationView del equipo) y hechos del
- * snapshot (esta capa de hechos).
+ * Reading types (features/analysis). Types only: the main chunk and the deferred
+ * code import them without pulling in any code. The Reading has three separate layers (ADR-013):
+ * result (MissionEvaluation), highlighted reasons (the team's ExplanationView) and snapshot
+ * facts (this facts layer).
  */
 import type { CountryCode, CriterionId } from '../../domain/contracts'
 
-/** Un hecho ya resuelto: id estable + texto que formateó el snapshot (es-CL). */
+/** An already-resolved fact: stable id + text formatted by the snapshot (es-CL). */
 export interface FactRef {
   id: string
   text: string
@@ -36,10 +36,10 @@ export interface SiteFacts {
   /** Referencia conocida (REF): nunca tiene puesto ni entra en «mejor de N». */
   reference: boolean
   country: CountryCode | null
-  /** «#2 de 6» o «REF · referencia conocida, fuera del ranking». */
+  /** «#2 of 6» or «REF · known reference, outside the ranking». */
   rank: FactRef | null
   similarity: FactRef | null
-  /** true = datos insuficientes para el perfil (el % no existe). */
+  /** true = insufficient data for the profile (the % does not exist). */
   insufficient: boolean
   confidence: FactRef | null
   stability: FactRef | null
@@ -48,7 +48,7 @@ export interface SiteFacts {
   directions: readonly DirectionFact[]
   limiting: CriterionFact | null
   saturates: readonly CriterionFact[]
-  /** Criterios del perfil (peso > 0) sin dato válido: «por calcular» / «sin dato». */
+  /** Profile criteria (weight > 0) without valid data: «to be calculated» / «no data». */
   missing: ReadonlyArray<{ criterionId: CriterionId; label: string; status: string }>
   checks: ReadonlyArray<{ ref: string; text: string }>
 }
@@ -61,20 +61,20 @@ export interface ComparisonFacts {
 }
 
 export interface RobustnessFacts {
-  /** ready = escenarios del pipeline; insufficient = menos de 2 candidatos con %; por_calcular = sin sensibilidad. */
+  /** ready = pipeline scenarios; insufficient = fewer than 2 candidates with %; por_calcular = without sensitivity. */
   status: 'ready' | 'insufficient' | 'por_calcular'
   perturbation: FactRef | null
   scenarios: FactRef | null
   flips: FactRef | null
   topFlips: FactRef | null
   mostSensitive: FactRef | null
-  /** Estabilidad 0–100 por lugar (barras deterministas). */
+  /** Stability 0–100 per place (deterministic bars). */
   sites: ReadonlyArray<{ siteId: string; name: string; stability: number | null; text: string | null }>
   reason: string | null
 }
 
 export interface FactsLayer {
-  /** Candidatos de la búsqueda en su orden global. */
+  /** Search candidates in their global order. */
   sites: readonly SiteFacts[]
   /** Referencias conocidas (REF), aparte. */
   references: readonly SiteFacts[]

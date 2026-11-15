@@ -1,17 +1,20 @@
-// Núcleo compartido (M10): lo importan la web (reexport) y la función Node sin depender del paquete ESM de la web.
-// Contexto geológico oficial por sector (M9). Carga opcional, validada y de solo lectura: la web NUNCA llama
-// a SERNAGEOMIN, MMA ni SIGAM; solo lee el paquete empaquetado por el pipeline. Describe qué unidades están
-// cartografiadas y qué parte del sector no tiene cobertura; no expresa aptitud, confianza ni score.
+// Shared core (M10): imported by the web app (re-export) and the Node function without depending on the web's ESM package.
+// Official geological context per sector (M9). Optional, validated, read-only loading: the web app NEVER calls
+// SERNAGEOMIN, MMA or SIGAM; it only reads the package bundled by the pipeline. It describes which units are
+// mapped and which part of the sector has no coverage; it does not express suitability, confidence or score.
 //
-// La validación espeja la semántica de pipelines/geology_contract.py (contrato JSON Schema + geometría exacta,
-// cierre de áreas, estado recalculado, procedencia por sector). No hay criptografía en el navegador: el SHA-256
-// del archivo de candidatos y el request_id (SHA-256 de método+URL) los verifican el pipeline y el empaquetador.
+// Validation mirrors the semantics of pipelines/geology_contract.py (JSON Schema contract + exact geometry,
+// area closure, recomputed status, per-sector provenance). There is no cryptography in the browser: the SHA-256
+// of the candidates file and the request_id (SHA-256 of method+URL) are verified by the pipeline and the packager.
 import { type ErrorObject } from 'ajv'
 import Ajv2020 from 'ajv/dist/2020'
 import addFormats from 'ajv-formats'
 import contextSchema from '../../contracts/geology-context.schema.json'
 import exportSchema from '../../contracts/geology-export.schema.json'
 import type { CandidateSite } from '../domain/contracts'
+import {
+  DEFAULT_GEOLOGY_EXPORT_VERSION, geologyText, isGeologyTextVersion, type GeologyTextVersion,
+} from './text'
 
 export type GeologyAvailability = 'available' | 'partial' | 'no_coverage' | 'unavailable'
 
@@ -128,7 +131,8 @@ export interface GeologyContext {
 
 export interface GeologyExport {
   kind: 'analogos-geology-export'
-  schema_version: 1
+  /** 1 = historical Spanish export_info; 2 = English export_info. Same content otherwise (package stays version 1). */
+  schema_version: GeologyTextVersion
   status: 'preliminary_geological_context'
   export_info: {
     description: string
@@ -151,7 +155,7 @@ export interface GeologyExport {
 
 export class GeologyContractError extends Error {}
 
-// Misma política que pipelines/geology_policy.py (una prueba comprueba que coincide con el paquete real).
+// Same policy as pipelines/geology_policy.py (a test checks that it matches the actual package).
 export const GEOLOGY_POLICY = {
   area_crs: 'EPSG:6933',
   clip_space: 'Validez y reparación en lon/lat (CRS84); recorte y superposición en el plano EPSG:6933 (aristas rectas en ese plano)',
@@ -181,7 +185,7 @@ const validateContextSchema = ajv.compile(contextSchema)
 const validateExportSchema = ajv.compile(exportSchema)
 
 function fail(message: string): never {
-  throw new GeologyContractError(`Contexto geológico no válido: ${message}`)
+  throw new GeologyContractError(`Invalid geology context: ${message}`)
 }
 
 function schemaErrors(errors: ErrorObject[] | null | undefined): string {
@@ -190,7 +194,7 @@ function schemaErrors(errors: ErrorObject[] | null | undefined): string {
 
 const isFinite_ = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
 
-/** Igualdad estructural estricta: mismos anillos, mismo número de vértices y mismos números exactos. */
+/** Strict structural equality: same rings, same number of vertices and same exact numbers. */
 export function geometriesEqual(first: unknown, second: unknown): boolean {
   if (Array.isArray(first) && Array.isArray(second)) {
     return first.length === second.length && first.every((item, index) => geometriesEqual(item, second[index]))
@@ -207,7 +211,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-/** Estado derivado SOLO de las fracciones; nunca de aptitud. Igual que pipelines/geology_policy.availability. */
+/** Status derived ONLY from the fractions; never from suitability. Same as pipelines/geology_policy.availability. */
 export function availabilityOf(fractions: GeologyFractions): GeologyAvailability {
   const covered = fractions.covered_total
   const unusable = fractions.unusable_upper_bound
@@ -228,32 +232,32 @@ function hostAllowed(url: string): boolean {
   }
 }
 
-/** Valida la forma exacta de una petición WFS y devuelve su bbox con parse numérico exacto (sin redondeo). */
+/** Validates the exact form of a WFS request and returns its bbox with exact numeric parsing (no rounding). */
 export function wfsBbox(url: string): number[] {
   let target: URL
   try {
     target = new URL(url)
   } catch {
-    return fail('petición WFS ilegible.')
+    return fail('unreadable WFS request.')
   }
   const base = new URL(WFS_BASE)
   if (target.protocol !== base.protocol || target.hostname !== base.hostname || target.pathname !== base.pathname) {
-    fail('petición WFS fuera del servicio esperado.')
+    fail('WFS request outside the expected service.')
   }
   const names = [...target.searchParams.keys()]
   const expected = [...Object.keys(WFS_FIXED), 'bbox']
   if (names.length !== expected.length || new Set(names).size !== names.length || !expected.every((name) => names.includes(name))
     || Object.entries(WFS_FIXED).some(([name, value]) => target.searchParams.get(name) !== value)) {
-    fail('petición WFS con parámetros distintos de los esperados.')
+    fail('WFS request with unexpected parameters.')
   }
   const parts = (target.searchParams.get('bbox') ?? '').split(',')
   if (parts.length !== 5 || parts[4] !== 'EPSG:4326') fail('bbox WFS mal formado.')
   const bbox = parts.slice(0, 4).map((part) => (part.trim() === '' ? Number.NaN : Number(part)))
-  if (!bbox.every(isFinite_)) fail('bbox WFS no numérico o no finito.')
+  if (!bbox.every(isFinite_)) fail('non-numeric or non-finite WFS bbox.')
   return bbox
 }
 
-/** Bbox exacta (sin redondeo) del polígono: mismas coordenadas que usó la petición. */
+/** Exact bbox (no rounding) of the polygon: same coordinates used by the request. */
 export function aoiBounds(geometry: CandidateSite['geometry']): number[] {
   const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
   const xs = polygons.flatMap((rings) => rings.flatMap((ring) => ring.map((point) => point[0])))
@@ -264,13 +268,13 @@ export function aoiBounds(geometry: CandidateSite['geometry']): number[] {
 function checkGeometryShape(geometry: CandidateSite['geometry'], name: string): void {
   const polygons = (geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates) as unknown[]
   for (const rings of polygons) {
-    if (!Array.isArray(rings) || rings.length === 0) fail(`${name}: geometría sin anillos.`)
+    if (!Array.isArray(rings) || rings.length === 0) fail(`${name}: geometry without rings.`)
     for (const ring of rings as unknown[]) {
       const closed = Array.isArray(ring) && ring.length >= 4
         && JSON.stringify(ring[0]) === JSON.stringify(ring[ring.length - 1])
       const vertices = closed && (ring as unknown[]).every((point) => Array.isArray(point) && point.length === 2
         && point.every(isFinite_) && Math.abs(point[0]) <= 180 && Math.abs(point[1]) <= 90)
-      if (!vertices) fail(`${name}: anillo malformado, abierto o fuera de lon/lat.`)
+      if (!vertices) fail(`${name}: malformed, open or out-of-range lon/lat ring.`)
     }
   }
 }
@@ -280,39 +284,39 @@ function checkSourceRequests(source: GeologySource, arSiteIds: string[]): void {
   const roles = source.requests.map((request) => request.role)
   if (source.country === 'CL') {
     if ([...roles].sort().join() !== 'chile_catalog_metadata,chile_layer') {
-      fail(`${name}: la fuente chilena debe declarar exactamente metadata CKAN y la descarga de la capa.`)
+      fail(`${name}: the Chilean source must declare exactly the CKAN metadata and the layer download.`)
     }
     const catalog = source.requests.find((request) => request.role === 'chile_catalog_metadata')!
     const layer = source.requests.find((request) => request.role === 'chile_layer')!
-    if (catalog.url !== CKAN_URL) fail(`${name}: la metadata no es la de CKAN esperada.`)
-    if (layer.actual_format !== 'geojson' || !layer.member_sha256) fail(`${name}: la capa chilena debe ser el GeoJSON inspeccionado, con hash del miembro.`)
+    if (catalog.url !== CKAN_URL) fail(`${name}: the metadata is not the expected CKAN record.`)
+    if (layer.actual_format !== 'geojson' || !layer.member_sha256) fail(`${name}: the Chilean layer must be the inspected GeoJSON, with the member hash.`)
     const declared = source.license.declared_id
-    if (!declared || !source.license.name.includes(declared)) fail(`${name}: la licencia no cita el id declarado por el catálogo.`)
+    if (!declared || !source.license.name.includes(declared)) fail(`${name}: the license does not cite the id declared by the catalog.`)
     return
   }
-  if (roles.some((role) => role !== 'argentina_wfs')) fail(`${name}: la fuente argentina solo admite peticiones WFS.`)
+  if (roles.some((role) => role !== 'argentina_wfs')) fail(`${name}: the Argentine source only allows WFS requests.`)
   const found = source.requests.map((request) => request.site_id ?? '')
   if ([...found].sort().join() !== [...arSiteIds].sort().join() || new Set(found).size !== found.length) {
-    fail(`${name}: debe haber exactamente una petición WFS por sector, con su site_id.`)
+    fail(`${name}: there must be exactly one WFS request per sector, with its site_id.`)
   }
   for (const request of source.requests) {
     wfsBbox(request.url)
     if (request.number_returned === undefined || request.number_matched !== request.number_returned) {
-      fail(`${name}: respuesta WFS truncada o inconsistente en ${request.site_id}.`)
+      fail(`${name}: truncated or inconsistent WFS response in ${request.site_id}.`)
     }
   }
 }
 
 function checkSources(policy: unknown, sources: GeologySource[], arSiteIds: string[]): Map<string, GeologySource> {
-  if (!geometriesEqual(policy, GEOLOGY_POLICY)) fail('policy no coincide con la política vigente (umbrales provisionales aprobados).')
+  if (!geometriesEqual(policy, GEOLOGY_POLICY)) fail('policy does not match the current policy (approved provisional thresholds).')
   const bySource = new Map(sources.map((source) => [source.source_id, source]))
-  if (bySource.size !== sources.length) fail('source_id repetido.')
+  if (bySource.size !== sources.length) fail('repeated source_id.')
   for (const source of sources) {
     const urls = [source.dataset_url, source.license.url, ...source.requests.map((request) => request.url)]
-    if (!urls.every(hostAllowed)) fail(`${source.source_id}: URL fuera de las fuentes permitidas (solo https a las dos fuentes oficiales).`)
+    if (!urls.every(hostAllowed)) fail(`${source.source_id}: URL outside the allowed sources (only https to the two official sources).`)
     const ids = source.requests.map((request) => request.request_id)
-    if (new Set(ids).size !== ids.length) fail(`${source.source_id}: request_id repetido.`)
-    if (source.map_date !== null) fail(`${source.source_id}: map_date debe ser null mientras la fuente no lo declare.`)
+    if (new Set(ids).size !== ids.length) fail(`${source.source_id}: repeated request_id.`)
+    if (source.map_date !== null) fail(`${source.source_id}: map_date must be null while the source does not declare it.`)
     checkSourceRequests(source, arSiteIds)
   }
   return bySource
@@ -321,101 +325,101 @@ function checkSources(policy: unknown, sources: GeologySource[], arSiteIds: stri
 function checkDiagnostic(name: string, item: GeologyDiagnostic): void {
   const limits = GEOLOGY_POLICY
   if (item.status === 'rejected') {
-    if (!item.rejection_reasons?.length) fail(`${name}/${item.feature_id}: entidad rechazada sin razones.`)
+    if (!item.rejection_reasons?.length) fail(`${name}/${item.feature_id}: rejected feature without reasons.`)
     return
   }
   const change = item.total_area_relative_change
   if (!isFinite_(change) || change > limits.repair_total_area_relative_limit) {
-    fail(`${name}/${item.feature_id}: reparación aceptada con cambio de área total fuera del límite.`)
+    fail(`${name}/${item.feature_id}: accepted repair with a total-area change beyond the limit.`)
   }
   const relative = item.symmetric_difference_relative_to_entity
   const fraction = item.symmetric_difference_fraction_of_aoi
   if (!isFinite_(relative) || relative > limits.repair_entity_relative_limit
     || !isFinite_(fraction) || fraction > limits.repair_aoi_fraction_limit) {
-    fail(`${name}/${item.feature_id}: reparación aceptada con diferencia entre métodos fuera de límites.`)
+    fail(`${name}/${item.feature_id}: accepted repair with a difference between methods beyond the limits.`)
   }
 }
 
 function checkSite(site: GeologySite, sources: Map<string, GeologySource>, candidate: CandidateSite | null): void {
   const name = site.site_id
   if (candidate) {
-    if (site.country !== candidate.country || site.name !== candidate.name) fail(`${name}: país o nombre distinto del candidato.`)
-    if (!geometriesEqual(site.geometry, candidate.geometry)) fail(`${name}: la geometría no es idéntica a la del candidato.`)
+    if (site.country !== candidate.country || site.name !== candidate.name) fail(`${name}: country or name differs from the candidate.`)
+    if (!geometriesEqual(site.geometry, candidate.geometry)) fail(`${name}: the geometry is not identical to the candidate's.`)
   }
   checkGeometryShape(site.geometry, name)
   const source = sources.get(site.source_id)
-  if (!source || source.country !== site.country) fail(`${name}: fuente inexistente o de otro país.`)
+  if (!source || source.country !== site.country) fail(`${name}: missing source or source from another country.`)
   const byId = new Map(source.requests.map((request) => [request.request_id, request]))
   const cited = site.request_ids
   if (new Set(cited).size !== cited.length || !cited.every((id) => byId.has(id))) {
-    fail(`${name}: request_ids repetidos o no declarados por la fuente.`)
+    fail(`${name}: request_ids repeated or not declared by the source.`)
   }
   if (site.country === 'AR') {
-    // Adquisición exacta del propio sector: rol, site_id y bbox de la URL contra el AOI, sin redondeo.
-    if (cited.length !== 1) fail(`${name}: un sector argentino cita exactamente su petición WFS.`)
+    // Exact acquisition of the sector itself: role, site_id and URL bbox against the AOI, without rounding.
+    if (cited.length !== 1) fail(`${name}: an Argentine sector cites exactly its own WFS request.`)
     const request = byId.get(cited[0])!
-    if (request.role !== 'argentina_wfs' || request.site_id !== name) fail(`${name}: la petición citada no pertenece a este sector.`)
-    if (!geometriesEqual(wfsBbox(request.url), aoiBounds(site.geometry))) fail(`${name}: la bbox de la petición WFS no es la del sector.`)
+    if (request.role !== 'argentina_wfs' || request.site_id !== name) fail(`${name}: the cited request does not belong to this sector.`)
+    if (!geometriesEqual(wfsBbox(request.url), aoiBounds(site.geometry))) fail(`${name}: the WFS request bbox is not the sector's.`)
     if (site.feature_counts.bbox_candidates > (request.number_returned ?? -1)) {
-      fail(`${name}: más entidades candidatas que las devueltas por la petición.`)
+      fail(`${name}: more candidate features than the request returned.`)
     }
   } else {
     const citedRoles = new Set(cited.map((id) => byId.get(id)!.role))
     if (!citedRoles.has('chile_layer') || [...citedRoles].some((role) => role !== 'chile_layer' && role !== 'chile_catalog_metadata')) {
-      fail(`${name}: un sector chileno debe citar la descarga de la capa (la metadata puede ser adicional).`)
+      fail(`${name}: a Chilean sector must cite the layer download (the metadata may be additional).`)
     }
   }
 
   const fractions = site.area_fractions
-  if (!Object.values(fractions).every(isFinite_)) fail(`${name}: fracciones no finitas.`)
+  if (!Object.values(fractions).every(isFinite_)) fail(`${name}: non-finite fractions.`)
   const closure = fractions.unmapped + fractions.covered_unambiguous + fractions.covered_ambiguous + fractions.unusable_upper_bound
-  if (Math.abs(closure - 1) > SUM_TOLERANCE) fail(`${name}: sin cobertura + sin ambigüedad + ambigua + no utilizable suman ${closure}, no 1.`)
+  if (Math.abs(closure - 1) > SUM_TOLERANCE) fail(`${name}: unmapped + unambiguous + ambiguous + unusable add up to ${closure}, not 1.`)
   if (Math.abs(fractions.covered_total - fractions.covered_unambiguous - fractions.covered_ambiguous) > SUM_TOLERANCE) {
-    fail(`${name}: covered_total no reconcilia con sus componentes.`)
+    fail(`${name}: covered_total does not reconcile with its components.`)
   }
   if (fractions.covered_by_units_without_description > fractions.covered_total + SUM_TOLERANCE) {
-    fail(`${name}: la parte sin descripción excede la cobertura.`)
+    fail(`${name}: the part without description exceeds the coverage.`)
   }
   if (site.availability !== availabilityOf(fractions)) {
-    fail(`${name}: availability no corresponde a las fracciones (solo cobertura completa es available).`)
+    fail(`${name}: availability does not match the fractions (only complete coverage is available).`)
   }
   const units = site.units
-  if (new Set(units.map((unit) => unit.unit_id)).size !== units.length) fail(`${name}: unit_id repetido.`)
-  if ((units.length > 0) !== (fractions.covered_total > 0)) fail(`${name}: unidades y cobertura no concuerdan.`)
+  if (new Set(units.map((unit) => unit.unit_id)).size !== units.length) fail(`${name}: repeated unit_id.`)
+  if ((units.length > 0) !== (fractions.covered_total > 0)) fail(`${name}: units and coverage do not agree.`)
   let unambiguousSum = 0
   for (const unit of units) {
     const { fraction_including_overlap: included, fraction_unambiguous: clean, fraction_in_ambiguity: shared } = unit
-    if (![included, clean, shared].every(isFinite_)) fail(`${name}/${unit.unit_id}: fracciones no finitas.`)
+    if (![included, clean, shared].every(isFinite_)) fail(`${name}/${unit.unit_id}: non-finite fractions.`)
     if (Math.abs(included - clean - shared) > SUM_TOLERANCE || clean > included + SUM_TOLERANCE
       || included > fractions.covered_total + SUM_TOLERANCE) {
-      fail(`${name}/${unit.unit_id}: fracciones de unidad incoherentes.`)
+      fail(`${name}/${unit.unit_id}: inconsistent unit fractions.`)
     }
-    if (unit.description_present !== (unit.description !== null)) fail(`${name}/${unit.unit_id}: description_present no concuerda con description.`)
+    if (unit.description_present !== (unit.description !== null)) fail(`${name}/${unit.unit_id}: description_present does not agree with description.`)
     unambiguousSum += clean
   }
   if (Math.abs(unambiguousSum - fractions.covered_unambiguous) > SUM_TOLERANCE * Math.max(1, units.length)) {
-    fail(`${name}: la suma de unidades sin ambigüedad no reconcilia con el sector.`)
+    fail(`${name}: the sum of unambiguous units does not reconcile with the sector.`)
   }
   if (units.length === 1 && fractions.covered_ambiguous > AVAILABLE_TOLERANCE) {
-    fail(`${name}: una sola unidad no puede tener ambigüedad entre unidades distintas.`)
+    fail(`${name}: a single unit cannot have ambiguity between different units.`)
   }
   site.geometry_diagnostics.forEach((item) => checkDiagnostic(name, item))
   const rejected = site.geometry_diagnostics.filter((item) => item.status === 'rejected')
-  if (site.feature_counts.rejected !== rejected.length) fail(`${name}: feature_counts.rejected no coincide con los diagnósticos.`)
-  if (fractions.unusable_upper_bound > 0 && rejected.length === 0) fail(`${name}: hay zona no utilizable sin entidades rechazadas que la expliquen.`)
-  if (site.feature_counts.positive_area < units.length) fail(`${name}: hay más unidades que entidades con área positiva.`)
+  if (site.feature_counts.rejected !== rejected.length) fail(`${name}: feature_counts.rejected does not match the diagnostics.`)
+  if (fractions.unusable_upper_bound > 0 && rejected.length === 0) fail(`${name}: there is an unusable area without rejected features to explain it.`)
+  if (site.feature_counts.positive_area < units.length) fail(`${name}: there are more units than features with positive area.`)
 }
 
-/** Valida el paquete completo contra los candidatos del snapshot. Lanza GeologyContractError. */
+/** Validates the complete package against the snapshot's candidates. Throws GeologyContractError. */
 export function parseGeologyContext(data: unknown, candidates: CandidateSite[]): GeologyContext {
-  if (!validateContextSchema(data)) fail(`no cumple el contrato (${schemaErrors(validateContextSchema.errors)}).`)
+  if (!validateContextSchema(data)) fail(`it does not meet the contract (${schemaErrors(validateContextSchema.errors)}).`)
   const context = data as unknown as GeologyContext
   if (new Set(candidates.map((candidate) => candidate.data_snapshot_version)).size !== 1
     || candidates[0]?.data_snapshot_version !== context.snapshot_version) {
-    fail('el paquete corresponde a otra versión de snapshot.')
+    fail('the package belongs to another snapshot version.')
   }
   if (context.sites.map((site) => site.site_id).join() !== candidates.map((candidate) => candidate.site_id).join()) {
-    fail('los sectores no son exactamente los candidatos, en el mismo orden.')
+    fail('the sectors are not exactly the candidates, in the same order.')
   }
   const arSites = candidates.filter((candidate) => candidate.country === 'AR').map((candidate) => candidate.site_id)
   const sources = checkSources(context.policy, context.sources, arSites)
@@ -423,55 +427,56 @@ export function parseGeologyContext(data: unknown, candidates: CandidateSite[]):
   return context
 }
 
-// --- Exportación independiente (subconjunto de UN sector) -------------------------------------------------
+// --- Independent export (subset of ONE sector) -------------------------------------------------
 
-export const GEOLOGY_EXPORT_DESCRIPTION =
-  'Contexto geológico cartográfico de un sector de AnalogOS, exportado de forma independiente. Describe qué '
-  + 'unidades están cartografiadas en la capa oficial citada y qué parte del sector no tiene cobertura; no mide '
-  + 'el terreno ni expresa aptitud, confianza ni compatibilidad planetaria.'
-export const GEOLOGY_EXPORT_HOW_TO_READ = [
-  'availability describe evidencia cartográfica, nunca aptitud: available = cobertura completa de esta capa sin '
-  + 'ambigüedad ni descripciones ausentes; partial = hay huecos, solapes o descripciones ausentes; no_coverage = '
-  + 'esta capa no cubre el sector; unavailable = hay evidencia no utilizable.',
-  'area_fractions son fracciones del área del sector y suman 1 sin renormalizar: unmapped + covered_unambiguous + '
-  + 'covered_ambiguous + unusable_upper_bound. Cobertura no es precisión.',
-  'Este archivo es un subconjunto: contiene un solo sector y las peticiones que lo respaldan. '
-  + 'full_candidates_file_sha256 es el hash del archivo completo candidate-details.json del que salió el paquete; '
-  + 'este subconjunto no es ese archivo.',
-  'Las verification_questions son orientación editorial, no mediciones.',
-]
+// export_info texts per version (shared/geology/text.ts): v1 = frozen Spanish (historical), v2 = English.
+// The GEOLOGY_EXPORT_* names carry the default (English v2) text; v1 is only reachable through geologyText(1).
+export const GEOLOGY_EXPORT_DESCRIPTION = geologyText(DEFAULT_GEOLOGY_EXPORT_VERSION).exportDescription
+export const GEOLOGY_EXPORT_HOW_TO_READ = geologyText(DEFAULT_GEOLOGY_EXPORT_VERSION).exportHowToRead
 
 export function geologyExportFileName(siteId: string): string {
   return `${siteId}-geology-context.json`
 }
 
-/** Valida contrato autocontenido y semántica de un subconjunto exportado; con `candidate` también lo ancla al snapshot. */
+/**
+ * Validates the self-contained contract and semantics of an exported subset; with `candidate` it also anchors it to the snapshot.
+ * export_info wording must be exactly the one of its schema_version (v1 Spanish, v2 English): a mislabeled version is rejected.
+ */
 export function validateGeologyExport(data: unknown, candidate: CandidateSite | null = null): GeologyExport {
-  if (!validateExportSchema(data)) fail(`la exportación no cumple su contrato (${schemaErrors(validateExportSchema.errors)}).`)
+  if (!validateExportSchema(data)) fail(`the export does not meet its contract (${schemaErrors(validateExportSchema.errors)}).`)
   const exported = data as unknown as GeologyExport
+  const text = geologyText(exported.schema_version)
+  if (exported.export_info.description !== text.exportDescription || JSON.stringify(exported.export_info.how_to_read) !== JSON.stringify(text.exportHowToRead)) {
+    fail(`export_info does not match the wording of schema_version ${exported.schema_version}.`)
+  }
   const { site, source } = exported
-  if (source.source_id !== site.source_id) fail('la fuente exportada no es la del sector.')
+  if (source.source_id !== site.source_id) fail('the exported source is not the sector source.')
   const sources = checkSources(exported.policy, [source], site.country === 'AR' ? [site.site_id] : [])
-  // Con candidato (snapshot confiable) se exigen país, nombre y geometría EXACTOS: un subconjunto con la geometría movida no valida.
+  // With a candidate (trusted snapshot), the EXACT country, name and geometry are required: a subset with moved geometry does not validate.
   checkSite(site, sources, candidate)
   return exported
 }
 
-/** Subconjunto autocontenido de un sector; conserva solo las peticiones que lo respaldan (más la metadata CKAN). */
-export function buildGeologyExport(context: GeologyContext, siteId: string): GeologyExport {
+/**
+ * Self-contained subset of a sector; keeps only the requests that support it (plus the CKAN metadata).
+ * `version` selects the export_info wording: 2 (English, default for new reports) or 1 (frozen Spanish, historical).
+ */
+export function buildGeologyExport(context: GeologyContext, siteId: string, version: GeologyTextVersion = DEFAULT_GEOLOGY_EXPORT_VERSION): GeologyExport {
+  if (!isGeologyTextVersion(version)) fail(`unsupported geology export version ${String(version).slice(0, 20)}.`)
+  const text = geologyText(version)
   const site = context.sites.find((item) => item.site_id === siteId)
-  if (!site) fail(`${siteId}: el sector no está en el paquete.`)
+  if (!site) fail(`${siteId}: the sector is not in the package.`)
   const source = context.sources.find((item) => item.source_id === site.source_id)
-  if (!source) fail(`${siteId}: la fuente no está en el paquete.`)
+  if (!source) fail(`${siteId}: the source is not in the package.`)
   const cited = new Set(site.request_ids)
   const requests = source.requests.filter((request) => cited.has(request.request_id) || request.role === 'chile_catalog_metadata')
   const exported = {
     kind: 'analogos-geology-export',
-    schema_version: 1,
+    schema_version: version,
     status: context.status,
     export_info: {
-      description: GEOLOGY_EXPORT_DESCRIPTION,
-      how_to_read: GEOLOGY_EXPORT_HOW_TO_READ,
+      description: text.exportDescription,
+      how_to_read: text.exportHowToRead,
       subset: true,
       package_kind: context.kind,
       package_schema_version: context.schema_version,
@@ -490,7 +495,7 @@ export function buildGeologyExport(context: GeologyContext, siteId: string): Geo
   return validateGeologyExport(exported)
 }
 
-// --- Selección y formato ---------------------------------------------------------------------------------------
+// --- Selection and format ---------------------------------------------------------------------------------------
 
 export type GeologyContextState =
   | { status: 'loading' }
@@ -502,47 +507,27 @@ export type GeologySelection =
   | { status: 'unavailable'; reason: string }
   | { status: 'ready'; context: GeologyContext; site: GeologySite; source: GeologySource }
 
-/** Un sector solo recibe SU ficha: ningún porcentaje se hereda de otro sector, punto o subpolígono. */
+/** A sector only receives ITS own sheet: no percentage is inherited from another sector, point or subpolygon. */
 export function selectGeologySite(state: GeologyContextState, candidate: CandidateSite): GeologySelection {
   if (state.status !== 'ready') return state
-  if (candidate.status === 'fixture') return { status: 'unavailable', reason: 'Los fixtures sintéticos no tienen contexto geológico.' }
+  if (candidate.status === 'fixture') return { status: 'unavailable', reason: 'Synthetic fixtures have no geological context.' }
   const site = state.context.sites.find((item) => item.site_id === candidate.site_id)
   const source = site && state.context.sources.find((item) => item.source_id === site.source_id)
   if (!site || !source || !geometriesEqual(site.geometry, candidate.geometry)) {
-    return { status: 'unavailable', reason: 'El paquete geológico no trae este sector con su geometría exacta.' }
+    return { status: 'unavailable', reason: 'The geology package does not include this sector with its exact geometry.' }
   }
   return { status: 'ready', context: state.context, site, source }
 }
 
-const decimal = new Intl.NumberFormat('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
-
-/**
- * Porcentaje con redondeo honesto de una fracción: nunca muestra 100 % salvo cobertura exacta, y distingue
- * «<0,1 %» y «>99,9 %» en vez de redondear a 0 % o a 100 %.
- */
-export function formatCoverage(fraction: number): string {
-  const percent = fraction * 100
-  if (percent === 0) return '0 %'
-  if (percent >= 100 - 1e-6) return '100 %'
-  if (percent < 0.1) return '<0,1 %'
-  if (percent > 99.9) return '>99,9 %'
-  return `${decimal.format(percent)} %`
-}
-
-export function formatScaleLabel(denominator: number): string {
-  return `1:${new Intl.NumberFormat('es-CL').format(denominator)}`
-}
-
-export const AVAILABILITY_LABEL: Record<GeologyAvailability, string> = {
-  available: 'Cobertura cartográfica completa',
-  partial: 'Cobertura parcial',
-  no_coverage: 'Sin cobertura en esta capa',
-  unavailable: 'Evidencia no utilizable',
-}
+// English formatting and labels for the UI; records use the pack of their own version (v1 stays frozen Spanish).
+const UI_GEOLOGY_TEXT = geologyText(DEFAULT_GEOLOGY_EXPORT_VERSION)
+export const formatCoverage = UI_GEOLOGY_TEXT.formatCoverage
+export const formatScaleLabel = UI_GEOLOGY_TEXT.formatScaleLabel
+export const AVAILABILITY_LABEL: Record<GeologyAvailability, string> = UI_GEOLOGY_TEXT.availabilityLabel
 
 export const AVAILABILITY_HINT: Record<GeologyAvailability, string> = {
-  available: 'Esta capa cubre todo el sector, sin solapes ni descripciones ausentes. Es cobertura del mapa, no precisión.',
-  partial: 'Hay parte sin cobertura, solapes entre unidades o descripciones ausentes. Se muestran por separado.',
-  no_coverage: 'Esta capa no cubre el sector. No significa que no haya rocas ni descarta el sector.',
-  unavailable: 'Hay geometrías de la fuente que no se pudieron usar; la parte afectada es una cota superior.',
+  available: 'This layer covers the whole sector, with no overlaps or missing descriptions. It is map coverage, not precision.',
+  partial: 'Part of the sector has no coverage, units overlap or descriptions are missing. They are shown separately.',
+  no_coverage: 'This layer does not cover the sector. It does not mean there is no rock, and it does not rule out the sector.',
+  unavailable: 'Some source geometries could not be used; the affected part is an upper bound.',
 }

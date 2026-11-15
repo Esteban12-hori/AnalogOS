@@ -1,6 +1,6 @@
-// La Lectura integrada (ADR-013) renderizada con react-dom/server: en Explorar solo hechos
-// deterministas (sin ✦); en Misión, tres capas separadas — resultado, motivos destacados (plantilla
-// o IA del equipo) y hechos —, con el botón explícito de IA y su aviso literal de envío.
+// The integrated Reading (ADR-013) rendered with react-dom/server: in Explore only deterministic
+// facts (no ✦); in Mission, three separate layers — result, highlighted reasons (template or the
+// team's AI) and facts — with the explicit AI button and its literal sending notice.
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ResultView } from '../../components/planner/ResultView'
@@ -41,40 +41,40 @@ function publish(state: ReturnType<typeof evaluateExample>['state'], source: 'de
 }
 
 describe('ReadingView', () => {
-  it('Explorar: «Lectura determinista» con hechos del snapshot, sin ✦ ni botón de IA', () => {
+  it('Explore: “Deterministic reading” with snapshot facts, no ✦ and no AI button', () => {
     const html = render()
-    expect(html).toContain('Lectura determinista')
-    expect(html).toContain('Hechos del snapshot')
+    expect(html).toContain('Deterministic reading')
+    expect(html).toContain('Snapshot facts')
     expect(html).not.toContain('✦')
-    expect(html).not.toContain('Destacar motivos con IA')
-    expect(text(html)).toContain('#1 de 6')
+    expect(html).not.toContain('Highlight reasons with AI')
+    expect(text(html)).toContain('#1 of 6')
     expect(text(html)).toContain('REF')
   })
 
-  it('Misión sin evaluar: aviso y solo hechos; la IA no se ofrece', () => {
+  it('Mission not evaluated: notice and facts only; AI is not offered', () => {
     uiStore.setState({ mode: 'mision', missionPhase: 'review' })
     const html = render()
-    expect(html).toContain('Sin evaluación')
-    expect(html).not.toContain('Destacar motivos con IA')
+    expect(html).toContain('No evaluation yet')
+    expect(html).not.toContain('Highlight reasons with AI')
   })
 
-  it('Misión evaluada: tres capas separadas, plantilla rotulada sin ✦ y botón de IA con su aviso literal', () => {
+  it('Mission evaluated: three separate layers, labeled template without ✦ and AI button with its literal notice', () => {
     publish(evaluateExample().state)
     const html = render()
-    expect(html).toContain('Lectura de tu misión')
-    expect(html).toContain('Resultado')
-    expect(html).toContain('Cálculo determinista · reglas mission-rules-1.0.0 · similitud v3 sin recalcular')
-    expect(html).toContain('Motivos destacados')
-    expect(html).toContain('Plantilla determinista sin IA')
-    expect(html).toContain('Hechos del snapshot')
-    expect(html).toContain('Destacar motivos con IA')
-    // Aviso del equipo (M10): sin canal geológico tampoco se envía cartografía.
-    expect(html).toContain('Al pulsar el botón se envían a Anthropic los requisitos confirmados y los resultados ya calculados (no el texto completo del brief ni cartografía geológica).')
-    // El único ✦ es el del botón: ningún bloque se presenta como redactado por la IA.
+    expect(html).toContain('Reading of your mission')
+    expect(html).toContain('Result')
+    expect(html).toContain('Deterministic calculation · rules mission-rules-1.0.0 · v3 similarity not recalculated')
+    expect(html).toContain('Highlighted reasons')
+    expect(html).toContain('Deterministic template without AI')
+    expect(html).toContain('Snapshot facts')
+    expect(html).toContain('Highlight reasons with AI')
+    // Team notice (M10): without the geology channel no mapping is sent either.
+    expect(html).toContain('When you press the button, the confirmed requirements and the already calculated results are sent to Anthropic (not the full brief text or geological mapping).')
+    // The only ✦ is the button's: no block is presented as written by the AI.
     expect(html.match(/✦/g)).toHaveLength(1)
   })
 
-  it('con la selección de Anthropic aceptada por el reductor: ✦ y procedencia', () => {
+  it('with the Anthropic selection accepted by the reducer: ✦ and provenance', () => {
     const { state } = evaluateExample()
     const started = plannerReducer(state, { type: 'explain_start', requestId: 'exp-1' })
     const accepted = plannerReducer(started, {
@@ -85,14 +85,14 @@ describe('ReadingView', () => {
     expect(accepted.explain.status).toBe('done')
     publish(accepted, 'anthropic')
     const html = render()
-    expect(html).toContain('Motivos destacados con IA (Anthropic) · las cifras salen del cálculo determinista')
+    expect(html).toContain('Reasons highlighted with AI (Anthropic) · figures come from the deterministic calculation')
     expect(html).toContain('claude-sonnet-5-5 · 2026-11-14 · req_ui')
-    expect(html).toContain('Pedir otra selección a la IA')
-    // Un solo ✦ delante del rótulo (antes salía «✦ ✦ Motivos destacados con IA»).
+    expect(html).toContain('Ask the AI for another selection')
+    // A single ✦ before the label (it used to show «✦ ✦ Motivos destacados con IA»).
     expect(text(html)).not.toMatch(/✦\s*✦/)
   })
 
-  it('selección de la IA vacía: no dice que todo se cumple y lista los lugares sin motivos', () => {
+  it('empty AI selection: does not claim everything is met and lists places without reasons', () => {
     const { state } = evaluateExample()
     const started = plannerReducer(state, { type: 'explain_start', requestId: 'exp-e' })
     const accepted = plannerReducer(started, {
@@ -105,11 +105,11 @@ describe('ReadingView', () => {
     const html = text(render())
     const unmet = state.result!.options.filter((option) => option.requirement_results.some((result) => result.status !== 'cumple'))
     expect(html).not.toContain('Todos los requisitos se cumplen')
-    expect(html).toContain(`La IA no destacó motivos para ${unmet.length} lugares; los bloqueos del cálculo están en «Resultado».`)
-    expect(html).toContain('sin motivos destacados por la IA')
+    expect(html).toContain(`The AI did not highlight reasons for ${unmet.length} places; the calculation blockers are in “Result”.`)
+    expect(html).toContain('no highlighted reasons from the AI')
   })
 
-  it('tras editar, la Lectura atenuada conserva la procedencia de la IA', () => {
+  it('after editing, the dimmed Reading keeps the AI provenance', () => {
     const { state } = evaluateExample()
     const started = plannerReducer(state, { type: 'explain_start', requestId: 'exp-s' })
     const accepted = plannerReducer(started, {
@@ -118,16 +118,16 @@ describe('ReadingView', () => {
       provenance: { provider: 'anthropic', model: 'claude-y', request_id: 'req_stale', created_at: '2026-11-14T00:00:00.000Z', usage: { input_tokens: 1, output_tokens: 1 }, stop_reason: 'end_turn' },
     })
     publish(accepted, 'anthropic')
-    // El reductor invalida el resultado al editar; el controlador deja la vista atenuada (stale).
+    // The reducer invalidates the result on edit; the controller leaves the view dimmed (stale).
     const edited = plannerReducer(accepted, { type: 'set_brief', brief: 'otra prueba' })
     expect(edited.explain.record).toBeNull()
     missionStore.setState({ planner: edited, stale: true })
     const html = render()
-    expect(html).toContain('Editó la prueba')
+    expect(html).toContain('You edited the test')
     expect(html).toContain('claude-y · 2026-11-14 · req_stale')
   })
 
-  it('respuesta que no corresponde al cálculo vigente: se descarta y queda la plantilla', () => {
+  it('response that does not match the current computation: discarded and the template stays', () => {
     const { state } = evaluateExample()
     const started = plannerReducer(state, { type: 'explain_start', requestId: 'exp-2' })
     const discarded = plannerReducer(started, {
@@ -137,47 +137,47 @@ describe('ReadingView', () => {
     expect(discarded.explain.status).toBe('error')
     publish(discarded)
     const html = render()
-    expect(html).toContain('La respuesta no corresponde al cálculo vigente: se mantiene la plantilla determinista.')
-    expect(html).toContain('Plantilla determinista sin IA')
+    expect(html).toContain('The response does not belong to the current calculation: the deterministic template is kept.')
+    expect(html).toContain('Deterministic template without AI')
   })
 
-  it('IA no disponible (sin clave o ZIP): mensaje del cliente y la plantilla sigue siendo la Lectura', () => {
+  it('AI unavailable (no key or ZIP): client message and the template is still the Reading', () => {
     const { state } = evaluateExample()
     const started = plannerReducer(state, { type: 'explain_start', requestId: 'exp-3' })
     const unavailable = plannerReducer(started, { type: 'explain_fail', requestId: 'exp-3', message: 'La asistencia de IA no está disponible en este momento o en esta versión.', unavailable: true })
     publish(unavailable)
     const html = render()
     expect(html).toContain('no está disponible')
-    expect(html).toContain('La plantilla determinista sigue siendo la Lectura')
+    expect(html).toContain('The deterministic template is still the Reading')
   })
 
-  it('alcance sin evidencia: no se ofrece la IA y el diagnóstico va en el resultado', () => {
+  it('scope without evidence: AI is not offered and the diagnostic goes in the result', () => {
     publish(evaluateExample({ mode: 'point', siteId: '', lon: '10', lat: '10', west: '', south: '', east: '', north: '', windowSiteId: null }).state)
     const html = render()
-    expect(html).not.toContain('Destacar motivos con IA')
-    expect(html).toContain('Esta versión no adquiere datos nuevos')
+    expect(html).not.toContain('Highlight reasons with AI')
+    expect(html).toContain('This version does not acquire new data')
   })
 
-  it('sin snapshot: espera neutra, sin cifras', () => {
-    expect(render({ status: 'loading', snapshot: null, visual: { status: 'loading' }, error: null })).toContain('Esperando el snapshot validado')
+  it('no snapshot: neutral wait, no figures', () => {
+    expect(render({ status: 'loading', snapshot: null, visual: { status: 'loading' }, error: null })).toContain('Waiting for the validated snapshot')
   })
 })
 
-describe('ReadingView · canal geológico de la IA (M10 del equipo)', () => {
+describe('ReadingView · AI geology channel (team M10)', () => {
   const html = () => text(render())
   const available = () => composerStore.setState({ geology: { available: true, unavailableReason: null } })
 
-  it('sin contexto geológico: aviso sin cartografía y motivo de «no disponible», sin casilla', () => {
+  it('no geology context: notice without mapping and “unavailable” reason, no checkbox', () => {
     publish(evaluateExample().state)
-    composerStore.setState({ geology: { available: false, unavailableReason: 'No se encontró el paquete geológico de esta versión.' } })
+    composerStore.setState({ geology: { available: false, unavailableReason: 'The geology package for this version was not found.' } })
     const out = html()
     expect(out).toContain(AI_SEND_NOTICE)
     expect(out).not.toContain(AI_SEND_NOTICE_GEOLOGY)
-    expect(out).toContain('Orientación geológica con IA no disponible: No se encontró el paquete geológico de esta versión. La explicación de requisitos funciona igual sin geología.')
+    expect(out).toContain('AI geological guidance not available: The geology package for this version was not found. The requirements explanation works the same without geology.')
     expect(render()).not.toContain('type="checkbox"')
   })
 
-  it('con contexto: casilla activa por defecto y UN solo aviso, el del envío con objetivo y cartografía', () => {
+  it('with context: checkbox on by default and ONE notice, the one for sending with purpose and mapping', () => {
     publish(evaluateExample().state)
     available()
     const markup = render()
@@ -186,9 +186,9 @@ describe('ReadingView · canal geológico de la IA (M10 del equipo)', () => {
     const out = html()
     expect(out).toContain(GEOLOGY_OPT_LABEL)
     expect(out).toContain(AI_SEND_NOTICE_GEOLOGY)
-    expect(out).not.toContain('no el texto completo del brief ni cartografía') // aviso único y condicional
+    expect(out).not.toContain('no el texto completo del brief ni cartografía') // single, conditional notice
     expect(out).toContain(GEOLOGY_WHERE)
-    // Al desmarcarla, vuelve el aviso sin cartografía.
+    // When unticked, the notice without mapping comes back.
     composerStore.setState({ useGeology: false })
     const off = html()
     expect(off).toContain(AI_SEND_NOTICE)
@@ -196,14 +196,14 @@ describe('ReadingView · canal geológico de la IA (M10 del equipo)', () => {
     expect(off).not.toContain(GEOLOGY_WHERE)
   })
 
-  it('con la solicitud en curso la casilla no cambia lo que ya se envió', () => {
+  it('with the request in flight the checkbox does not change what was already sent', () => {
     const { state } = evaluateExample()
     publish(plannerReducer(state, { type: 'explain_start', requestId: 'g-1' }))
     available()
     expect(render()).toMatch(/type="checkbox"[^>]*disabled=""/)
   })
 
-  it('fallo solo del canal geológico: ofrece «Reintentar sin geología» y el resultado no cambia', () => {
+  it('failure of the geology channel only: offers “Retry without geology” and the result does not change', () => {
     const { state } = evaluateExample()
     const started = plannerReducer(state, { type: 'explain_start', requestId: 'g-2' })
     const failed = plannerReducer(started, { type: 'explain_fail', requestId: 'g-2', message: 'El servidor no tiene un contexto geológico válido para esta versión, así que no se pidió orientación geológica.', unavailable: false, geologyFailure: true })
@@ -213,10 +213,10 @@ describe('ReadingView · canal geológico de la IA (M10 del equipo)', () => {
     const out = html()
     expect(out).toContain(GEOLOGY_RETRY_NOTICE)
     expect(out).toContain(GEOLOGY_RETRY_LABEL)
-    expect(out).toContain('Plantilla determinista sin IA')
+    expect(out).toContain('Deterministic template without AI')
   })
 
-  it('los textos son los mismos que los del panel de IA del equipo (ResultView sin variante compacta)', () => {
+  it('texts are the same as in the team AI panel (ResultView without compact variant)', () => {
     const { state, request, evaluation } = evaluateExample()
     const props = { evaluation, request, state, candidates: readyData.snapshot!.candidates, onExplain: () => undefined, onExport: () => undefined, exportError: null, onEdit: () => undefined }
     const team = (geo?: Parameters<typeof ResultView>[0]['geo']) => text(renderToStaticMarkup(<ResultView {...props} geo={geo} />))
@@ -234,18 +234,18 @@ describe('ReadingView · canal geológico de la IA (M10 del equipo)', () => {
 })
 
 describe('ReadingSkeleton', () => {
-  it('la espera de la Lectura no lleva ✦ (también se ve antes de la Lectura determinista de Explorar)', () => {
+  it('the Reading wait has no ✦ (it also shows before the deterministic Reading in Explore)', () => {
     const html = renderToStaticMarkup(<ReadingSkeleton placement="panel" />)
-    expect(html).toContain('Preparando la lectura')
+    expect(html).toContain('Preparing the reading')
     expect(html).not.toContain('✦')
   })
 })
 
 describe('ReadingPill', () => {
-  it('es un disclosure «Lectura determinista», sin ✦', () => {
+  it('it is a “Deterministic reading” disclosure, without ✦', () => {
     const html = renderToStaticMarkup(<ReadingPill data={readyData} />)
     expect(html).toContain('aria-expanded="false"')
-    expect(html).toContain('Lectura determinista')
+    expect(html).toContain('Deterministic reading')
     expect(html).not.toContain('✦')
   })
 })

@@ -1,68 +1,68 @@
-# Asistencia de IA (M8) — configuración y límites
+# AI Assistance (M8) — setup and limits
 
-La IA es **opcional**: sin clave, sin red o en el ZIP estático el planificador funciona completo de forma manual. Ver ADR-009.
+AI is **optional**: with no key, no network, or in the static ZIP, the planner works fully in manual mode. See ADR-009.
 
-## Qué hace y qué no
+## What it does and what it does not do
 
-- **Borrador** (`draft`): convierte el texto de la prueba en requisitos estructurados **sin confirmar**. Cada requisito cita un fragmento literal del brief; las cifras deben aparecer en esa cita; una métrica topográfica sin «mediana/regional/ventana completa» queda como escala puntual (no evaluable) con una pregunta.
-- **Explicación** (`explain`): la IA solo **selecciona** referencias (sectores, requisitos, evidencias, verificaciones) entre IDs que el servidor recalcula. No escribe prosa. Estados, valores, exclusiones y bloqueos los pinta siempre la app desde el motor determinista.
-- La IA nunca elige pesos, puntajes, veredictos, fuentes ni hechos geográficos.
+- **Draft** (`draft`): converts the text of the test into structured requirements **that are not confirmed**. Each requirement quotes a literal fragment of the brief; the figures must appear in that quote; a topographic metric without "median/regional/full window" is left as a point-scale value (not evaluable) with a question.
+- **Explanation** (`explain`): the AI only **selects** references (sectors, requirements, evidence, checks) from IDs that the server recalculates. It does not write prose. Statuses, values, exclusions and blockers are always rendered by the app from the deterministic engine.
+- The AI never chooses weights, scores, verdicts, sources or geographic facts.
 
-## Variables (solo servidor; nunca con prefijo `VITE_`)
+## Variables (server only; never with the prefix `VITE_`)
 
-Copiar `.env.example` a `.env` (ignorado por git) y completar:
+Copy `.env.example` to `.env` (ignored by git) and fill in:
 
-| Variable | Uso |
+| Variable | Use |
 |---|---|
-| `ANTHROPIC_API_KEY` | clave del proveedor; sin ella la IA queda «no disponible» |
-| `ANTHROPIC_MODEL` | modelo; por defecto `claude-sonnet-5-5`; un nombre mal formado desactiva la IA |
-| `ANALOGOS_AI_ALLOWED_ORIGINS` | orígenes exactos extra, separados por coma (opcional) |
-| `ANALOGOS_AI_TIMEOUT_MS` | tiempo máximo del proveedor, 1000–55000 (por defecto 20000) |
+| `ANTHROPIC_API_KEY` | provider key; without it the AI is "unavailable" |
+| `ANTHROPIC_MODEL` | model; default `claude-sonnet-5-5`; a malformed name disables the AI |
+| `ANALOGOS_AI_ALLOWED_ORIGINS` | extra exact origins, comma-separated (optional) |
+| `ANALOGOS_AI_TIMEOUT_MS` | maximum provider time, 1000–55000 (default 20000) |
 
-## Ejecutar en local
+## Running locally
 
-- `npm run dev` (Vite en 127.0.0.1) y `npm run build && npm run preview` sirven `/api/ai` con la misma lógica que Vercel (`server/ai/`). Solo se leen `ANTHROPIC_*` y `ANALOGOS_AI_*` del `.env` raíz, en el proceso Node.
-- Prueba real opcional: `npm run test:ai-live` (llama a Anthropic; imprime solo modelo, request-id, fecha y uso).
-- Los tests automáticos (`npm run verify`) usan `fetch` simulado y nunca la red.
+- `npm run dev` (Vite on 127.0.0.1) and `npm run build && npm run preview` serve `/api/ai` with the same logic as Vercel (`server/ai/`). Only `ANTHROPIC_*` and `ANALOGOS_AI_*` are read from the root `.env`, in the Node process.
+- Optional real test: `npm run test:ai-live` (calls Anthropic; prints only model, request-id, date and usage).
+- The automated tests (`npm run verify`) use a simulated `fetch` and never the network.
 
 ## Endpoint `POST /api/ai`
 
-- Cuerpo JSON ≤ 24 KB; brief ≤ 3000 caracteres; `max_tokens` 2000; timeout cubre cabeceras **y** lectura del cuerpo.
-- Operaciones `draft` (`brief`) y `explain` (`request` confirmada + huella + `geology_context_fingerprint` opcional). `explain` recalcula la evaluación en el servidor desde `artifacts/science-v3` validado; no acepta hechos ni geodatos del cliente.
-- La salida del proveedor se valida con JSON Schema estricto antes de usarse; negativa, truncado, IDs ajenos o JSON inválido se descartan sin reparar.
-- Errores con mensajes fijos: nunca se refleja el cuerpo del proveedor, la clave ni trazas. Sin logs de briefs.
-- Límite de frecuencia: 8 llamadas/min por cliente y 60/min global, **en memoria por instancia (no distribuido)**.
-- **Origen**: se acepta loopback `http` (no en `VERCEL_ENV=production`), los hostnames de `VERCEL_URL`/`VERCEL_BRANCH_URL`/`VERCEL_PROJECT_PRODUCTION_URL`, orígenes explícitos y el mismo host de la petición (alias). Sin comodines. **La comprobación de `Origin` limita el uso desde navegadores; no es autenticación.** El despliegue `dev` sigue bajo la protección existente de Vercel; no se modificó.
+- JSON body ≤ 24 KB; brief ≤ 3000 characters; `max_tokens` 2000; the timeout covers headers **and** reading the body.
+- Operations `draft` (`brief`) and `explain` (confirmed `request` + fingerprint + optional `geology_context_fingerprint`). `explain` recalculates the evaluation on the server from the validated `artifacts/science-v3`; it does not accept facts or geodata from the client.
+- The provider output is validated with a strict JSON Schema before being used; refusals, truncation, foreign IDs or invalid JSON are discarded without repair.
+- Errors use fixed messages: the provider body, the key or traces are never reflected. No brief logs.
+- Rate limit: 8 calls/min per client and 60/min globally, **in memory per instance (not distributed)**.
+- **Origin**: loopback `http` is accepted (not in `VERCEL_ENV=production`), the hostnames of `VERCEL_URL`/`VERCEL_BRANCH_URL`/`VERCEL_PROJECT_PRODUCTION_URL`, explicit origins and the same host as the request (alias). No wildcards. **The `Origin` check limits use from browsers; it is not authentication.** The `dev` deployment remains under the existing Vercel protection; it was not modified.
 
-## Qué se envía a Anthropic
+## What is sent to Anthropic
 
-- Borrador: el texto del brief.
-- Explicación (sin geología): los nombres/detalles de los requisitos confirmados y los resultados ya calculados (estados, ids). **No** se envía el texto completo del brief.
-- Explicación **con orientación geológica** (casilla opt-in en la pantalla de resultados): además se envían el **objetivo confirmado** (texto del brief, actividad, objetivo y requisitos) y la **cartografía geológica pública oficial** de los sectores evaluados y no descartados (nombre, código y descripción original de cada unidad, fracciones de cobertura, escala y fuente). Entrada típica ≈ 25 000 tokens.
-- El botón de cada operación lo explica junto a sí; el recorrido manual no transmite nada.
+- Draft: the text of the brief.
+- Explanation (without geology): the names/details of the confirmed requirements and the already calculated results (statuses, ids). The full text of the brief is **not** sent.
+- Explanation **with geological guidance** (opt-in checkbox on the results screen): in addition, the **confirmed objective** (brief text, activity, objective and requirements) and the **official public geological mapping** of the evaluated, non-discarded sectors (name, code and original description of each unit, coverage fractions, scale and source) are sent. Typical input ≈ 25 000 tokens.
+- The button for each operation explains this next to itself; the manual workflow transmits nothing.
 
-## Orientación geológica (M10, opt-in)
+## Geological guidance (M10, opt-in)
 
-- El cliente declara `geology_context_fingerprint` (SHA-256 del JSON canónico completo del contexto validado en el navegador). El servidor carga su propio paquete (`server/ai/geology.ts`), lo valida con `shared/geology/context.ts` y comprueba el SHA-256 de los bytes de `candidate-details.json`. Sin huella no hay canal geológico y el comportamiento es el de M8.
-- Errores antes del proveedor: `geology_context_unavailable` (el servidor no tiene un paquete válido o falta) y `geology_context_stale` (otra versión), ambos 409; la UI ofrece «Reintentar sin geología».
-- La IA devuelve `geology_ref_ids` (hasta 3 por sector y 12 en total) tomados de un catálogo cerrado de pares unidad+propósito; cualquier id ajeno, repetido o fuera de tope descarta toda la respuesta. `max_tokens` 6000 solo con canal geológico (con 2000 la prueba real se truncaba).
-- Respuesta: `geology: { context_fingerprint, catalog_fingerprint, selection: { ref_ids } }`, separada de la selección M8. Objetivo, brief y descripciones de unidades viajan como datos JSON dentro de `<geology>` con `<` escapado (no pueden cerrar el delimitador).
-- Función Vercel: `vercel.json` incluye `artifacts/geology-context-v1/index.json` y `artifacts/science-v3/candidate-details.json` en `api/ai.ts`; `scripts/check-vercel-function.mjs` comprueba (en CI, sobre la función ya construida) que el paquete viaja y valida, y la ausencia/corrupción aisladas en una copia temporal.
-- Prueba real opcional: `npm run test:ai-live` incluye dos objetivos contrastantes (movilidad frente a muestreo); no asume estabilidad exacta del modelo.
+- The client declares `geology_context_fingerprint` (SHA-256 of the complete canonical JSON of the context validated in the browser). The server loads its own package (`server/ai/geology.ts`), validates it with `shared/geology/context.ts` and checks the SHA-256 of the bytes of `candidate-details.json`. Without a fingerprint there is no geological channel and the behavior is that of M8.
+- Errors before the provider: `geology_context_unavailable` (the server has no valid package or it is missing) and `geology_context_stale` (a different version), both 409; the UI offers "Retry without geology".
+- The AI returns `geology_ref_ids` (up to 3 per sector and 12 in total) taken from a closed catalog of unit+purpose pairs; any foreign, repeated or over-limit id discards the entire response. `max_tokens` 6000 only with a geological channel (with 2000 the real test was truncated).
+- Response: `geology: { context_fingerprint, catalog_fingerprint, selection: { ref_ids } }`, separate from the M8 selection. Objective, brief and unit descriptions travel as JSON data inside `<geology>` with `<` escaped (they cannot close the delimiter).
+- Vercel function: `vercel.json` includes `artifacts/geology-context-v1/index.json` and `artifacts/science-v3/candidate-details.json` in `api/ai.ts`; `scripts/check-vercel-function.mjs` checks (in CI, on the already built function) that the package travels and validates, and checks absence/corruption in isolation in a temporary copy.
+- Optional real test: `npm run test:ai-live` includes two contrasting objectives (mobility versus sampling); it does not assume exact stability of the model.
 
-- **Recuperación acotada**: si la llamada tiene éxito pero la selección (M8 o geología) es semánticamente inválida, se hace una única segunda llamada con los mismos hechos/esquema y un recordatorio fijo por motivo tipado, dentro del plazo total configurado (la segunda usa el restante; sin restante ≥ 2 s no se intenta). No se reintenta ante timeout, negativa, límite de frecuencia, truncamiento ni errores upstream, ni M8 sin geología. La procedencia es la de la respuesta aceptada; el consumo de la primera no se agrega. El prompt fija `budget = min(12, 3 × sectores con referencias)`.
+- **Bounded recovery**: if the call succeeds but the selection (M8 or geology) is semantically invalid, a single second call is made with the same facts/schema and a fixed reminder for the typed reason, within the configured total deadline (the second uses the remainder; with no remainder ≥ 2 s it is not attempted). There is no retry on timeout, refusal, rate limit, truncation or upstream errors, nor for M8 without geology. Provenance is that of the accepted response; the consumption of the first call is not added. The prompt fixes `budget = min(12, 3 × sectors with references)`.
 
-## Procedencia
+## Provenance
 
-Cada llamada devuelve modelo, fecha, `request-id`, uso de tokens y `stop_reason`. El JSON exportado guarda borrador y explicación por separado (con geología, el wrapper `analogos-mission-geology-export` añade la selección geológica de la misma llamada), vinculados a su huella de entrada, con los cambios del usuario calculados (editados/quitados/añadidos). Si el usuario edita el brief después, el borrador deja de atribuirse a la IA.
+Each call returns model, date, `request-id`, token usage and `stop_reason`. The exported JSON stores the draft and the explanation separately (with geology, the `analogos-mission-geology-export` wrapper adds the geological selection from the same call), linked to their input fingerprint, with the user's changes calculated (edited/removed/added). If the user edits the brief afterward, the draft is no longer attributed to the AI.
 
-## Despliegue en dev y producción
+## Deployment in dev and production
 
-Producción publicada y verificada realmente en `7e8c779`: [PRODUCTION_RELEASE.md](PRODUCTION_RELEASE.md). Borrador y explicación geológica comprobados desde la interfaz pública; la evidencia anterior de dev se conserva aparte.
+Production published and actually verified at `7e8c779`: [PRODUCTION_RELEASE.md](PRODUCTION_RELEASE.md). Draft and geological explanation verified from the public interface; the earlier dev evidence is kept separately.
 
-Dan autorizó la promoción completa a producción el 2026-11-15. El workflow `vercel-deploy.yml` recibe `ANTHROPIC_API_KEY` desde GitHub Secrets y la inyecta con `vercel deploy --env` solo en runtime, junto al modelo, tanto para `dev` (preview) como para `main` (producción). No se entrega al build ni se necesita copiar `.env` al repositorio. Si falta el secreto, se detiene el despliegue. Para rotarla, actualizar ese secreto y volver a desplegar ambos entornos. La protección de dev se conserva. Referencia: [variables de runtime en Vercel CLI](https://vercel.com/docs/cli/deploy#env).
+Dan authorized the full promotion to production on 2026-11-15. The `vercel-deploy.yml` workflow receives `ANTHROPIC_API_KEY` from GitHub Secrets and injects it with `vercel deploy --env` only at runtime, along with the model, both for `dev` (preview) and for `main` (production). It is not delivered to the build and there is no need to copy `.env` into the repository. If the secret is missing, the deployment stops. To rotate it, update that secret and redeploy both environments. Dev protection is preserved. Reference: [runtime variables in Vercel CLI](https://vercel.com/docs/cli/deploy#env).
 
-- Handler, servidor local y función desplegada verificados, incluidas llamadas reales de borrador y explicación desde https://analogos-dev.vercel.app/. Evidencia, request IDs y exportación en `docs/DEV_AI_VERIFICATION.md`.
-- Antecedente M8: código `9060970`; Actions 43639834860 correcto. Núcleo único en `shared/` para evitar mezclar paquetes CommonJS/ESM. CI comprueba arranque, contratos y snapshot del paquete real antes de desplegar.
-- La configuración de IA se entrega al despliegue desde GitHub; editar únicamente una variable de proyecto Vercel con el mismo nombre no sustituye el secreto que usa este workflow.
-- El ZIP portable (`submission/analogos-static.zip`) no incluye función ni clave: la IA aparece «no disponible» con un mensaje claro y el modo manual sigue completo.
+- Handler, local server and deployed function verified, including real draft and explanation calls from https://analogos-dev.vercel.app/. Evidence, request IDs and export in `docs/DEV_AI_VERIFICATION.md`.
+- M8 precedent: code `9060970`; Actions 43639834860 successful. Single core in `shared/` to avoid mixing CommonJS/ESM packages. CI checks startup, contracts and the snapshot of the real package before deploying.
+- The AI configuration is delivered to the deployment from GitHub; editing only a Vercel project variable with the same name does not replace the secret this workflow uses.
+- The portable ZIP (`submission/analogos-static.zip`) includes neither function nor key: the AI appears "unavailable" with a clear message and manual mode remains complete.

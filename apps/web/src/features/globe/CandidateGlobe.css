@@ -1,9 +1,9 @@
 /*
- * Globo 3D (chunk diferido del globo). Los marcadores viven en markers.css; la carga, la leyenda
- * y los controles del escenario, en MapStage.css (chunk principal).
+ * 3D globe (deferred globe chunk). The markers live in markers.css; loading, the legend
+ * and the stage controls, in MapStage.css (main chunk).
  */
 .globe-surface { position: absolute; inset: 0; outline: none; }
-/* Foco visible sobre el área libre (el canvas ocupa todo el viewport, tapado en parte por la UI). */
+/* Visible focus on the free area (the canvas takes up the whole viewport, partly covered by the UI). */
 .globe-surface:focus-visible::after {
   content: '';
   position: absolute;

@@ -1,13 +1,13 @@
 /**
- * Perfil y cifras del lugar para el riel (función pura + hook), ADR-008/009/013.
+ * Site profile and figures for the rail (pure function + hook), ADR-008/009/013.
  *
- *  - Pesos, contribuciones, similitud, confianza, estabilidad y factibilidad son SIEMPRE las del
- *    snapshot (perfil base del pipeline). Misión no recalcula ni repondera: no existe un % de misión.
- *  - En Misión con evaluación se superpone una capa de requisitos: lo exigido, lo observado y
- *    ✓/✕/○ por criterio (vía `METRICS[metric_id].source.criterion_id`), más las filas del sitio
- *    (área, país) y los pedidos no medidos («pendiente · no medido»). Todo sale de
- *    `MissionEvaluation` del equipo; aquí solo se reparte por criterio.
- *  - La REF (referencia conocida) nunca tiene puesto en Explorar.
+ *  - Weights, contributions, similarity, confidence, stability and feasibility are ALWAYS those of the
+ *    snapshot (the pipeline's base profile). Mission does not recalculate or reweight: there is no mission %.
+ *  - In Mission with an evaluation, a requirements layer is overlaid: what is required, what is observed and
+ *    ✓/✕/○ per criterion (via `METRICS[metric_id].source.criterion_id`), plus the site rows
+ *    (area, country) and the requests that were not measured ("pending · not measured"). Everything comes from
+ *    the team's `MissionEvaluation`; here it is only distributed by criterion.
+ *  - The REF (known reference) never has a rank in Explore.
  */
 import { useMemo } from 'react'
 import type { CandidateSite, CountryCode, CriterionId, MissionProfile } from '../../domain/contracts'
@@ -24,56 +24,56 @@ import { useUi, type UiMode } from '../../state/ui'
 import type { BuildMetricViewsInput } from './index'
 
 export interface SiteFigures {
-  /** 0–100 del snapshot; null = datos insuficientes. */
+  /** 0–100 of the snapshot; null = insufficient data. */
   similarity: number | null
   similarityState: 'scored' | 'insufficient' | 'pending'
   confidence: number | null
-  /** 0–100; null = sin calcular. */
+  /** 0–100; null = not calculated. */
   stability: number | null
   feasibility: CandidateSite['feasibility']
-  /** Fracción del peso del perfil con datos válidos (0–1); null si no se conoce. */
+  /** Fraction of the profile weight with valid data (0–1); null if unknown. */
   coverage: number | null
-  /** Criterios con dato válido / criterios del desglose. */
+  /** Criteria with valid data / criteria in the breakdown. */
   validCount: number
   criterionCount: number
 }
 
-/** Capa de requisitos de Misión sobre el riel (solo lectura de la evaluación del equipo). */
+/** Mission requirements layer over the rail (read-only view of the team's evaluation). */
 export interface MissionLayer {
   status: SiteMissionStatus
-  /** Puesto de la evaluación (solo priorizados). */
+  /** Rank in the evaluation (prioritized only). */
   rank: number | null
   option: OptionEvaluation | null
-  /** Resultados de requisitos medibles por criterio del snapshot. */
+  /** Results of measurable requirements per snapshot criterion. */
   byCriterion: ReadonlyMap<CriterionId, readonly RequirementResult[]>
-  /** Requisitos sobre atributos del sitio (área, país): no son criterios del score. */
+  /** Requirements on site attributes (area, country): they are not score criteria. */
   siteRows: readonly RequirementResult[]
-  /** Pedidos que el snapshot no mide: «pendiente · no medido». */
+  /** Requests that the snapshot does not measure: "pending · not measured". */
   unmeasured: readonly RequirementResult[]
   rulesVersion: string
-  /** La evaluación ya no corresponde a lo que se está editando (resultados a --o-busy). */
+  /** The evaluation no longer corresponds to what is being edited (results to --o-busy). */
   stale: boolean
 }
 
 export interface MetricContext {
   kind: 'base' | 'mission'
-  /** «perfil base v3.0.0-…»: siempre el del snapshot. */
+  /** "base profile v3.0.0-…": always that of the snapshot. */
   profileLabel: string
-  /** Versión de las reglas de la evaluación de Misión; null en Explorar. */
+  /** Version of the Mission evaluation rules; null in Explore. */
   rulesVersion: string | null
   profileStatus: string
   input: BuildMetricViewsInput
   figures: SiteFigures
-  /** site_ids en el orden vigente (candidatos y luego REF; en Misión, el de la evaluación). */
+  /** site_ids in the current order (candidates and then REF; in Mission, that of the evaluation). */
   order: readonly string[]
-  /** Explorar: puesto global (REF: null). Misión: puesto de la evaluación (solo priorizados). */
+  /** Explore: global rank (REF: null). Mission: rank in the evaluation (prioritized only). */
   rank: number | null
-  /** Candidatos con puesto en Explorar (el «de 6»; nunca cuenta la REF). */
+  /** Candidates with a rank in Explore (the "of 6"; never counts the REF). */
   rankedCount: number
   role: 'candidate' | 'reference'
   country: CountryCode | null
   mission: MissionLayer | null
-  /** minimum_valid_weight del perfil base (0–1). */
+  /** minimum_valid_weight of the base profile (0–1). */
   minimumValidWeight: number
 }
 
@@ -88,7 +88,7 @@ export interface ResolveMetricContextArgs {
   stale?: boolean
 }
 
-/** Reparte los resultados de requisitos de una opción entre criterios, sitio y no medidos. */
+/** Distributes an option's requirement results among criteria, site and not measured. */
 export function requirementLayer(option: OptionEvaluation | null, request: MissionRequest | null): Pick<MissionLayer, 'byCriterion' | 'siteRows' | 'unmeasured'> {
   const byCriterion = new Map<CriterionId, RequirementResult[]>()
   const siteRows: RequirementResult[] = []
@@ -109,12 +109,12 @@ export function requirementLayer(option: OptionEvaluation | null, request: Missi
       siteRows.push(result)
     }
   }
-  // Imprescindibles primero dentro de cada criterio (mismo orden que las líneas Tesla).
+  // Essential ones first within each criterion (same order as the Tesla lines).
   for (const list of byCriterion.values()) list.sort((a, b) => Number(b.importance === 'critical') - Number(a.importance === 'critical'))
   return { byCriterion, siteRows, unmeasured }
 }
 
-/** Función pura: perfil (siempre el del snapshot), entrada de buildMetricViews, cifras y capa de Misión. */
+/** Pure function: profile (always that of the snapshot), buildMetricViews input, figures and Mission layer. */
 export function resolveMetricContext(args: ResolveMetricContextArgs): MetricContext {
   const { site, candidates, profile, marsReference, mode, evaluation, request, stale = false } = args
   const sites = candidates.some((candidate) => candidate.site_id === site.site_id) ? candidates : [...candidates, site]
@@ -135,7 +135,7 @@ export function resolveMetricContext(args: ResolveMetricContextArgs): MetricCont
     criterionCount: breakdown.length,
   }
   const base = {
-    profileLabel: `perfil base v${profile.version}`,
+    profileLabel: `base profile v${profile.version}`,
     profileStatus: profile.status,
     input: { site, sites, profile, weights: null, contributions: null, marsReference },
     figures,
@@ -175,7 +175,7 @@ export function resolveMetricContext(args: ResolveMetricContextArgs): MetricCont
   }
 }
 
-/** Contexto del lugar (se recalcula solo si cambia algo que lo afecta). */
+/** Site context (recalculated only if something that affects it changes). */
 export function useMetricContext(data: AppData, site: CandidateSite | null): MetricContext | null {
   const mode = useUi((state) => state.mode)
   const evaluation = useMission((state) => state.evaluation)

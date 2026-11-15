@@ -1,9 +1,9 @@
-"""Construye el snapshot v2 con MOLA, NASADEM, Sentinel-2 y NASA POWER.
+"""Builds the v2 snapshot with MOLA, NASADEM, Sentinel-2 and NASA POWER.
 
-La topografía NASADEM se mosaica antes del recorte, evitando truncar sectores
-que cruzan límites de tiles. Sentinel-2 L2A aporta estadísticas mensuales de
-superficie con máscara SCL. La salida sigue siendo un screening, no una
-certificación de terreno.
+NASADEM topography is mosaicked before clipping, avoiding truncation of sectors
+that cross tile boundaries. Sentinel-2 L2A provides monthly surface
+statistics with an SCL mask. The output remains a screening, not a
+terrain certification.
 """
 
 from __future__ import annotations
@@ -44,12 +44,12 @@ NASADEM_CELLS = NASADEM_SIDE - 1
 
 
 def _percent(value: float, digits: int) -> str:
-    """Porcentaje con coma decimal, igual que el resto de la interfaz."""
+    """Percentage with a decimal comma, like the rest of the interface."""
     return f"{value * 100:.{digits}f}".replace(".", ",") + " %"
 
 
 class TerrainDataError(ValueError):
-    """Los datos NASADEM de una ventana no permiten calcular métricas (fallo de datos, no de programa)."""
+    """The NASADEM data in a window do not allow metrics to be computed (a data failure, not a program failure)."""
 
 
 def _tile_name(latitude_base: int, longitude_base: int) -> str:
@@ -59,6 +59,8 @@ def _tile_name(latitude_base: int, longitude_base: int) -> str:
 
 
 def _read_nasadem_tile(directory: Path, tile: str) -> tuple[np.ndarray, np.ndarray]:
+    # Frozen output text (Spanish): these FileNotFoundError/TerrainDataError messages, like the NoData one in
+    # _nasadem_metrics, become `decision_reason` in search-results.json (discover_candidates.window_metrics). Do not translate.
     archive = directory / f"NASADEM_HGT_{tile}.zip"
     if not archive.exists():
         raise FileNotFoundError(f"Falta {archive}; ejecuta pipelines.fetch_precision_data")
@@ -144,8 +146,8 @@ def _nasadem_metrics(site: dict, config: dict) -> dict:
 
 
 def _sentinel_metrics(site_id: str, raw: dict, expected_intervals: int | None = None) -> dict:
-    # ``expected_intervals`` permite medir la completitud contra los meses configurados (v3);
-    # sin él se conserva el comportamiento v2: los intervalos devueltos por la API.
+    # ``expected_intervals`` allows completeness to be measured against the configured months (v3);
+    # without it, v2 behavior is preserved: the intervals returned by the API.
     rows = raw["sites"][site_id]["response"]["data"]
     monthly: list[dict] = []
     for row in rows:
@@ -165,7 +167,7 @@ def _sentinel_metrics(site_id: str, raw: dict, expected_intervals: int | None = 
             **{name: float(content["stats"]["mean"]) for name, content in bands.items()},
         })
     if not monthly:
-        raise ValueError(f"Sentinel-2 no produjo intervalos válidos para {site_id}")
+        raise ValueError(f"Sentinel-2 produced no valid intervals for {site_id}")
 
     def median(name: str) -> float:
         return float(np.median([row[name] for row in monthly]))
@@ -259,7 +261,7 @@ def _constraint_checks(earth: dict, sentinel: dict) -> list[dict]:
 def _nasadem_inventory(config: dict) -> tuple[dict, dict[str, dict]]:
     path = ROOT / config["nasadem"]["inventory_file"]
     if not path.exists():
-        raise FileNotFoundError("Falta el inventario Earthdata; ejecuta pipelines.fetch_precision_data")
+        raise FileNotFoundError("The Earthdata inventory is missing; run pipelines.fetch_precision_data")
     inventory = json.loads(path.read_text(encoding="utf-8"))
     by_filename: dict[str, dict] = {}
     for site in inventory["sites"].values():
@@ -439,11 +441,11 @@ V2_GEOLOGY_NOTE = "Requiere cartografía SERNAGEOMIN y revisión geológica expe
 
 def score_inputs(earth: dict, sentinel: dict, climate: dict, mola: dict,
                  datasets: dict = V2_DATASETS, geology_note: str = V2_GEOLOGY_NOTE) -> dict:
-    """Entradas por criterio para ``aggregate``; mismas fórmulas en v2 y v3.
+    """Inputs per criterion for ``aggregate``; same formulas in v2 and v3.
 
-    Las calidades fijas (0,93 / 0,91 / 0,60) son valores asignados por tipo de
-    fuente en ADR-003, no incertidumbres medidas. La topográfica se multiplica
-    por la cobertura NASADEM válida (1,0 en todos los sitios v2).
+    The fixed qualities (0,93 / 0,91 / 0,60) are values assigned by source type in
+    ADR-003,, not measured uncertainties. The topographic one is multiplied
+    by the valid NASADEM coverage (1,0 at all v2 sites).
     """
     coverage = earth["source_valid_fraction"]
     return {
@@ -506,7 +508,7 @@ def build(config_path: Path, profile_path: Path, out_dir: Path) -> dict[str, obj
     power_path = ROOT / config["power"]["file"]
     copernicus_path = ROOT / config["copernicus"]["file"]
     if not power_path.exists() or not copernicus_path.exists():
-        raise FileNotFoundError("Faltan fuentes v2; ejecuta pipelines.fetch_precision_data")
+        raise FileNotFoundError("v2 sources are missing; run pipelines.fetch_precision_data")
     power_points = json.loads(power_path.read_text(encoding="utf-8"))
     copernicus_raw = json.loads(copernicus_path.read_text(encoding="utf-8"))
     inventory, nasadem_records = _nasadem_inventory(config)
@@ -629,10 +631,10 @@ def main() -> None:
     result = build(args.config, args.profile, args.out)
     for name, content in result.items():
         (args.out / name).write_text(_dump(content), encoding="utf-8")
-        print(f"escrito {args.out / name}")
+        print(f"wrote {args.out / name}")
     shutil.copyfile(OUTLINE, args.out / "chile-outline.geojson")
-    print(f"copiado {args.out / 'chile-outline.geojson'}")
-    print("AVISO: snapshot v2 de screening; geología y restricciones territoriales requieren revisión.")
+    print(f"copied {args.out / 'chile-outline.geojson'}")
+    print("WARNING: v2 screening snapshot; geology and territorial constraints require review.")
 
 
 if __name__ == "__main__":

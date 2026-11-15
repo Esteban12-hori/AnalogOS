@@ -1,5 +1,6 @@
-// Explicación: la IA solo SELECCIONA (requisitos, evidencias, verificaciones) entre IDs que
-// la app ya calculó. El renderizador conserva valores, estados y exclusiones del motor.
+// Explanation: the AI only SELECTS (requirements, evidence, checks) from IDs that
+// the app has already computed. The renderer preserves the engine's values, statuses, and exclusions.
+import { missionText } from './text'
 import { validateSelectionShape } from './validate'
 import type { EvidenceRef, MissionEvaluation, OptionStatus, RequirementResult } from './types'
 
@@ -14,8 +15,9 @@ export interface VerificationItem {
   text: string
 }
 
-/** Catálogo cerrado de verificaciones: el modelo solo puede elegir por ID. */
+/** Closed catalog of checks: the model can only choose by ID. Texts follow the evaluation's version; IDs do not. */
 export function buildVerificationCatalog(evaluation: MissionEvaluation): VerificationItem[] {
+  const text = missionText(evaluation.evaluation_version)
   const items: VerificationItem[] = []
   for (const o of evaluation.options) {
     for (const r of o.requirement_results) {
@@ -23,7 +25,7 @@ export function buildVerificationCatalog(evaluation: MissionEvaluation): Verific
       items.push({
         id: `${o.site_id}|req|${r.requirement_id}`,
         site_id: o.site_id,
-        text: r.status === 'no_cumple' ? `Confirmar el incumplimiento de «${r.label}» o revisar si el requisito es indispensable.` : `Obtener una medición de «${r.label}» a la escala requerida.`,
+        text: r.status === 'no_cumple' ? text.verification.confirmFailure(r.label) : text.verification.measure(r.label),
       })
     }
     o.field_checks.forEach((text, i) => items.push({ id: `${o.site_id}|fc|${i}`, site_id: o.site_id, text }))
@@ -33,33 +35,33 @@ export function buildVerificationCatalog(evaluation: MissionEvaluation): Verific
 
 export type SelectionCheck = { ok: true; selection: ExplanationSelection } | { ok: false; reason: string }
 
-/** Validación semántica: todo ID debe existir en la evaluación calculada por el servidor. */
+/** Semantic validation: every ID must exist in the evaluation computed by the server. */
 export function checkSelection(raw: unknown, evaluation: MissionEvaluation): SelectionCheck {
   const bad = (reason: string): SelectionCheck => ({ ok: false, reason })
   const shape = validateSelectionShape(raw)
-  if (shape.length) return bad(`Selección fuera de contrato: ${shape[0]}`)
+  if (shape.length) return bad(`Selection outside the contract: ${shape[0]}`)
   const sel = raw as ExplanationSelection
   const strings = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === 'string')
   const seen = new Set<string>()
   for (const o of sel.options) {
-    if (!o || typeof o.site_id !== 'string' || !strings(o.key_requirement_ids) || !strings(o.evidence_ids)) return bad('Opción mal formada.')
+    if (!o || typeof o.site_id !== 'string' || !strings(o.key_requirement_ids) || !strings(o.evidence_ids)) return bad('Malformed option.')
     const option = evaluation.options.find((x) => x.site_id === o.site_id)
-    if (!option) return bad(`Sector ajeno a la evaluación: ${o.site_id}.`)
-    if (seen.has(o.site_id)) return bad(`Sector repetido: ${o.site_id}.`)
+    if (!option) return bad(`Sector not in the evaluation: ${o.site_id}.`)
+    if (seen.has(o.site_id)) return bad(`Repeated sector: ${o.site_id}.`)
     seen.add(o.site_id)
     const reqIds = new Set(option.requirement_results.map((r) => r.requirement_id))
     const evIds = new Set(option.requirement_results.flatMap((r) => r.evidence_ids))
-    if (o.key_requirement_ids.length > 20 || o.evidence_ids.length > 20) return bad('Demasiadas referencias.')
-    for (const id of o.key_requirement_ids) if (!reqIds.has(id)) return bad(`Requisito ajeno: ${id}.`)
-    for (const id of o.evidence_ids) if (!evIds.has(id)) return bad(`Evidencia ajena: ${id}.`)
+    if (o.key_requirement_ids.length > 20 || o.evidence_ids.length > 20) return bad('Too many references.')
+    for (const id of o.key_requirement_ids) if (!reqIds.has(id)) return bad(`Requirement not in the evaluation: ${id}.`)
+    for (const id of o.evidence_ids) if (!evIds.has(id)) return bad(`Evidence not in the evaluation: ${id}.`)
   }
   const catalog = new Set(buildVerificationCatalog(evaluation).map((v) => v.id))
-  if (sel.verification_ids.length > 30 || !strings(sel.verification_ids)) return bad('Verificaciones mal formadas.')
-  for (const id of sel.verification_ids) if (!catalog.has(id)) return bad(`Verificación ajena: ${id}.`)
+  if (sel.verification_ids.length > 30 || !strings(sel.verification_ids)) return bad('Malformed verifications.')
+  for (const id of sel.verification_ids) if (!catalog.has(id)) return bad(`Verification not in the catalog: ${id}.`)
   return { ok: true, selection: { options: sel.options as ExplanationSelection['options'], verification_ids: sel.verification_ids } }
 }
 
-/** Selección sin IA: todos los requisitos no cumplidos o no evaluables, primero los imprescindibles. */
+/** Selection without AI: all unmet or non-evaluable requirements, essential ones first. */
 export function deterministicSelection(evaluation: MissionEvaluation): ExplanationSelection {
   return {
     options: evaluation.options.map((o) => ({
@@ -85,16 +87,13 @@ export interface ExplanationView {
   verifications: VerificationItem[]
 }
 
-/** Compone la vista: los hechos vienen siempre de la evaluación, nunca del texto del modelo. */
+/** Composes the view: the facts always come from the evaluation, never from the model's text. */
 export function composeExplanation(evaluation: MissionEvaluation, selection: ExplanationSelection, source: ExplanationView['source']): ExplanationView {
   const evById = new Map(evaluation.evidence.map((e) => [e.evidence_id, e]))
   const catalog = new Map(buildVerificationCatalog(evaluation).map((v) => [v.id, v]))
   return {
     source,
-    notice:
-      source === 'anthropic'
-        ? 'Interpretación asistida por IA (Anthropic): solo selecciona referencias del cálculo; no modifica estados, valores ni exclusiones.'
-        : 'Plantilla determinista sin IA: selecciona los requisitos no cumplidos o no evaluables.',
+    notice: missionText(evaluation.evaluation_version).explanationNotice[source],
     options: selection.options.map((s) => {
       const o = evaluation.options.find((x) => x.site_id === s.site_id)!
       const highlighted = s.key_requirement_ids.map((id) => o.requirement_results.find((r) => r.requirement_id === id)!)

@@ -1,8 +1,8 @@
 /**
- * Solo para tests de features/leaders (nunca lo importa la app). Lee el snapshot real
- * `artifacts/science-v2` y arma `MetricView` con sus cifras tal cual, porque en la base del
- * paralelo `buildMetricViews` (features/metrics, incremento 5) todavía es un stub. No es un
- * fixture sintético: no inventa ni redondea valores; solo copia el desglose del pipeline.
+ * Only for features/leaders tests (never imported by the app). Reads the real snapshot
+ * `artifacts/science-v2` and builds `MetricView` with its figures as they are, because in the base of the
+ * parallel `buildMetricViews` (features/metrics, increment 5) it is still a stub. It is not a
+ * synthetic fixture: it neither invents nor rounds values; it only copies the pipeline's breakdown.
  */
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -21,11 +21,11 @@ export const scienceMars = parseMarsReference(read('artifacts/science-v2/analysi
 
 export function scienceSite(siteId: string): CandidateSite {
   const site = scienceCandidates.find((candidate) => candidate.site_id === siteId)
-  if (!site) throw new Error(`sin ${siteId} en science-v2`)
+  if (!site) throw new Error(`${siteId} not in science-v2`)
   return site
 }
 
-/** Vistas del sector con los pesos del snapshot (o los indicados), en el orden del desglose. */
+/** Sector views with the snapshot's weights (or the ones provided), in the breakdown's order. */
 export function snapshotViews(site: CandidateSite, weights?: Readonly<Partial<Record<string, number>>>): MetricView[] {
   const contributing = site.score_breakdown.filter((item) => item.contribution !== null)
   const limiting = contributing.reduce<(typeof contributing)[number] | null>(
@@ -46,7 +46,7 @@ export function snapshotViews(site: CandidateSite, weights?: Readonly<Partial<Re
       similarity: item.normalized_similarity === null ? null : item.normalized_similarity * 100,
       siteValue: { raw: item.raw_value, unit: item.unit, text: formatRawValue(item) },
       marsValue: mars !== undefined ? { raw: mars, unit: item.unit, text: formatRawValue(mars, item.unit) } : null,
-      rule: bounded ? { text: 'Regla del perfil', satisfied: saturates ? true : null } : null,
+      rule: bounded ? { text: 'Profile rule', satisfied: saturates ? true : null } : null,
       vsMars: null,
       isLimiting: limiting !== null && limiting.criterion_id === item.criterion_id,
       contribution: item.contribution,

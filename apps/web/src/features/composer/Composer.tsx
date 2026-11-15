@@ -1,14 +1,14 @@
 /**
- * Composer de misión (docs/UX_REDESIGN.md §3.2 y §2.3 C/D, sobre el planificador del equipo, ADR-013).
+ * Mission composer (docs/UX_REDESIGN.md §3.2 and §2.3 C/D, on top of the team planner, ADR-013).
  *
- * - Explorar: píldora «Describe la prueba…» (la misma caja que pinta el HTML estático).
- * - Misión: el formulario (`MissionComposer`).
- * - S1: botón «Refinar» que pide volver a la bandeja.
- * Ninguno lleva ✦: ese glifo es «solo IA» (shell/glyphs.ts) y «Enviar» nunca llama a la IA.
- * - Teclas: «/» abre el composer desde fuera de un campo de texto; Esc cancela la espera de la IA.
+ * - Explore: "Describe the test…" pill (the same box that the static HTML renders).
+ * - Mission: the form (`MissionComposer`).
+ * - S1: "Refine" button that asks to return to the inbox.
+ * None of them carries ✦: that glyph means "AI only" (shell/glyphs.ts) and "Send" never calls the AI.
+ * - Keys: "/" opens the composer from outside a text field; Esc cancels the wait for the AI.
  *
- * El chunk principal lleva solo la vista: controlador, planificador, validadores, cliente de IA,
- * «Tu misión», recientes y sugerencias viajan en el chunk de misión.
+ * The main chunk carries only the view: controller, planner, validators, AI client,
+ * "Your mission", recents and suggestions travel in the mission chunk.
  */
 import { useEffect } from 'react'
 import { uiActions, useUi } from '../../state/ui'
@@ -31,8 +31,8 @@ function openMission(): void {
 }
 
 /**
- * «/» es un atajo de un solo carácter (WCAG 2.1.4): solo actúa con el foco en la página o en el
- * escenario, nunca sobre pestañas, listas o botones (control por voz, lectores de pantalla).
+ * "/" is a single-character shortcut (WCAG 2.1.4): it only acts when focus is on the page or on the
+ * stage, never on tabs, lists or buttons (voice control, screen readers).
  */
 function slashAllowed(target: EventTarget | null): boolean {
   if (typeof document === 'undefined') return false
@@ -50,7 +50,7 @@ export function Composer({ data, placement, onRequestTray }: ComposerProps) {
     const onKey = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return
       if (event.key === 'Escape') {
-        // Un popover abierto se cierra primero; la misión solo se cancela si se está esperando.
+        // An open popover is closed first; the mission is only cancelled if it is waiting.
         if (!waiting || anyPopoverOpen()) return
         event.preventDefault()
         withController((mission) => mission.cancelDraft())
@@ -70,7 +70,7 @@ export function Composer({ data, placement, onRequestTray }: ComposerProps) {
         <button type="button" className="composer-refine" aria-busy={waiting || undefined} onClick={() => onRequestTray?.()}>
           {waiting ? 'Proponiendo…' : 'Refinar'}
         </button>
-        <GlobeOrbit active={waiting && wait !== 'quiet'} label="Proponiendo requisitos…" />
+        <GlobeOrbit active={waiting && wait !== 'quiet'} label="Proposing requirements…" />
       </>
     )
   }

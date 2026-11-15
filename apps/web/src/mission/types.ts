@@ -1,2 +1,2 @@
-// API de compatibilidad del frontend; la implementación pura se comparte con Node.
+// Frontend compatibility API; the pure implementation is shared with Node.
 export * from '../../../../shared/mission/types'

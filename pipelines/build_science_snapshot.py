@@ -1,8 +1,8 @@
-"""Construye el snapshot científico preliminar con MOLA, SRTM y NASA POWER.
+"""Builds the preliminary science snapshot using MOLA, SRTM, and NASA POWER.
 
-La comparación topográfica iguala escalas: SRTM 30 m se agrega a ~480 m y se
-compara con MOLA MEGDR 128 píxeles/grado (~463 m en Marte). La salida es un
-screening reproducible, no una autorización ni una evaluación a escala de rueda.
+The topographic comparison matches scales: SRTM 30 m is aggregated to ~480 m and
+compared with MOLA MEGDR 128 pixels/degree (~463 m on Mars). The output is a
+reproducible screening, not an authorization or a wheel-scale assessment.
 """
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ def _polygon(site: dict) -> dict:
 
 def _terrain_metrics(elevation: np.ndarray, spacing_x_m: float, spacing_y_m: float) -> dict:
     if elevation.shape[0] < 5 or elevation.shape[1] < 5:
-        raise ValueError("Ventana topográfica demasiado pequeña")
+        raise ValueError("Topographic window too small")
     dy, dx = np.gradient(elevation, spacing_y_m, spacing_x_m)
     slope = np.degrees(np.arctan(np.hypot(dx, dy)))
     differences = np.concatenate([
@@ -89,7 +89,7 @@ def _mola_reference(config: dict) -> dict:
     mola = config["mola"]
     path = ROOT / mola["file"]
     if not path.exists() or path.stat().st_size != mola["expected_bytes"]:
-        raise FileNotFoundError("Falta MOLA o su tamaño no coincide; ejecuta pipelines.fetch_science_data")
+        raise FileNotFoundError("MOLA is missing or its size does not match; run pipelines.fetch_science_data")
     data = np.memmap(path, dtype=">i2", mode="r", shape=(mola["lines"], mola["samples"]))
     ref = mola["reference"]
     half = ref["half_size_degree"]
@@ -133,7 +133,7 @@ def _srtm_metrics(site: dict) -> dict:
     values = np.frombuffer(raw, dtype=">i2")
     side = math.isqrt(values.size)
     if side * side != values.size:
-        raise ValueError(f"Dimensión HGT inválida en {path}")
+        raise ValueError(f"Invalid HGT dimension in {path}")
     values = values.reshape((side, side)).astype(np.float64)
     values[values <= -32768] = np.nan
 
@@ -211,7 +211,7 @@ def build(config_path: Path, profile_path: Path, out_dir: Path) -> dict[str, obj
     profile = load_profile(profile_path)
     power_path = ROOT / config["power"]["file"]
     if not power_path.exists():
-        raise FileNotFoundError("Faltan respuestas NASA POWER; ejecuta pipelines.fetch_science_data")
+        raise FileNotFoundError("NASA POWER responses are missing; run pipelines.fetch_science_data")
     power_points = json.loads(power_path.read_text("utf-8"))
     mola = _mola_reference(config)
 
@@ -447,10 +447,10 @@ def main() -> None:
     result = build(args.config, args.profile, args.out)
     for name, content in result.items():
         (args.out / name).write_text(_dump(content), "utf-8")
-        print(f"escrito {args.out / name}")
+        print(f"wrote {args.out / name}")
     shutil.copyfile(OUTLINE, args.out / "chile-outline.geojson")
-    print(f"copiado {args.out / 'chile-outline.geojson'}")
-    print("AVISO: screening científico preliminar; requiere validación de terreno y restricciones.")
+    print(f"copied {args.out / 'chile-outline.geojson'}")
+    print("WARNING: preliminary scientific screening; requires field validation and constraint checks.")
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ import type { CandidateSite } from '../../domain/contracts'
 interface Props {
   candidates: CandidateSite[]
   resolution: ScopeResolution | null
-  /** Sector resaltado cuando todavía no hay resolución (selección en la lista). */
+  /** Sector highlighted when there is no resolution yet (selection in the list). */
   highlightIds?: string[]
 }
 
@@ -13,8 +13,8 @@ const H = 230
 const PAD = 22
 
 /**
- * Esquema SVG local (sin WebGL ni red): ventanas con evidencia (azul; REF en naranja), geometría
- * pedida (trazo discontinuo naranja) y geometría medida (relleno azul). Equirrectangular con corrección de coseno.
+ * Local SVG diagram (no WebGL or network): windows with evidence (blue; REF in orange), requested geometry
+ * (dashed orange stroke) and measured geometry (blue fill). Equirectangular with cosine correction.
  */
 export function GeometryFigure({ candidates, resolution, highlightIds = [] }: Props) {
   const rects = candidates.flatMap((c) => {
@@ -43,14 +43,14 @@ export function GeometryFigure({ candidates, resolution, highlightIds = [] }: Pr
   const Y = (lat: number) => oy + (n - lat) * scale
   const rectProps = (b: Bbox) => ({ x: X(b[0]), y: Y(b[3]), width: Math.max(1, X(b[2]) - X(b[0])), height: Math.max(1, Y(b[1]) - Y(b[3])) })
   const desc = [
-    resolution?.requested.bbox ? 'rectángulo pedido en trazo discontinuo' : resolution?.requested.point ? 'punto pedido' : '',
-    measured.size ? `${measured.size} ventana(s) medida(s) rellenas` : 'sin ventana medida',
+    resolution?.requested.bbox ? 'requested rectangle as a dashed outline' : resolution?.requested.point ? 'requested point' : '',
+    measured.size ? `${measured.size} measured window(s) filled` : 'no measured window',
   ].filter(Boolean).join('; ')
 
   return (
     <figure className="pl-figure">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Esquema de geometría: ${desc}. Norte arriba.`}>
-        <title>Geometría solicitada y medida</title>
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Geometry diagram: ${desc}. North up.`}>
+        <title>Requested and measured geometry</title>
         <rect x="0.5" y="0.5" width={W - 1} height={H - 1} rx="12" className="pl-fig-bg" />
         {shown.map((r) => (
           <g key={r.id}>
@@ -63,11 +63,11 @@ export function GeometryFigure({ candidates, resolution, highlightIds = [] }: Pr
         <text x={W - 14} y="16" className="pl-fig-label" textAnchor="end">N ↑</text>
       </svg>
       <figcaption>
-        <span><i className="pl-key win" /> Ventana con evidencia</span>
-        <span><i className="pl-key ref" /> Referencia (REF)</span>
-        <span><i className="pl-key measured" /> Medida (se evalúa)</span>
-        <span><i className="pl-key req" /> Geometría pedida</span>
-        {farAway && <strong>Fuera de las ventanas con evidencia: no hay datos para esta geometría.</strong>}
+        <span><i className="pl-key win" /> Window with evidence</span>
+        <span><i className="pl-key ref" /> Reference (REF)</span>
+        <span><i className="pl-key measured" /> Measured (evaluated)</span>
+        <span><i className="pl-key req" /> Requested geometry</span>
+        {farAway && <strong>Outside the windows with evidence: there is no data for this geometry.</strong>}
       </figcaption>
     </figure>
   )

@@ -1,13 +1,13 @@
 /**
- * Órbita reutilizable para la espera de la IA (docs/UX_REDESIGN.md §2.3 C, §4.4).
- * - 0–300 ms: nada (anti-parpadeo). Desde 300 ms entra con la fase real.
- * - 'inline': anillo de 14 px junto al texto.
- * - 'globe': la misma órbita del arranque vuelve alrededor del globo (la dibuja BootLayer en el
- *   escenario, solo con la vista global en pantalla). Aquí no se pinta texto: la fase ya está en la
- *   línea de estado del composer (o en «Proponiendo…» de S1) y un rótulo suelto en el overlay
- *   quedaba en la esquina, encima del logo.
- * El satélite da 2 vueltas de 2,4 s como máximo (en fase con la luz del composer si esta usa
- * ORBIT_DELAY_MS y ORBIT_LOOP_MS) y luego queda quieto. No anuncia: el composer llama announce().
+ * Reusable orbit for waiting on the AI (docs/UX_REDESIGN.md §2.3 C, §4.4).
+ * - 0–300 ms: nothing (anti-flicker). From 300 ms it enters with the real phase.
+ * - 'inline': ring of 14 px next to the text.
+ * - 'globe': the same startup orbit returns around the globe (BootLayer draws it on the
+ *   stage, only while the global view is on screen). No text is painted here: the phase is already in the
+ *   composer's status line (or in S1's "Proponiendo…"), and a loose label in the overlay
+ *   ended up in the corner, on top of the logo.
+ * The satellite makes at most 2 laps of 2,4 s (in phase with the composer's light if it uses
+ * ORBIT_DELAY_MS and ORBIT_LOOP_MS) and then stays still. It does not announce: the composer calls announce().
  */
 import { useEffect } from 'react'
 import { requestStageOrbit } from './milestones'

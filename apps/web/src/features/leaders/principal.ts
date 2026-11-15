@@ -1,9 +1,9 @@
-/** Selección de las métricas principales para las líneas Tesla (docs/UX_REDESIGN.md §3.4). Pura. */
+/** Selection of the main metrics for the Tesla lines (docs/UX_REDESIGN.md §3.4). Pure. */
 import { CRITERION_IDS } from '../../domain/criteria'
 import type { RequirementResult } from '../../mission/types'
 import type { MetricView } from '../metrics'
 
-/** Pesos a menos de esto se consideran empatados (p. ej. 3/11 calculado por dos caminos). */
+/** Weights closer than this are considered tied (e.g. 3/11 computed two different ways). */
 const WEIGHT_TIE = 1e-9
 
 function canonicalIndex(criterionId: string): number {
@@ -12,10 +12,10 @@ function canonicalIndex(criterionId: string): number {
 }
 
 /**
- * Las `count` métricas de mayor peso del perfil activo; los empates se resuelven por el orden
- * canónico de criterios (y, fuera de él, por id). Se descartan las excluidas (peso 0 o
- * estado `excluded`): una métrica sin peso no es «principal». No reordena por similitud ni
- * por contribución: el orden lo fija el perfil, nunca el resultado.
+ * The `count` highest-weighted metrics of the active profile; ties are resolved by the canonical
+ * order of criteria (and, beyond that, by id). Excluded ones are discarded (weight 0 or
+ * status `excluded`): a metric without weight is not "main". It does not reorder by similarity or
+ * by contribution: the order is set by the profile, never by the result.
  */
 export function pickPrincipalMetrics(views: readonly MetricView[], count = 4): MetricView[] {
   const limit = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0
@@ -34,9 +34,9 @@ export function pickPrincipalMetrics(views: readonly MetricView[], count = 4): M
 }
 
 /**
- * Misión con evaluación (ADR-013): primero los criterios con requisito de la prueba
- * (imprescindibles antes que preferencias) y, si sobra lugar, los de mayor peso base. Sin
- * requisitos, igual que `pickPrincipalMetrics`. Nunca ordena por resultado.
+ * Mission with evaluation (ADR-013): first the criteria with a test requirement
+ * (essential ones before preferences) and, if there is room left, those with the highest base weight. Without
+ * requirements, same as `pickPrincipalMetrics`. It never sorts by result.
  */
 export function pickMissionMetrics(
   views: readonly MetricView[],

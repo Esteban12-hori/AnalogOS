@@ -1,21 +1,21 @@
 /**
- * Controlador de misión (chunk diferido, ADR-013): UNA instancia del planificador del equipo para
- * toda la interfaz. Usa sin cambios `plannerReducer`, `buildRequest`, `evaluateMission`,
- * `composeExplanation`/`deterministicSelection`, `buildMissionExport` y el cliente de IA
- * (`requestDraft`/`requestExplanation`): es la misma lógica de `usePlanner`, sobre un store externo
- * para que el dock, «Tu misión», el carrusel, el globo, el riel y la Lectura lean el mismo estado
- * en el mismo render (un `useReducer` dentro de un componente obligaría a copiarlo con un render
- * de retraso y los campos controlados perderían caracteres).
+ * Mission controller (deferred chunk, ADR-013): ONE instance of the team's planner for
+ * the whole interface. It uses `plannerReducer`, `buildRequest`, `evaluateMission` unchanged,
+ * `composeExplanation`/`deterministicSelection`, `buildMissionExport` and the AI client
+ * (`requestDraft`/`requestExplanation`): it is the same logic as `usePlanner`, over an external store
+ * so that the dock, "Your mission", the carousel, the globe, the rail and the Reading read the same state
+ * in the same render (a `useReducer` inside a component would force copying it with a render
+ * delay and controlled fields would lose characters).
  *
- * Es el ÚNICO escritor de `state/mission.ts` y de `ui.missionPhase`. Nunca llama a la IA por su
- * cuenta: solo cuando el usuario pulsa «Proponer requisitos con IA» o «Destacar motivos con IA».
- * Toda dependencia externa llega por `ControllerDeps` para probarse con dobles.
+ * It is the ONLY writer of `state/mission.ts` and of `ui.missionPhase`. It never calls the AI on its
+ * own: only when the user presses "Propose requirements with AI" or "Highlight reasons with AI".
+ * Every external dependency arrives through `ControllerDeps` so it can be tested with doubles.
  *
- * Canal geológico (M10 del equipo, portado de `usePlanner`): con el contexto oficial validado y la
- * casilla activa, «Destacar motivos con IA» envía además la huella del contexto y el catálogo cerrado
- * de la evaluación vigente (`buildGeologyCatalog`); el reductor acepta la selección solo si coincide
- * exactamente con ese catálogo. Sin IA, la orientación geológica es la plantilla determinista. Nada de
- * esto cambia estados, orden, exclusiones ni la exportación M8.
+ * Geological channel (the team's M10, ported from `usePlanner`): with the official context validated and the
+ * checkbox active, "Highlight reasons with AI" also sends the context fingerprint and the closed catalog
+ * of the current evaluation (`buildGeologyCatalog`); the reducer accepts the selection only if it matches
+ * that catalog exactly. Without AI, the geological guidance is the deterministic template. None of
+ * this changes states, order, exclusions or the M8 export.
  */
 import {
   MissionExportError,
@@ -55,16 +55,16 @@ import { registeredMissionGeology, subscribeMissionGeology } from './runLoader'
 import { QUIET_MS, PHASE_THRESHOLDS, waitStage } from './labels'
 import { resultAnnouncement } from './model'
 
-export const CANCELLED_DRAFT = 'Solicitud cancelada: los requisitos no cambiaron y el recorrido manual sigue disponible.'
-export const CANCELLED_EXPLAIN = 'Solicitud cancelada: se mantiene la plantilla determinista.'
+export const CANCELLED_DRAFT = 'Request canceled: the requirements did not change and the manual flow is still available.'
+export const CANCELLED_EXPLAIN = 'Request canceled: the deterministic template is kept.'
 
 export interface ControllerDeps {
   bundle: EvidenceBundle
-  /** Contexto geológico inicial (M10); después llega por `setGeology`. Ausente = cargando. */
+  /** Initial geological context (M10); afterwards it arrives through `setGeology`. Absent = loading. */
   geology?: GeologyContextState
   requestDraft: typeof requestDraft
   requestExplanation: typeof requestExplanation
-  /** URL absoluta de /api/ai relativa al documento (en el ZIP no existe: la IA queda «no disponible»). */
+  /** Absolute URL of /api/ai relative to the document (it does not exist in the ZIP: the AI is "not available"). */
   apiUrl: () => string
   mission: Store<MissionState>
   composer: Store<ComposerState>
@@ -76,7 +76,7 @@ export interface ControllerDeps {
   }
   announce(text: string, kind?: AnnouncementKind): void
   persistHistory(list: readonly HistoryEntry[]): void
-  /** Descarga del JSON (en el navegador: Blob + enlace temporal). */
+  /** JSON download (in the browser: Blob + temporary link). */
   download(fileName: string, text: string): void
   now(): number
   setTimer(callback: () => void, ms: number): unknown
@@ -88,38 +88,38 @@ export interface MissionController {
   getState(): PlannerState
   subscribe(listener: () => void): () => void
   dispatch(action: PlannerAction): void
-  /** Evalúa la solicitud confirmada (síncrono). false si no estaba confirmada o falló. */
+  /** Evaluates the confirmed request (synchronous). false if it was not confirmed or failed. */
   evaluate(): boolean
   runDraft(): void
-  /** `withGeology` explícito (p. ej. «Reintentar sin geología»); sin él, la casilla del canal geológico. */
+  /** Explicit `withGeology` (e.g. "Retry without geology"); without it, the geological channel checkbox. */
   runExplain(withGeology?: boolean): void
   cancelDraft(): void
   cancelExplain(): void
   exportJson(): void
-  /** «Descargar JSON con orientación geológica» (envoltorio M10 sobre la exportación M8, sin cambiarla). */
+  /** "Download JSON with geological guidance" (M10 wrapper over the M8 export, without changing it). */
   exportGeologyJson(): void
-  /** Contexto geológico validado (o su ausencia): lo registra el armazón en cuanto carga. */
+  /** Validated geological context (or its absence): the shell registers it as soon as it loads. */
   setGeology(state: GeologyContextState): void
-  /** Catálogo geológico de una evaluación (null sin contexto válido o sin evaluación). */
+  /** Geological catalog of an evaluation (null without a valid context or without an evaluation). */
   geologyCatalog(evaluation: MissionEvaluation | null): GeologyCatalog | null
-  /** «Enviar» del dock: recorrido «Definir una prueba» con el brief cargado; no llama a la IA. */
+  /** Dock "Send": "Define a test" path with the brief loaded; it does not call the AI. */
   submitBrief(text: string): void
   loadExample(): void
   addMetricRequirement(metric: MetricId): void
-  /** «Evaluar este sector» (con sitio) o «Evaluar un sector…» (sin sitio: elegir en el selector). */
+  /** "Evaluate this sector" (with a site) or "Evaluate a sector…" (without a site: choose in the selector). */
   startSector(siteId?: string): void
   requestStep(step: StepId, target?: 'brief'): void
   restore(entryId: string): void
   undo(): boolean
   clearHistory(): void
-  /** Vista compatible con `PlannerApi` del equipo, para `PlannerView`. */
+  /** View compatible with the team's `PlannerApi`, for `PlannerView`. */
   api(state: PlannerState): PlannerApi
-  /** Canal geológico con la forma de `GeologyUi` de `usePlanner`. */
+  /** Geological channel with the shape of `GeologyUi` from `usePlanner`. */
   geologyUi(state: PlannerState): GeologyUi
   dispose(): void
 }
 
-/** Fase visible a partir del estado del planificador (función pura). */
+/** Visible phase derived from the planner state (pure function). */
 export function phaseFor(state: PlannerState): MissionPhase {
   if (state.draft.status === 'pending') return 'interpreting'
   if (state.explain.status === 'pending') return 'analysis'
@@ -128,7 +128,7 @@ export function phaseFor(state: PlannerState): MissionPhase {
   return 'idle'
 }
 
-/** Motivos destacados: la selección validada de la IA o, sin ella, la plantilla determinista. */
+/** Highlighted reasons: the validated AI selection or, without it, the deterministic template. */
 export function explanationFor(evaluation: MissionEvaluation, record: AiExplanationRecord | null): ExplanationView {
   return record
     ? composeExplanation(evaluation, record.selection, 'anthropic')
@@ -137,7 +137,7 @@ export function explanationFor(evaluation: MissionEvaluation, record: AiExplanat
 
 const newRequestId = (): string => `req-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`
 
-/** Disponibilidad del canal geológico (mismos textos que `usePlanner` del equipo). */
+/** Availability of the geological channel (same texts as the team's `usePlanner`). */
 export function geologyChannel(state: GeologyContextState): GeologyChannel {
   return {
     available: state.status === 'ready',
@@ -153,14 +153,14 @@ export function createMissionController(deps: ControllerDeps): MissionController
   let waitTimers: unknown[] = []
   let explanationCache: { evaluation: MissionEvaluation; record: AiExplanationRecord | null; view: ExplanationView } | null = null
   let stepNonce = 0
-  // Canal geológico: contexto validado y su huella (del contexto COMPLETO, no de los bytes; una vez por carga).
+  // Geological channel: validated context and its fingerprint (of the FULL context, not of the bytes; once per load).
   let geology: GeologyContextState = deps.geology ?? { status: 'loading' }
   let context: GeologyContext | null = geology.status === 'ready' ? geology.context : null
   let contextFp: string | null = context ? fingerprint(context) : null
   let geologyPublished = false
   let catalogCache: { evaluation: MissionEvaluation; fp: string; catalog: GeologyCatalog | null } | null = null
 
-  /** Catálogo cerrado de la evaluación (memorizado por evaluación y contexto). Sin ventana evaluada no emite unidades. */
+  /** Closed catalog of the evaluation (memoized by evaluation and context). Without an evaluated window it emits no units. */
   function geologyCatalog(evaluation: MissionEvaluation | null): GeologyCatalog | null {
     if (!evaluation || !context || !contextFp) return null
     if (catalogCache && catalogCache.evaluation === evaluation && catalogCache.fp === contextFp) return catalogCache.catalog
@@ -168,7 +168,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
     try {
       catalog = buildGeologyCatalog(evaluation, context, contextFp)
     } catch {
-      catalog = null // un paquete que no reconcilia deja la misión sin geología, nunca sin resultado
+      catalog = null // a package that does not reconcile leaves the mission without geology, never without a result
     }
     catalogCache = { evaluation, fp: contextFp, catalog }
     return catalog
@@ -186,7 +186,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
     waitTimers = []
   }
 
-  /** Espera del borrador: tramos visuales a 300 ms, 3 s y 10 s (sin tiempo límite propio). */
+  /** Draft wait: visual stages at 300 ms, 3 s and 10 s (no timeout of its own). */
   function startWait(): void {
     clearWait()
     const at = deps.now()
@@ -195,7 +195,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
       deps.setTimer(() => {
         if (deps.composer.getState().draftStartedAt !== at) return
         deps.composer.setState({ wait: waitStage(ms) })
-        if (ms === PHASE_THRESHOLDS.slowMs) deps.announce('La IA está tardando más de lo normal. Puede cancelar y seguir manualmente.')
+        if (ms === PHASE_THRESHOLDS.slowMs) deps.announce('The AI is taking longer than usual. You can cancel and continue manually.')
       }, ms),
     )
   }
@@ -205,7 +205,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
     if (deps.composer.getState().draftStartedAt !== null) deps.composer.setState({ draftStartedAt: null, wait: null })
   }
 
-  /** Publica el estado en `state/mission` y la fase en `ui` (coreografía de resultados). */
+  /** Publishes the state in `state/mission` and the phase in `ui` (results choreography). */
   function publish(previous: PlannerState, action: PlannerAction): void {
     const current = deps.mission.getState()
     const built = buildRequest(state)
@@ -227,13 +227,13 @@ export function createMissionController(deps: ControllerDeps): MissionController
         evaluatedRequest = built.request
       }
     } else if (evaluation) {
-      // El reductor invalidó el resultado (edición): queda como referencia visual atenuada.
+      // The reducer invalidated the result (edit): it remains as a dimmed visual reference.
       stale = true
     }
     deps.mission.setState({ planner: state, request: built.request, evaluation, stale, evaluatedRequest, explanation: view, explanationProvenance, source: missionSource(state), revision, geologyCatalog: geologyCatalog(state.result) })
     deps.ui.setMissionPhase(phaseFor(state))
 
-    // Red: se aborta toda petición que el reductor ya no considera vigente (portado de usePlanner).
+    // Network: any request that the reducer no longer considers current is aborted (ported from usePlanner).
     const live = new Set([state.draft.requestId, state.explain.requestId].filter((id): id is string => !!id))
     for (const [id, controller] of controllers) {
       if (!live.has(id)) {
@@ -244,7 +244,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
     if (state.draft.status !== 'pending') endWait()
 
     if (fresh && state.result) {
-      // Vista previa del #1 recomendado, salvo que el usuario tenga una selección manual.
+      // Preview of the recommended #1, unless the user has a manual selection.
       const first = state.result.recommended_site_ids[0]
       const selection = deps.ui.getState().selection
       if (first && (selection === null || selection.preview)) deps.ui.select(first, 'evaluated', true)
@@ -270,12 +270,12 @@ export function createMissionController(deps: ControllerDeps): MissionController
     deps.composer.setState({ history, undo })
   }
 
-  /** Restaura entradas con acciones existentes del reductor (sin crear acciones nuevas). */
+  /** Restores entries with existing reducer actions (without creating new actions). */
   function applyEntry(entry: HistoryEntry): void {
     dispatch({ type: 'reset' })
     dispatch({ type: 'set_journey', journey: entry.journey, siteId: entry.journey === 'sector' && entry.scope.mode === 'sector' && entry.scope.siteId ? entry.scope.siteId : undefined })
     dispatch({ type: 'set_brief', brief: entry.brief })
-    // Ids nuevos y consecutivos: el contador del reductor sigue sin chocar con lo restaurado.
+    // New, consecutive ids: the reducer's counter keeps going without colliding with what was restored.
     entry.requirements.forEach((requirement, index) => dispatch({ type: 'add_requirement', requirement: { ...requirement, requirement_id: `u${index + 1}` } }))
     dispatch({ type: 'set_scope', scope: entry.scope })
   }
@@ -301,7 +301,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
         if (state.result === evaluation) rememberEvaluated()
         return state.result === evaluation
       } catch (error) {
-        deps.composer.setState({ evaluationError: error instanceof MissionInputError ? error.issues.join(' · ') : 'No se pudo evaluar la solicitud.' })
+        deps.composer.setState({ evaluationError: error instanceof MissionInputError ? error.issues.join(' · ') : 'The request could not be evaluated.' })
         deps.ui.setMissionPhase(phaseFor(state))
         return false
       }
@@ -328,7 +328,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
       const requestId = newRequestId()
       const abort = new AbortController()
       controllers.set(requestId, abort)
-      // Opt-in explícito y solo con contexto válido; el catálogo sale de la evaluación vigente (como usePlanner).
+      // Explicit opt-in and only with a valid context; the catalog comes from the current evaluation (as in usePlanner).
       const wantGeology = (withGeology ?? deps.composer.getState().useGeology) && !!context && !!contextFp
       const catalog = wantGeology ? geologyCatalog(state.result) ?? undefined : undefined
       dispatch({ type: 'explain_start', requestId, geologyCatalog: catalog })
@@ -369,10 +369,10 @@ export function createMissionController(deps: ControllerDeps): MissionController
       if (!state.result || !built.request) return
       try {
         const doc = buildMissionExport(built.request, state.result, deps.bundle, { draft: state.draft.record, explanation: state.explain.record })
-        deps.download(`analogos-recomendacion-${evaluationFingerprint(state.result).slice(0, 8)}.json`, `${JSON.stringify(doc, null, 2)}\n`)
+        deps.download(`analogos-recommendation-${evaluationFingerprint(state.result).slice(0, 8)}.json`, `${JSON.stringify(doc, null, 2)}\n`)
         deps.composer.setState({ exportError: null })
       } catch (error) {
-        deps.composer.setState({ exportError: error instanceof MissionExportError ? error.message : 'No se pudo generar la exportación.' })
+        deps.composer.setState({ exportError: error instanceof MissionExportError ? error.message : 'The export could not be generated.' })
       }
     },
 
@@ -387,10 +387,10 @@ export function createMissionController(deps: ControllerDeps): MissionController
         const doc = buildMissionGeologyExport(m8, state.result, context, contextFp, ai && state.explain.record
           ? { mode: 'ai', ref_ids: record.selection.ref_ids, ai: { record, provenance: state.explain.record.provenance } }
           : { mode: 'deterministic', ref_ids: deterministicGeologyRefs(catalog).ref_ids }, { bundle: deps.bundle })
-        deps.download(`analogos-recomendacion-geologia-${evaluationFingerprint(state.result).slice(0, 8)}.json`, `${JSON.stringify(doc, null, 2)}\n`)
+        deps.download(`analogos-recommendation-geology-${evaluationFingerprint(state.result).slice(0, 8)}.json`, `${JSON.stringify(doc, null, 2)}\n`)
         deps.composer.setState({ geologyExportError: null })
       } catch (error) {
-        deps.composer.setState({ geologyExportError: error instanceof MissionExportError || error instanceof GeologyExportError ? error.message : 'No se pudo generar la exportación con geología.' })
+        deps.composer.setState({ geologyExportError: error instanceof MissionExportError || error instanceof GeologyExportError ? error.message : 'The export with geology could not be generated.' })
       }
     },
 
@@ -405,7 +405,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
       catalogCache = null
       geologyPublished = true
       deps.composer.setState({ geology: geologyChannel(next) })
-      // El contexto cargado ya no es el de la selección: el reductor la descarta (y la pendiente se aborta).
+      // The loaded context is no longer that of the selection: the reducer discards it (and the pending one is aborted).
       if (changed) dispatch({ type: 'geology_context_changed' })
       deps.mission.setState({ geologyCatalog: geologyCatalog(state.result) })
       for (const listener of [...listeners]) listener()
@@ -416,11 +416,11 @@ export function createMissionController(deps: ControllerDeps): MissionController
     submitBrief(text) {
       const brief = text.slice(0, 3000)
       if (!brief.trim()) return
-      // El dock también describe una prueba sobre un sector ya elegido. Cambiar de recorrido
-      // aquí ampliaba silenciosamente su geometría al catálogo completo.
+      // The dock also describes a test over an already chosen sector. Changing the path
+      // here silently widened its geometry to the full catalog.
       if (state.journey === null) dispatch({ type: 'set_journey', journey: 'test' })
       dispatch({ type: 'set_brief', brief })
-      // El foco va al texto recién cargado: se ve aunque «Tu misión» sea una franja con scroll.
+      // Focus goes to the newly loaded text: it is visible even if "Your mission" is a scrolling strip.
       controller.requestStep('describe', 'brief')
     },
 
@@ -450,7 +450,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
       const entry = deps.composer.getState().history.find((item) => item.id === entryId)
       if (!entry) return
       applyEntry(entry)
-      deps.composer.setState({ notice: 'Prueba restaurada: revise y confirme para volver a evaluar.' })
+      deps.composer.setState({ notice: 'Test restored: review and confirm to evaluate again.' })
       controller.requestStep('confirm')
     },
 
@@ -458,7 +458,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
       const [, previous, ...rest] = deps.composer.getState().undo
       if (!previous) return false
       applyEntry(previous)
-      deps.composer.setState({ undo: [previous, ...rest], notice: 'Deshecho: se restauró la prueba anterior; confirme para volver a evaluar.' })
+      deps.composer.setState({ undo: [previous, ...rest], notice: 'Undone: the previous test was restored; confirm to evaluate again.' })
       controller.requestStep('confirm')
       return true
     },
@@ -525,8 +525,8 @@ let singleton: MissionController | null = null
 let unsubscribeGeology: (() => void) | null = null
 
 /**
- * Controlador con las dependencias reales. El bundle es el snapshot v3 validado SIN transformar:
- * el servidor recalcula con el mismo empaquetado y compara huellas (bundleParity).
+ * Controller with the real dependencies. The bundle is the validated v3 snapshot WITHOUT transformation:
+ * the server recomputes with the same packaging and compares fingerprints (bundleParity).
  */
 export function missionController(bundle: EvidenceBundle): MissionController {
   if (singleton) return singleton
@@ -546,17 +546,17 @@ export function missionController(bundle: EvidenceBundle): MissionController {
     setTimer: (callback, ms) => window.setTimeout(callback, ms),
     clearTimer: (handle) => window.clearTimeout(handle as number),
   })
-  // Fuera del render: «Tu misión» puede crear la instancia al montarse y el dock lee este store.
+  // Outside the render: "Your mission" may create the instance when it mounts and the dock reads this store.
   const created = singleton
   queueMicrotask(() => {
     composerStore.setState({ ready: true, history: loadHistory() })
-    // El contexto geológico que registre el armazón (ahora o al terminar de cargar) llega al controlador.
+    // The geological context that the shell registers (now or when loading finishes) reaches the controller.
     unsubscribeGeology = subscribeMissionGeology((state) => created.setGeology(state))
   })
   return singleton
 }
 
-/** Solo tests: olvida la instancia real. */
+/** Tests only: forgets the real instance. */
 export function resetMissionControllerForTests(): void {
   unsubscribeGeology?.()
   unsubscribeGeology = null

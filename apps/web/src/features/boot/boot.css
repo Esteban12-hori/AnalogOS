@@ -1,11 +1,11 @@
 /*
- * features/boot · «Órbita honesta» (docs/UX_REDESIGN.md §2.3 A, §3.3, §4.3, §4.4).
- * Vive en el slot stage.overlay: sobre el globo y bajo los paneles. Solo se animan transform y
- * opacity; ningún bucle supera 4,8 s (2 vueltas de --loop-orbit); sin blur.
- * Posición: --boot-x / --boot-y (centro del globo), --boot-s (lado del póster) y --boot-fb (borde
- * inferior del área libre). Antes de React las escribe el script en línea de index.html sobre
- * <html>; después, BootLayer sobre .boot.
- * Modo en <html data-boot="full|normal|quiet">.
+ * features/boot · «Honest Orbit» (docs/UX_REDESIGN.md §2.3 A, §3.3, §4.3, §4.4).
+ * Lives in the stage.overlay slot: above the globe and below the panels. Only transform and
+ * opacity are animated; no loop exceeds 4.8 s (2 turns of --loop-orbit); no blur.
+ * Position: --boot-x / --boot-y (globe center), --boot-s (poster side) and --boot-fb (bottom
+ * edge of the free area). Before React, the inline script in index.html writes them on
+ * <html>; afterwards, BootLayer writes them on .boot.
+ * Mode in <html data-boot="full|normal|quiet">.
  */
 .boot {
   --boot-delay: 300ms;
@@ -14,11 +14,11 @@
   pointer-events: none;
 }
 :root[data-boot="full"] .boot { --boot-delay: 0ms; }
-/* Ya vista en la sesión: el arranque solo aterriza (la órbita de la espera de la IA no lleva data-phase). */
+/* Already seen in the session: the boot only lands (the AI-wait orbit carries no data-phase). */
 :root[data-boot="quiet"] .boot[data-phase] .boot-orbit,
 :root[data-boot="quiet"] .boot-log { display: none; }
 
-/* Póster del globo (≥1100): se funde con el globo 3D cuando este ya se ve nítido. */
+/* Globe poster (≥1100): blends with the 3D globe once it is already sharp. */
 .boot-poster {
   position: absolute;
   top: calc(var(--boot-y) - var(--boot-s) / 2);
@@ -29,7 +29,7 @@
   user-select: none;
   transition: opacity .45s ease;
 }
-/* Silueta CSS del disco (<1100, 0 bytes): diámetro = lado del póster · 396,5/445. */
+/* CSS silhouette of the disc (<1100, 0 bytes): diameter = poster side · 396,5/445. */
 .boot-disc {
   position: absolute;
   top: calc(var(--boot-y) - var(--boot-s) * .4455);
@@ -46,9 +46,9 @@
 @media (min-width: 1100px) { .boot-disc { display: none; } }
 
 /*
- * Anillo orbital (1 px, #3FB4EC al 55 %) y satélite: 2 vueltas de 2,4 s, luego quieto.
- * Diámetro = 0,94 · póster (justo fuera del disco, dentro de la atmósfera). Desde 1100 px la órbita
- * se inclina (−12°) y se abre en horizontal (×1,32): sigue dentro del área libre (bootModel.ts).
+ * Orbital ring (1 px, #3FB4EC at 55 %) and satellite: 2 turns of 2,4 s, then still.
+ * Diameter = 0,94 · poster (just outside the disc, within the atmosphere). From 1100 px the orbit
+ * tilts (−12°) and opens horizontally (×1,32): it stays within the free area (bootModel.ts).
  */
 .boot { --boot-tilt: scale(1); }
 @media (min-width: 1100px) { .boot { --boot-tilt: rotate(-12deg) scaleX(1.32); } }
@@ -60,7 +60,7 @@
   height: calc(var(--boot-s) * .94);
   animation: boot-in 600ms var(--ease-emph) calc(var(--boot-delay) + var(--boot-shift, 0ms)) both;
 }
-/* Inclinación y onda al revelar (escala 1→1,06 y se apaga), en su propio envoltorio: compone con la entrada. */
+/* Tilt and wave on reveal (scale 1→1,06 and fades out), in its own wrapper: it composes with the entrance. */
 .boot-wave { position: absolute; inset: 0; transform: var(--boot-tilt); }
 .boot[data-phase="reveal"] .boot-wave { animation: boot-wave var(--dur-5) var(--ease-emph) forwards; }
 .boot-ring {
@@ -81,11 +81,11 @@
   box-shadow: 0 0 10px 2px rgba(63, 180, 236, .8);
 }
 
-/* Bitácora de hitos reales: aria-hidden (anuncia la región role=status del armazón). */
+/* Log of real milestones: aria-hidden (announces the role=status region of the shell). */
 .boot-log {
-  /* Bajo el centro del globo, pero siempre sobre la franja de leyenda del escenario (1–2 filas). */
+  /* Below the globe center, but always above the stage legend strip (1–2 rows). */
   --log-top: min(calc(var(--boot-y) + var(--boot-s) * .2), calc(var(--boot-fb, 100vh) - 140px));
-  /* Pliegue hacia el chip de la barra superior (≈ centro del chip; sin chip visible, sube). */
+  /* Fold toward the top bar chip (≈ chip center; with no visible chip, it rises). */
   --fold-x: calc(100vw - 150px - var(--boot-x));
   --fold-y: calc(-4px - var(--log-top));
   --fold-s: .4;
@@ -119,11 +119,11 @@
 .boot-log li[data-s="fail"] > span { color: var(--text); }
 .boot-log li[data-s="wait"] { color: var(--muted); }
 
-/* Espera de la IA: la misma órbita alrededor del globo (solo con la vista global en pantalla). */
+/* AI wait: the same orbit around the globe (only with the global view on screen). */
 .boot-wait { transition: opacity var(--dur-2) var(--ease-standard); }
 .boot-wait[data-offview], .boot-wait[data-closing] { opacity: 0; }
 
-/* OrbitLoader en línea: anillo de 14 px + fase real. Entra a los 300 ms (anti-parpadeo). */
+/* Inline OrbitLoader: 14 px ring + real phase. Enters at 300 ms (anti-flicker). */
 .boot-inline {
   --boot-delay: 300ms;
   display: inline-flex;

@@ -16,7 +16,7 @@ export interface AiContext {
   fetchImpl: typeof fetch
   now: () => number
   bundle: EvidenceBundle
-  /** Paquete geológico confiable del servidor; ausente = canal geológico no disponible. */
+  /** Trusted server geological package; absent = geological channel unavailable. */
   geology?: ServerGeology
 }
 
@@ -35,10 +35,10 @@ export interface DraftResult {
 }
 
 const TOPOGRAPHIC: string[] = ['median_slope_degree', 'terrain_roughness_meter', 'local_relief_meter']
-const EXPLICIT_WINDOW_SCALE = /median|regional|ventana\s+completa|\bwindow\b/i
+const EXPLICIT_WINDOW_SCALE = /median|regional|ventana\s+completa|\bwindow\b/i // Spanish and English briefs
 const COUNTRY_WORDS: Record<string, RegExp> = { CL: /chile|\bCL\b/i, AR: /argentin|\bAR\b/i }
 
-/** Números que aparecen literalmente en la cita (admite coma decimal). */
+/** Numbers that appear literally in the quote (decimal comma allowed). */
 function numbersIn(text: string): number[] {
   return (text.match(/\d+(?:[.,]\d+)?/g) ?? []).map((t) => Number.parseFloat(t.replace(',', '.')))
 }
@@ -48,13 +48,13 @@ const allNumbersInQuote = (nums: number[], quote: string): boolean => {
 }
 
 /**
- * Validación semántica del borrador (después de validar la salida del proveedor con Ajv).
- * Nada del brief se descarta en silencio: lo que no encaja en un requisito válido pasa a open_questions;
- * lo que la IA no puede anclar en el brief se descarta Y se informa. Todo requisito sale con
- * confirmed=false y origin='ai'. No se confía en la IA para la escala ni para las cifras:
- * - una métrica topográfica sin «mediana/regional/ventana completa» en la cita se conserva como escala
- *   puntual (no evaluable) con una pregunta sobre la escala;
- * - las cifras propuestas deben aparecer literalmente en la cita; si no, queda como pregunta de aclaración.
+ * Semantic validation of the draft (after validating the provider output with Ajv).
+ * Nothing from the brief is silently discarded: whatever does not fit a valid requirement goes to open_questions;
+ * whatever the AI cannot anchor in the brief is discarded AND reported. Every requirement is emitted with
+ * confirmed=false and origin='ai'. The AI is not trusted for scale or for figures:
+ * - a topographic metric without «median/regional/full window» in the quote is kept as a point
+ *   scale (not evaluable) with a question about the scale;
+ * - proposed figures must appear literally in the quote; otherwise it remains as a clarification question.
  */
 export function buildDraft(raw: unknown, brief: string): { draft: Omit<DraftProposal, 'warnings'>; warnings: string[] } {
   if (validateDraftOutput(raw).length) throw new AiCallError('ai_invalid_output')
@@ -77,23 +77,23 @@ export function buildDraft(raw: unknown, brief: string): { draft: Omit<DraftProp
     const base = { requirement_id: `ai-${n + 1}`, importance, origin: 'ai' as const, confirmed: false, source_quote: quote }
     const metric = String(it.metric_id)
     const pending = (why: string): void => {
-      questions.push(`${why}: «${quote}»`)
+      questions.push(`${why}: “${quote}”`)
     }
     if ((METRIC_IDS as string[]).includes(metric)) {
       const spec = METRICS[metric as keyof typeof METRICS]
       const nums = it.numbers as number[]
       const op = it.operator as MeasurableRequirement['operator'] | 'none'
-      if (op === 'none') { pending('Pendiente de precisar el umbral'); continue }
+      if (op === 'none') { pending('Threshold still to be specified'); continue }
       if (op === 'in') {
         const wrong = (it.countries as string[]).some((c) => !COUNTRY_WORDS[c]?.test(quote))
-        if (metric !== 'country' || wrong || !(it.countries as string[]).length) { pending('Pendiente de precisar el país'); continue }
+        if (metric !== 'country' || wrong || !(it.countries as string[]).length) { pending('Country still to be specified'); continue }
       } else if (!allNumbersInQuote(nums, quote)) {
-        pending('Pendiente de aclarar la cifra (no aparece en el texto citado)'); continue
+        pending('Figure still to be clarified (it does not appear in the quoted text)'); continue
       }
       let scale: MeasurableRequirement['scale'] = it.scale === 'point' ? 'point' : 'window'
       if (TOPOGRAPHIC.includes(metric) && scale === 'window' && !EXPLICIT_WINDOW_SCALE.test(quote)) {
         scale = 'point'
-        questions.push(`¿«${spec.label}» se refiere a la mediana regional de la ventana completa o a un valor puntual? El texto no lo dice; se dejó como escala puntual (no evaluable) hasta que lo precise.`)
+        questions.push(`Does “${spec.label}” refer to the regional median over the full window or to a point value? The text does not say; it was left at point scale (not assessable) until you specify it.`)
       }
       const value = op === 'in' ? (it.countries as string[]) : op === 'between' ? nums.slice(0, 2) : nums[0]
       const candidate: MeasurableRequirement = {
@@ -104,11 +104,11 @@ export function buildDraft(raw: unknown, brief: string): { draft: Omit<DraftProp
         schema_version: '1.0.0', brief: '', activity: '', target: { profile_id: SUPPORTED_PROFILE_ID, stated: '' },
         requirements: [candidate], open_questions: [], scope: { mode: 'catalog' }, confirmed: false,
       })
-      if (probe.ok) { requirements.push(candidate); n += 1 } else pending('Pendiente de precisar el requisito')
+      if (probe.ok) { requirements.push(candidate); n += 1 } else pending('Requirement still to be specified')
     } else if (UNMEASURED_TOPICS.some((t) => t.id === metric) || metric === 'other_unmeasured') {
       const topic = UNMEASURED_TOPICS.find((t) => t.id === metric)
       const candidate: UnmeasuredRequirement = {
-        ...base, kind: 'unmeasured', label: clean(it.label, 120) || topic?.label || 'Pedido no medido', topic_id: metric, detail: clean(it.detail, 300),
+        ...base, kind: 'unmeasured', label: clean(it.label, 120) || topic?.label || 'Unmeasured request', topic_id: metric, detail: clean(it.detail, 300),
       }
       requirements.push(candidate)
       n += 1
@@ -116,22 +116,22 @@ export function buildDraft(raw: unknown, brief: string): { draft: Omit<DraftProp
       discarded += 1
     }
   }
-  if (discarded) warnings.push(`La IA propuso ${discarded} elemento(s) que no se pudieron anclar en el texto o no corresponden al catálogo; se descartaron y no forman parte del borrador.`)
+  if (discarded) warnings.push(`The AI proposed ${discarded} item(s) that could not be anchored in the text or do not match the catalog; they were discarded and are not part of the draft.`)
   if (requirements.length > 20) {
-    questions.push(...requirements.splice(20).map((x) => `Pendiente de precisar: «${x.source_quote ?? x.label}»`))
-    warnings.push('Se superó el máximo de 20 requisitos; el resto quedó como preguntas abiertas.')
+    questions.push(...requirements.splice(20).map((x) => `Still to be specified: “${x.source_quote ?? x.label}”`))
+    warnings.push('The maximum of 20 requirements was exceeded; the rest were kept as open questions.')
   }
-  // Red de seguridad determinista: temas no medidos citados en el brief que el borrador no recogió.
+  // Deterministic safety net: unmeasured topics cited in the brief that the draft did not capture.
   const covered = new Set(requirements.filter((x): x is UnmeasuredRequirement => x.kind === 'unmeasured').map((x) => x.topic_id))
   if (requirements.some((x) => x.kind === 'measurable' && x.metric_id === 'median_slope_degree' && x.scale === 'point')) covered.add('max_point_slope')
   for (const m of detectUnmeasuredMentions(brief)) {
     if (!covered.has(m.topic_id)) {
-      questions.push(`El brief menciona «${m.matched_text}»: «${m.label}» no está medido en el snapshot v3; si es relevante, agréguelo como requisito pendiente.`)
+      questions.push(`The brief mentions “${m.matched_text}”: “${m.label}” is not measured in the v3 snapshot; if it matters, add it as a pending requirement.`)
     }
   }
   const all = [...new Set(questions)]
   const unique = all.slice(0, 20)
-  if (all.length > 20) warnings.push('Hay más de 20 preguntas abiertas; se muestran las primeras 20.')
+  if (all.length > 20) warnings.push('There are more than 20 open questions; the first 20 are shown.')
   return {
     draft: {
       activity: clean(r.activity, 200),
@@ -156,7 +156,7 @@ export async function runDraft(ctx: AiContext, brief: string): Promise<DraftResu
 }
 
 export const GEOLOGY_MAX_TOKENS = 6000
-/** Plazo mínimo restante para intentar el único reintento semántico. */
+/** Minimum remaining time to attempt the single semantic retry. */
 export const MIN_RETRY_MS = 2000
 
 export interface ExplainResult {
@@ -164,7 +164,7 @@ export interface ExplainResult {
   evaluation_fingerprint: string
   selection: ExplanationSelection
   provenance: AiProvenance
-  /** Solo si el cliente activó el canal geológico; separado de la selección M8. */
+  /** Only if the client enabled the geological channel; separate from the M8 selection. */
   geology?: { context_fingerprint: string; catalog_fingerprint: string; selection: GeologySelectionResult }
 }
 
@@ -175,8 +175,8 @@ export class ExplainInputError extends Error {
 }
 
 /**
- * Comprobación previa del canal geológico (antes de la clave y del proveedor). El cliente declara el contexto que
- * cree tener; si el servidor no tiene uno válido o tiene otro, error específico: nunca se degrada en silencio.
+ * Preliminary check of the geological channel (before the key and the provider). The client declares the context it
+ * believes it has; if the server does not have a valid one or has a different one, a specific error: it is never silently degraded.
  */
 export function checkGeologyChannel(state: ServerGeology | undefined, clientContextFingerprint: string): Extract<ServerGeology, { status: 'ready' }> {
   if (!state || state.status !== 'ready') throw new ExplainInputError('geology_context_unavailable')
@@ -184,7 +184,7 @@ export function checkGeologyChannel(state: ServerGeology | undefined, clientCont
   return state
 }
 
-/** Los hechos se recalculan aquí desde artefactos confiables; el cliente solo aporta la solicitud. */
+/** The facts are recomputed here from trusted artifacts; the client only supplies the request. */
 export async function runExplain(ctx: AiContext, requestInput: unknown, clientFingerprint: string, geologyFingerprint?: string): Promise<ExplainResult> {
   const channel = geologyFingerprint === undefined ? null : checkGeologyChannel(ctx.geology, geologyFingerprint)
   const checked = validateMissionRequest(requestInput, { requireConfirmed: true })
@@ -214,7 +214,7 @@ export async function runExplain(ctx: AiContext, requestInput: unknown, clientFi
         system: catalog ? EXPLAIN_SYSTEM + GEOLOGY_SYSTEM : EXPLAIN_SYSTEM,
         user,
         schema: (catalog ? EXPLAIN_GEOLOGY_SCHEMA : EXPLAIN_SCHEMA) as unknown as Record<string, unknown>,
-        // El canal geológico añade hasta 12 referencias de ids largos (y el modelo puede razonar antes): con 2000 tokens se truncaba en la prueba real.
+        // The geological channel adds up to 12 references with long ids (and the model may reason beforehand): with 2000 tokens it was truncated in the real test.
         maxTokens: catalog ? GEOLOGY_MAX_TOKENS : 2000,
         timeoutMs,
       },
@@ -224,7 +224,7 @@ export async function runExplain(ctx: AiContext, requestInput: unknown, clientFi
     let m8: unknown = data
     let geology: ExplainResult['geology']
     if (catalog) {
-      // El campo geológico se separa antes de validar la selección M8 con su contrato intacto; cualquier fallo descarta todo.
+      // The geological field is separated before validating the M8 selection with its contract intact; any failure discards everything.
       const { geology_ref_ids: refIds, ...rest } = (data ?? {}) as Record<string, unknown>
       const picked = checkGeologySelection({ ref_ids: refIds }, catalog)
       if (!picked.ok) return { ok: false, code: picked.code, siteId: picked.site_id }
@@ -237,10 +237,10 @@ export async function runExplain(ctx: AiContext, requestInput: unknown, clientFi
   }
 
   let result = await attempt(baseUser, total)
-  // Recuperación acotada: SOLO con canal geológico y selección semánticamente inválida (la llamada tuvo éxito). Una única segunda
-  // llamada con los mismos hechos y esquema + recordatorio fijo, dentro del plazo TOTAL. Timeout, negativa, límite de frecuencia,
-  // truncamiento y errores upstream salen como antes (AiCallError) sin reintento; nunca se reintenta M8 sin geología ni se recorta.
-  // La procedencia devuelta es la de la respuesta finalmente aceptada; el consumo de la primera llamada no se agrega a ella.
+  // Bounded recovery: ONLY with the geological channel and a semantically invalid selection (the call succeeded). A single second
+  // call with the same facts and schema + fixed reminder, within the TOTAL deadline. Timeout, refusal, rate limit,
+  // truncation and upstream errors come out as before (AiCallError) without retry; M8 is never retried without geology nor trimmed.
+  // The returned provenance is that of the response finally accepted; the usage of the first call is not added to it.
   if (!result.ok && catalog) {
     const remaining = total - (Date.now() - startedAt)
     if (remaining >= MIN_RETRY_MS) result = await attempt(`${baseUser}\n${retryReminder(result.code, result.siteId, catalog)}`, remaining)

@@ -1,7 +1,7 @@
 /**
- * Carga diferida del controlador de misión (chunk de misión: planificador, evaluación, Ajv en
- * runtime, cliente de IA y exportación del equipo; docs/INTEGRATION_PLAN.md §3.8). El chunk
- * principal solo lleva este enlace. El bundle es el snapshot validado tal cual lo cargó la app.
+ * Lazy loading of the mission controller (mission chunk: planner, evaluation, runtime Ajv,
+ * AI client and team export; docs/INTEGRATION_PLAN.md §3.8). The main chunk
+ * carries only this link. The bundle is the validated snapshot exactly as the app loaded it.
  */
 import type { DemoSnapshot } from '../../data/loadDemoSnapshot'
 import type { GeologyContextState } from '../../domain/geologyContext'
@@ -14,15 +14,15 @@ let pending: Promise<MissionController> | null = null
 let geology: GeologyContextState = { status: 'loading' }
 const geologyListeners = new Set<(state: GeologyContextState) => void>()
 
-/** El armazón registra el snapshot validado en cuanto llega (sin copiarlo ni transformarlo). */
+/** The shell registers the validated snapshot as soon as it arrives (without copying or transforming it). */
 export function registerMissionSnapshot(snapshot: DemoSnapshot | null): void {
   if (snapshot && !bundle) bundle = { candidates: snapshot.candidates, manifest: snapshot.manifest, profile: snapshot.profile }
 }
 
 /**
- * El armazón registra el contexto geológico oficial (M9/M10) cuando termina de cargar (o su ausencia).
- * Solo el tipo viaja aquí: el validador vive en un chunk diferido. El controlador lo recibe al crearse
- * y en cada cambio posterior.
+ * The shell registers the official geological context (M9/M10) when it finishes loading (or its absence).
+ * Only the type travels here: the validator lives in a deferred chunk. The controller receives it upon creation
+ * and on every subsequent change.
  */
 export function registerMissionGeology(state: GeologyContextState): void {
   if (state === geology) return
@@ -34,7 +34,7 @@ export function registeredMissionGeology(): GeologyContextState {
   return geology
 }
 
-/** Suscripción del controlador: recibe el estado actual de inmediato y luego cada cambio. */
+/** Controller subscription: receives the current state immediately and then every change. */
 export function subscribeMissionGeology(listener: (state: GeologyContextState) => void): () => void {
   geologyListeners.add(listener)
   listener(geology)
@@ -45,7 +45,7 @@ export function subscribeMissionGeology(listener: (state: GeologyContextState) =
 
 export function loadController(): Promise<MissionController> {
   const current = bundle
-  if (!current) return Promise.reject(new Error('El snapshot aún no está validado.'))
+  if (!current) return Promise.reject(new Error('The snapshot is not validated yet.'))
   pending ??= import('./missionController')
     .then((module) => module.missionController(current))
     .catch((error: unknown) => {
@@ -55,11 +55,11 @@ export function loadController(): Promise<MissionController> {
   return pending
 }
 
-/** Ejecuta `fn` con el controlador; si el chunk no carga (sin red y sin caché), avisa sin romper. */
+/** Runs `fn` with the controller; if the chunk fails to load (no network and no cache), it notifies without breaking. */
 export function withController(fn: (controller: MissionController) => unknown): void {
   loadController()
     .then(fn)
     .catch(() => {
-      composerStore.setState({ notice: 'No se pudo cargar el planificador. Recargue la página para reintentar.' })
+      composerStore.setState({ notice: 'The planner could not be loaded. Reload the page to try again.' })
     })
 }

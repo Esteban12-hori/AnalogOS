@@ -1,71 +1,71 @@
-# Atribuciones, licencias y uso
+# Attributions, licenses and use
 
-## Datos
+## Data
 
 ### NASA PDS MOLA
 
-- Proveedor: NASA Planetary Data System, Geosciences Node.
-- Producto: Mars Global Surveyor MOLA Mission Experiment Gridded Data Record.
-- Archivo usado: `MEGT44N000HB`.
-- Fuente: https://pds-geosciences.wustl.edu/missions/mgs/megdr.html
-- Uso: referencia topográfica regional de Marte.
+- Provider: NASA Planetary Data System, Geosciences Node.
+- Product: Mars Global Surveyor MOLA Mission Experiment Gridded Data Record.
+- File used: `MEGT44N000HB`.
+- Source: https://pds-geosciences.wustl.edu/missions/mgs/megdr.html
+- Use: regional topographic reference for Mars.
 
 ### NASADEM
 
-- Proveedor: NASA EOSDIS Land Processes DAAC.
-- Producto: NASADEM Merged DEM Global 1 arc second V001 (`NASADEM_HGT.001`).
-- Fuente: https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001
-- Uso: elevación, pendiente, rugosidad, relieve local y máscara de agua SWB.
+- Provider: NASA EOSDIS Land Processes DAAC.
+- Product: NASADEM Merged DEM Global 1 arc second V001 (`NASADEM_HGT.001`).
+- Source: https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001
+- Use: elevation, slope, roughness, local relief and SWB water mask.
 
 ### NASA HLS
 
-- Producto: HLS Sentinel-2 Multi-spectral Instrument Surface Reflectance Daily Global 30m v2.0.
-- Fuente: https://doi.org/10.5067/HLS/HLSS30.002
-- Uso: inventario independiente de disponibilidad 2025; sus píxeles no entran al score v2.
+- Product: HLS Sentinel-2 Multi-spectral Instrument Surface Reflectance Daily Global 30m v2.0.
+- Source: https://doi.org/10.5067/HLS/HLSS30.002
+- Use: independent 2025 availability inventory; its pixels do not enter the v2 score.
 
 ### Copernicus Sentinel-2
 
-- Proveedor: Copernicus Data Space Ecosystem — Sentinel Hub.
-- Producto: Sentinel-2 L2A mediante Statistical API.
-- Fuente: https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html
-- Uso: superficie no vegetada, vegetación, agua, NDVI y BSI mensual de 2025.
-- Atribución: Modified Copernicus Sentinel data 2025 / Sentinel Hub.
+- Provider: Copernicus Data Space Ecosystem — Sentinel Hub.
+- Product: Sentinel-2 L2A via Statistical API.
+- Source: https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html
+- Use: non-vegetated surface, vegetation, water, NDVI and monthly BSI from 2025.
+- Attribution: Modified Copernicus Sentinel data 2025 / Sentinel Hub.
 
-### Copernicus Sentinel-2 — contexto visual
+### Copernicus Sentinel-2 — visual context
 
-- Proveedor: Copernicus Data Space Ecosystem — Sentinel Hub.
-- Producto: Sentinel-2 L2A mediante Process API; tres vistas RGB (B04/B03/B02) en `visual-context/`, una por candidato.
-- Fuente: https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Process.html
-- Periodo: mosaico de diciembre de 2025 (2025-12-01 a 2026-01-01 UTC), nubosidad máxima 40 % por escena.
-- Uso: contexto visual preliminar en la ficha; no participa en el score ni cierra verificaciones.
-- Atribución: contiene datos modificados de Copernicus Sentinel (2025), procesados con Sentinel Hub en Copernicus Data Space Ecosystem.
-- Procedencia por imagen (petición, escenas, hora de consulta y SHA-256): `visual-context/index.json`.
+- Provider: Copernicus Data Space Ecosystem — Sentinel Hub.
+- Product: Sentinel-2 L2A via Process API; three RGB views (B04/B03/B02) in `visual-context/`, one per candidate.
+- Source: https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Process.html
+- Period: December 2025 mosaic (2025-12-01 to 2026-01-01 UTC), maximum cloud cover 40 % per scene.
+- Use: preliminary visual context on the data sheet; it does not participate in the score or close verifications.
+- Attribution: contains modified Copernicus Sentinel data (2025), processed with Sentinel Hub in the Copernicus Data Space Ecosystem.
+- Provenance per image (request, scenes, query time and SHA-256): `visual-context/index.json`.
 
 ### NASA POWER
 
-- Proveedor: NASA Prediction Of Worldwide Energy Resources.
-- Servicio: Climatology Point API.
-- Fuente: https://power.larc.nasa.gov/docs/services/api/temporal/climatology/
-- Uso: contexto regional de precipitación y temperatura de piel 2001–2025.
+- Provider: NASA Prediction Of Worldwide Energy Resources.
+- Service: Climatology Point API.
+- Source: https://power.larc.nasa.gov/docs/services/api/temporal/climatology/
+- Use: regional context of precipitation and skin temperature 2001–2025.
 
 ### Natural Earth
 
-- Producto: Admin 0 Countries, escala 1:50m, vía `world-atlas` 2.0.2 (Chile y Argentina en el snapshot v3).
-- Fuente: https://www.naturalearthdata.com/downloads/50m-cultural-vectors/
-- Licencia: dominio público.
-- Uso: contornos referenciales de Chile y Argentina; no son límites oficiales ni autoridad territorial, y no participan del score.
+- Product: Admin 0 Countries, scale 1:50m, via `world-atlas` 2.0.2 (Chile and Argentina in the v3 snapshot).
+- Source: https://www.naturalearthdata.com/downloads/50m-cultural-vectors/
+- License: public domain.
+- Use: reference outlines of Chile and Argentina; they are not official boundaries or territorial authority, and do not participate in the score.
 
-### Antecedentes de análogos
+### Analog background
 
-- Catálogo propio `config/analog_precedents_v1.json`, revisado el 2026-11-14, con las fuentes citadas en cada entrada.
-- Coordenadas de muestreo transcritas del material suplementario de Navarro-González et al. (2003), Science 302: https://www.astro.uantof.cl/wp-content/uploads/2015/06/navarro.SOM_.pdf
-- Otras fuentes: NASA Astrobiology (2005 y 2017), Azua-Bustos et al. (2015), Universidad Nacional de Catamarca (2025), ficha CONICET (2021) y resúmenes EPSC 2022.
-- Uso: registrar antecedentes y excluir del ranking las ventanas con coordenadas publicadas. No participa del score.
+- Own catalog `config/analog_precedents_v1.json`, reviewed on 2026-11-14, with the sources cited in each entry.
+- Sampling coordinates transcribed from the supplementary material of Navarro-González et al. (2003), Science 302: https://www.astro.uantof.cl/wp-content/uploads/2015/06/navarro.SOM_.pdf
+- Other sources: NASA Astrobiology (2005 and 2017), Azua-Bustos et al. (2015), Universidad Nacional de Catamarca (2025), CONICET sheet (2021) and EPSC abstracts 2022.
+- Use: record background information and exclude from the ranking the windows with published coordinates. It does not participate in the score.
 
 ## Software
 
-El código de AnalogOS se distribuye bajo licencia MIT. Dependencias principales: React, Vite, TypeScript, Ajv, JSON Schema, earthaccess, Requests, NumPy, PyProj y pytest. Cada dependencia conserva su propia licencia.
+The AnalogOS code is distributed under the MIT license. Main dependencies: React, Vite, TypeScript, Ajv, JSON Schema, earthaccess, Requests, NumPy, PyProj and pytest. Each dependency retains its own license.
 
-## Advertencia
+## Warning
 
-Los nombres de sectores y polígonos son ventanas de screening aproximadas, no límites administrativos, propiedades ni sitios autorizados, en Chile ni en Argentina. Las autoridades citadas en las fichas (IDE Chile, IDERA) indican dónde verificar; no implican permiso. Las fuentes oficiales mantienen sus propias condiciones de uso y atribución; el manifiesto del snapshot registra enlaces y checksums exactos.
+The names of sectors and polygons are approximate screening windows, not administrative boundaries, properties or authorized sites, in Chile or in Argentina. The authorities cited in the data sheets (IDE Chile, IDERA) indicate where to verify; they do not imply permission. Official sources maintain their own terms of use and attribution; the snapshot manifest records exact links and checksums.

@@ -1,13 +1,13 @@
 /**
- * Infraestructura global del liquid glass:
- * - LiquidBackdrop: manchas de color en movimiento lento detrás de todo (el vidrio necesita algo que refractar)
- *   y el filtro SVG de refracción que usan los controles en Chromium.
- * - useLiquidPointer: un único listener que mueve el brillo especular (--lg-x/--lg-y) de la superficie bajo el cursor.
- * Estilos en liquid-glass.css.
+ * Global liquid glass infrastructure:
+ * - LiquidBackdrop: slowly moving color blobs behind everything (the glass needs something to refract)
+ *   and the SVG refraction filter used by controls in Chromium.
+ * - useLiquidPointer: a single listener that moves the specular highlight (--lg-x/--lg-y) of the surface under the cursor.
+ * Styles in liquid-glass.css.
  */
 import { useEffect } from 'react'
 
-/** Superficies que siguen al cursor. Debe coincidir con los grupos de liquid-glass.css. */
+/** Surfaces that follow the cursor. Must match the groups in liquid-glass.css. */
 export const LIQUID_SURFACES = [
   '.glass',
   '.candidate-card',
@@ -52,7 +52,7 @@ export function useLiquidPointer() {
     }
     const onMove = (event: PointerEvent) => {
       if (event.pointerType !== 'mouse' || !(event.target instanceof Element)) return
-      // La superficie más interna bajo el cursor es la que recibe el brillo.
+      // The innermost surface under the cursor is the one that receives the highlight.
       const el = event.target.closest<HTMLElement>(LIQUID_SURFACES)
       if (!el) return
       const rect = el.getBoundingClientRect()

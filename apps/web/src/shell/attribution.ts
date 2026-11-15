@@ -1,11 +1,11 @@
 /**
- * Atribución de los datos que producen los % (CLAUDE.md: «Atribución de datos siempre visible»;
- * docs/UX_REDESIGN.md §4.3). Se genera desde `manifest.datasets[].provider/product`: nada
- * escrito a mano que pueda quedar desfasado del snapshot. Función pura.
+ * Attribution of the data that produces the percentages (CLAUDE.md: «Data attribution always visible»;
+ * docs/UX_REDESIGN.md §4.3). It is generated from `manifest.datasets[].provider/product`: nothing
+ * handwritten that could fall out of sync with the snapshot. Pure function.
  */
 import type { DataManifest } from '../domain/contracts'
 
-/** Nombre corto de cada fuente reconocida y su orden en la línea. */
+/** Short name of each recognized source and its order in the line. */
 const KNOWN: ReadonlyArray<{ test: RegExp; label: string }> = [
   { test: /NASADEM/i, label: 'NASADEM' },
   { test: /Sentinel-2 L2A|Copernicus/i, label: 'Copernicus Sentinel-2' },
@@ -14,7 +14,7 @@ const KNOWN: ReadonlyArray<{ test: RegExp; label: string }> = [
   { test: /Natural Earth/i, label: 'Natural Earth' },
 ]
 
-/** Lo que no es una fuente externa de datos: métricas propias e inventarios de búsqueda. */
+/** What is not an external data source: own metrics and search inventories. */
 const SKIP = /AnalogOS|inventario|inventory/i
 
 export function dataAttribution(manifest: Pick<DataManifest, 'datasets'> | null | undefined): string[] {
@@ -35,5 +35,5 @@ export function dataAttribution(manifest: Pick<DataManifest, 'datasets'> | null 
 
 export function dataAttributionText(manifest: Pick<DataManifest, 'datasets'> | null | undefined): string | null {
   const labels = dataAttribution(manifest)
-  return labels.length ? `Datos: ${labels.join(' · ')}` : null
+  return labels.length ? `Data: ${labels.join(' · ')}` : null
 }

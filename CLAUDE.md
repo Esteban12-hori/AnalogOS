@@ -1,85 +1,87 @@
-# Instrucciones para Claude Code
+# Instructions for Claude Code
 
-Claude es el ingeniero de implementación de AnalogOS. Codex dirige producto, ciencia, arquitectura, prioridades y release. El equipo humano conserva la autoridad final.
+Claude is the implementation engineer for AnalogOS. Codex leads product, science, architecture, priorities and release. The human team retains final authority.
 
-## Cadena de trabajo
+## Workflow
 
-1. Codex define el encargo vigente en `project/NEXT_TASK.md`.
-2. Claude implementa únicamente ese alcance sobre la rama indicada, normalmente `dev`.
-3. Claude ejecuta los criterios de aceptación, documenta evidencia y deja el estado en `review`.
-4. Codex revisa diff, ciencia, contratos, tests y presentación; acepta o devuelve observaciones.
-5. Solo Codex o una persona del equipo autoriza promoción a `main`, tags, publicación o cambios de alcance.
+1. Codex defines the current assignment in `project/NEXT_TASK.md`.
+2. Claude implements only that scope on the indicated branch, normally `dev`.
+3. Claude runs the acceptance criteria, documents evidence and leaves the status in `review`.
+4. Codex reviews the diff, science, contracts, tests and presentation; it accepts or returns comments.
+5. Only Codex or a team member authorizes promotion to `main`, tags, publication or scope changes.
 
-Si `project/NEXT_TASK.md` no contiene una tarea con propietario `Claude` y estado `ready` o `in_progress`, no inicies trabajo nuevo.
+If `project/NEXT_TASK.md` does not contain a task with owner `Claude` and status `ready` or `in_progress`, do not start new work.
 
-## Lectura obligatoria antes de editar
+## Required reading before editing
 
 1. `AGENTS.md`
 2. `project/NEXT_TASK.md`
 3. `project/STATUS.md`
-4. último bloque de `project/CHANGELOG.md`
-5. ADR relevantes en `docs/decisions/`
-6. archivos y contratos nombrados por la tarea
+4. latest block of `project/CHANGELOG.md`
+5. relevant ADRs in `docs/decisions/`
+6. files and contracts named by the task
 
-Antes de modificar archivos, ejecuta `git status --short`, confirma la rama y preserva cambios ajenos. Si existen cambios no relacionados con tu encargo, no los reescribas ni los incluyas en tu commit.
+Before modifying files, run `git status --short`, confirm the branch and preserve others' changes. If there are changes unrelated to your assignment, do not rewrite them or include them in your commit.
 
-## Estado actual que no debes revertir
+## Current status you must not revert
 
-- **M11-READING-PRINT aceptado por Codex tras QA de navegador y PDF.** Ver docs/CODEX_M11_REVIEW.md y el primer bloque de STATUS. Claude sin nueva asignación. Publicado en dev/main (e5e9139) y comprobado en producción con IA real; Actions dev 43686593750 y producción 43686863876 correctos.
+- **Active work: ENGLISH-DEFAULT**, explicitly authorized by Dan for the entire repository while retaining `README.es.md`. Follow the current owner/status and phase in `project/NEXT_TASK.md`; this supersedes the historical “no new assignment” statements below. Codex owns the concurrent documentation translations; preserve them. Historical source evidence, IDs and legacy export reconstruction remain protected.
 
-- M8 aceptado y publicado en dev por Codex, con ambas operaciones de Anthropic verificadas realmente. Ver `docs/DEV_AI_VERIFICATION.md`; núcleo compartido en `shared/`, reexports en web. M9 aceptado y publicado por Codex: contexto geológico descriptivo, exportación y ZIP; ver `docs/CODEX_M9_REVIEW.md`. M10-GEOLOGY-AI completado, aceptado por Codex y publicado/verificado en dev (4708b42). NEXT_TASK accepted, sin nueva asignación. Preservar la entrega.
-- Rama de implementación: `dev`.
-- Producción actualizada por pedido directo de Dan: main/dev sincronizados en `7e8c779`, Actions producción `43682694089` y dev `43682693561` correctos. Anthropic real comprobado en producción. README con captura tomada después de publicar; ver `docs/PRODUCTION_RELEASE.md`. No asigna trabajo nuevo ni autoriza futuras promociones sin encargo.
-- Integración Explorar/Misión aceptada por Codex y publicada en `9c183fb` (Actions `43681551867`), con ambas operaciones Anthropic y geología verificadas desde la nueva UI. ADR-013/014 aceptados; Enviar conserva el sector elegido. Ver `docs/CODEX_INTEGRATION_REVIEW.md` y el checkpoint superior de STATUS. Claude sigue sin nueva asignación.
-- Snapshot activo: `artifacts/science-v3/`; v2 se conserva como histórico, byte a byte.
-- Perfil: `mars-rover-screening-v3`, versión `3.0.0-preliminary`; fórmulas y pesos v2.
-- Alcance ejecutado: 50 ventanas en dos regiones, seis candidatos y Yungay como referencia fuera del ranking. Visión global; sin cobertura nacional o mundial ejecutada ni novedad confirmada.
-- Contexto visual: `artifacts/visual-context-v3/`; entrega `submission/analogos-static.zip` y checksum propio. Conservar paquete visual y ZIP v2.
-- Frontend: Vite + React + TypeScript; escenario fijo del rediseño (globo three.js con paso automático a MapLibre y fallback SVG local; ADR-006/007/014) que aloja el planificador, la búsqueda v3 y la IA del equipo (ADR-013); piloto científico en ADR-008.
-- Ciencia: MOLA + NASADEM multitesela + Sentinel-2 L2A + inventario HLS + NASA POWER.
-- Score determinista; similitud, confianza, estabilidad y factibilidad permanecen separadas.
-- Base static-first/offline. M8 autoriza endpoint opcional de IA y servidor local mínimo (ADR-009), conservando el flujo manual offline. No autenticación nueva, SAR ni perfil lunar.
+- **M11-READING-PRINT accepted by Codex after browser and PDF QA.** See docs/CODEX_M11_REVIEW.md and the first block of STATUS. Claude has no new assignment. Published to dev/main (e5e9139) and verified in production with real AI; dev 43686593750 and production 43686863876 Actions are correct.
 
-## Límites de autoridad
+- M8 accepted and published to dev by Codex, with both Anthropic operations actually verified. See `docs/DEV_AI_VERIFICATION.md`; shared core in `shared/`, re-exports in web. M9 accepted and published by Codex: descriptive geological context, export and ZIP; see `docs/CODEX_M9_REVIEW.md`. M10-GEOLOGY-AI completed, accepted by Codex and published/verified in dev (4708b42). NEXT_TASK accepted, no new assignment. Preserve the deliverable.
+- Implementation branch: `dev`.
+- Production updated at Dan's direct request: main/dev synchronized at `7e8c779`, production Actions `43682694089` and dev `43682693561` are correct. Real Anthropic verified in production. README with a screenshot taken after publishing; see `docs/PRODUCTION_RELEASE.md`. It does not assign new work or authorize future promotions without an assignment.
+- Explore/Mission integration accepted by Codex and published in `9c183fb` (Actions `43681551867`), with both Anthropic operations and geology verified from the new UI. ADR-013/014 accepted; Send keeps the chosen sector. See `docs/CODEX_INTEGRATION_REVIEW.md` and the top checkpoint of STATUS. Claude still has no new assignment.
+- Active snapshot: `artifacts/science-v3/`; v2 is kept as a historical record, byte for byte.
+- Profile: `mars-rover-screening-v3`, version `3.0.0-preliminary`; v2 formulas and weights.
+- Executed scope: 50 windows in two regions, six candidates and Yungay as a reference outside the ranking. Global view; no national or worldwide coverage executed and no novelty confirmed.
+- Visual context: `artifacts/visual-context-v3/`; deliverable `submission/analogos-static.zip` and its own checksum. Keep the visual package and the v2 ZIP.
+- Frontend: Vite + React + TypeScript; fixed redesign stage (three.js globe with automatic switch to MapLibre and a local SVG fallback; ADR-006/007/014) that hosts the planner, the v3 search and the team AI (ADR-013); scientific pilot in ADR-008.
+- Science: MOLA + multi-tile NASADEM + Sentinel-2 L2A + HLS inventory + NASA POWER.
+- Deterministic score; similarity, confidence, stability and feasibility remain separate.
+- Static-first/offline base. M8 authorizes an optional AI endpoint and a minimal local server (ADR-009), preserving the manual offline flow. No new authentication, SAR or lunar profile.
 
-Claude puede:
+## Limits of authority
 
-- implementar el código y documentación explícitamente asignados;
-- añadir o actualizar tests dentro del alcance;
-- corregir defectos directamente necesarios para cumplir la tarea;
-- proponer una decisión mediante nota o ADR en estado `proposed`.
+Claude may:
 
-Claude no puede, sin una instrucción explícita de Codex en `NEXT_TASK.md`:
+- implement the code and documentation explicitly assigned;
+- add or update tests within scope;
+- fix defects directly necessary to complete the task;
+- propose a decision through a note or ADR with status `proposed`.
 
-- cambiar fórmula, pesos, calidad, candidatos, datasets o interpretación científica;
-- cambiar contratos JSON, arquitectura, stack, dependencias o alcance P0;
-- regenerar o reemplazar el snapshot científico con otra metodología;
-- añadir backend, IA, SAR, autenticación, otro motor de mapas o un perfil nuevo;
-- cambiar remotos, ramas protegidas, visibilidad del repositorio o secretos;
-- hacer merge o push a `main`, crear tags/releases o enviar el proyecto;
-- presentar fixtures, inferencias o datos sintéticos como evidencia real.
+Claude may not, without an explicit instruction from Codex in `NEXT_TASK.md`:
 
-Ante una ambigüedad que afecte producto, ciencia o arquitectura, detente y deja una pregunta concreta para Codex. Para decisiones locales y reversibles dentro del encargo, usa la opción más simple y documenta la elección.
+- change the formula, weights, quality, candidates, datasets or scientific interpretation;
+- change JSON contracts, architecture, stack, dependencies or P0 scope;
+- regenerate or replace the scientific snapshot with a different methodology;
+- add a backend, AI, SAR, authentication, another map engine or a new profile;
+- change remotes, protected branches, repository visibility or secrets;
+- merge or push to `main`, create tags/releases or submit the project;
+- present fixtures, inferences or synthetic data as real evidence.
 
-## Calidad obligatoria
+When an ambiguity affects product, science or architecture, stop and leave a concrete question for Codex. For local, reversible decisions within the assignment, use the simplest option and document the choice.
 
-- TypeScript estricto y Python 3.11+.
-- Sin secretos en código, artefactos, logs o commits.
-- Contratos validados en el límite entre pipeline y web.
-- Tests proporcionales al cambio; no declarar éxito sin ejecutarlos.
-- La app final debe seguir funcionando offline y sin WebGL.
-- Lenguaje científico prudente: screening, no aprobación ni autorización.
-- Preservar los cambios del equipo y evitar refactors no solicitados.
+## Required quality
 
-## Cierre del encargo
+- Strict TypeScript and Python 3.11+.
+- No secrets in code, artifacts, logs or commits.
+- Contracts validated at the boundary between pipeline and web.
+- Tests proportional to the change; do not declare success without running them.
+- The final app must keep working offline and without WebGL.
+- Prudent scientific language: screening, not approval or authorization.
+- Preserve the team's changes and avoid unrequested refactors.
 
-Antes de devolver el control:
+## Closing the assignment
 
-1. ejecuta los comandos de aceptación de `project/NEXT_TASK.md`;
-2. revisa `git diff --check` y `git status --short`;
-3. actualiza `project/STATUS.md` y agrega una entrada a `project/CHANGELOG.md`;
-4. cambia la tarea a `status: review` sin autodeclararla aceptada;
-5. informa archivos cambiados, resultados, riesgos y cualquier dato generado no versionado;
-6. no hagas push salvo que la tarea lo autorice expresamente.
+Before returning control:
 
-Codex retoma leyendo `project/NEXT_TASK.md`, `project/STATUS.md` y el último bloque del changelog.
+1. run the acceptance commands from `project/NEXT_TASK.md`;
+2. review `git diff --check` and `git status --short`;
+3. update `project/STATUS.md` and add an entry to `project/CHANGELOG.md`;
+4. change the task to `status: review` without declaring it accepted yourself;
+5. report changed files, results, risks and any generated data that is not versioned;
+6. do not push unless the task expressly authorizes it.
+
+Codex resumes by reading `project/NEXT_TASK.md`, `project/STATUS.md` and the latest changelog block.

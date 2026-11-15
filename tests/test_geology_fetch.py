@@ -1,4 +1,4 @@
-"""Adquisición geológica: validación de respuestas, límites de red y caché. Sin red real; datos sintéticos."""
+"""Geological acquisition: response validation, network limits, and cache. No real network; synthetic data."""
 
 import copy
 import json
@@ -39,14 +39,14 @@ def test_wfs_request_is_exact_explicit_and_without_hits():
 
 def test_wfs_accepts_polygon_extending_far_beyond_bbox_and_empty_response():
     fetch.validate_wfs(wfs_bytes(features=[wide_feature()]), BOUNDS)
-    fetch.validate_wfs(wfs_bytes(features=[]), BOUNDS)  # crs null con cero entidades es legítimo
+    fetch.validate_wfs(wfs_bytes(features=[]), BOUNDS)  # null crs with zero features is legitimate
 
 
 @pytest.mark.parametrize("mutate", [
     lambda d: d.update(numberMatched=5),                      # truncada / inconsistente
     lambda d: d.update(numberReturned=0),
     lambda d: d.update(crs={"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}}),
-    lambda d: d.update(crs=None),                              # con entidades, CRS obligatorio
+    lambda d: d.update(crs=None),                              # with features, CRS is mandatory
     lambda d: d["features"][0]["properties"].pop("cod_ulito"),  # esquema incorrecto
     lambda d: d["features"][0].update(geometry=None),
 ])
@@ -59,11 +59,11 @@ def test_wfs_rejects_bad_responses(mutate):
 
 def test_wfs_rejects_limit_reached_swapped_axes_and_non_json():
     many = [wide_feature(f"f.{i}") for i in range(fetch.WFS_MAX_FEATURES)]
-    with pytest.raises(GeologyError, match="límite"):
+    with pytest.raises(GeologyError, match="limit"):
         fetch.validate_wfs(wfs_bytes(features=many), BOUNDS)
-    # Ejes invertidos: lat/lon en vez de lon/lat; el bbox de la entidad no toca la consulta.
+    # Inverted axes: lat/lon instead of lon/lat; the feature's bbox does not touch the query.
     swapped = geojson_feature("s", Polygon([(-26.3, -67.6), (-26.1, -67.6), (-26.1, -67.4), (-26.3, -67.4)]), wfs_props())
-    with pytest.raises(GeologyError, match="ejes"):
+    with pytest.raises(GeologyError, match="axis"):
         fetch.validate_wfs(wfs_bytes(features=[swapped]), BOUNDS)
     outside = geojson_feature("o", Polygon([(200, 0), (201, 0), (201, 1), (200, 0)]), wfs_props())
     with pytest.raises(GeologyError):
@@ -72,7 +72,7 @@ def test_wfs_rejects_limit_reached_swapped_axes_and_non_json():
         fetch.validate_wfs(b"<ServiceExceptionReport>secreto</ServiceExceptionReport>", BOUNDS)
 
 
-# --- ZIP de Chile ------------------------------------------------------------------------------------------
+# --- Chile ZIP --------------------------------------------------------------------------------------------
 
 def test_zip_with_geojson_inside_labeled_shapefile_is_detected_by_content():
     body = json.dumps(chile_collection([geojson_feature(None, Polygon([(0, 0), (1, 0), (1, 1)]), chile_props(1))])).encode()
@@ -91,7 +91,7 @@ def test_zip_rejects_unsafe_or_unexpected_members(members):
 
 
 def test_zip_rejects_compression_bomb_and_garbage():
-    with pytest.raises(GeologyError, match="razón de compresión"):
+    with pytest.raises(GeologyError, match="compression ratio"):
         fetch.inspect_zip(zip_bytes({"a.geojson": b"0" * (60 * 1024 * 1024)}))
     with pytest.raises(GeologyError):
         fetch.inspect_zip(b"no es un zip")
@@ -134,15 +134,15 @@ def test_http_follows_same_host_redirect_and_stamps_real_time():
 
 def test_http_enforces_byte_limit_and_does_not_echo_error_bodies():
     url = "https://sigam.segemar.gov.ar/a"
-    with pytest.raises(GeologyError, match="límite"):
+    with pytest.raises(GeologyError, match="limit"):
         http_for(FakeServer({url: b"x" * 2000})).fetch(url, 1000, "x")
-    with pytest.raises(GeologyError, match="límite"):
+    with pytest.raises(GeologyError, match="limit"):
         http_for(FakeServer({url: FakeResponse(200, b"x", {"Content-Length": "999999"})})).fetch(url, 1000, "x")
     server = FakeServer({url: FakeResponse(503, b"Authorization: Bearer SECRETO")})
     with pytest.raises(GeologyError) as error:
         http_for(server).fetch(url, 1000, "x")
     assert "SECRETO" not in str(error.value) and "HTTP 503" in str(error.value)
-    assert len(server.calls) == fetch.ATTEMPTS  # transitorio: reintenta de forma acotada
+    assert len(server.calls) == fetch.ATTEMPTS  # transient: bounded retry
     notfound = FakeServer({url: FakeResponse(404, b"")})
     with pytest.raises(GeologyError):
         http_for(notfound).fetch(url, 1000, "x")
@@ -159,7 +159,7 @@ def test_requests_carry_no_credentials_even_if_the_environment_has_secrets(monke
     assert b"SECRETO-DE-PRUEBA" not in stored
 
 
-# --- Adquisición y caché ----------------------------------------------------------------------------------------
+# --- Acquisition and cache ----------------------------------------------------------------------------------------
 
 def test_acquire_inspects_content_picks_geojson_among_swapped_labels_and_caches(tmp_path):
     server, resources = synthetic_world(SITES)
@@ -173,14 +173,14 @@ def test_acquire_inspects_content_picks_geojson_among_swapped_labels_and_caches(
         ["acquisition.json", "ckan-package_show.json", "cl-geologia-base.zip",
          *(f"{s['site_id']}.json" for s in SITES if s["country"] == "AR")])
     calls = len(server.calls)
-    again, reused = ensure_raw(raw, SITES, http=http_for(FakeServer({})))  # sin ninguna ruta: cualquier red falla
+    again, reused = ensure_raw(raw, SITES, http=http_for(FakeServer({})))  # without any path: any network access fails
     assert reused is True and len(server.calls) == calls
-    assert again["records"][0]["acquired_at"] == "2026-01-02T03:04:05Z"  # sin inventar fecha al reutilizar
+    assert again["records"][0]["acquired_at"] == "2026-01-02T03:04:05Z"  # without inventing a date when reusing
 
 
 def test_shapefile_labeled_first_is_rejected_and_next_resource_is_used(tmp_path):
     server, resources = synthetic_world(SITES)
-    swapped = [resources[1], resources[0]]  # el primero contiene un Shapefile real
+    swapped = [resources[1], resources[0]]  # the first one contains a real Shapefile
     server.routes[fetch.CKAN_URL] = __import__("tests.geology_fixtures", fromlist=["ckan_body"]).ckan_body(swapped)
     acquisition, _ = ensure_raw(tmp_path / "raw", SITES, http=http_for(server))
     layer = next(r for r in acquisition["records"] if r["role"] == "chile_layer")
@@ -195,7 +195,7 @@ def test_corrupt_cache_file_is_invalid_and_offline_refuses(tmp_path):
     victim = next(raw.glob("ar-win-s2620*.json"))
     victim.write_bytes(victim.read_bytes() + b" ")
     assert fetch.load_cache(raw, SITES) is None
-    with pytest.raises(GeologyError, match="sin red"):
+    with pytest.raises(GeologyError, match="offline"):
         ensure_raw(raw, SITES, offline=True)
 
 
@@ -223,11 +223,11 @@ def test_failed_refresh_keeps_previous_valid_cache_untouched(tmp_path):
     with pytest.raises(GeologyError):
         ensure_raw(raw, SITES, http=http_for(broken), refresh=True)
     assert {p.name: p.read_bytes() for p in raw.iterdir()} == before
-    assert not [p for p in tmp_path.iterdir() if p.name != "raw"]  # sin temporales huérfanos
+    assert not [p for p in tmp_path.iterdir() if p.name != "raw"]  # no orphaned temporary files
     assert fetch.load_cache(raw, SITES) is not None
 
 
-# --- Regresiones de la revisión A de Codex -----------------------------------------------------------------
+# --- Regressions from Codex review A -----------------------------------------------------------------
 
 def test_chile_and_argentina_share_the_geometry_control_before_installing():
     point = chile_collection([geojson_feature(None, Polygon([(0, 0), (1, 0), (1, 1)]), chile_props(1))])
@@ -239,14 +239,14 @@ def test_chile_and_argentina_share_the_geometry_control_before_installing():
     with pytest.raises(GeologyError):
         fetch.validate_chile_collection(json.dumps(nan).encode())
     wfs = json.loads(json.dumps(wfs_collection(features=[wide_feature()])))
-    wfs["features"][0]["geometry"]["coordinates"][0][1] = [-60, -30, 5]  # vértice 3D
+    wfs["features"][0]["geometry"]["coordinates"][0][1] = [-60, -30, 5]  # 3D vertex
     with pytest.raises(GeologyError):
         fetch.validate_wfs(json.dumps(wfs).encode(), BOUNDS)
     wfs = json.loads(json.dumps(wfs_collection(features=[wide_feature()])))
     wfs["features"][0]["geometry"]["coordinates"][0][1] = [float("nan"), -30]
     with pytest.raises(GeologyError):
         fetch.validate_wfs(json.dumps(wfs).encode(), BOUNDS)
-    fetch.validate_wfs(wfs_bytes(features=[]), BOUNDS)  # cero geometrías con CRS null sigue siendo válido
+    fetch.validate_wfs(wfs_bytes(features=[]), BOUNDS)  # zero geometries with null CRS is still valid
 
 
 def _cache(tmp_path):
@@ -261,7 +261,7 @@ def test_cache_symlink_is_rejected_before_opening(tmp_path):
     assert fetch.load_cache(raw, SITES) is not None
     victim = next(raw.glob("ar-win-s2620*.json"))
     outside = tmp_path / "outside.json"
-    outside.write_bytes(victim.read_bytes())  # mismos bytes: solo el enlace lo delata
+    outside.write_bytes(victim.read_bytes())  # same bytes: only the link gives it away
     victim.unlink()
     victim.symlink_to(outside)
     assert fetch.load_cache(raw, SITES) is None
@@ -319,7 +319,7 @@ def test_publish_replaces_in_pair_and_rolls_back(tmp_path):
             raise OSError("fallo inyectado en el segundo reemplazo")
         return __import__("os").replace(src, dst)
 
-    with pytest.raises(GeologyError, match="se restauró el estado anterior") as error:
+    with pytest.raises(GeologyError, match="the previous state was restored") as error:
         fetch.publish([(new_a, old_a), (new_b, old_b)], flaky)
     assert not isinstance(error.value, fetch.PackageStateError)
     assert (old_a / "f").read_text() == "old-a" and (old_b / "f").read_text() == "old-b"
@@ -327,7 +327,7 @@ def test_publish_replaces_in_pair_and_rolls_back(tmp_path):
     assert sorted(p.name for p in tmp_path.iterdir()) == ["a", "b", "na", "nb"]
     fetch.publish([(new_a, old_a), (new_b, old_b)])
     assert (old_a / "f").read_text() == "new-a" and (old_b / "f").read_text() == "new-b"
-    assert sorted(p.name for p in tmp_path.iterdir()) == ["a", "b"]  # sin respaldos huérfanos
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["a", "b"]  # no orphaned backups
 
 
 def test_publish_reports_the_real_state_when_rollback_also_fails(tmp_path):
@@ -348,12 +348,12 @@ def test_publish_reports_the_real_state_when_rollback_also_fails(tmp_path):
     with pytest.raises(fetch.PackageStateError) as error:
         fetch.publish([(new_a, old_a), (new_b, old_b)], broken)
     message = str(error.value)
-    assert "no se pudo" in message.lower() and "previo" in message and "atomic" not in message.lower()
+    assert "could not" in message.lower() and "previo" in message and "atomic" not in message.lower()
 
 
-# --- Bordes finales de A (checkpoint Codex) ------------------------------------------------------------------
+# --- Final edges of A (Codex checkpoint) --------------------------------------------------------------------
 
-@pytest.mark.parametrize("fail_on", [2, 4])  # staging->destino del primer y del segundo par
+@pytest.mark.parametrize("fail_on", [2, 4])  # staging->destination of the first and second pair
 def test_publish_failing_to_restore_the_same_pair_is_a_package_state_error(tmp_path, fail_on):
     import os
 
@@ -369,7 +369,7 @@ def test_publish_failing_to_restore_the_same_pair_is_a_package_state_error(tmp_p
 
     def flaky(src, dst):
         calls.append((src, dst))
-        # La instalación del par falla y también la restauración inmediata de SU respaldo.
+        # The installation of the pair fails and the immediate restoration of ITS backup also fails.
         if len(calls) in (fail_on, fail_on + 1):
             raise OSError("fallo inyectado")
         return os.replace(src, dst)
@@ -378,26 +378,26 @@ def test_publish_failing_to_restore_the_same_pair_is_a_package_state_error(tmp_p
         fetch.publish(list(zip(news, olds)), flaky)
     message = str(error.value)
     failing_target = olds[0] if fail_on == 2 else olds[1]
-    assert str(failing_target) in message and "no existe ahora" in message and ".previo" in message
+    assert str(failing_target) in message and "does not exist now" in message and ".previo" in message
     assert not failing_target.exists()
     backups = [p for p in tmp_path.iterdir() if ".previo." in p.name]
-    assert len(backups) >= 1 and (backups[-1] / "f").read_text().startswith("old-")  # el respaldo se conserva
+    assert len(backups) >= 1 and (backups[-1] / "f").read_text().startswith("old-")  # the backup is kept
     if fail_on == 4:
-        # El par anterior sí se deshizo: su destino volvió a tener el contenido antiguo.
+        # The previous pair was indeed rolled back: its destination went back to having the old content.
         assert (olds[0] / "f").read_text() == "old-a" and (news[0] / "f").read_text() == "new-a"
 
 
 def test_unclosed_ring_is_rejected_for_chile_and_argentina_but_closed_passes():
-    open_ring = [[-70, -25], [-69, -25], [-69, -24], [-70, -24]]  # cuatro vértices distintos, sin cierre
+    open_ring = [[-70, -25], [-69, -25], [-69, -24], [-70, -24]]  # four distinct vertices, no closure
     closed = open_ring + [open_ring[0]]
     geometry = {"type": "Polygon", "coordinates": [open_ring]}
     chile = json.loads(json.dumps(chile_collection([geojson_feature(None, Polygon([(0, 0), (1, 0), (1, 1)]), chile_props(1))])))
     chile["features"][0]["geometry"] = geometry
-    with pytest.raises(GeologyError, match="cierre"):
+    with pytest.raises(GeologyError, match="closure"):
         fetch.validate_chile_collection(json.dumps(chile).encode())
     wfs = json.loads(json.dumps(wfs_collection(features=[wide_feature()])))
     wfs["features"][0]["geometry"] = {"type": "MultiPolygon", "coordinates": [[closed], [open_ring]]}
-    with pytest.raises(GeologyError, match="cierre"):
+    with pytest.raises(GeologyError, match="closure"):
         fetch.validate_wfs(json.dumps(wfs).encode(), [-70, -25, -69, -24])
     wfs["features"][0]["geometry"] = {"type": "Polygon", "coordinates": [closed]}
     fetch.validate_wfs(json.dumps(wfs).encode(), [-70, -25, -69, -24])

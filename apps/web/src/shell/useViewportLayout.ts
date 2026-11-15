@@ -1,4 +1,4 @@
-/** Tramo y tamaño del viewport, actualizados al redimensionar (un render por cuadro como máximo). */
+/** Span and size of the viewport, updated on resize (at most one render per frame). */
 import { useSyncExternalStore } from 'react'
 import { viewportLayout, type ViewportLayout } from './layout'
 

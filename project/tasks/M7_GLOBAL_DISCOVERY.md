@@ -1,98 +1,98 @@
-# Encargo vigente — AnalogOS global, piloto Chile–Argentina
+# Current assignment — global AnalogOS, Chile–Argentina pilot
 
-## Estado
+## Status
 
 - **Task ID:** M7-GLOBAL-DISCOVERY
 - **Owner:** Codex
 - **Status:** accepted
 - **Branch:** `dev`
 - **Base commit:** `57b3a97bc13b712e98dae64ae28511fb2782c6c3`
-- **Dirección y aceptación:** Codex. Dan autorizó este cambio y su supervisión el 2026-11-14; no autorizó publicación de esta entrega.
+- **Direction and acceptance:** Codex. Dan authorized this change and its supervision on 2026-11-14; he did not authorize publication of this deliverable.
 
-**Autorización posterior:** Dan pidió «actualiza dev» el 2026-11-14. Codex puede crear el commit e integrar/subir este checkpoint a `origin/dev`, preservando el trabajo remoto del equipo. La aceptación anterior describe el piloto antes de esa integración.
+**Subsequent authorization:** Dan asked “update dev” on 2026-11-14. Codex may create the commit and integrate/push this checkpoint to `origin/dev`, preserving the team's remote work. The earlier acceptance describes the pilot before that integration.
 
-**Integración revisada por Codex:** piloto v3 integrado con ADR-006/007 del equipo (globo, mapa 2D y ficha flotante); ADR de descubrimiento renumerado a 008. 177 Python, 69 web y build correctos; ZIP vigente de 30 entradas, SHA-256 `804184d6015440fa073e451bfea376fc9b1c9ae6b672e133094cd528ac3af12b`. Detalle vigente en STATUS y CODEX_M7_REVIEW. El encargo original y su reporte de 18 entradas quedan como históricos; la restricción inicial «sin WebGL» fue sustituida por las decisiones de rediseño aceptadas por el equipo. Claude sigue esperando una nueva asignación.
+**Integration reviewed by Codex:** pilot v3 integrated with the team's ADR-006/007 (globe, 2D map and floating card); discovery ADR renumbered to 008. 177 Python, 69 web and build correct; current ZIP of 30 entries, SHA-256 `804184d6015440fa073e451bfea376fc9b1c9ae6b672e133094cd528ac3af12b`. Current details in STATUS and CODEX_M7_REVIEW. The original assignment and its report of 18 entries remain as historical records; the initial “no WebGL” restriction was superseded by the redesign decisions accepted by the team. Claude is still waiting for a new assignment.
 
-**Aceptación de Codex — 2026-11-14 15:33 America/Santiago.** M7 aceptado como piloto regional preliminar. Verificación independiente: 167 tests Python, 39 web y build; rebuild v2/v3 idéntico, puntuaciones y selección recalculadas, cachés sin red, ZIP determinista y demo en `/` y `/AnalogOS/`. Evidencia y límites en `docs/CODEX_M7_REVIEW.md`. Sin commit, push ni publicación. Claude queda a la espera de una nueva tarea; no ampliar regiones ni recalibrar ciencia por iniciativa propia.
+**Codex acceptance — 2026-11-14 15:33 America/Santiago.** M7 accepted as a preliminary regional pilot. Independent verification: 167 Python tests, 39 web and build; identical v2/v3 rebuild, scores and selection recalculated, caches without network, deterministic ZIP and demo at `/` and `/AnalogOS/`. Evidence and limits in `docs/CODEX_M7_REVIEW.md`. No commit, push or publication. Claude is waiting for a new task; do not expand regions or recalibrate science on your own initiative.
 
-## Objetivo
+## Objective
 
-Convertir la marca visible a **AnalogOS**, con visión global y un piloto real, acotado y reproducible en Chile y Argentina. Yungay pasa a **referencia conocida**, fuera del ranking de candidatos emergentes. La entrega debe encontrar sectores mediante una búsqueda documentada, caracterizarlos con datos reales y distinguir candidatos de antecedentes publicados. No basta agregar puntos elegidos manualmente ni cambiar el mapa.
+Convert the visible brand to **AnalogOS**, with a global vision and a real, bounded and reproducible pilot in Chile and Argentina. Yungay becomes a **known reference**, outside the ranking of emerging candidates. The deliverable must find sectors through a documented search, characterize them with real data and distinguish candidates from published precedents. It is not enough to add manually chosen points or change the map.
 
-Mantener perfil de rover marciano, referencia regional de Jezero, frontend estático sin WebGL y evidencia offline. No introducir perfil lunar ni afirmar cobertura mundial ejecutada. Rotular «Piloto Chile–Argentina» y área efectivamente explorada.
+Keep the Mars rover profile, the Jezero regional reference, a static frontend without WebGL and offline evidence. Do not introduce a lunar profile or claim that worldwide coverage was executed. Label “Chile–Argentina Pilot” and the area actually explored.
 
-## Lectura y propiedad
+## Reading and ownership
 
-Leer AGENTS.md, CLAUDE.md, STATUS.md, últimos cambios, ADR-001 a ADR-005, docs/PRODUCT_AND_SCIENCE.md, DATA_AND_SCORING.md, contratos, configuración y pipelines v2. La instrucción actual autoriza las ampliaciones de candidatos, contratos y alcance que antes estaban congeladas. Conservar v2 y su perfil byte a byte como baseline histórico; crear v3.
+Read AGENTS.md, CLAUDE.md, STATUS.md, recent changes, ADR-001 through ADR-005,, docs/PRODUCT_AND_SCIENCE.md, DATA_AND_SCORING.md, contracts, configuration and v2 pipelines. The current instruction authorizes the expansions of candidates, contracts and scope that were previously frozen. Keep v2 and its profile byte for byte as a historical baseline; create v3.
 
-Codex ya comprobó la línea base: 119 pruebas Python, 24 web y build verdes. El árbol estaba limpio en dev. Mientras Claude implemente, Codex revisará sin editar su alcance. No subagentes ni sesiones paralelas de implementación.
+Codex has already verified the baseline: 119 Python tests, 24 web and build green. The tree was clean on dev. While Claude implements, Codex will review without editing its scope. No subagents or parallel implementation sessions.
 
-## Primer checkpoint de supervisión
+## First supervision checkpoint
 
-Antes de consultas nuevas masivas o de implementar la UI, entregar en el chat un plan compacto: archivos, configuración de búsqueda, número máximo de ventanas/peticiones, extensiones de contratos y tratamiento de referencias/novedad. Puedes preparar código de búsqueda y bibliografía mientras Codex revisa. Si propones cambiar fórmula, pesos, umbrales de ciencia, datasets o regiones fuera de lo autorizado, espera decisión concreta de Codex.
+Before any new massive queries or implementing the UI, deliver a compact plan in the chat: files, search configuration, maximum number of windows/requests, contract extensions and handling of references/novelty. You may prepare search code and bibliography while Codex reviews. If you propose changing the formula, weights, science thresholds, datasets or regions beyond what is authorized, wait for a concrete decision from Codex.
 
-## 1. Búsqueda reproducible, no una lista manual
+## 1. Reproducible search, not a manual list
 
-Crear configuración versionada de un experimento regional. Propuesta inicial autorizada en CRS84 [oeste,sur,este,norte]:
+Create a versioned configuration for a regional experiment. Authorized initial proposal in CRS84 [west,south,east,north]:
 
-- Chile, interior de Antofagasta: `[-70.0, -25.5, -69.0, -24.5]`.
+- Chile, interior of Antofagasta: `[-70.0, -25.5, -69.0, -24.5]`.
 - Argentina, Puna de Catamarca/Salta: `[-67.8, -26.5, -66.8, -25.5]`.
-- Rejilla regular de ventanas no solapadas de 0,2°: 25 por región, 50 en total. Centros derivados algorítmicamente de origen/paso, IDs estables; geometría no dibujada a mano. Documentar estas regiones como selección de prueba, no muestra representativa nacional. Verificar geografía y extensión antes de ejecutar; proponer corrección si falla.
-- Las ventanas no tienen la misma área física: calcular área real y documentar tamaño ~20 km. No llamarlas rejilla de 5 km.
-- Etapa 1: NASADEM multitesela a la escala v2/MOLA, cobertura válida, agua SWB y métricas topográficas por las 50 ventanas. Cachear tiles, no descargarlos por ventana. Excluir de shortlist falta de cobertura (<95 %), agua permanente >5 %, o superposición con referencias documentadas. Mantener registro de cada rechazo. No considerar las restricciones territoriales no evaluadas como resueltas.
-- Orden de preselección: media geométrica de similitudes de pendiente/rugosidad/relieve con pesos relativos v2 0,20/0,20/0,15; nombrarlo **prioridad topográfica**, nunca score final ni confianza final. Desempate por ID. No relajar el mínimo 0,70 del score multifuente para aceptar esta etapa.
-- Diversificación determinista: hasta tres ventanas por país, con centros separados al menos 25 km (distancia geodésica, criterio versionado). Guardar también descartes por proximidad. Si hay menos candidatos elegibles, mostrarlo; nunca forzar resultados ni elegir a mano para mejorar el relato.
-- Etapa 2: caracterizar esas seis ventanas como máximo con NASADEM + Sentinel-2 mensual 2025 + POWER, usando fórmulas y pesos v2. Mantener geología sin calibrar. HLS sigue inventario, sin usar sus píxeles en score. Guardar cada intento fallido y NoData; no sustituir faltantes por datos ficticios.
-- Reutilizar referencia Yungay con misma geometría/métricas/evidencia v2 y recalcularla mediante mismas reglas si se incluye en v3: debe conservar los valores numéricos de baseline. Documentar que la ventana de screening no es el perímetro exacto de cada campaña histórica.
-- Procesar primero preselección y luego fuentes más costosas. Límite inicial: 50 ventanas topográficas, hasta 6 ventanas multifuente nuevas, hasta 20 tiles NASADEM adicionales, hasta 6 imágenes RGB nuevas. Reintentos acotados y caché reanudable, sin barridos extra si una API falla. Reportar bloqueo temprano.
+- Regular grid of non-overlapping windows of 0,2°: 25 per region, 50 in total. Centers derived algorithmically from origin/step, stable IDs; geometry not drawn by hand. Document these regions as a test selection, not a representative national sample. Verify geography and extent before running; propose a correction if it fails.
+- The windows do not have the same physical area: compute the real area and document the size ~20 km. Do not call them a 5 km grid.
+- Stage 1: multi-tile NASADEM at the v2/MOLA scale, valid coverage, SWB water and topographic metrics for the 50 windows. Cache tiles; do not download them per window. Exclude from the shortlist lack of coverage (<95 %), permanent water >5 %, or overlap with documented references. Keep a record of each rejection. Do not treat unassessed territorial restrictions as resolved.
+- Preselection order: geometric mean of slope/roughness/relief similarities with v2 relative weights 0,20/0,20/0,15; name it **topographic priority**, never final score or final confidence. Tie-break by ID. Do not relax the 0,70 minimum of the multi-source score to accept this stage.
+- Deterministic diversification: up to three windows per country, with centers separated by at least 25 km (geodesic distance, versioned criterion). Also save the discards due to proximity. If there are fewer eligible candidates, show that; never force results or choose by hand to improve the narrative.
+- Stage 2: characterize those six windows at most with NASADEM + Sentinel-2 monthly 2025 + POWER, using v2 formulas and weights. Keep geology uncalibrated. HLS remains an inventory, without using its pixels in the score. Save each failed attempt and NoData; do not substitute missing data with fictitious data.
+- Reuse the Yungay reference with the same v2 geometry/metrics/evidence and recompute it through the same rules if it is included in v3: it must keep the baseline numerical values. Document that the screening window is not the exact perimeter of each historical campaign.
+- Process preselection first and then the more costly sources. Initial limit: 50 topographic windows, up to 6 new multi-source windows, up to 20 additional NASADEM tiles, up to 6 new RGB images. Bounded retries and resumable cache, with no extra sweeps if an API fails. Report early blockage.
 
-La revisión debe poder reconstruir por qué cada ventana fue evaluada, descartada o seleccionada. Guardar config, métricas de todas las ventanas, ranking preliminar, razones, shortlist, timestamps de adquisición reales y hashes. El área explorada y el número evaluado deben verse en la demo y exportación.
+The review must be able to reconstruct why each window was evaluated, discarded or selected. Save config, metrics for all windows, preliminary ranking, reasons, shortlist, real acquisition timestamps and hashes. The explored area and the number evaluated must be visible in the demo and export.
 
-## 2. Antecedentes y referencia Yungay
+## 2. Precedents and Yungay reference
 
-Crear catálogo versionado y revisado de antecedentes, con fuentes, fecha de revisión, coordenadas/geometría cuando la publicación las dé, precisión espacial y actividad probada. Sin coordenadas inventadas ni asignar el punto de un pueblo al área científica.
+Create a versioned, reviewed catalog of precedents, with sources, review date, coordinates/geometry when the publication provides them, spatial precision and proven activity. No invented coordinates, and do not assign the point of a town to the scientific area.
 
-Fuentes iniciales contrastadas por Codex:
+Initial sources cross-checked by Codex:
 
-- Desafío: https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/
-- NASA, Hyperion en Atacama en 2003 y Zoë posteriormente: https://astrobiology.nasa.gov/news/dry-signs-of-life/ (no prueba ocupación continua del mismo polígono de Yungay).
-- Navarro-González et al. 2003: https://pubmed.ncbi.nlm.nih.gov/14605363/ ; fuente con coordenadas de muestreo: https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/2010JE003599
-- María Elena South, 2015: https://enviromicro-journals.onlinelibrary.wiley.com/doi/abs/10.1111/1758-2229.12261 (no asumir que coincide con Pampa María Elena de v2).
-- Argentina también tiene antecedentes: https://bicyt.conicet.gov.ar/fichas/produccion/12391989 y https://tecno.unca.edu.ar/la-puna-catamarquena-un-sitio-con-similitudes-al-planeta-martela-puna-catamarquena-un-sitio/ (Campo de Piedra Pómez, Dunas Blancas, Carachi Pampa y entorno de Antofagasta de la Sierra).
+- Challenge: https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/
+- NASA, Hyperion in Atacama in 2003 and Zoë subsequently: https://astrobiology.nasa.gov/news/dry-signs-of-life/ (does not prove continuous occupation of the same Yungay polygon).
+- Navarro-González et al. 2003: https://pubmed.ncbi.nlm.nih.gov/14605363/ ; source with sampling coordinates: https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/2010JE003599
+- María Elena South, 2015: https://enviromicro-journals.onlinelibrary.wiley.com/doi/abs/10.1111/1758-2229.12261 (do not assume it coincides with Pampa María Elena from v2).
+- Argentina also has precedents: https://bicyt.conicet.gov.ar/fichas/produccion/12391989 and https://tecno.unca.edu.ar/la-puna-catamarquena-un-sitio-con-similitudes-al-planeta-martela-puna-catamarquena-un-sitio/ (Campo de Piedra Pómez, Dunas Blancas, Carachi Pampa and the surroundings of Antofagasta de la Sierra).
 
-Revisar fuentes primarias y bibliografía para las zonas finalmente seleccionadas; registrar búsquedas/fecha/alcance y hallazgos. Si un área de estudio publicado es más extensa que un punto, no usar solo distancia al punto para declarar independencia. Separar relación espacial exacta, proximidad y región con antecedentes. La ausencia de coincidencia en un catálogo incompleto NO prueba novedad.
+Review primary sources and bibliography for the zones finally selected; record searches/date/scope and findings. If a published study area is more extensive than a point, do not use only distance to the point to declare independence. Separate exact spatial relationship, proximity and region with precedents. The absence of a match in an incomplete catalog does NOT prove novelty.
 
-Estados sugeridos: `known_reference`, `known_analogue_overlap`, `regional_precedent`, `literature_review_pending`, `no_match_in_reviewed_sources`. Separar rol del sitio (`reference` / `candidate`) de estado de revisión bibliográfica. Yungay siempre referencia conocida. Un resultado de búsqueda con antecedente debe conservarlo; no ocultarlo para fingir descubrimientos. No ajustar pesos para hacer ganar nuevos candidatos ni afirmar validación científica porque Yungay puntúe alto.
+Suggested statuses: `known_reference`, `known_analogue_overlap`, `regional_precedent`, `literature_review_pending`, `no_match_in_reviewed_sources`. Separate the site role (`reference` / `candidate`) from the bibliographic review status. Yungay is always a known reference. A search result with a precedent must retain it; do not hide it to feign discoveries. Do not adjust weights to make new candidates win or claim scientific validation because Yungay scores high.
 
-## 3. Snapshot v3 y contratos
+## 3. v3 snapshot and contracts
 
-- Crear `artifacts/science-v3/`, configuración de búsqueda y perfil v3 derivado de v2 con mismos pesos/fórmulas/tolerancias. Versionar nueva procedencia y alcance; no mutar archivos científicos v2.
-- Ampliar IDs más allá de `cl-` (prefijo de país coherente y validado, al menos `cl`/`ar`) y añadir metadata tipada de país, rol, origen de búsqueda y revisión bibliográfica. Preferir extensión aditiva compatible con snapshots históricos; validar estrictamente requisitos extra de v3. No colar campos sin contrato.
-- Referencias separadas del ranking de candidatos, pero comparables y exportables con su rol y fuente. No omitir su estado en exportaciones.
-- Manifiesto real de todos los datos, perfil/snapshot sincronizados, métricas y fuentes enlazadas, rechazos y limitaciones explícitos. Guardar timestamps reales, no copiar la fecha de adquisición v2 a datos nuevos.
-- Generalizar autoridades/advertencias por país. No atribuir IDE Chile a Argentina. Mantener áreas sensibles, urbano, propiedad y acceso como pendientes cuando no hay cruce oficial. Puedes integrar una capa oficial verificable si resulta pequeña y necesaria; documentar versión/fecha y no inferir permisos. No inventar datos de límites ni declarar «libre» por ausencia de datos.
-- Corregir en el camino supuestos de calidad que darían confianza falsa a nuevos datos (p. ej. contar 12 meses esperados aunque API devuelva menos, exclusión de NoData), con regresión y sin alterar arbitrariamente calidades/pesos. Si cambia baseline numérica, informar antes de aceptarlo.
+- Create `artifacts/science-v3/`, search configuration and a v3 profile derived from v2 with the same weights/formulas/tolerances. Version the new provenance and scope; do not mutate v2 scientific files.
+- Extend IDs beyond `cl-` (coherent, validated country prefix, at least `cl`/`ar`) and add typed metadata for country, role, search origin and bibliographic review. Prefer an additive extension compatible with historical snapshots; strictly validate extra v3 requirements. Do not slip in fields without a contract.
+- References separate from the candidate ranking, but comparable and exportable with their role and source. Do not omit their status in exports.
+- Real manifest of all data, synchronized profile/snapshot, linked metrics and sources, explicit rejections and limitations. Save real timestamps; do not copy the v2 acquisition date to new data.
+- Generalize authorities/warnings by country. Do not attribute IDE Chile to Argentina. Keep sensitive areas, urban areas, property and access as pending when there is no official cross-check. You may integrate a verifiable official layer if it turns out to be small and necessary; document version/date and do not infer permits. Do not invent boundary data or declare “free” due to absence of data.
+- Correct along the way quality assumptions that would give false confidence to new data (e.g. counting 12 expected months even if the API returns fewer, exclusion of NoData), with regression tests and without arbitrarily altering qualities/weights. If the numerical baseline changes, report it before accepting it.
 
-## 4. Aplicación AnalogOS
+## 4. AnalogOS application
 
-- Marca visible «AnalogOS»; subtítulo «Exploración de análogos planetarios · Piloto Chile–Argentina». No renombrar carpeta, remoto, paquetes ni hosting por cosmética.
-- Mapa SVG offline adaptable con ambos países y encuadre útil de las regiones; contornos reales con atribución, sin dibujar países a mano. Países como contexto geográfico, no autoridad legal.
-- Separar visualmente «Candidatos de la búsqueda» de «Referencia conocida: Yungay». Filtro país, ficha, comparación y exportación deben funcionar con ambos roles. El primer seleccionado debe ser candidato, salvo que no los haya; estado vacío honesto.
-- Mostrar extensión y límites de búsqueda, conteos, criterio de preselección, evidencia de antecedentes y estado de revisión. No prometer búsqueda global completa ni análogos nuevos confirmados.
-- Contexto RGB real offline de los seleccionados, con pipeline visual parametrizable y validación ligada a snapshot/config. Preservar paquete visual v2. Fuentes/periodo/NoData y ausencia de imagen deben seguir siendo claros.
-- Mantener contraste, teclado y móvil. Evitar redesign no necesario.
+- Visible brand “AnalogOS”; subtitle “Planetary analog exploration · Chile–Argentina Pilot”. Do not rename the folder, remote, packages or hosting for cosmetic reasons.
+- Adaptable offline SVG map with both countries and a useful framing of the regions; real outlines with attribution, without drawing countries by hand. Countries as geographic context, not legal authority.
+- Visually separate “Search candidates” from “Known reference: Yungay”. Country filter, card, comparison and export must work with both roles. The first selected item must be a candidate, unless there are none; honest empty state.
+- Show search extent and limits, counts, preselection criterion, precedent evidence and review status. Do not promise a complete global search or confirmed new analogs.
+- Real offline RGB context for the selected sites, with a parameterizable visual pipeline and validation tied to snapshot/config. Preserve the v2 visual package. Sources/period/NoData and the absence of an image must remain clear.
+- Maintain contrast, keyboard and mobile support. Avoid unnecessary redesign.
 
-## 5. Entrega y comprobaciones
+## 5. Delivery and checks
 
-Ampliar empaquetador a v3 con lista explícita derivada de metadata validada (no glob permisivo), rutas seguras, hashes, sin v2/demo sobrantes ni secretos, y conservando rollback y ZIP determinista. Conservar ZIP v2 histórico; nuevo entregable `submission/analogos-static.zip` con checksum propio. Actualizar narrativa activa de README, docs de producto/ciencia, submission/pitch/guion/atribuciones/checklist y capturas si cambió UI; no reescribir historia de ADR anteriores. Crear ADR-008 como proposed y reporte de búsqueda/bibliografía.
+Extend the packager to v3 with an explicit list derived from validated metadata (no permissive glob), safe paths, hashes, no leftover v2/demo files or secrets, while retaining rollback and the deterministic ZIP. Keep the historical v2 ZIP; new deliverable `submission/analogos-static.zip` with its own checksum. Update the active narrative of the README, product/science docs, submission/pitch/script/attributions/checklist and screenshots if the UI changed; do not rewrite the history of earlier ADRs. Create ADR-008 as proposed and a search/bibliography report.
 
-Pruebas necesarias: rejilla y límites; distancias y empate reproducibles; NoData/agua; selección sin intervención manual; separación rol/revisión bibliográfica; exclusión de referencias del ranking; contratos cl/ar e históricos; fuentes/autoridades por país; cobertura temporal incompleta; generación v3 reproducible; exportación conserva rol/origen; mapa y filtros; archivo visual ausente o inválido; empaquetado seguro sin extras y determinista. No inflar tests espejando implementación.
+Required tests: grid and limits; reproducible distances and ties; NoData/water; selection without manual intervention; separation of role/bibliographic review; exclusion of references from the ranking; cl/ar and historical contracts; sources/authorities by country; incomplete temporal coverage; reproducible v3 generation; export preserves role/origin; map and filters; missing or invalid visual file; safe packaging without extras and deterministic. Do not inflate tests by mirroring the implementation.
 
-Comandos mínimos:
+Minimum commands:
 
 ```bash
 source .venv/bin/activate
-# Documentar comandos nuevos exactos: descubrimiento, fetch acotado, build v3, imágenes.
+# Document the exact new commands: discovery, bounded fetch, v3 build, images.
 npm run verify
 npm run release:package
 # Verificar checksum del nuevo ZIP, repetir empaquetado, comparar bytes.
@@ -100,77 +100,77 @@ git diff --check
 git status --short
 ```
 
-Codex repetirá verificaciones y auditará resultados de búsqueda, al menos un candidato de cada país, referencias, fuentes, imágenes y demo en `/` y `/AnalogOS/`. Mostrar resultado aunque sea negativo. Los tests verdes validan software, no equivalencia planetaria ni aptitud de campo.
+Codex will repeat the checks and audit the search results, at least one candidate from each country, references, sources, images and demo in `/` and `/AnalogOS/`. Show the result even if it is negative. Green tests validate software, not planetary equivalence or field suitability.
 
-## Archivos y autoridad
+## Files and authority
 
-Autorizados: nuevos config/contratos/pipelines/artifacts v3/contornos y visuales v3; cambios necesarios en pipelines existentes con compatibilidad v2, tests, apps/web, scripts/packaging, docs, submission y project. Dependencias existentes primero; justificar necesidad antes de añadir nuevas. No .env leído por herramientas, no imprimir secretos. Usar credenciales existentes solo desde programa y endpoints oficiales de Earthdata/Copernicus; límites anteriores. Red de lectura para fuentes primarias autorizada. No AGENTS/CLAUDE, cuentas, remotos, .vercel, main, commits, push ni publicación.
+Authorized: new v3 config/contracts/pipelines/artifacts/outlines and v3 visuals; necessary changes to existing pipelines with v2 compatibility, tests, apps/web, scripts/packaging, docs, submission and project. Existing dependencies first; justify the need before adding new ones. No .env read by tools, do not print secrets. Use existing credentials only from the program and official Earthdata/Copernicus endpoints; earlier limits apply. Read-only network access to primary sources is authorized. No AGENTS/CLAUDE, accounts, remotes, .vercel, main, commits, push or publication.
 
-Entregar reporte con archivos, comandos, conteos por etapa, resultados por país, evidencia bibliográfica, fallos/NoData, tamaño ZIP, limitaciones y datos crudos no versionados. Actualizar STATUS/CHANGELOG/BACKLOG. Dejar **Owner: Codex / Status: review**; solo Codex acepta.
+Deliver a report with files, commands, counts per stage, results per country, bibliographic evidence, failures/NoData, ZIP size, limitations and unversioned raw data. Update STATUS/CHANGELOG/BACKLOG. Leave **Owner: Codex / Status: review**; only Codex accepts.
 
-## Reporte de Claude
+## Claude's report
 
-Entregado en `review` el 2026-11-14 a las 15:27 (America/Santiago). Solo Codex acepta. Sin commit, push ni publicación.
+Delivered in `review` on 2026-11-14 at 15:27 (America/Santiago). Only Codex accepts. No commit, push or publication.
 
-### Decisiones del checkpoint aprobadas por Codex
+### Checkpoint decisions approved by Codex
 
-1. `status: reference` además de `role` para la referencia.
-2. Completitud Sentinel-2 contra los 12 meses configurados.
-3. Calidad topográfica multiplicada por la cobertura NASADEM válida.
-4. 25 km al centro como heurística explícita de cercanía, no perímetro del estudio ni prueba de novedad.
+1. `status: reference` in addition to `role` for the reference.
+2. Sentinel-2 completeness against the 12 configured months.
+3. Topographic quality multiplied by valid NASADEM coverage.
+4. 25 km to the center as an explicit proximity heuristic, not the study perimeter nor proof of novelty.
 
-Geografía autorizada como piloto limitado. Quedan anotadas en ADR-008.
+Geography authorized as a limited pilot. They are recorded in ADR-008.
 
-### Conteos por etapa
+### Counts per stage
 
-| Etapa | Resultado |
+| Stage | Result |
 |---|---|
-| Ventanas intentadas / evaluadas | 50 / 50 |
-| Rechazadas por cobertura, agua o fallo de datos | 0 |
-| Excluidas por contener coordenadas de muestreo publicadas | 4 |
-| Descartadas por cercanía | 2 |
-| Elegibles fuera del cupo | 38 |
-| Preseleccionadas (etapa 2 completa) | 6 |
-| Meses Sentinel-2 rechazados / fallos de API | 0 / 0 |
+| Windows attempted / evaluated | 50 / 50 |
+| Rejected due to coverage, water or data failure | 0 |
+| Excluded for containing published sampling coordinates | 4 |
+| Discarded due to proximity | 2 |
+| Eligible but outside the quota | 38 |
+| Shortlisted (stage 2 complete) | 6 |
+| Sentinel-2 months rejected / API failures | 0 / 0 |
 
-Uso de red frente a los límites: 7 teselas NASADEM nuevas de 20; 6 ventanas multifuente de 6; 6 imágenes RGB nuevas de 6 (Yungay se reutilizó del paquete v2). Además, 7 búsquedas CMR de teselas, 6 inventarios HLS, 6 consultas POWER y 1 descarga de contornos Natural Earth.
+Network usage against the limits: 7 new NASADEM tiles out of 20; 6 multi-source windows out of 6; 6 new RGB images out of 6 (Yungay was reused from the v2 package). In addition, 7 CMR tile searches, 6 HLS inventories, 6 POWER queries and 1 Natural Earth outline download.
 
-### Resultados por país
+### Results by country
 
-| Rol | Sitio | Prioridad topográfica | Similitud | Confianza | Estabilidad |
+| Role | Site | Topographic priority | Similarity | Confidence | Stability |
 |---|---|---:|---:|---:|---:|
-| Candidato | `cl-win-s2500-w06970` | 98,01 | 94,87 | 77,45 | 99,33 |
-| Candidato | `cl-win-s2480-w06950` | 96,16 | 91,87 | 77,45 | 99,03 |
-| Candidato | `cl-win-s2520-w06950` | 93,58 | 90,35 | 77,36 | 99,08 |
-| Candidato | `ar-win-s2620-w06750` | 86,07 | 63,85 | 77,00 | 95,88 |
-| Candidato | `ar-win-s2640-w06730` | 64,53 | 53,68 | 77,25 | 96,81 |
-| Candidato | `ar-win-s2580-w06710` | 59,26 | 49,43 | 77,40 | 96,81 |
-| Referencia | `cl-pampa-yungay-screening` | 66,40 | 75,67 | 77,45 | 99,03 |
+| Candidate | `cl-win-s2500-w06970` | 98,01 | 94,87 | 77,45 | 99,33 |
+| Candidate | `cl-win-s2480-w06950` | 96,16 | 91,87 | 77,45 | 99,03 |
+| Candidate | `cl-win-s2520-w06950` | 93,58 | 90,35 | 77,36 | 99,08 |
+| Candidate | `ar-win-s2620-w06750` | 86,07 | 63,85 | 77,00 | 95,88 |
+| Candidate | `ar-win-s2640-w06730` | 64,53 | 53,68 | 77,25 | 96,81 |
+| Candidate | `ar-win-s2580-w06710` | 59,26 | 49,43 | 77,40 | 96,81 |
+| Reference | `cl-pampa-yungay-screening` | 66,40 | 75,67 | 77,45 | 99,03 |
 
-Los seis scores coinciden con el cálculo independiente de Codex. Yungay conserva exactamente los valores v2 (test dedicado). Todos quedan en `requires_review`.
+The six scores match Codex's independent calculation. Yungay retains exactly the v2 values (dedicated test). All remain at `requires_review`.
 
-### Evidencia bibliográfica
+### Bibliographic evidence
 
-- Catálogo `config/analog_precedents_v1.json`: 6 antecedentes, 30 coordenadas transcritas del material suplementario de Navarro-González et al. (2003), 3 búsquedas dirigidas con fecha, alcance y hallazgo.
-- 17 coordenadas caen en la ventana de Yungay y 5 en la región chilena, en las 4 ventanas excluidas.
-- Las fuentes argentinas revisadas no dan coordenadas; no se asignó ninguna a los topónimos.
-- Los seis candidatos quedan como `regional_precedent`. Ninguno se declara nuevo.
-- No se pudo abrir el artículo de JGR 2010 ni el registro ADS del estudio de Icarus 2020 (pidió verificación humana, que no se intentó sortear).
+- Catalog `config/analog_precedents_v1.json`: 6 background references, 30 coordinates transcribed from the supplementary material of Navarro-González et al. (2003), 3 targeted searches with date, scope and finding.
+- 17 coordinates fall within the Yungay window and 5 in the Chilean region, within the 4 excluded windows.
+- The Argentine sources reviewed give no coordinates; none was assigned to the place names.
+- The six candidates remain as `regional_precedent`. None is declared new.
+- The JGR article 2010 and the ADS record of the Icarus study 2020 could not be opened (it asked for human verification, which was not attempted to be bypassed).
 
-### Archivos propios
+### Own files
 
-- Configuración: `config/discovery_search_v3.json`, `config/analog_precedents_v1.json`, `config/visual_observations_v3.json`, `config/mission_profiles/mars-rover-screening-v3.json`.
-- Contratos: `contracts/candidate-site.schema.json` (extensión aditiva), `contracts/discovery-search.schema.json`, `contracts/precedent-catalog.schema.json`.
-- Pipelines: `discover_candidates.py`, `fetch_discovery_data.py`, `build_discovery_snapshot.py`, `build_context_outline.py`; cambios compatibles en `build_precision_snapshot.py` (`score_inputs`, `TerrainDataError`, `expected_intervals`) y `fetch_visual_context.py` (`--snapshot v3`, reutilización, `post_json`).
-- Artefactos: `artifacts/science-v3/` (7 archivos) y `artifacts/visual-context-v3/` (índice y 7 PNG).
-- Web: `App.tsx`, `index.html`, `styles.css`, `components/CandidateMap.tsx`, `CandidateRanking.tsx`, `CandidateComparison.tsx`, `CandidateDetails.tsx`, `data/loadDemoSnapshot.ts`, `data/loadVisualContext.ts`, `domain/contracts.ts`, nuevo `domain/discovery.ts`, `scripts/prune-build.mjs`, tests `discovery.test.tsx` y `visualContext.test.tsx`.
-- Entrega: `scripts/package_release.py`, `tests/test_release_package.py`, `submission/analogos-static.zip`, `submission/analogos-static.zip.sha256`, `submission/assets/analogos-pilot-overview.jpg`, `package.json` (scripts `discovery:*`).
+- Configuration: `config/discovery_search_v3.json`, `config/analog_precedents_v1.json`, `config/visual_observations_v3.json`, `config/mission_profiles/mars-rover-screening-v3.json`.
+- Contracts: `contracts/candidate-site.schema.json` (additive extension), `contracts/discovery-search.schema.json`, `contracts/precedent-catalog.schema.json`.
+- Pipelines: `discover_candidates.py`, `fetch_discovery_data.py`, `build_discovery_snapshot.py`, `build_context_outline.py`; compatible changes in `build_precision_snapshot.py` (`score_inputs`, `TerrainDataError`, `expected_intervals`) and `fetch_visual_context.py` (`--snapshot v3`, reuse, `post_json`).
+- Artifacts: `artifacts/science-v3/` (7 files) and `artifacts/visual-context-v3/` (index and 7 PNGs).
+- Web: `App.tsx`, `index.html`, `styles.css`, `components/CandidateMap.tsx`, `CandidateRanking.tsx`, `CandidateComparison.tsx`, `CandidateDetails.tsx`, `data/loadDemoSnapshot.ts`, `data/loadVisualContext.ts`, `domain/contracts.ts`, new `domain/discovery.ts`, `scripts/prune-build.mjs`, tests `discovery.test.tsx` and `visualContext.test.tsx`.
+- Delivery: `scripts/package_release.py`, `tests/test_release_package.py`, `submission/analogos-static.zip`, `submission/analogos-static.zip.sha256`, `submission/assets/analogos-pilot-overview.jpg`, `package.json` (scripts `discovery:*`).
 - Tests: `tests/test_discovery.py`.
-- Documentación: ADR-008, `docs/DISCOVERY_REPORT.md`, `docs/VISUAL_REVIEW.md`, `docs/PRODUCT_AND_SCIENCE.md`, `docs/DATA_AND_SCORING.md`, `README.md`, y en `submission/`: `README.md`, `PROJECT_PAGE_ES.md`, `PROJECT_PAGE_EN.md`, `PITCH_3_MIN_ES.md`, `DEMO_SCRIPT_2_MIN_ES.md`, `METHODOLOGY.md`, `RESULTS_AND_LIMITATIONS.md`, `ATTRIBUTIONS.md`, `JUDGING_CHECKLIST.md`, `VIDEO_SHOT_LIST.md`.
-- Proyecto: `NEXT_TASK.md`, `STATUS.md`, `CHANGELOG.md`, `BACKLOG.md`.
-- No se tocaron `AGENTS.md`, `CLAUDE.md`, remotos, ramas, `.vercel` ni `vercel.json`.
+- Documentation: ADR-008, `docs/DISCOVERY_REPORT.md`, `docs/VISUAL_REVIEW.md`, `docs/PRODUCT_AND_SCIENCE.md`, `docs/DATA_AND_SCORING.md`, `README.md`, and in `submission/`: `README.md`, `PROJECT_PAGE_ES.md`, `PROJECT_PAGE_EN.md`, `PITCH_3_MIN_ES.md`, `DEMO_SCRIPT_2_MIN_ES.md`, `METHODOLOGY.md`, `RESULTS_AND_LIMITATIONS.md`, `ATTRIBUTIONS.md`, `JUDGING_CHECKLIST.md`, `VIDEO_SHOT_LIST.md`.
+- Project: `NEXT_TASK.md`, `STATUS.md`, `CHANGELOG.md`, `BACKLOG.md`.
+- `AGENTS.md`, `CLAUDE.md`, remotes, branches, `.vercel` and `vercel.json` were not touched.
 
-### Comandos y resultados
+### Commands and results
 
 ```bash
 source .venv/bin/activate
@@ -179,7 +179,7 @@ python -m pipelines.discover_candidates                    # 50 ventanas, 6 pres
 python -m pipelines.fetch_discovery_data --stage sources   # 6 × Sentinel-2, POWER y HLS
 python -m pipelines.build_context_outline
 python -m pipelines.build_discovery_snapshot
-python -m pipelines.fetch_visual_context --snapshot v3     # 6 imágenes nuevas; ahora reutiliza sin red
+python -m pipelines.fetch_visual_context --snapshot v3     # 6 new images; now reuses without network
 npm run verify
 npm run release:package
 (cd submission && shasum -a 256 -c analogos-static.zip.sha256)
@@ -187,41 +187,41 @@ git diff --check
 git status --short
 ```
 
-| Comprobación | Resultado |
+| Check | Result |
 |---|---|
-| `npm run verify` | 167 tests Python, 39 tests web, contratos + TypeScript + Vite verdes |
+| `npm run verify` | 167 Python tests, 39 web tests, contracts + TypeScript + Vite green |
 | `npm run release:package` | sha256 `3b419d770f1a1dce5e01f7345aaafef3f33ca18df4d2f73e6d3fb8c7c9853415` |
-| Segundo empaquetado | bytes idénticos (`cmp`) |
-| ZIP v3 | 18 archivos, 9.012.267 bytes: `index.html`, JS, CSS, 7 de `science-v3/`, índice visual y 7 PNG |
-| ZIP v2 y `SHA256SUMS.txt` | intactos; `shasum -c` OK |
-| `git diff --quiet HEAD` sobre v2, demo, v1, paquete visual v2 y perfil v2 | código 0 |
-| Rebuild v2 en carpeta temporal | idéntico byte a byte en sus 5 archivos |
-| `git diff --check` | limpio |
-| Demo por HTTP en `/AnalogOS/` (Chrome sin interfaz) | 7 tarjetas, 50 ventanas, imagen local; todo responde 200 salvo `favicon.ico` |
+| Second packaging | identical bytes (`cmp`) |
+| ZIP v3 | 18 files, 9.012.267 bytes: `index.html`, JS, CSS, 7 of `science-v3/`, visual index and 7 PNG |
+| ZIP v2 and `SHA256SUMS.txt` | intact; `shasum -c` OK |
+| `git diff --quiet HEAD` on v2, demo, v1, visual package v2 and profile v2 | code 0 |
+| Rebuild of v2 in a temporary folder | byte-for-byte identical across its 5 files |
+| `git diff --check` | clean |
+| Demo over HTTP at `/AnalogOS/` (headless Chrome) | 7 cards, 50 windows, local image; everything responds 200 except `favicon.ico` |
 
-Tests nuevos: 37 en `tests/test_discovery.py` y 15 en `discovery.test.tsx`, que cubren rejilla y límites, distancias y empates, NoData y agua, selección sin intervención, fallos por ventana, relaciones con antecedentes, separación rol/revisión, referencia fuera del ranking, contratos `cl`/`ar` e históricos, autoridades por país, cobertura temporal incompleta, filas mal formadas, POWER, identidad de petición, reproducibilidad v3, experimento negativo, exportación, mapa, filtros y paquete visual.
+New tests: 37 in `tests/test_discovery.py` and 15 in `discovery.test.tsx`, covering grid and bounds, distances and ties, NoData and water, selection without intervention, per-window failures, relationships with prior work, role/review separation, reference outside the ranking, `cl`/`ar` contracts and historical ones, authorities by country, incomplete temporal coverage, malformed rows, POWER, request identity, v3 reproducibility, negative experiment, export, map, filters and visual package.
 
-### Fallos y NoData
+### Failures and NoData
 
-- Ninguna ventana falló ni quedó bajo el 95 % de cobertura; ninguna superó el 5 % de agua.
-- Los 72 meses Sentinel-2 de la etapa 2 fueron válidos.
-- La primera prueba de red del encargo anterior falló por conexión; en este no hubo fallos de API.
+- No window failed or fell below the 95 % coverage threshold; none exceeded 5 % water.
+- The 72 Sentinel-2 months of stage 2 were valid.
+- The first network test of the previous task failed due to a connection error; in this one there were no API failures.
 
-### Limitaciones y decisiones para revisar
+### Limitations and decisions to review
 
-- Dos regiones de prueba; no es una búsqueda nacional ni global.
-- POWER en la Puna (562–767 mm/año) proviene de una celda mayor que la ventana y domina la diferencia de los candidatos argentinos. Queda expuesto en ficha, manifiesto y documentación; no se cambió nada para compensarlo.
-- Dos candidatos chilenos tienen valores POWER coincidentes; se rotula como posible celda compartida.
-- El catálogo de antecedentes es incompleto; faltan textos completos de la literatura de la Puna.
-- Las observaciones visuales son apariencia a contrastar; no hubo cruce territorial.
-- El ZIP usa sin compresión y pesa 9,0 MB por las siete imágenes.
-- `__version__` del pipeline sigue en 0.2.0 para no alterar la regeneración de v2 y del snapshot demo.
-- Las capturas `assets/analogos-chile-*.jpg` y el ZIP v2 quedan como históricos.
+- Two test regions; this is not a national or global search.
+- POWER in the Puna (562–767 mm/year) comes from a cell larger than the window and dominates the difference among the Argentine candidates. It is exposed in the record, manifest and documentation; nothing was changed to compensate for it.
+- Two Chilean candidates have matching POWER values; this is labeled as a possible shared cell.
+- The catalog of prior work is incomplete; full texts of the Puna literature are missing.
+- The visual observations are appearance to be checked; there was no territorial cross-check.
+- The ZIP uses no compression and weighs 9,0 MB because of the seven images.
+- `__version__` of the pipeline remains at 0.2.0 so as not to alter the regeneration of v2 and of the demo snapshot.
+- The `assets/analogos-chile-*.jpg` captures and the v2 ZIP remain as historical records.
 
-### Datos crudos no versionados
+### Unversioned raw data
 
-En `data/raw/`: 7 teselas NASADEM nuevas (~102 MB), `copernicus/sentinel2_stats_2025_v3.json`, `power/climatology_points_v3.json`, `earthdata/cmr_inventory_v3.json`, `discovery/acquisition_v3.json` y `naturalearth/world-atlas-2.0.2-countries-50m.json`.
+In `data/raw/`: 7 new NASADEM tiles (~102 MB), `copernicus/sentinel2_stats_2025_v3.json`, `power/climatology_points_v3.json`, `earthdata/cmr_inventory_v3.json`, `discovery/acquisition_v3.json` and `naturalearth/world-atlas-2.0.2-countries-50m.json`.
 
-### Credenciales y permisos
+### Credentials and permissions
 
-Credenciales Earthdata y Copernicus leídas solo por los programas y enviadas únicamente a hosts oficiales. No se imprimieron ni guardaron valores, tokens ni cabeceras. No se detuvo ningún proceso ajeno. Ningún permiso bloqueado.
+Earthdata and Copernicus credentials were read only by the programs and sent only to official hosts. No values, tokens or headers were printed or stored. No unrelated process was stopped. No permission was blocked.

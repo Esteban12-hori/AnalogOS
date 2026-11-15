@@ -1,13 +1,13 @@
 /**
- * Teclado virtual en móvil (ADR-014): VisualViewport → `--kb-inset` en <html>, sin
- * `interactive-widget`. El composer sube con el teclado y el carrusel se pliega.
+ * Virtual keyboard on mobile (ADR-014): VisualViewport → `--kb-inset` on <html>, without
+ * `interactive-widget`. The composer moves up with the keyboard and the carousel collapses.
  */
 import { useEffect, useState } from 'react'
 
-/** Menos que esto es la barra de direcciones del navegador, no un teclado. */
+/** Anything less than this is the browser's address bar, not a keyboard. */
 export const KEYBOARD_MIN_PX = 80
 
-/** Píxeles que el teclado tapa por abajo (0 si no hay teclado). Función pura. */
+/** Pixels that the keyboard covers at the bottom (0 if there is no keyboard). Pure function. */
 export function keyboardInsetFrom(innerHeight: number, viewportHeight: number, viewportOffsetTop: number): number {
   if (![innerHeight, viewportHeight, viewportOffsetTop].every(Number.isFinite)) return 0
   const covered = Math.round(innerHeight - viewportHeight - viewportOffsetTop)

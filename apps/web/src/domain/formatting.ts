@@ -1,66 +1,67 @@
+import { displaySource } from '../i18n/sourceText'
 import type { CandidateSite, CriterionStatus, ScoreBreakdownItem } from './contracts'
 
-const number = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
-const integer = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 })
-/** Similitud, confianza y estabilidad del lugar: 1 decimal FIJO (49,99 → «50,0», no «50»). */
-const score = new Intl.NumberFormat('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+const number = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 })
+const integer = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
+/** Place similarity, confidence and stability: FIXED 1 decimal (49.99 → “50.0”, not “50”). */
+const score = new Intl.NumberFormat('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 
 export const criterionLabels: Record<string, string> = {
-  slope: 'Pendiente',
-  terrain_roughness: 'Rugosidad',
-  local_relief: 'Relieve local',
-  bare_ground_fraction: 'Suelo expuesto',
-  aridity_context: 'Aridez',
-  surface_temperature_variability: 'Rango térmico',
-  geologic_relevance: 'Geología',
+  slope: 'Slope',
+  terrain_roughness: 'Roughness',
+  local_relief: 'Local relief',
+  bare_ground_fraction: 'Bare ground',
+  aridity_context: 'Aridity',
+  surface_temperature_variability: 'Thermal range',
+  geologic_relevance: 'Geology',
 }
 
 export const criterionStatusLabels: Record<CriterionStatus, string> = {
-  valid: 'Válido',
-  missing: 'Sin dato',
-  needs_calibration: 'Sin calibrar',
-  excluded: 'Excluido',
+  valid: 'Valid',
+  missing: 'No data',
+  needs_calibration: 'Not calibrated',
+  excluded: 'Excluded',
 }
 
 export const ITEM_STATUS_LABEL = criterionStatusLabels
 
 export const PROFILE_STATUS_LABEL: Record<string, string> = {
-  needs_calibration: 'Necesita calibración',
-  needs_expert_review: 'Requiere revisión experta',
-  optional: 'Opcional',
-  validated: 'Validado',
-  deprecated: 'Obsoleto',
+  needs_calibration: 'Needs calibration',
+  needs_expert_review: 'Needs expert review',
+  optional: 'Optional',
+  validated: 'Validated',
+  deprecated: 'Deprecated',
 }
 
 export const feasibilityLabels: Record<CandidateSite['feasibility'], string> = {
-  unknown: 'Sin evaluar',
-  requires_review: 'Requiere revisión',
-  potentially_feasible: 'Potencialmente factible',
-  excluded: 'Excluido',
+  unknown: 'Not evaluated',
+  requires_review: 'Requires review',
+  potentially_feasible: 'Potentially feasible',
+  excluded: 'Excluded',
 }
 
-/** Puntaje 0–100 del lugar (similitud, confianza, estabilidad) con 1 decimal fijo, formato es-CL. */
+/** 0–100 place score (similarity, confidence, stability) with a fixed decimal, en-US format. */
 export function formatScore(value: number | null): string {
   return value === null ? '—' : score.format(value)
 }
 
-/** Número con hasta 1 decimal (sin ceros finales), formato es-CL: pesos, calidad, magnitudes. */
+/** Number with up to 1 decimal (no trailing zeros), en-US format: weights, quality, magnitudes. */
 export function formatDecimal(value: number): string {
   return number.format(value)
 }
 
-/** Entero es-CL: similitud por criterio (el valor exacto solo en «Método»). */
+/** en-US integer: per-criterion similarity (the exact value only in “Method”). */
 export function formatWhole(value: number): string {
   return integer.format(value)
 }
 
 export function formatArea(value: number): string {
-  // ponytail: dos cifras significativas; los polígonos son celdas aproximadas, no deslindes.
+  // ponytail: two significant figures; the polygons are approximate cells, not boundary delineations.
   return `≈ ${integer.format(Number(value.toPrecision(2)))} km²`
 }
 
 export function formatPercent(value: number): string {
-  return `${number.format(value * 100)} %`
+  return `${number.format(value * 100)}%`
 }
 
 export function formatRatio(value: number): string {
@@ -79,18 +80,19 @@ export function formatRawValue(
   const unit = typeof valueOrItem === 'object' && valueOrItem !== null
     ? valueOrItem.unit
     : (explicitUnit ?? '')
-  if (value === null) return 'sin valor bruto'
+  if (value === null) return 'no raw value'
   if (typeof value === 'number') {
-    if (unit === 'ratio') return `${number.format(value * 100)} %`
+    if (unit === 'ratio') return `${number.format(value * 100)}%`
     if (unit === 'degree') return `${number.format(value)}°`
     if (unit === 'meter') return `${number.format(value)} m`
     if (unit === 'kelvin') return `${number.format(value)} K`
-    if (unit === 'millimeter_per_year') return `${number.format(value)} mm/año`
+    if (unit === 'millimeter_per_year') return `${number.format(value)} mm/year`
     return number.format(value)
   }
   return value
 }
 
+/** Display name of a site: drops the synthetic-fixture suffix and shows the English rendering (coordinates with a decimal point, W for “O”). */
 export function shortCandidateName(name: string): string {
-  return name.replace(' (sintético, ubicación arbitraria)', '')
+  return displaySource(name.replace(' (sintético, ubicación arbitraria)', ''))
 }

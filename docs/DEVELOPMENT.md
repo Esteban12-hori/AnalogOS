@@ -1,11 +1,11 @@
-# Desarrollo y operación de AnalogOS
+# AnalogOS Development and Operations
 
-Esta guía reúne instalación, verificación, empaquetado y reproducción de datos. Para entender el producto, empieza por el [README](../README.md). Todos los comandos se ejecutan desde la raíz del repositorio, salvo que se indique otra cosa.
+This guide covers installation, verification, packaging, and data reproduction. To understand the product, start with the [README](../README.md). All commands are run from the repository root unless otherwise indicated.
 
-## Preparar el entorno
+## Set up the environment
 
-- **Node.js 22+ y npm:** aplicación web y servidor opcional de IA.
-- **Python 3.11+:** pipelines, pruebas de datos y empaquetado portable.
+- **Node.js 22+ and npm:** web application and optional AI server.
+- **Python 3.11+:** pipelines, data tests, and portable packaging.
 
 ```bash
 npm install
@@ -14,67 +14,67 @@ source .venv/bin/activate
 python -m pip install -e '.[dev]'
 ```
 
-La activación mostrada corresponde a macOS/Linux; en Windows usa el activador del entorno virtual de tu terminal. La instalación inicial necesita conexión. Las dependencias se declaran en los archivos del repositorio.
+The activation shown applies to macOS/Linux; on Windows, use your terminal's virtual environment activator. The initial installation requires a connection. Dependencies are declared in the repository files.
 
-Los datos procesados ya están incluidos. No necesitas credenciales para explorar el piloto, ejecutar el recorrido manual o verificar el software. Para usar la asistencia opcional, sigue [AI_SETUP.md](AI_SETUP.md): las variables se cargan solo en el servidor.
+The processed data is already included. You do not need credentials to explore the pilot, run the manual walkthrough, or verify the software. To use the optional assistance, follow [AI_SETUP.md](AI_SETUP.md): the variables are loaded on the server only.
 
-## Ejecutar y verificar
+## Run and verify
 
 ```bash
 npm run dev
 ```
 
-Abre [http://127.0.0.1:5173/](http://127.0.0.1:5173/).
+Open [http://127.0.0.1:5173/](http://127.0.0.1:5173/).
 
-Con el entorno Python activo, la comprobación integral es:
+With the Python environment active, the full check is:
 
 ```bash
 npm run verify
 ```
 
-Ejecuta pruebas Python, comprobación de tipos del servidor, pruebas web y build. Las pruebas de IA real son optativas y no forman parte de esta comprobación.
+It runs Python tests, server type checking, web tests, and the build. Real AI tests are optional and are not part of this check.
 
-Para construir y revisar la versión de producción local:
+To build and review the local production version:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-El build queda en `apps/web/dist/`. El núcleo usa los archivos locales; las teselas públicas de NASA GIBS son una mejora opcional. Los servidores de desarrollo y preview incluyen el endpoint de IA cuando está configurado. Servir únicamente los archivos estáticos no incluye ese endpoint.
+The build ends up in `apps/web/dist/`. The core uses the local files; the public NASA GIBS tiles are an optional enhancement. The development and preview servers include the AI endpoint when it is configured. Serving only the static files does not include that endpoint.
 
-## Estructura del repositorio
+## Repository structure
 
-| Ruta | Contenido |
+| Path | Contents |
 |---|---|
-| `apps/web/` | Interfaz React/TypeScript, globo 3D y mapa 2D de respaldo. |
-| `shared/` | Evaluación y validación compartidas entre navegador y servidor. |
-| `server/ai/`, `api/` | Asistencia opcional de Anthropic y entrada de la función desplegable. |
-| `pipelines/` | Adquisición, transformación y generación de artefactos. |
-| `artifacts/science-v3/` | Snapshot del piloto Chile–Argentina que consume la web. |
-| `artifacts/visual-context-v3/` | Imágenes locales y procedencia de los siete sectores. |
-| `artifacts/geology-context-v1/` | Contexto geológico oficial de los sectores, con cobertura y límites. |
-| `artifacts/science-v2/`, `artifacts/demo/` | Histórico científico y fixtures sintéticos para pruebas. |
-| `config/`, `contracts/` | Perfiles, configuración de búsqueda y contratos JSON Schema. |
-| `docs/`, `project/` | Decisiones, método, estado y coordinación del desarrollo. |
-| `submission/` | Paquete portable, capturas y materiales de presentación. |
+| `apps/web/` | React/TypeScript interface, 3D globe, and 2D fallback map. |
+| `shared/` | Evaluation and validation shared between browser and server. |
+| `server/ai/`, `api/` | Optional Anthropic assistance and deployable function entry point. |
+| `pipelines/` | Acquisition, transformation, and artifact generation. |
+| `artifacts/science-v3/` | Snapshot of the Chile–Argentina pilot consumed by the web app. |
+| `artifacts/visual-context-v3/` | Local images and provenance for the seven sectors. |
+| `artifacts/geology-context-v1/` | Official geological context of the sectors, with coverage and limits. |
+| `artifacts/science-v2/`, `artifacts/demo/` | Scientific history and synthetic fixtures for tests. |
+| `config/`, `contracts/` | Profiles, search configuration, and JSON Schema contracts. |
+| `docs/`, `project/` | Decisions, method, status, and development coordination. |
+| `submission/` | Portable package, screenshots, and presentation materials. |
 
-La marca del producto es AnalogOS; los nombres internos `analogos-chile` se conservan por compatibilidad.
+The product brand is AnalogOS; the internal names `analogos-chile` are kept for compatibility.
 
-## Preparar una versión portable
+## Prepare a portable version
 
-Con las dependencias instaladas y el entorno Python activo:
+With the dependencies installed and the Python environment active:
 
 ```bash
 npm run release:package
 (cd submission && shasum -a 256 -c analogos-static.zip.sha256)
 ```
 
-El comando reconstruye el frontend y valida su contenido antes de escribir `submission/analogos-static.zip` y su checksum SHA-256. Incluye el snapshot v3, mapas base locales e imágenes declaradas en el índice visual. Si el build contiene el paquete geológico, también lo valida y lo incluye. Una validación fallida conserva la entrega anterior.
+The command rebuilds the frontend and validates its contents before writing `submission/analogos-static.zip` and its SHA-256 checksum. It includes the v3 snapshot, local base maps, and images declared in the visual index. If the build contains the geological package, it also validates and includes it. A failed validation preserves the previous deliverable.
 
-El ZIP es determinista para un mismo build. El archivo histórico `analogos-chile-static.zip` no se regenera. Los controles detallados están en [scripts/package_release.py](../scripts/package_release.py).
+The ZIP is deterministic for a given build. The historical file `analogos-chile-static.zip` is not regenerated. The detailed checks are in [scripts/package_release.py](../scripts/package_release.py).
 
-Para probar el paquete por HTTP bajo un subdirectorio:
+To test the package over HTTP under a subdirectory:
 
 ```bash
 mkdir -p /tmp/analogos-demo/AnalogOS
@@ -82,17 +82,17 @@ unzip -o -q submission/analogos-static.zip -d /tmp/analogos-demo/AnalogOS
 python3 -m http.server 8080 --bind 127.0.0.1 --directory /tmp/analogos-demo
 ```
 
-Abre [http://127.0.0.1:8080/AnalogOS/](http://127.0.0.1:8080/AnalogOS/) con la barra final. Las rutas del build son relativas. Abrir `index.html` con `file://` no es un modo soportado: el navegador puede bloquear módulos y lecturas de JSON.
+Open [http://127.0.0.1:8080/AnalogOS/](http://127.0.0.1:8080/AnalogOS/) with the trailing slash. The build paths are relative. Opening `index.html` with `file://` is not a supported mode: the browser may block modules and JSON reads.
 
-El paquete funciona en modo manual sin conexión. No incluye servidor de IA ni credenciales.
+The package works in manual mode without a connection. It does not include an AI server or credentials.
 
-## Reproducir el piloto científico
+## Reproduce the scientific pilot
 
-La reproducción de fuentes es independiente de la exploración de los artefactos incluidos. Requiere cuentas Earthdata y Copernicus para las descargas autenticadas.
+Source reproduction is independent of exploring the included artifacts. It requires Earthdata and Copernicus accounts for authenticated downloads.
 
-Si aún no existe un `.env` local, créalo a partir de [.env.example](../.env.example) y completa las variables necesarias. Conserva el archivo ignorado por Git y no sobrescribas credenciales ya configuradas.
+If a local `.env` does not yet exist, create it from [.env.example](../.env.example) and fill in the necessary variables. Keep the file ignored by Git and do not overwrite credentials that are already configured.
 
-Con el entorno Python activo:
+With the Python environment active:
 
 ```bash
 python -m pipelines.fetch_discovery_data --stage tiles
@@ -104,82 +104,82 @@ python -m pipelines.fetch_visual_context --snapshot v3
 npm run verify
 ```
 
-El proceso busca sobre 50 ventanas en dos regiones y caracteriza hasta seis candidatas, además de la referencia Yungay. Usa MOLA, NASADEM, Sentinel-2, POWER e inventario HLS; no es una búsqueda global interactiva. El método y los resultados están en [DISCOVERY_REPORT.md](DISCOVERY_REPORT.md) y [ADR-008](decisions/ADR-008-global-discovery-pilot.md).
+The process searches over 50 windows in two regions and characterizes up to six candidates, in addition to the Yungay reference. It uses MOLA, NASADEM, Sentinel-2, POWER, and HLS inventory; it is not an interactive global search. The method and results are in [DISCOVERY_REPORT.md](DISCOVERY_REPORT.md) and [ADR-008](decisions/ADR-008-global-discovery-pilot.md).
 
-Las descargas son reanudables y acotadas. La caché está ligada a la petición exacta: cambiar región, periodo, producto o transformación requiere consultar de nuevo. Los datos crudos quedan en `data/raw/`, ignorados por Git; las salidas versionables, en `artifacts/`. Los manifiestos conservan fuentes, versiones, unidades, transformaciones y checksums, sin credenciales.
+Downloads are resumable and bounded. The cache is tied to the exact request: changing region, period, product, or transformation requires querying again. Raw data ends up in `data/raw/`, ignored by Git; versionable outputs go in `artifacts/`. The manifests preserve sources, versions, units, transformations, and checksums, without credentials.
 
-### Contexto visual
+### Visual context
 
-Las fichas muestran imágenes Sentinel-2 L2A en color natural del mosaico de diciembre de 2025. Se sirven como archivos locales y no modifican la evaluación.
+The cards show Sentinel-2 L2A natural-color images from the December 2025 mosaic. They are served as local files and do not modify the assessment.
 
 ```bash
 python -m pipelines.fetch_visual_context --snapshot v3
 python -m pipelines.fetch_visual_context --snapshot v3 --refresh
 ```
 
-El primer comando reutiliza el paquete local existente sin red ni credenciales. `--refresh` vuelve a consultar Copernicus y requiere sus credenciales. Consulta [VISUAL_REVIEW.md](VISUAL_REVIEW.md) y [ADR-005](decisions/ADR-005-offline-visual-context.md).
+The first command reuses the existing local package without network access or credentials. `--refresh` queries Copernicus again and requires your credentials. See [VISUAL_REVIEW.md](VISUAL_REVIEW.md) and [ADR-005](decisions/ADR-005-offline-visual-context.md).
 
-### Contexto geológico
+### Geological context
 
 ```bash
 python -m pipelines.build_geology_context --offline
 python -m pipelines.build_geology_context --refresh
 ```
 
-`--offline` requiere que exista la caché cruda local en `data/raw/geology-context-v1/`; esa caché no viene en Git. `--refresh` descarga cartografía pública de Chile y Argentina, sin credenciales. El paquete procesado sí está incluido y la web puede utilizarlo sin reconstruirlo.
+`--offline` requires the local raw cache to exist at `data/raw/geology-context-v1/`; that cache is not included in Git. `--refresh` downloads public cartography of Chile and Argentina, without credentials. The processed package is included and the web app can use it without rebuilding it.
 
-La cartografía de SERNAGEOMIN (vía MMA, escala 1:1.000.000) y SEGEMAR/SIGAM (1:250.000) aporta unidades, huecos y solapes. Su cobertura no es una medida de aptitud o precisión. Si el contexto está ausente o es inválido, la aplicación lo indica y conserva el resto del recorrido.
+The cartography from SERNAGEOMIN (via MMA, scale 1:1,000,000) and SEGEMAR/SIGAM (1:250,000) provides units, gaps and overlaps. Its coverage is not a measure of suitability or accuracy. If the context is missing or invalid, the application indicates it and keeps the rest of the flow.
 
-Operación, fuentes, licencias y límites: [GEOLOGY_CONTEXT.md](GEOLOGY_CONTEXT.md). Decisiones: [ADR-010](decisions/ADR-010-geology-context.md) y [ADR-011](decisions/ADR-011-geology-guided-test-guidance.md). La orientación de IA es opcional y no cambia los puntajes ni el resultado de requisitos.
+Operation, sources, licenses and limits: [GEOLOGY_CONTEXT.md](GEOLOGY_CONTEXT.md). Decisions: [ADR-010](decisions/ADR-010-geology-context.md) and [ADR-011](decisions/ADR-011-geology-guided-test-guidance.md). The AI guidance is optional and does not change the scores or the requirements outcome.
 
-### Snapshots históricos y fixtures
+### Historical snapshots and fixtures
 
-Estos comandos no sustituyen el snapshot v3 que consume la aplicación:
+These commands do not replace the v3 snapshot that the application consumes:
 
 ```bash
 python -m pipelines.fetch_precision_data
 python -m pipelines.build_precision_snapshot
 ```
 
-Reconstruyen el histórico v2 en `artifacts/science-v2/` y requieren Earthdata/Copernicus. El histórico v1 conserva los módulos `pipelines.fetch_science_data` y `pipelines.build_science_snapshot`, sin credenciales.
+They rebuild the v2 history in `artifacts/science-v2/` and require Earthdata/Copernicus. The v1 history keeps the `pipelines.fetch_science_data` and `pipelines.build_science_snapshot` modules, without credentials.
 
-Para regenerar exclusivamente las fixtures sintéticas de contratos:
+To regenerate only the synthetic contract fixtures:
 
 ```bash
 python -m pipelines.build_demo --profile config/mission_profiles/mars-rover-mobility-v1.json
 ```
 
-## Despliegue
+## Deployment
 
-El frontend puede servirse estáticamente. La IA necesita además un servidor compatible con `api/ai.ts`, sus artefactos y configuración de entorno; el flujo del repositorio usa Vercel.
+The frontend can be served statically. The AI additionally needs a server compatible with `api/ai.ts`, its artifacts and environment configuration; the repository workflow uses Vercel.
 
-| Rama | Entorno | URL |
+| Branch | Environment | URL |
 |---|---|---|
-| `main` | Producción | https://analogos.vercel.app/ |
-| `dev` | Preview del equipo | https://analogos-dev.vercel.app/ |
+| `main` | Production | https://analogos.vercel.app/ |
+| `dev` | Team preview | https://analogos-dev.vercel.app/ |
 
-El workflow `.github/workflows/vercel-deploy.yml` construye la web y comprueba el arranque de la función empaquetada antes de desplegar. Ambos entornos reciben la configuración de Anthropic solo en runtime desde GitHub Secrets. Para promover una versión revisada, integrar dev en main y hacer push sin force. No se usa una rama `master`.
+The `.github/workflows/vercel-deploy.yml` workflow builds the web app and checks that the packaged function starts up before deploying. Both environments receive the Anthropic configuration only at runtime from GitHub Secrets. To promote a reviewed version, merge dev into main and push without force. A `master` branch is not used.
 
-El entorno del equipo en dev conserva protección de acceso y no es una demo pública. Consulta [AI_SETUP.md](AI_SETUP.md) para configurar la función y [DEV_AI_VERIFICATION.md](DEV_AI_VERIFICATION.md) para la evidencia de verificación. Las pruebas reales consumen la API configurada:
+The team environment on dev keeps access protection and is not a public demo. See [AI_SETUP.md](AI_SETUP.md) to configure the function and [DEV_AI_VERIFICATION.md](DEV_AI_VERIFICATION.md) for the verification evidence. Real tests consume the configured API:
 
 ```bash
 npm run test:ai-live
 ```
 
-## Contribuir y retomar trabajo
+## Contributing and resuming work
 
-Antes de editar, lee [AGENTS.md](../AGENTS.md), el [estado actual](../project/STATUS.md), la [tarea asignada](../project/NEXT_TASK.md), el último [changelog](../project/CHANGELOG.md) y los [registros de decisiones](decisions/). Respeta el propietario y el alcance de la tarea; conserva cambios existentes del equipo.
+Before editing, read [AGENTS.md](../AGENTS.md), the [current status](../project/STATUS.md), the [assigned task](../project/NEXT_TASK.md), the latest [changelog](../project/CHANGELOG.md) and the [decision records](decisions/). Respect the owner and scope of the task; preserve existing team changes.
 
-Los agentes cuentan con [CLAUDE.md](../CLAUDE.md), [START_CLAUDE.md](../prompts/START_CLAUDE.md) y [RESUME_CODEX.md](../prompts/RESUME_CODEX.md). La continuidad se documenta en [HANDOFF_PROTOCOL.md](../project/HANDOFF_PROTOCOL.md).
+The agents have [CLAUDE.md](../CLAUDE.md), [START_CLAUDE.md](../prompts/START_CLAUDE.md) and [RESUME_CODEX.md](../prompts/RESUME_CODEX.md). Continuity is documented in [HANDOFF_PROTOCOL.md](../project/HANDOFF_PROTOCOL.md).
 
-Antes de entregar cambios, ejecuta tests y build, registra resultados y actualiza el estado. Los resultados científicos, la similitud y la confianza deben conservar su trazabilidad; pasar las pruebas de software no equivale a validar los sectores en campo.
+Before delivering changes, run tests and build, record the results and update the status. Scientific results, similarity and confidence must keep their traceability; passing the software tests is not equivalent to validating the sectors in the field.
 
-## Interfaz Explorar / Misión
+## Explore / Mission interface
 
-La web usa un escenario fijo: el globo 3D de fondo, que pasa solo a un mapa 2D al hacer zoom, con el carrusel de lugares, las líneas de métricas, el riel, «Tu misión» y la Lectura. Por dentro usa el motor determinista (`shared/mission`), la IA opcional (`server/ai`) y los datos v3 y de geología del equipo.
+The web app uses a fixed scene: the 3D globe in the background, which switches to a 2D map only when zooming in, with the carousel of places, the metric lines, the rail, “Your mission” and the Reading. Internally it uses the deterministic engine (`shared/mission`), the optional AI (`server/ai`) and the team's v3 and geology data.
 
-- Diseño y decisiones: `docs/UX_REDESIGN.md`.
-- Propiedad de archivos por feature (`apps/web/src/features/*`): `docs/BUILD_CONTRACTS.md`.
-- Correspondencia con el planificador y la geología del equipo: `docs/INTEGRATION_PLAN.md`.
-- Rendimiento y mediciones: `docs/PERFORMANCE.md`.
+- Design and decisions: `docs/UX_REDESIGN.md`.
+- File ownership by feature (`apps/web/src/features/*`): `docs/BUILD_CONTRACTS.md`.
+- Correspondence with the planner and the team's geology: `docs/INTEGRATION_PLAN.md`.
+- Performance and measurements: `docs/PERFORMANCE.md`.
 

@@ -1,6 +1,6 @@
-// Esquemas de SALIDA que se envían al proveedor (subconjunto de structured outputs: objetos cerrados,
-// todo requerido, sin límites numéricos ni de longitud). Los límites reales están en
-// contracts/mission-ai.schema.json y se validan con Ajv al recibir la respuesta (validate.ts).
+// OUTPUT schemas sent to the provider (a subset of structured outputs: closed objects,
+// everything required, no numeric or length limits). The actual limits are in
+// contracts/mission-ai.schema.json and are validated with Ajv when the response is received (validate.ts).
 import { METRIC_IDS, UNMEASURED_TOPICS } from './catalog'
 
 const topicIds = [...UNMEASURED_TOPICS.map((t) => t.id), 'other_unmeasured']

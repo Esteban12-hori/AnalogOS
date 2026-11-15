@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 describe('contextLayers', () => {
-  it('enlaza los siete sitios v3 a sus imágenes reales sin volver al directorio histórico', () => {
+  it('links the seven v3 sites to their real images without going back to the historical directory', () => {
     const root = resolve(__dirname, '../../../..')
     const index = JSON.parse(readFileSync(resolve(root, 'artifacts/visual-context-v3/index.json'), 'utf8'))
     const layers = contextLayers({ status: 'ready', index })
@@ -16,12 +16,12 @@ describe('contextLayers', () => {
       expect(readFileSync(resolve(root, 'artifacts', layer.image)).byteLength).toBeGreaterThan(0)
     }
   })
-  it('no produce capas mientras carga o si no está disponible', () => {
+  it('produces no layers while loading or if unavailable', () => {
     expect(contextLayers({ status: 'loading' })).toEqual([])
     expect(contextLayers({ status: 'unavailable', reason: 'x' })).toEqual([])
   })
 
-  it('usa la bbox y el archivo validados del índice', () => {
+  it('uses the validated bbox and file from the index', () => {
     const state = {
       status: 'ready',
       index: {
@@ -36,7 +36,7 @@ describe('contextLayers', () => {
     expect(layer?.label).toContain('≈29 m')
   })
 
-  it('usa la vista previa WebP solo si el SHA-256 coincide con el PNG del índice', () => {
+  it('uses the WebP preview only if the SHA-256 matches the index PNG', () => {
     const state = {
       status: 'ready',
       index: {

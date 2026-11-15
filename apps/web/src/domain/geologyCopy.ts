@@ -1,33 +1,35 @@
 /**
- * Textos de PRESENTACIÓN cuando el sector tiene su contexto geológico oficial validado (M9 del equipo:
- * `ScoreBreakdown` y «Dónde falla la analogía» de `CandidateDetails`, portados a la interfaz integrada).
- * El snapshot no cambia: la geología del puntaje sigue sin calibrar, fuera de similitud, confianza y
- * factibilidad. Módulo puro y liviano (sin Ajv): lo usan el chunk de entrada y los diferidos.
+ * PRESENTATION texts for when the sector has its validated official geological context (team M9:
+ * `ScoreBreakdown` and "Where the analogy fails" from `CandidateDetails`, ported to the integrated interface).
+ * The snapshot does not change: the score's geology remains uncalibrated, outside similarity, confidence and
+ * feasibility. Pure, lightweight module (no Ajv): used by the entry chunk and the deferred ones.
  */
+
+import { displaySource } from '../i18n/sourceText'
 
 export const GEOLOGY_CRITERION_ID = 'geologic_relevance'
 
-/** Texto del equipo para el criterio geológico pendiente cuando hay contexto oficial disponible. */
+/** Team text for the pending geological criterion when official context is available. */
 export const GEOLOGY_PENDING_WITH_CONTEXT =
-  'El contexto geológico oficial está disponible con sus límites de cobertura. Falta calibrar su compatibilidad con el objetivo y revisarla con especialistas; permanece fuera del puntaje.'
+  'The official geological context is available with its coverage limits. Its compatibility with the objective still needs calibration and expert review; it stays outside the score.'
 
-/** Limitación histórica del snapshot v3 que el contexto oficial deja parcialmente atendida. */
+/** Historical v3 snapshot limitation (exact source wording, matched against the artifact) that the official context partly addresses. */
 export const HISTORICAL_GEOLOGY_LIMITATION =
   'Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.'
 
 /**
- * Reemplazo del equipo, con la ubicación de la interfaz integrada: el panel geológico vive en la
- * pestaña «Geología» de la ficha (en `CandidateDetails` estaba «arriba» de la lista).
+ * Team replacement, with the location in the integrated interface: the geological panel lives in the
+ * "Geology" tab of the detail sheet (in `CandidateDetails` it was "above" the list).
  */
 export const GEOLOGY_LIMITATION_WITH_CONTEXT =
-  'La cartografía geológica regional se consulta en la pestaña «Geología» con sus huecos y límites. La calibración geológica y la evidencia territorial de áreas protegidas, urbano, propiedad y acceso siguen pendientes.'
+  'Regional geological mapping can be consulted in the “Geology” tab with its gaps and limits. Geological calibration and territorial evidence on protected areas, urban areas, ownership and access are still pending.'
 
-/** Explicación del criterio pendiente: la del snapshot o, con contexto oficial del sector, la del equipo. */
+/** Explanation of the pending criterion: the snapshot's or, with official sector context, the team's. */
 export function criterionExplanation(criterionId: string, explanation: string, hasGeology: boolean): string {
-  return hasGeology && criterionId === GEOLOGY_CRITERION_ID ? GEOLOGY_PENDING_WITH_CONTEXT : explanation
+  return hasGeology && criterionId === GEOLOGY_CRITERION_ID ? GEOLOGY_PENDING_WITH_CONTEXT : displaySource(explanation)
 }
 
-/** Limitación del snapshot tal cual o, con contexto oficial del sector, su versión actualizada. */
+/** Snapshot limitation as is or, with official sector context, its updated version. */
 export function limitationText(item: string, hasGeology: boolean): string {
-  return hasGeology && item === HISTORICAL_GEOLOGY_LIMITATION ? GEOLOGY_LIMITATION_WITH_CONTEXT : item
+  return hasGeology && item === HISTORICAL_GEOLOGY_LIMITATION ? GEOLOGY_LIMITATION_WITH_CONTEXT : displaySource(item)
 }

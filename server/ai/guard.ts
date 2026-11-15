@@ -10,10 +10,10 @@ export function header(h: HeaderBag, name: string): string {
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]'])
 
 /**
- * Origen permitido: (a) loopback http (desarrollo/preview local; no en producción),
- * (b) hostnames Vercel del propio entorno (VERCEL_URL, VERCEL_BRANCH_URL, VERCEL_PROJECT_PRODUCTION_URL),
- * (c) orígenes exactos de ANALOGOS_AI_ALLOWED_ORIGINS, (d) mismo origen que el Host de la petición
- * (alias del despliegue). Nunca un comodín como *.vercel.app.
+ * Allowed origin: (a) loopback http (local development/preview; not in production),
+ * (b) the environment's own Vercel hostnames (VERCEL_URL, VERCEL_BRANCH_URL, VERCEL_PROJECT_PRODUCTION_URL),
+ * (c) exact origins from ANALOGOS_AI_ALLOWED_ORIGINS, (d) same origin as the request's Host
+ * (deployment alias). Never a wildcard such as *.vercel.app.
  */
 export function isOriginAllowed(originHeader: string, hostHeader: string, config: AiConfig): boolean {
   let url: URL
@@ -31,9 +31,9 @@ export function isOriginAllowed(originHeader: string, hostHeader: string, config
 }
 
 /**
- * Limitador de ventana fija EN MEMORIA: por instancia, no distribuido. En serverless cada
- * instancia tiene su contador y se reinicia en cada arranque en frío; es una protección
- * básica contra pulsaciones repetidas, no una cuota fiable.
+ * IN-MEMORY fixed-window limiter: per instance, not distributed. In serverless, each
+ * instance has its own counter and it resets on every cold start; it is basic
+ * protection against repeated button presses, not a reliable quota.
  */
 export class RateLimiter {
   private readonly hits = new Map<string, { start: number; count: number }>()

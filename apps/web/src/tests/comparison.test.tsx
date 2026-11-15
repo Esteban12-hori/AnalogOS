@@ -1,5 +1,5 @@
-// Comparar de la ficha (firma del equipo: ranked, references, rankOf): candidatos en su puesto
-// global, la referencia conocida aparte y sin puesto, y siempre las cifras del snapshot v3.
+// Compare from the sheet (team signature: ranked, references, rankOf): candidates in their overall position,
+// the known reference listed separately and without a position, and always the figures from the v3 snapshot.
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -14,7 +14,7 @@ const { ranked, references } = splitByRole(candidates)
 const rankOf = rankMap(ranked)
 
 describe('Comparar', () => {
-  it('candidatos con su puesto global y la referencia conocida al final, sin puesto', () => {
+  it('candidates with their global rank and the known reference last, without rank', () => {
     const rows = comparisonRows(ranked, references, rankOf)
     expect(rows).toHaveLength(candidates.length)
     expect(rows.slice(0, ranked.length).map((row) => row.rank)).toEqual(ranked.map((_, index) => index + 1))
@@ -24,7 +24,7 @@ describe('Comparar', () => {
     expect(reference?.rank).toBeNull()
   })
 
-  it('las cifras son las del snapshot, sin recalcular', () => {
+  it('figures are the snapshot ones, not recalculated', () => {
     for (const row of comparisonRows(ranked, references, rankOf)) {
       expect(row.similarity).toBe(row.candidate.similarity)
       expect(row.confidence).toBe(row.candidate.confidence)
@@ -32,11 +32,11 @@ describe('Comparar', () => {
     }
   })
 
-  it('la tarjeta de la REF dice «Referencia conocida» y nunca muestra un número de puesto', () => {
+  it('the REF card says “Known reference” and never shows a rank number', () => {
     const html = renderToStaticMarkup(
       <CandidateComparison ranked={ranked} references={references} rankOf={rankOf} selectedId={ranked[0]!.site_id} onSelect={() => undefined} />,
     )
-    expect(html).toContain('REF · Referencia conocida')
+    expect(html).toContain('REF · Known reference')
     expect(html).toContain('>01<')
     expect(html).toContain('Argentina')
     expect(html).not.toContain('motor v')

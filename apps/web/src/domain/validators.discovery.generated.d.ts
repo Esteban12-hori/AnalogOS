@@ -1,5 +1,5 @@
-// Tipos de los validadores precompilados del snapshot v3 (scripts/build-validators.mjs). Chunk
-// diferido: solo lo importa domain/discoveryContracts.ts.
+// Types of the precompiled v3 snapshot validators (scripts/build-validators.mjs). Deferred
+// chunk: only domain/discoveryContracts.ts imports it.
 import type { StandaloneValidator } from './validators.generated'
 
 /** contracts/discovery-search.schema.json */

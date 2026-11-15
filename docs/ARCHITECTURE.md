@@ -1,134 +1,134 @@
-# Arquitectura P0
+# P0 Architecture
 
-## Principio
+## Principle
 
-Static-first. Todo procesamiento pesado ocurre antes de la demo. El navegador consume un snapshot pequeño, versionado y validado.
+Static-first. All heavy processing happens before the demo. The browser consumes a small, versioned, validated snapshot.
 
-## Componentes
+## Components
 
 ```text
-Fuentes abiertas
+Open sources
   ↓
 pipelines/ingest
-  ↓ validación de licencia, checksum, CRS, unidades y NoData
+  ↓ validation of license, checksum, CRS, units and NoData
 pipelines/features
-  ↓ variables por celda
+  ↓ per-cell variables
 pipelines/scoring
-  ↓ similitud, confianza y restricciones
+  ↓ similarity, confidence and constraints
 pipelines/candidates
-  ↓ clustering y generalización
+  ↓ clustering and generalization
 artifacts/science-v3
-  ↓ JSON + GeoJSON + metadatos
+  ↓ JSON + GeoJSON + metadata
 apps/web
-  ↓ mapa, ranking, ficha, comparación y metodología
-build estático
+  ↓ map, ranking, profile, comparison and methodology
+static build
 ```
 
 ## Frontend
 
 - Vite + React + TypeScript.
-- Globo 3D (three.js, chunk diferido, texturas NASA locales) con mapa SVG local de Natural Earth como alternativa y fallback sin WebGL; con paso a mapa 2D MapLibre y teselas NASA GIBS opcionales (ADR-006/007).
-- Estado local; no Redux en P0.
-- Carga final desde `/science-v3/manifest.json` y rutas relativas; `/demo/` se conserva solo para tests.
-- Vista inicial: mapa + panel lateral.
-- Rutas opcionales: `/`, `/methodology`, `/about`.
-- Sin login.
-- Sin telemetría de usuario.
+- 3D globe (three.js, deferred chunk, local NASA textures) with a local Natural Earth SVG map as an alternative and as a fallback without WebGL; with an optional switch to a 2D MapLibre map and NASA GIBS tiles (ADR-006/007).
+- Local state; no Redux in P0.
+- Final load from `/science-v3/manifest.json` and relative paths; `/demo/` is kept only for tests.
+- Initial view: map + side panel.
+- Optional routes: `/`, `/methodology`, `/about`.
+- No login.
+- No user telemetry.
 
 ## Pipeline
 
-- Paquete Python instalable.
-- Configuración explícita, no constantes dispersas.
-- Cada etapa escribe un artefacto versionado y logs legibles.
-- Archivos grandes no se versionan salvo el snapshot demo reducido y con licencia permitida.
-- Cada resultado debe registrar `profile_version`, `data_snapshot_version` y `pipeline_version`.
+- Installable Python package.
+- Explicit configuration, not scattered constants.
+- Each stage writes a versioned artifact and readable logs.
+- Large files are not versioned except for the reduced demo snapshot with a permitted license.
+- Each result must record `profile_version`, `data_snapshot_version` and `pipeline_version`.
 
-## Contrato web
+## Web contract
 
-El frontend no conoce Rasterio, CRS internos ni lógica de descarga. Solo consume:
+The frontend knows nothing about Rasterio, internal CRS, or download logic. It only consumes:
 
 - `manifest.json`;
 - `mission-profile.json`;
 - `candidate-details.json`;
 - `context-outline.geojson`;
-- `search-results.json` y `precedents.json`;
+- `search-results.json` and `precedents.json`;
 - `analysis-summary.json`.
 
-Los archivos deben validar contra `contracts/` antes del build.
+The files must validate against `contracts/` before the build.
 
-## Estructura mínima de la web
+## Minimal web structure
 
-Tras integrar el rediseño con dev (ADR-014, ADR-013), la web es un escenario fijo con features
-independientes que leen los stores compartidos; el planificador del equipo vive en `mission/` y
-`components/planner/` y se reutiliza dentro de «Tu misión».
+After integrating the redesign with dev (ADR-014, ADR-013), the web is a fixed scene with independent features
+that read the shared stores; the team planner lives in `mission/` and
+`components/planner/` and is reused within "Your mission".
 
 ```text
 apps/web/src/
-├── App.tsx                  # carga en el límite y promesa del producto
-├── shell/                   # armazón: escenario, dock, riel, hoja, ficha (Origen, Geología, Método…)
-├── state/                   # stores ui y mission (único escritor: el controlador de misión)
+├── App.tsx                  # loading at the boundary and the product promise
+├── shell/                   # frame: stage, dock, rail, sheet, card (Origin, Geology, Method…)
+├── state/                   # ui and mission stores (single writer: the mission controller)
 ├── features/
-│   ├── globe/               # globo, paso a 2D, marcadores, mapa SVG sin WebGL (CandidateMap)
-│   ├── places/              # carrusel (candidatos, REF, ◆, filtro por país, grupos de Misión)
-│   ├── metrics/             # riel de métricas y capa de requisitos
-│   ├── leaders/             # líneas Tesla
-│   ├── boot/                # arranque «Órbita honesta»
-│   ├── composer/            # dock, «Tu misión», controlador del planificador
-│   └── analysis/            # Lectura: resultado, motivos destacados, hechos
+│   ├── globe/               # globe, switch to 2D, markers, SVG map without WebGL (CandidateMap)
+│   ├── places/              # carousel (candidates, REF, ◆, country filter, Mission groups)
+│   ├── metrics/             # metrics rail and requirements layer
+│   ├── leaders/             # Tesla lines
+│   ├── boot/                # "Honest Orbit" startup
+│   ├── composer/            # dock, "Your mission", planner controller
+│   └── analysis/            # Reading: result, highlighted reasons, facts
 ├── components/
-│   ├── planner/             # piezas del planificador del equipo (PlannerView, ResultView…)
+│   ├── planner/             # team planner pieces (PlannerView, ResultView…)
 │   └── CandidateComparison.tsx, SurfaceSignals.tsx, …
-├── mission/                 # reexports de shared/mission y cliente de IA (aiClient)
-├── domain/                  # contratos (validadores precompilados), discovery, formato
-└── data/                    # loadDemoSnapshot, contexto visual, mapas base
+├── mission/                 # re-exports from shared/mission and AI client (aiClient)
+├── domain/                  # contracts (precompiled validators), discovery, formatting
+└── data/                    # loadDemoSnapshot, visual context, base maps
 ```
 
-## Estados obligatorios
+## Required states
 
-- carga;
-- error de contrato;
-- snapshot ausente;
-- lista vacía;
-- candidato seleccionado;
-- datos insuficientes;
-- fixture/no científico;
+- loading;
+- contract error;
+- missing snapshot;
+- empty list;
+- selected candidate;
+- insufficient data;
+- fixture/non-scientific;
 - offline.
 
-## No construir en P0
+## Do not build in P0
 
-- FastAPI, salvo evidencia de necesidad;
-- base de datos;
+- FastAPI, unless there is evidence of need;
+- database;
 - PostGIS;
-- autenticación;
-- edición colaborativa;
-- procesamiento raster en peticiones web;
-- llamadas LLM en la demo central.
+- authentication;
+- collaborative editing;
+- raster processing in web requests;
+- LLM calls in the core demo.
 
-## Seguridad y licencias
+## Security and licenses
 
-- Secretos solo en `.env`, nunca expuestos al frontend.
-- `.env.example` no contiene valores reales.
-- Mostrar atribución de cada capa.
-- No redistribuir datasets si su licencia no lo permite.
-- Generalizar sitios sensibles y nunca afirmar permiso de acceso.
+- Secrets only in `.env`, never exposed to the frontend.
+- `.env.example` contains no real values.
+- Show attribution for each layer.
+- Do not redistribute datasets if their license does not allow it.
+- Generalize sensitive sites and never claim access permission.
 
-## Definition of Done técnica
+## Technical Definition of Done
 
-- `npm run build` termina sin errores.
-- `npm run test` está verde.
-- `python -m pytest` está verde.
-- Un comando genera el snapshot demo.
-- Los artefactos validan contra los schemas.
-- La web funciona sirviendo el directorio construido sin red externa.
-- Un clon limpio puede ejecutar `npm run verify`; la prueba que reprocesa NASADEM crudo se activa únicamente cuando `data/raw/` está disponible.
+- `npm run build` finishes without errors.
+- `npm run test` is green.
+- `python -m pytest` is green.
+- One command generates the demo snapshot.
+- Artifacts validate against the schemas.
+- The web app works by serving the built directory without an external network.
+- A clean clone can run `npm run verify`; the test that reprocesses raw NASADEM is activated only when `data/raw/` is available.
 
-## M8: planificador y capa de decisión (ADR-009)
+## M8: planner and decision layer (ADR-009)
 
-- **Núcleo compartido** (`apps/web/src/mission/`, TypeScript estricto, puro y sin red): catálogo de seis métricas medidas, validación Ajv, geometría, motor determinista, explicación por selección, exportación y estado del planificador (`plannerState.ts`, el reductor que usa la UI). La UI y el servidor importan el mismo código.
-- **Contratos aditivos** en `contracts/`: `mission-request`, `mission-evaluation`, `mission-export`, `mission-ai`. Los contratos de ciencia v2/v3 no cambian.
-- **Servidor opcional** (`server/ai/`, `api/ai.ts`): handler agnóstico testeable + adaptador Node para Vercel y para el servidor local (plugin de `apps/web/vite.config.ts`). Hechos siempre desde `artifacts/science-v3` validado. Detalle y límites en `docs/AI_SETUP.md`.
+- **Shared core** (`apps/web/src/mission/`, strict TypeScript, pure and network-free): catalog of six measured metrics, Ajv validation, geometry, deterministic engine, per-selection explanation, export, and planner state (`plannerState.ts`, the reducer used by the UI). The UI and the server import the same code.
+- **Additive contracts** in `contracts/`: `mission-request`, `mission-evaluation`, `mission-export`, `mission-ai`. The v2/v3 science contracts do not change.
+- **Optional server** (`server/ai/`, `api/ai.ts`): testable agnostic handler + Node adapter for Vercel and for the local server (plugin from `apps/web/vite.config.ts`). Facts always come from validated `artifacts/science-v3`. Details and limits in `docs/AI_SETUP.md`.
 
-El motor puro y los contratos TypeScript compartidos viven en `shared/mission/` y `shared/domain/contracts.ts`. Las rutas antiguas de la web reexportan esta única implementación; el servidor importa `shared/` directamente para no cruzar el ámbito ESM del paquete frontend durante la compilación NodeNext. Antes de desplegar, CI ejecuta `scripts/check-vercel-function.mjs` contra la salida real de Vercel y exige respuestas controladas sin credenciales ni red.
-- **Motor**: críticos primero (incumplido ⇒ no cumple; desconocido o escala inadecuada ⇒ evidencia insuficiente); entre los demás se ordena por preferencias cumplidas, similitud v3 y ID. Sin porcentaje de aptitud nuevo. Geometrías: solo una ventana idéntica (épsilon 1e-9°) o elegida explícitamente hereda estadísticos; punto, subbbox y cobertura parcial no.
-- **UI** (`components/planner/`): dos entradas, pasos (describir, sector, confirmar, resultado), editor de requisitos, esquema SVG local, resultado, informe imprimible (CSS `@media print`) y exportación JSON validada. Cualquier edición invalida confirmación, resultado y llamadas de IA pendientes; las respuestas tardías se ignoran por `requestId` y huellas.
-- **Estático/offline**: nada del planificador requiere red; el ZIP no lleva función ni clave.
+The pure engine and the shared TypeScript contracts live in `shared/mission/` and `shared/domain/contracts.ts`. The old web paths re-export this single implementation; the server imports `shared/` directly so as not to cross the ESM scope of the frontend package during NodeNext compilation. Before deploying, CI runs `scripts/check-vercel-function.mjs` against the actual Vercel output and requires controlled responses without credentials or network.
+- **Engine**: critical first (unmet ⇒ does not comply; unknown or inadequate scale ⇒ insufficient evidence); among the rest, ordering is by met preferences, v3 similarity, and ID. No new suitability percentage. Geometries: only an identical window (epsilon 1e-9°) or an explicitly chosen one inherits statistics; point, sub-bbox, and partial coverage do not.
+- **UI** (`components/planner/`): two entry points, steps (describe, sector, confirm, result), requirements editor, local SVG diagram, result, printable report (CSS `@media print`), and validated JSON export. Any edit invalidates confirmation, result, and pending AI calls; late responses are ignored by `requestId` and fingerprints.
+- **Static/offline**: nothing in the planner requires a network; the ZIP carries no function or key.

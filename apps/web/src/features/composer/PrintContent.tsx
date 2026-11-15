@@ -1,4 +1,4 @@
-/** Contenido del informe imprimible (chunk de misión): `PrintReport` del equipo sobre el planificador compartido, con la orientación geológica (M10) si hay contexto. */
+/** Content of the printable report (mission chunk): `PrintReport` of the team on the shared planner, with the geological orientation (M10) if there is context. */
 import { useLayoutEffect } from 'react'
 import { MissionPrintReport } from '../../components/planner/ResultView'
 import type { CandidateSite } from '../../domain/contracts'
@@ -11,7 +11,7 @@ export default function PrintContent({ candidates }: { candidates: CandidateSite
   const geologyCatalog = useMission((state) => state.geologyCatalog)
   const result = planner?.result ?? null
   const drawable = result !== null && request !== null
-  // M11: «Imprimir informe» se habilita cuando ESTE resultado ya está en el DOM del informe.
+  // M11: "Print report" is enabled once THIS result is already in the report's DOM.
   useLayoutEffect(() => (drawable && result ? markPrintMounted(result) : undefined), [drawable, result])
   if (!planner || !result || !request) return null
   return <MissionPrintReport evaluation={result} request={request} state={planner} candidates={candidates} geologyCatalog={geologyCatalog} />

@@ -33,42 +33,42 @@ function evaluatedState(extra: PlannerAction[] = [], scope = emptyScope()): Plan
 const view = (s: PlannerState, onExplain = noop) =>
   renderToStaticMarkup(<ResultView evaluation={s.result!} request={buildRequest(s).request!} state={s} candidates={snapshot.candidates} onExplain={onExplain} onExport={noop} exportError={null} onEdit={noop} />)
 
-describe('entrada del planificador', () => {
-  it('muestra las dos entradas principales desde el primer pantallazo y no autoevalúa nada', () => {
+describe('planner entry', () => {
+  it('shows the two main entries on the first screen and auto-evaluates nothing', () => {
     const html = renderToStaticMarkup(<PlannerPanel snapshot={snapshot} intent={null} />)
-    expect(html).toContain('Definir una prueba')
-    expect(html).toContain('Evaluar un sector')
-    expect(html).toContain('Primer perfil soportado: rover marciano')
+    expect(html).toContain('Define a test')
+    expect(html).toContain('Evaluate a sector')
+    expect(html).toContain('First supported profile: Mars rover')
     expect(html).not.toContain('pl-result')
-    expect(html).not.toContain('Texto de su prueba') // sin recorrido elegido, no hay formularios largos
+    expect(html).not.toContain('Texto de su prueba') // with no path chosen, there are no long forms
   })
 })
 
-describe('editor de requisitos', () => {
+describe('requirement editor', () => {
   const s = run(initialPlannerState(), { type: 'set_journey', journey: 'test' }, { type: 'load_example', example: exampleState() })
-  it('ejemplo: pocos requisitos, sin medición rotulado, orígenes y citas distinguibles', () => {
+  it('example: few requirements, unmeasured ones labeled, distinguishable origins and quotes', () => {
     const html = renderToStaticMarkup(<RequirementEditor state={s} dispatch={noop} />)
-    expect(html).toContain('Mediana de pendiente regional')
-    expect(html).toContain('Imprescindible')
-    expect(html).toContain('Preferencia')
-    expect(html).toContain('sin medición')
-    expect(html).toContain('nunca cuenta como cumplido')
-    expect(html).toContain('Usted')
-    expect(html).toContain('Cita del brief: «pendiente mediana regional no mayor de 3 grados»')
-    expect(html).toContain('El cálculo usa solo los requisitos de esta lista')
-    expect(html).toContain('Más opciones') // detalle progresivo
+    expect(html).toContain('Regional median slope')
+    expect(html).toContain('Must-have')
+    expect(html).toContain('Preference')
+    expect(html).toContain('not measured')
+    expect(html).toContain('never counts as met')
+    expect(html).toContain('You')
+    expect(html).toContain('Quote from the brief: “regional median slope no greater than 3 degrees”')
+    expect(html).toContain('The calculation uses only the requirements in this list')
+    expect(html).toContain('More options') // detalle progresivo
   })
-  it('requisito de IA: etiqueta de origen y país CL/AR', () => {
+  it('AI requirement: origin label and CL/AR country', () => {
     const ai = run(s, { type: 'add_requirement', requirement: { kind: 'measurable', requirement_id: 'c1', label: 'País', importance: 'critical', origin: 'ai', source_quote: 'solo Chile', metric_id: 'country', operator: 'in', valueText: ['', ''], countries: ['CL'], unit: 'iso_alpha2', scale: 'window' } })
     const html = renderToStaticMarkup(<RequirementEditor state={ai} dispatch={noop} />)
-    expect(html).toContain('Propuesto por IA')
+    expect(html).toContain('Proposed by AI')
     expect(html).toContain('Chile (CL)')
     expect(html).toContain('Argentina (AR)')
   })
 })
 
-describe('selector de sector y coordenadas', () => {
-  it('lista las siete áreas con país y REF, y muestra polígonos en SVG local', () => {
+describe('sector and coordinate selector', () => {
+  it('lists the seven areas with country and REF, and shows polygons in local SVG', () => {
     const html = renderToStaticMarkup(<ScopePicker journey="sector" scope={{ ...emptyScope(), mode: 'sector', siteId: 'cl-win-s2500-w06970' }} candidates={snapshot.candidates} dispatch={noop} />)
     expect((html.match(/name="scope-sector"/g) ?? []).length).toBe(7)
     expect(html).toContain('Argentina')
@@ -76,24 +76,24 @@ describe('selector de sector y coordenadas', () => {
     expect(html).toContain('<svg')
     expect(html).not.toContain('canvas')
   })
-  it('coordenadas vacías o erróneas: avisos accesibles y sin NaN', () => {
+  it('empty or wrong coordinates: accessible warnings and no NaN', () => {
     const html = renderToStaticMarkup(<ScopePicker journey="sector" scope={{ ...emptyScope(), mode: 'point', lon: 'abc', lat: '' }} candidates={snapshot.candidates} dispatch={noop} />)
     expect(html).toContain('role="alert"')
-    expect(html).toContain('Longitud: escriba un número')
+    expect(html).toContain('Longitude: enter a number')
     expect(html).not.toContain('NaN')
   })
-  it('punto dentro: sugiere la ventana con botón explícito; bbox parcial ofrece evaluar la ventana completa', () => {
+  it('point inside: suggests the window with an explicit button; partial bbox offers evaluating the whole window', () => {
     const point = renderToStaticMarkup(<ScopePicker journey="sector" scope={{ ...emptyScope(), mode: 'point', lon: '-69,7', lat: '-25' }} candidates={snapshot.candidates} dispatch={noop} />)
-    expect(point).toContain('Hay evidencia de una ventana, no del punto')
-    expect(point).toContain('Evaluar la ventana completa')
+    expect(point).toContain('There is evidence for a window, not for the point')
+    expect(point).toContain('Evaluate the full window')
     const bbox = renderToStaticMarkup(<ScopePicker journey="test" scope={{ ...emptyScope(), mode: 'bbox', west: '-69,75', south: '-25,05', east: '-69,65', north: '-24,95' }} candidates={snapshot.candidates} dispatch={noop} />)
-    expect(bbox).toContain('Cobertura parcial')
-    expect(bbox).toContain('Evaluar la ventana completa')
+    expect(bbox).toContain('Partial coverage')
+    expect(bbox).toContain('Evaluate the full window')
     const out = renderToStaticMarkup(<ScopePicker journey="test" scope={{ ...emptyScope(), mode: 'point', lon: '10', lat: '10' }} candidates={snapshot.candidates} dispatch={noop} />)
-    expect(out).toContain('Sin evidencia para esta geometría')
-    expect(out).toContain('Fuera de las ventanas con evidencia')
+    expect(out).toContain('No evidence for this geometry')
+    expect(out).toContain('Outside the windows with evidence')
   })
-  it('la figura distingue pedida vs medida', () => {
+  it('the figure distinguishes requested vs measured', () => {
     const res = resolveScope({ mode: 'bbox', bbox: [-69.75, -25.05, -69.65, -24.95], window_site_id: 'cl-win-s2500-w06970' }, snapshot.candidates)
     const html = renderToStaticMarkup(<GeometryFigure candidates={snapshot.candidates} resolution={res} />)
     expect(html).toContain('pl-req')
@@ -102,98 +102,98 @@ describe('selector de sector y coordenadas', () => {
 })
 
 describe('resultado', () => {
-  it('muestra veredicto, bloqueos visibles, comparabilidad parcial, Yungay REF, puntajes originales y reglas', () => {
+  it('shows verdict, visible blockers, partial comparability, Yungay REF, original scores and rules', () => {
     const s = evaluatedState()
     const html = view(s)
-    expect(html).toContain('áreas quedan priorizadas para reconocimiento')
-    expect(html).toContain('Comparación parcial')
-    expect(html).toContain('REF · referencia conocida')
-    expect(html).toContain('Valores originales del snapshot v3, sin recalcular')
-    expect(html).toContain('La similitud no es probabilidad de éxito')
-    expect(html).toContain('Factibilidad territorial')
-    expect(html).toContain('Cómo se ordena')
-    expect(html).toContain('No evaluable')
-    expect(html).toContain('Verificaciones de campo')
-    expect(html).not.toMatch(/\bapto\b|sector aprobado|aprobado el sector|seguro para|autorizado para/i)
+    expect(html).toContain('areas are prioritized for reconnaissance')
+    expect(html).toContain('Partial comparison')
+    expect(html).toContain('REF · known reference')
+    expect(html).toContain('Original v3 snapshot values, not recalculated')
+    expect(html).toContain('Similarity is not a probability of success')
+    expect(html).toContain('Territorial feasibility')
+    expect(html).toContain('How options are ordered')
+    expect(html).toContain('Not assessable')
+    expect(html).toContain('Field checks')
+    expect(html).not.toMatch(/\bapto\b|sector aprobado|aprobado el sector|seguro para|autorizado para|\bsuitable site\b|approved sector|sector (is )?approved|safe for|authorized for/i)
   })
-  it('cero recomendados es un resultado válido y los motivos quedan visibles sin abrir detalles', () => {
+  it('zero recommended is a valid result and the reasons stay visible without opening details', () => {
     const s = evaluatedState([{ type: 'update_requirement', id: 'ex1', patch: { valueText: ['0,001', ''] } }])
     expect(s.result?.recommended_site_ids).toEqual([])
     const html = view(s)
-    expect(html).toContain('Ninguna área queda priorizada')
-    expect(html).toContain('No cumple requisitos')
+    expect(html).toContain('No area is prioritized')
+    expect(html).toContain('Does not meet requirements')
     expect(html).toContain('pl-blockers')
-    expect(html).toMatch(/No cumple<\/b> Mediana de pendiente regional: Valor observado/)
+    expect(html).toMatch(/Not met<\/b> Regional median slope: Observed value/)
   })
-  it('diagnóstico fuera de cobertura: informe exportable, sin vecino ni recomendación', () => {
+  it('out-of-coverage diagnostic: exportable report, no neighbor or recommendation', () => {
     const s = evaluatedState([], { ...emptyScope(), mode: 'point', lon: '10', lat: '10' })
     expect(s.result?.outcome).toBe('insufficient_coverage')
     const html = view(s)
-    expect(html).toContain('Informe de evidencia insuficiente')
-    expect(html).toContain('Fuentes previstas')
-    expect(html).toContain('No se estimó nada con ventanas vecinas')
+    expect(html).toContain('Insufficient-evidence report')
+    expect(html).toContain('Planned sources')
+    expect(html).toContain('Nothing was estimated from neighboring windows')
     expect(html).not.toContain('pl-rank')
   })
-  it('objetivo no soportado: sin cálculo ni recomendación', () => {
+  it('unsupported objective: no computation or recommendation', () => {
     const s = evaluatedState([{ type: 'set_target', target: { kind: 'other', stated: 'Hábitat lunar' } }])
     const html = view(s)
-    expect(html).toContain('Este objetivo no tiene un perfil soportado')
+    expect(html).toContain('This objective has no supported profile')
     expect(html).toContain('Hábitat lunar')
-    expect(html).toContain('Objetivo no soportado')
+    expect(html).toContain('Unsupported objective')
   })
-  it('informe imprimible conserva el brief entero, requisitos, origen/cita, límites y procedencia', () => {
+  it('the printable report keeps the whole brief, requirements, origin/quote, limits and provenance', () => {
     const s = evaluatedState()
     const html = view(s)
     const print = html.slice(html.indexOf('pl-print-only'))
-    expect(print).toContain('Texto completo del brief')
+    expect(print).toContain('Full brief text')
     expect(print).toContain(s.brief)
-    expect(print).toContain('pendiente mediana regional no mayor de 3 grados')
-    expect(print).toContain('Borrador con IA: no')
-    expect(print).toContain('Interpretación con IA: no')
-    expect(print).toContain('Límites')
+    expect(print).toContain('regional median slope no greater than 3 degrees')
+    expect(print).toContain('AI draft: no')
+    expect(print).toContain('AI interpretation: no')
+    expect(print).toContain('Limits')
   })
 })
 
-describe('IA en el resultado: separada de las métricas y sin falsas atribuciones', () => {
+describe('AI in the result: separate from the metrics and without false attributions', () => {
   const base = () => evaluatedState()
   const withExplain = (s: PlannerState, selection: Parameters<typeof plannerReducer>[1] extends infer A ? A extends { type: 'explain_ok'; selection: infer S } ? S : never : never): PlannerState => {
     const started = run(s, { type: 'explain_start', requestId: 'exp-ui-1' })
     return run(started, { type: 'explain_ok', requestId: 'exp-ui-1', requestFp: s.result!.request_fingerprint, evaluationFp: started.explain.evaluationFp!, selection, provenance: prov })
   }
-  it('avisa del envío a Anthropic junto al botón y bloquea durante la llamada', () => {
+  it('warns about sending to Anthropic next to the button and blocks during the call', () => {
     const s = base()
-    expect(view(s)).toContain('se envían a Anthropic')
+    expect(view(s)).toContain('are sent to Anthropic')
     const pending = view(run(s, { type: 'explain_start', requestId: 'exp-ui-2' }))
-    expect(pending).toContain('Consultando a la IA')
+    expect(pending).toContain('Asking the AI')
     expect(pending).toMatch(/<button[^>]*disabled[^>]*aria-busy="true"/)
   })
-  it('una selección que omite los bloqueos no los oculta; el motor sigue mandando', () => {
+  it('a selection that omits the blockers does not hide them; the engine still rules', () => {
     const s0 = evaluatedState([{ type: 'update_requirement', id: 'ex1', patch: { valueText: ['2,2', ''] } }])
     const blocked = s0.result!.options.find((o) => o.status === 'no_cumple_requisitos')!
     const best = s0.result!.options.find((o) => o.status === 'priorizado_para_reconocimiento')!
     const s = withExplain(s0, { options: [{ site_id: best.site_id, key_requirement_ids: ['ex1'], evidence_ids: [] }], verification_ids: [] })
     expect(s.explain.status).toBe('done')
     const html = view(s)
-    expect(html).toContain('Interpretación asistida por IA')
+    expect(html).toContain('AI-assisted interpretation')
     expect(html).toContain('claude-sonnet-5-5')
-    // el sector bloqueado sigue visible con su estado y razón aunque la IA no lo haya seleccionado
+    // the blocked sector stays visible with its status and reason even if the AI did not select it
     expect(html).toContain(blocked.name.split(' · ')[0])
     expect(html).toMatch(/pl-opt no_cumple_requisitos/)
     expect(html).toContain('pl-blockers')
   })
-  it('un fallo de IA muestra mensaje amable y deja el resultado intacto', () => {
+  it('an AI failure shows a friendly message and leaves the result intact', () => {
     const s0 = base()
     const s = run(run(s0, { type: 'explain_start', requestId: 'exp-ui-3' }), { type: 'explain_fail', requestId: 'exp-ui-3', message: 'La IA no está disponible. Puede continuar manualmente.', unavailable: true })
     const html = view(s)
     expect(html).toContain('La IA no está disponible. Puede continuar manualmente.')
-    expect(html).toContain('El resultado calculado no cambió')
+    expect(html).toContain('The calculated result did not change')
     expect(html).not.toContain('Interpretación asistida por IA')
     expect(html).not.toContain('Plantilla')
   })
-  it('el informe imprimible rotula el borrador y la explicación de IA solo si existen y siguen vigentes', () => {
+  it('the printable report labels the AI draft and explanation only if they exist and are still current', () => {
     const s0 = base()
     const s = withExplain(s0, { options: [], verification_ids: [] })
     const html = view(s)
-    expect(html.slice(html.indexOf('pl-print-only'))).toContain('Interpretación con IA: sí (claude-sonnet-5-5')
+    expect(html.slice(html.indexOf('pl-print-only'))).toContain('AI interpretation: yes (claude-sonnet-5-5')
   })
 })

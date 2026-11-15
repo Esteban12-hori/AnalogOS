@@ -8,7 +8,7 @@ import './liquid/liquid-glass.css'
 const root = document.getElementById('root')
 
 if (!root) {
-  throw new Error('No se encontró el contenedor raíz de AnalogOS.')
+  throw new Error('The AnalogOS root container was not found.')
 }
 
 createRoot(root).render(

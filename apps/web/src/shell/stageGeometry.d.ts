@@ -1,4 +1,4 @@
-// Tipos de shell/stageGeometry.js (JavaScript plano para incrustarlo en index.html).
+// Types for shell/stageGeometry.js (plain JavaScript to embed it in index.html).
 export interface StageGeometry {
   medium: number
   wide: number

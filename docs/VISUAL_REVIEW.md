@@ -1,114 +1,114 @@
-# Revisión visual de los candidatos (M4, avance parcial)
+# Visual review of the candidates (M4, partial progress)
 
-Este documento acompaña a `artifacts/visual-context/`. Registra de dónde salen las tres imágenes, cómo reproducirlas, qué conviene mirar y qué se observó al verlas. No es una revisión experta y no cierra M4.
+This document accompanies `artifacts/visual-context/`. It records where the three images come from, how to reproduce them, what is worth looking at, and what was observed when viewing them. It is not an expert review and does not close M4.
 
-## Qué es y qué no es
+## What it is and what it is not
 
-- Es una vista Sentinel-2 L2A en color natural por candidato, guardada offline con su procedencia.
-- No modifica similitud, confianza, estabilidad ni factibilidad.
-- No valida un sitio, no evalúa propiedad, acceso ni restricciones, y no sustituye una imagen reciente ni una visita.
+- It is one natural-color Sentinel-2 L2A view per candidate, saved offline with its provenance.
+- It does not modify similarity, confidence, stability or feasibility.
+- It does not validate a site, does not assess ownership, access or restrictions, and does not replace a recent image or a site visit.
 
-## Fuente
+## Source
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Servicio | Copernicus Data Space Ecosystem — Sentinel Hub Process API (`https://sh.dataspace.copernicus.eu/process/v1`) |
-| Colección | `sentinel-2-l2a`, bandas B04, B03, B02 y `dataMask` |
-| Ventana | 2025-12-01T00:00:00Z a 2026-01-01T00:00:00Z |
-| Mosaico | `ORBIT`, orden `leastCC`, nubosidad máxima 40 % por escena; por píxel, primera órbita con datos |
-| Transformación | reflectancia × 2,0 recortada a [0, 1], 8 bits; alfa 0 sin datos |
-| Encuadre | bbox del polígono versionado de cada candidato (0,2° × 0,2°), CRS84 |
-| Tamaño | 705–714 × 768 px, unos 28,8 m por píxel (las bandas son de 10 m en origen) |
-| Atribución | Contiene datos modificados de Copernicus Sentinel (2025), procesados con Sentinel Hub |
+| Service | Copernicus Data Space Ecosystem — Sentinel Hub Process API (`https://sh.dataspace.copernicus.eu/process/v1`) |
+| Collection | `sentinel-2-l2a`, bands B04, B03, B02 and `dataMask` |
+| Window | 2025-12-01T00:00:00Z to 2026-01-01T00:00:00Z |
+| Mosaic | `ORBIT`, order `leastCC`, maximum cloud cover 40 % per scene; per pixel, first orbit with data |
+| Transformation | reflectance × 2,0 clipped to [0, 1], 8 bits; alpha 0 no data |
+| Framing | bbox of the versioned polygon of each candidate (0,2° × 0,2°), CRS84 |
+| Size | 705–714 × 768 px, about 28,8 m per pixel (the bands are 10 m at source) |
+| Attribution | Contains modified Copernicus Sentinel data (2025), processed with Sentinel Hub |
 
-Consulta realizada el 2026-11-14 entre las 16:16 y las 16:18 UTC. Órbitas según la metadata devuelta por el servicio:
+Query made on 2026-11-14 between 16:16 and 16:18 UTC. Orbits according to the metadata returned by the service:
 
-| Candidato | Órbitas consideradas | Órbita que aportó los píxeles | Píxeles válidos |
+| Candidate | Orbits considered | Orbit that provided the pixels | Valid pixels |
 |---|---:|---|---:|
 | Pampa Yungay | 15 | 2025-12-21 (100 %) | 100 % |
 | Pampa María Elena | 15 | 2025-12-21 (100 %) | 100 % |
 | Cordón de Domeyko | 8 | 2025-12-03 (100 %) | 100 % |
 
-Aunque cada vista proviene de una sola órbita, el producto se rotula como mosaico del periodo: es el resultado de aplicar la regla a diciembre de 2025, no la elección de una fecha.
+Although each view comes from a single orbit, the product is labeled as a mosaic of the period: it is the result of applying the rule to December 2025,, not the choice of a date.
 
-## Reproducción
+## Reproduction
 
 ```bash
 source .venv/bin/activate
-python -m pipelines.fetch_visual_context            # reutiliza el paquete local; sin red ni credenciales
+python -m pipelines.fetch_visual_context            # reuses the local package; no network or credentials
 python -m pipelines.fetch_visual_context --refresh  # consulta de nuevo; requiere COPERNICUS_CLIENT_ID y COPERNICUS_CLIENT_SECRET
 ```
 
-`artifacts/visual-context/index.json` guarda, por sitio, la petición exacta (incluido el evalscript), la metadata devuelta, la hora de consulta y el SHA-256 del PNG. Una consulta nueva puede devolver bytes distintos si el servicio cambia de versión o reprocesa escenas.
+`artifacts/visual-context/index.json` stores, per site, the exact request (including the evalscript), the returned metadata, the query time and the SHA-256 of the PNG. A new query may return different bytes if the service changes version or reprocesses scenes.
 
-## Qué inspeccionar
+## What to inspect
 
-1. Trazas rectilíneas, estructuras geométricas y cualquier indicio de infraestructura o actividad dentro del polígono.
-2. Cauces, superficies brillantes y cambios bruscos de tono que sugieran agua, sales o materiales distintos.
-3. Continuidad de superficies amplias sin obstáculos aparentes a esta escala.
-4. Nubes, sombras o bruma que alteren la lectura.
-5. Coherencia con los criterios del score (relieve, superficie no vegetada), sin usar la imagen para corregirlos.
+1. Rectilinear traces, geometric structures and any sign of infrastructure or activity within the polygon.
+2. Channels, bright surfaces and abrupt changes in tone that suggest water, salts or different materials.
+3. Continuity of broad surfaces without apparent obstacles at this scale.
+4. Clouds, shadows or haze that alter the reading.
+5. Consistency with the score criteria (relief, non-vegetated surface), without using the image to correct them.
 
-## Observaciones tras ver las imágenes
+## Observations after viewing the images
 
-Hechas por Claude sobre los tres PNG a tamaño completo el 2026-11-14; Codex las inspeccionó de forma independiente. Son descripciones de lo que aparece en la vista, no identificaciones.
+Made by Claude on the three PNGs at full size on 2026-11-14; Codex inspected them independently. These are descriptions of what appears in the view, not identifications.
 
 ### Pampa Yungay
 
-- Sin vegetación ni nubes apreciables.
-- Red de formas ramificadas más oscuras en la mitad norte y en el suroeste; franja más clara y lisa que cruza de oeste a este por el centro.
-- Trazas rectilíneas finas en varias direcciones, incluida una diagonal larga en el suroeste.
-- Conjunto de parches brillantes de contorno rectangular en el cuadrante sureste, y algunos más pequeños cerca del centro-este.
+- No appreciable vegetation or clouds.
+- Network of darker branching shapes in the northern half and in the southwest; lighter, smooth strip crossing from west to east through the center.
+- Fine rectilinear traces in several directions, including a long diagonal in the southwest.
+- Set of bright patches with rectangular outlines in the southeast quadrant, and some smaller ones near the center-east.
 
 ### Pampa María Elena
 
-- Superficie mayormente llana, sin vegetación ni nubes apreciables.
-- Trazas rectilíneas largas norte–sur y este–oeste que forman una retícula.
-- Franja oscura y sinuosa a lo largo del borde este.
-- Dos conjuntos oscuros de contorno rectangular (arriba al centro y al este), una estructura ovalada oscura cerca del centro con un patrón denso a su lado, un área rectangular muy brillante al este y un conjunto brillante con parches rojizos al sur del centro.
+- Mostly flat surface, with no appreciable vegetation or clouds.
+- Long north–south and east–west rectilinear traces forming a grid.
+- Dark, sinuous strip along the east edge.
+- Two dark sets with rectangular outlines (top center and east), a dark oval structure near the center with a dense pattern beside it, a very bright rectangular area to the east and a bright set with reddish patches south of the center.
 
 ### Cordón de Domeyko
 
-- Sin vegetación ni nubes apreciables.
-- Relieve de tonos más oscuros en la mitad oeste; superficies más claras en abanico en la mitad este.
-- Numerosas trazas rectilíneas finas que se cruzan en la mitad este.
-- Parche blanco en el noroeste y una estructura rectangular en el borde este.
+- No appreciable vegetation or clouds.
+- Relief with darker tones in the western half; lighter fan-shaped surfaces in the eastern half.
+- Numerous fine rectilinear traces crossing each other in the eastern half.
+- White patch in the northwest and a rectangular structure on the east edge.
 
-## Hipótesis a contrastar (no comprobadas)
+## Hypotheses to test (not verified)
 
-Las trazas rectilíneas y las estructuras geométricas, especialmente visibles en Yungay y María Elena, son compatibles con caminos, instalaciones o actividad industrial. Esto es una apariencia a contrastar:
+The rectilinear traces and geometric structures, especially visible in Yungay and María Elena, are compatible with roads, facilities or industrial activity. This is an appearance to be tested:
 
-- No se ha comprobado qué son, a quién pertenecen ni si implican restricciones de acceso.
-- No producen una exclusión automática ni cambian la factibilidad, que sigue en «requiere revisión».
-- La franja sinuosa de María Elena podría ser un cauce; el parche blanco de Domeyko, una superficie salina. Ninguna de las dos lecturas está verificada.
+- It has not been verified what they are, who owns them, or whether they imply access restrictions.
+- They do not produce an automatic exclusion or change feasibility, which remains at "requires review".
+- The sinuous strip in María Elena could be a channel; the white patch in Domeyko, a saline surface. Neither reading has been verified.
 
-Para contrastarlas hacen falta las capas oficiales de áreas urbanas, infraestructura, propiedad y áreas protegidas, que siguen sin intersectar.
+To test them, the official layers of urban areas, infrastructure, property and protected areas are needed, which remain unintersected.
 
-## Pendientes
+## Pending
 
-- Intersección con capas territoriales oficiales (urbano, infraestructura, propiedad, áreas sensibles).
-- Imagen reciente (2026) o NASA Worldview para detectar cambios posteriores a diciembre de 2025.
-- Revisión de una persona con experiencia geológica o en campañas de rover.
-- Registro de falsos positivos y correcciones.
+- Intersection with official territorial layers (urban, infrastructure, property, sensitive areas).
+- Recent imagery (2026) or NASA Worldview to detect changes after December 2025.
+- Review by a person with geological or rover-campaign experience.
+- Log of false positives and corrections.
 
-## Paquete v3 (piloto Chile–Argentina)
+## v3 package (Chile–Argentina pilot)
 
-`artifacts/visual-context-v3/` contiene una vista por sitio del snapshot v3: seis candidatos consultados el 2026-11-14 hacia las 18:00 UTC y la referencia Yungay, reutilizada sin cambios del paquete v2. Misma colección, ventana, mosaico y transformación descritos arriba.
+`artifacts/visual-context-v3/` contains one view per site from the v3 snapshot: six candidates queried on 2026-11-14 at around 18:00 UTC and the Yungay reference, reused unchanged from the v2 package. Same collection, window, mosaic and transformation described above.
 
 ```bash
 python -m pipelines.fetch_visual_context --snapshot v3            # reutiliza el paquete local
 python -m pipelines.fetch_visual_context --snapshot v3 --refresh  # hasta 6 consultas nuevas; requiere credenciales
 ```
 
-Observaciones preliminares de Codex y Claude, hechas tras ver cada imagen. Describen apariencia; no identifican instalaciones, propietarios ni permisos y no cambian ningún score.
+Preliminary observations by Codex and Claude, made after viewing each image. They describe appearance; they do not identify facilities, owners or permits and do not change any score.
 
-| Ventana | Observación |
+| Window | Observation |
 |---|---|
-| `cl-win-s2500-w06970` | Numerosas trazas lineales y una red sinuosa y ramificada de tono claro en el noreste |
-| `cl-win-s2480-w06950` | Relieve con abanicos, una franja clara ancha y sinuosa y trazas lineales |
-| `cl-win-s2520-w06950` | Trazas rectilíneas y concentraciones geométricas de tono claro en el norte |
-| `ar-win-s2620-w06750` | Campos oscuros en el centro y el este y una franja verde u oscura en el borde noreste |
-| `ar-win-s2640-w06730` | Concentración densa de estructuras claras en el sur con una franja verde u oscura adyacente, compatible con intervención humana a contrastar |
-| `ar-win-s2580-w06710` | Franjas verdes u oscuras ramificadas en el norte y el oeste |
+| `cl-win-s2500-w06970` | Numerous linear traces and a sinuous, branching, light-toned network in the northeast |
+| `cl-win-s2480-w06950` | Relief with fans, a wide, sinuous light-colored band and linear traces |
+| `cl-win-s2520-w06950` | Rectilinear traces and light-toned geometric concentrations in the north |
+| `ar-win-s2620-w06750` | Dark fields in the center and east and a green or dark strip on the northeast edge |
+| `ar-win-s2640-w06730` | Dense concentration of light-colored structures in the south with an adjacent green or dark strip, consistent with human intervention to be verified |
+| `ar-win-s2580-w06710` | Branching green or dark strips in the north and west |
 
-Estas observaciones aparecen como advertencia en cada ficha. Una ventana de ~440 km² no es un terreno íntegramente libre ni apto; todas siguen en «requiere revisión» y necesitan cruce con capas territoriales oficiales de Chile y Argentina.
+These observations appear as a warning on each card. A window of ~440 km² is not entirely free or suitable terrain; all remain "requires review" and need to be cross-checked against official territorial layers of Chile and Argentina.

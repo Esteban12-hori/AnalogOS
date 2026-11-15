@@ -1,11 +1,11 @@
 /**
- * Store `mission`: el planificador del equipo (ADR-009) compartido por toda la interfaz (ADR-013).
- * Archivo del integrador. ESCRIBE solo el controlador de misión (features/composer/missionController,
- * chunk diferido), que usa `plannerReducer`, `evaluateMission`, el cliente de IA y la exportación
- * del equipo sin cambios; LEEN el composer, «Tu misión», places, globe, metrics, leaders y analysis.
+ * `mission` store: the team planner (ADR-009) shared across the entire interface (ADR-013).
+ * Integrator file. ONLY the mission controller WRITES to it (features/composer/missionController,
+ * deferred chunk), which uses `plannerReducer`, `evaluateMission`, the AI client and the team export
+ * unchanged; the composer, "Your mission", places, globe, metrics, leaders and analysis READ from it.
  *
- * Solo tipos de `mission/*`: este archivo vive en el chunk principal y no arrastra Ajv.
- * La fase visible vive en `ui.missionPhase`, no aquí.
+ * `mission/*` types only: this file lives in the main chunk and does not pull in Ajv.
+ * The visible phase lives in `ui.missionPhase`, not here.
  */
 import type { GeologyCatalog } from '../../../../shared/geology/guidance'
 import type { ExplanationView } from '../mission/explanation'
@@ -14,38 +14,38 @@ import type { PlannerState } from '../mission/plannerState'
 import type { MissionEvaluation, MissionRequest } from '../mission/types'
 import { createStore, useStore } from './store'
 
-/** Procedencia de los requisitos vigentes (nunca de las cifras, que son del cálculo determinista). */
+/** Provenance of the current requirements (never of the figures, which come from the deterministic calculation). */
 export type MissionSource = 'anthropic' | 'manual' | 'example'
 
 export interface MissionState {
-  /** Estado del reductor del equipo, tal cual; null hasta que carga el chunk de misión. */
+  /** State of the team reducer, as is; null until the mission chunk loads. */
   planner: PlannerState | null
-  /** Solicitud construida (buildRequest) cuando es válida; null si faltan datos. */
+  /** Request built (buildRequest) when it is valid; null if data is missing. */
   request: MissionRequest | null
   /**
-   * Última evaluación aceptada (planner.result). Si el usuario edita brief, requisitos o alcance,
-   * el reductor la invalida: aquí se conserva como referencia visual con `stale: true` (resultados
-   * a --o-busy hasta reevaluar); la exportación y la IA solo usan la evaluación vigente.
+   * Last accepted evaluation (planner.result). If the user edits the brief, requirements or scope,
+   * the reducer invalidates it: here it is kept as a visual reference with `stale: true` (results
+   * at --o-busy until re-evaluated); the export and the AI only use the current evaluation.
    */
   evaluation: MissionEvaluation | null
-  /** true = `evaluation` ya no corresponde a lo que el usuario está editando. */
+  /** true = `evaluation` no longer corresponds to what the user is editing. */
   stale: boolean
-  /** Solicitud con la que se calculó `evaluation` (para repartir sus requisitos por criterio). */
+  /** Request with which `evaluation` was calculated (to distribute its requirements by criterion). */
   evaluatedRequest: MissionRequest | null
-  /** Motivos destacados: plantilla determinista o selección de la IA validada (§5.2). */
+  /** Highlighted reasons: deterministic template or validated AI selection (§5.2). */
   explanation: ExplanationView | null
   /**
-   * Procedencia de la selección de la IA (modelo, fecha, request_id) que generó `explanation`;
-   * null con la plantilla. Viaja con la vista: si una edición deja la Lectura atenuada, sigue
-   * diciendo de dónde salió.
+   * Provenance of the AI selection (model, date, request_id) that generated `explanation`;
+   * null with the template. It travels with the view: if an edit leaves the Reading dimmed, it keeps
+   * stating where it came from.
    */
   explanationProvenance: AiProvenance | null
   source: MissionSource | null
-  /** Aumenta con cada evaluación aceptada: punto en la pestaña Misión y un solo anuncio. */
+  /** Increases with each accepted evaluation: dot on the Mission tab and a single announcement. */
   revision: number
   /**
-   * Catálogo geológico cerrado de la evaluación VIGENTE (M10, `buildGeologyCatalog` del equipo); null
-   * sin contexto geológico válido o sin resultado vigente. Lo usa el informe imprimible.
+   * Closed geological catalog of the CURRENT evaluation (M10, the team's `buildGeologyCatalog`); null
+   * without valid geological context or without a current result. Used by the printable report.
    */
   geologyCatalog: GeologyCatalog | null
 }
@@ -70,8 +70,8 @@ export function useMission<T>(selector: (state: MissionState) => T): T {
 }
 
 /**
- * Procedencia de los requisitos (función pura): «anthropic» si alguno sigue siendo la propuesta
- * intacta de la IA; «example» si todos son los del ejemplo editable; «manual» en otro caso.
+ * Provenance of the requirements (pure function): "anthropic" if any is still the AI's
+ * intact proposal; "example" if all are those of the editable example; "manual" otherwise.
  */
 export function missionSource(planner: Pick<PlannerState, 'requirements'> | null): MissionSource | null {
   const requirements = planner?.requirements ?? []

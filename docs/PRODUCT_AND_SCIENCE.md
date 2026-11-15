@@ -1,114 +1,114 @@
-# Producto y ciencia
+# Product and Science
 
-## Problema
+## Problem
 
-“Parecido a Marte” no es una especificación de prueba. Equipos científicos y de ingeniería necesitan saber qué sitio terrestre reproduce condiciones relevantes para una actividad concreta, con qué evidencia, qué incertidumbre y qué debe validarse en terreno.
+"Mars-like" is not a test specification. Science and engineering teams need to know which terrestrial site reproduces conditions relevant to a specific activity, with what evidence, what uncertainty, and what must be validated in the field.
 
-## Propuesta
+## Proposal
 
-AnalogOS prioriza zonas terrestres para una prueba de movilidad, navegación y autonomía de rover marciano. Convierte datos planetarios y satelitales en una preselección auditable. Tiene visión global y un piloto ejecutado en dos regiones de Chile y Argentina; las restricciones territoriales siguen pendientes de cruce oficial.
+AnalogOS prioritizes terrestrial zones for a Mars rover mobility, navigation, and autonomy test. It turns planetary and satellite data into an auditable shortlist. It has a global view and a pilot run in two regions of Chile and Argentina; territorial restrictions are still pending an official cross-check.
 
-## Usuario principal
+## Primary User
 
-Responsable de planificar una campaña de pruebas que debe elegir dónde realizar reconocimiento sin confundir una preselección geoespacial con autorización, seguridad o aptitud definitiva.
+The person responsible for planning a test campaign who must choose where to carry out reconnaissance without mistaking a geospatial shortlist for authorization, safety, or definitive suitability.
 
-## Flujo P0
+## P0 Flow
 
-1. Ver el perfil `mars-rover-screening-v3` y sus límites (mismas fórmulas y pesos v2).
-2. Entender el barrido de 50 ventanas y explorar seis candidatos, filtrando Chile o Argentina. Yungay se mantiene como referencia conocida aparte.
-3. Revisar similitud, confianza y factibilidad por separado.
-4. Abrir el desglose por criterio y sus fuentes.
-5. Comparar candidatos y referencia, conservando sus roles y antecedentes.
-6. Entender dónde falla la analogía.
-7. Exportar una ficha con verificaciones de terreno.
+1. View the profile `mars-rover-screening-v3` and its limits (same v2 formulas and weights).
+2. Understand the sweep of 50 windows and explore six candidates, filtering by Chile or Argentina. Yungay is kept separately as a known reference.
+3. Review similarity, confidence, and feasibility separately.
+4. Open the breakdown by criterion and its sources.
+5. Compare candidates and reference, preserving their roles and background.
+6. Understand where the analogy fails.
+7. Export a sheet with field verifications.
 
-## Perfil científico P0
+## P0 Scientific Profile
 
-El perfil intenta representar condiciones relevantes para percepción, tracción, navegación y autonomía:
+The profile attempts to represent conditions relevant to perception, traction, navigation, and autonomy:
 
-- pendiente;
-- rugosidad y variabilidad de relieve;
-- fracción de suelo expuesto;
-- baja cobertura vegetal;
-- aridez como contexto;
-- variabilidad térmica superficial, si existe un producto defendible;
-- clase geológica simplificada y trazable;
-- continuidad espacial suficiente.
+- slope;
+- roughness and relief variability;
+- fraction of exposed soil;
+- low vegetation cover;
+- aridity as context;
+- surface thermal variability, if a defensible product exists;
+- simplified and traceable geological class;
+- sufficient spatial continuity.
 
-La referencia marciana se deriva de PDS/MOLA. Las variables terrestres deben documentar producto, periodo, resolución, CRS, unidades y transformaciones.
+The Martian reference is derived from PDS/MOLA. Terrestrial variables must document product, period, resolution, CRS, units, and transformations.
 
-## Lo que sí representa
+## What It Does Represent
 
-- terreno y obstáculos a la escala disponible;
-- exposición superficial;
-- aislamiento y algunos desafíos operacionales;
-- condiciones ambientales terrestres que sirven como proxy de prueba.
+- terrain and obstacles at the available scale;
+- surface exposure;
+- isolation and some operational challenges;
+- terrestrial environmental conditions that serve as a test proxy.
 
-## Lo que no representa
+## What It Does Not Represent
 
-- gravedad marciana;
-- atmósfera o presión;
-- radiación espacial;
-- química exacta del regolito;
-- temperatura marciana completa;
-- permisos, seguridad o aptitud oficial.
+- Martian gravity;
+- atmosphere or pressure;
+- space radiation;
+- exact regolith chemistry;
+- complete Martian temperature;
+- permits, safety, or official suitability.
 
-## Salidas independientes
+## Independent Outputs
 
-### Similitud
+### Similarity
 
-Ajuste físico al perfil de prueba. Rango 0–100.
+Physical fit to the test profile. Range 0–100.
 
-### Confianza
+### Confidence
 
-Calidad y suficiencia de la evidencia. Rango 0–100. Debe disminuir por NoData, resolución inadecuada, antigüedad, transformaciones excesivas o inconsistencias.
+Quality and sufficiency of the evidence. Range 0–100. It must decrease due to NoData, inadequate resolution, age, excessive transformations, or inconsistencies.
 
-### Factibilidad
+### Feasibility
 
-Clasificación preliminar, nunca promesa: `unknown`, `requires_review`, `potentially_feasible`, `excluded`.
+Preliminary classification, never a promise: `unknown`, `requires_review`, `potentially_feasible`, `excluded`.
 
-### Estabilidad
+### Stability
 
-Indicador 0–100 calculado como `100 − peor cambio absoluto del score` al perturbar cada peso individualmente ±20 % y renormalizar. No representa incertidumbre total ni validación científica.
+Indicator 0–100 calculated as `100 − worst absolute score change` by perturbing each weight individually by ±20 % and renormalizing. It does not represent total uncertainty or scientific validation.
 
-## Resultado mínimo por candidato
+## Minimum Result per Candidate
 
-- polígono generalizado;
-- área aproximada;
-- similitud y desglose;
-- confianza y datos faltantes;
-- factibilidad preliminar y advertencias;
-- qué es análogo;
-- dónde falla;
-- para qué prueba sirve;
-- qué verificar en terreno;
-- evidencias y fuentes.
+- generalized polygon;
+- approximate area;
+- similarity and breakdown;
+- confidence and missing data;
+- preliminary feasibility and warnings;
+- what is analogous;
+- where it fails;
+- what test it is useful for;
+- what to verify in the field;
+- evidence and sources.
 
-## Criterio de novedad
+## Novelty criterion
 
-Atacama es un benchmark. Un candidato “nuevo” debe estar fuera de la lista de análogos obvios o aportar una caracterización/uso de prueba que no sea trivial. La novedad se explica; no se fuerza con el score.
+Atacama is a benchmark. A "new" candidate must be outside the list of obvious analogs or provide a non-trivial characterization/test use. Novelty is explained; it is not forced through the score.
 
-## Mensaje de producto
+## Product message
 
-AnalogOS no dice “este lugar es Marte”. Dice “este lugar merece ser investigado para esta prueba, por estas razones, con estas limitaciones”.
+AnalogOS does not say "this place is Mars". It says "this place deserves to be investigated for this test, for these reasons, with these limitations".
 
-## Piloto Chile–Argentina (v3)
+## Chile–Argentina pilot (v3)
 
-Desde el snapshot v3 la marca visible es **AnalogOS** y el producto busca en lugar de listar. La visión es global; lo ejecutado es un piloto acotado.
+Since the v3 snapshot, the visible brand is **AnalogOS** and the product searches instead of listing. The vision is global; what has been executed is a limited pilot.
 
-- **Qué hace:** recorre una rejilla de 50 ventanas de ~20 km en dos regiones de prueba, las ordena por prioridad topográfica, excluye las que contienen coordenadas de muestreo publicadas y caracteriza hasta seis con todas las fuentes.
-- **Roles:** cada sitio es `candidate` (sale de la búsqueda) o `reference` (análogo conocido, fuera del ranking). Yungay es la referencia.
-- **Novedad:** el criterio ya no es «encontrar un sitio nuevo». El sistema registra antecedentes y nunca declara una ventana como nueva; el estado de revisión bibliográfica va separado del rol.
-- **Lo que no representa:** una búsqueda nacional o global, un terreno libre o apto, ni una comparación de calidad entre un candidato y un sitio con décadas de trabajo de campo.
+- **What it does:** it scans a grid of 50 windows of ~20 km in two test regions, ranks them by topographic priority, excludes those that contain published sampling coordinates, and characterizes up to six with all sources.
+- **Roles:** each site is `candidate` (it leaves the search) or `reference` (known analog, outside the ranking). Yungay is the reference.
+- **Novelty:** the criterion is no longer "find a new site". The system records prior work and never declares a window to be new; the literature review status is kept separate from the role.
+- **What it does not represent:** a national or global search, free or suitable terrain, or a quality comparison between a candidate and a site with decades of fieldwork.
 
-Decisión en `docs/decisions/ADR-008-global-discovery-pilot.md`; resultados en `docs/DISCOVERY_REPORT.md`.
+Decision in `docs/decisions/ADR-008-global-discovery-pilot.md`; results in `docs/DISCOVERY_REPORT.md`.
 
-## Planificador de pruebas (M8)
+## Test planner (M8)
 
-Usuario: responsable de una campaña de robótica planetaria. Decisión: «para este ensayo, ¿qué sector merece reconocimiento, por qué, qué lo descarta y qué falta medir?».
+User: person responsible for a planetary robotics campaign. Decision: "for this trial, which sector deserves reconnaissance, why, what rules it out, and what remains to be measured?".
 
-- **Definir una prueba**: texto opcional + requisitos editables (pendiente mediana regional, rugosidad, relieve, fracción no vegetada, área del polígono, país) o pedidos sin medición (tracción, tamaño de roca, permisos, coste, lluvia local, cobertura móvil, pendiente puntual…). El usuario confirma y recién entonces se evalúa.
-- **Evaluar un sector**: una de las siete áreas con evidencia, un punto o un rectángulo. Un punto solo sugiere la ventana que lo contiene; un rectángulo distinto de la ventana, o fuera de ellas, produce un informe de evidencia insuficiente con la solicitud exportable. No hay vecino más cercano ni adquisición nueva.
-- **Resultado**: priorizado para reconocimiento, no cumple requisitos, evidencia insuficiente u objetivo no soportado; por requisito, valor observado, escala, periodo y evidencia. Similitud, confianza y estabilidad son las del snapshot v3, sin recalcular; la factibilidad territorial permanece pendiente. Es válido que ninguna área quede priorizada. Yungay aparece como referencia conocida.
-- **Lo que no dice**: no aprueba, autoriza ni garantiza seguridad; el área es la extensión del polígono, no superficie libre; SCL no prueba tracción; POWER no aprueba lluvia local. Los requisitos son condiciones del ensayo del usuario, no estándares de NASA.
-- **Primer perfil soportado**: rover marciano con referencia Jezero. «Otro objetivo» conserva el pedido sin calcular ni recomendar.
+- **Define a test**: optional text + editable requirements (regional median slope, roughness, relief, non-vegetated fraction, polygon area, country) or requests without measurement (traction, rock size, permits, cost, local rainfall, mobile coverage, point slope…). The user confirms and only then is the evaluation run.
+- **Evaluate a sector**: one of the seven areas with evidence, a point, or a rectangle. A point only suggests the window that contains it; a rectangle that differs from the window, or lies outside the windows, produces an insufficient-evidence report with the exportable request. There is no nearest neighbor and no new acquisition.
+- **Result**: prioritized for reconnaissance, does not meet requirements, insufficient evidence, or unsupported objective; per requirement, observed value, scale, period and evidence. Similarity, confidence and stability are those of the v3 snapshot, without recalculation; territorial feasibility remains pending. It is valid for no area to be prioritized. Yungay appears as a known reference.
+- **What it does not say**: it does not approve, authorize or guarantee safety; the area is the extent of the polygon, not free surface; SCL does not prove traction; POWER does not approve local rainfall. The requirements are conditions of the user's trial, not NASA standards.
+- **First supported profile**: Mars rover with Jezero reference. "Other objective" keeps the request without calculating or recommending.

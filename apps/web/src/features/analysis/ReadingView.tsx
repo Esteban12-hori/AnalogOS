@@ -1,17 +1,17 @@
 /**
- * Lectura (chunk diferido, ADR-013, docs/INTEGRATION_PLAN.md §5). Tres capas SIEMPRE separadas:
+ * Reading (deferred chunk, ADR-013, docs/INTEGRATION_PLAN.md §5). Three layers, ALWAYS kept separate:
  *
- *  1. Resultado — `MissionEvaluation` del equipo (regla de orden, grupos, motivos, qué cambiaría,
- *     pendientes, preguntas abiertas, límites y solicitud de datos). Rótulo «Cálculo determinista».
- *  2. Motivos destacados — `composeExplanation` del equipo: por defecto la plantilla determinista
- *     (sin ✦); tras «✦ Destacar motivos con IA», la selección de Anthropic ya validada por el
- *     reductor (huellas y `checkSelection`). La IA solo elige IDs: todo texto y toda cifra salen
- *     de la evaluación.
- *  3. Hechos del snapshot — capa de hechos deterministas (dirección frente a Jezero, limitante,
- *     satura, valor compartido, mejor de N sin la REF, robustez del pipeline).
+ *  1. Result — `MissionEvaluation` of the team (ordering rule, groups, reasons, what would change,
+ *     pending items, open questions, limits and data request). Label "Deterministic calculation".
+ *  2. Highlighted reasons — `composeExplanation` of the team: by default the deterministic template
+ *     (without ✦); after "✦ Highlight reasons with AI", the Anthropic selection already validated by the
+ *     reducer (fingerprints and `checkSelection`). The AI only chooses IDs: all text and all figures come
+ *     from the evaluation.
+ *  3. Snapshot facts — layer of deterministic facts (direction relative to Jezero, limiting factor,
+ *     saturates, shared value, best of N without the REF, pipeline robustness).
  *
- * En Explorar no hay operación de IA (`explain` necesita una solicitud confirmada): solo hechos,
- * rotulados «Lectura determinista». Nunca hay llamadas automáticas a la IA.
+ * In Explore there is no AI operation (`explain` needs a confirmed request): only facts,
+ * labeled "Deterministic reading". There are never automatic calls to the AI.
  */
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react'
 import { MISSION_STATUS_LABEL } from '../../domain/missionView'
@@ -42,7 +42,7 @@ import type { FactRef, FactsLayer, SiteFacts } from './types'
 import './analysis.css'
 
 function Fact({ fact }: { fact: FactRef | null | undefined }) {
-  if (!fact) return <span className="analysis-pending">sin dato</span>
+  if (!fact) return <span className="analysis-pending">no data</span>
   return <b className="analysis-chip" data-fact={fact.id}>{fact.text}</b>
 }
 
@@ -61,7 +61,7 @@ function Layer({ title, label, ai = false, children }: { title: string; label: s
 }
 
 // ---------------------------------------------------------------------------------------------
-// Capa 3: hechos del snapshot
+// Layer 3: snapshot facts
 // ---------------------------------------------------------------------------------------------
 
 function SiteFactsBlock({ site }: { site: SiteFacts }) {
@@ -70,8 +70,8 @@ function SiteFactsBlock({ site }: { site: SiteFacts }) {
       <p className="analysis-site-line">
         <span aria-hidden="true">{site.insufficient ? GLYPH.insufficient : GLYPH.evaluated}</span> <strong>{site.name}</strong>
         {site.rank && <> · <Fact fact={site.rank} /></>}
-        {' · '}similitud v3 <Fact fact={site.similarity} />
-        <span className="analysis-muted"> · confianza <Fact fact={site.confidence} /> · estabilidad <Fact fact={site.stability} /></span>
+        {' · '}v3 similarity <Fact fact={site.similarity} />
+        <span className="analysis-muted"> · confidence <Fact fact={site.confidence} /> · stability <Fact fact={site.stability} /></span>
       </p>
       {site.directions.length > 0 && (
         <ul className="analysis-list">
@@ -93,21 +93,21 @@ function SiteFactsBlock({ site }: { site: SiteFacts }) {
       )}
       {site.limiting && (
         <p className="analysis-limit">
-          <b>Limitante · {site.limiting.label}</b>
+          <b>Limiting factor · {site.limiting.label}</b>
           <span className="analysis-muted">
-            {' '}el criterio que más resta a la similitud v3 (contribución del pipeline)
-            {site.limiting.sim && <> · similitud <Fact fact={site.limiting.sim} /></>}
+            {' '}the criterion that takes the most away from v3 similarity (pipeline contribution)
+            {site.limiting.sim && <> · similarity <Fact fact={site.limiting.sim} /></>}
           </span>
         </p>
       )}
       {site.saturates.length > 0 && (
         <p className="analysis-rule">
-          <span aria-hidden="true">{GLYPH.rule}</span> Cumple la regla del perfil · no significa igual a Marte:{' '}
+          <span aria-hidden="true">{GLYPH.rule}</span> Meets the profile rule · does not mean equal to Mars:{' '}
           {site.saturates.map((item, index) => <span key={item.criterionId}>{index > 0 && ', '}{item.label}</span>)}
         </p>
       )}
       {site.missing.length > 0 && (
-        <p className="analysis-pending-line">Sin dato, fuera del score: {site.missing.map((item) => `${item.label} (${item.status})`).join(', ')}</p>
+        <p className="analysis-pending-line">No data, outside the score: {site.missing.map((item) => `${item.label} (${item.status})`).join(', ')}</p>
       )}
     </>
   )
@@ -121,9 +121,9 @@ function FactsSection({ facts, focusId, label }: { facts: FactsLayer; focusId: s
   const names = (id: string) => all.find((site) => site.siteId === id)?.name ?? id
   const { comparison, robustness } = facts
   return (
-    <Layer title="Hechos del snapshot" label={label}>
+    <Layer title="Snapshot facts" label={label}>
       {all.length > 1 && (
-        <div className="analysis-sites" role="group" aria-label="Lugar de los hechos">
+        <div className="analysis-sites" role="group" aria-label="Place for the facts">
           {all.map((site) => (
             <button key={site.siteId} type="button" aria-pressed={site.siteId === current?.siteId} onClick={() => setChosen(site.siteId)}>
               <span aria-hidden="true">{site.reference ? 'REF' : site.insufficient ? GLYPH.insufficient : GLYPH.evaluated}</span> {site.name}
@@ -131,17 +131,17 @@ function FactsSection({ facts, focusId, label }: { facts: FactsLayer; focusId: s
           ))}
         </div>
       )}
-      {current ? <SiteFactsBlock site={current} /> : <p className="analysis-pending-line">No hay lugares evaluados en este snapshot.</p>}
+      {current ? <SiteFactsBlock site={current} /> : <p className="analysis-pending-line">There are no evaluated places in this snapshot.</p>}
       {(comparison.noDiscrimination.length > 0 || comparison.shared.length > 0) && (
         <details className="analysis-details">
-          <summary>Qué no distingue entre candidatos</summary>
+          <summary>What does not distinguish between candidates</summary>
           <ul className="analysis-list">
             {comparison.noDiscrimination.map((item) => (
-              <li key={`nd-${item.criterionId}`}>{item.label}: misma similitud mostrada en todos{item.sims[0] && <> (<Fact fact={item.sims[0]} />)</>}</li>
+              <li key={`nd-${item.criterionId}`}>{item.label}: same similarity shown for all{item.sims[0] && <> (<Fact fact={item.sims[0]} />)</>}</li>
             ))}
             {comparison.shared.map((item) => (
               <li key={`sh-${item.criterionId}-${item.siteIds.join()}`}>
-                {item.label}: mismo valor regional{item.raw && <> (<Fact fact={item.raw} />)</>} en {item.siteIds.map(names).join(' y ')}
+                {item.label}: same regional value{item.raw && <> (<Fact fact={item.raw} />)</>} in {item.siteIds.map(names).join(' and ')}
               </li>
             ))}
           </ul>
@@ -149,15 +149,15 @@ function FactsSection({ facts, focusId, label }: { facts: FactsLayer; focusId: s
       )}
       {comparison.bestOfN.length > 0 && (
         <details className="analysis-details">
-          <summary>Mejor de {facts.sites.length} candidatos por criterio</summary>
+          <summary>Best of {facts.sites.length} candidates by criterion</summary>
           <ul className="analysis-list">
             {comparison.bestOfN.map((item) => <li key={`best-${item.criterionId}`}>{item.label}: {names(item.siteId)} <Fact fact={item.sim} /></li>)}
           </ul>
-          <p className="analysis-muted">La referencia conocida (REF) no compite: queda fuera del ranking.</p>
+          <p className="analysis-muted">The known reference (REF) does not compete: it stays out of the ranking.</p>
         </details>
       )}
       <details className="analysis-details">
-        <summary>¿Qué cambiaría el orden de los candidatos?</summary>
+        <summary>What would change the order of the candidates?</summary>
         <ul className="analysis-bars">
           {robustness.sites.map((site) => (
             <li key={site.siteId}>
@@ -165,20 +165,20 @@ function FactsSection({ facts, focusId, label }: { facts: FactsLayer; focusId: s
               <span className="analysis-bar" aria-hidden="true">
                 <span style={{ transform: `scaleX(${site.stability === null ? 0 : Math.max(0, Math.min(1, site.stability / 100))})` }} />
               </span>
-              <span className="analysis-bar-value">{site.text === null ? 'sin dato' : `estabilidad ${site.text}`}</span>
+              <span className="analysis-bar-value">{site.text === null ? 'no data' : `stability ${site.text}`}</span>
             </li>
           ))}
         </ul>
         {robustness.status === 'ready' ? (
           <ul className="analysis-list">
-            <li>Con <Fact fact={robustness.perturbation} /> (<Fact fact={robustness.scenarios} />): <Fact fact={robustness.flips} />; <Fact fact={robustness.topFlips} />.</li>
-            {robustness.mostSensitive && <li>Criterio más sensible: <Fact fact={robustness.mostSensitive} /></li>}
-            {comparison.gaps[0] && <li>Brecha entre el primer y el segundo candidato: <Fact fact={comparison.gaps[0]} /></li>}
+            <li>With <Fact fact={robustness.perturbation} /> (<Fact fact={robustness.scenarios} />): <Fact fact={robustness.flips} />; <Fact fact={robustness.topFlips} />.</li>
+            {robustness.mostSensitive && <li>Most sensitive criterion: <Fact fact={robustness.mostSensitive} /></li>}
+            {comparison.gaps[0] && <li>Gap between the first and second candidate: <Fact fact={comparison.gaps[0]} /></li>}
           </ul>
         ) : (
           <p className="analysis-pending-line">{robustness.reason}</p>
         )}
-        <p className="analysis-muted">Escenarios del pipeline (analysis-summary.json): ±20 % por peso, sin recalcular en la web.</p>
+        <p className="analysis-muted">Pipeline scenarios (analysis-summary.json): ±20% per weight, not recalculated in the web app.</p>
       </details>
       {current && <Checks site={current} />}
     </Layer>
@@ -189,22 +189,22 @@ function Checks({ site }: { site: SiteFacts }) {
   if (site.checks.length === 0) return null
   return (
     <details className="analysis-details analysis-checks">
-      <summary>Qué verificar en terreno · {site.name}</summary>
+      <summary>What to check in the field · {site.name}</summary>
       <ol className="analysis-list">{site.checks.map((check) => <li key={check.ref}>{check.text}</li>)}</ol>
     </details>
   )
 }
 
 // ---------------------------------------------------------------------------------------------
-// Capas 1 y 2: resultado y motivos destacados (Misión)
+// Layers 1 and 2: result and highlighted reasons (Mission)
 // ---------------------------------------------------------------------------------------------
 
 function ResultLayer({ model }: { model: ReadingModel['result'] }) {
   return (
-    <Layer title="Resultado" label={model.label}>
+    <Layer title="Result" label={model.label}>
       {model.dataRequest && <p className="analysis-notice">{model.dataRequest}</p>}
       {model.nonePrioritized && model.outcome === 'evaluated' && (
-        <p className="analysis-notice">Ningún sector cumple todo lo imprescindible con evidencia suficiente. Es un resultado válido.</p>
+        <p className="analysis-notice">No sector meets every must-have with sufficient evidence. This is a valid result.</p>
       )}
       {model.groups.map((group) => (
         <div key={group.status} className="analysis-group" data-status={group.status}>
@@ -218,7 +218,7 @@ function ResultLayer({ model }: { model: ReadingModel['result'] }) {
                 {option.blockers.length > 0 && <span className="analysis-muted"> — {option.blockers.join(' · ')}</span>}
                 {option.whatWouldChange.length > 0 && (
                   <details className="analysis-details analysis-change">
-                    <summary>Qué evidencia cambiaría la decisión · {option.whatWouldChange.length}</summary>
+                    <summary>What evidence would change the decision · {option.whatWouldChange.length}</summary>
                     <ul className="analysis-list">{option.whatWouldChange.map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul>
                   </details>
                 )}
@@ -228,18 +228,18 @@ function ResultLayer({ model }: { model: ReadingModel['result'] }) {
         </div>
       ))}
       <details className="analysis-details">
-        <summary>Regla de orden</summary>
+        <summary>Ordering rule</summary>
         <p className="analysis-muted">{model.orderingRule}</p>
       </details>
-      {model.pending.length > 0 && <p className="analysis-pending-line">{model.pending.length} requisito(s) sin medición: se conservan como pendientes y nunca cuentan como cumplidos.</p>}
+      {model.pending.length > 0 && <p className="analysis-pending-line">{model.pending.length} unmeasured requirement(s): they are kept as pending and never count as met.</p>}
       {model.openQuestions.length > 0 && (
         <details className="analysis-details">
-          <summary>Preguntas abiertas · {model.openQuestions.length}</summary>
+          <summary>Open questions · {model.openQuestions.length}</summary>
           <ul className="analysis-list">{model.openQuestions.map((question, index) => <li key={`${index}-${question}`}>{question}</li>)}</ul>
         </details>
       )}
       <details className="analysis-details">
-        <summary>Límites</summary>
+        <summary>Limits</summary>
         <ul className="analysis-list">{model.limits.map((limit, index) => <li key={`${index}-${limit}`}>{limit}</li>)}</ul>
       </details>
     </Layer>
@@ -249,10 +249,10 @@ function ResultLayer({ model }: { model: ReadingModel['result'] }) {
 function HighlightsLayer({ model }: { model: ReadingModel['highlights'] }) {
   const ai = model.source === 'anthropic'
   return (
-    <Layer title="Motivos destacados" label={model.label} ai={ai}>
+    <Layer title="Highlighted reasons" label={model.label} ai={ai}>
       {ai && model.provenance && <p className="analysis-meta">{model.provenance}</p>}
       <p className="analysis-muted">{model.notice}</p>
-      {/* La nota sale de la evaluación (explanationToReading.emptyNote), no de lo que eligió la IA. */}
+      {/* The note comes from the evaluation (explanationToReading.emptyNote), not from what the AI chose. */}
       {model.emptyNote && <p className="analysis-pending-line">{model.emptyNote}</p>}
       {model.options.filter((option) => option.lines.length > 0).map((option) => (
         <div key={option.siteId} className="analysis-group">
@@ -264,7 +264,7 @@ function HighlightsLayer({ model }: { model: ReadingModel['highlights'] }) {
                 <span className="analysis-muted"> — {line.reason}</span>
                 {line.evidence.length > 0 && (
                   <span className="analysis-muted">
-                    {' '}· evidencia:{' '}
+                    {' '}· evidence:{' '}
                     {line.evidence.map((item, index) => (
                       <span key={item.id}>
                         {index > 0 && ', '}
@@ -279,18 +279,18 @@ function HighlightsLayer({ model }: { model: ReadingModel['highlights'] }) {
         </div>
       ))}
       {model.omitted.length > 0 && (
-        <ul className="analysis-list analysis-omitted" aria-label={ai ? 'Lugares sin motivos destacados por la IA' : 'Lugares sin motivos destacados'}>
+        <ul className="analysis-list analysis-omitted" aria-label={ai ? 'Places without reasons highlighted by the AI' : 'Places without highlighted reasons'}>
           {model.omitted.map((option) => (
             <li key={option.siteId}>
               {option.rank !== null ? `#${option.rank} · ` : ''}{option.name}{option.role === 'reference' ? ' · REF' : ''} · {option.statusLabel}
-              <span className="analysis-muted"> — sin motivos destacados{ai ? ' por la IA' : ''}</span>
+              <span className="analysis-muted"> — no highlighted reasons{ai ? ' from the AI' : ''}</span>
             </li>
           ))}
         </ul>
       )}
       {model.verifications.length > 0 && (
         <details className="analysis-details analysis-checks">
-          <summary>Verificaciones {ai ? 'en el orden que sugiere la IA' : 'de campo'} · {model.verifications.length}</summary>
+          <summary>{ai ? 'Checks in the order the AI suggests' : 'Field checks'} · {model.verifications.length}</summary>
           <ol className="analysis-list">{model.verifications.map((item) => <li key={item.id}>{item.text}</li>)}</ol>
         </details>
       )}
@@ -299,9 +299,9 @@ function HighlightsLayer({ model }: { model: ReadingModel['highlights'] }) {
 }
 
 /**
- * «✦ Destacar motivos con IA»: solo con `outcome === 'evaluated'`, con el aviso literal de envío. Con el
- * contexto geológico oficial, la casilla del canal geológico del equipo (M10) decide si la misma llamada
- * pide también la orientación geológica; el aviso cambia con ella (uno solo, condicional).
+ * "✦ Highlight reasons with AI": only with `outcome === 'evaluated'`, with the literal sending notice. With the
+ * official geological context, the team's geological channel checkbox (M10) decides whether the same call
+ * also requests the geological orientation; the notice changes accordingly (just one, conditional).
  */
 function AiControls() {
   const explain = useMission((state) => state.planner?.explain ?? null)
@@ -315,7 +315,7 @@ function AiControls() {
   const withGeology = geology.available && useGeology
   return (
     <div className="analysis-ai">
-      <p className="analysis-muted">{withGeology ? AI_SEND_NOTICE_GEOLOGY : AI_SEND_NOTICE} La IA solo destaca motivos ya calculados: no cambia estados, valores ni exclusiones.</p>
+      <p className="analysis-muted">{withGeology ? AI_SEND_NOTICE_GEOLOGY : AI_SEND_NOTICE} The AI only highlights reasons already calculated: it does not change statuses, values or exclusions.</p>
       {geology.available ? (
         <label className="analysis-geo-opt" htmlFor={optId}>
           <input id={optId} type="checkbox" checked={useGeology} disabled={pending} onChange={(event) => setUseGeology(event.target.checked)} />
@@ -326,19 +326,19 @@ function AiControls() {
       )}
       {pending ? (
         <p className="analysis-writing">
-          <OrbitLoader active={phase === 'analysis'} label="Destacando motivos…" placement="inline" />{' '}
-          <button type="button" className="analysis-link" onClick={() => withController((mission) => mission.cancelExplain())}>Cancelar</button>
+          <OrbitLoader active={phase === 'analysis'} label="Highlighting reasons…" placement="inline" />{' '}
+          <button type="button" className="analysis-link" onClick={() => withController((mission) => mission.cancelExplain())}>Cancel</button>
         </p>
       ) : (
         <button type="button" className="analysis-ai-button" onClick={() => withController((mission) => mission.runExplain())}>
-          <span aria-hidden="true">{GLYPH.ai} </span>{explain.status === 'done' ? 'Pedir otra selección a la IA' : 'Destacar motivos con IA'}
+          <span aria-hidden="true">{GLYPH.ai} </span>{explain.status === 'done' ? 'Ask the AI for another selection' : 'Highlight reasons with AI'}
         </button>
       )}
       {withGeology && <p className="analysis-muted">{GEOLOGY_WHERE}</p>}
       <div aria-live="polite">
-        {explain.status === 'unavailable' && <p className="analysis-notice">{explain.message} La plantilla determinista sigue siendo la Lectura.</p>}
+        {explain.status === 'unavailable' && <p className="analysis-notice">{explain.message} The deterministic template is still the Reading.</p>}
         {explain.status === 'error' && (
-          <p className="analysis-notice">{explain.message?.includes('no corresponde') ? STALE_AI_MESSAGE : `${explain.message ?? ''} Se mantiene la plantilla determinista.`}</p>
+          <p className="analysis-notice">{explain.message?.includes('does not belong to the current calculation') ? STALE_AI_MESSAGE : `${explain.message ?? ''} The deterministic template is kept.`}</p>
         )}
         {explain.status === 'error' && explain.geologyFailed && (
           <p className="analysis-notice">
@@ -359,7 +359,7 @@ export default function ReadingView({ data, placement }: ReadingPanelProps) {
   const stale = useMission((state) => state.stale)
   const explanation = useMission((state) => state.explanation)
   const revision = useMission((state) => state.revision)
-  // Procedencia guardada junto a la vista: sigue visible si la Lectura queda atenuada tras editar.
+  // Provenance saved alongside the view: remains visible if the Reading is dimmed after editing.
   const provenance = useMission((state) => state.explanationProvenance)
   const snapshot = data.snapshot
   const mission = mode === 'mision' && evaluation !== null && explanation !== null
@@ -382,38 +382,38 @@ export default function ReadingView({ data, placement }: ReadingPanelProps) {
   const model = useMemo(() => (mission ? explanationToReading(explanation, evaluation, revision, provenance) : null), [mission, explanation, evaluation, revision, provenance])
 
   if (!snapshot || !facts) {
-    return <p className="analysis-pending-line" aria-busy="true">Esperando el snapshot validado…</p>
+    return <p className="analysis-pending-line" aria-busy="true">Waiting for the validated snapshot…</p>
   }
   const focusId = selection?.kind === 'evaluated' ? selection.siteId : null
   return (
     <section className="analysis" data-placement={placement} aria-labelledby={`${prefix}-title`} data-busy={mission && stale ? '' : undefined} aria-busy={mission && stale}>
       <header className="analysis-head">
-        {/* tabIndex -1: destino del foco de «Ir a la Lectura» (M11). */}
-        <h2 id={`${prefix}-title`} tabIndex={-1}>{model ? 'Lectura de tu misión' : 'Lectura determinista'}</h2>
+        {/* tabIndex -1: focus target of "Go to the Reading" (M11). */}
+        <h2 id={`${prefix}-title`} tabIndex={-1}>{model ? 'Reading of your mission' : 'Deterministic reading'}</h2>
       </header>
       {model ? (
         <>
-          {stale && <p className="analysis-notice">Editó la prueba: esta Lectura corresponde a la evaluación anterior hasta que confirme y evalúe de nuevo.</p>}
+          {stale && <p className="analysis-notice">You edited the test: this Reading belongs to the previous evaluation until you confirm and evaluate again.</p>}
           <ResultLayer model={model.result} />
           <AiControls />
           <HighlightsLayer model={model.highlights} />
-          <FactsSection facts={facts} focusId={focusId} label="Hechos del snapshot · sitios evaluados · sin IA" />
+          <FactsSection facts={facts} focusId={focusId} label="Snapshot facts · evaluated sites · no AI" />
         </>
       ) : (
         <>
           <p className="analysis-meta">
-            Hechos del snapshot {snapshot.manifest.snapshot_version} · perfil base {snapshot.profile.version}
-            {snapshot.profile.status === 'needs_calibration' && <span className="analysis-muted"> · sin calibrar (needs_calibration)</span>}
+            Snapshot facts {snapshot.manifest.snapshot_version} · base profile {snapshot.profile.version}
+            {snapshot.profile.status === 'needs_calibration' && <span className="analysis-muted"> · not calibrated (needs_calibration)</span>}
           </p>
           {mode === 'mision' && (
-            <p className="analysis-notice">Sin evaluación: defina y confirme los requisitos en «Tu misión». La IA solo se usa si usted la pide, después de evaluar.</p>
+            <p className="analysis-notice">No evaluation yet: define and confirm the requirements in “Your mission”. The AI is only used if you ask for it, after evaluating.</p>
           )}
-          <FactsSection facts={facts} focusId={focusId} label="Lectura determinista · sin IA" />
+          <FactsSection facts={facts} focusId={focusId} label="Deterministic reading · no AI" />
         </>
       )}
       <footer className="analysis-foot">
         <p className="analysis-foot-note">
-          Similitud, confianza y factibilidad van por separado. {model ? `«${MISSION_STATUS_LABEL.priorizado_para_reconocimiento}»` : 'Más similitud'} no significa aprobado: la factibilidad territorial está pendiente.
+          Similarity, confidence and feasibility are kept separate. {model ? `“${MISSION_STATUS_LABEL.priorizado_para_reconocimiento}”` : 'More similarity'} does not mean approved: territorial feasibility is pending.
         </p>
       </footer>
     </section>

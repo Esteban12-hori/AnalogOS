@@ -1,8 +1,8 @@
 /**
- * Tarjeta compacta de un ◆ seleccionado (slots rail.reference y sheet.reference), §1 #15:
- * «Referencia mundial · por calcular», con su fuente. Sin similitud, confianza ni ranking, sin
- * líneas Tesla; la ubicación es una zona aproximada o una región, nunca un pin.
- * Chunk diferido: lo carga `ReferenceCard` (Suspense) solo cuando hace falta.
+ * Compact card for a selected ◆ (slots rail.reference and sheet.reference), §1 #15:
+* «World reference · to be calculated», with its source. No similarity, confidence or ranking, no
+ * Tesla lines; the location is an approximate zone or a region, never a pin.
+ * Deferred chunk: loaded by `ReferenceCard` (Suspense) only when needed.
  */
 import { useMemo } from 'react'
 import { formatDecimal } from '../../domain/formatting'
@@ -11,11 +11,12 @@ import { classifyReferenceAnalogs } from './classify'
 import type { ReferenceCardProps } from './index'
 import { placeName } from './placeModel'
 import { useReferenceAnalogs } from './referenceAnalogs'
+import { displaySource } from '../../i18n/sourceText'
 import './reference-card.css'
 
-const coord = new Intl.NumberFormat('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const coord = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-/** «24,08° S, 69,92° W»: el punto citado, con 2 decimales (≈1 km); nunca se dibuja como pin. */
+/** «24,08° S, 69,92° W»: the cited point, with 2 decimals (≈1 km); never drawn as a pin. */
 export function formatLatLon(lat: number, lon: number): string {
   return `${coord.format(Math.abs(lat))}° ${lat < 0 ? 'S' : 'N'}, ${coord.format(Math.abs(lon))}° ${lon < 0 ? 'W' : 'E'}`
 }
@@ -31,47 +32,47 @@ export default function ReferenceCardView({ data, analogId }: ReferenceCardProps
     return { coincides: names([...badges.keys()]), contains: names(references[0]?.containsSectorIds ?? []) }
   }, [analog, candidates])
 
-  const kicker = <p className="places-ref-kicker"><span aria-hidden="true">{GLYPH.reference}</span> Referencia mundial · por calcular</p>
-  if (catalog.status === 'loading') return <div className="places-ref" aria-busy="true">{kicker}<p className="places-state">Cargando el catálogo de análogos…</p></div>
+  const kicker = <p className="places-ref-kicker"><span aria-hidden="true">{GLYPH.reference}</span> World reference · not yet calculated</p>
+  if (catalog.status === 'loading') return <div className="places-ref" aria-busy="true">{kicker}<p className="places-state">Loading the analog catalog…</p></div>
   if (catalog.status === 'unavailable') {
-    return <div className="places-ref">{kicker}<p className="places-state"><span aria-hidden="true">{GLYPH.fail}</span> Catálogo no disponible: {catalog.reason}</p></div>
+    return <div className="places-ref">{kicker}<p className="places-state"><span aria-hidden="true">{GLYPH.fail}</span> Catalog not available: {catalog.reason}</p></div>
   }
-  if (!analog) return <div className="places-ref">{kicker}<p className="places-state">Este análogo no está en el catálogo publicado.</p></div>
+  if (!analog) return <div className="places-ref">{kicker}<p className="places-state">This analog is not in the published catalog.</p></div>
 
   const { location } = analog
   return (
     <article className="places-ref" aria-labelledby={`ref-${analog.id}`}>
       {kicker}
-      <h3 id={`ref-${analog.id}`} className="places-ref-name">{analog.name}</h3>
-      <p className="places-ref-meta">{analog.country}</p>
+      <h3 id={`ref-${analog.id}`} className="places-ref-name">{displaySource(analog.name)}</h3>
+      <p className="places-ref-meta">{displaySource(analog.country)}</p>
       <dl className="places-ref-facts">
-        <dt>Ubicación</dt>
+        <dt>Location</dt>
         <dd>
           {location.kind === 'approximate_point'
-            ? <>Zona aproximada de radio ≈ {formatDecimal(location.radius_km)} km en torno al punto citado ({formatLatLon(location.lat, location.lon)}). No es un pin exacto.</>
-            : <>Región aproximada entre {formatLatLon(location.bbox[1], location.bbox[0])} y {formatLatLon(location.bbox[3], location.bbox[2])}.</>}
-          {analog.summary && <> {analog.summary}</>}
+            ? <>Approximate area with a radius of ≈ {formatDecimal(location.radius_km)} km around the cited point ({formatLatLon(location.lat, location.lon)}). It is not an exact pin.</>
+            : <>Approximate region between {formatLatLon(location.bbox[1], location.bbox[0])} and {formatLatLon(location.bbox[3], location.bbox[2])}.</>}
+          {analog.summary && <> {displaySource(analog.summary)}</>}
         </dd>
-        <dt>Similitud, confianza y ranking</dt>
-        <dd className="is-pending">Por calcular: este análogo no se ha medido con el perfil, así que no tiene %.</dd>
+        <dt>Similarity, confidence and ranking</dt>
+        <dd className="is-pending">Not yet calculated: this analog has not been measured with the profile, so it has no %.</dd>
         {relation.coincides.length > 0 && (
           <>
-            <dt>Coincide con</dt>
-            <dd><span aria-hidden="true">{GLYPH.evaluated}</span> {relation.coincides.join(', ')} (el punto citado cae dentro del sector)</dd>
+            <dt>Matches</dt>
+            <dd><span aria-hidden="true">{GLYPH.evaluated}</span> {relation.coincides.join(', ')} (the cited point falls inside the sector)</dd>
           </>
         )}
         {relation.contains.length > 0 && (
           <>
-            <dt>Contiene</dt>
-            <dd>{relation.contains.length} {relation.contains.length === 1 ? 'sector evaluado' : 'sectores evaluados'}: {relation.contains.join(', ')}</dd>
+            <dt>Contains</dt>
+            <dd>{relation.contains.length} {relation.contains.length === 1 ? 'evaluated sector' : 'evaluated sectors'}: {relation.contains.join(', ')}</dd>
           </>
         )}
       </dl>
-      <h4 className="places-ref-sources-title">Fuentes</h4>
+      <h4 className="places-ref-sources-title">Sources</h4>
       <ul className="places-ref-sources">
         {analog.sources.map((source) => (
           <li key={source.url}>
-            <a href={source.url} target="_blank" rel="noreferrer noopener">{source.title}</a>
+            <a href={source.url} target="_blank" rel="noreferrer noopener">{displaySource(source.title)}</a>
             {source.publisher && <small> · {source.publisher}</small>}
           </li>
         ))}

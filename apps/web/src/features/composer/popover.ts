@@ -1,6 +1,6 @@
 /**
- * Popovers nativos (atributo `popover`, capa superior del navegador): no los recortan el dock
- * ni la hoja, y traen Esc y cierre al tocar fuera. Aquí solo se colocan sobre su ancla.
+ * Native popovers (`popover` attribute, the browser's top layer): the dock and the sheet do not clip them,
+ * and they come with Esc and close-on-outside-tap built in. Here they are only positioned over their anchor.
  */
 export function isPopoverOpen(element: HTMLElement | null): boolean {
   try {
@@ -10,7 +10,7 @@ export function isPopoverOpen(element: HTMLElement | null): boolean {
   }
 }
 
-/** ¿Hay algún popover abierto? (Esc lo cierra primero; no cancela la misión). */
+/** Is any popover open? (Esc closes it first; it does not cancel the mission). */
 export function anyPopoverOpen(): boolean {
   try {
     return document.querySelector(':popover-open') !== null
@@ -23,7 +23,7 @@ export function hidePopover(element: HTMLElement | null): void {
   if (element && isPopoverOpen(element)) element.hidePopover()
 }
 
-/** Coloca el popover encima del ancla, dentro del área bajo la barra superior. */
+/** Positions the popover above the anchor, within the area below the top bar. */
 export function placeAbove(popover: HTMLElement | null, anchor: HTMLElement | null, preferredWidth: number): void {
   if (!popover || !anchor) return
   const rect = anchor.getBoundingClientRect()

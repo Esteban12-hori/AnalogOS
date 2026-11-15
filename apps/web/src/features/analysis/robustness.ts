@@ -1,22 +1,22 @@
 /**
- * Robustez del orden (docs/UX_REDESIGN.md §3.7 y §5.6): escenarios que cambian el orden y
- * criterio más sensible. Toda cifra sale de `sites[].sensitivity` de analysis-summary.json,
- * que escribe el pipeline (pipelines/scoring.py, ±20 % por peso, renormalizado); aquí solo se
- * leen esas cifras y se comparan órdenes. Sin motor propio (ADR-015, sustituido por ADR-009).
- * Funciones puras: sin stores ni red.
+ * Order robustness (docs/UX_REDESIGN.md §3.7 and §5.6): scenarios that change the order and the most sensitive
+ * criterion. Every figure comes from `sites[].sensitivity` of analysis-summary.json,
+ * which the pipeline writes (pipelines/scoring.py, ±20 % per weight, renormalized); here we only
+ * read those figures and compare orders. No engine of its own (ADR-015, superseded by ADR-009).
+ * Pure functions: no stores or network.
  */
 import type { CriterionId } from '../../domain/contracts'
 import { CRITERION_IDS, isCriterionId } from '../../domain/criteria'
 import type { SensitivityResult } from '../../domain/sensitivity'
 
-/** Perturbación que usa el pipeline (scoring.py). */
+/** Perturbation used by the pipeline (scoring.py). */
 export const PERTURBATION = 0.2
 
 export type { SensitivityResult, SensitivityScenario } from '../../domain/sensitivity'
 
 export interface SiteSensitivity {
   siteId: string
-  /** Similitud del lugar en el snapshot; null = datos insuficientes. */
+  /** Similarity of the place in the snapshot; null = insufficient data. */
   baseScore: number | null
   result: SensitivityResult | null
 }
@@ -25,11 +25,11 @@ export interface RobustnessSummary {
   status: 'ready' | 'insufficient'
   /** Escenarios evaluados (criterio × ±). */
   scenarios: number
-  /** Escenarios en los que cambia el orden de los lugares con %. */
+  /** Scenarios in which the order of places with % changes. */
   flips: number
-  /** Escenarios en los que cambia el #1. */
+  /** Scenarios in which #1. changes */
   topFlips: number
-  /** Criterio cuyo ±20 % mueve más algún %; null si ninguno lo mueve. */
+  /** Criterion whose ±20 % moves some % the most; null if none moves any. */
   mostSensitive: CriterionId | null
   sites: ReadonlyArray<{ siteId: string; stability: number | null; maxScoreDelta: number | null }>
 }
@@ -39,7 +39,7 @@ interface Ranked {
   score: number
 }
 
-/** Mismo criterio que rankCandidates: % descendente; empate por site_id. */
+/** Same criterion as rankCandidates: % descending; ties broken by site_id. */
 function order(rows: readonly Ranked[]): string[] {
   return [...rows]
     .sort((a, b) => (a.score !== b.score ? b.score - a.score : a.siteId < b.siteId ? -1 : a.siteId > b.siteId ? 1 : 0))
@@ -49,8 +49,8 @@ function order(rows: readonly Ranked[]): string[] {
 const CANONICAL: ReadonlyMap<string, number> = new Map(CRITERION_IDS.map((id, index) => [id, index]))
 
 /**
- * Compara el orden base con el de cada escenario. `rows` llega en el orden del ranking actual
- * (los sin % se ignoran para el orden). Con menos de dos lugares con %, no hay orden que cambiar.
+ * Compares the base order with that of each scenario. `rows` arrives in the current ranking order
+ * (those without % are ignored for the order). With fewer than two places with %, there is no order to change.
  */
 export function summarizeRobustness(rows: readonly SiteSensitivity[]): RobustnessSummary {
   const sites = rows.map((row) => ({
@@ -60,7 +60,7 @@ export function summarizeRobustness(rows: readonly SiteSensitivity[]): Robustnes
   }))
   const ranked = rows.filter((row): row is SiteSensitivity & { baseScore: number; result: SensitivityResult } => row.baseScore !== null && row.result !== null)
 
-  // Criterio más sensible: mayor |delta| en cualquier lugar; empate → orden canónico.
+  // Most sensitive criterion: greatest |delta| in any place; tie → canonical order.
   let mostSensitive: CriterionId | null = null
   let worst = 0
   for (const row of ranked) {
@@ -92,7 +92,7 @@ export function summarizeRobustness(rows: readonly SiteSensitivity[]): Robustnes
   let flips = 0
   let topFlips = 0
   for (const [key, count] of keys) {
-    // Solo escenarios que existen para todos los lugares con %.
+    // Only scenarios that exist for all places with %.
     if (count !== ranked.length) continue
     const scored: Ranked[] = []
     for (const row of ranked) {

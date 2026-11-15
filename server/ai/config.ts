@@ -1,6 +1,6 @@
-// Configuración solo-servidor. La clave nunca se serializa ni se registra.
+// Server-only configuration. The key is never serialized or logged.
 export const DEFAULT_MODEL = 'claude-sonnet-5-5'
-export const ANTHROPIC_ENDPOINT = 'https://api.anthropic.com/v1/messages' // host fijo: ninguna URL viene del cliente
+export const ANTHROPIC_ENDPOINT = 'https://api.anthropic.com/v1/messages' // fixed host: no URL comes from the client
 export const ANTHROPIC_VERSION = '2023-06-01'
 
 export type EnvLike = Record<string, string | undefined>
@@ -42,7 +42,7 @@ export function readAiConfig(env: EnvLike): AiConfig {
   const model = (env.ANTHROPIC_MODEL ?? '').trim() || DEFAULT_MODEL
   const timeout = Number.parseInt(env.ANALOGOS_AI_TIMEOUT_MS ?? '', 10)
   const config: AiConfig = {
-    apiKey: key && MODEL_RE.test(model) ? key : null, // modelo mal formado => IA no disponible, no se adivina
+    apiKey: key && MODEL_RE.test(model) ? key : null, // malformed model => AI unavailable, never guessed
     model,
     timeoutMs: Number.isFinite(timeout) ? Math.min(Math.max(timeout, 1000), 55_000) : 20_000,
     allowedOrigins: new Set(origins(env.ANALOGOS_AI_ALLOWED_ORIGINS)),
@@ -54,7 +54,7 @@ export function readAiConfig(env: EnvLike): AiConfig {
     production: env.VERCEL_ENV === 'production',
     keyConfigured: Boolean(key),
   }
-  // La clave no debe aparecer en JSON.stringify / console.log accidentales.
+  // The key must not appear in accidental JSON.stringify / console.log calls.
   Object.defineProperty(config, 'apiKey', { value: config.apiKey, enumerable: false })
   return config
 }

@@ -1,15 +1,15 @@
 /**
- * Capa de arranque «Órbita honesta» (slot `stage.overlay`). Continúa sin saltos lo que pintó el
- * HTML estático (mismo marcado y la misma fase del satélite) y avanza solo con hitos reales:
+ * "Honest orbit" boot layer (slot `stage.overlay`). Seamlessly continues what the static
+ * HTML painted (same markup and same satellite phase) and advances only on real milestones:
  *
- *   orbit  · póster/silueta, anillo, satélite (2 × 2,4 s) y bitácora
- *   reveal · el globo 3D ya se ve: onda del anillo, ui.introPhase = 'play' (aterrizaje del globo)
- *   fold   · ~1,6 s después la bitácora se pliega en el chip (CSS, 280 ms)
- *   done   · ui.introPhase = 'done'; queda solo la órbita de la espera de la IA cuando se pide
+ *   orbit  · poster/silhouette, ring, satellite (2 × 2,4 s) and log
+ *   reveal · the 3D globe is now visible: ring wave, ui.introPhase = 'play' (globe landing)
+ *   fold   · ~1,6 s later the log folds into the chip (CSS, 280 ms)
+ *   done   · ui.introPhase = 'done'; only the AI-wait orbit remains, when requested
  *
- * Cualquier pointerdown, rueda o tecla salta al estado final. Completa una vez por sesión;
- * `?intro=full` la fuerza. Si todo carga en <300 ms: sin órbita ni bitácora, solo el aterrizaje.
- * Las animaciones son CSS (boot.css) sobre `data-phase`; aquí solo hay temporizadores y estado.
+ * Any pointerdown, wheel or key jumps to the final state. Completes once per session;
+ * `?intro=full` forces it. If everything loads in <300 ms: no orbit or log, only the landing.
+ * The animations are CSS (boot.css) on `data-phase`; here there are only timers and state.
  */
 import { lazy, Suspense, useEffect, useLayoutEffect, useReducer, useRef, useState, type CSSProperties } from 'react'
 import { bootPoster, GLOBE_POSTER } from '../../data/preload'
@@ -40,11 +40,11 @@ import type { StageFrameBridge } from './StageOrbit'
 import type { BootLayerProps } from './index'
 import './boot.css'
 
-// La órbita de la espera de la IA (Misión) se descarga la primera vez que se pide.
+// The AI-wait orbit (Mission) is downloaded the first time it is requested.
 const StageOrbit = lazy(() => import('./StageOrbit'))
 const BRIDGE: StageFrameBridge = { getProjection: getStageProjection, subscribe: subscribeStageFrame }
 
-/** Inicio (reloj del documento) de las animaciones del HTML estático, si ya corrían. */
+/** Start (document clock) of the static HTML animations, if they were already running. */
 const STATIC_CLOCK = (() => {
   const start = typeof document === 'undefined' ? null : document.querySelector('.boot-orbit')?.getAnimations?.()[0]?.startTime
   return typeof start === 'number' ? start : null
@@ -55,7 +55,7 @@ function session(write?: boolean): boolean {
     if (write) sessionStorage.setItem(INTRO_SESSION_KEY, '1')
     return sessionStorage.getItem(INTRO_SESSION_KEY) !== null
   } catch {
-    return false // sin almacenamiento de sesión: se trata como primera visita
+    return false // no session storage: treated as a first visit
   }
 }
 
@@ -81,14 +81,14 @@ export function BootLayer({ data }: BootLayerProps) {
   const visible = stageVisible(milestones, stageTramo(width) !== 'narrow', posterHidden)
   const intro = introPhaseFor({ phase, mode }, milestones.globe)
 
-  // El modo vive en <html data-boot>: lo lee el CSS del HTML estático y de React.
+  // The mode lives in <html data-boot>: it is read by the CSS of the static HTML and of React.
   useLayoutEffect(() => {
     document.documentElement.dataset.boot = mode
   }, [mode])
 
   useEffect(() => uiActions.setIntroPhase(intro), [intro])
 
-  // Revelado cuando el globo 3D ya se ve (o no habrá globo); con ?intro=full, tras sostener la órbita.
+  // Revealed when the 3D globe is already visible (or there will be no globe); with ?intro=full, after holding the orbit.
   useEffect(() => {
     if (!visible || phase !== 'orbit') return
     const at = now()
@@ -96,7 +96,7 @@ export function BootLayer({ data }: BootLayerProps) {
     return () => window.clearTimeout(timer)
   }, [visible, phase, mode])
 
-  // reveal → fold a los ~1,6 s; fold → done al terminar el pliegue. Una vez por sesión.
+  // reveal → fold at ~1,6 s; fold → done when the fold ends. Once per session.
   useEffect(() => {
     const ms = phaseTimer(phase)
     if (phase === 'done') session(true)
@@ -105,7 +105,7 @@ export function BootLayer({ data }: BootLayerProps) {
     return () => window.clearTimeout(timer)
   }, [phase])
 
-  // Cualquier pointerdown, rueda o tecla salta al estado final.
+  // Any pointerdown, wheel or key jumps to the final state.
   const interruptible = phase === 'orbit' || phase === 'reveal'
   useEffect(() => {
     if (!interruptible) return
@@ -117,7 +117,7 @@ export function BootLayer({ data }: BootLayerProps) {
     }
   }, [interruptible])
 
-  // Con la órbita ya quieta (2 vueltas), las líneas en curso muestran el tiempo transcurrido.
+  // With the orbit already still (2 turns), the in-progress lines show the elapsed time.
   const waiting = phase === 'orbit' && mode !== 'quiet'
   useEffect(() => {
     if (!waiting) return setElapsed(null)
@@ -128,14 +128,14 @@ export function BootLayer({ data }: BootLayerProps) {
     return () => window.clearInterval(id)
   }, [waiting])
 
-  // El póster se funde (450 ms) y luego sale del DOM.
+  // The poster fades out (450 ms) and then leaves the DOM.
   useEffect(() => {
     if (!posterHidden) return
     const timer = window.setTimeout(() => setPosterGone(true), 600)
     return () => window.clearTimeout(timer)
   }, [posterHidden])
 
-  // Un solo anuncio al validarse el snapshot (la bitácora es aria-hidden).
+  // A single announcement when the snapshot is validated (the log is aria-hidden).
   const announced = useRef(false)
   useEffect(() => {
     if (announced.current || milestones.snapshot !== 'ok' || !version) return

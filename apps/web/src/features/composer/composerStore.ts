@@ -1,8 +1,8 @@
 /**
- * Estado PRIVADO del composer (no es estado compartido): la espera del borrador de IA, el
- * historial local, Deshacer, errores de evaluación o exportación y pedidos de navegación a
- * «Tu misión». Lo compartido vive en `state/mission.ts` (solo lo escribe el controlador de misión)
- * y en `ui.missionPhase`.
+ * PRIVATE composer state (not shared state): the wait for the AI draft, the
+ * local history, Undo, evaluation or export errors, and navigation requests to
+ * "Your mission". Shared state lives in `state/mission.ts` (written only by the mission controller)
+ * and in `ui.missionPhase`.
  */
 import { createStore, useStore } from '../../state/store'
 import type { StepId } from '../../components/planner/PlannerView'
@@ -10,36 +10,36 @@ import type { HistoryEntry } from './history'
 import type { WaitStage } from './labels'
 
 /**
- * Canal geológico de la explicación con IA (M10 del equipo), tal como lo ve el controlador de misión:
- * disponible solo con el contexto oficial validado; si no, el motivo (mismos textos que `usePlanner`).
+ * Geological channel of the AI explanation (the team's M10), as seen by the mission controller:
+ * available only with the validated official context; otherwise, the reason (same texts as `usePlanner`).
  */
 export interface GeologyChannel {
   available: boolean
   unavailableReason: string | null
 }
 
-export const GEOLOGY_LOADING_REASON = 'El contexto geológico todavía se está cargando.'
+export const GEOLOGY_LOADING_REASON = 'The geology context is still loading.'
 
 export interface ComposerState {
-  /** El chunk de misión cargó y el controlador está listo. */
+  /** The mission chunk has loaded and the controller is ready. */
   ready: boolean
-  /** ms epoch en que empezó el borrador de IA en curso; null sin espera. */
+  /** Epoch ms when the current AI draft started; null when not waiting. */
   draftStartedAt: number | null
   wait: WaitStage | null
   history: readonly HistoryEntry[]
-  /** Pruebas evaluadas en esta sesión (la última es la vigente): Deshacer restaura la anterior. */
+  /** Tests evaluated in this session (the last one is the current one): Undo restores the previous one. */
   undo: readonly HistoryEntry[]
   /** Aviso no bloqueante («Solicitud cancelada…», «Restaurada…»). */
   notice: string | null
   evaluationError: string | null
   exportError: string | null
-  /** Pedido de paso para la vista del planificador en «Tu misión». */
+  /** Step request for the planner view in "Your mission". */
   stepRequest: { step: StepId; nonce: number; target?: 'brief' } | null
-  /** Aumenta para pedir que «Tu misión» se abra (popover <1440) o reciba el foco (panel ≥1440). */
+  /** Increments to request that "Your mission" be opened (popover <1440) or receive focus (panel ≥1440). */
   openRequest: number
-  /** Lo publica el controlador de misión al recibir el contexto geológico (M10). */
+  /** Published by the mission controller upon receiving the geological context (M10). */
   geology: GeologyChannel
-  /** Casilla «Incluir orientación geológica de la prueba» (activa por defecto, como en `usePlanner`). */
+  /** "Include geological guidance for the test" checkbox (enabled by default, as in `usePlanner`). */
   useGeology: boolean
   geologyExportError: string | null
 }
@@ -53,19 +53,19 @@ export function initialComposerState(history: readonly HistoryEntry[] = []): Com
   }
 }
 
-/** El historial se lee de localStorage cuando carga el chunk de misión. */
+/** The history is read from localStorage when the mission chunk loads. */
 export const composerStore = createStore<ComposerState>(initialComposerState())
 
 export function useComposer<T>(selector: (state: ComposerState) => T): T {
   return useStore(composerStore, selector)
 }
 
-/** Casilla del canal geológico: la leen el controlador (al pedir la explicación) y la Lectura. */
+/** Geological channel checkbox: read by the controller (when requesting the explanation) and by the Reading. */
 export function setUseGeology(value: boolean): void {
   composerStore.setState({ useGeology: value })
 }
 
-/** Pedidos de abrir «Tu misión» (el armazón lleva la hoja móvil a S0, donde vive el composer). */
+/** Requests to open "Your mission" (the shell takes the mobile sheet to S0, where the composer lives). */
 export function useMissionOpenRequest(): number {
   return useStore(composerStore, (state) => state.openRequest)
 }

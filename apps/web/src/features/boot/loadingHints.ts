@@ -1,15 +1,15 @@
 /**
- * Plugin de Vite (código de Node, NO importar desde la app): pistas de carga en index.html
- * para cortar la cascada de red y pintar el armazón y el arranque antes de React.
- * - preload de los JSON del snapshot y de los índices de imágenes;
- * - prefetch del chunk del mapa 2D: se descarga en baja prioridad, sin ejecutarse;
- * - favicon en línea: evita una petición 404;
- * - script mínimo tras <title> (antes del CSS y del módulo): centro y tamaño del globo y borde del
- *   área libre (shell/stageGeometry.js + boot/posterLayout.js, incrustados) como variables
- *   --boot-* y modo de intro en <html data-boot>, antes del primer cuadro;
- * - armazón estático dentro de #root (content/shell.ts), con la capa de arranque en
- *   stage.overlay: póster ≥1100 px (<picture>, el móvil no lo descarga) o silueta CSS, anillo
- *   orbital, satélite y bitácora de hitos reales. Queda bajo los paneles, como en React.
+ * Vite plugin (Node code, do NOT import from the app): loading hints in index.html
+ * to break the network waterfall and paint the shell and the boot sequence before React.
+ * - preload of the snapshot JSON files and the image indexes;
+ * - prefetch of the 2D map chunk: downloaded at low priority, without being executed;
+ * - inline favicon: avoids a 404 request;
+ * - minimal script after <title> (before the CSS and the module): globe center and size and the edge of the
+ *   free area (shell/stageGeometry.js + boot/posterLayout.js, inlined) as
+ *   --boot-* variables and the intro mode in <html data-boot>, before the first frame;
+ * - static shell inside #root (content/shell.ts), with the boot layer in
+ *   stage.overlay: poster ≥1100 px (<picture>, mobile does not download it) or CSS silhouette, orbital
+ *   ring, satellite and log of real milestones. It sits beneath the panels, as in React.
  */
 import { readFileSync } from 'node:fs'
 import type { HtmlTagDescriptor, Plugin } from 'vite'
@@ -18,8 +18,8 @@ import { dataAttributionText } from '../../shell/attribution'
 import { INTRO_SESSION_KEY } from './bootModel'
 
 /**
- * Compacta un módulo JS plano para incrustarlo en un <script>: quita comentarios, sangría y
- * `export`. Conserva los saltos de línea (los módulos no usan punto y coma).
+ * Compacts a plain JS module to inline it in a <script>: strips comments, indentation and
+ * `export`. Keeps line breaks (the modules do not use semicolons).
  */
 export function inlineModule(source: string): string {
   return source
@@ -34,7 +34,7 @@ export function inlineModule(source: string): string {
 
 const readModule = (path: string) => inlineModule(readFileSync(new URL(path, import.meta.url), 'utf8'))
 
-/** Atribución del snapshot que se publica (mismo manifiesto que carga la app); null si no se lee. */
+/** Attribution of the snapshot being published (same manifest the app loads); null if it cannot be read. */
 function snapshotCredit(): string | null {
   try {
     const snapshot = process.env.VITE_SNAPSHOT_PATH ?? 'science-v3'
@@ -46,9 +46,9 @@ function snapshotCredit(): string | null {
 }
 
 /**
- * Script en línea del arranque. Misma fórmula que domain/mapZoom.ts y BootLayer: lo verifica
- * tests/boot.test.ts ejecutándolo. Modo: ?intro=full fuerza la intro; si ya se vio en la sesión,
- * solo el aterrizaje (debe coincidir con resolveIntroMode).
+ * Inline boot script. Same formula as domain/mapZoom.ts and BootLayer: it is verified by
+ * tests/boot.test.ts by executing it. Mode: ?intro=full forces the intro; if it was already seen in the session,
+ * only the landing (must match resolveIntroMode).
  */
 export function bootHeadScript(geometrySource: string, layoutSource: string): string {
   return (
@@ -63,9 +63,9 @@ export function bootHeadScript(geometrySource: string, layoutSource: string): st
 }
 
 /**
- * Datos que el cargador pide al arrancar, en el mismo orden (data/loadDemoSnapshot.ts y
- * data/loadVisualContext.ts): v3 trae además búsqueda, antecedentes y el contorno de los dos
- * países; los snapshots históricos, el contorno de Chile y el contexto visual v2.
+ * Data the loader requests at startup, in the same order (data/loadDemoSnapshot.ts and
+ * data/loadVisualContext.ts): v3 also brings search, background and the outline of the two
+ * countries; the historical snapshots, the outline of Chile and the v2 visual context.
  */
 export function preloadedData(snapshot: string = process.env.VITE_SNAPSHOT_PATH ?? 'science-v3'): string[] {
   const discovery = snapshot === 'science-v3'
@@ -96,15 +96,15 @@ export function loadingHints(): Plugin {
               as: 'fetch',
               crossorigin: 'anonymous',
               href: `./${href}`,
-              // Baja prioridad: se adelantan al JavaScript sin quitarle ancho de banda al
-              // código que pinta la primera pantalla (medido en Lighthouse móvil).
+              // Low priority: they are fetched ahead of the JavaScript without taking bandwidth away from
+              // the code that paints the first screen (measured in mobile Lighthouse).
               fetchpriority: 'low',
             },
             injectTo: 'head',
           })),
         ]
-        // Póster del globo en el HTML estático (≥1100 px): se pinta antes de que corra React (LCP y
-        // Speed Index). En móvil sería el LCP y llegaría después del texto: allí va la silueta CSS.
+        // Globe poster in the static HTML (≥1100 px): painted before React runs (LCP and
+        // Speed Index). On mobile it would be the LCP and would arrive after the text: there the CSS silhouette is used.
         const poster = Object.values(ctx.bundle ?? {}).find(
           (item) => item.type === 'asset' && /globe-poster-[\w-]+\.webp$/.test(item.fileName),
         )
@@ -116,11 +116,11 @@ export function loadingHints(): Plugin {
           (chunk) => chunk.type === 'chunk' && chunk.facadeModuleId?.endsWith('CandidateFlatMap.tsx'),
         )
         if (flat) tags.push({ tag: 'link', attrs: { rel: 'prefetch', href: `./${flat.fileName}` }, injectTo: 'head' })
-        // Script del arranque tras <title> (el charset queda en los primeros 1024 bytes) y antes del
-        // CSS y del módulo: no espera a la hoja de estilos y fija las variables del primer cuadro.
+        // Boot script after <title> (the charset stays within the first 1024 bytes) and before the
+        // CSS and the module: it does not wait for the stylesheet and sets the first-frame variables.
         const head = `<script>${bootHeadScript(readModule('../../shell/stageGeometry.js'), readModule('../../boot/posterLayout.js'))}</script>`
-        // Armazón estático dentro de #root: barra, dock, hoja y arranque se pintan con el HTML, antes
-        // del JavaScript; React lo reemplaza al montar con el mismo marcado.
+        // Static shell inside #root: bar, dock, sheet and boot are painted with the HTML, before
+        // the JavaScript; React replaces it on mount with the same markup.
         const out = html
           .replace('</title>', `</title>\n    ${head}`)
           .replace('<div id="root"></div>', `<div id="root">${staticShellHtml({ posterUrl, credit: snapshotCredit() ?? undefined })}</div>`)

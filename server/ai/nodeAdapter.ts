@@ -5,12 +5,12 @@ import { loadTrustedGeology } from './geology'
 import { MAX_BODY_BYTES, handleAiRequest } from './handler'
 import { RateLimiter } from './guard'
 
-const limiter = new RateLimiter() // en memoria, por instancia: NO distribuido
+const limiter = new RateLimiter() // in memory, per instance: NOT distributed
 
 type VercelLikeRequest = IncomingMessage & { body?: unknown }
 
 async function readBody(req: VercelLikeRequest): Promise<unknown> {
-  if (req.body !== undefined) return req.body // Vercel ya lo consumió/parsea
+  if (req.body !== undefined) return req.body // Vercel has already consumed/parsed it
   const chunks: Buffer[] = []
   let total = 0
   for await (const chunk of req) {
@@ -28,17 +28,17 @@ function clientKey(req: IncomingMessage): string {
   return first || req.socket?.remoteAddress || 'unknown'
 }
 
-/** Adaptador Node: lo usan api/ai.ts (Vercel) y el servidor local de Vite. `env` solo servidor. */
+/** Node adapter: used by api/ai.ts (Vercel) and the local Vite server. `env` server only. */
 export async function nodeAiHandler(req: VercelLikeRequest, res: ServerResponse, env: EnvLike = process.env): Promise<void> {
   let body: unknown
   try {
     body = req.method === 'POST' ? await readBody(req) : undefined
   } catch {
-    body = Symbol('too_large') // fuerza payload_too_large/bad_request sin reflejar nada
+    body = Symbol('too_large') // forces payload_too_large/bad_request without reflecting anything
   }
   const response =
     typeof body === 'symbol'
-      ? { status: 413, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }, body: { ok: false, error: { code: 'payload_too_large', message: 'La solicitud supera el tamaño permitido.' }, client_request_id: null } }
+      ? { status: 413, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }, body: { ok: false, error: { code: 'payload_too_large', message: 'The request exceeds the allowed size.' }, client_request_id: null } }
       : await handleAiRequest(
           { method: req.method ?? '', headers: req.headers, body, clientKey: clientKey(req) },
           { config: readAiConfig(env), fetchImpl: fetch, now: Date.now, limiter, bundle: loadTrustedBundle(), geology: () => loadTrustedGeology(loadTrustedBundle()) },

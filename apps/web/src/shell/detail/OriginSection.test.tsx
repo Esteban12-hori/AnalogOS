@@ -1,5 +1,5 @@
-// Bloque «ficha» de tests/discovery.test.tsx del equipo, portado con los MISMOS textos esperados a
-// la pestaña «Origen» (CandidateDetails no forma parte de la interfaz integrada; ADR-013).
+// “Site sheet” block of the team's tests/discovery.test.tsx, ported with the SAME expected texts (now
+// English) to the “Origin” tab (CandidateDetails is not part of the integrated UI; ADR-013).
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { CandidateSite } from '../../domain/contracts'
@@ -15,31 +15,31 @@ const details = (candidate: CandidateSite, withSearch = true) => renderToStaticM
   <OriginSection candidate={candidate} precedents={withSearch ? v3Snapshot.precedents : null} rank={candidate.role === 'reference' ? null : rankOf.get(candidate.site_id) ?? null} />,
 )
 
-describe('ficha · origen y antecedentes', () => {
-  it('la ficha de un candidato muestra origen, prioridad topográfica y antecedentes con su fuente', () => {
+describe('site sheet · origin and precedents', () => {
+  it('a candidate sheet shows origin, topographic priority and precedents with their source', () => {
     const html = details(ranked[0]!)
-    expect(html).toContain('Candidato de la búsqueda')
-    expect(html).toContain('Búsqueda por rejilla')
-    expect(html).toContain('solo ordena la preselección')
-    expect(html).toContain('Región con antecedentes publicados')
-    expect(html).toContain('eso no prueba que sea nueva')
+    expect(html).toContain('Search candidate')
+    expect(html).toContain('Grid search')
+    expect(html).toContain('it only orders the preselection')
+    expect(html).toContain('Region with published precedents')
+    expect(html).toContain('that does not prove it is new')
     expect(html).toContain('navarro.SOM_.pdf')
-    expect(html).toContain('>País<')
+    expect(html).toContain('>Country<')
   })
 
-  it('la ficha de Yungay la rotula como referencia conocida y la de un fixture no inventa metadata', () => {
+  it('the Yungay sheet labels it as the known reference and a fixture sheet does not invent metadata', () => {
     const reference = details(references[0]!)
     expect(reference).toContain('<b>REF</b>')
     expect(reference).not.toContain('<b>7</b>')
-    expect(reference).toContain('Referencia conocida')
-    expect(reference).toContain('No sale de la búsqueda')
-    expect(reference).toContain('La ventana contiene coordenadas de muestreo publicadas')
+    expect(reference).toContain('Known reference')
+    expect(reference).toContain('It does not come from the search')
+    expect(reference).toContain('The window contains published sampling coordinates')
     const fixture = details(fixtures[0]!, false)
     expect(fixture).toContain('Fixture')
     expect(fixture).not.toContain('Origen y antecedentes')
   })
 
-  it('las autoridades territoriales salen del propio sitio (IDERA en Argentina, IDE Chile en Chile)', () => {
+  it('territorial authorities come from the site itself (IDERA in Argentina, IDE Chile in Chile)', () => {
     const argentina = ranked.find((site) => site.country === 'AR')!
     expect(details(argentina)).toContain('IDERA')
     expect(details(argentina)).not.toContain('IDE Chile')

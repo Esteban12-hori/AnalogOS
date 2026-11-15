@@ -1,24 +1,24 @@
 /**
- * SignalCard: tarjeta de serie con resplandor, línea animada y cifra tipo odómetro.
- * Adaptada de "Market Card" (Louis Studios, studios.lou15.com) para AnalogOS:
- * textos en español, coma decimal, sin menú ni grilla de fondo, y los extremos de `data`
- * tratados siempre como entrada/salida visual (el marcador nunca se apoya en ellos).
+ * SignalCard: series card with glow, animated line, and odometer-style figure.
+ * Adapted from "Market Card" (Louis Studios, studios.lou15.com) for AnalogOS:
+ * Spanish text, decimal comma, no menu or background grid, and the ends of `data`
+ * always treated as visual entry/exit (the marker never rests on them).
  *
- * El campo de brillo se calcula en CPU a media resolución; línea, marcador y guía en un canvas
- * 2D nítido; todo el texto es DOM. Un solo rAF que se pausa fuera de pantalla o en pestañas ocultas.
+ * The glow field is computed on the CPU at half resolution; line, marker, and guide on a sharp 2D
+ * canvas; all text is DOM. A single rAF that pauses when offscreen or in hidden tabs.
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 
 export interface SignalCardProps {
-  /** Serie con un valor de entrada y uno de salida en los extremos (no seleccionables). */
+  /** Series with an entry value and an exit value at the ends (not selectable). */
   data: number[]
-  /** Convierte el valor bajo el marcador en la cifra principal. */
+  /** Converts the value under the marker into the main figure. */
   format: (value: number) => string
-  /** Rótulo superior; recibe el índice mostrado para nombrar el punto (p. ej. el mes). */
+  /** Top label; receives the displayed index to name the point (e.g. the month). */
   labelAt: (index: number) => string
-  /** Texto tras el cambio en negrita, p. ej. "respecto del mes anterior". */
+  /** Bold text after the change, e.g. "compared to the previous month". */
   deltaLabel: string
-  /** Texto cuando el punto no tiene uno anterior real. */
+  /** Text when the point has no real previous point. */
   firstLabel: string
   defaultIndex?: number
   accent?: string
@@ -27,7 +27,7 @@ export interface SignalCardProps {
   lineColor?: string
   downColor?: string
   upColor?: string
-  /** false anima la salida (la línea se retrae, el brillo baja); true repite la entrada. */
+  /** false animates the exit (the line retracts, the glow dims); true repeats the entry. */
   revealed?: boolean
   ariaLabel: string
   className?: string
@@ -187,7 +187,7 @@ function buildCurve(data: number[]): Curve {
     lens.push(lens[i] + L)
   }
   const margin = RING_R + RING_W / 2 + 2
-  // Los extremos son entrada/salida visual: nunca son un dato seleccionable.
+  // The ends are visual entry/exit: they are never a selectable data point.
   let lo = n > 3 ? 1 : 0
   let hi = n > 3 ? n - 2 : n - 1
   const inside = (p: { x: number; y: number }) => p.x >= margin && p.x <= CW - margin && p.y >= margin && p.y <= CH - margin
@@ -375,9 +375,9 @@ class Field {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Cifra final (docs/UX_REDESIGN.md §0.7 y §2.2.3): ninguna cifra se anima ni pasa por valores
-// intermedios. El texto aparece con su valor final; al cambiar, un fundido con 4 px de
-// desplazamiento (como FadeNumber). Solo la curva se anima.
+// Final figure (docs/UX_REDESIGN.md §0.7 and §2.2.3): no figure is animated or passes through
+// intermediate values. The text appears with its final value; when it changes, a fade with 4 px of
+// displacement (like FadeNumber). Only the curve is animated.
 // ---------------------------------------------------------------------------------------------
 
 class FinalFigure {
@@ -388,7 +388,7 @@ class FinalFigure {
     this.root = root
   }
 
-  /** El tamaño lo fija el contenedor; aquí solo el tracking escalado. */
+  /** The size is set by the container; here only the scaled tracking. */
   setFont(_font: string, _size: number, track: number) {
     const spacing = `${track.toFixed(3)}px`
     if (this.root.style.letterSpacing !== spacing) this.root.style.letterSpacing = spacing
@@ -403,7 +403,7 @@ class FinalFigure {
     this.root.animate([{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 200, easing: 'cubic-bezier(.2, 0, 0, 1)' })
   }
 
-  /** Entrada: solo opacidad del bloque; la cifra ya es la final desde el primer cuadro. */
+  /** Entry: only the block's opacity; the figure is already final from the first frame. */
   step(_dt: number, intro: number, _instant: boolean) {
     const opacity = String(clamp01(intro * 2.2))
     if (this.root.style.opacity !== opacity) this.root.style.opacity = opacity
@@ -425,7 +425,7 @@ function usePrefersReducedMotion() {
   return reduced
 }
 
-/** Cambio porcentual contra el punto anterior; null si el anterior es solo la entrada visual. */
+/** Percentage change against the previous point; null if the previous one is only the visual entry. */
 function deltaOf(data: number[], i: number, lo: number): number | null {
   if (i <= lo) return null
   const ref = data[i - 1], v = data[i]
@@ -437,7 +437,7 @@ function fmtDelta(d: number | null) {
   if (d === null) return 'inicio'
   const r = Math.round(d * 10) / 10
   if (r === 0) return '0,0 %'
-  return `${r < 0 ? '↓ −' : '↑ +'}${Math.abs(r).toFixed(1).replace('.', ',')} %`
+  return `${r < 0 ? '↓ −' : '↑ +'}${Math.abs(r).toFixed(1)}%`
 }
 
 export function SignalCard({
@@ -451,8 +451,8 @@ export function SignalCard({
   cardColor = '#050E15',
   textColor = '#F2F8FC',
   lineColor = '#FFFFFF',
-  // El naranja es Marte como dato y el rojo/naranja no se usan para alertas (§2.4): ambas
-  // direcciones van en hielo; la dirección la dicen ↑/↓ en el texto.
+  // Orange is Mars as data and red/orange are not used for alerts (§2.4): both
+  // directions go in ice; the direction is conveyed by ↑/↓ in the text.
   downColor = '#CFE9F7',
   upColor = '#5CC8F5',
   revealed = true,
@@ -492,7 +492,7 @@ export function SignalCard({
   const negative = rounded < 0
   const deltaRgb = negative ? downRgb : upRgb
   const figure = format(series[shown])
-  const word = delta === null ? '' : rounded === 0 ? 'sin cambio' : negative ? 'disminución' : 'aumento'
+  const word = delta === null ? '' : rounded === 0 ? 'no change' : negative ? 'decrease' : 'increase'
   const tail = delta === null ? firstLabel : deltaLabel
   const label = labelAt(shown)
 
@@ -835,7 +835,7 @@ export function SignalCard({
   }
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     dragging.current = true
-    try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* sin captura disponible */ }
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* no capture available */ }
     live.current.hover = pointerToIndex(e)
     kickRef.current()
   }

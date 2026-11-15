@@ -1,119 +1,119 @@
-# Encargo vigente — definir una prueba o evaluar un sector
+# Current assignment — define a test or evaluate a sector
 
-## Estado
+## Status
 
 - **Task ID:** M8-MISSION-RECOMMENDATION
 - **Owner:** Codex
 - **Status:** accepted
-- **Entrega:** publicada en dev y ambas operaciones de Anthropic verificadas por Codex; ver `docs/DEV_AI_VERIFICATION.md`. Código desplegado `9060970`; Claude espera una nueva asignación.
-- **Evaluación posterior, sin nueva implementación:** Codex completó el análisis solicitado de geología oficial en `docs/GEOLOGY_FEASIBILITY.md`, con mediciones reales en `docs/research/geology/`. El primer corte recomendado es contexto descriptivo (20–32 h estimadas), sin alterar scores. Este análisis no cambia el estado accepted de M8 ni asigna trabajo a Claude.
+- **Delivery:** published on dev and both Anthropic operations verified by Codex; see `docs/DEV_AI_VERIFICATION.md`. Code deployed `9060970`; Claude is awaiting a new assignment.
+- **Subsequent evaluation, no new implementation:** Codex completed the requested analysis of official geology in `docs/GEOLOGY_FEASIBILITY.md`, with real measurements in `docs/research/geology/`. The first recommended cut is descriptive context (20–32 estimated h), without altering scores. This analysis does not change the accepted status of M8 nor assign work to Claude.
 - **Branch:** dev
 - **Base commit:** 4d197e17893dc4eef2dc5c9771c79813c909b657
-- **Dirección, supervisión y aceptación:** Codex. Dan autorizó esta implementación el 2026-11-14 y eligió Anthropic para la IA.
-- M7 aceptado, archivado en project/tasks/M7_GLOBAL_DISCOVERY.md. La versión integrada tiene globo, MapLibre, liquid glass, series y ciencia v3: conservar el trabajo del equipo.
-- La implementación de Claude no autorizaba publicación. Tras la aceptación, Dan autorizó a Codex el 2026-11-14: «súbelo a dev y verifica que la IA funcione ahí también». Esto habilita commit/push, configuración de Anthropic para dev y verificación remota; no promoción a main.
+- **Direction, oversight and acceptance:** Codex. Dan authorized this implementation on 2026-11-14 and chose Anthropic for the AI.
+- M7 accepted, archived in project/tasks/M7_GLOBAL_DISCOVERY.md. The integrated version has globe, MapLibre, liquid glass, series and science v3: preserve the team's work.
+- Claude's implementation did not authorize publication. After acceptance, Dan authorized Codex on 2026-11-14: "push it to dev and verify that the AI works there too". This enables commit/push, Anthropic configuration for dev and remote verification; not promotion to main.
 
-## Resultado de producto
+## Product outcome
 
-Usuario: responsable de campaña de robótica planetaria en laboratorio, universidad o empresa. Decisión: «Para este ensayo, ¿qué sector merece reconocimiento, por qué, qué lo descarta y qué falta medir?».
+User: planetary robotics campaign lead in a laboratory, university or company. Decision: "For this test, which sector deserves reconnaissance, why, what rules it out, and what remains to be measured?".
 
-Entregar dos recorridos completos, con datos reales y asistencia opcional Anthropic:
+Deliver two complete journeys, with real data and optional Anthropic assistance:
 
-1. **Definir una prueba:** describir objetivo, revisar requisitos estructurados editables, confirmarlos, comparar opciones y exportar recomendación reproducible.
-2. **Evaluar un sector:** elegir una de las siete áreas con evidencia o introducir coordenadas/bbox; comprobar qué geometría tiene datos, aplicar la prueba y entregar evaluación o informe explícito de evidencia insuficiente.
+1. **Define a test:** describe the objective, review editable structured requirements, confirm them, compare options and export a reproducible recommendation.
+2. **Evaluate a sector:** choose one of the seven areas with evidence or enter coordinates/bbox; check which geometry has data, apply the test and deliver an evaluation or an explicit insufficient-evidence report.
 
-Primer perfil científico soportado: rover marciano/Jezero. Fuera de cobertura debe completarse el diagnóstico y solicitud de datos; no fabricar una recomendación positiva ni anunciar búsqueda global en vivo.
+First supported scientific profile: Martian rover/Jezero. Outside coverage, the diagnosis and data request must be completed; do not fabricate a positive recommendation nor announce a live global search.
 
-## Primer checkpoint obligatorio
+## Mandatory first checkpoint
 
-Leer AGENTS, CLAUDE, STATUS, ADR-001 a 009, PRODUCT_AND_SCIENCE, DATA_AND_SCORING y contratos. Confirmar rama, HEAD y cambios ajenos. Codex verificó base: 177 Python, 69 web y build; hashes en /tmp/analogos-m8-baseline-hashes.json.
+Read AGENTS, CLAUDE, STATUS, ADR-001 to 009, PRODUCT_AND_SCIENCE, DATA_AND_SCORING and contracts. Confirm branch, HEAD and changes by others. Codex verified baseline: 177 Python, 69 web and build; hashes in /tmp/analogos-m8-baseline-hashes.json.
 
-**Antes de editar implementación, entregar a Codex un plan compacto: archivos, requisitos/estados, resolución espacial, endpoint y pruebas. Esperar su devolución.** Se permite inspeccionar y preparar el plan/ADR. Sin subagentes ni sesiones paralelas. Mientras Claude implementa, Codex revisa sin editar su alcance.
+**Before editing the implementation, deliver a compact plan to Codex: files, requirements/states, spatial resolution, endpoint and tests. Wait for its feedback.** Inspecting and preparing the plan/ADR is permitted. No subagents or parallel sessions. While Claude implements, Codex reviews without editing its scope.
 
-## 1. Experiencia
+## 1. Experience
 
-- Entrada principal «Definir una prueba» / «Evaluar un sector», explicación del problema y ejemplo. Conservar explorador, búsqueda v3, comparación y método.
-- Flujo progresivo accesible en escritorio, móvil y teclado, integrado en diseño existente. No forzar recorrer fichas largas para comenzar.
-- Brief máximo 3000 caracteres, actividad, destino/referencia, requisitos. Un solo perfil realmente soportado, sin perfiles ficticios para llenar selectores.
-- Requisitos medibles disponibles: mediana de pendiente regional (grados), rugosidad mediana (m), relieve (m), fracción no vegetada (% o 0–1 con conversión explícita), área del polígono completo (~km²), países. Cada uno: operador/rango, unidad, imprescindible o preferencia. Mostrar pocos al inicio y más detalle opcional.
-- Máxima pendiente puntual del rover, tamaño de roca, tracción, suelo suelto, carretera, coste, permisos, fecha operativa, lluvia local y cobertura móvil no están medidos. Conservar estos pedidos como no evaluables; no reinterpretarlos silenciosamente como una métrica disponible.
-- Requisito guarda origen usuario/IA, escala y confirmación. Mostrar lo no estructurado del brief como preguntas/pendientes. Usuario confirma/edita antes de evaluar; ninguna restricción oculta o descartada en silencio.
-- Cambiar brief/requisitos/sector invalida resultados previos. Cancelar/ignorar respuestas tardías mediante fingerprint o request ID. No mezclar dos solicitudes.
-- Mantener texto al volver. Sin almacenar briefs en logs/backend. Persistencia local solo si se explica y permite borrar.
+- Main entry "Define a test" / "Evaluate a sector", problem explanation and example. Preserve explorer, v3 search, comparison and method.
+- Progressive flow accessible on desktop, mobile and keyboard, integrated into the existing design. Do not force going through long sheets to get started.
+- Brief maximum 3000 characters, activity, destination/reference, requirements. Only one truly supported profile, with no fictitious profiles to fill selectors.
+- Measurable requirements available: regional slope median (degrees), median roughness (m), relief (m), non-vegetated fraction (% or 0–1 with explicit conversion), full polygon area (~km²), countries. Each one: operator/range, unit, essential or preference. Show few at the start and more detail optionally.
+- Maximum point slope of the rover, rock size, traction, loose soil, road, cost, permits, operating date, local rain and mobile coverage are not measured. Keep these requests as non-evaluable; do not silently reinterpret them as an available metric.
+- A requirement stores origin user/AI, scale and confirmation. Show the unstructured parts of the brief as questions/pending items. User confirms/edits before evaluating; no constraint hidden or silently discarded.
+- Changing brief/requirements/sector invalidates previous results. Cancel/ignore late responses by fingerprint or request ID. Do not mix two requests.
+- Keep text when navigating back. Do not store briefs in logs/backend. Local persistence only if explained and deletion is allowed.
 
-## 2. Motor verificable
+## 2. Verifiable engine
 
-- Módulo puro y contratos aditivos de solicitud/evaluación. Ciencia v2/v3 byte a byte intacta; sin modificar pesos, tolerancias, quality ni perfiles científicos.
-- La IA no elige pesos/score/veredicto. Requisitos del usuario son condiciones de su ensayo, no estándares NASA.
-- Requisitos críticos primero: incumplimiento observado => incompatible; faltante/escala inadecuada => evidencia insuficiente. Un score alto no compensa bloqueos ni desconocidos.
-- Entre opciones con críticos evaluables cumplidos, ordenar por preferencias satisfechas y luego similitud v3, desempate estable por ID. Documentar orden. Sin nuevo porcentaje de aptitud. Preferencias desconocidas conservan comparabilidad parcial, no equivalen a cero ni prueban dominancia.
-- Estados: priorizado para reconocimiento, no cumple requisitos, evidencia insuficiente, objetivo no soportado. Factibilidad territorial independiente y pendiente. Es válido no recomendar ninguno.
-- Por opción: requisito, valor/unidad, cumple/no cumple/no evaluable, razón, fuente/evidence_id y escala/periodo; similitud/confianza originales rotuladas. Incluir límites, verificaciones de campo y qué evidencia cambiaría la decisión.
-- Área es extensión del polígono, no hectáreas libres. SCL no prueba tracción/mineralogía. POWER contextual no aprueba lluvia local ni pronósticos.
-- Yungay evaluable como alternativa conocida, rol referencia visible. No modificar ranking M7 ni aplicar su exclusión de antecedentes al problema de seleccionar campaña.
-- Exportación JSON validada con solicitud confirmada, reglas/versiones, snapshot/perfil, geometría pedida vs medida, evaluación, evidencias, límites y provenance IA cuando exista. Informe legible imprimible (CSS print basta).
+- Pure module and additive request/evaluation contracts. Science v2/v3 byte-for-byte intact; do not modify weights, tolerances, quality or scientific profiles.
+- The AI does not choose weights/score/verdict. User requirements are conditions of their test, not NASA standards.
+- Critical requirements first: observed failure => incompatible; missing/inadequate scale => insufficient evidence. A high score does not compensate for blockers or unknowns.
+- Among options with evaluable critical requirements met, order by satisfied preferences and then v3 similarity, with stable tie-break by ID. Document the order. No new suitability percentage. Unknown preferences retain partial comparability, are not equivalent to zero and do not prove dominance.
+- States: prioritized for reconnaissance, does not meet requirements, insufficient evidence, unsupported objective. Territorial feasibility independent and pending. Recommending none is valid.
+- Per option: requirement, value/unit, meets/does not meet/not evaluable, reason, source/evidence_id and scale/period; original similarity/confidence labeled. Include limits, field verifications and what evidence would change the decision.
+- Area is the extent of the polygon, not free hectares. SCL does not prove traction/mineralogy. Contextual POWER does not approve local rain nor forecasts.
+- Yungay evaluable as a known alternative, reference role visible. Do not modify the M7 ranking nor apply its exclusion of precedents to the campaign selection problem.
+- Validated JSON export with confirmed request, rules/versions, snapshot/profile, requested vs measured geometry, evaluation, evidence, limits and AI provenance when it exists. Readable printable report (print CSS is enough).
 
-## 3. Geometría y cobertura
+## 3. Geometry and coverage
 
-- Seleccionar siete sectores desde lista/mapa/ficha con país y polígono visibles. Coordenadas y bbox como alternativa accesible; dibujo de rectángulo opcional sin librería nueva si no es necesaria.
-- Validar rangos, orden lon/lat, finitud, bbox y tamaño. Punto dentro de área: «hay evidencia de esta ventana, no del punto exacto», y selección explícita de esa ventana antes de evaluarla. Resolver múltiples coincidencias.
-- Subpolígono o cobertura parcial NO heredan métricas agregadas del polígono completo. Informar cobertura/evidencia faltante; ofrecer evaluar la ventana completa solo por acción explícita.
-- Fuera de piloto: sin evidencia suficiente y solicitud exportable con bbox/requisitos/fuentes previstas. Sin vecino más cercano, fake loading ni consultas satelitales simuladas. No adquisiciones nuevas en M8.
+- Select seven sectors from list/map/sheet with country and polygon visible. Coordinates and bbox as an accessible alternative; optional rectangle drawing without a new library if not necessary.
+- Validate ranges, lon/lat order, finiteness, bbox and size. Point within area: "there is evidence for this window, not for the exact point", and explicit selection of that window before evaluating it. Resolve multiple matches.
+- A subpolygon or partial coverage do NOT inherit aggregate metrics from the full polygon. Report missing coverage/evidence; offer to evaluate the full window only through explicit action.
+- Outside the pilot: no sufficient evidence and an exportable request with bbox/requirements/planned sources. No nearest neighbor, fake loading or simulated satellite queries. No new acquisitions in M8.
 
-## 4. Anthropic real y opcional
+## 4. Real and optional Anthropic
 
-- Proveedor elegido por Dan. Aún no hay clave al asignar; Codex prepara entrada local segura. No leer/imprimir secretos ni pedirlos por chat. Solo entorno/.env ignorado consumido por programa.
-- Dos operaciones: extraer borrador del brief y explicar evaluación calculada. Contexto limitado al catálogo/evidencias suministrados. Sin herramientas, shell, navegación arbitraria, datos externos libres ni agentes.
-- `ANTHROPIC_API_KEY` y `ANTHROPIC_MODEL` solo servidor; modelo configurable y soportado (comprobar docs/cuenta). Host oficial fijo, sin URL arbitraria del cliente.
-- JSON Schema y validación sintáctica/semántica; manejar negativa, salida truncada, citas/IDs ajenos, errores y timeout. Structured outputs no admite citas nativas: usar evidence IDs validados y enlaces aportados por app.
-- El servidor obtiene hechos/scores de artefactos versionados y solicitud validada, no del navegador. Rechazar IDs/fuentes ajenos. La IA nunca cambia el motor ni resultados. Mostrar interpretación separada de métricas.
-- No presentar narración que contradiga los bloqueos; puede seleccionar razones/referencias estructuradas para que el renderizador conserve los hechos. Respaldo determinista siempre rotulado como tal, sin simular IA.
-- Endpoint mínimo `api/` Vercel Node, lógica separada testeable y servidor local equivalente con proxy Vite. Sin DB ni login nuevo. Ningún secreto en VITE_, bundle, ZIP, prompt, respuesta o log.
-- POST/content type, tamaño de cuerpo/brief, timeout, tokens de salida acotados, origen permitido local/preview explícito, llamadas por botón y bloqueo durante llamada, errores sanitizados, protección básica de frecuencia documentada como no distribuida. No generación general abierta.
-- Explicar junto al botón que el texto se envía a Anthropic. El camino manual no transmite datos.
-- Sin clave/offline/proveedor caído: recorrido manual y recomendación funcionan, IA no disponible. Nunca atribuir plantilla o mock a IA real.
-- Para aceptar integración real: un borrador y una explicación con entradas inocuas, registrar modelo/fecha/request ID/uso sin secretos. Si no está la clave, informar bloqueo específico, no afirmar éxito por mocks.
+- Provider chosen by Dan. There is not yet a key at assignment; Codex prepares a secure local entry. Do not read/print secrets nor request them via chat. Only environment/ignored .env consumed by a program.
+- Two operations: extract a draft from the brief and explain the computed evaluation. Context limited to the supplied catalog/evidence. No tools, shell, arbitrary browsing, free external data nor agents.
+- `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` server-only; configurable and supported model (check docs/account). Fixed official host, no arbitrary URL from the client.
+- JSON Schema and syntactic/semantic validation; handle refusal, truncated output, foreign citations/IDs, errors and timeout. Structured outputs does not support native citations: use validated evidence IDs and links supplied by the app.
+- The server obtains facts/scores from versioned artifacts and the validated request, not from the browser. Reject foreign IDs/sources. The AI never changes the engine nor results. Show interpretation separate from metrics.
+- Do not present narration that contradicts the blockers; it may select structured reasons/references so that the renderer preserves the facts. Deterministic fallback always labeled as such, without simulating AI.
+- Minimal endpoint `api/` Vercel Node, separate testable logic and equivalent local server with Vite proxy. No DB or new login. No secret in VITE_, bundle, ZIP, prompt, response or log.
+- POST/content type, body/brief size, timeout, bounded output tokens, explicit allowed local/preview origin, calls via button and blocking during a call, sanitized errors, basic rate protection documented as non-distributed. No open general generation.
+- Explain next to the button that the text is sent to Anthropic. The manual path does not transmit data.
+- Without key/offline/provider down: manual journey and recommendation work, AI unavailable. Never attribute a template or mock to real AI.
+- To accept the real integration: one draft and one explanation with harmless inputs, record model/date/request ID/usage without secrets. If the key is missing, report the specific blocker, do not claim success through mocks.
 
-## 5. Alcance técnico autorizado
+## 5. Authorized technical scope
 
-Nuevos contratos/módulo decisión/IA, planificador, App/mapa/fichas, API/local server/proxy, scripts de pruebas, `.env.example`, ADR-009, documentación de producto/arquitectura/presentación. Dependencias mínimas justificadas en checkpoint. Adaptar empaquetador solo con lista explícita de nuevos assets; conservar controles.
+New decision/AI contracts/module, planner, App/map/sheets, API/local server/proxy, test scripts, `.env.example`, ADR-009, product/architecture/presentation documentation. Minimal dependencies justified at the checkpoint. Adapt the packager only with an explicit list of new assets; preserve controls.
 
-Sin tocar datos científicos v2/v3, configs de ciencia, datos crudos, credenciales, protección/auth Vercel, workflows de deploy, remotos ni rediseño ajeno. Sin nuevas regiones, pesos, perfiles científicos, SAR, ML entrenado, documentos privados ni barridos en vivo.
+Do not touch v2/v3 scientific data, science configs, raw data, credentials, Vercel protection/auth, deploy workflows, remotes nor unrelated redesign. No new regions, weights, scientific profiles, SAR, trained ML, private documents nor live sweeps.
 
-Esta asignación autoriza explícitamente la extensión al antiguo «sin IA/backend». ZIP portable manual; servidor/clave se documentan aparte. No prometer IA offline ni IA disponible sin servicio configurado.
+This assignment explicitly authorizes the extension of the former "no AI/backend" rule. Manual portable ZIP; server/key documented separately. Do not promise offline AI nor AI available without a configured service.
 
-## 6. Aceptación y entrega
+## 6. Acceptance and delivery
 
-1. Brief -> requisitos editables -> confirmación -> recomendación/exportación; editar invalida resultados. Requisito medible cambia selección, crítico imposible deja cero; no evaluable nunca aprueba.
-2. Objetivos no soportados, pendiente puntual/tracción y preferencias desconocidas conservan límites. Yungay referencia evaluable, Chile/Argentina correctos.
-3. Sectores existentes, punto dentro/fuera, bbox parcial/subpolígono, coordenadas inválidas y salida sin evidencia; sin trasladar métricas a otra geometría.
-4. IA: borrador/explicación reales, sin clave, timeout, negativa, JSON truncado, IDs/citas inventados, texto adversarial y respuestas tardías. Sin red real en tests automatizados por defecto.
-5. Endpoint no confía en hechos cliente, secretos no filtrados, errores sanitizados, restricciones acotadas. Añadir pruebas servidor al comando verify.
-6. `source .venv/bin/activate && npm run verify`; `npm run release:package`; checksum, ZIP repetido idéntico y baseline científico intacto.
-7. Navegador escritorio/móvil, teclado, errores, ambos recorridos, exportación, sin WebGL y modo manual offline; ZIP bajo /AnalogOS/. Codex revisará independientemente.
-8. Actualizar STATUS, CHANGELOG y NEXT_TASK a Owner Codex / Status review. Reportar archivos, tests, pruebas reales IA, límites y comandos exactos. No autoaceptar, commit ni push.
+1. Brief -> editable requirements -> confirmation -> recommendation/export; editing invalidates results. A measurable requirement changes the selection, an impossible critical requirement leaves zero; non-evaluable never approves.
+2. Unsupported objectives, point-specific slope/traction and unknown preferences retain limits. Yungay is an evaluable reference, Chile/Argentina correct.
+3. Existing sectors, point inside/outside, partial bbox/subpolygon, invalid coordinates and output without evidence; without transferring metrics to another geometry.
+4. AI: real draft/explanation, no key, timeout, refusal, truncated JSON, invented IDs/citations, adversarial text and late responses. No real network in automated tests by default.
+5. The endpoint does not trust client facts, secrets are not leaked, errors are sanitized, constraints are bounded. Add server tests to the verify command.
+6. `source .venv/bin/activate && npm run verify`; `npm run release:package`; checksum, identical repeated ZIP and scientific baseline intact.
+7. Desktop/mobile browser, keyboard, errors, both flows, export, no WebGL and offline manual mode; ZIP under /AnalogOS/. Codex will review independently.
+8. Update STATUS, CHANGELOG and NEXT_TASK to Owner Codex / Status review. Report files, tests, real AI tests, limits and exact commands. Do not self-accept, commit or push.
 
-Después de M8: adquisición para geometrías nuevas, territorio y perfiles adicionales, tras validar esta experiencia con usuarios. No iniciar esas tareas automáticamente.
+After M8: acquisition for new geometries, territory and additional profiles, after validating this experience with users. Do not start those tasks automatically.
 
-## Entrega de Claude (2026-11-14) — para revisión de Codex
+## Claude delivery (2026-11-14) — for Codex review
 
-Etapas A (corregida según la revisión) y B implementadas; ver `project/M8_PROGRESS.md` (archivos, pruebas, IA real, límites) y `docs/AI_SETUP.md`. No autoaceptada: sin commit ni push. Pendiente de Codex: CUA de escritorio/móvil/teclado/impresión, revisión de Vercel sin publicar y decisión de aceptación.
+Stages A (corrected according to the review) and B implemented; see `project/M8_PROGRESS.md` (files, tests, real AI, limits) and `docs/AI_SETUP.md`. Not self-accepted: no commit or push. Pending from Codex: CUA for desktop/mobile/keyboard/printing, Vercel review without publishing, and acceptance decision.
 
 
-## Devolución Codex — revisión de interfaz (2026-11-14)
+## Codex return — interface review (2026-11-14)
 
-La implementación aún no está aceptada. Auditoría independiente: 9/9; navegador confirma flujo manual, cero priorizados con crítico imposible, IA real de explicación, exportación JSON, invalidación al editar, punto con selección explícita, fuera de cobertura y móvil 390 px.
+The implementation is not yet accepted. Independent audit: 9/9; browser confirms manual flow, zero prioritized with an impossible critical requirement, real AI explanation, JSON export, invalidation on edit, point with explicit selection, outside coverage and mobile 390 px.
 
-Claude debe aplicar los puntos 3 a 6 de `/tmp/analogos-m8-review-B.txt` (1 y 2 ya corregidos): informe impreso autosuficiente con umbrales/unidades/escala y geometría pedida/medida explícitas; confirmación con valores reales editados; unidades humanas en interfaz; retirar «M8» del texto del usuario y etiqueta de escala incorrecta para área/país. Ajustar texto hero para no sugerir que se mide tracción. Mantener ciencia intacta. Volver a status review / Owner Codex tras verificación proporcional, build y ZIP determinista. Sin commit/push.
+Claude must apply points 3 to 6 of `/tmp/analogos-m8-review-B.txt` (1 and 2 already corrected): self-sufficient printed report with thresholds/units/scale and explicit requested/measured geometry; confirmation with actual edited values; human-readable units in the interface; remove «M8» from user-facing text and the incorrect scale label for area/country. Adjust hero text so it does not suggest that traction is measured. Keep science intact. Return to status review / Owner Codex after proportionate verification, build and deterministic ZIP. No commit/push.
 
-### Revisión B aplicada (2026-11-14)
+### Review B applied (2026-11-14)
 
-Puntos 3–6 de `/tmp/analogos-m8-review-B.txt` aplicados (formateo humano, confirmación con condiciones efectivas, informe impreso autosuficiente, microcopia «Esta versión», escala genérica y hero). Detalle en `project/M8_PROGRESS.md`. Sin commit ni push; no autoaceptada.
+Points 3–6 of `/tmp/analogos-m8-review-B.txt` applied (human-readable formatting, confirmation with effective conditions, self-sufficient printed report, «This version» microcopy, generic scale and hero). Details in `project/M8_PROGRESS.md`. No commit or push; not self-accepted.
 
-## Aceptación final de Codex (2026-11-14)
+## Final acceptance by Codex (2026-11-14)
 
-Implementación local aceptada tras revisión independiente: 177 Python, 196 web (+2 pruebas reales omitidas por defecto), typecheck/build, auditoría adicional 10/10, IA real desde navegador, escritorio/móvil, geometría, exportaciones y ZIP estático sin servicio de IA. Los 38 hashes de baseline siguen intactos. Corrección final de formato para umbrales diminutos incluida y verificada.
+Local implementation accepted after independent review: 177 Python, 196 web (+2 real tests skipped by default), typecheck/build, additional audit 10/10, real AI from the browser, desktop/mobile, geometry, exports and static ZIP without an AI service. The 38 baseline hashes remain intact. Final formatting fix for tiny thresholds included and verified.
 
-Informe vigente: `docs/CODEX_M8_REVIEW.md`. ZIP final: 30 entradas, 12.987.711 bytes, SHA-256 `440b295e936613eea74e43e74cd2f978defd2e8c01b72e7bedcdd359b8d2b5da`. Los apartados de entrega/devolución anteriores son históricos.
+Current report: `docs/CODEX_M8_REVIEW.md`. Final ZIP: 30 entries, 12.987.711 bytes, SHA-256 `440b295e936613eea74e43e74cd2f978defd2e8c01b72e7bedcdd359b8d2b5da`. The earlier delivery/return sections are historical.
 
-Pendientes delimitados: prueba remota de Vercel y revisión visual de impresión nativa. No se certifica aptitud científica de campo. Sin commit, push ni publicación. Claude espera nueva asignación; no iniciar otra etapa automáticamente.
+Bounded pending items: remote Vercel test and visual review of native printing. Field scientific suitability is not certified. No commit, push or publication. Claude awaits a new assignment; do not start another stage automatically.

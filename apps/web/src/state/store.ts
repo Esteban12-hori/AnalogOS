@@ -1,6 +1,6 @@
 /**
- * Store externo mínimo para `useSyncExternalStore` (sin dependencias).
- * Vive fuera del árbol de React Three Fiber: cambiar la UI no re-renderiza el globo.
+ * Minimal external store for `useSyncExternalStore` (no dependencies).
+ * It lives outside the React Three Fiber tree: changing the UI does not re-render the globe.
  */
 import { useSyncExternalStore } from 'react'
 
@@ -9,10 +9,10 @@ export type Patch<S> = Partial<S> | ((state: S) => Partial<S>)
 
 export interface Store<S extends object> {
   getState(): S
-  /** Mezcla superficial; no notifica si ningún campo cambió (Object.is por campo). */
+  /** Shallow merge; does not notify if no field changed (Object.is per field). */
   setState(patch: Patch<S>): void
   subscribe(listener: Listener): () => void
-  /** Solo para tests: vuelve al estado inicial y notifica. */
+  /** For tests only: returns to the initial state and notifies. */
   reset(): void
 }
 
@@ -46,8 +46,8 @@ export function createStore<S extends object>(initial: S): Store<S> {
 }
 
 /**
- * Lee una porción del store. El selector debe devolver un valor estable (primitivo o una
- * referencia ya existente en el estado); no construyas objetos nuevos dentro del selector.
+ * Reads a slice of the store. The selector must return a stable value (a primitive or a
+ * reference that already exists in the state); do not construct new objects inside the selector.
  */
 export function useStore<S extends object, T>(store: Store<S>, selector: (state: S) => T): T {
   const read = () => selector(store.getState())

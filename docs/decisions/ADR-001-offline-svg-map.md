@@ -1,18 +1,18 @@
-# ADR-001 — Mapa SVG local para la entrega
+# ADR-001 — Local SVG map for the deliverable
 
-- Estado: aceptado
-- Fecha: 2026-11-14
+- Status: accepted
+- Date: 2026-11-14
 
-## Contexto
+## Context
 
-La primera implementación usó MapLibre con un estilo local. En la revisión sobre el navegador de presentación, WebGL no renderizó el contenido geográfico y dejó el panel vacío. La demo debe funcionar offline y en equipos desconocidos.
+The first implementation used MapLibre with a local style. During review on the presentation browser, WebGL did not render the geographic content and left the panel empty. The demo must work offline and on unknown machines.
 
-## Decisión
+## Decision
 
-La entrega usa un mapa SVG de Chile generado desde el GeoJSON local de Natural Earth. Los candidatos se dibujan como llamadas interactivas conectadas a su ubicación. No hay teselas, servicios remotos ni dependencia de aceleración gráfica.
+The deliverable uses an SVG map of Chile generated from the local Natural Earth GeoJSON. Candidates are drawn as interactive callouts connected to their location. There are no tiles, remote services, or dependency on graphics acceleration.
 
-## Consecuencias
+## Consequences
 
-- La demo funciona en navegadores sin WebGL y el bundle baja de ~1,45 MB a menos de 400 kB de JavaScript.
-- El mapa sirve para el ranking nacional y la comunicación del resultado, no para navegación cartográfica detallada.
-- MapLibre puede volver en una versión posterior como modo de exploración, manteniendo SVG como fallback.
+- The demo works in browsers without WebGL, and the bundle drops from ~1,45 MB to less than 400 kB of JavaScript.
+- The map serves the national ranking and the communication of the result, not detailed cartographic navigation.
+- MapLibre may return in a later version as an exploration mode, keeping SVG as a fallback.
