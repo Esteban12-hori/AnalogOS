@@ -37,7 +37,7 @@ const readModule = (path: string) => inlineModule(readFileSync(new URL(path, imp
 /** Atribución del snapshot que se publica (mismo manifiesto que carga la app); null si no se lee. */
 function snapshotCredit(): string | null {
   try {
-    const snapshot = process.env.VITE_SNAPSHOT_PATH ?? 'science-v2'
+    const snapshot = process.env.VITE_SNAPSHOT_PATH ?? 'science-v3'
     const manifest: unknown = JSON.parse(readFileSync(new URL(`../../../../../artifacts/${snapshot}/manifest.json`, import.meta.url), 'utf8'))
     return dataAttributionText(manifest as Parameters<typeof dataAttributionText>[0])
   } catch {
@@ -62,14 +62,25 @@ export function bootHeadScript(geometrySource: string, layoutSource: string): st
   )
 }
 
-export function loadingHints(): Plugin {
-  const snapshot = process.env.VITE_SNAPSHOT_PATH ?? 'science-v2'
-  const data = [
-    ...['candidate-details.json', 'manifest.json', 'mission-profile.json', 'chile-outline.geojson', 'analysis-summary.json']
-      .map((file) => `${snapshot}/${file}`),
-    'visual-context/index.json',
+/**
+ * Datos que el cargador pide al arrancar, en el mismo orden (data/loadDemoSnapshot.ts y
+ * data/loadVisualContext.ts): v3 trae además búsqueda, antecedentes y el contorno de los dos
+ * países; los snapshots históricos, el contorno de Chile y el contexto visual v2.
+ */
+export function preloadedData(snapshot: string = process.env.VITE_SNAPSHOT_PATH ?? 'science-v3'): string[] {
+  const discovery = snapshot === 'science-v3'
+  const files = discovery
+    ? ['candidate-details.json', 'manifest.json', 'mission-profile.json', 'context-outline.geojson', 'analysis-summary.json', 'search-results.json', 'precedents.json']
+    : ['candidate-details.json', 'manifest.json', 'mission-profile.json', 'chile-outline.geojson', 'analysis-summary.json']
+  return [
+    ...files.map((file) => `${snapshot}/${file}`),
+    `${discovery ? 'visual-context-v3' : 'visual-context'}/index.json`,
     'basemaps/basemaps.json',
   ]
+}
+
+export function loadingHints(): Plugin {
+  const data = preloadedData()
   return {
     name: 'analogos-loading-hints',
     apply: 'build',

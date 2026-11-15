@@ -390,17 +390,13 @@ def test_manifest_for_another_build_is_rejected(lazy_dist: Path, tmp_path: Path)
         run(lazy_dist, tmp_path / "out")
 
 
-def test_pregenerated_analysis_is_admitted_only_under_its_fixed_name(lazy_dist: Path, tmp_path: Path):
-    for name in release.ANALYSIS_FILES:
-        (lazy_dist / name).parent.mkdir(parents=True, exist_ok=True)
-        (lazy_dist / name).write_text("FIXTURE DE TEST: análisis pregenerado\n", encoding="utf-8")
-    zip_path, _, _ = run(lazy_dist, tmp_path / "out")
-    with zipfile.ZipFile(zip_path) as archive:
-        names = sorted(archive.namelist())
-    assert names == sorted([*EXPECTED, *LAZY, *release.BASEMAP_FILES, *release.ANALYSIS_FILES])
-    (lazy_dist / "analysis" / "otro.json").write_text("{}", encoding="utf-8")
+def test_retired_pregenerated_analysis_is_no_longer_admitted(lazy_dist: Path, tmp_path: Path):
+    # La prosa pregenerada (analysis/ai-analysis.default.json) se retiró con lktron (ADR-012,
+    # sustituido por ADR-009): si reaparece en el build, el empaquetado se detiene.
+    (lazy_dist / "analysis").mkdir()
+    (lazy_dist / "analysis" / "ai-analysis.default.json").write_text("{}", encoding="utf-8")
     with pytest.raises(release.ReleaseError, match="Archivo inesperado"):
-        run(lazy_dist, tmp_path / "out2")
+        run(lazy_dist, tmp_path / "out")
 
 
 def test_unknown_basemap_file_is_rejected(lazy_dist: Path, tmp_path: Path):
@@ -411,15 +407,22 @@ def test_unknown_basemap_file_is_rejected(lazy_dist: Path, tmp_path: Path):
 
 def test_index_may_preload_listed_data_and_inline_favicon(dist: Path, tmp_path: Path):
     hints = ('<link rel="icon" href="data:,">'
-             '<link rel="preload" as="fetch" crossorigin href="./science-v2/manifest.json">'
-             '<link rel="preload" as="fetch" crossorigin href="./visual-context/index.json">')
+             '<link rel="preload" as="fetch" crossorigin href="./science-v3/manifest.json">'
+             '<link rel="preload" as="fetch" crossorigin href="./science-v3/search-results.json">'
+             '<link rel="preload" as="fetch" crossorigin href="./visual-context-v3/index.json">')
     (dist / "index.html").write_text(INDEX.replace("</head>", hints + "</head>"), encoding="utf-8")
     zip_path, _, _ = run(dist, tmp_path / "out")
     with zipfile.ZipFile(zip_path) as archive:
         assert sorted(archive.namelist()) == EXPECTED
 
 
-@pytest.mark.parametrize("href", ["./science-v2/otro.json", "./basemaps/../secreto.json", "./visual-context/x.png"])
+@pytest.mark.parametrize("href", [
+    "./science-v3/otro.json",
+    "./science-v2/manifest.json",     # los snapshots históricos no viajan ni se precargan
+    "./visual-context/index.json",
+    "./basemaps/../secreto.json",
+    "./visual-context-v3/x.png",
+])
 def test_index_preload_of_unlisted_file_is_rejected(dist: Path, tmp_path: Path, href: str):
     (dist / "index.html").write_text(INDEX.replace("</head>", f'<link rel="preload" href="{href}"></head>'), encoding="utf-8")
     with pytest.raises(release.ReleaseError, match="Referencia no permitida"):
