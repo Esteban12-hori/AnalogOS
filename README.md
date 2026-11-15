@@ -6,7 +6,7 @@ AnalogOS ayuda a equipos de robótica planetaria a priorizar terrenos terrestres
 
 [Abrir AnalogOS](https://analogos.vercel.app/) · [Conocer el producto](https://analogos-landing.vercel.app/) · [Probar localmente](#probar-localmente) · [Documentación](#documentación)
 
-![AnalogOS en modo Misión: globo, métricas del sector, lectura de resultados y requisitos del ensayo](submission/assets/analogos-integration-final-dev.png)
+![AnalogOS en producción: nuevo explorador con globo, métricas del sector y carrusel de candidatos Chile–Argentina](submission/assets/analogos-production.jpg)
 
 ## Explora el terreno. Define tu misión.
 

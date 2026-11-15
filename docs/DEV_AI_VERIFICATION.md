@@ -1,4 +1,8 @@
-# IA verificada en dev — integración, con antecedentes M10/M9/M8
+# IA verificada — producción y antecedentes de dev
+
+## Producción — 2026-11-15
+
+La entrega `7e8c779` se publicó desde main y pasó las dos operaciones reales de Anthropic desde `https://analogos.vercel.app/`, incluida geología AR6. Exportación validada y reconstruida idéntica: `submission/evidence/production-geology-export.json`. Procedencia, Actions y alcance de verificación en [PRODUCTION_RELEASE.md](PRODUCTION_RELEASE.md). Los bloques de dev que siguen son antecedentes, no la versión actual de producción.
 
 ## Integración Explorar/Misión — Codex, 2026-11-15
 

@@ -2,14 +2,18 @@
 
 ## Promoción a producción autorizada — 2026-11-15
 
-- **Owner:** Codex. Dan pidió actualizar el README y pasar toda la entrega revisada de dev a main; precisó publicar primero y después sustituir el screenshot con una captura de la nueva producción.
+- **Owner:** Codex. **Estado: completado y verificado en producción.** Dan pidió actualizar el README y pasar toda la entrega revisada de dev a main; precisó publicar primero y después sustituir el screenshot con una captura de la nueva producción.
 - Base dev `513c44a`; main remoto `437b515`, ancestro de dev. Se usa `main` (no existe master). Promoción por avance directo, sin force.
-- README actualizado con Explorar/Misión y enlace público. Captura nueva pendiente de observar la producción publicada.
-- Workflow preparado para entregar el secreto Anthropic existente solo en runtime de dev y main; sin clave, detiene el despliegue. Sin cambios de datos, motor o interfaz.
+- **Publicado:** `7e8c7798186e02a5014f6bf8b79554b7faa84c3c`, producción [Actions 43682694089 correcto](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43682694089), dev [Actions 43682693561 correcto](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43682693561). Main y dev sincronizados; checkpoint posterior de documentos/captura con `[skip ci]` conserva ese código desplegado.
+- README actualizado con Explorar/Misión y enlace público. Captura tomada **después de publicar**, directamente de producción: `submission/assets/analogos-production.jpg`.
+- Workflow entrega el secreto Anthropic existente solo en runtime de dev y main; sin clave, detiene el despliegue. Sin cambios de datos, motor o interfaz.
 - Verificación previa: 333 Python, 784 web, 3 web opt-in omitidos; tipos/build correctos. Cuatro escenarios del paso de despliegue comprobados con una CLI simulada: dev/main con y sin clave; no imprime la clave y main usa `--prod`. Enlaces locales del README correctos.
-- Publicación y comprobación remota en curso. Los checkpoints de abajo describen entregas anteriores.
+- **IA real de producción comprobada:** borrador de cuatro requisitos, confirmación explícita y evaluación exclusiva de AR6; explicación/geología con tres referencias oficiales. `submission/evidence/production-geology-export.json` validado y reconstruido idéntico con los datos oficiales. Web pública HTTP 200; función GET 405 esperado.
+- Revisión, procedencia y límites: `docs/PRODUCTION_RELEASE.md`. Continúan los pendientes menores ya documentados; no hay nueva tarea para Claude. El desarrollo continúa en dev. Los checkpoints de abajo describen entregas anteriores.
 
 ---
+
+## Antecedente — integración verificada en dev antes de producción
 
 **Última actualización:** 2026-11-15, aceptación de la integración Explorar/Misión (America/Santiago).
 **Responsable:** Codex. **Rama:** `dev`. **Estado:** integración aceptada, corrección publicada y comprobada con IA real.

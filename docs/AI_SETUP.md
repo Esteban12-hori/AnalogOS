@@ -58,9 +58,11 @@ Cada llamada devuelve modelo, fecha, `request-id`, uso de tokens y `stop_reason`
 
 ## Despliegue en dev y producción
 
+Producción publicada y verificada realmente en `7e8c779`: [PRODUCTION_RELEASE.md](PRODUCTION_RELEASE.md). Borrador y explicación geológica comprobados desde la interfaz pública; la evidencia anterior de dev se conserva aparte.
+
 Dan autorizó la promoción completa a producción el 2026-11-15. El workflow `vercel-deploy.yml` recibe `ANTHROPIC_API_KEY` desde GitHub Secrets y la inyecta con `vercel deploy --env` solo en runtime, junto al modelo, tanto para `dev` (preview) como para `main` (producción). No se entrega al build ni se necesita copiar `.env` al repositorio. Si falta el secreto, se detiene el despliegue. Para rotarla, actualizar ese secreto y volver a desplegar ambos entornos. La protección de dev se conserva. Referencia: [variables de runtime en Vercel CLI](https://vercel.com/docs/cli/deploy#env).
 
 - Handler, servidor local y función desplegada verificados, incluidas llamadas reales de borrador y explicación desde https://analogos-dev.vercel.app/. Evidencia, request IDs y exportación en `docs/DEV_AI_VERIFICATION.md`.
-- Código desplegado `9060970`; Actions 43639834860 correcto. Núcleo único en `shared/` para evitar mezclar paquetes CommonJS/ESM. CI comprueba arranque, contratos y snapshot del paquete real antes de desplegar.
+- Antecedente M8: código `9060970`; Actions 43639834860 correcto. Núcleo único en `shared/` para evitar mezclar paquetes CommonJS/ESM. CI comprueba arranque, contratos y snapshot del paquete real antes de desplegar.
 - La configuración de IA se entrega al despliegue desde GitHub; editar únicamente una variable de proyecto Vercel con el mismo nombre no sustituye el secreto que usa este workflow.
 - El ZIP portable (`submission/analogos-static.zip`) no incluye función ni clave: la IA aparece «no disponible» con un mensaje claro y el modo manual sigue completo.

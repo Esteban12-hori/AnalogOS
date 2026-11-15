@@ -1,5 +1,11 @@
 # Changelog de trabajo
 
+## 2026-11-15 Codex · producción verificada y screenshot publicado [skip ci]
+
+- Main avanzó sin force a `7e8c779`, igual que dev. Actions producción `43682694089` y dev `43682693561` correctos. La web pública carga el rediseño y snapshot v3.
+- Después de publicar, captura real de producción `analogos-production.jpg` incorporada al README. Sin cambios del código desplegado, datos o ZIP en este checkpoint.
+- Anthropic real en producción: borrador de cuatro requisitos, alcance AR6 preservado, confirmación, evaluación y explicación/geología con tres referencias válidas. JSON descargado validado y reconstruido idéntico; captura y procedencia incorporadas. Detalle en `docs/PRODUCTION_RELEASE.md`.
+
 ## 2026-11-15 Codex · README Explorar/Misión y promoción a producción
 
 - Dan autoriza pasar la entrega completa de dev a main y, tras publicar, reemplazar el screenshot con una captura de la nueva producción.

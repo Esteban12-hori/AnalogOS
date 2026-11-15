@@ -27,6 +27,7 @@ Antes de modificar archivos, ejecuta `git status --short`, confirma la rama y pr
 
 - M8 aceptado y publicado en dev por Codex, con ambas operaciones de Anthropic verificadas realmente. Ver `docs/DEV_AI_VERIFICATION.md`; núcleo compartido en `shared/`, reexports en web. M9 aceptado y publicado por Codex: contexto geológico descriptivo, exportación y ZIP; ver `docs/CODEX_M9_REVIEW.md`. M10-GEOLOGY-AI completado, aceptado por Codex y publicado/verificado en dev (4708b42). NEXT_TASK accepted, sin nueva asignación. Preservar la entrega.
 - Rama de implementación: `dev`.
+- Producción actualizada por pedido directo de Dan: main/dev sincronizados en `7e8c779`, Actions producción `43682694089` y dev `43682693561` correctos. Anthropic real comprobado en producción. README con captura tomada después de publicar; ver `docs/PRODUCTION_RELEASE.md`. No asigna trabajo nuevo ni autoriza futuras promociones sin encargo.
 - Integración Explorar/Misión aceptada por Codex y publicada en `9c183fb` (Actions `43681551867`), con ambas operaciones Anthropic y geología verificadas desde la nueva UI. ADR-013/014 aceptados; Enviar conserva el sector elegido. Ver `docs/CODEX_INTEGRATION_REVIEW.md` y el checkpoint superior de STATUS. Claude sigue sin nueva asignación.
 - Snapshot activo: `artifacts/science-v3/`; v2 se conserva como histórico, byte a byte.
 - Perfil: `mars-rover-screening-v3`, versión `3.0.0-preliminary`; fórmulas y pesos v2.
