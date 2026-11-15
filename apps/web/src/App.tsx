@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { loadDemoSnapshot } from './data/loadDemoSnapshot'
+import { displaySnapshotError, SNAPSHOT_UNKNOWN_ERROR } from './data/snapshotError'
 import { loadVisualContext, type VisualContextState } from './data/loadVisualContext'
 import type { AppGeology } from './data/loadAppGeology'
 import { useLocale } from './i18n'
@@ -75,8 +76,9 @@ function App() {
       })
       .catch((error: unknown) => {
         if (!active) return
-        // Canonical English in state; a loader/contract detail is technical and shown as is (docs/I18N.md §11).
-        const message = error instanceof Error ? error.message : tShell.in('en')('app.unknownError')
+        // Canonical English in state; the loader's own messages are shown in the interface language and any other
+        // detail (contracts, network) is technical and shown as is, marked English (data/snapshotError.ts, I18N §11).
+        const message = error instanceof Error ? error.message : SNAPSHOT_UNKNOWN_ERROR
         setState({ status: 'error', snapshot: null, error: message })
       })
     return () => {
@@ -85,12 +87,13 @@ function App() {
   }, [])
 
   if (state.status === 'error') {
+    const detail = displaySnapshotError(state.error ?? SNAPSHOT_UNKNOWN_ERROR, locale)
     return (
       <main className="system-state error-state">
         <LiquidBackdrop />
         <span>{t('app.errorKicker')}</span>
         <h1>{t('app.errorTitle')}</h1>
-        <p role="alert">{state.error === tShell.in('en')('app.unknownError') ? t('app.unknownError') : state.error}</p>
+        <p role="alert" lang={detail.lang}>{detail.text}</p>
         <button type="button" onClick={() => window.location.reload()}>{t('app.retry')}</button>
       </main>
     )

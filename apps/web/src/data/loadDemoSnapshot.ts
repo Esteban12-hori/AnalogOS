@@ -10,6 +10,7 @@ import { assertSnapshotContracts } from '../domain/snapshotContracts'
 import { parseMarsReference, type MarsReference } from '../domain/marsReference'
 import { parseSensitivity, type SensitivityResult } from '../domain/sensitivity'
 import { parseSurfaceSeries, type SurfaceSeriesBySite } from '../domain/surfaceSeries'
+import { SNAPSHOT_OUTLINE_INVALID, snapshotLoadFailed } from './snapshotError'
 
 export const SNAPSHOT_PATH: string = import.meta.env.VITE_SNAPSHOT_PATH ?? 'science-v3'
 /** The v3 snapshot includes search, background data and boundaries for both countries; the historical ones do not. */
@@ -33,7 +34,8 @@ export interface DemoSnapshot {
 async function fetchJson(path: string): Promise<unknown> {
   const response = await fetch(`${import.meta.env.BASE_URL}${SNAPSHOT_PATH}/${path}`)
   if (!response.ok) {
-    throw new Error(`${path} could not be loaded (${response.status}).`)
+    // Canonical English; the error screen shows it in the interface language (data/snapshotError.ts).
+    throw new Error(snapshotLoadFailed(path, response.status))
   }
   return response.json() as Promise<unknown>
 }
@@ -60,7 +62,7 @@ export async function loadDemoSnapshot(): Promise<DemoSnapshot> {
 
   const outline = outlineData as GeoJsonFeatureCollection
   if (outline.type !== 'FeatureCollection' || !Array.isArray(outline.features)) {
-    throw new Error('The context outline is not a GeoJSON FeatureCollection.')
+    throw new Error(SNAPSHOT_OUTLINE_INVALID)
   }
 
   return {

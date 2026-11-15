@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import type { CandidateSite } from '../../domain/contracts'
-import { useLocale, useT } from '../../i18n'
+import { useLiveText, useLocale, useT } from '../../i18n'
 import { tMission } from '../../i18n/messages/mission'
 import { tPlanner } from '../../i18n/messages/planner'
 import { MAX_BRIEF_CHARS, exampleState, type JourneyId, type PlannerState } from '../../mission'
@@ -72,7 +72,8 @@ export function PlannerView({ snapshot, api, intent, compact = false, stepReques
   const tm = useT(tMission)
   const [step, setStep] = useState<StepId>(() => initialStep(state))
   const titleId = `${useId().replace(/[^\w-]/g, '')}-planner-title`
-  const [announce, setAnnounce] = useState('')
+  // Step announcement: emptied when the language changes (useLiveText), never re-announced in the other language.
+  const [announce, setAnnounce] = useLiveText()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const briefRef = useRef<HTMLTextAreaElement>(null)
   // Each external request brings focus back, even if the step does not change ("Send" twice).

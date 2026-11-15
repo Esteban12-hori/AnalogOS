@@ -13,6 +13,7 @@
  */
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import type { ReferenceAnalog } from '../../domain/contracts'
+import { displaySnapshotError } from '../../data/snapshotError'
 import { countryLabels, type CountryFilter } from '../../domain/discovery'
 import { prioritizedCount } from '../../domain/missionView'
 import { RULES_VERSION } from '../../mission/catalog'
@@ -66,7 +67,7 @@ export function PlaceRail(props: PlaceRailProps) {
   if (data.status === 'error') {
     return (
       <div className="places" data-placement={placement}>
-        <p className="places-state"><span aria-hidden="true">{GLYPH.fail}</span> {data.error ? t('state.loadErrorDetail', { error: data.error }) : t('state.loadError')}</p>
+        <p className="places-state"><span aria-hidden="true">{GLYPH.fail}</span> {data.error ? t('state.loadErrorDetail', { error: displaySnapshotError(data.error, locale).text }) : t('state.loadError')}</p>
       </div>
     )
   }

@@ -110,7 +110,7 @@ export const tPlaces = defineMessages({
     'empty.all': 'La búsqueda no dejó candidatos elegibles. No se completa la lista con sitios elegidos a mano.',
     'empty.country': 'La búsqueda no dejó candidatos en {country}. No se completa la lista con sitios elegidos a mano.',
     'group.candidates': 'Candidatos de la búsqueda',
-    'group.reference': 'Referencia conocida · no sale de la búsqueda',
+    'group.reference': 'Referencia conocida · fuera de la búsqueda',
     'group.referenceNamed': 'Referencia conocida: {names}',
     'group.emblematic': 'Emblemáticos · por calcular',
 
@@ -129,7 +129,8 @@ export const tPlaces = defineMessages({
     'feas.pending': 'Factib.: pendiente',
     'feas.pendingTitle': 'Permisos, acceso, áreas protegidas y propiedad: independiente de este resultado',
     'feas.title': 'Factibilidad: {label}',
-    'meta.notFromSearch': ' · no sale de la búsqueda',
+    // Shorter than the pre-ADR-016 «no sale de la búsqueda», which lost its last word in the 1440 px card.
+    'meta.notFromSearch': ' · fuera de la búsqueda',
     'ring.notApplicable': 'no aplica',
     'ring.noPercent': 'sin %',
     'ring.notRecalculated': 'sin recalcular',
@@ -152,7 +153,8 @@ export const tPlaces = defineMessages({
     'analog.region': 'región aprox.',
     'analog.area': 'zona aprox.',
     'analog.contains': { one: 'Contiene {count} sector evaluado', other: 'Contiene {count} sectores evaluados' },
-    'analog.noRanking': 'sin %, sin ranking',
+    // «puesto» as in «puesto 1» (rank): shorter than «sin ranking», so «Fuente: …» fits whole in the 360 px ◆ card.
+    'analog.noRanking': 'sin %, sin puesto',
     'analog.source': 'Fuente: {publisher}',
     'analog.sourceCited': 'citada',
 

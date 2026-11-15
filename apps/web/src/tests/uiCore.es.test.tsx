@@ -2,9 +2,13 @@
 // and map texts, rail/sheet, details and its tabs. The English tests stay as they are; here the same components are
 // rendered in Spanish and the order, ranks and figures are checked to be IDENTICAL in both languages (only words and
 // number typography change). Rendered with react-dom/server (no jsdom), with the real v3 snapshot.
+import { existsSync, readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { activeSources, sourceIn, type Basemap } from '../data/loadBasemaps'
+import { loadDemoSnapshot } from '../data/loadDemoSnapshot'
+import { displaySnapshotError, SNAPSHOT_OUTLINE_INVALID, SNAPSHOT_UNKNOWN_ERROR, snapshotLoadFailed } from '../data/snapshotError'
 import { literatureLabels, rankMap, splitByRole } from '../domain/discovery'
 import { criterionLabels, feasibilityLabels, formatRawValue, formatScore, PROFILE_STATUS_LABEL, shortCandidateName } from '../domain/formatting'
 import { MISSION_STATUS_LABEL, preferencesText, REQUIREMENT_STATUS_LABEL } from '../domain/missionView'
@@ -14,6 +18,7 @@ import { CandidateComparison, comparisonRows } from '../components/CandidateComp
 import { SurfaceSignals } from '../components/SurfaceSignals'
 import { VisualContextView, visualReason } from '../components/VisualContext'
 import { CandidateMap } from '../features/globe/CandidateMap'
+import { mapUiStrings } from '../features/globe/mapUiStrings'
 import { buildMarkerModels, clusterAriaLabel, markerAriaLabel, markerLabelText } from '../features/globe/markers'
 import { MarkerPin } from '../features/globe/MarkerLayer'
 import { headerText, leaderLabelModelIn, NO_MARS_TEXT, requirementText } from '../features/leaders/labelModel'
@@ -28,7 +33,7 @@ import { catalogReason } from '../features/places/catalogReason'
 import { loadReferenceAnalogs, PlaceRail, ReferenceCard as ReferenceCardSlot } from '../features/places'
 import { buildPlaceModel, placeOrder, rangeLabel } from '../features/places/placeModel'
 import ReferenceCardView, { formatLatLon } from '../features/places/ReferenceCardView'
-import { setLocale, type Locale } from '../i18n'
+import { liveTextIn, setLocale, type Locale } from '../i18n'
 import { tCommon } from '../i18n/messages/common'
 import { FullDetail } from '../shell/detail/FullDetail'
 import { MethodTab } from '../shell/detail/MethodTab'
@@ -39,7 +44,7 @@ import { RightRail } from '../shell/RightRail'
 import { Sheet } from '../shell/sheet/Sheet'
 import { missionStore } from '../state/mission'
 import { uiStore } from '../state/ui'
-import { evaluateExample, readyData, v3Snapshot } from './v3Support'
+import { evaluateExample, readyData, REPO_ROOT, v3Snapshot } from './v3Support'
 
 const quiet = { persist: false, updateUrl: false } as const
 const es = () => setLocale('es', quiet)
@@ -105,7 +110,7 @@ describe('places: same order and ranks, Spanish words', () => {
     const spanish = buildPlaceModel({ candidates: v3Snapshot.candidates, locale: 'es' })
     expect(placeOrder(spanish).map((place) => place.id)).toEqual(placeOrder(en).map((place) => place.id))
     expect(spanish.evaluated.map((place) => place.kind === 'evaluated' && place.rank)).toEqual(en.evaluated.map((place) => place.kind === 'evaluated' && place.rank))
-    expect(spanish.groups.map((group) => group.label)).toEqual(['Candidatos de la búsqueda', 'Referencia conocida · no sale de la búsqueda'])
+    expect(spanish.groups.map((group) => group.label)).toEqual(['Candidatos de la búsqueda', 'Referencia conocida · fuera de la búsqueda'])
     expect(rangeLabel({ first: 0, last: 3 }, 11, 'es')).toBe('1–4 de 11')
     expect(rangeLabel(null, 11, 'es')).toBe('11 lugares')
   })
@@ -312,5 +317,59 @@ describe('rail, sheet and the full details', () => {
     expect(unavailable).toContain('Imagen satelital no disponible. Los fixtures sintéticos no tienen imagen satelital. El ranking y la ficha no dependen de ella.')
     expect(visualReason('This build does not include visual context (404).', 'es')).toBe('Este build no incluye contexto visual (404).')
     expect(visualReason('Invalid visual context index: x.', 'es')).toBe('Invalid visual context index: x.')
+  })
+})
+
+describe('review fixes: accessible names, live regions and the error screen follow the language', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('the focusable 2D map canvas is named in the interface language (MapLibre’s own “Map” in English)', () => {
+    expect(mapUiStrings('en')).toEqual({ 'Map.Title': 'Map' })
+    expect(mapUiStrings('es')).toEqual({ 'Map.Title': 'Mapa' })
+  })
+
+  it('a live region shows its text only in the language it was written in (carousel and planner step)', () => {
+    const carousel = { text: 'Geology, 6 of 7', locale: 'en' as const }
+    expect(liveTextIn(carousel, 'en')).toBe('Geology, 6 of 7')
+    expect(liveTextIn(carousel, 'es')).toBe('')
+    expect(liveTextIn({ text: 'Geología, 6 de 7', locale: 'es' }, 'es')).toBe('Geología, 6 de 7')
+    expect(liveTextIn(null, 'es')).toBe('')
+  })
+
+  it('the loader’s own messages are canonical English and shown in Spanish; other details are marked English', () => {
+    expect(snapshotLoadFailed('manifest.json', 404)).toBe('manifest.json could not be loaded (404).')
+    expect(displaySnapshotError(snapshotLoadFailed('manifest.json', 404), 'en')).toEqual({ text: 'manifest.json could not be loaded (404).' })
+    expect(displaySnapshotError(snapshotLoadFailed('manifest.json', 404), 'es')).toEqual({ text: 'No se pudo cargar manifest.json (404).' })
+    expect(displaySnapshotError(SNAPSHOT_OUTLINE_INVALID, 'es')).toEqual({ text: 'El contorno de contexto no tiene formato GeoJSON FeatureCollection.' })
+    expect(displaySnapshotError(SNAPSHOT_UNKNOWN_ERROR, 'es')).toEqual({ text: 'Error desconocido al cargar el snapshot.' })
+    expect(displaySnapshotError('Failed to fetch', 'es')).toEqual({ text: 'Failed to fetch', lang: 'en' })
+    expect(displaySnapshotError('Failed to fetch', 'en')).toEqual({ text: 'Failed to fetch' })
+    expect(displaySnapshotError('Invalid precedent catalog:\n/ must have required property', 'es').lang).toBe('en')
+  })
+
+  it('the real loader writes those canonical messages whatever the language (HTTP error, broken outline)', async () => {
+    es()
+    const serve = (broken: string | null) => vi.fn(async (url: string) => {
+      const file = url.split('/').pop() ?? ''
+      const path = resolve(REPO_ROOT, 'artifacts/science-v3', file)
+      if (file === broken) return new Response(JSON.stringify({ broken: true }), { status: 200 })
+      return existsSync(path) ? new Response(readFileSync(path, 'utf8'), { status: 200 }) : new Response('', { status: 404 })
+    })
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 503 })))
+    const failed = await loadDemoSnapshot().then(() => '', (error: Error) => error.message)
+    expect(failed).toMatch(/^[\w.-]+\.(json|geojson) could not be loaded \(503\)\.$/)
+    expect(displaySnapshotError(failed, 'es').text).toMatch(/^No se pudo cargar [\w.-]+\.(json|geojson) \(503\)\.$/)
+    vi.stubGlobal('fetch', serve('context-outline.geojson'))
+    await expect(loadDemoSnapshot()).rejects.toThrow(SNAPSHOT_OUTLINE_INVALID)
+    vi.stubGlobal('fetch', serve(null))
+    await expect(loadDemoSnapshot()).resolves.toMatchObject({ candidates: v3Snapshot.candidates })
+  })
+
+  it('PlaceRail’s error state shows the loader message in Spanish', () => {
+    es()
+    const html = renderToStaticMarkup(<PlaceRail data={{ ...readyData, status: 'error', snapshot: null, error: snapshotLoadFailed('manifest.json', 404) }} placement="dock" />)
+    expect(text(html)).toContain('No se pudo cargar manifest.json (404).')
   })
 })

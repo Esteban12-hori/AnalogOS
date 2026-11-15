@@ -234,7 +234,7 @@ describe('boot texts and the static shell in both languages', () => {
     expect(keys.length).toBeGreaterThan(8)
     for (const key of keys) expect(es[key], key).toBeTruthy()
     expect(html).toContain('<div class="lang-switch" aria-hidden="true"><span class="lang-option" lang="en" data-lang-option="en" data-selected="">EN</span>')
-    expect(staticShellHtml({ locale: 'es' })).toContain('Describe la prueba que quieres hacer para Marte…')
+    expect(staticShellHtml({ locale: 'es' })).toContain('Describe tu prueba para Marte…')
   })
 
   /** Minimal DOM for the inline scripts: a tiny tree of the static HTML, elements found by attribute or class. */
@@ -315,7 +315,7 @@ describe('boot texts and the static shell in both languages', () => {
     expect(byKey('modeExplore')).toEqual(['Explorar'])
     expect(byKey('tagline')).toEqual(['Piloto Chile–Argentina'])
     expect(byKey('scienceNote')).toEqual(['SCREENING CIENTÍFICO PRELIMINAR · DATOS REALES · NO ES AUTORIZACIÓN DE TERRENO'])
-    expect(byKey('composerPrompt')).toEqual(['Describe la prueba que quieres hacer para Marte…', 'Describe la prueba que quieres hacer para Marte…'])
+    expect(byKey('composerPrompt')).toEqual(['Describe tu prueba para Marte…', 'Describe tu prueba para Marte…'])
     // Glyph spans stay: only the last text node changes (no layout shift).
     expect(byKey('boot.snapshot')).toEqual(['•Snapshot científico · validando'])
     expect(byKey('status')).toEqual(['Cargando snapshot validado…', 'Cargando snapshot validado…', 'Cargando snapshot validado…'])

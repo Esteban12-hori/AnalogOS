@@ -234,6 +234,16 @@
 .places[data-view="list"] .places-group[data-status] { margin-top: 8px; padding: 8px 0 0; border-top: 1px dashed var(--line-strong); border-left: 0; }
 .places-note { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .places-filter button { min-height: 26px; padding: 0 9px; font-size: var(--fs-min); }
-@container places (max-width: 560px) { .places-title small { display: none; } .places-arrow, .places-count { display: none; } }
+@container places (max-width: 560px) {
+  .places-title small { display: none; } .places-arrow, .places-count { display: none; }
+  /* The title keeps its natural width (it is the last thing to be lost, see the top of this file): the tools give
+     way first. Narrower country chips on a single line (styles.css `.country-filter` would wrap them and pad them
+     11 px, hence the extra specificity); if even that does not fit, the filter scrolls sideways (longer Spanish chips
+     at 360 px). The list toggle never breaks into two lines. */
+  .places-tools { flex: 0 1000 auto; min-width: 0; }
+  .places-tools > .places-filter { flex-wrap: nowrap; }
+  .places-tools > .places-filter > button { padding: 0 8px; }
+  .places-tools > .places-tool { flex: none; white-space: nowrap; }
+}
 .places-diagnosis { flex: none; }
 .places-diagnosis > span { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }

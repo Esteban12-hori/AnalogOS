@@ -3,5 +3,5 @@
  * Modules that run in Node (no React) import `i18n/core`.
  */
 export * from './core'
-export { useLocale, useT } from './react'
+export { liveTextIn, useLiveText, useLocale, useT, type LiveText } from './react'
 export { LanguageSwitch } from './LanguageSwitch'

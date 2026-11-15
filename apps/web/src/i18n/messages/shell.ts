@@ -48,6 +48,8 @@ export const tShell = defineMessages({
     'app.errorTitle': 'We could not open the demo.',
     'app.retry': 'Retry',
     'app.unknownError': 'Unknown error while loading the snapshot.',
+    'app.loadFailed': '{path} could not be loaded ({status}).',
+    'app.outlineInvalid': 'The context outline is not a GeoJSON FeatureCollection.',
   },
   es: {
     'brand.tagline': 'Piloto Chile–Argentina',
@@ -56,7 +58,9 @@ export const tShell = defineMessages({
     'scienceNoteShort': 'PRELIMINAR · NO AUTORIZA TERRENO',
     'fixtureNote': 'DEMOSTRACIÓN TÉCNICA · DATOS SINTÉTICOS · NO ES UN RESULTADO CIENTÍFICO',
     'fixtureNoteShort': 'DEMO · DATOS SINTÉTICOS',
-    'composerPrompt': 'Describe la prueba que quieres hacer para Marte…',
+    // Shorter than the pre-ADR-016 wording («Describe la prueba que quieres hacer para Marte…»), which lost «Marte»
+    // to the ellipsis in the 360 px dock; «Describe tu prueba…» is the narrow form of the same prompt (composer.ts).
+    'composerPrompt': 'Describe tu prueba para Marte…',
     'credit': 'Datos: {sources}',
     'mode.label': 'Modo',
     'mode.explore': 'Explorar',
@@ -91,5 +95,7 @@ export const tShell = defineMessages({
     'app.errorTitle': 'No pudimos abrir la demostración.',
     'app.retry': 'Reintentar',
     'app.unknownError': 'Error desconocido al cargar el snapshot.',
+    'app.loadFailed': 'No se pudo cargar {path} ({status}).',
+    'app.outlineInvalid': 'El contorno de contexto no tiene formato GeoJSON FeatureCollection.',
   },
 })

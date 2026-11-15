@@ -30,6 +30,8 @@ import { MissionPanel, sourceLabel } from '../features/composer/MissionPanel'
 import { resultAnnouncement, resultLineText } from '../features/composer/model'
 import { PrintNotice } from '../features/composer/printHost'
 import { setLocale } from '../i18n/locale'
+import { liveTextIn } from '../i18n/react'
+import { tComposer } from '../i18n/messages/composer'
 import { tMission } from '../i18n/messages/mission'
 import { tPlanner } from '../i18n/messages/planner'
 import { tReading } from '../i18n/messages/reading'
@@ -412,5 +414,32 @@ describe('Spanish rendering with real data', () => {
     const at = Date.UTC(2026, 10, 13, 17, 32)
     expect(formatWhen(at, at, 'es')).toMatch(/^\d{2}:\d{2}$/)
     expect(formatWhen(at, at + 3 * 86_400_000, 'es')).toMatch(/nov/)
+  })
+})
+
+describe('review fixes: nothing stays in the previous language, nothing loses its last word', () => {
+  const example = evaluateExample()
+  const catalog = buildGeologyCatalog(example.evaluation, context, ctxFp)
+  const geo = { available: true, unavailableReason: null, useGeology: true, setUseGeology: noop, catalog, onExportGeology: noop, exportError: null }
+
+  it('the planner step announcement is not kept across a language change', () => {
+    const announced = { text: tPlanner.in('en')('step.announce', { n: 4, total: 4, label: tPlanner.in('en')('step.result') }), locale: 'en' as const }
+    expect(announced.text).toBe('Step 4 of 4: Result')
+    expect(liveTextIn(announced, 'es')).toBe('')
+    expect(liveTextIn(announced, 'en')).toBe('Step 4 of 4: Result')
+    es()
+    const api: PlannerApi = {
+      state: { ...example.state, result: null, confirmed: false }, dispatch: noop, built: buildRequest(example.state), evaluate: () => false, evaluationError: null,
+      runDraft: noop, runExplain: noop, geologyUi: geo, exportJson: noop, exportError: null,
+    }
+    const html = renderToStaticMarkup(<PlannerView snapshot={v3Bundle} api={api} intent={null} stepRequest={{ step: 'confirm', nonce: 1 }} />)
+    expect(html).toContain('<div class="pl-sr" role="status" aria-live="polite"></div>')
+  })
+
+  it('the Spanish dock prompt keeps «Marte» and is no longer than the English one (360 px dock)', () => {
+    const spanish = tShell.in('es')('composerPrompt')
+    expect(spanish).toBe('Describe tu prueba para Marte…')
+    expect(spanish.length).toBeLessThanOrEqual(tShell.in('en')('composerPrompt').length)
+    expect(spanish.startsWith(tComposer.in('es')('form.promptShort').replace('…', ''))).toBe(true)
   })
 })

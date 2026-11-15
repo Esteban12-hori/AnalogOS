@@ -11,10 +11,11 @@ import { outerRings } from '../../domain/globe'
 import type { FlatThresholds, ViewInsets } from '../../domain/mapZoom'
 import { activeSources, type ActiveSource, type Basemap, type Bounds } from '../../data/loadBasemaps'
 import { prefersReducedMotion } from '../../shell/public'
-import { useT } from '../../i18n'
+import { useLocale, useT } from '../../i18n'
 import { tGlobeMarkers } from '../../i18n/messages/globeMarkers'
 import type { FlatHandoff, FlyRequest, StageSelection } from './CandidateGlobe'
 import { easeInOutCubic, flightDurationMs } from './flight'
+import { mapUiStrings } from './mapUiStrings'
 import { angularDistanceDeg } from './geometry'
 import { ClusterChip, MarkerPin, playHalos, pulsePin, setDataFlag, type PinRef } from './MarkerLayer'
 import { buildMarkerModels, labelBudget, placeNearSelection, ringRadius, type MarkerCounts, type MarkerInput, type MarkerModel } from './markers'
@@ -301,6 +302,7 @@ export default function CandidateFlatMap({
   onCameraInput,
   onHome,
 }: CandidateFlatMapProps) {
+  const locale = useLocale()
   const t = useT(tGlobeMarkers)
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
@@ -422,6 +424,7 @@ export default function CandidateFlatMap({
       minZoom: thresholds.exit - 0.6,
       maxZoom: MAX_ZOOM,
       attributionControl: false,
+      locale: mapUiStrings(locale),
       dragRotate: false,
       pitchWithRotate: false,
       renderWorldCopies: false,
@@ -512,6 +515,11 @@ export default function CandidateFlatMap({
   useEffect(() => {
     mapRef.current?.setPadding({ top, right, bottom, left })
   }, [top, right, bottom, left])
+
+  // MapLibre names its canvas only on construction: a language change renames it here.
+  useEffect(() => {
+    mapRef.current?.getCanvas().setAttribute('aria-label', mapUiStrings(locale)['Map.Title'])
+  }, [locale])
 
   // Re-entry from the globe: jump to the same center/scale.
   useEffect(() => {

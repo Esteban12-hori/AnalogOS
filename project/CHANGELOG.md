@@ -1,5 +1,13 @@
 # Working changelog
 
+## 2026-11-15 Claude Code — EN | ES selector: review fixes
+
+- 2D map: the focusable MapLibre canvas is named in the interface language (“Map” / “Mapa”) and renamed on a language change; it used to stay “Map” in Spanish.
+- Planner step announcement and mobile metrics carousel live region are emptied on a language change (`useLiveText`) instead of keeping the previous language.
+- No Spanish-only truncation at 360–1440 px: places title keeps its width (tools shrink first, country chips on one row), shorter Spanish dock prompt «Describe tu prueba para Marte…», ◆ card « · fuera de la búsqueda» and «sin %, sin puesto».
+- Snapshot error screen: loader messages are canonical English and shown in Spanish; other technical details are marked `lang="en"`.
+- `npm run verify` green (330 Python; 1027 web, 3 opt-in skipped). Browser on the final build: 137 targeted checks and the 123-check EN/ES walk, 0 failures, exports byte-identical EN = ES. Package `/tmp/claude-rel/es-fix.zip` (81 entries, SHA-256 `156dddd6…bf6a7a7`). No contract, record, export, server or AI change.
+
 ## 2026-11-15 Claude Code — EN | ES selector: three areas integrated (ADR-017, proposed)
 
 - Merged `es/ui-core`, `es/mission-ui` and `es/ai-science` into `feature/es-selector` (no conflicts). Spanish now covers Explore, place sheet and tabs, rail, metrics, leader lines, globe/2D map, composer, “Your mission”, planner, result, print report, Reading, geology card/guidance and AI messages; English output unchanged.

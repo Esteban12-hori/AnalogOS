@@ -13,7 +13,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperti
 import type { CandidateSite, DataManifest } from '../../domain/contracts'
 import { formatArea } from '../../domain/formatting'
 import { criterionExplanation } from '../../domain/geologyCopy'
-import { getLocale, useLocale, useT, type Locale } from '../../i18n'
+import { getLocale, useLiveText, useLocale, useT, type Locale } from '../../i18n'
 import { tMetricDetails } from '../../i18n/messages/metricDetails'
 import { scienceText } from '../../i18n/science'
 import { GLYPH, hasGeologyFor, useReducedMotion, type AppData } from '../../shell/public'
@@ -486,7 +486,8 @@ function SheetCarousel({ views, context, site, data, onShowOnMap }: VariantProps
   const programmatic = useRef<number | null>(null)
   const guardTimer = useRef<number | null>(null)
   const firstScroll = useRef(true)
-  const [live, setLive] = useState('')
+  // Emptied when the language changes (useLiveText): the region never keeps text in the previous language.
+  const [live, setLive] = useLiveText()
   useLayoutEffect(() => {
     indexRef.current = index
   }, [index])
