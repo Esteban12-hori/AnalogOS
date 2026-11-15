@@ -2,8 +2,11 @@ import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useRef, use
 import type { CandidateSite, GeoJsonFeatureCollection, PrecedentCatalog, ReferenceAnalog, SearchResults } from '../../domain/contracts'
 import { rankMap, splitByRole } from '../../domain/discovery'
 import { shortCandidateName } from '../../domain/formatting'
-import { loadBasemaps, type ActiveSource, type Basemap, type BasemapManifest, type ContextPreview } from '../../data/loadBasemaps'
+import { loadBasemaps, sourceIn, type ActiveSource, type Basemap, type BasemapManifest, type ContextPreview } from '../../data/loadBasemaps'
 import type { VisualContextState } from '../../data/loadVisualContext'
+import { useLocale, type Locale } from '../../i18n'
+import { tCommon } from '../../i18n/messages/common'
+import { tGlobe } from '../../i18n/messages/globe'
 import { announce, GLYPH } from '../../shell/public'
 import { useMission } from '../../state/mission'
 import { uiActions, useUi } from '../../state/ui'
@@ -112,11 +115,12 @@ export function contextLayers(visual: VisualContextState, previews: ContextPrevi
 
 type Mode = 'globe' | 'flat'
 
-const GLOBE_SOURCE: ActiveSource = {
-  id: 'globe',
+const globeSource = (locale: Locale): { label: string; detail: string } => ({
   label: `NASA Blue Marble · ~${GLOBE_TEXTURE_KM} km`,
-  detail: 'Local globe texture · NASA relief',
-}
+  detail: tGlobe.in(locale)('source.globeDetail'),
+})
+
+const GLOBE_SOURCE: ActiveSource = { id: 'globe', ...globeSource('en'), describe: globeSource }
 
 function supportsWebGL(): boolean {
   try {
@@ -163,8 +167,8 @@ function insetVars(insets: ViewInsets): CSSProperties {
 }
 
 /** Short name of the place for the chip "Center on ‹#1›". */
-function shortName(name: string): string {
-  return shortCandidateName(name).split(' — ')[0] ?? name
+function shortName(name: string, locale: Locale): string {
+  return shortCandidateName(name, locale).split(' — ')[0] ?? name
 }
 
 const selectReference = (analogId: string) => uiActions.select(analogId, 'reference')
@@ -193,6 +197,9 @@ export function MapStage({
   creditSlot,
   onSelectReference = selectReference,
 }: MapStageProps) {
+  // Stage texts (legend, sources, controls) and marker models follow the language (docs/I18N.md §4.5).
+  const locale = useLocale()
+  const t = tGlobe.in(locale)
   const [webgl] = useState(supportsWebGL)
   const [failed, setFailed] = useState(false)
   const [mode, setMode] = useState<Mode>('globe')
@@ -228,7 +235,7 @@ export function MapStage({
   const analogs = analogsState.status === 'ready' ? analogsState.analogs : NO_ANALOGS
   // In Mission, states and rankings from the team's evaluation; in Explore, the snapshot's global ranking.
   const missionEvaluation = uiMode === 'mision' ? evaluation : null
-  const markerInput = useMemo<MarkerInput>(() => ({ candidates, analogs, evaluation: missionEvaluation }), [candidates, analogs, missionEvaluation])
+  const markerInput = useMemo<MarkerInput>(() => ({ candidates, analogs, evaluation: missionEvaluation, locale }), [candidates, analogs, missionEvaluation, locale])
 
   const referenceId = storeSelection?.kind === 'reference' ? storeSelection.siteId : null
   const selection = useMemo<StageSelection | null>(
@@ -371,7 +378,7 @@ export function MapStage({
   useEffect(() => {
     if (lastMode.current === mode) return
     lastMode.current = mode
-    announce(mode === 'flat' ? '2D map with official NASA imagery' : '3D globe')
+    announce(mode === 'flat' ? tGlobe('announce.flat') : tGlobe('announce.globe'))
   }, [mode])
 
   const fixtureMode = candidates.every((candidate) => candidate.status === 'fixture')
@@ -417,18 +424,20 @@ export function MapStage({
           selectedId={selectedId ?? ''}
           onSelect={onSelect}
         />
-        <p className="view-note stage-note">No WebGL: the local SVG map is shown (no satellite imagery).</p>
+        <p className="view-note stage-note">{t('noWebgl')}</p>
       </div>
     )
   }
 
   const sources = mode === 'flat' ? flatSources : [GLOBE_SOURCE]
+  // The list is kept with its facts; label and detail are re-rendered in the current language.
+  const shownSources = sources.map((source) => sourceIn(source, locale))
 
   return (
     <div className="map-stage" data-mode={mode} style={insetVars(insets)}>
       <StageErrorBoundary onError={markFailed}>
         <div className="stage-layer stage-globe" hidden={mode !== 'globe'}>
-          <Suspense fallback={<StageLoading text="Loading 3D globe…" />}>
+          <Suspense fallback={<StageLoading text={t('loading.globe')} />}>
             <CandidateGlobe
               candidates={candidates}
               outline={outline}
@@ -455,10 +464,10 @@ export function MapStage({
             />
           </Suspense>
         </div>
-        {!layers && mode === 'flat' && <StageLoading text="Loading map imagery…" />}
+        {!layers && mode === 'flat' && <StageLoading text={t('loading.imagery')} />}
         {(entry || prewarm) && layers && (
           <div className={`stage-layer stage-flat${mode === 'flat' ? '' : ' is-dormant'}`} aria-hidden={mode !== 'flat'}>
-            <Suspense fallback={<StageLoading text="Loading 2D map…" />}>
+            <Suspense fallback={<StageLoading text={t('loading.flat')} />}>
               <CandidateFlatMap
                 candidates={candidates}
                 outline={outline}
@@ -488,34 +497,34 @@ export function MapStage({
 
       {chipSite && (
         <button type="button" className="stage-center-chip" onClick={centerOnChip}>
-          Center on {shortName(chipSite.name)}
+          {t('centerOn', { name: shortName(chipSite.name, locale) })}
         </button>
       )}
 
-      <div className="stage-controls" role="group" aria-label="Stage camera" data-obstacle="">
-        <button type="button" aria-label="Zoom in" title="Zoom in (+)" onClick={() => zoomBy(ZOOM_STEP)}>+</button>
-        <button type="button" aria-label="Zoom out" title="Zoom out (−)" onClick={() => zoomBy(-ZOOM_STEP)}>−</button>
-        <button type="button" aria-label="Global view" title="Global view (Home)" onClick={goHome}>⌂</button>
+      <div className="stage-controls" role="group" aria-label={t('camera')} data-obstacle="">
+        <button type="button" aria-label={t('zoomIn')} title={t('zoomInTitle')} onClick={() => zoomBy(ZOOM_STEP)}>+</button>
+        <button type="button" aria-label={t('zoomOut')} title={t('zoomOutTitle')} onClick={() => zoomBy(-ZOOM_STEP)}>−</button>
+        <button type="button" aria-label={t('home')} title={t('homeTitle')} onClick={goHome}>⌂</button>
       </div>
 
-      <div className="stage-dock" role="group" aria-label="Map legend and source" data-obstacle="">
+      <div className="stage-dock" role="group" aria-label={t('dock')} data-obstacle="">
         <div className="stage-legend">
           {missionEvaluation ? (
             <>
-              <span><b aria-hidden="true">{GLYPH.evaluated}</b> #n prioritized</span>
-              <span><b className="is-insufficient" aria-hidden="true">{GLYPH.insufficient}</b> insufficient evidence</span>
-              <span><b className="is-fail" aria-hidden="true">{GLYPH.fail}</b> not met</span>
-              <span><b className="is-reference" aria-hidden="true">{GLYPH.reference}</b> not yet calculated</span>
+              <span><b aria-hidden="true">{GLYPH.evaluated}</b> {t('legend.prioritized')}</span>
+              <span><b className="is-insufficient" aria-hidden="true">{GLYPH.insufficient}</b> {t('legend.insufficientEvidence')}</span>
+              <span><b className="is-fail" aria-hidden="true">{GLYPH.fail}</b> {t('legend.notMet')}</span>
+              <span><b className="is-reference" aria-hidden="true">{GLYPH.reference}</b> {tCommon.in(locale)('status.notYetCalculated')}</span>
             </>
           ) : (
             <>
-              <span><b aria-hidden="true">{GLYPH.evaluated}</b> {fixtureMode ? 'fixture with score' : 'candidate #n · REF reference'}</span>
-              <span><b className="is-reference" aria-hidden="true">{GLYPH.reference}</b> analog not yet calculated</span>
-              <span><b className="is-insufficient" aria-hidden="true">{GLYPH.insufficient}</b> insufficient data</span>
+              <span><b aria-hidden="true">{GLYPH.evaluated}</b> {fixtureMode ? t('legend.fixture') : t('legend.candidate')}</span>
+              <span><b className="is-reference" aria-hidden="true">{GLYPH.reference}</b> {t('legend.analog')}</span>
+              <span><b className="is-insufficient" aria-hidden="true">{GLYPH.insufficient}</b> {tCommon.in(locale)('status.insufficientDataLower')}</span>
             </>
           )}
-          <span className="legend-sim" title="More similar to Mars with the active profile; it does not indicate suitability">
-            % similarity
+          <span className="legend-sim" title={t('legend.simTitle')}>
+            {t('legend.sim')}
             {SIMILARITY_SCALE.map((step, index) => {
               const next = SIMILARITY_SCALE[index + 1]
               return (
@@ -525,28 +534,28 @@ export function MapStage({
                 </span>
               )
             })}
-            <span className="legend-sim-note">not suitability</span>
+            <span className="legend-sim-note">{t('legend.simNote')}</span>
           </span>
-          <span className="legend-outline">Reference outline, not an official boundary</span>
+          <span className="legend-outline">{t('legend.outline')}</span>
         </div>
         <div className="stage-source">
-          <small>{mode === 'globe' ? 'Globe' : '2D map'}</small>
-          {sources[0] ? (
+          <small>{mode === 'globe' ? t('stage.globe') : t('stage.flat')}</small>
+          {shownSources[0] ? (
             <>
               <span>
-                <strong>{sources[0].label}</strong>
-                <em>{sources[0].detail}</em>
+                <strong>{shownSources[0].label}</strong>
+                <em>{shownSources[0].detail}</em>
               </span>
-              {sources.length > 1 && (
+              {shownSources.length > 1 && (
                 <em className="source-rest">
-                  Underneath, where the previous one does not cover: {sources.slice(1).map((source) => source.label).join(' · ')}
+                  {t('source.rest', { sources: shownSources.slice(1).map((source) => source.label).join(' · ') })}
                 </em>
               )}
             </>
           ) : (
-            <span><strong>No image available</strong><em>Outside local coverage and offline</em></span>
+            <span><strong>{t('source.none')}</strong><em>{t('source.noneDetail')}</em></span>
           )}
-          <em className="legend-credit">Imagery = context, not part of the score</em>
+          <em className="legend-credit">{t('source.credit')}</em>
         </div>
         {hudSlot}
         {creditSlot}

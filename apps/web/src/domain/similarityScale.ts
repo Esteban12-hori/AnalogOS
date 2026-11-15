@@ -4,13 +4,27 @@
  * The number is always shown: color is never the only signal (WCAG 1.4.1).
  * Green = most similar to Mars with the active profile; it does not mean suitable or approved.
  */
+import { getLocale, type Locale } from '../i18n/core'
+import { tCommon } from '../i18n/messages/common'
+
 export type SimilarityTone = 'low' | 'mid' | 'good' | 'high'
 
-export const SIMILARITY_SCALE: ReadonlyArray<{ tone: SimilarityTone; min: number; label: string }> = [
-  { tone: 'low', min: 0, label: 'low' },
-  { tone: 'mid', min: 50, label: 'medium' },
-  { tone: 'good', min: 70, label: 'high' },
-  { tone: 'high', min: 90, label: 'very high' },
+/** Band of the scale; `label` is read in the current language every time (the tone and limits never change). */
+function band(tone: SimilarityTone, min: number): { tone: SimilarityTone; min: number; readonly label: string } {
+  return Object.freeze({
+    tone,
+    min,
+    get label(): string {
+      return tCommon(`similarityTone.${tone}`)
+    },
+  })
+}
+
+export const SIMILARITY_SCALE: ReadonlyArray<{ tone: SimilarityTone; min: number; readonly label: string }> = [
+  band('low', 0),
+  band('mid', 50),
+  band('good', 70),
+  band('high', 90),
 ]
 
 /**
@@ -27,13 +41,14 @@ export function similarityTone(value: number | null | undefined, decimals = 1): 
   return tone
 }
 
-/** Accessible band text, e.g. “very high similarity (90–100)”. */
-export function similarityToneLabel(value: number | null | undefined, decimals = 1): string | null {
+/** Accessible band text, e.g. “very high similarity (90–100)” / “similitud muy alta (90–100)”. */
+export function similarityToneLabel(value: number | null | undefined, decimals = 1, locale: Locale = getLocale()): string | null {
   const tone = similarityTone(value, decimals)
   if (!tone) return null
   const index = SIMILARITY_SCALE.findIndex((step) => step.tone === tone)
   const step = SIMILARITY_SCALE[index]
   const next = SIMILARITY_SCALE[index + 1]
   if (!step) return null
-  return `${step.label} similarity (${step.min}–${next ? next.min - 1 : 100})`
+  const t = tCommon.in(locale)
+  return t('similarityTone.label', { label: t(`similarityTone.${step.tone}`), min: step.min, max: next ? next.min - 1 : 100 })
 }

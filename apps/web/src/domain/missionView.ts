@@ -4,18 +4,13 @@
  * and marks as "out of scope" the sites that the evaluation did not include. No Ajv or engine: it can go
  * in the main chunk (it only imports types).
  */
+import { getLocale, type Locale } from '../i18n/core'
+import { tCommon } from '../i18n/messages/common'
 import type { MissionEvaluation, OptionEvaluation, OptionStatus, RequirementResult } from '../mission/types'
+import { localizedRecord } from './localizedLabels'
 
 /** Status of a site in Mission: that of the evaluation or "out of scope". */
 export type SiteMissionStatus = OptionStatus | 'fuera_de_alcance'
-
-export const MISSION_STATUS_LABEL: Readonly<Record<SiteMissionStatus, string>> = {
-  priorizado_para_reconocimiento: 'Prioritized for reconnaissance',
-  no_cumple_requisitos: 'Does not meet requirements',
-  evidencia_insuficiente: 'Insufficient evidence',
-  objetivo_no_soportado: 'Unsupported objective',
-  fuera_de_alcance: 'Out of scope',
-}
 
 /** Order of the groups: that of the team's ResultView, plus "out of scope" at the end. */
 export const MISSION_STATUS_ORDER: readonly SiteMissionStatus[] = [
@@ -25,6 +20,9 @@ export const MISSION_STATUS_ORDER: readonly SiteMissionStatus[] = [
   'objetivo_no_soportado',
   'fuera_de_alcance',
 ]
+
+/** Label of each status in the current language (the status code itself is never translated). */
+export const MISSION_STATUS_LABEL: Readonly<Record<SiteMissionStatus, string>> = localizedRecord(MISSION_STATUS_ORDER, (status) => tCommon(`missionStatus.${status}`))
 
 export interface MissionSiteView {
   siteId: string
@@ -79,17 +77,17 @@ export const REQUIREMENT_MARK: Readonly<Record<RequirementResult['status'], stri
   no_evaluable: '○',
 }
 
-export const REQUIREMENT_STATUS_LABEL: Readonly<Record<RequirementResult['status'], string>> = {
-  cumple: 'Met',
-  no_cumple: 'Not met',
-  no_evaluable: 'Not assessable',
-}
+const REQUIREMENT_STATUSES: readonly RequirementResult['status'][] = ['cumple', 'no_cumple', 'no_evaluable']
 
-/** “3 of 4 preferences” (no preferences: null). */
-export function preferencesText(option: Pick<OptionEvaluation, 'preferences'>): string | null {
+export const REQUIREMENT_STATUS_LABEL: Readonly<Record<RequirementResult['status'], string>> = localizedRecord(REQUIREMENT_STATUSES, (status) => tCommon(`requirementStatus.${status}`))
+
+/** “3 of 4 preferences” / “3 de 4 preferencias” (no preferences: null). */
+export function preferencesText(option: Pick<OptionEvaluation, 'preferences'>, locale: Locale = getLocale()): string | null {
   const { met, total, unknown } = option.preferences
   if (total === 0) return null
-  return `${met} of ${total} ${total === 1 ? 'preference' : 'preferences'}${unknown > 0 ? ` · ${unknown} no data` : ''}`
+  const t = tCommon.in(locale)
+  const text = t('preferences', { met, count: total })
+  return unknown > 0 ? t('preferences.unknown', { text, unknown }) : text
 }
 
 /**

@@ -9,12 +9,14 @@ import { rankMap, splitByRole, summarizeSearch } from '../../domain/discovery'
 import { formatScore } from '../../domain/formatting'
 import { CandidateMap } from '../../features/globe/CandidateMap'
 import { uiActions, useUi } from '../../state/ui'
-import { displaySource } from '../../i18n/sourceText'
+import { formatInteger, useLocale } from '../../i18n'
+import { tDetailTabs } from '../../i18n/messages/detailTabs'
+import { scienceText } from '../../i18n/science'
 import type { AppData } from '../appData'
 
-const integer = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
-
 export function MethodTab({ data }: { data: AppData }) {
+  const locale = useLocale()
+  const t = tDetailTabs.in(locale)
   const snapshot = data.snapshot
   const selection = useUi((state) => state.selection)
   const base = `${import.meta.env.BASE_URL}${SNAPSHOT_PATH}`
@@ -23,35 +25,32 @@ export function MethodTab({ data }: { data: AppData }) {
   const ranked = snapshot ? splitByRole(snapshot.candidates).ranked : []
   return (
     <div className="method-tab">
-      <h3>The comparison happens at the same scale.</h3>
-      <p>
-        NASADEM is mosaicked and aggregated from ~30 m to ~480 m before it is compared with MOLA. Sentinel-2 contributes twelve monthly
-        surface observations and POWER only regional climate context.
-      </p>
+      <h3>{t('method.title')}</h3>
+      <p>{t('method.lead')}</p>
       <ol className="method-steps">
-        <li><b>01</b><strong>MOLA reference</strong><span>Regional Jezero setting · ~451 m nominal</span></li>
-        <li><b>02</b><strong>NASADEM terrain</strong><span>Multi-tile mosaic · 16×16 blocks · ~480 m</span></li>
-        <li><b>03</b><strong>Sentinel-2 surface</strong><span>12 monthly mosaics · SCL, NDVI and BSI · ~30 m</span></li>
-        <li><b>04</b><strong>Separate decision</strong><span>Similarity ≠ confidence ≠ feasibility</span></li>
+        <li><b>01</b><strong>{t('method.step1')}</strong><span>{t('method.step1Detail')}</span></li>
+        <li><b>02</b><strong>{t('method.step2')}</strong><span>{t('method.step2Detail')}</span></li>
+        <li><b>03</b><strong>{t('method.step3')}</strong><span>{t('method.step3Detail')}</span></li>
+        <li><b>04</b><strong>{t('method.step4')}</strong><span>{t('method.step4Detail')}</span></li>
       </ol>
 
       {summary && search && snapshot && (
         <section className="method-search" aria-labelledby="method-search-title">
-          <h3 id="method-search-title">How they were searched</h3>
-          <p>{displaySource(search.scope_note)}</p>
+          <h3 id="method-search-title">{t('method.search')}</h3>
+          <p>{scienceText(search.scope_note, locale)}</p>
           <dl className="method-figures">
-            <div><dt>Test regions</dt><dd>{summary.regions}</dd></div>
-            <div><dt>~20 km windows</dt><dd>{summary.evaluated} evaluated of {summary.attempted} attempted</dd></div>
-            <div><dt>Explored area</dt><dd>≈ {integer.format(summary.exploredAreaKm2)} km²</dd></div>
-            <div><dt>With published coordinates</dt><dd>{summary.excludedByPrecedent} excluded from the ranking</dd></div>
-            <div><dt>Preselected</dt><dd>{summary.selected} · up to {summary.maxPerCountry} per country</dd></div>
-            <div><dt>Separation</dt><dd>Centers ≥ {formatScore(summary.minDistanceKm)} km apart</dd></div>
+            <div><dt>{t('method.regions')}</dt><dd>{summary.regions}</dd></div>
+            <div><dt>{t('method.windows')}</dt><dd>{t('method.windowsValue', { evaluated: summary.evaluated, attempted: summary.attempted })}</dd></div>
+            <div><dt>{t('method.area')}</dt><dd>≈ {formatInteger(summary.exploredAreaKm2, locale)} km²</dd></div>
+            <div><dt>{t('method.published')}</dt><dd>{t('method.publishedValue', { count: summary.excludedByPrecedent })}</dd></div>
+            <div><dt>{t('method.preselected')}</dt><dd>{t('method.preselectedValue', { selected: summary.selected, max: summary.maxPerCountry })}</dd></div>
+            <div><dt>{t('method.separation')}</dt><dd>{t('method.separationValue', { km: formatScore(summary.minDistanceKm, locale) })}</dd></div>
           </dl>
           <ul className="region-list">
             {search.regions.map((region) => (
               <li key={region.region_id}>
                 <strong>{region.name}</strong>
-                <span>bbox {region.bbox.join(', ')} · {region.windows_evaluated} windows · {region.windows_selected} preselected</span>
+                <span>{t('method.region', { bbox: region.bbox.join(', '), evaluated: region.windows_evaluated, selected: region.windows_selected })}</span>
               </li>
             ))}
           </ul>
@@ -66,13 +65,13 @@ export function MethodTab({ data }: { data: AppData }) {
               onSelect={(id) => uiActions.select(id)}
             />
           </div>
-          <p className="method-note">Yungay keeps its data as the known reference (REF) and stays out of the ranking.</p>
+          <p className="method-note">{t('method.referenceNote')}</p>
         </section>
       )}
 
       <p className="method-links">
-        <a href={`${base}/analysis-summary.json`} target="_blank" rel="noreferrer">Open the auditable analysis (JSON source record) ↗</a>
-        {search && <a href={`${base}/search-results.json`} target="_blank" rel="noreferrer">Open the 50 windows and their reasons (JSON source record) ↗</a>}
+        <a href={`${base}/analysis-summary.json`} target="_blank" rel="noreferrer">{t('method.analysis')}</a>
+        {search && <a href={`${base}/search-results.json`} target="_blank" rel="noreferrer">{t('method.windowsLink')}</a>}
       </p>
     </div>
   )

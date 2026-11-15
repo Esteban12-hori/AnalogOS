@@ -6,73 +6,80 @@
  */
 import { useMemo } from 'react'
 import { formatDecimal } from '../../domain/formatting'
+import { getLocale, useLocale, type Locale } from '../../i18n'
+import { formatNumber } from '../../i18n/format'
+import { tReferenceCard } from '../../i18n/messages/referenceCard'
+import { scienceText } from '../../i18n/science'
 import { GLYPH } from '../../shell/public'
+import { catalogReason } from './catalogReason'
 import { classifyReferenceAnalogs } from './classify'
 import type { ReferenceCardProps } from './index'
 import { placeName } from './placeModel'
 import { useReferenceAnalogs } from './referenceAnalogs'
-import { displaySource } from '../../i18n/sourceText'
 import './reference-card.css'
 
-const coord = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const COORD: Intl.NumberFormatOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 }
 
-/** «24,08° S, 69,92° W»: the cited point, with 2 decimals (≈1 km); never drawn as a pin. */
-export function formatLatLon(lat: number, lon: number): string {
-  return `${coord.format(Math.abs(lat))}° ${lat < 0 ? 'S' : 'N'}, ${coord.format(Math.abs(lon))}° ${lon < 0 ? 'W' : 'E'}`
+/** «24.08° S, 69.92° W» / «24,08° S, 69,92° W»: the cited point, with 2 decimals (≈1 km); never drawn as a pin. */
+export function formatLatLon(lat: number, lon: number, locale: Locale = getLocale()): string {
+  const coord = (value: number) => formatNumber(Math.abs(value), COORD, locale)
+  return `${coord(lat)}° ${lat < 0 ? 'S' : 'N'}, ${coord(lon)}° ${lon < 0 ? 'W' : 'E'}`
 }
 
 export default function ReferenceCardView({ data, analogId }: ReferenceCardProps) {
+  const locale = useLocale()
+  const t = tReferenceCard.in(locale)
   const catalog = useReferenceAnalogs()
   const candidates = data.snapshot?.candidates
   const analog = catalog.status === 'ready' ? catalog.analogs.find((item) => item.id === analogId) ?? null : null
   const relation = useMemo(() => {
     if (!analog || !candidates) return { coincides: [] as string[], contains: [] as string[] }
     const { badges, references } = classifyReferenceAnalogs([analog], candidates)
-    const names = (ids: readonly string[]) => candidates.filter((candidate) => ids.includes(candidate.site_id)).map((candidate) => placeName(candidate.name))
+    const names = (ids: readonly string[]) => candidates.filter((candidate) => ids.includes(candidate.site_id)).map((candidate) => placeName(candidate.name, locale))
     return { coincides: names([...badges.keys()]), contains: names(references[0]?.containsSectorIds ?? []) }
-  }, [analog, candidates])
+  }, [analog, candidates, locale])
 
-  const kicker = <p className="places-ref-kicker"><span aria-hidden="true">{GLYPH.reference}</span> World reference · not yet calculated</p>
-  if (catalog.status === 'loading') return <div className="places-ref" aria-busy="true">{kicker}<p className="places-state">Loading the analog catalog…</p></div>
+  const kicker = <p className="places-ref-kicker"><span aria-hidden="true">{GLYPH.reference}</span> {t('ref.kicker')}</p>
+  if (catalog.status === 'loading') return <div className="places-ref" aria-busy="true">{kicker}<p className="places-state">{t('ref.catalogLoading')}</p></div>
   if (catalog.status === 'unavailable') {
-    return <div className="places-ref">{kicker}<p className="places-state"><span aria-hidden="true">{GLYPH.fail}</span> Catalog not available: {catalog.reason}</p></div>
+    return <div className="places-ref">{kicker}<p className="places-state"><span aria-hidden="true">{GLYPH.fail}</span> {t('ref.catalogUnavailable', { reason: catalogReason(catalog.reason, locale) })}</p></div>
   }
-  if (!analog) return <div className="places-ref">{kicker}<p className="places-state">This analog is not in the published catalog.</p></div>
+  if (!analog) return <div className="places-ref">{kicker}<p className="places-state">{t('ref.notInCatalog')}</p></div>
 
   const { location } = analog
   return (
     <article className="places-ref" aria-labelledby={`ref-${analog.id}`}>
       {kicker}
-      <h3 id={`ref-${analog.id}`} className="places-ref-name">{displaySource(analog.name)}</h3>
-      <p className="places-ref-meta">{displaySource(analog.country)}</p>
+      <h3 id={`ref-${analog.id}`} className="places-ref-name">{scienceText(analog.name, locale)}</h3>
+      <p className="places-ref-meta">{scienceText(analog.country, locale)}</p>
       <dl className="places-ref-facts">
-        <dt>Location</dt>
+        <dt>{t('ref.location')}</dt>
         <dd>
           {location.kind === 'approximate_point'
-            ? <>Approximate area with a radius of ≈ {formatDecimal(location.radius_km)} km around the cited point ({formatLatLon(location.lat, location.lon)}). It is not an exact pin.</>
-            : <>Approximate region between {formatLatLon(location.bbox[1], location.bbox[0])} and {formatLatLon(location.bbox[3], location.bbox[2])}.</>}
-          {analog.summary && <> {displaySource(analog.summary)}</>}
+            ? t('ref.point', { radius: formatDecimal(location.radius_km, locale), point: formatLatLon(location.lat, location.lon, locale) })
+            : t('ref.region', { from: formatLatLon(location.bbox[1], location.bbox[0], locale), to: formatLatLon(location.bbox[3], location.bbox[2], locale) })}
+          {analog.summary && <> {scienceText(analog.summary, locale)}</>}
         </dd>
-        <dt>Similarity, confidence and ranking</dt>
-        <dd className="is-pending">Not yet calculated: this analog has not been measured with the profile, so it has no %.</dd>
+        <dt>{t('ref.figures')}</dt>
+        <dd className="is-pending">{t('ref.figuresPending')}</dd>
         {relation.coincides.length > 0 && (
           <>
-            <dt>Matches</dt>
-            <dd><span aria-hidden="true">{GLYPH.evaluated}</span> {relation.coincides.join(', ')} (the cited point falls inside the sector)</dd>
+            <dt>{t('ref.matches')}</dt>
+            <dd><span aria-hidden="true">{GLYPH.evaluated}</span> {t('ref.matchesText', { names: relation.coincides.join(', ') })}</dd>
           </>
         )}
         {relation.contains.length > 0 && (
           <>
-            <dt>Contains</dt>
-            <dd>{relation.contains.length} {relation.contains.length === 1 ? 'evaluated sector' : 'evaluated sectors'}: {relation.contains.join(', ')}</dd>
+            <dt>{t('ref.contains')}</dt>
+            <dd>{t('ref.containsText', { count: relation.contains.length, names: relation.contains.join(', ') })}</dd>
           </>
         )}
       </dl>
-      <h4 className="places-ref-sources-title">Sources</h4>
+      <h4 className="places-ref-sources-title">{t('ref.sources')}</h4>
       <ul className="places-ref-sources">
         {analog.sources.map((source) => (
           <li key={source.url}>
-            <a href={source.url} target="_blank" rel="noreferrer noopener">{displaySource(source.title)}</a>
+            <a href={source.url} target="_blank" rel="noreferrer noopener">{scienceText(source.title, locale)}</a>
             {source.publisher && <small> · {source.publisher}</small>}
           </li>
         ))}

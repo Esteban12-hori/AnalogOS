@@ -8,6 +8,8 @@ import { useState } from 'react'
 import { ReadingPanel } from '../features/analysis'
 import { MetricRail } from '../features/metrics'
 import { ReferenceCard } from '../features/places'
+import { useT } from '../i18n'
+import { tShell } from '../i18n/messages/shell'
 import { uiActions, type UiSelection } from '../state/ui'
 import { evaluateSector } from './actions'
 import type { AppData } from './appData'
@@ -29,10 +31,11 @@ interface RightRailProps {
 type RailTab = 'metricas' | 'lectura'
 
 export function RightRail({ data, tramo, selection, full, onFullChange, onShowOnMap }: RightRailProps) {
+  const t = useT(tShell)
   const [tab, setTab] = useState<RailTab>('metricas')
   const site = selection?.kind === 'evaluated' ? data.snapshot?.candidates.find((item) => item.site_id === selection.siteId) ?? null : null
   const open = selection !== null
-  const title = site ? placeLabel(site.name) : selection?.kind === 'reference' ? 'World reference' : ''
+  const title = site ? placeLabel(site.name) : selection?.kind === 'reference' ? t('sheet.worldReference') : ''
 
   return (
     <aside
@@ -40,7 +43,7 @@ export function RightRail({ data, tramo, selection, full, onFullChange, onShowOn
       data-open={open ? '' : undefined}
       data-full={full && site ? '' : undefined}
       data-obstacle={open ? '' : undefined}
-      aria-label="Selected place"
+      aria-label={t('rail.aria')}
       aria-hidden={!open}
       inert={!open}
     >
@@ -49,21 +52,21 @@ export function RightRail({ data, tramo, selection, full, onFullChange, onShowOn
           <header className="rail-head">
             <h2>
               <span aria-hidden="true">{site ? GLYPH.evaluated : GLYPH.reference}</span> {title}
-              {selection?.preview && <small> · preview</small>}
+              {selection?.preview && <small>{t('rail.preview')}</small>}
             </h2>
             {site && (
               <button type="button" className="rail-action" aria-expanded={full} onClick={() => onFullChange(!full)}>
-                {full ? 'Back to the rail' : 'See full details →'}
+                {full ? t('rail.back') : t('rail.full')}
               </button>
             )}
-            <button type="button" className="rail-close" aria-label="Close the place" onClick={() => uiActions.clearSelection()}>
+            <button type="button" className="rail-close" aria-label={t('sheet.closePlace')} onClick={() => uiActions.clearSelection()}>
               {GLYPH.fail}
             </button>
           </header>
           <div className="rail-body">
             {site && !full && (
               <div className="rail-subactions">
-                <button type="button" className="rail-action" onClick={() => evaluateSector(site.site_id)}>Evaluate this sector</button>
+                <button type="button" className="rail-action" onClick={() => evaluateSector(site.site_id)}>{t('rail.evaluate')}</button>
               </div>
             )}
             {selection?.kind === 'reference' && <div data-slot="rail.reference"><ReferenceCard data={data} analogId={selection.siteId} /></div>}
@@ -73,9 +76,9 @@ export function RightRail({ data, tramo, selection, full, onFullChange, onShowOn
               <>
                 <TabList
                   idPrefix="rail"
-                  label="Rail content"
+                  label={t('rail.tabs')}
                   className="detail-tabs"
-                  items={[{ id: 'metricas', label: 'Metrics' }, { id: 'lectura', label: 'Reading' }]}
+                  items={[{ id: 'metricas', label: t('rail.metrics') }, { id: 'lectura', label: t('sheet.reading') }]}
                   active={tab}
                   onChange={setTab}
                 />
@@ -87,7 +90,7 @@ export function RightRail({ data, tramo, selection, full, onFullChange, onShowOn
               </>
             )}
             {selection?.kind === 'evaluated' && !site && (
-              <p className="rail-empty">This place is not in the loaded snapshot.</p>
+              <p className="rail-empty">{t('rail.missing')}</p>
             )}
           </div>
         </>

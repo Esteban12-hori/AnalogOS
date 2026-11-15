@@ -1,9 +1,12 @@
 /** "Lines" toggle next to the stage controls (slot `stage.hud`). */
+import { useT } from '../../i18n'
+import { tLeaders } from '../../i18n/messages/leaders'
 import { setLeadersEnabled, useLeadersEnabled } from './preference'
 import './leaders-toggle.css'
 
 export function LeaderToggle() {
   const enabled = useLeadersEnabled()
+  const t = useT(tLeaders)
   return (
     <button
       type="button"
@@ -13,7 +16,7 @@ export function LeaderToggle() {
       onClick={() => setLeadersEnabled(!enabled)}
     >
       <span className="leaders-toggle-track" aria-hidden="true"><span className="leaders-toggle-knob" /></span>
-      Lines<span className="leaders-toggle-state" aria-hidden="true">: {enabled ? 'on' : 'off'}</span>
+      {t('toggle')}<span className="leaders-toggle-state" aria-hidden="true">: {enabled ? t('toggle.on') : t('toggle.off')}</span>
     </button>
   )
 }

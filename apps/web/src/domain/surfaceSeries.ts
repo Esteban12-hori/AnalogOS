@@ -1,5 +1,7 @@
 // Monthly Sentinel-2 L2A series per site, read from analysis-summary.json.
 // They are only displayed; they do not take part in the score (which comes from pipelines/scoring.py).
+import { getLocale, type Locale } from '../i18n/core'
+import { formatMonthYear } from '../i18n/format'
 
 export interface MonthlySurfacePoint {
   /** Start of the monthly interval (ISO 8601). */
@@ -40,14 +42,14 @@ export function parseSurfaceSeries(summary: unknown): Map<string, MonthlySurface
   return result
 }
 
-const monthFormat = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })
-
-export function formatMonth(iso: string): string {
+/** Month of the series in UTC («Mar 2025» / «mar 2025»), interface language (i18n/format.ts). */
+export function formatMonth(iso: string, locale: Locale = getLocale()): string {
   const date = new Date(iso)
-  return Number.isNaN(date.getTime()) ? iso : monthFormat.format(date).replace('.', '')
+  return Number.isNaN(date.getTime()) ? iso : formatMonthYear(date, locale).replace('.', '')
 }
 
-/** Spectral index with three decimals and a decimal point (en-US). */
-export function formatIndex(value: number): string {
-  return value.toFixed(3)
+/** Spectral index with three fixed decimals: «0.123» (en) / «0,123» (es). */
+export function formatIndex(value: number, locale: Locale = getLocale()): string {
+  const fixed = value.toFixed(3)
+  return locale === 'es' ? fixed.replace('.', ',') : fixed
 }

@@ -7,6 +7,8 @@ import { densifyRing, latLngToVec3, outerRings, type Vec3 } from '../../domain/g
 import { altitudeForZoom, fitDistanceRatioForInsets, type FlatThresholds, lonLatFromDirection, type ViewInsets, zoomForAltitude } from '../../domain/mapZoom'
 import { GLOBE_TEXTURES } from '../../data/preload'
 import { prefersReducedMotion } from '../../shell/public'
+import { useT } from '../../i18n'
+import { tGlobeMarkers } from '../../i18n/messages/globeMarkers'
 import { planFlight, sampleFlight, type FlightPlan } from './flight'
 import { cameraKeyAction, rotateCenter } from './keyboard'
 import {
@@ -578,6 +580,11 @@ function MarkerProjector({ runtime, models, selection, hoverId, narrow, active }
   const state = useRef({ items, selection, hoverId, narrow, active })
   state.current = { items, selection, hoverId, narrow, active }
   const signature = useRef<string | null>(null)
+  // New models (results or language): the group list is repainted on the next frame even if the partition is the same.
+  useEffect(() => {
+    signature.current = null
+    invalidate()
+  }, [items, invalidate])
   const scratch = useMemo(() => new THREE.Vector3(), [])
 
   const toScreen = useCallback((point: THREE.Vector3) => {
@@ -729,6 +736,7 @@ export default function CandidateGlobe({
   onCameraInput,
   onHome,
 }: CandidateGlobeProps) {
+  const t = useT(tGlobeMarkers)
   const controlsRef = useRef<ControlsRef | null>(null)
   const apiRef = useRef<CameraApi | null>(null)
   const flightRef = useRef<ActiveFlight | null>(null)
@@ -845,8 +853,8 @@ export default function CandidateGlobe({
         className="globe-surface"
         tabIndex={0}
         role="application"
-        aria-roledescription="3D globe"
-        aria-label={`Earth globe with ${candidates.length} evaluated sectors. Arrows: rotate 10°, with Shift 30°. Plus and minus: zoom in or out. Home: global view.`}
+        aria-roledescription={t('globe.role')}
+        aria-label={t('globe.aria', { count: candidates.length })}
         onKeyDown={onKeyDown}
         onDoubleClick={onDoubleClick}
       >
@@ -915,7 +923,7 @@ export default function CandidateGlobe({
       {!ready && (
         <div className="globe-loading globe-loading-page">
           <span className="loader" aria-hidden="true" />
-          Loading local textures…
+          {t('loading.textures')}
         </div>
       )}
     </>

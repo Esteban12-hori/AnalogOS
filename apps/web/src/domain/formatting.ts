@@ -1,98 +1,96 @@
-import { displaySource } from '../i18n/sourceText'
+/**
+ * Interface formatting of snapshot figures and labels (UI only: never exports, records, fingerprints or AI payloads).
+ * Numbers delegate to i18n/format (en-US / es-CL); the English output is byte-identical to the previous en-US
+ * formatting (i18n/i18n.test.ts). Labels follow the current language (domain/localizedLabels.ts).
+ */
+import { getLocale, type Locale } from '../i18n/core'
+import {
+  formatArea as formatAreaIn,
+  formatDecimal as formatDecimalIn,
+  formatInteger,
+  formatPercent as formatPercentIn,
+  formatScore as formatScoreIn,
+} from '../i18n/format'
+import { tCommon } from '../i18n/messages/common'
+import { scienceText } from '../i18n/science'
+import { CRITERION_IDS, type CriterionId } from './criteria'
 import type { CandidateSite, CriterionStatus, ScoreBreakdownItem } from './contracts'
+import { localizedRecord } from './localizedLabels'
 
-const number = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 })
-const integer = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
-/** Place similarity, confidence and stability: FIXED 1 decimal (49.99 → “50.0”, not “50”). */
-const score = new Intl.NumberFormat('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+/** Criterion label in the current language (indexable by any string: unknown ids give undefined). */
+export const criterionLabels: Record<string, string> = localizedRecord<CriterionId>(CRITERION_IDS, (id) => tCommon(`criterion.${id}`))
 
-export const criterionLabels: Record<string, string> = {
-  slope: 'Slope',
-  terrain_roughness: 'Roughness',
-  local_relief: 'Local relief',
-  bare_ground_fraction: 'Bare ground',
-  aridity_context: 'Aridity',
-  surface_temperature_variability: 'Thermal range',
-  geologic_relevance: 'Geology',
-}
+const CRITERION_STATUSES: readonly CriterionStatus[] = ['valid', 'missing', 'needs_calibration', 'excluded']
 
-export const criterionStatusLabels: Record<CriterionStatus, string> = {
-  valid: 'Valid',
-  missing: 'No data',
-  needs_calibration: 'Not calibrated',
-  excluded: 'Excluded',
-}
+export const criterionStatusLabels: Record<CriterionStatus, string> = localizedRecord(CRITERION_STATUSES, (code) => tCommon(`criterionStatus.${code}`))
 
 export const ITEM_STATUS_LABEL = criterionStatusLabels
 
-export const PROFILE_STATUS_LABEL: Record<string, string> = {
-  needs_calibration: 'Needs calibration',
-  needs_expert_review: 'Needs expert review',
-  optional: 'Optional',
-  validated: 'Validated',
-  deprecated: 'Deprecated',
+const PROFILE_STATUSES = ['needs_calibration', 'needs_expert_review', 'optional', 'validated', 'deprecated'] as const
+
+export const PROFILE_STATUS_LABEL: Record<string, string> = localizedRecord(PROFILE_STATUSES, (code) => tCommon(`profileStatus.${code}`))
+
+const FEASIBILITY: readonly CandidateSite['feasibility'][] = ['unknown', 'requires_review', 'potentially_feasible', 'excluded']
+
+export const feasibilityLabels: Record<CandidateSite['feasibility'], string> = localizedRecord(FEASIBILITY, (code) => tCommon(`feasibility.${code}`))
+
+/** 0–100 place score (similarity, confidence, stability) with a fixed decimal (en-US 94.9 · es-CL 94,9). */
+export function formatScore(value: number | null, locale: Locale = getLocale()): string {
+  return formatScoreIn(value, locale)
 }
 
-export const feasibilityLabels: Record<CandidateSite['feasibility'], string> = {
-  unknown: 'Not evaluated',
-  requires_review: 'Requires review',
-  potentially_feasible: 'Potentially feasible',
-  excluded: 'Excluded',
+/** Number with up to 1 decimal (no trailing zeros): weights, quality, magnitudes. */
+export function formatDecimal(value: number, locale: Locale = getLocale()): string {
+  return formatDecimalIn(value, locale)
 }
 
-/** 0–100 place score (similarity, confidence, stability) with a fixed decimal, en-US format. */
-export function formatScore(value: number | null): string {
-  return value === null ? '—' : score.format(value)
+/** Integer: per-criterion similarity (the exact value only in “Method”). */
+export function formatWhole(value: number, locale: Locale = getLocale()): string {
+  return formatInteger(value, locale)
 }
 
-/** Number with up to 1 decimal (no trailing zeros), en-US format: weights, quality, magnitudes. */
-export function formatDecimal(value: number): string {
-  return number.format(value)
-}
-
-/** en-US integer: per-criterion similarity (the exact value only in “Method”). */
-export function formatWhole(value: number): string {
-  return integer.format(value)
-}
-
-export function formatArea(value: number): string {
+export function formatArea(value: number, locale: Locale = getLocale()): string {
   // ponytail: two significant figures; the polygons are approximate cells, not boundary delineations.
-  return `≈ ${integer.format(Number(value.toPrecision(2)))} km²`
+  return formatAreaIn(value, locale)
 }
 
-export function formatPercent(value: number): string {
-  return `${number.format(value * 100)}%`
+export function formatPercent(value: number, locale: Locale = getLocale()): string {
+  return formatPercentIn(value, locale)
 }
 
-export function formatRatio(value: number): string {
-  return number.format(value)
+export function formatRatio(value: number, locale: Locale = getLocale()): string {
+  return formatDecimalIn(value, locale)
 }
 
-export function formatRawValue(item: Pick<ScoreBreakdownItem, 'raw_value' | 'unit'>): string
-export function formatRawValue(value: number | string | null, unit: string): string
+export function formatRawValue(item: Pick<ScoreBreakdownItem, 'raw_value' | 'unit'>, locale?: Locale): string
+export function formatRawValue(value: number | string | null, unit: string, locale?: Locale): string
 export function formatRawValue(
   valueOrItem: number | string | null | Pick<ScoreBreakdownItem, 'raw_value' | 'unit'>,
-  explicitUnit?: string,
+  unitOrLocale?: string,
+  maybeLocale?: Locale,
 ): string {
-  const value = typeof valueOrItem === 'object' && valueOrItem !== null
-    ? valueOrItem.raw_value
-    : valueOrItem
-  const unit = typeof valueOrItem === 'object' && valueOrItem !== null
-    ? valueOrItem.unit
-    : (explicitUnit ?? '')
-  if (value === null) return 'no raw value'
+  const isItem = typeof valueOrItem === 'object' && valueOrItem !== null
+  const value = isItem ? valueOrItem.raw_value : valueOrItem
+  const unit = isItem ? valueOrItem.unit : (unitOrLocale ?? '')
+  const locale: Locale = (isItem ? (unitOrLocale as Locale | undefined) : maybeLocale) ?? getLocale()
+  const t = tCommon.in(locale)
+  if (value === null) return t('raw.none')
   if (typeof value === 'number') {
-    if (unit === 'ratio') return `${number.format(value * 100)}%`
-    if (unit === 'degree') return `${number.format(value)}°`
-    if (unit === 'meter') return `${number.format(value)} m`
-    if (unit === 'kelvin') return `${number.format(value)} K`
-    if (unit === 'millimeter_per_year') return `${number.format(value)} mm/year`
-    return number.format(value)
+    const number = formatDecimalIn(value, locale)
+    if (unit === 'ratio') return formatPercentIn(value, locale)
+    if (unit === 'degree') return `${number}°`
+    if (unit === 'meter') return `${number} m`
+    if (unit === 'kelvin') return `${number} K`
+    if (unit === 'millimeter_per_year') return `${number} ${t('unit.mmPerYear')}`
+    return number
   }
   return value
 }
 
-/** Display name of a site: drops the synthetic-fixture suffix and shows the English rendering (coordinates with a decimal point, W for “O”). */
-export function shortCandidateName(name: string): string {
-  return displaySource(name.replace(' (sintético, ubicación arbitraria)', ''))
+/**
+ * Display name of a site: drops the synthetic-fixture suffix. English shows the reviewed English rendering
+ * (coordinates with a decimal point, W for “O”); Spanish shows the original wording (i18n/science.ts).
+ */
+export function shortCandidateName(name: string, locale: Locale = getLocale()): string {
+  return scienceText(name.replace(' (sintético, ubicación arbitraria)', ''), locale)
 }

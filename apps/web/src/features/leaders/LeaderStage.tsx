@@ -9,7 +9,9 @@ import { GLYPH } from '../../shell/public'
 import type { StageInsets } from '../../state/ui'
 import { createLeaderController, type LeaderController, type LeaderTargets } from './controller'
 import type { Size } from './frame'
-import { NO_MARS_TEXT, type LeaderHeaderModel, type LeaderLabelModel } from './labelModel'
+import { useT } from '../../i18n'
+import { tLeaders } from '../../i18n/messages/leaders'
+import type { LeaderHeaderModel, LeaderLabelModel } from './labelModel'
 import { toRects, type LeaderStageBridge } from './projector'
 import './leaders.css'
 import { similarityTone } from '../../domain/similarityScale'
@@ -62,6 +64,8 @@ function slotHosts(): HTMLElement[] {
 
 export function LeaderStage(props: LeaderStageProps) {
   const { labels, header, narrow, activeId } = props
+  // Visible text follows the language; the label boxes are measured again when `labels`/`t` change (see refresh).
+  const t = useT(tLeaders)
   const root = useRef<HTMLDivElement>(null)
   const labelEls = useRef(new Map<string, HTMLDivElement>())
   const pathEls = useRef(new Map<string, SVGPathElement>())
@@ -124,7 +128,7 @@ export function LeaderStage(props: LeaderStageProps) {
     // One frame later: the HUD repositions itself using the stage's margin variables.
     const frame = requestAnimationFrame(refresh)
     return () => cancelAnimationFrame(frame)
-  }, [refresh, siteId, geometry, labels, header, narrow, sideSheet, compact, width, height, insets, obstacles])
+  }, [refresh, siteId, geometry, labels, header, narrow, sideSheet, compact, width, height, insets, obstacles, t])
   // The HUD grows in 2D (fonts) and the pill changes text: it is remeasured when the size changes.
   useEffect(() => {
     if (typeof ResizeObserver === 'undefined') return
@@ -186,13 +190,13 @@ export function LeaderStage(props: LeaderStageProps) {
         <>
           <div ref={headerEl} className="leaders-header" data-placed="0">
             <div className="leaders-header-text">
-              Whole sector
+              {t('header.wholeSector')}
               {header.area && <> · {header.area}</>}
-              {header.scale ? <> · medians {header.scale}</> : <> · medians</>}
+              {header.scale ? <> · {t('header.mediansScale', { scale: header.scale })}</> : <> · {t('header.medians')}</>}
               {header.vsMars && (
                 <> · vs <span className="leaders-mars-glyph">{GLYPH.jezero}</span> Jezero (MOLA)</>
               )}
-              {header.mission && <> · with your requirements</>}
+              {header.mission && <> · {t('header.withRequirements')}</>}
             </div>
           </div>
 
@@ -214,7 +218,7 @@ export function LeaderStage(props: LeaderStageProps) {
           ))}
 
           <div ref={chipEl} className="leaders-chip" data-placed="0">
-            <span className="leaders-chip-card">Metrics in the panel <span className="leaders-chip-arrow">→</span></span>
+            <span className="leaders-chip-card">{t('chip')} <span className="leaders-chip-arrow">→</span></span>
           </div>
         </>
       )}
@@ -223,27 +227,28 @@ export function LeaderStage(props: LeaderStageProps) {
 }
 
 function LeaderCard({ label }: { label: LeaderLabelModel }) {
+  const t = useT(tLeaders)
   const { reference } = label
   return (
     <div className="leaders-card">
       <div className="leaders-title">
         <span>{label.title}</span>
-        {label.limiting && <span className="leaders-tag">limiting</span>}
+        {label.limiting && <span className="leaders-tag">{t('tag.limiting')}</span>}
       </div>
       <div className="leaders-values">
         <span className="leaders-site"><span className="leaders-site-glyph">{GLYPH.evaluated}</span> {label.siteText}</span>
         {reference.kind === 'mars' && (
           <span className="leaders-mars"><span className="leaders-mars-glyph">{GLYPH.jezero}</span> {reference.text}</span>
         )}
-        {reference.kind === 'rule' && <span className="leaders-rule">{GLYPH.rule} rule</span>}
-        {reference.kind === 'none' && <span className="leaders-nomars">{NO_MARS_TEXT}</span>}
+        {reference.kind === 'rule' && <span className="leaders-rule">{GLYPH.rule} {t('rule')}</span>}
+        {reference.kind === 'none' && <span className="leaders-nomars">{t('noMars')}</span>}
       </div>
       <div className="leaders-sim" data-sim-tone={similarityTone(label.similarity, 0) ?? undefined}>
         {label.similarity !== null ? (
           <>
             <span className="leaders-bar"><span style={{ transform: `scaleX(${label.similarity / 100})` }} /></span>
             <span className="leaders-pct">{label.similarityText}</span>
-            <span className="leaders-sim-word">similarity</span>
+            <span className="leaders-sim-word">{t('similarity')}</span>
           </>
         ) : (
           <>

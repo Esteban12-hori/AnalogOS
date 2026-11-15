@@ -6,8 +6,12 @@
  *  - criterion similarity as an integer; no data → «to be calculated» / «no data», dashed stroke.
  */
 import type { CandidateSite, DataManifest } from '../../domain/contracts'
-import { criterionLabels, formatArea, formatWhole } from '../../domain/formatting'
+import { formatArea, formatWhole } from '../../domain/formatting'
 import { REQUIREMENT_MARK } from '../../domain/missionView'
+import { getLocale, type Locale } from '../../i18n/core'
+import { withPercent } from '../../i18n/format'
+import { tCommon } from '../../i18n/messages/common'
+import { tLeaders } from '../../i18n/messages/leaders'
 import type { RequirementResult } from '../../mission/types'
 import type { MetricView } from '../metrics'
 
@@ -39,15 +43,27 @@ export interface LeaderLabelModel {
   requirement: { mark: string; status: RequirementResult['status']; text: string } | null
 }
 
-export const NO_MARS_TEXT = 'Mars: no comparable measurement'
-export const RULE_SATURATES_TEXT = 'meets the rule · does not mean equal to Mars'
+/** English source wording (tests, tools); the labels carry the text of their language (tLeaders). */
+export const NO_MARS_TEXT = tLeaders.in('en')('noMars')
+export const RULE_SATURATES_TEXT = tLeaders.in('en')('ruleSaturates')
+
+/** Record text shown as is (English) or in the interface language (i18n/recordText, Spanish). */
+export type RecordDisplay = (text: string) => string
+const asIs: RecordDisplay = (text) => text
 
 /** Label with the test requirement on that criterion (Mission). */
-export function leaderLabelModelFor(view: MetricView, requirements: readonly RequirementResult[]): LeaderLabelModel {
-  return { ...leaderLabelModel(view), requirement: requirementText(requirements) }
+export function leaderLabelModelFor(view: MetricView, requirements: readonly RequirementResult[], locale: Locale = getLocale(), display: RecordDisplay = asIs): LeaderLabelModel {
+  return { ...leaderLabelModelIn(view, locale), requirement: requirementText(requirements, display) }
 }
 
+/** Label in the current language (one argument: usable as `views.map(leaderLabelModel)`). */
 export function leaderLabelModel(view: MetricView): LeaderLabelModel {
+  return leaderLabelModelIn(view, getLocale())
+}
+
+/** Label in a fixed language. */
+export function leaderLabelModelIn(view: MetricView, locale: Locale): LeaderLabelModel {
+  const t = tLeaders.in(locale)
   const raw = view.similarity
   const missing = raw === null || !Number.isFinite(raw) || view.status === 'missing'
   const pending = missing || view.status === 'needs_calibration'
@@ -59,23 +75,25 @@ export function leaderLabelModel(view: MetricView): LeaderLabelModel {
       : { kind: 'none' }
   return {
     id: view.criterionId,
-    title: criterionLabels[view.criterionId] ?? view.label,
+    title: tCommon.in(locale)(`criterion.${view.criterionId}`) || view.label,
     siteText: view.siteValue.text.trim() || '—',
     reference,
     similarity,
-    similarityText: similarity !== null ? `${formatWhole(similarity)}%` : view.status === 'missing' ? 'no data' : 'not yet calculated',
+    similarityText: similarity !== null ? withPercent(formatWhole(similarity, locale), locale) : view.status === 'missing' ? t('noData') : t('notYetCalculated'),
     pending,
     limiting: view.isLimiting,
-    note: view.saturates ? (view.rule ? RULE_SATURATES_TEXT : 'satura') : null,
+    note: view.saturates ? (view.rule ? t('ruleSaturates') : t('saturates')) : null,
     requirement: null,
   }
 }
 
 /** The most demanding requirement of the criterion (essential first): ✓/✕/○ and its condition. */
-export function requirementText(requirements: readonly RequirementResult[]): LeaderLabelModel['requirement'] {
+export function requirementText(requirements: readonly RequirementResult[], display: RecordDisplay = asIs): LeaderLabelModel['requirement'] {
   const first = [...requirements].sort((a, b) => Number(b.importance === 'critical') - Number(a.importance === 'critical'))[0]
   if (!first) return null
-  const condition = first.required.includes(': ') ? first.required.slice(first.required.indexOf(': ') + 2) : first.required
+  // `required` is record text (engine): shown in the interface language before taking the condition after «: ».
+  const required = display(first.required)
+  const condition = required.includes(': ') ? required.slice(required.indexOf(': ') + 2) : required
   return { mark: REQUIREMENT_MARK[first.status], status: first.status, text: `${condition}${requirements.length > 1 ? ` (+${requirements.length - 1})` : ''}` }
 }
 
@@ -108,8 +126,9 @@ export function leaderHeader(args: {
   manifest: DataManifest | null
   principal: readonly MetricView[]
   missionActive: boolean
+  locale?: Locale
 }): LeaderHeaderModel {
-  const area = Number.isFinite(args.site.area_km2) && args.site.area_km2 > 0 ? formatArea(args.site.area_km2) : null
+  const area = Number.isFinite(args.site.area_km2) && args.site.area_km2 > 0 ? formatArea(args.site.area_km2, args.locale ?? getLocale()) : null
   const datasets = args.principal.filter((view) => view.marsValue !== null).map((view) => view.datasetId)
   return {
     area,
@@ -120,13 +139,14 @@ export function leaderHeader(args: {
 }
 
 /** Plain text of the header (the component paints it in parts to color ■). */
-export function headerText(model: LeaderHeaderModel): string {
+export function headerText(model: LeaderHeaderModel, locale: Locale = getLocale()): string {
+  const t = tLeaders.in(locale)
   return [
-    'Whole sector',
+    t('header.wholeSector'),
     model.area,
-    model.scale ? `medians ${model.scale}` : 'medians',
+    model.scale ? t('header.mediansScale', { scale: model.scale }) : t('header.medians'),
     model.vsMars ? 'vs ■ Jezero (MOLA)' : null,
-    model.mission ? 'with your requirements' : null,
+    model.mission ? t('header.withRequirements') : null,
   ]
     .filter((part): part is string => part !== null)
     .join(' · ')

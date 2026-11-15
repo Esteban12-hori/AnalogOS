@@ -11,6 +11,8 @@ import { outerRings } from '../../domain/globe'
 import type { FlatThresholds, ViewInsets } from '../../domain/mapZoom'
 import { activeSources, type ActiveSource, type Basemap, type Bounds } from '../../data/loadBasemaps'
 import { prefersReducedMotion } from '../../shell/public'
+import { useT } from '../../i18n'
+import { tGlobeMarkers } from '../../i18n/messages/globeMarkers'
 import type { FlatHandoff, FlyRequest, StageSelection } from './CandidateGlobe'
 import { easeInOutCubic, flightDurationMs } from './flight'
 import { angularDistanceDeg } from './geometry'
@@ -299,6 +301,7 @@ export default function CandidateFlatMap({
   onCameraInput,
   onHome,
 }: CandidateFlatMapProps) {
+  const t = useT(tGlobeMarkers)
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
   const onlineLoaded = useRef(false)
@@ -641,7 +644,7 @@ export default function CandidateFlatMap({
       ref={containerRef}
       className="flat-map"
       role="region"
-      aria-label="2D map with official NASA imagery. Arrows: pan. Plus and minus: zoom in or out. Home: global view."
+      aria-label={t('flat.aria')}
       data-selection={selectedId ? '' : undefined}
     >
       {entries.map((item) => {

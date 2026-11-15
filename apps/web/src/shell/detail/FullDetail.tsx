@@ -12,6 +12,10 @@ import { MetricRail } from '../../features/metrics'
 import { ReadingPanel } from '../../features/analysis'
 import type { CandidateSite } from '../../domain/contracts'
 import { countryLabels, isReference, rankMap, splitByRole } from '../../domain/discovery'
+import { useLocale, useT } from '../../i18n'
+import { tCommon } from '../../i18n/messages/common'
+import { tDetail } from '../../i18n/messages/detail'
+import { tShell } from '../../i18n/messages/shell'
 import { uiActions, useUi } from '../../state/ui'
 import { evaluateSector, exportSiteJson } from '../actions'
 import { hasGeologyFor, type AppData } from '../appData'
@@ -34,17 +38,6 @@ export function detailTabs(placement: 'rail' | 'sheet', mode: 'explorar' | 'misi
   return tabs
 }
 
-const LABELS: Record<DetailTab, string> = {
-  metricas: 'Metrics',
-  lectura: 'Reading',
-  mision: 'Your mission',
-  origen: 'Origin',
-  geologia: 'Geology',
-  senal: 'Signal',
-  comparar: 'Compare',
-  metodo: 'Method',
-  fuentes: 'Sources',
-}
 
 interface FullDetailProps {
   data: AppData
@@ -56,10 +49,13 @@ interface FullDetailProps {
 }
 
 function Pending() {
-  return <p className="tab-loading" aria-busy="true">Loading…</p>
+  const t = useT(tDetail)
+  return <p className="tab-loading" aria-busy="true">{t('loading')}</p>
 }
 
 export function FullDetail({ data, site, placement, onShowOnMap, tabRequest = null }: FullDetailProps) {
+  const locale = useLocale()
+  const t = tDetail.in(locale)
   const mode = useUi((state) => state.mode)
   const tabs = detailTabs(placement, mode)
   const [requested, setTab] = useState<DetailTab>(tabRequest?.tab ?? 'metricas')
@@ -69,7 +65,7 @@ export function FullDetail({ data, site, placement, onShowOnMap, tabRequest = nu
   const tab = tabs.includes(requested) ? requested : 'metricas'
   const snapshot = data.snapshot
   const prefix = `detail-${placement}`
-  const items: TabItem<DetailTab>[] = tabs.map((id) => ({ id, label: LABELS[id] }))
+  const items: TabItem<DetailTab>[] = tabs.map((id) => ({ id, label: t(`tab.${id}`) }))
   // Compare: candidates in their global order and the known reference separately (ADR-008).
   const roles = useMemo(() => splitByRole(snapshot?.candidates ?? []), [snapshot])
   const rankOf = useMemo(() => rankMap(roles.ranked), [roles])
@@ -79,15 +75,17 @@ export function FullDetail({ data, site, placement, onShowOnMap, tabRequest = nu
     <div className="full-detail" data-placement={placement}>
       <div className="detail-head">
         <p className="detail-role">
-          {reference ? <b className="detail-ref">REF · Known reference</b> : <span>Candidate{rankOf.get(site.site_id) ? ` #${rankOf.get(site.site_id)}` : ''}</span>}
+          {reference
+            ? <b className="detail-ref">{tCommon.in(locale)('role.refKnownReference')}</b>
+            : <span>{rankOf.get(site.site_id) ? t('role.candidateRank', { rank: rankOf.get(site.site_id) ?? '' }) : t('role.candidate')}</span>}
           {site.country && <span> · {countryLabels[site.country]}</span>}
         </p>
         <div className="detail-actions">
-          <button type="button" className="detail-action" onClick={() => evaluateSector(site.site_id)}>Evaluate this sector</button>
-          <button type="button" className="detail-action" onClick={() => exportSiteJson(site, snapshot?.search ?? null)}>Export site record (JSON source record)</button>
+          <button type="button" className="detail-action" onClick={() => evaluateSector(site.site_id)}>{tShell.in(locale)('rail.evaluate')}</button>
+          <button type="button" className="detail-action" onClick={() => exportSiteJson(site, snapshot?.search ?? null)}>{t('export')}</button>
         </div>
       </div>
-      <TabList idPrefix={prefix} label="Place details" items={items} active={tab} onChange={setTab} className="detail-tabs" />
+      <TabList idPrefix={prefix} label={t('tabs')} items={items} active={tab} onChange={setTab} className="detail-tabs" />
       <div className="detail-panel" role="tabpanel" id={panelId(prefix, tab)} aria-labelledby={`${prefix}-tab-${tab}`} tabIndex={0}>
         {tab === 'metricas' && <div data-slot="full.metrics"><MetricRail data={data} site={site} variant="full" onShowOnMap={onShowOnMap} /></div>}
         {tab === 'lectura' && <div data-slot="full.reading"><ReadingPanel data={data} placement="full" /></div>}

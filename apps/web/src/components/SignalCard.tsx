@@ -1,13 +1,15 @@
 /**
  * SignalCard: series card with glow, animated line, and odometer-style figure.
  * Adapted from "Market Card" (Louis Studios, studios.lou15.com) for AnalogOS:
- * Spanish text, decimal comma, no menu or background grid, and the ends of `data`
+ * text and number typography in the interface language (en-US / es-CL), no menu or background grid, and the ends of `data`
  * always treated as visual entry/exit (the marker never rests on them).
  *
  * The glow field is computed on the CPU at half resolution; line, marker, and guide on a sharp 2D
  * canvas; all text is DOM. A single rAF that pauses when offscreen or in hidden tabs.
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
+import { formatNumber, useLocale, withPercent, type Locale } from '../i18n'
+import { tDetailTabs } from '../i18n/messages/detailTabs'
 
 export interface SignalCardProps {
   /** Series with an entry value and an exit value at the ends (not selectable). */
@@ -433,11 +435,13 @@ function deltaOf(data: number[], i: number, lo: number): number | null {
   return ((v - ref) / Math.abs(ref)) * 100
 }
 
-function fmtDelta(d: number | null) {
-  if (d === null) return 'inicio'
+/** Monthly change in the interface language: «↑ +4.2%» / «↑ +4,2 %» (no change: «0.0%» / «0,0 %»). */
+function fmtDelta(d: number | null, locale: Locale) {
+  if (d === null) return tDetailTabs.in(locale)('signal.start')
   const r = Math.round(d * 10) / 10
-  if (r === 0) return '0,0 %'
-  return `${r < 0 ? '↓ −' : '↑ +'}${Math.abs(r).toFixed(1)}%`
+  const one = (value: number) => formatNumber(value, { minimumFractionDigits: 1, maximumFractionDigits: 1 }, locale)
+  if (r === 0) return withPercent(one(0), locale)
+  return `${r < 0 ? '↓ −' : '↑ +'}${withPercent(one(Math.abs(r)), locale)}`
 }
 
 export function SignalCard({
@@ -461,6 +465,7 @@ export function SignalCard({
   style,
 }: SignalCardProps) {
   const reduced = usePrefersReducedMotion()
+  const locale = useLocale()
   const series = useMemo(() => data.map((v) => (Number.isFinite(v) ? v : 0)), [data])
   const curve = useMemo(() => buildCurve(series), [series])
   const [selfIndex, setSelfIndex] = useState(() => clamp(defaultIndex ?? curve.hi, curve.lo, curve.hi))
@@ -487,12 +492,13 @@ export function SignalCard({
   const upRgb = parseHex(upColor, [92, 200, 245])
 
   const delta = deltaOf(series, shown, curve.lo)
-  const deltaText = fmtDelta(delta)
+  const deltaText = fmtDelta(delta, locale)
   const rounded = delta === null ? 0 : Math.round(delta * 10)
   const negative = rounded < 0
   const deltaRgb = negative ? downRgb : upRgb
   const figure = format(series[shown])
-  const word = delta === null ? '' : rounded === 0 ? 'no change' : negative ? 'decrease' : 'increase'
+  const words = tDetailTabs.in(locale)
+  const word = delta === null ? '' : rounded === 0 ? words('signal.noChange') : negative ? words('signal.decrease') : words('signal.increase')
   const tail = delta === null ? firstLabel : deltaLabel
   const label = labelAt(shown)
 

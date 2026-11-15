@@ -8,7 +8,9 @@
  */
 import { useMemo } from 'react'
 import type { CandidateSite } from '../../domain/contracts'
-import { useViewportLayout, type AppData } from '../../shell/public'
+import { useLocale } from '../../i18n'
+// Record text (`required`) in the interface language, loaded on demand only for Spanish (docs/I18N.md §5).
+import { useRecordText, useViewportLayout, type AppData } from '../../shell/public'
 import { useMission } from '../../state/mission'
 import { useUi } from '../../state/ui'
 // Directly from the module (not from the metrics index): this way it travels in this deferred chunk and not in the
@@ -39,6 +41,8 @@ export default function LeaderCanvas({ data, site, bridge }: LeaderCanvasProps) 
   const revision = useMission((state) => state.revision)
   const { width, height, tramo, compact, sideSheet } = useViewportLayout()
   const snapshot = data.snapshot
+  const locale = useLocale()
+  const record = useRecordText()
 
   // Weights and contributions ALWAYS from the snapshot; in Mission, the requirements of the current assessment.
   const option = mode === 'mision' ? evaluation?.options.find((item) => item.site_id === site.site_id) ?? null : null
@@ -46,14 +50,17 @@ export default function LeaderCanvas({ data, site, bridge }: LeaderCanvasProps) 
   const outOfScope = missionActive && option === null
   const views = useMemo(() => {
     if (!snapshot) return []
-    return buildMetricViews({ site, sites: snapshot.candidates, profile: snapshot.profile, weights: null, contributions: null, marsReference: snapshot.marsReference })
-  }, [snapshot, site])
+    return buildMetricViews({ site, sites: snapshot.candidates, profile: snapshot.profile, weights: null, contributions: null, marsReference: snapshot.marsReference }, locale)
+  }, [snapshot, site, locale])
   const requirements = useMemo(() => requirementLayer(option, evaluatedRequest).byCriterion, [option, evaluatedRequest])
   const principal = useMemo(() => (missionActive ? pickMissionMetrics(views, requirements, 4) : pickPrincipalMetrics(views, 4)), [views, requirements, missionActive])
-  const labels = useMemo(() => principal.map((view) => leaderLabelModelFor(view, requirements.get(view.criterionId) ?? [])), [principal, requirements])
+  const labels = useMemo(
+    () => principal.map((view) => leaderLabelModelFor(view, requirements.get(view.criterionId) ?? [], locale, record.text)),
+    [principal, requirements, locale, record],
+  )
   const header = useMemo(
-    () => leaderHeader({ site, manifest: snapshot?.manifest ?? null, principal, missionActive }),
-    [site, snapshot, principal, missionActive],
+    () => leaderHeader({ site, manifest: snapshot?.manifest ?? null, principal, missionActive, locale }),
+    [site, snapshot, principal, missionActive, locale],
   )
 
   // No lines for a site outside the scope of the assessment (there are no requirements to display).

@@ -4,6 +4,8 @@
  * shell does not need one.
  */
 import { lazy, Suspense } from 'react'
+import { useT } from '../../i18n'
+import { tPlaces } from '../../i18n/messages/places'
 import type { ReferenceCardProps } from './index'
 
 const load = () => import('./ReferenceCardView')
@@ -15,8 +17,9 @@ export function preloadReferenceCard(): void {
 }
 
 export function ReferenceCard(props: ReferenceCardProps) {
+  const t = useT(tPlaces)
   return (
-    <Suspense fallback={<p className="places-state" aria-busy="true">Loading the reference…</p>}>
+    <Suspense fallback={<p className="places-state" aria-busy="true">{t('ref.loading')}</p>}>
       <View {...props} />
     </Suspense>
   )

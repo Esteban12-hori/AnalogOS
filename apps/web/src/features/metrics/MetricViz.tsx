@@ -6,12 +6,11 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { CriterionId } from '../../domain/contracts'
 import { formatWhole } from '../../domain/formatting'
+import { formatDecimal, formatInteger, useLocale, type Locale } from '../../i18n'
+import { tCommon } from '../../i18n/messages/common'
+import { tMetricDetails } from '../../i18n/messages/metricDetails'
 import type { MetricView } from './index'
 import { similarityTone } from '../../domain/similarityScale'
-
-const n1 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 })
-const n0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
-const fmt1 = (value: number) => n1.format(value)
 
 /** Unit that each visualization expects: if the snapshot provides a different one, it is not drawn. */
 const VIZ_UNIT: Readonly<Partial<Record<CriterionId, string>>> = {
@@ -47,7 +46,9 @@ export function Ring({ value, size = 'md', excluded = false }: { value: number |
   )
 }
 
-function SlopeViz({ site, mars }: { site: number; mars: number | null }) {
+function SlopeViz({ site, mars, locale }: { site: number; mars: number | null; locale: Locale }) {
+  const t = tMetricDetails.in(locale)
+  const fmt1 = (value: number) => formatDecimal(value, locale)
   const E = 5 // vertical exaggeration
   const L = 226
   const ox = 14
@@ -60,7 +61,7 @@ function SlopeViz({ site, mars }: { site: number; mars: number | null }) {
   const m = mars === null ? null : end(mars)
   const arc = (a: number, r: number) => `M ${ox + r} ${oy} A ${r} ${r} 0 0 0 ${ox + r * Math.cos(a)} ${oy - r * Math.sin(a)}`
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="metrics-viz" role="img" aria-label={`Ramp of ${fmt1(site)} degrees${m ? ` versus ${fmt1(mars ?? 0)} degrees at Jezero` : ''}, vertical exaggeration ×${E}`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="metrics-viz" role="img" aria-label={t('viz.slope', { site: fmt1(site), mars: m ? t('viz.slopeMars', { mars: fmt1(mars ?? 0) }) : '', e: E })}>
       <line x1={ox} y1={oy} x2={W - 4} y2={oy} className="metrics-ground" />
       <path d={`M ${ox} ${oy} L ${cx} ${cy} L ${cx} ${oy} Z`} className="metrics-wedge" />
       {m && <line x1={ox} y1={oy} x2={m[0]} y2={m[1]} className="metrics-line metrics-mars-stroke" pathLength={1} />}
@@ -74,11 +75,13 @@ function profilePath(baseY: number, amp: number): string {
   return PROFILE.map((p, i) => `${i === 0 ? 'M' : 'L'} ${(i * (W - 8)) / (PROFILE.length - 1) + 4} ${(baseY - p * amp).toFixed(1)}`).join(' ')
 }
 
-function RoughnessViz({ site, mars }: { site: number; mars: number | null }) {
+function RoughnessViz({ site, mars, locale }: { site: number; mars: number | null; locale: Locale }) {
+  const t = tMetricDetails.in(locale)
+  const fmt1 = (value: number) => formatDecimal(value, locale)
   const max = Math.max(site, mars ?? 0) || 1
   const amp = (value: number) => (value / max) * 15
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="metrics-viz" role="img" aria-label={`Profile with a height difference of ${fmt1(site)} m${mars !== null ? ` versus ${fmt1(mars)} m at Jezero` : ''}; illustrative shape, amplitude to scale`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="metrics-viz" role="img" aria-label={t('viz.roughness', { site: fmt1(site), mars: mars !== null ? t('viz.metersMars', { mars: fmt1(mars) }) : '' })}>
       <path d={profilePath(mars === null ? 42 : 24, amp(site))} className="metrics-line metrics-site-stroke" pathLength={1} />
       {mars !== null && <path d={profilePath(62, amp(mars))} className="metrics-line metrics-mars-stroke" pathLength={1} />}
     </svg>
@@ -90,14 +93,16 @@ function mountain(x0: number, width: number, height: number, base: number): stri
   return `M ${x0} ${base} C ${x0 + width * 0.22} ${base}, ${peak - width * 0.16} ${base - height}, ${peak} ${base - height} S ${x0 + width * 0.8} ${base}, ${x0 + width} ${base} Z`
 }
 
-function ReliefViz({ site, mars }: { site: number; mars: number | null }) {
+function ReliefViz({ site, mars, locale }: { site: number; mars: number | null; locale: Locale }) {
+  const t = tMetricDetails.in(locale)
+  const fmt1 = (value: number) => formatDecimal(value, locale)
   const max = Math.max(site, mars ?? 0) || 1
   const base = 76
   const h = (value: number) => (value / max) * 58
   const hs = h(site)
   const hm = mars === null ? 0 : h(mars)
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="metrics-viz" role="img" aria-label={`Relief of ${fmt1(site)} m${mars !== null ? ` versus ${fmt1(mars)} m at Jezero` : ''}; heights to scale`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="metrics-viz" role="img" aria-label={t('viz.relief', { site: fmt1(site), mars: mars !== null ? t('viz.metersMars', { mars: fmt1(mars) }) : '' })}>
       <line x1={4} y1={base} x2={W - 4} y2={base} className="metrics-ground" />
       <path d={mountain(18, 108, hs, base)} className="metrics-mountain metrics-site-fill" />
       <line x1={18 + 108 * 0.48} y1={base} x2={18 + 108 * 0.48} y2={base - hs} className="metrics-dim" />
@@ -111,10 +116,10 @@ function ReliefViz({ site, mars }: { site: number; mars: number | null }) {
   )
 }
 
-function BareGroundViz({ fraction }: { fraction: number }) {
+function BareGroundViz({ fraction, locale }: { fraction: number; locale: Locale }) {
   const bare = Math.round(Math.max(0, Math.min(1, fraction)) * 100)
   return (
-    <div className="metrics-pixels" role="img" aria-label={`${bare} of every 100 pixels without vegetation`}>
+    <div className="metrics-pixels" role="img" aria-label={tMetricDetails.in(locale)('viz.pixels', { bare })}>
       {Array.from({ length: 100 }, (_, i) => (
         <i key={i} className={i < bare ? 'is-bare' : 'is-green'} style={{ '--i': i } as CSSProperties} />
       ))}
@@ -122,7 +127,7 @@ function BareGroundViz({ fraction }: { fraction: number }) {
   )
 }
 
-function ScaleViz({ value, max, marker, markerLabel, kind, ticks, unit }: {
+function ScaleViz({ value, max, marker, markerLabel, kind, ticks, unit, locale }: {
   value: number
   max: number
   marker: number
@@ -130,6 +135,7 @@ function ScaleViz({ value, max, marker, markerLabel, kind, ticks, unit }: {
   kind: 'rain' | 'heat'
   ticks: readonly number[]
   unit: string
+  locale: Locale
 }) {
   const SH = 60
   const x0 = 30
@@ -137,7 +143,7 @@ function ScaleViz({ value, max, marker, markerLabel, kind, ticks, unit }: {
   const y = 26
   const sx = (v: number) => x0 + (Math.max(0, Math.min(v, max)) / max) * (x1 - x0)
   return (
-    <svg viewBox={`0 0 ${W} ${SH}`} className={`metrics-viz metrics-scale metrics-${kind}`} role="img" aria-label={`${fmt1(value)} ${unit} on a scale from 0 to ${max}; ${markerLabel} at ${marker}`}>
+    <svg viewBox={`0 0 ${W} ${SH}`} className={`metrics-viz metrics-scale metrics-${kind}`} role="img" aria-label={tMetricDetails.in(locale)('viz.scale', { value: formatDecimal(value, locale), unit, max, marker: markerLabel, at: marker })}>
       {kind === 'heat'
         ? <circle cx={x0 - 14} cy={y} r={9} className="metrics-bulb" />
         : <path d={`M ${x0 - 14} ${y - 10} c -7 9 -7 15 0 15 c 7 0 7 -6 0 -15 Z`} className="metrics-drop" />}
@@ -146,7 +152,7 @@ function ScaleViz({ value, max, marker, markerLabel, kind, ticks, unit }: {
       {ticks.map((t) => (
         <g key={t}>
           <line x1={sx(t)} x2={sx(t)} y1={y + 10} y2={y + 14} className="metrics-tick" />
-          <text x={sx(t)} y={y + 27} className="metrics-svg-note" textAnchor="middle">{n0.format(t)}</text>
+          <text x={sx(t)} y={y + 27} className="metrics-svg-note" textAnchor="middle">{formatInteger(t, locale)}</text>
         </g>
       ))}
       <line x1={sx(marker)} x2={sx(marker)} y1={y - 14} y2={y + 14} className="metrics-rule-mark" />
@@ -161,6 +167,8 @@ function SimilarityBar({ value }: { value: number }) {
 
 /** Visualization and note for a metric; null if there is no valid data to draw. */
 export function MetricVisual({ view }: { view: MetricView }): ReactNode {
+  const locale = useLocale()
+  const t = tMetricDetails.in(locale)
   const raw = view.siteValue.raw
   if (view.status !== 'valid' || typeof raw !== 'number' || !Number.isFinite(raw)) return null
   const expected = VIZ_UNIT[view.criterionId]
@@ -173,26 +181,26 @@ export function MetricVisual({ view }: { view: MetricView }): ReactNode {
   let note: string | null = null
   switch (view.criterionId) {
     case 'slope':
-      figure = <SlopeViz site={raw} mars={mars} />
-      note = 'vertical exaggeration ×5'
+      figure = <SlopeViz site={raw} mars={mars} locale={locale} />
+      note = t('viz.noteSlope')
       break
     case 'terrain_roughness':
-      figure = <RoughnessViz site={raw} mars={mars} />
-      note = 'illustrative shape · amplitude to scale'
+      figure = <RoughnessViz site={raw} mars={mars} locale={locale} />
+      note = t('viz.noteRoughness')
       break
     case 'local_relief':
-      figure = <ReliefViz site={raw} mars={mars} />
-      note = 'illustrative shape · heights to scale'
+      figure = <ReliefViz site={raw} mars={mars} locale={locale} />
+      note = t('viz.noteRelief')
       break
     case 'bare_ground_fraction':
-      figure = <BareGroundViz fraction={raw} />
-      note = '1 square = 1% of the valid pixels'
+      figure = <BareGroundViz fraction={raw} locale={locale} />
+      note = t('viz.notePixels')
       break
     case 'aridity_context':
-      if (ruleVerified) figure = <ScaleViz kind="rain" unit="mm/year" value={raw} max={50} marker={25} markerLabel="similarity 50" ticks={[0, 10, 20, 30, 40, 50]} />
+      if (ruleVerified) figure = <ScaleViz kind="rain" unit={tCommon.in(locale)('unit.mmPerYear')} value={raw} max={50} marker={25} markerLabel={t('viz.similarity50')} ticks={[0, 10, 20, 30, 40, 50]} locale={locale} />
       break
     case 'surface_temperature_variability':
-      if (ruleVerified) figure = <ScaleViz kind="heat" unit="K" value={raw} max={60} marker={45} markerLabel="saturates" ticks={[0, 15, 30, 45, 60]} />
+      if (ruleVerified) figure = <ScaleViz kind="heat" unit="K" value={raw} max={60} marker={45} markerLabel={t('badge.saturates')} ticks={[0, 15, 30, 45, 60]} locale={locale} />
       break
     default:
       break
