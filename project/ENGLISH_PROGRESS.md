@@ -1,5 +1,9 @@
 # ENGLISH-DEFAULT — progress
 
+## Final acceptance — Codex, 2026-11-15
+
+Completed and published to dev/main at code `fab8ed9`; final Actions `43723813882` / `43724021553` succeeded. See `docs/CODEX_ENGLISH_REVIEW.md` and STATUS for independent checks, final mobile-copy corrections, real-provider evidence, historical compatibility, portable archive and exact QA limits. The phase reports below are historical implementation handoffs. Claude has no new assignment.
+
 ## Phase C — code text, plus Phase B review corrections (Claude, 2026-11-15) — Owner Codex / review
 
 This work was done on the same working tree. There were no commits, pushes, branch changes, subagents, network or browser use, and I did not read `.env` or credentials. Codex's Markdown and the comment translations it had already applied were kept: the 111 files of my own comment-only pass were AST-hash checked before and after. README files, submission documents, `outputs/` and the protected evidence were not touched.

@@ -9,3 +9,5 @@ Official source wording, identifiers and original input text are intentionally r
 
 - `dev-live-export.json`: complete wrapper downloaded from authenticated dev after code `18b14eb`; both real AI operations, AR6 only, three geological references. Validated and rebuilt identically against the trusted source packages.
 - `production-live-smoke.json`: public production endpoint checks at `18b14eb`, including an English draft for the recorded synthetic brief and an explanation/geology response for the confirmed request in `local-ar6-live-export.json`. The explanation retains that reference evaluation fingerprint. The later mobile-label patch does not change the API.
+
+- `production-mobile.png`: actual English production at 390×844 after `fab8ed9`; emulated browser viewport, not a physical phone. The desktop capture is the shared README asset `submission/assets/analogos-production.jpg`.

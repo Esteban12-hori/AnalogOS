@@ -1,5 +1,13 @@
 # Working changelog
 
+## 2026-11-15 Codex — English release completed in production
+
+- Final code fab8ed9 promoted through dev/main without force. Final Actions 43723813882 (dev) and 43724021553 (production) succeeded; packaged function startup passed.
+- Verified English mobile Refine/counter in production and replaced the README screenshot with the actual English app. Added the 390×844 production image as evidence. Both real AI operations and geological references had already passed with identical server code; dev export reconstructs exactly.
+- Current ZIP: 74 entries, 14,891,807 bytes, SHA-256 86a157e08416a3d1b0ea3e1129c9a45f73e850e464b943936d9cb2e2077e6d19, repeat-identical and CRC/checksum correct. Original source data and historical records/archives preserved.
+- Explicit QA limits retained in CODEX_ENGLISH_REVIEW: no fresh all-page English PDF audit, physical iOS or deliberate GIBS network-failure test. This final [skip ci] checkpoint changes only documentation/evidence/images. Task completed; Claude has no new assignment. Unrelated outputs/ remains excluded.
+
+
 ## 2026-11-15 Codex — final English mobile copy and deployed AI checks
 
 - Deployed English code 18b14eb passed dev/production Actions. Both real Anthropic operations worked in dev and production, with three AR6 geological references. The complete dev export reconstructs identically.

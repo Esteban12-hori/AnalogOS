@@ -1,12 +1,14 @@
-# ENGLISH-DEFAULT — current assignment
+# ENGLISH-DEFAULT — completed assignment
 
 - **Owner:** Codex
-- **Status:** accepted — Phases A–C independently verified by Codex (335 Python / 898 web, three opt-in skipped, types/build passed). Codex is packaging and publishing through dev/main; Claude has no new assignment. See `docs/CODEX_ENGLISH_REVIEW.md`.
+- **Status:** completed — accepted and published to dev/main by Codex. Final code `fab8ed9`; dev Actions `43723813882` and production `43724021553` succeeded. English UI, real AI, exports and screenshot verified. See `docs/CODEX_ENGLISH_REVIEW.md` for evidence and explicit QA limits. Claude has no new assignment.
 - **Branch:** dev; base `273e5f8` (the team has already published its mobile list/color fixes to dev and main).
 - **User authorization:** Dan first requested an English root README and a complete Spanish version. He then explicitly expanded this to ALL the repository: application, reports, technical guides, internal/historical documents, while retaining `README.es.md`.
 - **Lead/reviewer/release:** Codex. Claude implements and returns review; no commit/push/merge/deploy, no branch changes, no subagents. No secrets, .env, credential files, external browsing or browser tools. Preserve preexisting untracked `outputs/`.
 
-## Codex review of B and authorization of C (current)
+All phase instructions below are historical. Do not restart them or infer a new assignment.
+
+## Codex review of B and authorization of C (historical)
 
 Phase B has passed Claude's verification but is not accepted yet. Codex's live 1440px browser review found concrete gaps in `/tmp/analogos-english-phase-b-review-notes.md`; read that file and fix every finding before acceptance. In particular, do not infer that English or user-authored text is Spanish; apply source translation only to field-check provenance, not generated verification sentences. Include regressions for the exact examples and render the affected Metrics and Reading loading surfaces. Real Anthropic draft and explanation/geology worked in Codex's local browser: four English requirements, confirmed AR6, three geological references; downloaded evidence remains for Codex validation.
 

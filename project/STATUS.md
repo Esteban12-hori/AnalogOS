@@ -1,3 +1,18 @@
+# ENGLISH-DEFAULT completed in production — Codex, 2026-11-15
+
+- **Completed scope:** English application, accessibility, AI-generated prose, reports, product/technical/internal/historical documentation, code comments/help/errors and test descriptions. Complete `README.es.md` and explicitly Spanish submission alternatives retained. ADR-016 accepted.
+- **Published code:** `fab8ed9d03f7cce54c90308f93eeffa5b3779543` on dev and main, fast-forward without force. Final Actions: dev `43723813882`, production `43724021553`, both successful. Sites: https://analogos-dev.vercel.app/ and https://analogos.vercel.app/.
+- **Verification:** independent full check at 18b14eb: 335 Python / 898 web passed, three opt-in skipped, types/build/generated validators passed. Final mobile-copy patch: 41 related tests and build passed, including one additional regression test. No API, calculation, source data, dependency or contract change in that patch.
+- **Real AI:** dev browser produced four unconfirmed English requirements, explicit confirmation, AR6-only evaluation and three geological references; downloaded wrapper validates and reconstructs identically. Production endpoint passed draft and explanation/geology, with unchanged evaluation fingerprint. English and Spanish input were both tested locally. Evidence: `submission/evidence/english/`.
+- **Presentation:** desktop/mobile English UI verified; final Refine label and metric counter confirmed in production. README screenshot replaced from actual production; mobile evidence at 390×844. New mission records use 1.1.0 and geology v2, with historical reconstruction intact.
+- **Scientific integrity:** original artifacts, official source wording, user input, stable identifiers and historical exports preserved. Current ZIP: 74 entries, 14,891,807 bytes, CRC/checksum OK and repeat-identical; SHA-256 `86a157e08416a3d1b0ea3e1129c9a45f73e850e464b943936d9cb2e2077e6d19`. Historical archive unchanged.
+- **QA limits:** English native print preview opened, but no new complete PDF was saved and visually audited page by page. Historical M11 PDF evidence is not presented as a fresh English audit. Physical iOS and deliberate GIBS network failure remain untested. See `docs/CODEX_ENGLISH_REVIEW.md`.
+- **Owner:** Codex; task completed. Claude has no new assignment. The final `[skip ci]` documentation/evidence checkpoint changes no deployed code. Keep unrelated untracked `outputs/` excluded.
+- **Next:** prepare the English presentation from submission materials; collect physical-device and full English-PDF QA when available; agree on a new milestone before implementation. These are future tasks, not authorization to start them.
+- All checkpoints below are historical and superseded by this block.
+
+---
+
 # ENGLISH-DEFAULT accepted; publication in progress — Codex, 2026-11-15
 
 - English default covers UI, accessibility, AI prose, reports, README, product/technical/internal/historical documentation and authored code prose. `README.es.md` and explicitly Spanish submission alternatives are preserved.

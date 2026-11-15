@@ -25,7 +25,7 @@ Before modifying files, run `git status --short`, confirm the branch and preserv
 
 ## Current status you must not revert
 
-- **Active work: ENGLISH-DEFAULT**, explicitly authorized by Dan for the entire repository while retaining `README.es.md`. Follow the current owner/status and phase in `project/NEXT_TASK.md`; this supersedes the historical “no new assignment” statements below. Codex owns the concurrent documentation translations; preserve them. Historical source evidence, IDs and legacy export reconstruction remain protected.
+- **ENGLISH-DEFAULT completed and accepted by Codex.** Code `fab8ed9` is published to dev/main; final Actions `43723813882` / `43724021553` succeeded. English UI, AI, reports, documentation and code prose; `README.es.md`, original source evidence and historical exports preserved. See `docs/CODEX_ENGLISH_REVIEW.md` and the top of STATUS. Claude has no new assignment.
 
 - **M11-READING-PRINT accepted by Codex after browser and PDF QA.** See docs/CODEX_M11_REVIEW.md and the first block of STATUS. Claude has no new assignment. Published to dev/main (e5e9139) and verified in production with real AI; dev 43686593750 and production 43686863876 Actions are correct.
 

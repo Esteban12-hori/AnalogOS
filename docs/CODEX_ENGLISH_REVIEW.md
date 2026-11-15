@@ -1,6 +1,6 @@
 # English-default release review — Codex
 
-Status: **implementation accepted; publication in progress**. Date: 2026-11-15.
+Status: **completed and verified in production**. Date: 2026-11-15.
 
 ## Authorized scope
 
@@ -92,3 +92,14 @@ Code `18b14eb` deployed successfully: dev Actions `43722897516`, production Acti
 Production's real endpoint returned an English three-requirement draft for the shorter synthetic brief and an AR6 explanation with three geological references for the already-confirmed four-requirement reference request. Its request/evaluation fingerprints match the local trusted export. Evidence: `submission/evidence/english/production-live-smoke.json`. No key is in the client or evidence.
 
 Final deployed mobile inspection at 390×844 found three overlooked display strings: the Refine button, its pending label and the metric counter. Codex translated them, corrected the existing assertion and added coverage for the pending state and the actual rendered sheet counter. **41 relevant tests and build passed** after the correction (`/tmp/analogos-english-mobile-final-tests.log`, `/tmp/analogos-english-mobile-final-build.log`). Five remaining test-description fragments were also translated without changing their assertions. The full suite's earlier 898 web count precedes the one additional focused regression test. This patch changes no API, calculation, data or contract; its updated archive was packaged twice with identical bytes and clean CRC.
+
+## Final publication accepted
+
+- Final deployed code: `fab8ed9d03f7cce54c90308f93eeffa5b3779543`, fast-forwarded through dev and main without force.
+- Dev Actions [43723813882](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43723813882) and production Actions [43724021553](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43724021553) succeeded, including the isolated packaged-function startup check.
+- Final dev and production mobile views show **Refine** and **5 of 7**. Production was checked at 390×844 in the in-app browser; screenshot `submission/evidence/english/production-mobile.png`. This remains an emulated viewport, not physical iOS validation.
+- `submission/assets/analogos-production.jpg` was captured from the actual English production after deployment (2055×1147, normal browser size) and replaces the README screenshot. No mockup is used.
+- The final mobile patch leaves `server/`, `api/`, `shared/`, `contracts/`, configuration, source artifacts, deployment settings and dependencies identical to the real-provider-tested `18b14eb`.
+- The final documentation/evidence/screenshot checkpoint uses `[skip ci]`: it does not alter deployed code. Both branches are synchronized. Claude has no new assignment; implementation continues on dev only under a new authorized task.
+
+The language migration is accepted. The native-PDF, physical-device and network-failure QA limits stated above remain explicit; this release does not claim those additional checks were completed.
