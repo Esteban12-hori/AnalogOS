@@ -1,10 +1,136 @@
 # Changelog de trabajo
 
-## 2026-11-14 Claude Code · fusión de origin/dev en el rediseño (F1 de docs/INTEGRATION_PLAN.md)
+## 2026-11-14 Claude Code · integración del rediseño con dev (rama feature/mision-redesign)
 
-- Fusión sin squash de `origin/dev` (`92392f1`) en `feature/mision-redesign`. Se conservan la UI del rediseño y, sin cambios, `shared/`, `server/`, `api/`, los artefactos v1/v2/v3, los contratos M8 y el CI del equipo.
-- Arreglos mecánicos: `chileOutline` → `outline`; validadores precompilados con búsqueda y antecedentes en un chunk aparte; `CandidateMap` con contenido de dev en `features/globe/`; Comparar con la firma del equipo; `contextLayers` según la versión del índice; empaquetador con la base de dev y lo nuestro (mapas base, precarga, favicon).
-- Retirados al fusionar: `components/{CandidateDetails,CandidateRanking,CandidateGlobe,CandidateFlatMap,MapStage,LiquidNav}.tsx` y `breakdown/ScoreBreakdown.tsx`. El bloque «ranking y ficha» de `discovery.test.tsx` se porta en F3.
+Pedido directo del usuario: «fusiona en dev y haz push». Decisión: la UI es la del rediseño y por dentro se usan el planificador, la IA de Anthropic y los datos v3 del equipo (ADR-013, `docs/INTEGRATION_PLAN.md`). El push a `dev` queda como paso aparte.
+
+- **Fusión** sin squash de `origin/dev` (`92392f1`): `shared/`, `server/`, `api/`, artefactos v1/v2/v3, contratos M8, `vercel.json` y CI entran sin cambios. Validadores precompilados con búsqueda y antecedentes en un chunk aparte; `loadingHints` precarga v3; empaquetador con la base de dev más mapas base, precarga y favicon.
+- **Explorar v3:** puesto global con `splitByRole`, REF rotulada y fuera del ranking en carrusel, globo, riel, Comparar y Lectura; filtro por país que conserva el puesto; contorno CL+AR; pestaña Origen, «Exportar ficha (JSON)», «Evaluar este sector» y «Cómo se buscaron» en Método; marca «AnalogOS · Piloto Chile–Argentina».
+- **Misión:** un único planificador del equipo compartido (controlador diferido); «Tu misión» con `PlannerView` y `ResultView` compacto; «Enviar» no llama a la IA; estados de la evaluación en carrusel y globo, capa de requisitos en riel y líneas, sin % de misión; exportación JSON, impresión y diagnóstico fuera de cobertura.
+- **Lectura** en tres capas (resultado, motivos destacados con plantilla o Anthropic, hechos del snapshot); la IA solo con botón explícito.
+- **Retirados:** motor propio (`features/engine`), canal lktron, prosa pregenerada y contratos `mission-interpretation`, `evidence-packet` y `ai-analysis`.
+- **ADR:** 008→010 (escenario fijo), 009→011 y 010→012 (sustituidos por ADR-009 del equipo), nuevo ADR-013.
+- **Verificación:** `npm run verify` → pytest 190 + 4 omitidas, `typecheck:server`, vitest 603 + 2 omitidas, build. Tests del equipo intactos. Chunk de entrada 122,2 KB gz (+10,3). Smoke `/api/ai`: 405 y 503 `no-store`. ZIP en `/tmp/claude-rel/integ.zip`, reproducible; `submission/` sin tocar.
+
+### Historial del rediseño antes de integrar (rama feature/mision-redesign)
+
+Entradas originales. Usan la numeración de ADR anterior a la integración: ADR-008 → ADR-010 (escenario fijo), ADR-009 → ADR-011 y ADR-010 → ADR-012 (ambos sustituidos por ADR-009 del equipo).
+
+#### 2026-11-14 Claude Code · rediseño Explorar / Misión: correcciones de la revisión (rama feature/mision-redesign)
+
+- **Cifras de una sola fuente:**
+  - Comparar usa el perfil activo, con orden y cifras del motor en Misión y rótulo de perfil.
+  - `scoreMission` entrega `stability`, la misma de la Lectura.
+  - Geología sin dato se muestra «por calcular · fuera de tu perfil».
+  - Un criterio excluido no «satura».
+  - Nota cuando la confianza sube solo porque un criterio sin dato quedó fuera.
+- **Filtro de la IA:**
+  - Rechaza el léxico de orden (`rank`) y los cuantificadores «medio/media», «par» y «cuarto».
+  - Un `summary` o `tradeoff` que compara debe citar el puesto o un `best_of_n` (`rank_fact`).
+- **Rótulos:**
+  - ✦ en la frase bajo LIMITANTE.
+  - Prefijo sr-only «Texto de IA:» o «Texto pregenerado, no científico:».
+  - ✦ solo con lktron.
+  - «DEMO · sin IA» primero en la línea de estado.
+  - «Prueba sugerida» según la fuente.
+  - «Rango térmico» en todas partes.
+- **Atribución de datos siempre visible**, generada desde `manifest.datasets` (`shell/attribution.ts`), en la franja del escenario y en el HTML estático.
+- **Señal:** cifra final sin odómetro; NDVI en azul con ↑/↓.
+- **Accesibilidad:**
+  - Gestión de foco en hoja y riel.
+  - Esc en un popover ya no borra la selección.
+  - Barra superior primera en el DOM, `<main>`, `h1` y aviso accesible bajo 860 px.
+  - Pines tapados o casi en el horizonte, fuera del orden de foco.
+  - Foco de dos tonos sobre imágenes.
+  - Topbar sin blur y vidrio .86.
+  - Pulgar #0274AD.
+  - `prefers-reduced-transparency`.
+  - Bucles acotados.
+  - Objetivos táctiles de 44 px.
+  - Texto mínimo de 10 px.
+  - Anuncios sin duplicar.
+  - «/» acotado.
+- **Diseño:**
+  - Tarjetas compactas por container query.
+  - Panel izquierdo en dos regiones de scroll, con los presets plegados tras los resultados.
+  - Hoja lateral a todo el alto.
+  - Hover táctil sin quedar pegado.
+  - El chip y el carrusel cuentan los ◆ dibujados.
+  - Error sin criterios de terreno que lista lo no medido.
+- **Rendimiento:**
+  - JS inicial 119,1 → 111,9 KB gz (+11,9 sobre 857b05f).
+  - Validadores separados por chunk.
+  - `engine` 15,6 → 8,5 KB gz.
+  - `lktronClient` diferido.
+  - Método y Fuentes diferidos.
+  - FLIP sin layout síncrono al montar.
+- **Verificación:**
+  - 856 tests; build verde; pytest 170/1 skip.
+  - Smoke 34/34 y hallazgos 35/35 en el navegador, sin errores de consola.
+  - Lighthouse intercalado (ver `docs/PERFORMANCE.md`).
+  - ZIP en `/tmp/claude-rel/final.zip`.
+
+#### 2026-11-14 Claude Code · rediseño Explorar / Misión: integración de los incrementos 3–10 (rama feature/mision-redesign)
+
+- **Fusiones** con `--no-ff`, sin conflictos de texto, en este orden:
+  - `build/engine`: motor 1.0.0 con paridad ≤1e-6 con `pipelines/scoring.py`, perfiles, matcher DEMO y fases;
+  - `build/places`: PlaceRail y `config/reference_analogs.json` con 7 ◆ y fuentes;
+  - `build/globe`: marcadores ● ◆ ○, vuelo, agrupación y teclado;
+  - `build/metrics`: MetricRail, `buildMetricViews` y S1; retira `breakdown/`;
+  - `build/leaders`: líneas Tesla;
+  - `build/boot`: «Órbita honesta» con hitos reales;
+  - `build/composer`: composer, «Tu misión», historial y coreografía de resultados;
+  - `build/analysis`: evidencia, filtro de la IA, robustez, Lectura, pregenerado y lktron NDJSON.
+- **Integración:**
+  - «Ver lista» en la hoja abre S1 con `sheet.list` (`onListViewChange`).
+  - `data-obstacle` en `pill.reading`, `.stage-dock` y `.stage-controls`.
+  - Los obstáculos se vuelven a medir después de aplicar los márgenes asentados.
+  - Si las líneas van a la derecha, se oculta el rótulo del pin seleccionado.
+  - El DEMO recibe el id y la versión del perfil cargado.
+  - La franja «Refinar» tiene fondo sólido.
+  - El rótulo del pin seleccionado termina en el borde del área libre (`--pin-x` por cuadro y `max-width`): ya no queda bajo el riel en Misión a 1440 ni se corta en el borde a 390.
+- **Bundler:** un único chunk inicial (`codeSplitting` con `$initial`): −5,7 KB gz de JS, −0,5 KB gz de CSS y ~18 `modulepreload` menos en la ruta crítica.
+- **Empaquetador:** admite `analysis/ai-analysis.default.json` (opcional, nombre fijo), con un test.
+- **Tests:**
+  - El test del stub del motor pasa a ser la regla honesta sin condición.
+  - Se retira el caso del composer que solo corría con el stub.
+  - La integración de analysis ya no se salta sola.
+- **Limpieza:** reglas muertas `.globe-label` y `.globe-callout` en `liquid/`.
+- **Reproducibilidad:** el generador del análisis pregenerado pasa de `/tmp` a `scripts/make_pregenerated_analysis.py` y reproduce el JSON commiteado byte a byte.
+- **Ramas:** las 8 ramas `build/*` se borraron porque estaban fusionadas; sus worktrees quedaron en HEAD separado.
+- **Verificación:**
+  - 817 tests web (56 archivos), build en verde y pytest con 170 passed y 1 skipped.
+  - Recorrido en navegador a 1440×900 y 390×844 (Explorar, selección, Misión DEMO → Lectura, 2D y vuelta): 34/34 comprobaciones y 0 errores de consola.
+  - Lighthouse, mediana de 3 contra `857b05f`: en móvil el puntaje queda igual (75) y el LCP pasa de 5,0 a 5,3 s; en escritorio, 98 = 98.
+  - ZIP de entrega generado en `/tmp` con `analysis/ai-analysis.default.json`.
+- **Pendiente:** el JS inicial está +17,8 KB gz sobre `857b05f` (límite +12) y varios chunks diferidos superan su línea de §6.1. El detalle está en `project/STATUS.md`.
+
+#### 2026-11-14 Claude Code · rediseño Explorar / Misión: incrementos 0–2 y contrato del paralelo (rama feature/mision-redesign)
+
+- Incremento 0:
+  - ADR-008 (escenario fijo y hoja), ADR-009 (recálculo determinista en cliente) y ADR-010 (IA opcional), en estado propuesto.
+  - Esquemas `reference-analog`, `mission-interpretation`, `evidence-packet` y `ai-analysis` con 30 fixtures válidos e inválidos (`tests/fixtures/contracts/`), probados con Ajv precompilado (Vitest) y con jsonschema (pytest).
+  - Segundo módulo de validadores diferido (`validators.mission.generated.js`), con `--check` en el build.
+- Incremento 1:
+  - Tokens de movimiento, color y glifos (`shell/tokens.css`, `shell/glyphs.ts`).
+  - Store `ui` y store `mission` con `useSyncExternalStore`.
+  - `useReducedMotion` con listener.
+  - `formatScore` con 1 decimal fijo (49,99 → «50,0»).
+- Incremento 2: armazón de escenario fijo 100dvh sin scroll del documento.
+  - Pestañas APG Explorar | Misión con `?modo=`.
+  - Dock inferior, riel derecho con «Ver ficha completa» (520 px, pestañas Métricas · Lectura IA · Señal · Comparar · Método · Fuentes) y panel izquierdo ≥1440.
+  - Hoja S0/S1/S2 <1100 con `resolveDetent` (umbral, histéresis y cancelación), `useKeyboardInset`, `pushState`/Esc e `inert`.
+  - `MapStage` recibe `insets`/`baseInsets` (`setViewOffset` x/y y `setPadding`).
+  - El póster previo a React se alinea con los nuevos márgenes base.
+  - Se retiran el hero, la ficha flotante, `LiquidNav` y `LazySection`.
+- Contrato del paralelo:
+  - 8 features con `index.ts` estable y stubs honestos montados en sus slots (`data-slot`).
+  - `docs/BUILD_CONTRACTS.md` con la propiedad de archivos.
+  - Guardia `featureContracts.test.ts`.
+- Verificación:
+  - 141 tests web, 165 Python (1 omitido) y build en verde.
+  - Navegador a 1440×900, 1280×800 y 390×844 sin errores de consola.
+  - Chunk principal +2,6 KB gz de JS y +1,0 KB gz de CSS.
 
 ## 2026-11-14 Codex — dev e IA real verificados
 

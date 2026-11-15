@@ -58,22 +58,29 @@ Los archivos deben validar contra `contracts/` antes del build.
 
 ## Estructura mínima de la web
 
+Tras integrar el rediseño con dev (ADR-010, ADR-013), la web es un escenario fijo con features
+independientes que leen los stores compartidos; el planificador del equipo vive en `mission/` y
+`components/planner/` y se reutiliza dentro de «Tu misión».
+
 ```text
 apps/web/src/
-├── app/
+├── App.tsx                  # carga en el límite y promesa del producto
+├── shell/                   # armazón: escenario, dock, riel, hoja, ficha (Origen, Método…)
+├── state/                   # stores ui y mission (único escritor: el controlador de misión)
+├── features/
+│   ├── globe/               # globo, paso a 2D, marcadores, mapa SVG sin WebGL (CandidateMap)
+│   ├── places/              # carrusel (candidatos, REF, ◆, filtro por país, grupos de Misión)
+│   ├── metrics/             # riel de métricas y capa de requisitos
+│   ├── leaders/             # líneas Tesla
+│   ├── boot/                # arranque «Órbita honesta»
+│   ├── composer/            # dock, «Tu misión», controlador del planificador
+│   └── analysis/            # Lectura: resultado, motivos destacados, hechos
 ├── components/
-│   ├── CandidateMap.tsx
-│   ├── CandidateRanking.tsx
-│   ├── CandidateDetails.tsx
-│   └── CandidateComparison.tsx
-├── domain/
-│   ├── contracts.ts
-│   ├── scoring.ts
-│   └── formatting.ts
-├── data/
-│   └── loadDemoSnapshot.ts
-├── styles/
-└── tests/
+│   ├── planner/             # piezas del planificador del equipo (PlannerView, ResultView…)
+│   └── CandidateComparison.tsx, SurfaceSignals.tsx, …
+├── mission/                 # reexports de shared/mission y cliente de IA (aiClient)
+├── domain/                  # contratos (validadores precompilados), discovery, formato
+└── data/                    # loadDemoSnapshot, contexto visual, mapas base
 ```
 
 ## Estados obligatorios

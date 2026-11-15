@@ -82,6 +82,19 @@ Lighthouse 12.6.0 en Chrome for Testing con Metal. Mediana de 3 corridas interca
 | Escritorio | `857b05f` | 99 | 0,3 s | 0,8 s | 39 ms | 0,7 s | 0,047 |
 | Escritorio | rediseño | 98 | 0,5 s | 1,1 s | 0 ms | 0,7 s | 0,0003 |
 
+Peso del build tras integrar con dev (ADR-013, `feature/mision-redesign`, gzip):
+
+| Chunk | `9b32457` (rediseño) | Integración | Nota |
+|---|---|---|---|
+| JS inicial (`index-*.js`) | 112,0 KB | 122,2 KB | +10,3 (presupuesto +12): validador v3 del candidato, `domain/discovery`, mapa SVG sin WebGL, capa de requisitos y vistas de Misión |
+| CSS inicial | 15,3 KB | 17,1 KB | +1,8 |
+| Misión (`mission`, Ajv en runtime + `shared/mission`) | — | 52,4 KB | diferido: solo al entrar a Misión, enfocar el dock o «Evaluar este sector» |
+| «Tu misión» (`MissionPanel` + `ResultView` + controlador) | — | 8,3 + 5,9 + 4,1 KB | diferido |
+| Búsqueda y antecedentes v3 (`discoveryContracts`) | — | 9,1 KB | diferido: solo con el snapshot v3 |
+| Lectura (`deferred`) | 14,2 KB | 7,7 KB | sin lktron, tokens ni FNV |
+
+El chunk de entrada no contiene el compilador de Ajv; el canal lktron y el motor propio ya no existen. La tabla siguiente es la medición anterior a la integración.
+
 Peso del build (`vite build`, gzip):
 
 | Chunk | `857b05f` | 1161db6 | Ahora | Presupuesto |

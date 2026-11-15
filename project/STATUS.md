@@ -1,14 +1,63 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14, M8 publicado e IA verificada en dev (America/Santiago)
-**Responsable del checkpoint:** Codex
-**Milestone activo:** M8 aceptado y entregado. Claude espera nueva asignación.
+**Última actualización:** 2026-11-14, integración del rediseño con dev en `feature/mision-redesign` (Claude Code, pedido directo del usuario). Antes: M8 publicado e IA verificada en dev (Codex).
+**Responsable del checkpoint:** Claude Code (integración); Codex (M8).
+**Milestone activo:** M8 aceptado y entregado. Integración del rediseño lista en `feature/mision-redesign`, pendiente de publicar en dev.
 **Estado general:** planificador de ensayo/sector con motor determinista, snapshot científico v3 y Anthropic opcional funcionando en dev. Siete áreas con evidencia; faltan capas territoriales, contraste local y revisión experta de campo.
 
-## Integración en curso: rediseño Explorar/Misión sobre dev (Claude Code, rama feature/mision-redesign)
+## Integración del rediseño con dev (Claude Code, rama `feature/mision-redesign`, 2026-11-14)
 
-- **Fase F1 (este commit):** fusión de `origin/dev` (`92392f1`) en el rediseño, según `docs/INTEGRATION_PLAN.md`. Conflictos resueltos: la interfaz es la del rediseño; datos v3, contratos, `shared/`, `server/`, `api/` y CI del equipo entran sin cambios.
-- Pendiente en las fases siguientes: Explorar con v3 (REF fuera del ranking, filtro por país), Misión sobre el planificador del equipo, Lectura con la IA de Anthropic, retiro del motor propio y de lktron, ADR y documentación. Este bloque se reemplaza al cerrar la integración.
+**Pedido:** el usuario pidió «fusiona en dev y haz push» y decidió integrar: la interfaz es la del rediseño (ADR-010) y por dentro se usan el planificador determinista, la IA de Anthropic y los datos v3 del equipo (ADR-008, ADR-009). Plan: `docs/INTEGRATION_PLAN.md`; decisión: ADR-013 (propuesto). **El push a `dev` es un paso aparte; no se hizo en esta sesión.** Base: `origin/dev` `92392f1`, fusionado sin squash (merge `44feec6`).
+
+### Qué funciona
+
+- **Explorar v3:** 6 candidatos con su puesto global y la referencia conocida (Pampa Yungay) con rótulo «REF», nunca con número, en el carrusel, el globo, el riel, Comparar y la Lectura; filtro «Todos / Chile / Argentina» que conserva el puesto global; contorno CL+AR rotulado «Contorno referencial, no límite oficial»; globo centrado en las dos regiones; chip «Snapshot v3 · 6 candidatos · 1 REF · 7 ◆ por calcular»; promesa del producto en el carrusel. Ficha con pestaña **Origen** (bloque «Origen y antecedentes» del equipo), «Exportar ficha (JSON)» (`buildExport`) y «Evaluar este sector»; **Método** con «Cómo se buscaron» (50 ventanas, regiones, mapa SVG y enlaces auditables).
+- **Misión sobre el planificador del equipo:** un único controlador (chunk diferido) con `plannerReducer`, `evaluateMission`, `aiClient` y `buildMissionExport` sin cambios. «Tu misión» monta `PlannerView` (separado de `PlannerPanel`, que conserva su firma) en variante compacta. «Enviar» abre los requisitos con el brief y **no llama a la IA**; «Usar ejemplo», «Añadir requisito: …» (sin valor) y «Evaluar un sector…» como sugerencias. Tras confirmar y evaluar: carrusel agrupado por estado, globo con #puesto / ○ / ✕ / fuera del alcance (sin %), riel con la capa de requisitos (✓ ✕ ○, exigido, observado, motivo), líneas Tesla ordenadas por requisito, «Descargar JSON», «Imprimir informe» (un informe por página) y diagnóstico exportable fuera de cobertura. Editar tras evaluar invalida y aborta la IA en curso; los resultados quedan atenuados hasta reevaluar.
+- **Lectura en tres capas:** resultado (`MissionEvaluation`), motivos destacados (plantilla determinista sin ✦ o «✦ Destacar motivos con IA», validada por el reductor) y hechos del snapshot (sin el filtro `^cl-`, REF aparte, robustez de `analysis-summary.json`). En Explorar es «Lectura determinista», sin IA.
+- **Sin IA o en el ZIP:** recorrido manual completo; los botones de IA muestran «no disponible» y la exportación lleva `ai.draft` y `ai.explanation` en `null`.
+
+### Cómo ejecutarlo
+
+- `npm install`; `npm run dev` (IA local solo si hay `.env` con `ANTHROPIC_*`, ver `docs/AI_SETUP.md`).
+- Verificación completa: `PATH=/ruta/a/python311+:$PATH npm run verify` (pytest, `typecheck:server`, vitest y build).
+- Paquete: `npm run build && python scripts/package_release.py --zip <ruta>.zip --checksum <ruta>.zip.sha256`. `npm run release:package` sin flags escribe `submission/analogos-static.zip`.
+
+### Pruebas realizadas (2026-11-14)
+
+- `npm run verify`: **pytest 190 pasan, 4 omitidas** (requieren `data/raw`); `typecheck:server` correcto; **vitest 603 pasan, 2 omitidas** (IA real opt-in) en 52 archivos; build correcto.
+- Tests del equipo intactos: `aiServer`, `aiLive`, `missionEngine`, `missionGeometry`, `plannerState`, `plannerUi`, `missionFormat` y `tests/test_discovery.py` sin diferencias con `origin/dev`. En `discovery.test.tsx` solo cambió la ruta de `CandidateMap`; el bloque «ranking y ficha» se **portó** con los mismos textos a `features/places/PlaceRail.test.tsx` y `shell/detail/OriginSection.test.tsx`.
+- Nuevos: `MissionController`, `explanationToReading`, `facts`, `bundleParity` (bundle web = `loadTrustedBundle()` del servidor), `referenceNeverRanked`, `copy`, `OriginSection`, `contractFixtures` (catálogo ◆). Retirados: motor propio, lktron, NDJSON, tokens, FNV, pregenerado, paridad TS↔Python del motor propio y contratos lktron.
+- Smoke de `/api/ai` (`vite preview`, sin `.env`): GET → 405 `method_not_allowed`; POST `draft` → 503 `ai_unavailable` con `cache-control: no-store`.
+- Paquete en `/tmp/claude-rel/integ.zip` (no se tocó `submission/`): ver el bloque de cierre más abajo para el SHA final. Abierto bajo `/AnalogOS/` con toda red externa bloqueada: Explorar, Misión manual, IA «no disponible» y JSON exportado válido contra `mission-export.schema.json`. `file://` no está garantizado (ADR-004).
+- Navegador (Chrome, puerto 4601) en 1440×900 y 390×844: Explorar con REF y filtro, selección con riel y líneas, Origen, Método (50 ventanas), exportar ficha, paso a 2D, Misión sin clave (0 llamadas a `/api/ai` en el recorrido manual), evaluación, JSON, edición que invalida y punto fuera de cobertura con diagnóstico. **0 errores de la app en consola**; los únicos errores de recurso son 500 de teselas opcionales de NASA GIBS en 2D y los 404 de `/api/ai` en el servidor estático (esperados). Sin desborde horizontal en móvil.
+- Peso: chunk de entrada 122,2 KB gz (+10,3 frente a 112,0 en `9b32457`, dentro de +12); CSS inicial 17,1 KB gz (+1,8). El compilador de Ajv no está en el chunk de entrada: planificador, cliente de IA y `shared/mission/validate` van en el chunk diferido de misión (52,4 KB gz); búsqueda y antecedentes v3 en un chunk aparte (9,1 KB gz).
+- Invariantes: `git diff --quiet origin/dev` sobre artefactos v1/v2/v3, configs, contratos del equipo y el ZIP v2 → sin cambios; `shared/`, `server/`, `api/`, `tsconfig.server.json`, `vercel.json`, `.github/` y `check-vercel-function.mjs` → sin cambios; `package.json` raíz y `package-lock.json` idénticos; sin secretos ni `VITE_ANTHROPIC*`/`VITE_LKTRON*`.
+
+### Archivos cambiados (resumen)
+
+- Nuevos: `domain/{criteria,snapshotContracts,discoveryContracts,missionView,sensitivity}.ts`, `features/composer/{missionController.ts,printHost.tsx,PrintContent.tsx}`, `features/analysis/{facts,explanationToReading}.ts`, `components/planner/PlannerView.tsx`, `shell/actions.ts`, `shell/detail/OriginSection.tsx`, ADR-013 y los tests nombrados arriba.
+- Adaptados: carrusel, marcadores, riel, líneas, Lectura, composer, «Tu misión», ficha, Método, Comparar, arranque, `state/{mission,ui}.ts`, `loadDemoSnapshot` (validadores precompilados), `loadingHints` (precarga v3), `package_release.py`, `test_release_package.py`, `ResultView` (prop opcional `compact`), `PlannerPanel` (envoltorio).
+- Retirados: `features/engine/**`, `features/analysis/{lktron*,ndjson,eventGate,analysisTokens,TokenText,factIds,fnv,pregenerated,controller,readingStore,runtime,evidencePacket}`, `domain/{aiContracts,interpretationContract}.ts`, validadores `interpretation`/`mission`, `contracts/{mission-interpretation,evidence-packet,ai-analysis}.schema.json` con sus fixtures, `tests/{test_ai_contracts,test_engine_parity}.py`, `tests/fixtures/engine/`, `scripts/make_pregenerated_analysis.py`, `artifacts/analysis/`, y de dev `components/{CandidateDetails,CandidateRanking,CandidateGlobe,CandidateFlatMap,MapStage,LiquidNav}.tsx` y `breakdown/ScoreBreakdown.tsx`.
+
+### Decisiones nuevas
+
+- ADR-013 (propuesto): la UI del rediseño aloja el planificador; validadores precompilados en el chunk principal y Ajv en runtime solo en el de misión; Lectura en tres capas; sin llamadas automáticas a la IA; el flujo sin IA exige requisitos manuales («Usar ejemplo» a un clic).
+- ADR renumerados: escenario fijo 008→**010** (propuesto); recálculo en cliente 009→**011** y IA lktron 010→**012**, ambos **sustituidos** por ADR-009 del equipo.
+- Desviaciones del plan, explicadas: el controlador usa el mismo reductor sobre un store externo en lugar de `usePlanner` (evita un render de retraso en campos controlados; `usePlanner` queda intacto); el grupo «fuera del alcance» va visible y atenuado, no plegado (un listbox APG no admite grupos plegables); `aiContracts.test.ts` y `test_ai_contracts.py` se conservaron como `contractFixtures.test.ts` y `test_contract_fixtures.py` para no perder la cobertura del catálogo ◆; el ZIP se generó en `/tmp` por instrucción de la tarea.
+
+### Bloqueos reales
+
+- `submission/analogos-static.zip` (`eacf5dce…`) sigue siendo el de la UI de dev (`9060970`): hay que regenerarlo con `npm run release:package` al publicar esta integración.
+- El push a `dev` (que despliega en `analogos-dev.vercel.app` vía Actions) no se ejecutó en esta sesión. La verificación remota de la IA real queda para el equipo o para el paso de publicación.
+- ADR-010 y ADR-013 requieren aceptación humana.
+
+### Próximos tres pasos exactos
+
+1. `git fetch origin` y comprobar que `origin/dev` sigue en `92392f1` (o fusionar sus nuevos commits); regenerar `submission/analogos-static.zip` con `npm run release:package` y anotar el SHA.
+2. `git push origin HEAD:dev` desde `feature/mision-redesign` (fast-forward, sin `--force`) y seguir `gh run watch` del workflow `vercel-deploy.yml` (build, `check-vercel-function`, deploy y alias).
+3. En `analogos-dev.vercel.app` con sesión autorizada: «Proponer requisitos con IA» y «Destacar motivos con IA» reales, y exportar el JSON con `ai.draft` y `ai.explanation` presentes.
+
+**Handoff:** Codex puede retomar leyendo `prompts/RESUME_CODEX.md` y `project/STATUS.md` (este bloque), con `docs/INTEGRATION_PLAN.md` y ADR-013 como contexto de la integración.
 
 ## Entrega vigente — dev e IA real comprobados
 
