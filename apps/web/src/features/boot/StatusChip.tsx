@@ -4,12 +4,14 @@
  * counted if the published catalog is available; they are never invented.
  */
 import { useMemo } from 'react'
+import { useLocale } from '../../i18n'
 import { GLYPH } from '../../shell/public'
 import { classifyReferences, useReferenceAnalogs } from '../places'
 import { chipText } from './bootModel'
 import type { StatusChipProps } from './index'
 
 export function StatusChip({ data }: StatusChipProps) {
+  const locale = useLocale()
   const analogs = useReferenceAnalogs()
   const status = data.status === 'loading' ? 'loading' : data.snapshot ? 'ready' : 'error'
   // The ◆ items drawn as a card are counted: one that matches an evaluated sector goes as a
@@ -28,7 +30,7 @@ export function StatusChip({ data }: StatusChipProps) {
         evaluated: candidates ? candidates.filter((site) => site.role !== 'reference').length : 0,
         references: candidates ? candidates.filter((site) => site.role === 'reference').length : 0,
         pendingAnalogs: pending,
-      })}
+      }, locale)}
     </span>
   )
 }

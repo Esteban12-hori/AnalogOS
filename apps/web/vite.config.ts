@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { fileURLToPath, URL } from 'node:url'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from 'vite'
@@ -54,6 +55,11 @@ export default defineConfig({
   base: './',
   plugins: [react(), loadingHints(), aiDevApi(fileURLToPath(new URL('../..', import.meta.url)))],
   publicDir: fileURLToPath(new URL('../../artifacts', import.meta.url)),
+  test: {
+    // The app starts in English (ADR-017): every test file starts in 'en' and Spanish tests switch explicitly; the
+    // setup restores English after each test (docs/I18N.md §9).
+    setupFiles: ['./src/i18n/testSetup.ts'],
+  },
   server: {
     host: '127.0.0.1',
     fs: {

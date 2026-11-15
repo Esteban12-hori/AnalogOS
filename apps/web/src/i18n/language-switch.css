@@ -1,0 +1,51 @@
+/*
+ * EN | ES language selector (i18n/LanguageSwitch.tsx and its static copy in content/shell.ts).
+ * Compact pill next to the status; every option is ≥44 px wide and its invisible touch area ≥44 px high on coarse
+ * pointers, without changing the bar height (shell/stageGeometry.js). Visible focus ring from the shell tokens.
+ */
+.lang-switch {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .04);
+}
+.lang-option {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  min-height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  transition: color var(--dur-1) var(--ease-standard), background-color var(--dur-2) var(--ease-standard);
+}
+.lang-option:hover { color: var(--text); }
+.lang-option[aria-pressed="true"], .lang-option[data-selected] { background: var(--mode-thumb); color: #fff; }
+.lang-option:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+@media (pointer: coarse) {
+  .lang-option { min-width: 44px; }
+  .lang-option::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lang-option { transition: none; }
+}

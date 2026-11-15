@@ -1,3 +1,17 @@
+# EN | ES selector — base ready on `feature/es-selector` — Claude, 2026-11-15
+
+- **Request:** keep AnalogOS English by default and add a selector that allows Spanish. Decision recorded as **ADR-017 (proposed)**, compatible with ADR-016: English stays the source and the only record language; Spanish is presentation only. Branch `feature/es-selector` from `origin/dev` `f45315f` (English production + logo); not pushed; dev/main untouched.
+- **Works (base):** language store (`useSyncExternalStore`, default `en`, `?lang=` > localStorage > `en`, `<html lang>`), typed per-area catalogs with compile-time key/shape parity, UI formatters en-US/es-CL, accessible EN | ES selector in the top bar next to the logo, `<head>` script and Spanish static shell before React, record-text display with the frozen Spanish packs (`displayRecordText`, engine as oracle), science-text display (original Spanish in ES, sourceText/glosses in EN). Translated now: top bar, mode tabs, sheet head, left-panel label, App error/promise, boot log/chip/announcement, data credit, meta description.
+- **Not yet translated (parallel areas, `docs/I18N.md` §7):** ui-core (ficha, rail, places, metrics, leaders, globe/2D map, components), mission-ui (composer, Reading, planner, print, record display), ai-science (`language` field for AI drafts, geology card, science helpers adoption).
+- **How to run:** `PATH=/tmp/claude-venv314/bin:$PATH npm run verify`; `npm run dev` and open `/?lang=es` or use the EN | ES selector.
+- **Tests:** `npm run verify` green: 330 Python passed (5 skipped); web 941 passed, 3 opt-in skipped (baseline 899); server types and build passed. New: `apps/web/src/i18n/i18n.test.ts`, `recordText.test.ts`, `catalogParity.typecheck.ts`. Browser walk on the built app (port 4961): English by default, selector switches to Spanish, persists after reload, keyboard Enter back to English, focus kept, announcement “Idioma: Español”, static shell in Spanish with JS blocked (`?lang=es`), no horizontal overflow and no overlap of logo/tabs/selector at 360, 390, 430, 540, 761, 1024 and 1440 px in both languages; no page errors.
+- **Files changed:** `apps/web/src/i18n/*` (new base), `apps/web/src/i18n/messages/{shell,boot}.ts`, `apps/web/src/{App.tsx,content/shell.ts}`, `apps/web/src/shell/{AppShell.tsx,ModeTabs.tsx,attribution.ts,shell.css}`, `apps/web/src/features/boot/{bootModel.ts,BootLayer.tsx,StatusChip.tsx,loadingHints.ts}`, `apps/web/vite.config.ts`, `docs/I18N.md`, `docs/decisions/ADR-017-spanish-presentation-layer.md`, `project/STATUS.md`, `project/CHANGELOG.md`.
+- **New decisions:** ADR-017 (proposed). The wordmark leaves the bar at ≤540 px instead of ≤420 px so logo emblem, tabs and selector fit at 360 px. Records/exports byte-identical in EN and ES (tested). The AI client will send `language` only for Spanish.
+- **Blockers:** none. Cost: initial chunk +7.3 KB (gzip +2.4 KB); `index.html` +2.4 KB.
+- **Next three steps:** 1) run the three areas in parallel per `docs/I18N.md` §7 (ui-core, mission-ui, ai-science); 2) integrate them on `feature/es-selector`, full verify and a Spanish browser walk of Explore, Mission, Reading and print; 3) Codex review of ADR-017 before any publication.
+
+---
+
 # ENGLISH-DEFAULT completed in production — Codex, 2026-11-15
 
 - **Completed scope:** English application, accessibility, AI-generated prose, reports, product/technical/internal/historical documentation, code comments/help/errors and test descriptions. Complete `README.es.md` and explicitly Spanish submission alternatives retained. ADR-016 accepted.

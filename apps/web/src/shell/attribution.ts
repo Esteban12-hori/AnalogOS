@@ -4,6 +4,8 @@
  * handwritten that could fall out of sync with the snapshot. Pure function.
  */
 import type { DataManifest } from '../domain/contracts'
+import { getLocale, type Locale } from '../i18n/core'
+import { tShell } from '../i18n/messages/shell'
 
 /** Short name of each recognized source and its order in the line. */
 const KNOWN: ReadonlyArray<{ test: RegExp; label: string }> = [
@@ -33,7 +35,8 @@ export function dataAttribution(manifest: Pick<DataManifest, 'datasets'> | null 
   return labels.sort((a, b) => rank(a) - rank(b))
 }
 
-export function dataAttributionText(manifest: Pick<DataManifest, 'datasets'> | null | undefined): string | null {
+/** “Data: NASADEM · …” / “Datos: NASADEM · …”: source names are proper names and stay as they are. */
+export function dataAttributionText(manifest: Pick<DataManifest, 'datasets'> | null | undefined, locale: Locale = getLocale()): string | null {
   const labels = dataAttribution(manifest)
-  return labels.length ? `Data: ${labels.join(' · ')}` : null
+  return labels.length ? tShell.in(locale)('credit', { sources: labels.join(' · ') }) : null
 }

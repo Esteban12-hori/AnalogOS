@@ -1,6 +1,14 @@
 # Working changelog
 
 
+## 2026-11-15 Claude Code — EN | ES selector base (ADR-017, proposed)
+
+- English stays the default and the only record language; Spanish is a presentation layer. New `apps/web/src/i18n/` base: language store (`?lang=` > localStorage > en, `<html lang>`), typed catalogs with compile-time parity, en-US/es-CL UI formatters, accessible EN | ES selector in the top bar, `<head>` language script and Spanish static shell before React.
+- Record text shown in Spanish through the frozen 1.0.0 / geology v1 packs (`displayRecordText`), proven with the engine as oracle; exports and fingerprints identical in EN and ES. Artifact text shown in its original Spanish in ES (English renderings and glosses unchanged in EN).
+- Translated: top bar, mode tabs, sheet head, App states, boot log/chip/announcement, data credit, meta description. The wordmark now hides at ≤540 px (emblem always visible) so the selector fits at 360 px.
+- `npm run verify` green (330 Python; 941 web, 3 opt-in skipped); browser walk at 360–1440 px in both languages. Remaining areas (ui-core, mission-ui, ai-science) per `docs/I18N.md` §7.
+
+
 ## 2026-11-15 Claude Code — official AnalogOS logo
 
 - Top bar uses the official logo: the emblem (planet, ring and star) and the wordmark recolored for the dark UI ("Analog" light metallic, "OS" orange). Applied through CSS (`.brand-mark`, `.brand-text strong`), so the React top bar and the static pre-load shell match. Below 420 px only the emblem shows.

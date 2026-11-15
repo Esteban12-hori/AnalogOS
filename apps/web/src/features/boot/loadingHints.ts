@@ -10,10 +10,15 @@
  * - static shell inside #root (content/shell.ts), with the boot layer in
  *   stage.overlay: poster ≥1100 px (<picture>, mobile does not download it) or CSS silhouette, orbital
  *   ring, satellite and log of real milestones. It sits beneath the panels, as in React.
+ * - language (docs/I18N.md §8): the HTML is written in English; the <head> script sets <html lang>
+ *   (?lang= > localStorage > en) and a script right after #root applies another language to the texts marked
+ *   data-i18n before React (i18n/staticHtml.ts).
  */
 import { readFileSync } from 'node:fs'
 import type { HtmlTagDescriptor, Plugin } from 'vite'
-import { staticShellHtml } from '../../content/shell'
+import { staticShellHtml, staticShellText } from '../../content/shell'
+import { DEFAULT_LOCALE, LOCALES, type Locale } from '../../i18n/core'
+import { localeHeadScript, staticLocaleScript, type StaticDictionaries } from '../../i18n/staticHtml'
 import { dataAttributionText } from '../../shell/attribution'
 import { INTRO_SESSION_KEY } from './bootModel'
 import { FAVICON_DATA_URI } from './favicon'
@@ -36,14 +41,28 @@ export function inlineModule(source: string): string {
 const readModule = (path: string) => inlineModule(readFileSync(new URL(path, import.meta.url), 'utf8'))
 
 /** Attribution of the snapshot being published (same manifest the app loads); null if it cannot be read. */
-function snapshotCredit(): string | null {
+function snapshotCredit(locale: Locale): string | null {
   try {
     const snapshot = process.env.VITE_SNAPSHOT_PATH ?? 'science-v3'
     const manifest: unknown = JSON.parse(readFileSync(new URL(`../../../../../artifacts/${snapshot}/manifest.json`, import.meta.url), 'utf8'))
-    return dataAttributionText(manifest as Parameters<typeof dataAttributionText>[0])
+    return dataAttributionText(manifest as Parameters<typeof dataAttributionText>[0], locale)
   } catch {
     return null
   }
+}
+
+/**
+ * Dictionaries of the static shell for every language other than the English of the HTML. The data line keeps its
+ * pinned markup (no data-i18n): it is translated by selector.
+ */
+export function staticDictionaries(credit: (locale: Locale) => string | null = snapshotCredit): StaticDictionaries {
+  const out: StaticDictionaries = {}
+  for (const locale of LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue
+    const text = credit(locale)
+    out[locale] = { keys: staticShellText(locale), selectors: text ? { '.stage-data-credit': text } : {} }
+  }
+  return out
 }
 
 /**
@@ -61,6 +80,14 @@ export function bootHeadScript(geometrySource: string, layoutSource: string): st
     `try{if(new URLSearchParams(location.search).get("intro")==="full")m="full";else if(sessionStorage.getItem(${JSON.stringify(INTRO_SESSION_KEY)})!==null)m="quiet"}catch(e){}` +
     'd.setAttribute("data-boot",m)})()'
   )
+}
+
+/**
+ * Complete <head> script: first the language (<html lang> set before any other work), then the boot. localeHeadScript
+ * ends with “;”: without it, `(…)()\n(…)()` would be read as a call of the first IIFE's result.
+ */
+export function headScript(geometrySource: string, layoutSource: string): string {
+  return `${localeHeadScript()}\n${bootHeadScript(geometrySource, layoutSource)}`
 }
 
 /**
@@ -119,12 +146,15 @@ export function loadingHints(): Plugin {
         if (flat) tags.push({ tag: 'link', attrs: { rel: 'prefetch', href: `./${flat.fileName}` }, injectTo: 'head' })
         // Boot script after <title> (the charset stays within the first 1024 bytes) and before the
         // CSS and the module: it does not wait for the stylesheet and sets the first-frame variables.
-        const head = `<script>${bootHeadScript(readModule('../../shell/stageGeometry.js'), readModule('../../boot/posterLayout.js'))}</script>`
-        // Static shell inside #root: bar, dock, sheet and boot are painted with the HTML, before
-        // the JavaScript; React replaces it on mount with the same markup.
+        const head = `<script>${headScript(readModule('../../shell/stageGeometry.js'), readModule('../../boot/posterLayout.js'))}</script>`
+        // Static shell inside #root (English): bar, dock, sheet and boot are painted with the HTML, before
+        // the JavaScript; React replaces it on mount with the same markup. The script that follows #root applies
+        // another language (?lang=es or localStorage) before the first frame.
+        const shell = staticShellHtml({ posterUrl, credit: snapshotCredit(DEFAULT_LOCALE) ?? undefined, locale: DEFAULT_LOCALE })
         const out = html
-          .replace('</title>', `</title>\n    ${head}`)
-          .replace('<div id="root"></div>', `<div id="root">${staticShellHtml({ posterUrl, credit: snapshotCredit() ?? undefined })}</div>`)
+          // Replacement functions: a “$” in the texts is never read as a pattern.
+          .replace('</title>', () => `</title>\n    ${head}`)
+          .replace('<div id="root"></div>', () => `<div id="root">${shell}</div>\n    <script>${staticLocaleScript(staticDictionaries())}</script>`)
         return { html: out, tags }
       },
     },

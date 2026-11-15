@@ -65,7 +65,8 @@ body { min-height: 0; }
 /* «AnalogOS» con la palabra del logo adaptada a fondo oscuro; el nombre sigue en el h1 sr-only. */
 .brand-text strong { display: block; width: 154px; height: 16px; overflow: hidden; background: url('../assets/brand/logo-wordmark-dark.webp') no-repeat left center / contain; color: transparent; font-size: 0; }
 .brand-text small { color: var(--muted); font-size: var(--fs-min); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
-.topbar-status { justify-self: end; min-width: 0; overflow: hidden; }
+.topbar-end { display: flex; align-items: center; justify-content: flex-end; gap: 12px; justify-self: stretch; min-width: 0; }
+.topbar-status { flex: 0 1 auto; min-width: 0; overflow: hidden; }
 .status-chip { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; color: var(--muted); font-family: var(--mono); font-size: var(--fs-min); white-space: nowrap; }
 .status-chip[data-state="error"] { color: var(--error-text); }
 .status-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 10px rgba(2, 151, 222, .8); }
@@ -251,7 +252,9 @@ body { min-height: 0; }
 
 /* ---- Tramos ------------------------------------------------------------------------------ */
 @media (max-width: 1099px) {
-  .topbar { padding: 0 12px; grid-template-columns: auto minmax(0, 1fr) auto; }
+  /* Brand and status+language share the width on both sides of the centered tabs; the status text is cut with “…”
+     before it pushes the tabs (the language selector does not shrink). */
+  .topbar { padding: 0 12px; }
   .topbar .mode-tabs { justify-self: center; }
   .brand-text small { display: none; }
   .science-note { letter-spacing: .06em; }
@@ -262,12 +265,15 @@ body { min-height: 0; }
 }
 @media (max-width: 760px) {
   .topbar-status { display: none; }
-  .topbar { grid-template-columns: auto minmax(0, 1fr); }
+  .topbar { grid-template-columns: auto minmax(0, 1fr) auto; }
   .topbar .mode-tabs { justify-self: end; }
+  .topbar-end { justify-self: end; }
   .mode-tabs [role="tab"], .mode-tabs .mode-static { min-width: 0; padding: 0 12px; }
   .brand-text strong { width: 126px; height: 13px; }
 }
-@media (max-width: 420px) {
+/* With the language selector the wordmark leaves the bar earlier (the logo mark always stays): logo, tabs and
+   EN | ES fit down to 360 px in both languages. */
+@media (max-width: 540px) {
   .brand-text { display: none; }
 }
 

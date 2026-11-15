@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { loadDemoSnapshot } from './data/loadDemoSnapshot'
 import { loadVisualContext, type VisualContextState } from './data/loadVisualContext'
 import type { AppGeology } from './data/loadAppGeology'
+import { useLocale } from './i18n'
+import { tShell } from './i18n/messages/shell'
 import { LiquidBackdrop } from './liquid/LiquidGlass'
 import type { AppData } from './shell/appData'
 import { AppShell } from './shell/AppShell'
@@ -11,9 +13,10 @@ type SnapshotState = Pick<AppData, 'status' | 'snapshot' | 'error'>
 /**
  * Product promise (the same as the team planner, ADR-009): it prioritizes for
  * reconnaissance; it does not approve terrain. The shell shows it in the initial Explore state and
- * in the Mission header.
+ * in the Mission header. English source text; the interface shows tShell('app.promise') in the current language
+ * (i18n/i18n.test.ts checks that its English entry is exactly this text).
  */
-const PRODUCT_PROMISE =
+export const PRODUCT_PROMISE =
   'Prioritizes which sectors deserve reconnaissance for a rover test, with regional measurements and pending field checks. It does not measure traction or approve terrain.'
 
 /**
@@ -21,6 +24,10 @@ const PRODUCT_PROMISE =
  * visual context) and delivers the shell. The shell is drawn without waiting for the data.
  */
 function App() {
+  // Root subscription to the language (docs/I18N.md §3): the whole tree renders again when it changes. Components
+  // still subscribe themselves (useLocale/useT), because memoized children are not re-rendered by the root.
+  const locale = useLocale()
+  const t = tShell.in(locale)
   const [state, setState] = useState<SnapshotState>({ status: 'loading', snapshot: null, error: null })
   const [visual, setVisual] = useState<VisualContextState>({ status: 'loading' })
   const [geology, setGeology] = useState<AppGeology | undefined>(undefined)
@@ -80,15 +87,15 @@ function App() {
     return (
       <main className="system-state error-state">
         <LiquidBackdrop />
-        <span>✕ Data error</span>
-        <h1>We could not open the demo.</h1>
+        <span>{t('app.errorKicker')}</span>
+        <h1>{t('app.errorTitle')}</h1>
         <p role="alert">{state.error}</p>
-        <button type="button" onClick={() => window.location.reload()}>Retry</button>
+        <button type="button" onClick={() => window.location.reload()}>{t('app.retry')}</button>
       </main>
     )
   }
 
-  return <AppShell data={{ ...state, visual, geology }} promise={PRODUCT_PROMISE} />
+  return <AppShell data={{ ...state, visual, geology }} promise={t('app.promise')} />
 }
 
 export default App

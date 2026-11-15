@@ -19,6 +19,8 @@ import { ReadingPanel, ReadingPill } from '../features/analysis'
 import { useMission } from '../state/mission'
 import { searchWithMode, uiActions, uiStore, useUi } from '../state/ui'
 import { SHELL_TEXT } from '../content/shell'
+import { getLocale, LanguageSwitch, useLocale } from '../i18n'
+import { tShell } from '../i18n/messages/shell'
 import { geologyStateOf, isFixtureSnapshot, type AppData } from './appData'
 import { dataAttributionText } from './attribution'
 import { FullDetail, type DetailTab } from './detail/FullDetail'
@@ -87,10 +89,22 @@ function usePageHidden(): boolean {
   return hidden
 }
 
-const SCIENCE_NOTE = ['PRELIMINARY SCIENTIFIC SCREENING · REAL DATA · NOT A TERRAIN AUTHORIZATION', 'PRELIMINARY · NOT A TERRAIN AUTHORIZATION'] as const
-const FIXTURE_NOTE = ['TECHNICAL DEMO · SYNTHETIC DATA · NOT A SCIENTIFIC RESULT', 'DEMO · SYNTHETIC DATA'] as const
+/** Bar notice: [long version, short version] in the current language. */
+const scienceNote = (fixture: boolean): readonly [string, string] =>
+  fixture ? [tShell('fixtureNote'), tShell('fixtureNoteShort')] : [tShell('scienceNote'), tShell('scienceNoteShort')]
+
+/** <meta name="description"> follows the language (the static script sets it before React; this keeps it in sync). */
+function useMetaDescription(locale: string): void {
+  useEffect(() => {
+    const meta = typeof document === 'undefined' ? null : document.querySelector('meta[name="description"]')
+    if (meta) meta.setAttribute('content', tShell('meta.description'))
+  }, [locale])
+}
 
 export function AppShell({ data, promise }: { data: AppData; promise?: string }) {
+  // Language subscription: the shell and its children render again when it changes (docs/I18N.md §3).
+  const locale = useLocale()
+  useMetaDescription(locale)
   const layout = useViewportLayout()
   const { width, height, tramo, compact, sideSheet } = layout
   const narrow = tramo === 'narrow'
@@ -328,7 +342,8 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
   const heights = sheetDetentHeights(width, height)
   const stageInert = narrow && !sideSheet && detent === 'S2'
   const cssVars = useMemo(() => layoutCssVars(width, height), [width, height])
-  const credit = useMemo(() => dataAttributionText(snapshot?.manifest), [snapshot])
+  const credit = useMemo(() => dataAttributionText(snapshot?.manifest, locale), [snapshot, locale])
+  const note = scienceNote(fixture)
 
   return (
     <div
@@ -352,13 +367,17 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
           </span>
         </div>
         <ModeTabs mode={mode} unseen={revision > seenRevision} />
-        <div className="topbar-status" data-slot="topbar.status"><StatusChip data={data} /></div>
+        {/* Status + language on the right; below 760 px the status is hidden and the selector stays. */}
+        <div className="topbar-end">
+          <div className="topbar-status" data-slot="topbar.status"><StatusChip data={data} /></div>
+          <LanguageSwitch />
+        </div>
         <p className={`science-note${fixture ? ' is-fixture' : ''}`} role="note">
           <span aria-hidden="true" />
-          <span className="note-long">{(fixture ? FIXTURE_NOTE : SCIENCE_NOTE)[0]}</span>
+          <span className="note-long">{note[0]}</span>
           {/* The long version is removed from the tree with display:none on narrow screens; the short one
               replaces it for everyone (including screen readers). */}
-          <span className="note-short">{(fixture ? FIXTURE_NOTE : SCIENCE_NOTE)[1]}</span>
+          <span className="note-short">{note[1]}</span>
         </p>
       </header>
 
@@ -397,7 +416,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
       )}
 
       {tramo === 'wide' && mode === 'mision' && (
-        <aside className="left-panel" aria-label="Your mission and reading" data-obstacle="" data-focus={missionFocus ? 'mission' : 'reading'}>
+        <aside className="left-panel" aria-label={tShell.in(locale)('aria.leftPanel')} data-obstacle="" data-focus={missionFocus ? 'mission' : 'reading'}>
           <div data-slot="left.mission"><MissionCard data={data} placement="panel" promise={promise} /></div>
           <div data-slot="left.reading"><ReadingPanel data={data} placement="panel" /></div>
         </aside>
@@ -428,7 +447,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
           onDetentChange={changeDetent}
           heights={heights}
           side={sideSheet}
-          label={sheetReading ? 'Reading' : site ? placeLabel(site.name) : 'Places'}
+          label={sheetReading ? tShell.in(locale)('sheet.reading') : site ? placeLabel(site.name) : tShell.in(locale)('sheet.places')}
           labelledBy={tabId('mode', mode)}
           keyboardOpen={keyboardInset > 0}
           head={sheetHead({ detent, data, siteName: site ? placeLabel(site.name) : null, hasSelection: selection !== null, onDetent: changeDetent, readingBack: sheetReading })}
@@ -454,15 +473,20 @@ interface SheetPartsArgs {
   readingBack?: DetentId | null
 }
 
+/**
+ * Sheet head. Pure function (no hooks: tests call it directly); it reads the current language when called and
+ * AppShell, subscribed to the language, calls it again when it changes.
+ */
 export function sheetHead({ detent, data, siteName, hasSelection, onDetent, readingBack = null }: SheetPartsArgs): ReactNode {
   if (detent === 'S0') return null
+  const t = tShell.in(getLocale())
   if (detent === 'S2' && readingBack) {
     // Reading without ● (no selection or with ◆): going back or closing returns without clearing the selection.
     return (
       <>
-        <button type="button" className="sheet-back" onClick={() => onDetent(readingBack)}>← Back</button>
-        <h2 className="sheet-title" tabIndex={-1}>Reading</h2>
-        <button type="button" className="sheet-close" aria-label="Close Reading" onClick={() => onDetent(readingBack)}>
+        <button type="button" className="sheet-back" onClick={() => onDetent(readingBack)}>{t('sheet.back')}</button>
+        <h2 className="sheet-title" tabIndex={-1}>{t('sheet.reading')}</h2>
+        <button type="button" className="sheet-close" aria-label={t('sheet.closeReading')} onClick={() => onDetent(readingBack)}>
           {GLYPH.fail}
         </button>
       </>
@@ -471,10 +495,10 @@ export function sheetHead({ detent, data, siteName, hasSelection, onDetent, read
   return (
     <>
       {detent === 'S2' && (
-        <button type="button" className="sheet-back" onClick={() => onDetent('S1')}>← Back</button>
+        <button type="button" className="sheet-back" onClick={() => onDetent('S1')}>{t('sheet.back')}</button>
       )}
       <h2 className="sheet-title" tabIndex={-1}>
-        {siteName ? <><span aria-hidden="true">{GLYPH.evaluated}</span> {siteName}</> : hasSelection ? 'World reference' : 'Places'}
+        {siteName ? <><span aria-hidden="true">{GLYPH.evaluated}</span> {siteName}</> : hasSelection ? t('sheet.worldReference') : t('sheet.places')}
       </h2>
       {detent === 'S1' && siteName && (
         <>
@@ -489,13 +513,13 @@ export function sheetHead({ detent, data, siteName, hasSelection, onDetent, read
               }}
             />
           </span>
-          <button type="button" className="sheet-more" onClick={() => onDetent('S2')}>Details</button>
+          <button type="button" className="sheet-more" onClick={() => onDetent('S2')}>{t('sheet.details')}</button>
         </>
       )}
       <button
         type="button"
         className="sheet-close"
-        aria-label={hasSelection ? 'Close the place' : 'Back to the tray'}
+        aria-label={hasSelection ? t('sheet.closePlace') : t('sheet.backToTray')}
         onClick={() => {
           if (hasSelection) uiActions.clearSelection()
           onDetent('S0')

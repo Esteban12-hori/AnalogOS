@@ -13,6 +13,7 @@
  */
 import { lazy, Suspense, useEffect, useLayoutEffect, useReducer, useRef, useState, type CSSProperties } from 'react'
 import { bootPoster, GLOBE_POSTER } from '../../data/preload'
+import { useLocale } from '../../i18n'
 import { announce, stageTramo, useViewportLayout } from '../../shell/public'
 import { useStore } from '../../state/store'
 import { uiActions } from '../../state/ui'
@@ -66,6 +67,7 @@ function initialMode(): IntroMode {
 }
 
 export function BootLayer({ data }: BootLayerProps) {
+  const locale = useLocale()
   const { width, height } = useViewportLayout()
   const milestones = useBootMilestones()
   const posterHidden = useStore(bootPoster, (state) => state.hidden)
@@ -140,8 +142,8 @@ export function BootLayer({ data }: BootLayerProps) {
   useEffect(() => {
     if (announced.current || milestones.snapshot !== 'ok' || !version) return
     announced.current = true
-    announce(snapshotAnnouncement(version, evaluated, references))
-  }, [milestones.snapshot, version, evaluated, references])
+    announce(snapshotAnnouncement(version, evaluated, references, locale))
+  }, [milestones.snapshot, version, evaluated, references, locale])
 
   useEffect(() => {
     if (orbitRequested) setWaitOrbit(true)
@@ -165,7 +167,7 @@ export function BootLayer({ data }: BootLayerProps) {
           )}
           {phase !== 'done' && mode !== 'quiet' && (
             <ul className="boot-log">
-              {bootLines(milestones, version, elapsed).map((line) => (
+              {bootLines(milestones, version, elapsed, locale).map((line) => (
                 <li key={line.id} data-s={line.state}><span>{LINE_GLYPH[line.state]}</span>{line.text}</li>
               ))}
             </ul>

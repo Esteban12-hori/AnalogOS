@@ -5,6 +5,8 @@
  * only reflect real milestones reported by the shell.
  */
 import { posterLayout } from '../../boot/posterLayout.js'
+import { getLocale, type Locale } from '../../i18n/core'
+import { tBoot } from '../../i18n/messages/boot'
 import { baseStageInsets } from '../../shell/stageGeometry.js'
 
 export type BootMilestone = 'snapshot' | 'globe' | 'texture'
@@ -111,13 +113,6 @@ export interface BootLine {
 
 export const LINE_GLYPH: Readonly<Record<LineState, string>> = { ok: '✓', run: '•', wait: '·', fail: '✕' }
 
-/** [name, in progress, completed, failed] of each milestone. */
-const LINE_TEXT: Readonly<Record<BootMilestone, readonly [string, string, string, string]>> = {
-  snapshot: ['Scientific snapshot', 'validating', 'validated', 'could not be validated'],
-  globe: ['3D globe', 'loading', 'ready', 'not available · local SVG map'],
-  texture: ['Sharp NASA Blue Marble image', 'loading', 'ready', 'not available'],
-}
-
 /** "science-screening-v2" → "v2". If there is no version suffix, the full version. */
 export function snapshotLabel(version: string | null | undefined): string | null {
   if (!version) return null
@@ -127,18 +122,25 @@ export function snapshotLabel(version: string | null | undefined): string | null
 /**
  * Log lines built from real milestones. `elapsedS` (seconds since navigation) is
  * appended to the in-progress lines when the orbit has already stopped. The sharp image waits for the globe.
+ * Texts: i18n/messages/boot.ts (name, in progress, completed and failed of each milestone).
  */
-export function bootLines(milestones: Milestones, version: string | null = null, elapsedS: number | null = null): BootLine[] {
+export function bootLines(
+  milestones: Milestones,
+  version: string | null = null,
+  elapsedS: number | null = null,
+  locale: Locale = getLocale(),
+): BootLine[] {
+  const t = tBoot.in(locale)
   const label = snapshotLabel(version)
   return (['snapshot', 'globe', 'texture'] as const).map((id): BootLine => {
-    const [name, run, ok, fail] = LINE_TEXT[id]
+    const name = t(`${id}.name`)
     const status = milestones[id]
     if (id === 'texture' && status === 'pending' && milestones.globe !== 'ok') {
-      return { id, state: 'wait', text: milestones.globe === 'error' ? `${name} · no 3D globe` : name }
+      return { id, state: 'wait', text: milestones.globe === 'error' ? `${name} · ${t('texture.noGlobe')}` : name }
     }
-    if (status === 'ok') return { id, state: 'ok', text: `${name}${id === 'snapshot' && label ? ` ${label}` : ''} · ${ok}` }
-    if (status === 'error') return { id, state: 'fail', text: `${name} · ${fail}` }
-    return { id, state: 'run', text: `${name} · ${run}${elapsedS !== null ? ` · ${elapsedS} s` : ''}` }
+    if (status === 'ok') return { id, state: 'ok', text: `${name}${id === 'snapshot' && label ? ` ${label}` : ''} · ${t(`${id}.ok`)}` }
+    if (status === 'error') return { id, state: 'fail', text: `${name} · ${t(`${id}.fail`)}` }
+    return { id, state: 'run', text: `${name} · ${t(`${id}.run`)}${elapsedS !== null ? ` · ${elapsedS} s` : ''}` }
   })
 }
 
@@ -161,27 +163,29 @@ export interface ChipInput {
  * "Snapshot v3 · 6 candidates · 1 REF · 7 ◆ to be computed" (with references, ADR-008) or
  * "Snapshot v2 · 3 evaluated · 8 to be computed" (historical). Without a ◆ catalog, it is not mentioned.
  */
-export function chipText({ status, version, evaluated, references = 0, pendingAnalogs }: ChipInput): string {
-  if (status === 'loading') return 'Loading validated snapshot…'
-  if (status === 'error') return 'Snapshot not available'
+export function chipText({ status, version, evaluated, references = 0, pendingAnalogs }: ChipInput, locale: Locale = getLocale()): string {
+  const t = tBoot.in(locale)
+  if (status === 'loading') return t('chip.loading')
+  if (status === 'error') return t('chip.error')
   const label = snapshotLabel(version)
   const parts = [`Snapshot${label ? ` ${label}` : ''}`]
   if (references > 0) {
-    parts.push(`${evaluated} ${evaluated === 1 ? 'candidate' : 'candidates'}`, `${references} REF`)
-    if (pendingAnalogs !== null && pendingAnalogs > 0) parts.push(`${pendingAnalogs} ◆ not yet calculated`)
+    parts.push(t('chip.candidates', { count: evaluated }), `${references} REF`)
+    if (pendingAnalogs !== null && pendingAnalogs > 0) parts.push(t('chip.pendingAnalogs', { count: pendingAnalogs }))
   } else {
-    parts.push(`${evaluated} evaluated`)
-    if (pendingAnalogs !== null && pendingAnalogs > 0) parts.push(`${pendingAnalogs} not yet calculated`)
+    parts.push(t('chip.evaluated', { count: evaluated }))
+    if (pendingAnalogs !== null && pendingAnalogs > 0) parts.push(t('chip.pending', { count: pendingAnalogs }))
   }
   return parts.join(' · ')
 }
 
 /** Single announcement when the snapshot is validated: "6 candidates and 1 known reference". */
-export function snapshotAnnouncement(version: string, evaluated: number, references: number): string {
+export function snapshotAnnouncement(version: string, evaluated: number, references: number, locale: Locale = getLocale()): string {
+  const t = tBoot.in(locale)
   const counted = references > 0
-    ? `${evaluated} ${evaluated === 1 ? 'candidate' : 'candidates'} and ${references} ${references === 1 ? 'known reference' : 'known references'}`
-    : `${evaluated} ${evaluated === 1 ? 'evaluated place' : 'evaluated places'}`
-  return `Scientific snapshot ${snapshotLabel(version)} validated: ${counted}.`
+    ? t('announce.candidatesAndReferences', { candidates: t('announce.candidates', { count: evaluated }), references: t('announce.references', { count: references }) })
+    : t('announce.evaluated', { count: evaluated })
+  return t('announce.validated', { version: snapshotLabel(version) ?? version, counted })
 }
 
 // ---- Orbit geometry -------------------------------------------------------------
