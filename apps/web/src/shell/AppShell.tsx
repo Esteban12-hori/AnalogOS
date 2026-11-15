@@ -1,5 +1,5 @@
 /**
- * Armazón del escenario fijo (ADR-008, docs/UX_REDESIGN.md §2.1 y §3.8).
+ * Armazón del escenario fijo (ADR-010, docs/UX_REDESIGN.md §2.1 y §3.8).
  *
  *   centro = dónde (escenario + líneas) · derecha = el lugar (riel) ·
  *   izquierda = tu misión y por qué (≥1440, Misión) · abajo = elegir y escribir (dock).
@@ -9,7 +9,7 @@
  * integrador: los constructores no lo editan.
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Composer, focusComposer, MissionCard, MissionPrintHost, registerMissionSnapshot, withController } from '../features/composer'
+import { Composer, focusComposer, MissionCard, MissionPrintHost, registerMissionSnapshot, useMissionOpenRequest, withController } from '../features/composer'
 import { BootLayer, reportBootMilestone, StatusChip } from '../features/boot'
 import { MapStage, type StageMilestone } from '../features/globe'
 import { LeaderLayer, LeaderToggle } from '../features/leaders'
@@ -95,6 +95,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
   const keyboardInset = useKeyboardInset(narrow)
   const pageHidden = usePageHidden()
   const root = useRef<HTMLDivElement>(null)
+  const changeDetentRef = useRef<(next: DetentId) => void>(() => undefined)
   const snapshot = data.snapshot
   const site = selection?.kind === 'evaluated' ? snapshot?.candidates.find((item) => item.site_id === selection.siteId) ?? null : null
 
@@ -107,6 +108,15 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
       if (mission.getState().journey === null) mission.dispatch({ type: 'set_journey', journey: 'test' })
     })
   }, [mode, data.status])
+
+  // «Evaluar este sector» o «Enviar» piden abrir «Tu misión»: en la hoja móvil vive en la bandeja S0.
+  const openRequest = useMissionOpenRequest()
+  const seenOpenRequest = useRef(openRequest)
+  useEffect(() => {
+    if (openRequest === seenOpenRequest.current) return
+    seenOpenRequest.current = openRequest
+    if (narrow) changeDetentRef.current('S0')
+  }, [openRequest, narrow])
 
   // ---- Modo: ?modo= con replaceState y punto de resultados nuevos -------------------------
   useEffect(() => {
@@ -141,6 +151,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
     }
     setDetent(next)
   }, [])
+  changeDetentRef.current = changeDetent
   useEffect(() => {
     if (detent === 'S2' && narrow && !pushed.current) {
       window.history.pushState({ ...(window.history.state ?? {}), analogosSheet: 'S2' }, '')

@@ -204,7 +204,12 @@ function ResultLayer({ model }: { model: ReadingModel['result'] }) {
                   {option.rank !== null ? `#${option.rank} ` : ''}{option.name}{option.role === 'reference' ? ' · REF' : ''}
                 </button>
                 {option.blockers.length > 0 && <span className="analysis-muted"> — {option.blockers.join(' · ')}</span>}
-                {option.whatWouldChange.length > 0 && <span className="analysis-muted"> · Cambiaría: {option.whatWouldChange.join(' · ')}</span>}
+                {option.whatWouldChange.length > 0 && (
+                  <details className="analysis-details analysis-change">
+                    <summary>Qué evidencia cambiaría la decisión · {option.whatWouldChange.length}</summary>
+                    <ul className="analysis-list">{option.whatWouldChange.map((item) => <li key={item}>{item}</li>)}</ul>
+                  </details>
+                )}
               </li>
             ))}
           </ul>

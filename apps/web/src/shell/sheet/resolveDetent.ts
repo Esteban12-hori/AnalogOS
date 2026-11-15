@@ -1,5 +1,5 @@
 /**
- * Decide el detent de destino al soltar la hoja (ADR-008). Función pura.
+ * Decide el detent de destino al soltar la hoja (ADR-010). Función pura.
  *
  * - Cancelación: pointercancel, entrada no finita o movimiento menor que el umbral de arrastre
  *   (DETENT_SLOP_PX sin velocidad) → vuelve al detent de origen.

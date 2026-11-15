@@ -376,8 +376,9 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
           )}
         </div>
       </div>
-      {note && <p className="places-note" title={note}>{note}</p>}
-      {fromMission && missionEvaluation.outcome !== 'evaluated' && <DiagnosisNote evaluation={missionEvaluation} />}
+      {fromMission && missionEvaluation.outcome !== 'evaluated'
+        ? <DiagnosisNote evaluation={missionEvaluation} />
+        : note && <p className="places-note" title={note}>{note}</p>}
       <div
         ref={track}
         id={listboxId}

@@ -1,4 +1,4 @@
-// Geometría base del escenario (ADR-008). JavaScript plano y sin imports: el plugin
+// Geometría base del escenario (ADR-010). JavaScript plano y sin imports: el plugin
 // loadingHints lo incrusta en index.html para ubicar el póster del globo antes de React.
 // Fuente única de las alturas reservadas: shell/shell.css debe usar los mismos valores
 // (lo verifica tests/shell.test.ts). Archivo del integrador.

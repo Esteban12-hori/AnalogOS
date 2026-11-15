@@ -1,5 +1,5 @@
 /*
- * Escenario de fondo: el globo/mapa ocupa todo el viewport detrás del armazón (ADR-008).
+ * Escenario de fondo: el globo/mapa ocupa todo el viewport detrás del armazón (ADR-010).
  * Las variables --inset-* (márgenes asentados de la UI) las fija MapStage desde sus props:
  * la leyenda, los controles y el chip «Centrar en» se ubican en el área libre.
  * Sin blur: marcadores, etiquetas y chips usan --marker-bg (§2.4).

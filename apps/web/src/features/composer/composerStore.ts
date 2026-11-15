@@ -40,3 +40,8 @@ export const composerStore = createStore<ComposerState>(initialComposerState())
 export function useComposer<T>(selector: (state: ComposerState) => T): T {
   return useStore(composerStore, selector)
 }
+
+/** Pedidos de abrir «Tu misión» (el armazón lleva la hoja móvil a S0, donde vive el composer). */
+export function useMissionOpenRequest(): number {
+  return useStore(composerStore, (state) => state.openRequest)
+}

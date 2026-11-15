@@ -1,5 +1,5 @@
 /*
- * Armazón del escenario fijo (ADR-008). Archivo del integrador.
+ * Armazón del escenario fijo (ADR-010). Archivo del integrador.
  * Alturas reservadas = shell/stageGeometry.js (lo verifica tests/shell.test.ts):
  *   --topbar-h 52/56 px · --banner-h 22 px · --gap 12 px · --dock-h 256/218 px ·
  *   --sheet-s0 248/216 px · --left-w 360 px · --rail-full-w 520 px.

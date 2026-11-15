@@ -106,3 +106,19 @@
   .analysis-bar > span, .analysis { transition: none; }
 }
 @keyframes analysis-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Lectura integrada (ADR-013): capas separadas, botón explícito de IA y grupos del resultado. */
+.analysis-layer { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid var(--line); }
+.analysis-layer > h3 { margin: 0; }
+.analysis-source.is-ai { color: var(--ice); }
+.analysis-group { display: grid; gap: 2px; }
+.analysis-group .analysis-list { margin: 0; }
+.analysis-change { margin: 2px 0 4px; }
+.analysis-change > summary { color: var(--muted); font-size: var(--fs-min); }
+.analysis-ai { display: grid; gap: 6px; padding: 10px 0; border-top: 1px solid var(--line); }
+.analysis-ai-button { justify-self: start; min-height: 34px; padding: 0 14px; border: 1px solid var(--ai-rule, var(--line-strong)); border-radius: 999px; background: transparent; color: var(--text); cursor: pointer; font: inherit; font-size: var(--fs-12); font-weight: 650; }
+.analysis-ai-button:hover { border-color: var(--sel-line); }
+.analysis-ai-button:focus-visible, .analysis-link:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+li[data-status="no_cumple"] > b { color: var(--text); }
+li[data-status="no_evaluable"] > b { color: var(--pending); }
+li[data-status="cumple"] > b { color: var(--earth-bright); }

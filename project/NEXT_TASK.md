@@ -1,3 +1,11 @@
+# Decisión directa del usuario — integración del rediseño con dev (2026-11-14)
+
+- **Pedido:** el usuario pidió directamente a Claude Code «fusiona en dev y haz push» y decidió integrar: la interfaz es la del rediseño (`feature/mision-redesign`, ADR-010) y por dentro se usan el planificador determinista, la IA de Anthropic y los datos v3 del equipo (ADR-008, ADR-009). Registrado en ADR-013 y `docs/INTEGRATION_PLAN.md`.
+- **Alcance ejecutado en `feature/mision-redesign`:** fusión sin squash de `origin/dev` (`92392f1`), adaptación de las features, retiro del motor propio y del canal lktron, renumeración de ADR (010–013) y documentación. Sin cambios en `shared/`, `server/`, `api/`, artefactos científicos, contratos M8 ni CI.
+- **Pendiente:** el push a `dev` es un paso aparte autorizado por el usuario; la aceptación de ADR-010 y ADR-013 corresponde al equipo humano. El encargo M8 de Codex de abajo sigue aceptado y no se modifica.
+
+---
+
 # Encargo vigente — definir una prueba o evaluar un sector
 
 ## Estado

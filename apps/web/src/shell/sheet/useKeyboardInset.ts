@@ -1,5 +1,5 @@
 /**
- * Teclado virtual en móvil (ADR-008): VisualViewport → `--kb-inset` en <html>, sin
+ * Teclado virtual en móvil (ADR-010): VisualViewport → `--kb-inset` en <html>, sin
  * `interactive-widget`. El composer sube con el teclado y el carrusel se pliega.
  */
 import { useEffect, useState } from 'react'

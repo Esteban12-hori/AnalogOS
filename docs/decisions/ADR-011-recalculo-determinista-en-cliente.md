@@ -1,7 +1,13 @@
-# ADR-009 — Recálculo determinista en el cliente para perfiles de misión
+# ADR-011 — Recálculo determinista en el cliente para perfiles de misión
 
-- Estado: propuesto (2026-11-14). Requiere aceptación del equipo científico.
-- Fecha: 2026-11-14
+- Estado: **sustituido por ADR-009** (recomendación guiada del equipo: requisitos confirmados, `evaluateMission` y similitud v3 sin recalcular; prohíbe volver a ponderar). No se integra; se conserva como registro de la decisión descartada. Antes: propuesto (2026-11-14), numerado ADR-009 en la rama del rediseño.
+- Fecha: 2026-11-14 (sustitución: 2026-11-14, ADR-013)
+
+> **Sustituido.** Al integrar con dev (ADR-013) se retiraron `features/engine` (port de
+> `aggregate`, niveles, pesos de misión, perfiles predefinidos, coincidencia DEMO) y su prueba de
+> paridad con `pipelines/scoring.py`. Misión ya no calcula ningún %: muestra el estado, el puesto de
+> la evaluación, las preferencias cumplidas y la similitud v3 tal cual. El texto siguiente se
+> conserva sin cambios como registro.
 - Relación: `docs/UX_REDESIGN.md` §3.2, §5.1, §5.6 y §7.1 (incremento 8). No modifica el perfil P0 ni el snapshot v2: los recálculos son vistas «según tu perfil», rotuladas `needs_calibration`.
 
 ## Contexto

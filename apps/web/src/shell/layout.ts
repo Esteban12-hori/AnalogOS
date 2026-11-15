@@ -1,5 +1,5 @@
 /**
- * Layout del escenario fijo (ADR-008, docs/UX_REDESIGN.md §2.1). Funciones puras: tramo,
+ * Layout del escenario fijo (ADR-010, docs/UX_REDESIGN.md §2.1). Funciones puras: tramo,
  * anchos de paneles, alturas de la hoja y márgenes del escenario según el estado.
  */
 import type { StageInsets, UiMode } from '../state/ui'

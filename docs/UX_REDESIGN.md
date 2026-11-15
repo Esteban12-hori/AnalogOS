@@ -6,6 +6,17 @@ Este documento sintetiza las 8 propuestas. Las cifras están verificadas contra 
 
 Las URLs de 21st son las que citan las propuestas. Sus `.md` públicos solo traen metadatos, porque el código exige API key. Por eso se adoptan patrones, no código.
 
+> **Integración con dev (2026-11-14, ADR-013).** La interfaz descrita aquí (escenario fijo, globo con
+> paso a 2D, ●◆○, carrusel, líneas Tesla, riel, composer, Lectura, «Órbita honesta», hoja móvil) es la
+> interfaz vigente, ahora sobre el snapshot científico **v3 Chile–Argentina** del equipo (ADR-008:
+> Yungay es referencia conocida, «REF», fuera del ranking) y sobre su **planificador** (ADR-009:
+> requisitos confirmados, `evaluateMission`, exportación JSON, IA de Anthropic solo en el servidor).
+> Quedan **sustituidos**: el recálculo por pesos en el cliente (ADR-011, antes ADR-009), el canal lktron
+> y los contratos de §5 (ADR-012, antes ADR-010), los perfiles predefinidos, la coincidencia «DEMO · sin
+> IA» y la prosa pregenerada. Misión ya no calcula ningún %: muestra estados, puestos de la evaluación,
+> preferencias cumplidas y la similitud v3 sin recalcular. El detalle de la integración está en
+> `docs/INTEGRATION_PLAN.md`; las secciones afectadas llevan una nota.
+
 ---
 
 ## 0. Decisiones principales
@@ -21,13 +32,14 @@ Las URLs de 21st son las que citan las propuestas. Sus `.md` públicos solo trae
 5. **Loading WOW = «Órbita honesta».** El planeta es el loader y solo marca hitos reales. La misma órbita vuelve mientras la IA interpreta.
 6. **Color con significado fijo.** Naranja = Marte como dato (Jezero). Selección = hielo + azul. Error = neutro con ✕. Glifos: ■ = Jezero, ◆ = análogo emblemático.
 7. **Ningún bucle dura más de 4,8 s.** Ningún número se interpola ni cuenta.
-8. **La IA escribe marcadores `{{id}}`, nunca dígitos.** El motor determinista produce toda cifra, todo orden y toda postura («mejor de 3», «limitante», etc.).
-9. **Misión funciona sin red:** perfiles predefinidos, coincidencia por palabras clave rotulada «DEMO · sin IA» y análisis pregenerado. lktron es una mejora opcional.
+8. **La IA nunca produce cifras ni ordena.** *(Tras ADR-013: la IA del equipo solo propone requisitos sin confirmar o selecciona IDs de la evaluación; el motor determinista del equipo produce toda cifra, todo orden y todo estado.)*
+9. **Misión funciona sin red.** *(Tras ADR-013: requisitos manuales o «Usar ejemplo», confirmación y evaluación determinista locales; la IA es una mejora opcional con botón explícito. Ya no hay perfiles predefinidos, «DEMO · sin IA» ni prosa pregenerada.)*
 10. **0 dependencias npm nuevas.** Presupuesto: +≤12 KB gz en el chunk principal, ≤2 KB gz en línea en el HTML, el resto diferido.
-11. **ADR nuevos** en `docs/decisions/`:
-    - ADR-008: escenario fijo y hoja.
-    - ADR-009: recálculo determinista en cliente para perfiles de misión.
-    - ADR-010: IA opcional, fuera del flujo central.
+11. **ADR** en `docs/decisions/` (renumerados al integrar con dev, que ya ocupaba ADR-008 y ADR-009):
+    - ADR-010: escenario fijo y hoja (antes ADR-008; propuesto).
+    - ADR-011: recálculo determinista en cliente para perfiles de misión (antes ADR-009; **sustituido por ADR-009 del equipo**).
+    - ADR-012: IA opcional, fuera del flujo central (antes ADR-010; **sustituido por ADR-009 §7–9**).
+    - ADR-013: integración del rediseño con el planificador, los datos v3 y la IA del equipo (propuesto).
     - (propuesta) MapLibre globe como motor único, después de la hackatón.
 
 ---
@@ -260,6 +272,14 @@ Si no hay vuelo (el usuario movió la cámara, o hay reduced motion), todo apare
 
 ### 3.2 Barra de misión: opción A (dock con perfil estructurado y editable)
 
+> **Tras ADR-013.** El dock es una capa sobre el planificador del equipo: «Enviar» abre «Tu misión» en
+> el paso de requisitos con el brief cargado (hasta 3000 caracteres) y **no llama a la IA**. «Tu misión»
+> monta `RequirementEditor`, `ScopePicker`, `ConfirmSummary` y `ResultView` compacto del equipo. Los
+> chips «Refinar» son «Usar ejemplo», «Añadir requisito: pendiente / rugosidad / relieve / suelo
+> desnudo / área / país» (sin valor) y «Evaluar un sector…». La espera solo existe con «Proponer
+> requisitos con IA»: órbita, contador a los 3 s, aviso a los 10 s y «Cancelar» (corte del cliente a
+> los 45 s). Lo que sigue describe la versión anterior con niveles y pesos, ya sustituida.
+
 **Qué se construye:**
 - Es la fila inferior del dock.
 - **En Explorar:** una píldora «✦ Describe el trabajo que quieres probar para Marte…», que también se abre con la tecla «/».
@@ -366,6 +386,13 @@ Si no hay vuelo (el usuario movió la cámara, o hay reduced motion), todo apare
 **21st:** [kpi-tile](https://21st.dev/@konsstepnov/components/kpi-tile.md) · [stat-card](https://21st.dev/@aadixc0de/components/stat-card.md) · [insight-cards](https://21st.dev/@arihantcodes_1f7b8c4d/components/insight-cards.md) · [financial-score-cards](https://21st.dev/@designali-in/components/financial-score-cards.md) · [orbit-ring-stats](https://21st.dev/@ham7a311/components/orbit-ring-stats.md) · [paired-bars](https://21st.dev/@eugeneshilow/components/paired-bars.md) · [spec-sheet](https://21st.dev/@isaiahbjork/components/spec-sheet.md) · [energy-meter](https://21st.dev/@thegridcn/components/energy-meter.md) · [interfaces-carousel/vertical](https://21st.dev/@jshguo/components/interfaces-carousel/vertical.md)
 
 ### 3.7 Análisis IA: opción B («Hechos primero + texto citado»), con la opción C como superficie secundaria
+
+> **Tras ADR-013.** La Lectura tiene tres capas separadas: **resultado** (`MissionEvaluation`, «Cálculo
+> determinista · reglas mission-rules-1.0.0 · similitud v3 sin recalcular»), **motivos destacados**
+> (plantilla determinista sin ✦; con «✦ Destacar motivos con IA», la selección de Anthropic validada por
+> el reductor) y **hechos del snapshot** (dirección frente a Jezero, limitante, satura, valor compartido,
+> mejor de N sin la REF, robustez de `analysis-summary.json`). En Explorar es «Lectura determinista», sin
+> IA. No hay llamadas automáticas, tokens `{{id}}` ni texto pregenerado.
 
 **Cómo funciona.** Primero aparece al instante una capa de hechos, determinista y sin red. Encima llega el texto de la IA, con fichas cuyas cifras resuelve la UI.
 
@@ -618,6 +645,13 @@ El revelado posterior sigue la coreografía A: onda, atmósfera, contorno de Chi
 ---
 
 ## 5. Contrato de la IA para lktron y reparto entre motor e IA
+
+> **Sustituido (ADR-012 → ADR-009 §7–9, integración ADR-013).** Los contratos de esta sección
+> (`mission-interpretation/1`, `evidence-packet/1`, `ai-analysis/1`) y el canal lktron se retiraron.
+> El contrato vigente es `contracts/mission-ai.schema.json` del equipo, con `server/ai` (Anthropic,
+> clave solo en el servidor) y `apps/web/src/mission/aiClient.ts`: la IA propone requisitos sin
+> confirmar o elige IDs de una evaluación ya calculada; el cliente acepta la selección solo si las
+> huellas coinciden y `checkSelection` pasa. Se conserva el texto como registro.
 
 ### 5.1 Flujo
 

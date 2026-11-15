@@ -1,8 +1,8 @@
-# ADR-008 — Escenario fijo (100dvh) con dock, riel y una sola hoja de 3 detents
+# ADR-010 — Escenario fijo (100dvh) con dock, riel y una sola hoja de 3 detents
 
-- Estado: propuesto (2026-11-14). Pendiente de aceptación del equipo humano.
+- Estado: propuesto (2026-11-14). Pendiente de aceptación del equipo humano. Numerado ADR-008 en la rama del rediseño; renumerado al integrar con dev (ADR-013), donde ADR-008 y ADR-009 ya eran del equipo.
 - Fecha: 2026-11-14
-- Relación: aplica `docs/UX_REDESIGN.md` §0–§2 y §3.8. Reemplaza el layout de ADR-006 punto 5 (ficha flotante y hero con scroll). Mantiene ADR-006/007 (globo con paso a 2D) y ADR-001 (SVG sin WebGL).
+- Relación: no afecta a ADR-008 (piloto de descubrimiento) ni a ADR-009 (recomendación guiada) del equipo; el escenario aloja sus datos y su planificador (ADR-013). Aplica `docs/UX_REDESIGN.md` §0–§2 y §3.8. Reemplaza el layout de ADR-006 punto 5 (ficha flotante y hero con scroll). Mantiene ADR-006/007 (globo con paso a 2D) y ADR-001 (SVG sin WebGL).
 
 ## Contexto
 

@@ -1,5 +1,5 @@
 /**
- * Hoja única de 3 detents para <1100 px (ADR-008): S0 bandeja, S1 lugar, S2 ficha.
+ * Hoja única de 3 detents para <1100 px (ADR-010): S0 bandeja, S1 lugar, S2 ficha.
  * - Se arrastra solo desde la manija o la cabecera (`.sheet-grip`), sin transición durante
  *   el arrastre; al soltar decide `resolveDetent` y la transición usa --dur-4 / --ease-sheet.
  * - La manija es un <button>: un toque sube un detent (en S2 baja a S1); ↑/↓ cambian de detent.

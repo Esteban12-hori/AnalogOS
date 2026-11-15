@@ -4,12 +4,13 @@ Este documento reparte los incrementos 3 a 10 de `docs/UX_REDESIGN.md` §7.1 ent
 
 - **Estado (2026-11-14):** las 8 ramas `build/*` quedaron fusionadas en `feature/mision-redesign`. Los ajustes del integrador y lo que sigue pendiente están en `project/STATUS.md`.
 - **Base:** rama `feature/mision-redesign`, en el commit que introduce este documento (`git log -1 -- docs/BUILD_CONTRACTS.md`). Ese commit trae los incrementos 0, 1 y 2: contratos, tokens, store, armazón y slots con stubs.
-- **Especificación:** `docs/UX_REDESIGN.md`. Decisiones: ADR-008, ADR-009 y ADR-010 (`docs/decisions/`, en estado propuesto).
+- **Especificación:** `docs/UX_REDESIGN.md`. Decisiones: ADR-010 (escenario fijo, propuesto), ADR-011 y ADR-012 (sustituidos por ADR-009 del equipo) y ADR-013 (integración, propuesto), en `docs/decisions/`. Antes de integrar con dev se numeraban ADR-008, ADR-009 y ADR-010.
+- **Integración con dev (2026-11-14, ADR-013):** la interfaz de este reparto aloja ahora el snapshot v3, el planificador y la IA del equipo (`shared/mission`, `server/ai`). `engine` (§2.6) se retiró; `composer` (§2.7) y `analysis` (§2.8) cambiaron de interfaz, como se indica en cada sección. El plan completo está en `docs/INTEGRATION_PLAN.md`.
 - **Reglas del proyecto:** `CLAUDE.md` y `AGENTS.md`. Las más sensibles aquí:
   - la IA nunca puntúa ni produce cifras;
   - similitud, confianza y factibilidad van siempre separadas;
   - nada se inventa: lo que no existe se muestra como «por calcular»;
-  - offline primero: lktron es opcional;
+  - offline primero: la IA es opcional (tras ADR-013, la de Anthropic del equipo, solo con botones explícitos);
   - TypeScript estricto y sin `any`;
   - **0 dependencias npm nuevas** (§6.2);
   - teclado, foco visible y `prefers-reduced-motion` obligatorios.
@@ -239,7 +240,15 @@ Todas las rutas son relativas a `apps/web/src/`, salvo que empiecen por la raíz
 - El póster debe seguir coincidiendo al píxel con `baseStageInsets`: lo verifica `boot.test.ts`.
 - Si cambian las alturas reservadas, pídelo al integrador: viven en `shell/stageGeometry.js` y `shell/shell.css`.
 
-### 2.6 `engine` · incremento 8 · motor de misión determinista (sin UI)
+### 2.6 `engine` · incremento 8 · motor de misión determinista (sin UI) — **retirado**
+
+> **Retirado al integrar con dev (ADR-013; ADR-011 sustituido por ADR-009).** La evaluación es
+> `evaluateMission` del equipo (`shared/mission/evaluate.ts`): requisitos imprescindibles, luego
+> preferencias cumplidas, luego similitud v3, luego `site_id`. Se borraron `features/engine/**`,
+> `tests/fixtures/engine/**` y `tests/test_engine_parity.py`. Solo sobreviven los umbrales visuales
+> de espera (`PHASE_THRESHOLDS` 3/10 s, sin tiempo límite propio) en `features/composer/labels.ts`.
+> La robustez base se lee de `analysis-summary.json` (`domain/sensitivity.ts`). Se conserva el
+> contrato original como registro:
 
 **Archivos propios:**
 - `features/engine/**`.
@@ -283,12 +292,19 @@ Todas las rutas son relativas a `apps/web/src/`, salvo que empiecen por la raíz
 - `MissionCard({ data, placement })`.
 - `focusComposer()`.
 
-**Orquesta la misión.** Es el **único escritor** de `state/mission.ts`:
-1. `uiActions.setMissionPhase('interpreting')` y `resetCameraTouch()`.
-2. Interpreta con `interpretWithLktron` de `analysis` si `LKTRON_ENABLED`; si no, con `engine.matchMissionDemo`.
-3. Fase `profile`: `engine.profileFromLevels`.
-4. Fase `scoring`: `engine.scoreMission`. Escribe `missionStore` (`revision + 1`) y deja el #1 en `uiActions.select(id, 'evaluated', true)` (vista previa).
-5. Pasa a `analysis`.
+**Orquesta la misión (tras ADR-013).** Es el **único escritor** de `state/mission.ts`, a través de
+`features/composer/missionController.ts` (chunk diferido): una sola instancia del planificador del
+equipo (`plannerReducer`, `buildRequest`, `evaluateMission`, `composeExplanation`,
+`buildMissionExport`, `aiClient`) compartida por el dock, «Tu misión», el carrusel, el globo, el riel,
+las líneas y la Lectura.
+1. «Enviar» → `set_journey('test')` + `set_brief` y abre «Tu misión» en los requisitos. **No llama a la IA.**
+2. Requisitos: manuales, «Usar ejemplo» (`exampleState`) o «✦ Proponer requisitos con IA» (`requestDraft`, borrador sin confirmar; fase `interpreting`).
+3. Confirmación explícita con los botones del equipo (fase `review`).
+4. `evaluateMission` (síncrono): escribe `missionStore` (`evaluation`, `explanation` de plantilla, `revision + 1`), deja el #1 recomendado en vista previa y hace un solo `announce()`.
+5. «✦ Destacar motivos con IA» (desde la Lectura): `requestExplanation` por el reductor (fase `analysis`).
+6. Editar tras evaluar: el reductor invalida; `missionStore.stale = true` y la petición en curso se aborta.
+
+**Interfaz añadida:** `registerMissionSnapshot(snapshot)`, `withController(fn)` y `MissionPrintHost` (informe imprimible único).
 
 **Además:**
 - Muestra la espera con `OrbitLoader` de `boot`.
@@ -296,6 +312,15 @@ Todas las rutas son relativas a `apps/web/src/`, salvo que empiecen por la raíz
 - La tecla «/» y Esc (cancelar) son suyas.
 
 ### 2.8 `analysis` · incremento 10 · hechos, evidencia, robustez, Lectura y lktron
+
+> **Tras ADR-013 (lktron retirado, ADR-012 sustituido por ADR-009 §7–9).** Interfaz vigente:
+> `ReadingPanel({ data, placement })` y `ReadingPill({ data })`. La Lectura tiene tres capas:
+> resultado (`MissionEvaluation`), motivos destacados (`ExplanationView` del equipo: plantilla sin ✦
+> o selección de Anthropic validada) y hechos del snapshot (`facts.ts`, sin paquete ni huella FNV,
+> acepta sitios `ar-`, la REF va aparte). Consume `useMission` (`evaluation`, `explanation`,
+> `planner.explain`) y llama a la IA solo con el botón, vía `withController(c => c.runExplain())`.
+> Se retiraron `LKTRON_ENABLED`, `interpretWithLktron`, `LktronResult`, `domain/aiContracts.ts`, el
+> análisis pregenerado y sus contratos. Se conserva el contrato original como registro:
 
 **Archivos propios:**
 - `features/analysis/**`.

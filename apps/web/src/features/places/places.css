@@ -154,4 +154,6 @@
 .places[data-view="list"] .places-group[data-status] { margin-top: 8px; padding: 8px 0 0; border-top: 1px dashed var(--line-strong); border-left: 0; }
 .places-note { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .places-filter button { min-height: 26px; padding: 0 9px; font-size: var(--fs-min); }
-@container places (max-width: 560px) { .places-title small { display: none; } }
+@container places (max-width: 560px) { .places-title small { display: none; } .places-arrow, .places-count { display: none; } }
+.places-diagnosis { flex: none; }
+.places-diagnosis > span { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
