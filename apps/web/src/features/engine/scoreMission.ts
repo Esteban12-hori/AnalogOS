@@ -3,7 +3,8 @@
  * `normalized_similarity`, `quality` y `status` por criterio: no recalcula similitudes por
  * criterio ni rangos planetarios. El orden lo pone `rankCandidates`, igual que en Explorar.
  */
-import { CRITERION_IDS, isCriterionId, type CandidateSite, type CriterionId, type MissionProfile } from '../../domain/contracts'
+import type { CandidateSite, CriterionId, MissionProfile } from '../../domain/contracts'
+import { CRITERION_IDS, isCriterionId } from '../../domain/criteria'
 import { rankCandidates } from '../../domain/scoring'
 import { aggregate, sensitivity } from './aggregate'
 import { pyRound, pySum } from './pyMath'

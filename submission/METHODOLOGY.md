@@ -106,3 +106,33 @@ npm run verify
 ```
 
 El manifiesto guarda proveedor, producto, versión, URL, fecha, periodo, resolución, CRS, unidades, licencia, NoData, transformaciones y checksum SHA-256. Credenciales y tokens se omiten deliberadamente.
+
+## Búsqueda del piloto v3
+
+Lo anterior describe las fórmulas, que no cambian. El snapshot `science-screening-v3` las aplica a una búsqueda en lugar de a sectores elegidos de antemano.
+
+1. **Rejilla.** Dos regiones de prueba de 1° × 1° (interior de Antofagasta y Puna de Catamarca y Salta) divididas en 25 ventanas de 0,2° cada una: 50 ventanas de 442–449 km², con identificadores derivados del centro. Son una selección de prueba, no una muestra representativa.
+2. **Prioridad topográfica.** Para cada ventana se calculan pendiente, rugosidad y relieve con NASADEM agregado, y se ordena por la media geométrica de sus tres similitudes con pesos relativos 0,20/0,20/0,15. Solo ordena la preselección: no es el score ni la confianza.
+3. **Rechazos registrados.** Cobertura NASADEM < 95 %, agua permanente > 5 %, fallo de datos o presencia de coordenadas de muestreo publicadas dentro de la ventana. Cada ventana guarda su motivo.
+4. **Diversificación.** Hasta tres ventanas por país, con centros separados al menos 25 km y desempate por identificador. No se completa la lista a mano.
+5. **Caracterización.** Solo la preselección recibe Sentinel-2 mensual, POWER e inventario HLS, y se puntúa con las mismas fórmulas y pesos.
+6. **Referencia.** Yungay se recalcula con sus datos v2 y las mismas reglas; conserva 75,67 / 77,45 / 99,03 y queda fuera del ranking.
+
+Correcciones para no generar confianza falsa, sin cambiar los valores v2:
+
+- la completitud Sentinel-2 se mide contra los 12 meses configurados y se descartan meses duplicados, fuera de periodo, incompletos, con error o con valores no finitos o fuera de rango;
+- la calidad topográfica se multiplica por la cobertura NASADEM válida;
+- POWER se valida (unidades, valor de relleno, rangos) antes de puntuar;
+- cada dato crudo se liga a su petición exacta; un dato de otra configuración detiene el build.
+
+NASA POWER entrega la celda MERRA-2 de 0,5° × 0,625° que contiene el punto. Esa celda es mayor que la ventana, así que el contexto climático no es lluvia medida en el sitio, puede coincidir entre ventanas vecinas y necesita contraste local. En la Puna da 562–767 mm/año y explica la mayor parte de la diferencia de los candidatos argentinos.
+
+Antecedentes: un catálogo versionado distingue «contiene coordenada de muestreo publicada», «se superpone a un área de estudio», «cercanía (heurística de 25 km al centro)» y «antecedente regional». Ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad. Detalle en `docs/DISCOVERY_REPORT.md`.
+
+```bash
+python -m pipelines.fetch_discovery_data --stage tiles
+python -m pipelines.discover_candidates
+python -m pipelines.fetch_discovery_data --stage sources
+python -m pipelines.build_discovery_snapshot
+npm run verify
+```

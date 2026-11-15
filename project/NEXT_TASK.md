@@ -1,143 +1,118 @@
-# Encargo vigente
-
-Codex asigna, Claude implementa y devuelve `review`, Codex revisa y acepta. M6-PORTABLE-RELEASE está aceptado y publicado en `dev` en `15398a8`; su reporte permanece en Git.
+# Encargo vigente — definir una prueba o evaluar un sector
 
 ## Estado
 
-- **Task ID:** M4-VISUAL-EVIDENCE
+- **Task ID:** M8-MISSION-RECOMMENDATION
 - **Owner:** Codex
 - **Status:** accepted
-- **Branch:** `dev`
-- **Base commit:** `15398a83a798e762df5452a05e1880488c480403`
+- **Entrega:** publicada en dev y ambas operaciones de Anthropic verificadas por Codex; ver `docs/DEV_AI_VERIFICATION.md`. Código desplegado `9060970`; Claude espera una nueva asignación.
+- **Branch:** dev
+- **Base commit:** 4d197e17893dc4eef2dc5c9771c79813c909b657
+- **Dirección, supervisión y aceptación:** Codex. Dan autorizó esta implementación el 2026-11-14 y eligió Anthropic para la IA.
+- M7 aceptado, archivado en project/tasks/M7_GLOBAL_DISCOVERY.md. La versión integrada tiene globo, MapLibre, liquid glass, series y ciencia v3: conservar el trabajo del equipo.
+- La implementación de Claude no autorizaba publicación. Tras la aceptación, Dan autorizó a Codex el 2026-11-14: «súbelo a dev y verifica que la IA funcione ahí también». Esto habilita commit/push, configuración de Anthropic para dev y verificación remota; no promoción a main.
 
-## Objetivo y decisión de producto de Codex
+## Resultado de producto
 
-Añadir contexto satelital real, trazable y offline a los tres candidatos actuales. Al seleccionar un candidato se debe ver su sector en una imagen Sentinel-2, conocer el periodo y sus límites. Avanza la inspección visual de M4; NO cierra revisión experta, restricciones territoriales ni validación de campo.
+Usuario: responsable de campaña de robótica planetaria en laboratorio, universidad o empresa. Decisión: «Para este ensayo, ¿qué sector merece reconocimiento, por qué, qué lo descarta y qué falta medir?».
 
-## Corte vertical autorizado
+Entregar dos recorridos completos, con datos reales y asistencia opcional Anthropic:
 
-1. Crear `pipelines/fetch_visual_context.py` que consulte Copernicus Sentinel Hub Process API y genere tres PNG RGB reales y un índice público bajo `artifacts/visual-context/`. No modificar ni regenerar `artifacts/science-v2/` ni el perfil.
-2. Usar las credenciales Copernicus existentes solo mediante dotenv/variables de entorno y exclusivamente contra endpoints oficiales. No imprimir ni leer manualmente .env, no guardar tokens/cabeceras ni cuerpos de error que los expongan. No usar Earthdata para este encargo. Sin dependencias nuevas.
-3. Bbox derivada de la geometría versionada de cada candidato, consistente con `config/science_snapshot_v2.json`. Colección sentinel-2-l2a, RGB B04/B03/B02, dataMask y alpha para zonas sin datos. Ventana fija diciembre 2025 (`2025-12-01T00:00:00Z` a `2026-01-01T00:00:00Z`), leastCC, nubosidad máxima 40 %. Rotular mosaico del periodo, no una única fecha ni imagen actual de 2026. Si no sirve la cobertura, informar antes de ampliar la ventana.
-4. Vista previa de 512–768 px por lado, proporción espacial razonable para la latitud. Documentar CRS, bbox, dimensiones y escala aproximada sin atribuir resolución nativa a la vista reducida. Transformación de reflectancia sencilla y explícita, sin imágenes generadas. Obtener metadata de escenas mediante userdata/evalscript; distinguir consideradas de efectivamente usadas. No inventar identificadores ni fechas.
-5. Procedencia verificable: site_id, snapshot_version asociado, colección, endpoint oficial, ventana, bbox/CRS, dimensiones, bandas/transformación, mosaico, metadata devuelta, hora real de consulta UTC, SHA-256 por PNG, limitaciones y atribución Copernicus. Guardar request/evalscript públicos sin secretos para reproducir. Reutilizar paquete local válido sin llamar API; --refresh explícito. Ante error conservar el paquete anterior sin mezclar generaciones. No extraer rutas arbitrarias de un TAR remoto.
-6. Integrar panel pequeño y cuidado en ficha (`VisualContext.tsx`): imagen local, periodo, atribución, nota de contexto preliminar, enlace local para abrir imagen y procedencia legible. Cambiar candidato cambia su imagen. No cerrar advertencias ni modificar score/confianza/factibilidad. En fixtures, evidencia ausente o fallida, estado no disponible sin romper ranking/ficha. BASE_URL para raíz/subcarpeta; nunca API Copernicus en navegador. Responsive, teclado y alt.
-7. Extender empaquetador con lista explícita para índice y tres imágenes exactas, más request/evalscript público si la UI lo consume. Mantener verificación de hashes y garantías de rollback. No admitir cualquier PNG/JSON por extensión. Actualizar tests y documentación del ZIP.
-8. Tests proporcionales: identidad/bbox/hashes de tres PNG reales; petición sin red; errores preservan paquete previo; rutas/estados del loader/panel usando funciones puras o render estático con herramientas existentes; regresión de empaquetado. Suite sin credenciales ni red. Fixtures inequívocos y nunca sustituyen imágenes reales.
-9. ADR-005 propuesto y `docs/VISUAL_REVIEW.md`: fuente, reproducción, qué inspeccionar y pendientes. Observaciones solo tras ver imágenes, separadas de hipótesis. Codex inspeccionará las tres antes de aceptar. No marcar revisión experta ni M4 completo.
+1. **Definir una prueba:** describir objetivo, revisar requisitos estructurados editables, confirmarlos, comparar opciones y exportar recomendación reproducible.
+2. **Evaluar un sector:** elegir una de las siete áreas con evidencia o introducir coordenadas/bbox; comprobar qué geometría tiene datos, aplicar la prueba y entregar evaluación o informe explícito de evidencia insuficiente.
 
-## Fuentes oficiales
+Primer perfil científico soportado: rover marciano/Jezero. Fuera de cobertura debe completarse el diagnóstico y solicitud de datos; no fabricar una recomendación positiva ni anunciar búsqueda global en vivo.
 
-- https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Process.html
-- https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Process/Examples/S2L2A.html
-- https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html
-- Autenticación local: `pipelines/fetch_precision_data.py` (leer código, no mostrar secretos).
+## Primer checkpoint obligatorio
 
-## Archivos autorizados
+Leer AGENTS, CLAUDE, STATUS, ADR-001 a 009, PRODUCT_AND_SCIENCE, DATA_AND_SCORING y contratos. Confirmar rama, HEAD y cambios ajenos. Codex verificó base: 177 Python, 69 web y build; hashes en /tmp/analogos-m8-baseline-hashes.json.
 
-- Nuevos `pipelines/fetch_visual_context.py`, `tests/test_visual_context.py`, `artifacts/visual-context/`, `docs/VISUAL_REVIEW.md`, `docs/decisions/ADR-005-offline-visual-context.md`.
-- Nuevos `apps/web/src/components/VisualContext.tsx`, `apps/web/src/data/loadVisualContext.ts`, `apps/web/src/tests/visualContext.test.ts` (o .tsx).
-- Integración mínima en `CandidateDetails.tsx`, `App.tsx` y CSS existentes de apps/web/src; sin rediseñar el resto.
-- `scripts/package_release.py`, `tests/test_release_package.py`, `apps/web/scripts/prune-build.mjs` solo si necesario, `package.json` solo scripts.
-- `README.md`, `submission/README.md`, `submission/ATTRIBUTIONS.md`, `submission/JUDGING_CHECKLIST.md`, ZIP y SHA256SUMS de submission.
-- `project/NEXT_TASK.md` estado/reporte, `STATUS.md`, `CHANGELOG.md`, `BACKLOG.md` solo avance parcial correspondiente.
+**Antes de editar implementación, entregar a Codex un plan compacto: archivos, requisitos/estados, resolución espacial, endpoint y pruebas. Esperar su devolución.** Se permite inspeccionar y preparar el plan/ADR. Sin subagentes ni sesiones paralelas. Mientras Claude implementa, Codex revisa sin editar su alcance.
 
-## Límites y coordinación
+## 1. Experiencia
 
-- Preservar ciencia, contratos, candidatos, ranking, dependencias y SVG. Sin backend, IA, SAR ni nuevo perfil.
-- No AGENTS/CLAUDE, remotos, ramas, Vercel ni cuentas. No commit/push/publicación en este encargo; Codex decidirá tras revisar.
-- No otros agentes. Servidores HTTP temporales permitidos, cerrarlos al acabar sin detener procesos ajenos.
-- Tres imágenes, una solicitud inicial por sector, reintentos acotados por fallo transitorio. No barrido nacional/temporal ni red en cada build.
-- Si API bloqueada por credenciales/cuota, reportar; no usar imágenes ficticias ni ocultar el fallo.
-- Codex no edita tu alcance mientras trabajas; revisa y devuelve fallos. Claude implementa, Codex acepta.
+- Entrada principal «Definir una prueba» / «Evaluar un sector», explicación del problema y ejemplo. Conservar explorador, búsqueda v3, comparación y método.
+- Flujo progresivo accesible en escritorio, móvil y teclado, integrado en diseño existente. No forzar recorrer fichas largas para comenzar.
+- Brief máximo 3000 caracteres, actividad, destino/referencia, requisitos. Un solo perfil realmente soportado, sin perfiles ficticios para llenar selectores.
+- Requisitos medibles disponibles: mediana de pendiente regional (grados), rugosidad mediana (m), relieve (m), fracción no vegetada (% o 0–1 con conversión explícita), área del polígono completo (~km²), países. Cada uno: operador/rango, unidad, imprescindible o preferencia. Mostrar pocos al inicio y más detalle opcional.
+- Máxima pendiente puntual del rover, tamaño de roca, tracción, suelo suelto, carretera, coste, permisos, fecha operativa, lluvia local y cobertura móvil no están medidos. Conservar estos pedidos como no evaluables; no reinterpretarlos silenciosamente como una métrica disponible.
+- Requisito guarda origen usuario/IA, escala y confirmación. Mostrar lo no estructurado del brief como preguntas/pendientes. Usuario confirma/edita antes de evaluar; ninguna restricción oculta o descartada en silencio.
+- Cambiar brief/requisitos/sector invalida resultados previos. Cancelar/ignorar respuestas tardías mediante fingerprint o request ID. No mezclar dos solicitudes.
+- Mantener texto al volver. Sin almacenar briefs en logs/backend. Persistencia local solo si se explica y permite borrar.
 
-## Aceptación
+## 2. Motor verificable
 
-```bash
-source .venv/bin/activate
-python -m pipelines.fetch_visual_context
-npm run verify
-npm run release:package
-(cd submission && shasum -a 256 -c SHA256SUMS.txt)
-git diff --check
-git status --short
-```
+- Módulo puro y contratos aditivos de solicitud/evaluación. Ciencia v2/v3 byte a byte intacta; sin modificar pesos, tolerancias, quality ni perfiles científicos.
+- La IA no elige pesos/score/veredicto. Requisitos del usuario son condiciones de su ensayo, no estándares NASA.
+- Requisitos críticos primero: incumplimiento observado => incompatible; faltante/escala inadecuada => evidencia insuficiente. Un score alto no compensa bloqueos ni desconocidos.
+- Entre opciones con críticos evaluables cumplidos, ordenar por preferencias satisfechas y luego similitud v3, desempate estable por ID. Documentar orden. Sin nuevo porcentaje de aptitud. Preferencias desconocidas conservan comparabilidad parcial, no equivalen a cero ni prueban dominancia.
+- Estados: priorizado para reconocimiento, no cumple requisitos, evidencia insuficiente, objetivo no soportado. Factibilidad territorial independiente y pendiente. Es válido no recomendar ninguno.
+- Por opción: requisito, valor/unidad, cumple/no cumple/no evaluable, razón, fuente/evidence_id y escala/periodo; similitud/confianza originales rotuladas. Incluir límites, verificaciones de campo y qué evidencia cambiaría la decisión.
+- Área es extensión del polígono, no hectáreas libres. SCL no prueba tracción/mineralogía. POWER contextual no aprueba lluvia local ni pronósticos.
+- Yungay evaluable como alternativa conocida, rol referencia visible. No modificar ranking M7 ni aplicar su exclusión de antecedentes al problema de seleccionar campaña.
+- Exportación JSON validada con solicitud confirmada, reglas/versiones, snapshot/perfil, geometría pedida vs medida, evaluación, evidencias, límites y provenance IA cuando exista. Informe legible imprimible (CSS print basta).
 
-Reportar archivos propios, comandos/resultados, tamaño/contenido ZIP, cache sin red, límites y hashes científicos intactos. Codex repetirá checks, verá tres imágenes y probará selección, metadata, error de imagen y /AnalogOS/ en navegador. Terminar con **Status: review**.
+## 3. Geometría y cobertura
 
-## Reporte de Claude
+- Seleccionar siete sectores desde lista/mapa/ficha con país y polígono visibles. Coordenadas y bbox como alternativa accesible; dibujo de rectángulo opcional sin librería nueva si no es necesaria.
+- Validar rangos, orden lon/lat, finitud, bbox y tamaño. Punto dentro de área: «hay evidencia de esta ventana, no del punto exacto», y selección explícita de esa ventana antes de evaluarla. Resolver múltiples coincidencias.
+- Subpolígono o cobertura parcial NO heredan métricas agregadas del polígono completo. Informar cobertura/evidencia faltante; ofrecer evaluar la ventana completa solo por acción explícita.
+- Fuera de piloto: sin evidencia suficiente y solicitud exportable con bbox/requisitos/fuentes previstas. Sin vecino más cercano, fake loading ni consultas satelitales simuladas. No adquisiciones nuevas en M8.
 
-Entregado en `review` el 2026-11-14 a las 13:40 (America/Santiago). Solo Codex puede aceptar. Sin commit, push ni publicación.
+## 4. Anthropic real y opcional
 
-### Archivos propios
+- Proveedor elegido por Dan. Aún no hay clave al asignar; Codex prepara entrada local segura. No leer/imprimir secretos ni pedirlos por chat. Solo entorno/.env ignorado consumido por programa.
+- Dos operaciones: extraer borrador del brief y explicar evaluación calculada. Contexto limitado al catálogo/evidencias suministrados. Sin herramientas, shell, navegación arbitraria, datos externos libres ni agentes.
+- `ANTHROPIC_API_KEY` y `ANTHROPIC_MODEL` solo servidor; modelo configurable y soportado (comprobar docs/cuenta). Host oficial fijo, sin URL arbitraria del cliente.
+- JSON Schema y validación sintáctica/semántica; manejar negativa, salida truncada, citas/IDs ajenos, errores y timeout. Structured outputs no admite citas nativas: usar evidence IDs validados y enlaces aportados por app.
+- El servidor obtiene hechos/scores de artefactos versionados y solicitud validada, no del navegador. Rechazar IDs/fuentes ajenos. La IA nunca cambia el motor ni resultados. Mostrar interpretación separada de métricas.
+- No presentar narración que contradiga los bloqueos; puede seleccionar razones/referencias estructuradas para que el renderizador conserve los hechos. Respaldo determinista siempre rotulado como tal, sin simular IA.
+- Endpoint mínimo `api/` Vercel Node, lógica separada testeable y servidor local equivalente con proxy Vite. Sin DB ni login nuevo. Ningún secreto en VITE_, bundle, ZIP, prompt, respuesta o log.
+- POST/content type, tamaño de cuerpo/brief, timeout, tokens de salida acotados, origen permitido local/preview explícito, llamadas por botón y bloqueo durante llamada, errores sanitizados, protección básica de frecuencia documentada como no distribuida. No generación general abierta.
+- Explicar junto al botón que el texto se envía a Anthropic. El camino manual no transmite datos.
+- Sin clave/offline/proveedor caído: recorrido manual y recomendación funcionan, IA no disponible. Nunca atribuir plantilla o mock a IA real.
+- Para aceptar integración real: un borrador y una explicación con entradas inocuas, registrar modelo/fecha/request ID/uso sin secretos. Si no está la clave, informar bloqueo específico, no afirmar éxito por mocks.
 
-- Nuevos: `pipelines/fetch_visual_context.py`, `tests/test_visual_context.py`, `artifacts/visual-context/` (`index.json` y tres PNG), `docs/VISUAL_REVIEW.md`, `docs/decisions/ADR-005-offline-visual-context.md`, `apps/web/src/components/VisualContext.tsx`, `apps/web/src/data/loadVisualContext.ts`, `apps/web/src/tests/visualContext.test.tsx`.
-- Modificados: `apps/web/src/components/CandidateDetails.tsx` y `apps/web/src/App.tsx` (integración mínima), `apps/web/src/styles.css` (reglas del panel), `scripts/package_release.py`, `tests/test_release_package.py`, `README.md`, `submission/README.md`, `submission/ATTRIBUTIONS.md`, `submission/JUDGING_CHECKLIST.md`, `submission/analogos-chile-static.zip`, `submission/SHA256SUMS.txt`, `project/NEXT_TASK.md`, `project/STATUS.md`, `project/CHANGELOG.md`, `project/BACKLOG.md`.
-- No hizo falta tocar `apps/web/scripts/prune-build.mjs` ni `package.json`.
+## 5. Alcance técnico autorizado
 
-### Imágenes reales
+Nuevos contratos/módulo decisión/IA, planificador, App/mapa/fichas, API/local server/proxy, scripts de pruebas, `.env.example`, ADR-009, documentación de producto/arquitectura/presentación. Dependencias mínimas justificadas en checkpoint. Adaptar empaquetador solo con lista explícita de nuevos assets; conservar controles.
 
-Consulta del 2026-11-14 entre las 16:16 y las 16:18 UTC, una petición por sector. La primera ejecución del comando falló por red al pedir el token (tres intentos, `ConnectionError`, sin escribir nada); la segunda funcionó.
+Sin tocar datos científicos v2/v3, configs de ciencia, datos crudos, credenciales, protección/auth Vercel, workflows de deploy, remotos ni rediseño ajeno. Sin nuevas regiones, pesos, perfiles científicos, SAR, ML entrenado, documentos privados ni barridos en vivo.
 
-| Sitio | Tamaño | Bytes | Órbitas consideradas | Órbita usada | SHA-256 |
-|---|---|---:|---:|---|---|
-| `cl-pampa-yungay-screening` | 705×768 | 1.205.517 | 15 | 2025-12-21, 100 % | `24f6a7b94f3f4f04989634723e68f189938b84b01d0e8a9fe5051012d8d4a9d0` |
-| `cl-pampa-maria-elena-screening` | 714×768 | 1.220.784 | 15 | 2025-12-21, 100 % | `97a2c13e05eb38ab3f9daff006859ae82d9d771790a9e205cafacf6f9394d879` |
-| `cl-domeyko-interior-screening` | 709×768 | 1.079.769 | 8 | 2025-12-03, 100 % | `697f1b809b8d6cae55bf92239b28488ae68e6cd020ac8cf80ee2d443c97df359` |
+Esta asignación autoriza explícitamente la extensión al antiguo «sin IA/backend». ZIP portable manual; servidor/clave se documentan aparte. No prometer IA offline ni IA disponible sin servicio configurado.
 
-Las órbitas «usadas» salen de contadores del evalscript (patrón de variable global documentado en la guía oficial de metadata). Solo se publican porque suman exactamente ancho × alto en los tres casos; si no cuadraran, el índice dejaría `scenes_used: null`.
+## 6. Aceptación y entrega
 
-### Comandos y resultados
+1. Brief -> requisitos editables -> confirmación -> recomendación/exportación; editar invalida resultados. Requisito medible cambia selección, crítico imposible deja cero; no evaluable nunca aprueba.
+2. Objetivos no soportados, pendiente puntual/tracción y preferencias desconocidas conservan límites. Yungay referencia evaluable, Chile/Argentina correctos.
+3. Sectores existentes, punto dentro/fuera, bbox parcial/subpolígono, coordenadas inválidas y salida sin evidencia; sin trasladar métricas a otra geometría.
+4. IA: borrador/explicación reales, sin clave, timeout, negativa, JSON truncado, IDs/citas inventados, texto adversarial y respuestas tardías. Sin red real en tests automatizados por defecto.
+5. Endpoint no confía en hechos cliente, secretos no filtrados, errores sanitizados, restricciones acotadas. Añadir pruebas servidor al comando verify.
+6. `source .venv/bin/activate && npm run verify`; `npm run release:package`; checksum, ZIP repetido idéntico y baseline científico intacto.
+7. Navegador escritorio/móvil, teclado, errores, ambos recorridos, exportación, sin WebGL y modo manual offline; ZIP bajo /AnalogOS/. Codex revisará independientemente.
+8. Actualizar STATUS, CHANGELOG y NEXT_TASK a Owner Codex / Status review. Reportar archivos, tests, pruebas reales IA, límites y comandos exactos. No autoaceptar, commit ni push.
 
-| Comando | Resultado |
-|---|---|
-| `python -m pipelines.fetch_visual_context` | «reutilizado sin red»; no lee credenciales ni llama a la API |
-| `npm run verify` | 119 tests Python, 24 tests web, contratos + TypeScript + Vite verdes |
-| `npm run release:package` | sha256 `97dc819efb7e0511e2b4a6e388eab5cf113db442006b3b01b415ae0db9f25f81`; repetido, mismo valor |
-| `(cd submission && shasum -a 256 -c SHA256SUMS.txt)` | `analogos-chile-static.zip: OK` |
-| `git diff --check` | sin salida, código 0 |
-| `git diff --quiet HEAD -- artifacts/science-v2 config contracts pipelines/scoring.py pipelines/build_precision_snapshot.py pipelines/constraints.py` | código 0: ciencia, perfil, contratos y score idénticos al commit base |
+Después de M8: adquisición para geometrías nuevas, territorio y perfiles adicionales, tras validar esta experiencia con usuarios. No iniciar esas tareas automáticamente.
 
-ZIP: 12 archivos, 4.084.880 bytes: `index.html`, un JS, un CSS, los cinco `science-v2/`, `visual-context/index.json` y los tres PNG.
+## Entrega de Claude (2026-11-14) — para revisión de Codex
 
-### Revisión de Codex atendida
+Etapas A (corregida según la revisión) y B implementadas; ver `project/M8_PROGRESS.md` (archivos, pruebas, IA real, límites) y `docs/AI_SETUP.md`. No autoaceptada: sin commit ni push. Pendiente de Codex: CUA de escritorio/móvil/teclado/impresión, revisión de Vercel sin publicar y decisión de aceptación.
 
-- Validador del paquete: ahora compara cabecera (`kind`, `status`, `snapshot_version`, `source`, `product`, `limitations`) y campos de cada sitio (identidad, nombre, imagen, dimensiones, bbox, extensión, escala, petición, escenas) con el candidato, la petición vigente, el PNG y la metadata devuelta. 24 alteraciones parametrizadas, incluidas bbox `[0,0,1,1]` y periodo de noviembre de 2026, se rechazan sin llamar a la API.
-- `_swap`: si falla la instalación y también la restauración, o si falla la limpieza posterior, lanza `PackageStateError` con el estado real y conserva el respaldo; `main` solo afirma que el paquete anterior no se modificó cuando es cierto. Cuatro tests.
-- Web: `parseVisualContext` valida cada elemento de `scenes_used` y tipos y rangos de lo que el panel muestra, exige `image === site_id + ".png"` y `site_id` únicos. 18 casos de metadata malformada terminan en «no disponible» sin romper la ficha.
-- Observaciones visuales: registradas en `docs/VISUAL_REVIEW.md` como apariencia a contrastar, separadas de las hipótesis; sin identidad, propiedad ni exclusión.
 
-### Pruebas en navegador
+## Devolución Codex — revisión de interfaz (2026-11-14)
 
-Build servido por HTTP local: el panel muestra la imagen del candidato seleccionado; al elegir María Elena cambia la imagen y no cambian score ni advertencias; la procedencia es legible; un error de carga de imagen deja «no disponible» con ranking y ficha intactos; vista móvil sin desbordes; consola sin errores; todas las peticiones son locales. ZIP descomprimido en `/AnalogOS/` y cargado con Chrome sin interfaz: índice e imagen responden 200 con rutas relativas. Servidores temporales detenidos.
+La implementación aún no está aceptada. Auditoría independiente: 9/9; navegador confirma flujo manual, cero priorizados con crítico imposible, IA real de explicación, exportación JSON, invalidación al editar, punto con selección explícita, fuera de cobertura y móvil 390 px.
 
-### Límites y decisiones para revisar
+Claude debe aplicar los puntos 3 a 6 de `/tmp/analogos-m8-review-B.txt` (1 y 2 ya corregidos): informe impreso autosuficiente con umbrales/unidades/escala y geometría pedida/medida explícitas; confirmación con valores reales editados; unidades humanas en interfaz; retirar «M8» del texto del usuario y etiqueta de escala incorrecta para área/país. Ajustar texto hero para no sugerir que se mide tracción. Mantener ciencia intacta. Volver a status review / Owner Codex tras verificación proporcional, build y ZIP determinista. Sin commit/push.
 
-- Ganancia 2,0 elegida antes de consultar para no repetir peticiones; las vistas no se ven saturadas salvo en parches muy brillantes.
-- Cada PNG pesa 1,1–1,2 MB; el ZIP sube de ~0,5 MB a ~4,1 MB.
-- El validador es estricto: cambiar periodo, transformación, limitaciones o evalscript invalida el paquete y exige `--refresh` con credenciales.
-- Un corte abrupto durante el intercambio puede dejar un directorio `.visual-context.*` en `artifacts/`; el empaquetador lo rechazaría como archivo inesperado.
-- `scenes_used` depende de contadores globales del evalscript; se documenta como derivado y se omite si no cuadra.
-- No se marcó revisión experta ni M4 completo.
+### Revisión B aplicada (2026-11-14)
 
-### Credenciales y permisos
+Puntos 3–6 de `/tmp/analogos-m8-review-B.txt` aplicados (formateo humano, confirmación con condiciones efectivas, informe impreso autosuficiente, microcopia «Esta versión», escala genérica y hero). Detalle en `project/M8_PROGRESS.md`. Sin commit ni push; no autoaceptada.
 
-Las credenciales Copernicus se leyeron solo desde el programa (`.env` vía dotenv) y se enviaron únicamente a `identity.dataspace.copernicus.eu`; el token, solo a `sh.dataspace.copernicus.eu`. No se imprimieron ni guardaron valores, tokens, cabeceras ni cuerpos de error. No se usó Earthdata. Ningún permiso bloqueado.
+## Aceptación final de Codex (2026-11-14)
 
-## Aceptación independiente de Codex
+Implementación local aceptada tras revisión independiente: 177 Python, 196 web (+2 pruebas reales omitidas por defecto), typecheck/build, auditoría adicional 10/10, IA real desde navegador, escritorio/móvil, geometría, exportaciones y ZIP estático sin servicio de IA. Los 38 hashes de baseline siguen intactos. Corrección final de formato para umbrales diminutos incluida y verificada.
 
-Aceptado el 2026-11-14 a las 13:54 America/Santiago, tras revisar código, fuentes, imágenes y comportamiento del ZIP. Claude espera nueva asignación.
+Informe vigente: `docs/CODEX_M8_REVIEW.md`. ZIP final: 30 entradas, 12.987.711 bytes, SHA-256 `440b295e936613eea74e43e74cd2f978defd2e8c01b72e7bedcdd359b8d2b5da`. Los apartados de entrega/devolución anteriores son históricos.
 
-- Inspeccionados los tres PNG a tamaño completo y contrastados con sus bbox, fechas de adquisición devueltas, dimensiones y procedencia. Las observaciones geométricas permanecen como pistas a contrastar, no identificaciones de infraestructura ni permisos.
-- Reproducidos y devueltos a Claude dos defectos: el validador aceptaba bbox/periodo incoherentes y el panel aceptaba escenas malformadas que podían romper la ficha. Correcciones y pruebas de regresión revisadas; también corregido el mensaje ante fallo de restauración del paquete.
-- Reejecutados `npm run verify`: 119 tests Python y 24 web, contratos, TypeScript y build correctos. `npm run release:package`, checksum y `git diff --check` correctos.
-- Verificada reutilización con un callback que falla ante cualquier intento de red; el paquete válido se reutiliza sin invocarlo. Confirmado rechazo de bbox y periodo adulterados, sin nuevas llamadas a la API.
-- Comprobadas las 12 entradas del ZIP byte a byte contra dist; repetir empaquetado produce el mismo SHA-256 `97dc819efb7e0511e2b4a6e388eab5cf113db442006b3b01b415ae0db9f25f81` (4.084.880 bytes).
-- Navegador: tres selecciones con su imagen, procedencia y raíz; ZIP extraído bajo `/AnalogOS/`; copias temporales con PNG ausente y `scenes_used: [null]` muestran no disponible y conservan ranking/ficha. Sin errores de consola en la vista normal; el 404 provocado pertenece solo a la prueba de fallo.
-- Los cinco archivos de `science-v2` y el perfil de configuración conservan los seis SHA-256 de la línea base. Sin cambios de ciencia, ranking ni dependencias.
-- ADR-005 aceptado como contexto visual histórico de diciembre de 2025. M4 continúa parcial: quedan imágenes recientes, restricciones territoriales y revisión experta.
-- Cambios locales sobre `dev`/`15398a8`; sin commit, push ni publicación de este encargo.
-
-## Autorización posterior de Git
-
-El 2026-11-14, Dan pidió «subela» en respuesta a la entrega aprobada de M4-VISUAL-EVIDENCE. Codex queda autorizado para hacer commit y push de esta mejora a `origin/dev`, sustituyendo la restricción de la fase de implementación. La tarea sigue aceptada; Claude espera una nueva asignación.
+Pendientes delimitados: prueba remota de Vercel y revisión visual de impresión nativa. No se certifica aptitud científica de campo. Sin commit, push ni publicación. Claude espera nueva asignación; no iniciar otra etapa automáticamente.

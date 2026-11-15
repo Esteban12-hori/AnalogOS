@@ -4,7 +4,8 @@
  */
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { assertSnapshotContracts, type CandidateSite, type MissionProfile } from '../../domain/contracts'
+import type { CandidateSite, MissionProfile } from '../../domain/contracts'
+import { assertSnapshotContracts } from '../../domain/snapshotContracts'
 
 export const REPO_ROOT = resolve(__dirname, '../../../../..')
 

@@ -48,6 +48,10 @@ def _percent(value: float, digits: int) -> str:
     return f"{value * 100:.{digits}f}".replace(".", ",") + " %"
 
 
+class TerrainDataError(ValueError):
+    """Los datos NASADEM de una ventana no permiten calcular métricas (fallo de datos, no de programa)."""
+
+
 def _tile_name(latitude_base: int, longitude_base: int) -> str:
     latitude = f"n{latitude_base:02d}" if latitude_base >= 0 else f"s{abs(latitude_base):02d}"
     longitude = f"e{longitude_base:03d}" if longitude_base >= 0 else f"w{abs(longitude_base):03d}"
@@ -58,9 +62,12 @@ def _read_nasadem_tile(directory: Path, tile: str) -> tuple[np.ndarray, np.ndarr
     archive = directory / f"NASADEM_HGT_{tile}.zip"
     if not archive.exists():
         raise FileNotFoundError(f"Falta {archive}; ejecuta pipelines.fetch_precision_data")
-    with zipfile.ZipFile(archive) as bundle:
-        height_raw = bundle.read(f"{tile}.hgt")
-        water_raw = bundle.read(f"{tile}.swb")
+    try:
+        with zipfile.ZipFile(archive) as bundle:
+            height_raw = bundle.read(f"{tile}.hgt")
+            water_raw = bundle.read(f"{tile}.swb")
+    except (zipfile.BadZipFile, KeyError) as error:
+        raise TerrainDataError(f"La tesela {archive.name} está dañada o incompleta ({type(error).__name__}).") from error
     height = np.frombuffer(height_raw, dtype=">i2").reshape(NASADEM_SIDE, NASADEM_SIDE)
     water = np.frombuffer(water_raw, dtype=np.uint8).reshape(NASADEM_SIDE, NASADEM_SIDE)
     return height, water
@@ -114,6 +121,8 @@ def _slope_distribution(elevation: np.ndarray, spacing_x_m: float, spacing_y_m: 
 
 def _nasadem_metrics(site: dict, config: dict) -> dict:
     elevation, water, tiles = _nasadem_window(site, config)
+    if not np.isfinite(elevation).any():
+        raise TerrainDataError("Todos los píxeles NASADEM de la ventana son NoData.")
     factor = config["nasadem"]["aggregation_factor"]
     latitude = site["latitude"]
     source_spacing_y = math.pi * EARTH_RADIUS_M / 180 / NASADEM_CELLS
@@ -134,7 +143,9 @@ def _nasadem_metrics(site: dict, config: dict) -> dict:
     }
 
 
-def _sentinel_metrics(site_id: str, raw: dict) -> dict:
+def _sentinel_metrics(site_id: str, raw: dict, expected_intervals: int | None = None) -> dict:
+    # ``expected_intervals`` permite medir la completitud contra los meses configurados (v3);
+    # sin él se conserva el comportamiento v2: los intervalos devueltos por la API.
     rows = raw["sites"][site_id]["response"]["data"]
     monthly: list[dict] = []
     for row in rows:
@@ -159,7 +170,7 @@ def _sentinel_metrics(site_id: str, raw: dict) -> dict:
     def median(name: str) -> float:
         return float(np.median([row[name] for row in monthly]))
 
-    expected_intervals = len(rows)
+    expected_intervals = expected_intervals or len(rows)
     coverage = median("valid_fraction")
     interval_completeness = len(monthly) / expected_intervals if expected_intervals else 0.0
     quality = min(0.90, 0.90 * coverage * interval_completeness)
@@ -418,6 +429,77 @@ def _dataset_manifest(config: dict, summary_text: str, power_points: dict,
     return datasets
 
 
+V2_DATASETS = {
+    "derived": "derived-mola-nasadem-sentinel2-v2",
+    "sentinel2": "copernicus-sentinel2-l2a-surface-2025-v1",
+    "power": "nasa-power-climatology-points-v1",
+}
+V2_GEOLOGY_NOTE = "Requiere cartografía SERNAGEOMIN y revisión geológica experta; permanece fuera del score v2."
+
+
+def score_inputs(earth: dict, sentinel: dict, climate: dict, mola: dict,
+                 datasets: dict = V2_DATASETS, geology_note: str = V2_GEOLOGY_NOTE) -> dict:
+    """Entradas por criterio para ``aggregate``; mismas fórmulas en v2 y v3.
+
+    Las calidades fijas (0,93 / 0,91 / 0,60) son valores asignados por tipo de
+    fuente en ADR-003, no incertidumbres medidas. La topográfica se multiplica
+    por la cobertura NASADEM válida (1,0 en todos los sitios v2).
+    """
+    coverage = earth["source_valid_fraction"]
+    return {
+        "slope": {
+            "raw_value": earth["median_slope_degree"],
+            "similarity": _ratio_similarity(earth["median_slope_degree"], mola["median_slope_degree"]),
+            "quality": round(0.93 * coverage, 4),
+            "dataset_id": datasets["derived"],
+            "explanation": "Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente.",
+        },
+        "terrain_roughness": {
+            "raw_value": earth["median_neighbor_difference_meter"],
+            "similarity": _ratio_similarity(earth["median_neighbor_difference_meter"], mola["median_neighbor_difference_meter"]),
+            "quality": round(0.91 * coverage, 4),
+            "dataset_id": datasets["derived"],
+            "explanation": "Diferencia absoluta mediana entre celdas vecinas NASADEM y MOLA a escala aproximadamente equivalente.",
+        },
+        "local_relief": {
+            "raw_value": earth["median_3x3_relief_meter"],
+            "similarity": _ratio_similarity(earth["median_3x3_relief_meter"], mola["median_3x3_relief_meter"]),
+            "quality": round(0.91 * coverage, 4),
+            "dataset_id": datasets["derived"],
+            "explanation": "Relieve mediano 3×3 sobre NASADEM agregado comparado con la ventana regional MOLA.",
+        },
+        "bare_ground_fraction": {
+            "raw_value": sentinel["nonvegetated_fraction"],
+            "similarity": sentinel["nonvegetated_fraction"],
+            "quality": sentinel["quality"],
+            "dataset_id": datasets["sentinel2"],
+            "explanation": f"Mediana de {sentinel['valid_intervals']} mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba.",
+        },
+        "aridity_context": {
+            "raw_value": climate["annual_precipitation_mm"],
+            "similarity": round(1 / (1 + climate["annual_precipitation_mm"] / 25), 6),
+            "quality": 0.60,
+            "dataset_id": datasets["power"],
+            "explanation": "Precipitación climatológica POWER como contexto regional; preferencia decreciente con escala de 25 mm/año heredada del perfil v1.",
+        },
+        "surface_temperature_variability": {
+            "raw_value": climate["skin_temperature_range_c"],
+            "similarity": round(min(climate["skin_temperature_range_c"] / 45, 1), 6),
+            "quality": 0.60,
+            "dataset_id": datasets["power"],
+            "explanation": "Proxy regional de estrés térmico: rango climatológico POWER, saturado a 45 °C como en el perfil v1.",
+        },
+        "geologic_relevance": {
+            "raw_value": None,
+            "similarity": None,
+            "quality": 0.0,
+            "status": "needs_calibration",
+            "dataset_id": "none",
+            "explanation": geology_note,
+        },
+    }
+
+
 def build(config_path: Path, profile_path: Path, out_dir: Path) -> dict[str, object]:
     config = json.loads(config_path.read_text(encoding="utf-8"))
     profile = load_profile(profile_path)
@@ -436,61 +518,7 @@ def build(config_path: Path, profile_path: Path, out_dir: Path) -> dict[str, obj
         earth = _nasadem_metrics(site, config)
         sentinel = _sentinel_metrics(site["site_id"], copernicus_raw)
         climate = _power_metrics(site["site_id"], power_points)
-        # Las calidades fijas (0,93 / 0,91 / 0,60) son valores asignados por
-        # tipo de fuente en ADR-003, no incertidumbres medidas: la confianza
-        # resultante casi no distingue entre sitios.
-        inputs = {
-            "slope": {
-                "raw_value": earth["median_slope_degree"],
-                "similarity": _ratio_similarity(earth["median_slope_degree"], mola["median_slope_degree"]),
-                "quality": 0.93,
-                "dataset_id": "derived-mola-nasadem-sentinel2-v2",
-                "explanation": "Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente.",
-            },
-            "terrain_roughness": {
-                "raw_value": earth["median_neighbor_difference_meter"],
-                "similarity": _ratio_similarity(earth["median_neighbor_difference_meter"], mola["median_neighbor_difference_meter"]),
-                "quality": 0.91,
-                "dataset_id": "derived-mola-nasadem-sentinel2-v2",
-                "explanation": "Diferencia absoluta mediana entre celdas vecinas NASADEM y MOLA a escala aproximadamente equivalente.",
-            },
-            "local_relief": {
-                "raw_value": earth["median_3x3_relief_meter"],
-                "similarity": _ratio_similarity(earth["median_3x3_relief_meter"], mola["median_3x3_relief_meter"]),
-                "quality": 0.91,
-                "dataset_id": "derived-mola-nasadem-sentinel2-v2",
-                "explanation": "Relieve mediano 3×3 sobre NASADEM agregado comparado con la ventana regional MOLA.",
-            },
-            "bare_ground_fraction": {
-                "raw_value": sentinel["nonvegetated_fraction"],
-                "similarity": sentinel["nonvegetated_fraction"],
-                "quality": sentinel["quality"],
-                "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v1",
-                "explanation": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba.",
-            },
-            "aridity_context": {
-                "raw_value": climate["annual_precipitation_mm"],
-                "similarity": round(1 / (1 + climate["annual_precipitation_mm"] / 25), 6),
-                "quality": 0.60,
-                "dataset_id": "nasa-power-climatology-points-v1",
-                "explanation": "Precipitación climatológica POWER como contexto regional; preferencia decreciente con escala de 25 mm/año heredada del perfil v1.",
-            },
-            "surface_temperature_variability": {
-                "raw_value": climate["skin_temperature_range_c"],
-                "similarity": round(min(climate["skin_temperature_range_c"] / 45, 1), 6),
-                "quality": 0.60,
-                "dataset_id": "nasa-power-climatology-points-v1",
-                "explanation": "Proxy regional de estrés térmico: rango climatológico POWER, saturado a 45 °C como en el perfil v1.",
-            },
-            "geologic_relevance": {
-                "raw_value": None,
-                "similarity": None,
-                "quality": 0.0,
-                "status": "needs_calibration",
-                "dataset_id": "none",
-                "explanation": "Requiere cartografía SERNAGEOMIN y revisión geológica experta; permanece fuera del score v2.",
-            },
-        }
+        inputs = score_inputs(earth, sentinel, climate, mola)
         aggregation = profile["aggregation"]
         score = aggregate(profile["criteria"], inputs, aggregation["epsilon"], aggregation["minimum_valid_weight"])
         robustness = sensitivity(profile["criteria"], inputs, aggregation["epsilon"], aggregation["minimum_valid_weight"])

@@ -6,7 +6,8 @@
  * Orden: los hechos se publican primero (sin red, al instante); el texto llega encima.
  */
 import { checkAiAnalysisEvent, checkEvidencePacket } from '../../domain/aiContracts'
-import { isCriterionId, type CriterionId } from '../../domain/contracts'
+import type { CriterionId } from '../../domain/contracts'
+import { isCriterionId } from '../../domain/criteria'
 import { rankCandidates } from '../../domain/scoring'
 import type { DemoSnapshot } from '../../data/loadDemoSnapshot'
 import type { MissionState } from '../../state/mission'

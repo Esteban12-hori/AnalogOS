@@ -79,7 +79,7 @@ function usePageHidden(): boolean {
 const SCIENCE_NOTE = ['SCREENING CIENTÍFICO PRELIMINAR · DATOS REALES · NO ES AUTORIZACIÓN DE TERRENO', 'PRELIMINAR · NO AUTORIZA TERRENO'] as const
 const FIXTURE_NOTE = ['DEMOSTRACIÓN TÉCNICA · DATOS SINTÉTICOS · NO ES UN RESULTADO CIENTÍFICO', 'DEMO · DATOS SINTÉTICOS'] as const
 
-export function AppShell({ data }: { data: AppData }) {
+export function AppShell({ data, promise }: { data: AppData; promise?: string }) {
   const layout = useViewportLayout()
   const { width, height, tramo, compact, sideSheet } = layout
   const narrow = tramo === 'narrow'
@@ -292,7 +292,7 @@ export function AppShell({ data }: { data: AppData }) {
         {snapshot ? (
           <MapStage
             candidates={snapshot.candidates}
-            chileOutline={snapshot.chileOutline}
+            outline={snapshot.outline}
             selectedId={selection?.kind === 'evaluated' ? selection.siteId : null}
             onSelect={selectSite}
             insets={settledInsets}

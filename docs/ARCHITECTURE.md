@@ -17,7 +17,7 @@ pipelines/scoring
   ↓ similitud, confianza y restricciones
 pipelines/candidates
   ↓ clustering y generalización
-artifacts/science-v2
+artifacts/science-v3
   ↓ JSON + GeoJSON + metadatos
 apps/web
   ↓ mapa, ranking, ficha, comparación y metodología
@@ -27,9 +27,9 @@ build estático
 ## Frontend
 
 - Vite + React + TypeScript.
-- Globo 3D (three.js, chunk diferido, texturas NASA locales) con mapa SVG local de Natural Earth como alternativa y fallback sin WebGL; sin teselas externas (ADR-007).
+- Globo 3D (three.js, chunk diferido, texturas NASA locales) con mapa SVG local de Natural Earth como alternativa y fallback sin WebGL; con paso a mapa 2D MapLibre y teselas NASA GIBS opcionales (ADR-006/007).
 - Estado local; no Redux en P0.
-- Carga final desde `/science-v2/manifest.json` y rutas relativas; `/demo/` se conserva solo para tests.
+- Carga final desde `/science-v3/manifest.json` y rutas relativas; `/demo/` se conserva solo para tests.
 - Vista inicial: mapa + panel lateral.
 - Rutas opcionales: `/`, `/methodology`, `/about`.
 - Sin login.
@@ -50,7 +50,8 @@ El frontend no conoce Rasterio, CRS internos ni lógica de descarga. Solo consum
 - `manifest.json`;
 - `mission-profile.json`;
 - `candidate-details.json`;
-- `chile-outline.geojson`;
+- `context-outline.geojson`;
+- `search-results.json` y `precedents.json`;
 - `analysis-summary.json`.
 
 Los archivos deben validar contra `contracts/` antes del build.
@@ -113,3 +114,14 @@ apps/web/src/
 - Los artefactos validan contra los schemas.
 - La web funciona sirviendo el directorio construido sin red externa.
 - Un clon limpio puede ejecutar `npm run verify`; la prueba que reprocesa NASADEM crudo se activa únicamente cuando `data/raw/` está disponible.
+
+## M8: planificador y capa de decisión (ADR-009)
+
+- **Núcleo compartido** (`apps/web/src/mission/`, TypeScript estricto, puro y sin red): catálogo de seis métricas medidas, validación Ajv, geometría, motor determinista, explicación por selección, exportación y estado del planificador (`plannerState.ts`, el reductor que usa la UI). La UI y el servidor importan el mismo código.
+- **Contratos aditivos** en `contracts/`: `mission-request`, `mission-evaluation`, `mission-export`, `mission-ai`. Los contratos de ciencia v2/v3 no cambian.
+- **Servidor opcional** (`server/ai/`, `api/ai.ts`): handler agnóstico testeable + adaptador Node para Vercel y para el servidor local (plugin de `apps/web/vite.config.ts`). Hechos siempre desde `artifacts/science-v3` validado. Detalle y límites en `docs/AI_SETUP.md`.
+
+El motor puro y los contratos TypeScript compartidos viven en `shared/mission/` y `shared/domain/contracts.ts`. Las rutas antiguas de la web reexportan esta única implementación; el servidor importa `shared/` directamente para no cruzar el ámbito ESM del paquete frontend durante la compilación NodeNext. Antes de desplegar, CI ejecuta `scripts/check-vercel-function.mjs` contra la salida real de Vercel y exige respuestas controladas sin credenciales ni red.
+- **Motor**: críticos primero (incumplido ⇒ no cumple; desconocido o escala inadecuada ⇒ evidencia insuficiente); entre los demás se ordena por preferencias cumplidas, similitud v3 y ID. Sin porcentaje de aptitud nuevo. Geometrías: solo una ventana idéntica (épsilon 1e-9°) o elegida explícitamente hereda estadísticos; punto, subbbox y cobertura parcial no.
+- **UI** (`components/planner/`): dos entradas, pasos (describir, sector, confirmar, resultado), editor de requisitos, esquema SVG local, resultado, informe imprimible (CSS `@media print`) y exportación JSON validada. Cualquier edición invalida confirmación, resultado y llamadas de IA pendientes; las respuestas tardías se ignoran por `requestId` y huellas.
+- **Estático/offline**: nada del planificador requiere red; el ZIP no lleva función ni clave.

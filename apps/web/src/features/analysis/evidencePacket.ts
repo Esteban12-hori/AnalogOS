@@ -16,7 +16,8 @@
  * Función pura: sin stores ni red.
  */
 import type { EvidenceFactKind, EvidencePacket, UnsupportedRequest } from '../../domain/aiContracts'
-import { CRITERION_IDS, isCriterionId, type CandidateSite, type CriterionId, type MissionProfile } from '../../domain/contracts'
+import type { CandidateSite, CriterionId, MissionProfile } from '../../domain/contracts'
+import { CRITERION_IDS, isCriterionId } from '../../domain/criteria'
 import { criterionLabels, feasibilityLabels, formatRatio, formatScore, formatWhole, shortCandidateName } from '../../domain/formatting'
 import { rankCandidates } from '../../domain/scoring'
 import type { MissionScoring } from '../engine'

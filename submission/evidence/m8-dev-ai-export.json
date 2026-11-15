@@ -1,0 +1,1152 @@
+{
+  "export_version": "1.0.0",
+  "request": {
+    "schema_version": "1.0.0",
+    "brief": "Ensayo de navegación autónoma de un rover para Marte. Imprescindible: pendiente mediana regional de la ventana completa como máximo 2,3 grados. Preferencia: al menos 95 % de superficie no vegetada. También necesito verificar permisos de acceso.",
+    "activity": "Ensayo de navegación autónoma de un rover para Marte en terreno análogo",
+    "target": {
+      "profile_id": "mars-rover-screening-v3",
+      "stated": "Rover marciano (referencia Jezero)"
+    },
+    "requirements": [
+      {
+        "requirement_id": "ai1-1",
+        "label": "Pendiente mediana regional de la ventana completa",
+        "importance": "critical",
+        "origin": "ai",
+        "confirmed": true,
+        "source_quote": "pendiente mediana regional de la ventana completa como máximo 2,3 grados",
+        "kind": "measurable",
+        "metric_id": "median_slope_degree",
+        "operator": "<=",
+        "value": 2.3,
+        "unit": "degree",
+        "scale": "window"
+      },
+      {
+        "requirement_id": "ai1-2",
+        "label": "Superficie no vegetada",
+        "importance": "preference",
+        "origin": "ai",
+        "confirmed": true,
+        "source_quote": "al menos 95 % de superficie no vegetada",
+        "kind": "measurable",
+        "metric_id": "nonvegetated_fraction",
+        "operator": ">=",
+        "value": 95,
+        "unit": "percent",
+        "scale": "window"
+      },
+      {
+        "requirement_id": "ai1-3",
+        "label": "Permisos de acceso",
+        "importance": "preference",
+        "origin": "ai",
+        "confirmed": true,
+        "source_quote": "También necesito verificar permisos de acceso.",
+        "kind": "unmeasured",
+        "topic_id": "permits",
+        "detail": "Tema no medido por el screening; requiere verificación externa de los permisos de acceso."
+      }
+    ],
+    "open_questions": [],
+    "scope": {
+      "mode": "catalog"
+    },
+    "confirmed": true
+  },
+  "evaluation_fingerprint": "1388398234b945dfa2f5c0a1855802048003c6f69d5d6e78b4fa7a71e43bee03",
+  "rules": {
+    "rules_version": "mission-rules-1.0.0",
+    "ordering_rule": "Primero se aplican los requisitos imprescindibles: un incumplimiento observado excluye la opción y un valor ausente o a escala inadecuada la deja con evidencia insuficiente. Entre las opciones con todos los imprescindibles cumplidos se ordena por (1) preferencias satisfechas, descendente; (2) similitud v3, descendente; (3) identificador del sector, ascendente. Las preferencias desconocidas no cuentan como cumplidas ni como incumplidas; se informan aparte y la comparación se rotula parcial. No existe un porcentaje de aptitud nuevo.",
+    "status_definitions": {
+      "priorizado_para_reconocimiento": "Cumple todos los requisitos imprescindibles evaluables; merece reconocimiento. No es aprobación ni autorización.",
+      "no_cumple_requisitos": "Incumple al menos un requisito imprescindible con valor observado.",
+      "evidencia_insuficiente": "Falta evidencia o escala adecuada para algún requisito imprescindible; no se aprueba.",
+      "objetivo_no_soportado": "El objetivo no corresponde al único perfil soportado (rover marciano, Jezero, v3)."
+    }
+  },
+  "snapshot": {
+    "snapshot_version": "science-screening-v3",
+    "profile_id": "mars-rover-screening-v3",
+    "profile_version": "3.0.0-preliminary",
+    "pipeline_version": "0.2.0",
+    "source_datasets": [
+      "copernicus-sentinel2-l2a-surface-2025-v1",
+      "copernicus-sentinel2-l2a-surface-2025-v3-search",
+      "derived-mola-nasadem-sentinel2-v3"
+    ]
+  },
+  "evaluation": {
+    "evaluation_version": "1.0.0",
+    "rules_version": "mission-rules-1.0.0",
+    "snapshot_version": "science-screening-v3",
+    "profile": {
+      "id": "mars-rover-screening-v3",
+      "version": "3.0.0-preliminary",
+      "name": "Screening multifuente para movilidad de rover — piloto Chile–Argentina",
+      "status": "needs_calibration"
+    },
+    "request_fingerprint": "ceb7102af95c1c7bb4c89544b224237cbd00421b6e19c7683493a328b681e7b9",
+    "outcome": "evaluated",
+    "resolution": {
+      "mode": "catalog",
+      "state": "covered",
+      "requested": {
+        "bbox": null,
+        "point": null,
+        "approx_area_km2": null
+      },
+      "measured": [
+        {
+          "site_id": "cl-win-s2500-w06970",
+          "bbox": [
+            -69.8,
+            -25.1,
+            -69.60000000000001,
+            -24.9
+          ],
+          "area_km2": 447.3
+        },
+        {
+          "site_id": "cl-win-s2480-w06950",
+          "bbox": [
+            -69.6,
+            -24.900000000000002,
+            -69.4,
+            -24.7
+          ],
+          "area_km2": 448
+        },
+        {
+          "site_id": "cl-win-s2520-w06950",
+          "bbox": [
+            -69.6,
+            -25.3,
+            -69.4,
+            -25.099999999999998
+          ],
+          "area_km2": 446.6
+        },
+        {
+          "site_id": "ar-win-s2620-w06750",
+          "bbox": [
+            -67.6,
+            -26.3,
+            -67.4,
+            -26.099999999999998
+          ],
+          "area_km2": 442.9
+        },
+        {
+          "site_id": "ar-win-s2640-w06730",
+          "bbox": [
+            -67.39999999999999,
+            -26.5,
+            -67.2,
+            -26.299999999999997
+          ],
+          "area_km2": 442.2
+        },
+        {
+          "site_id": "ar-win-s2580-w06710",
+          "bbox": [
+            -67.19999999999999,
+            -25.900000000000002,
+            -67,
+            -25.7
+          ],
+          "area_km2": 444.4
+        },
+        {
+          "site_id": "cl-pampa-yungay-screening",
+          "bbox": [
+            -70.05,
+            -24.18,
+            -69.85000000000001,
+            -23.979999999999997
+          ],
+          "area_km2": 450.5
+        }
+      ],
+      "matches": [],
+      "evaluated_site_ids": [
+        "ar-win-s2580-w06710",
+        "ar-win-s2620-w06750",
+        "ar-win-s2640-w06730",
+        "cl-pampa-yungay-screening",
+        "cl-win-s2480-w06950",
+        "cl-win-s2500-w06970",
+        "cl-win-s2520-w06950"
+      ],
+      "notes": [
+        "Comparación entre las ventanas con evidencia del snapshot; cada una con sus propias métricas."
+      ]
+    },
+    "comparability": "partial",
+    "ordering_rule": "Primero se aplican los requisitos imprescindibles: un incumplimiento observado excluye la opción y un valor ausente o a escala inadecuada la deja con evidencia insuficiente. Entre las opciones con todos los imprescindibles cumplidos se ordena por (1) preferencias satisfechas, descendente; (2) similitud v3, descendente; (3) identificador del sector, ascendente. Las preferencias desconocidas no cuentan como cumplidas ni como incumplidas; se informan aparte y la comparación se rotula parcial. No existe un porcentaje de aptitud nuevo.",
+    "options": [
+      {
+        "site_id": "cl-win-s2500-w06970",
+        "name": "Interior de Antofagasta · 25,0° S, 69,7° O",
+        "country": "CL",
+        "role": "candidate",
+        "status": "priorizado_para_reconocimiento",
+        "rank": 1,
+        "critical_failed": [],
+        "critical_unknown": [],
+        "preferences": {
+          "met": 1,
+          "unmet": 0,
+          "unknown": 1,
+          "total": 2
+        },
+        "requirement_results": [
+          {
+            "requirement_id": "ai1-1",
+            "label": "Pendiente mediana regional de la ventana completa",
+            "importance": "critical",
+            "kind": "measurable",
+            "required": "Pendiente mediana regional de la ventana completa: ≤ 2,3° · Ventana completa (~20 km)",
+            "status": "cumple",
+            "observed_value": 2.169,
+            "observed_unit": "degree",
+            "reason": "Valor observado 2,169° cumple la condición ≤ 2,3°.",
+            "evidence_ids": [
+              "cl-win-s2500-w06970-nasadem"
+            ],
+            "scale_note": "Mediana de la ventana completa, NASADEM agregado a ~471 m; no es pendiente puntual. Snapshot: Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente.",
+            "period": null,
+            "conversion": null
+          },
+          {
+            "requirement_id": "ai1-2",
+            "label": "Superficie no vegetada",
+            "importance": "preference",
+            "kind": "measurable",
+            "required": "Superficie no vegetada: ≥ 95 % · Ventana completa (~20 km)",
+            "status": "cumple",
+            "observed_value": 1,
+            "observed_unit": "ratio",
+            "reason": "Valor observado 1 (fracción 0–1; 100 %) cumple la condición ≥ 95 %.",
+            "evidence_ids": [
+              "cl-win-s2500-w06970-sentinel2"
+            ],
+            "scale_note": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A (SCL clase 5); no prueba tracción ni mineralogía. Snapshot: Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba.",
+            "period": "2025-01-01T00:00:00Z – 2026-01-01T00:00:00Z",
+            "conversion": "Umbral en % convertido a fracción 0–1 dividiendo por 100; el snapshot guarda la fracción."
+          },
+          {
+            "requirement_id": "ai1-3",
+            "label": "Permisos de acceso",
+            "importance": "preference",
+            "kind": "unmeasured",
+            "status": "no_evaluable",
+            "required": "Permisos de acceso — Tema no medido por el screening; requiere verificación externa de los permisos de acceso.",
+            "observed_value": null,
+            "observed_unit": null,
+            "reason": "«Permisos» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible.",
+            "evidence_ids": [],
+            "scale_note": null,
+            "period": null,
+            "conversion": null
+          }
+        ],
+        "snapshot_scores": {
+          "similarity": 94.87,
+          "confidence": 77.45,
+          "stability": 99.33
+        },
+        "territorial_feasibility": "pending",
+        "what_would_change": [
+          "Medir «Permisos de acceso» a la escala requerida (preferencia): «Permisos» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible."
+        ],
+        "field_checks": [
+          "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+          "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+          "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+          "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+          "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+        ],
+        "limitations": [
+          "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+          "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+          "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+          "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+          "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+          "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+          "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+          "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+          "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+          "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+          "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+        ]
+      },
+      {
+        "site_id": "ar-win-s2580-w06710",
+        "name": "Puna de Catamarca y Salta · 25,8° S, 67,1° O",
+        "country": "AR",
+        "role": "candidate",
+        "status": "no_cumple_requisitos",
+        "rank": null,
+        "critical_failed": [
+          "ai1-1"
+        ],
+        "critical_unknown": [],
+        "preferences": {
+          "met": 1,
+          "unmet": 0,
+          "unknown": 1,
+          "total": 2
+        },
+        "requirement_results": [
+          {
+            "requirement_id": "ai1-1",
+            "label": "Pendiente mediana regional de la ventana completa",
+            "importance": "critical",
+            "kind": "measurable",
+            "required": "Pendiente mediana regional de la ventana completa: ≤ 2,3° · Ventana completa (~20 km)",
+            "status": "no_cumple",
+            "observed_value": 3.563,
+            "observed_unit": "degree",
+            "reason": "Valor observado 3,563° no cumple la condición ≤ 2,3°.",
+            "evidence_ids": [
+              "ar-win-s2580-w06710-nasadem"
+            ],
+            "scale_note": "Mediana de la ventana completa, NASADEM agregado a ~471 m; no es pendiente puntual. Snapshot: Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente.",
+            "period": null,
+            "conversion": null
+          },
+          {
+            "requirement_id": "ai1-2",
+            "label": "Superficie no vegetada",
+            "importance": "preference",
+            "kind": "measurable",
+            "required": "Superficie no vegetada: ≥ 95 % · Ventana completa (~20 km)",
+            "status": "cumple",
+            "observed_value": 0.995811,
+            "observed_unit": "ratio",
+            "reason": "Valor observado 0,995811 (fracción 0–1; 99,5811 %) cumple la condición ≥ 95 %.",
+            "evidence_ids": [
+              "ar-win-s2580-w06710-sentinel2"
+            ],
+            "scale_note": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A (SCL clase 5); no prueba tracción ni mineralogía. Snapshot: Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba.",
+            "period": "2025-01-01T00:00:00Z – 2026-01-01T00:00:00Z",
+            "conversion": "Umbral en % convertido a fracción 0–1 dividiendo por 100; el snapshot guarda la fracción."
+          },
+          {
+            "requirement_id": "ai1-3",
+            "label": "Permisos de acceso",
+            "importance": "preference",
+            "kind": "unmeasured",
+            "status": "no_evaluable",
+            "required": "Permisos de acceso — Tema no medido por el screening; requiere verificación externa de los permisos de acceso.",
+            "observed_value": null,
+            "observed_unit": null,
+            "reason": "«Permisos» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible.",
+            "evidence_ids": [],
+            "scale_note": null,
+            "period": null,
+            "conversion": null
+          }
+        ],
+        "snapshot_scores": {
+          "similarity": 49.43,
+          "confidence": 77.4,
+          "stability": 96.81
+        },
+        "territorial_feasibility": "pending",
+        "what_would_change": [
+          "Revisar si «Pendiente mediana regional de la ventana completa» es realmente necesario o elegir otro sector: observado 3,563°.",
+          "Medir «Permisos de acceso» a la escala requerida (preferencia): «Permisos» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible."
+        ],
+        "field_checks": [
+          "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+          "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+          "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+          "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+          "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+        ],
+        "limitations": [
+          "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+          "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+          "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+          "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+          "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+          "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+          "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+          "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+          "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+          "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+          "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+        ]
+      },
+      {
+        "site_id": "ar-win-s2620-w06750",
+        "name": "Puna de Catamarca y Salta · 26,2° S, 67,5° O",
+        "country": "AR",
+        "role": "candidate",
+        "status": "no_cumple_requisitos",
+        "rank": null,
+        "critical_failed": [
+          "ai1-1"
+        ],
+        "critical_unknown": [],
+        "preferences": {
+          "met": 1,
+          "unmet": 0,
+          "unknown": 1,
+          "total": 2
+        },
+        "requirement_results": [
+          {
+            "requirement_id": "ai1-1",
+            "label": "Pendiente mediana regional de la ventana completa",
+            "importance": "critical",
+            "kind": "measurable",
+            "required": "Pendiente mediana regional de la ventana completa: ≤ 2,3° · Ventana completa (~20 km)",
+            "status": "no_cumple",
+            "observed_value": 2.568,
+            "observed_unit": "degree",
+            "reason": "Valor observado 2,568° no cumple la condición ≤ 2,3°.",
+            "evidence_ids": [
+              "ar-win-s2620-w06750-nasadem"
+            ],
+            "scale_note": "Mediana de la ventana completa, NASADEM agregado a ~471 m; no es pendiente puntual. Snapshot: Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente.",
+            "period": null,
+            "conversion": null
+          },
+          {
+            "requirement_id": "ai1-2",
+            "label": "Superficie no vegetada",
+            "importance": "preference",
+            "kind": "measurable",
+            "required": "Superficie no vegetada: ≥ 95 % · Ventana completa (~20 km)",
+            "status": "cumple",
+            "observed_value": 0.993911,
+            "observed_unit": "ratio",
+            "reason": "Valor observado 0,993911 (fracción 0–1; 99,3911 %) cumple la condición ≥ 95 %.",
+            "evidence_ids": [
+              "ar-win-s2620-w06750-sentinel2"
+            ],
+            "scale_note": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A (SCL clase 5); no prueba tracción ni mineralogía. Snapshot: Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba.",
+            "period": "2025-01-01T00:00:00Z – 2026-01-01T00:00:00Z",
+            "conversion": "Umbral en % convertido a fracción 0–1 dividiendo por 100; el snapshot guarda la fracción."
+          },
+          {
+            "requirement_id": "ai1-3",
+            "label": "Permisos de acceso",
+            "importance": "preference",
+            "kind": "unmeasured",
+            "status": "no_evaluable",
+            "required": "Permisos de acceso — Tema no medido por el screening; requiere verificación externa de los permisos de acceso.",
+            "observed_value": null,
+            "observed_unit": null,
+            "reason": "«Permisos» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible.",
+            "evidence_ids": [],
+            "scale_note": null,
+            "period": null,
+            "conversion": null
+          }
+        ],
+        "snapshot_scores": {
+          "similarity": 63.85,
+          "confidence": 77,
+          "stability": 95.88
+        },
+        "territorial_feasibility": "pending",
+        "what_would_change": [
+          "Revisar si «Pendiente mediana regional de la ventana completa» es realmente necesario o elegir otro sector: observado 2,568°.",
+          "Medir «Permisos de acceso» a la escala requerida (preferencia): «Permisos» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible."
+        ],
+        "field_checks": [
+          "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+          "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+          "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+          "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+          "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+        ],
+        "limitations": [
+          "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+          "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+          "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+          "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+          "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+          "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+          "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+          "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+          "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+          "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+          "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+        ]
+      },
+      {
+        "site_id": "ar-win-s2640-w06730",
+        "name": "Puna de Catamarca y Salta · 26,4° S, 67,3° O",
+        "country": "AR",
+        "role": "candidate",
+        "status": "no_cumple_requisitos",
+        "rank": null,
+        "critical_failed": [
+          "ai1-1"
+        ],
+        "critical_unknown": [],
+        "preferences": {
+          "met": 1,
+          "unmet": 0,
+          "unknown": 1,
+          "total": 2
+        },
+        "requirement_results": [
+          {
+            "requirement_id": "ai1-1",
+            "label": "Pendiente mediana regional de la ventana completa",
+            "importance": "critical",
+            "kind": "measurable",
+            "required": "Pendiente mediana regional de la ventana completa: ≤ 2,3° · Ventana completa (~20 km)",
+            "status": "no_cumple",
+            "observed_value": 3.433,
+            "observed_unit": "degree",
+            "reason": "Valor observado 3,433° no cumple la condición ≤ 2,3°.",
+            "evidence_ids": [
+              "ar-win-s2640-w06730-nasadem"
+            ],
+            "scale_note": "Mediana de la ventana completa, NASADEM agregado a ~471 m; no es pendiente puntual. Snapshot: Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente.",
+            "period": null,
+            "conversion": null
+          },
+          {
+            "requirement_id": "ai1-2",
+            "label": "Superficie no vegetada",
+            "importance": "preference",
+            "kind": "measurable",
+            "required": "Superficie no vegetada: ≥ 95 % · Ventana completa (~20 km)",
+            "status": "cumple",
+            "observed_value": 0.983938,
+            "observed_unit": "ratio",
+            "reason": "Valor observado 0,983938 (fracción 0–1; 98,3938 %) cumple la condición ≥ 95 %.",
+            "evidence_ids": [
+              "ar-win-s2640-w06730-sentinel2"
+            ],
+            "scale_note": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A (SCL clase 5); no prueba tracción ni mineralogía. Snapshot: Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba.",
+            "period": "2025-01-01T00:00:00Z – 2026-01-01T00:00:00Z",
+            "conversion": "Umbral en % convertido a fracción 0–1 dividiendo por 100; el snapshot guarda la fracción."
+          },
+          {
+            "requirement_id": "ai1-3",
+            "label": "Permisos de acceso",
+            "importance": "preference",
+            "kind": "unmeasured",
+            "status": "no_evaluable",
+            "required": "Permisos de acceso — Tema no medido por el screening; requiere verificación externa de los permisos de acceso.",
+            "observed_value": null,
+            "observed_unit": null,
+            "reason": "«Permisos» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible.",
+            "evidence_ids": [],
+            "scale_note": null,
+            "period": null,
+            "conversion": null
+          }
+        ],
+        "snapshot_scores": {
+          "similarity": 53.68,
+          "confidence": 77.25,
+          "stability": 96.81
+        },
+        "territorial_feasibility": "pending",
+        "what_would_change": [
+          "Revisar si «Pendiente mediana regional de la ventana completa» es realmente necesario o elegir otro sector: observado 3,433°.",
+          "Medir «Permisos de acceso» a la escala requerida (preferencia): «Permisos» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible."
+        ],
+        "field_checks": [
+          "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+          "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+          "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+          "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+          "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+        ],
+        "limitations": [
+          "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+          "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+          "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+          "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+          "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+          "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+          "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+          "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+          "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+          "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+          "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+        ]
+      },
+      {
+        "site_id": "cl-pampa-yungay-screening",
+        "name": "Pampa Yungay — sector de screening",
+        "country": "CL",
+        "role": "reference",
+        "status": "no_cumple_requisitos",
+        "rank": null,
+        "critical_failed": [
+          "ai1-1"
+        ],
+        "critical_unknown": [],
+        "preferences": {
+          "met": 1,
+          "unmet": 0,
+          "unknown": 1,
+          "total": 2
+        },
+        "requirement_results": [
+          {
+            "requirement_id": "ai1-1",
+            "label": "Pendiente mediana regional de la ventana completa",
+            "importance": "critical",
+            "kind": "measurable",
+            "required": "Pendiente mediana regional de la ventana completa: ≤ 2,3° · Ventana completa (~20 km)",
+            "status": "no_cumple",
+            "observed_value": 3.207,
+            "observed_unit": "degree",
+            "reason": "Valor observado 3,207° no cumple la condición ≤ 2,3°.",
+            "evidence_ids": [
+              "cl-pampa-yungay-screening-nasadem"
+            ],
+            "scale_note": "Mediana de la ventana completa, NASADEM agregado a ~471 m; no es pendiente puntual. Snapshot: Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente.",
+            "period": null,
+            "conversion": null
+          },
+          {
+            "requirement_id": "ai1-2",
+            "label": "Superficie no vegetada",
+            "importance": "preference",
+            "kind": "measurable",
+            "required": "Superficie no vegetada: ≥ 95 % · Ventana completa (~20 km)",
+            "status": "cumple",
+            "observed_value": 1,
+            "observed_unit": "ratio",
+            "reason": "Valor observado 1 (fracción 0–1; 100 %) cumple la condición ≥ 95 %.",
+            "evidence_ids": [
+              "cl-pampa-yungay-screening-sentinel2"
+            ],
+            "scale_note": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A (SCL clase 5); no prueba tracción ni mineralogía. Snapshot: Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba.",
+            "period": "2025-01-01T00:00:00Z – 2026-01-01T00:00:00Z",
+            "conversion": "Umbral en % convertido a fracción 0–1 dividiendo por 100; el snapshot guarda la fracción."
+          },
+          {
+            "requirement_id": "ai1-3",
+            "label": "Permisos de acceso",
+            "importance": "preference",
+            "kind": "unmeasured",
+            "status": "no_evaluable",
+            "required": "Permisos de acceso — Tema no medido por el screening; requiere verificación externa de los permisos de acceso.",
+            "observed_value": null,
+            "observed_unit": null,
+            "reason": "«Permisos» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible.",
+            "evidence_ids": [],
+            "scale_note": null,
+            "period": null,
+            "conversion": null
+          }
+        ],
+        "snapshot_scores": {
+          "similarity": 75.67,
+          "confidence": 77.45,
+          "stability": 99.03
+        },
+        "territorial_feasibility": "pending",
+        "what_would_change": [
+          "Revisar si «Pendiente mediana regional de la ventana completa» es realmente necesario o elegir otro sector: observado 3,207°.",
+          "Medir «Permisos de acceso» a la escala requerida (preferencia): «Permisos» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible."
+        ],
+        "field_checks": [
+          "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+          "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+          "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+          "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+          "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+        ],
+        "limitations": [
+          "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+          "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+          "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+          "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+          "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+          "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+          "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+          "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+          "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+          "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+          "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+        ]
+      },
+      {
+        "site_id": "cl-win-s2480-w06950",
+        "name": "Interior de Antofagasta · 24,8° S, 69,5° O",
+        "country": "CL",
+        "role": "candidate",
+        "status": "no_cumple_requisitos",
+        "rank": null,
+        "critical_failed": [
+          "ai1-1"
+        ],
+        "critical_unknown": [],
+        "preferences": {
+          "met": 1,
+          "unmet": 0,
+          "unknown": 1,
+          "total": 2
+        },
+        "requirement_results": [
+          {
+            "requirement_id": "ai1-1",
+            "label": "Pendiente mediana regional de la ventana completa",
+            "importance": "critical",
+            "kind": "measurable",
+            "required": "Pendiente mediana regional de la ventana completa: ≤ 2,3° · Ventana completa (~20 km)",
+            "status": "no_cumple",
+            "observed_value": 2.388,
+            "observed_unit": "degree",
+            "reason": "Valor observado 2,388° no cumple la condición ≤ 2,3°.",
+            "evidence_ids": [
+              "cl-win-s2480-w06950-nasadem"
+            ],
+            "scale_note": "Mediana de la ventana completa, NASADEM agregado a ~471 m; no es pendiente puntual. Snapshot: Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente.",
+            "period": null,
+            "conversion": null
+          },
+          {
+            "requirement_id": "ai1-2",
+            "label": "Superficie no vegetada",
+            "importance": "preference",
+            "kind": "measurable",
+            "required": "Superficie no vegetada: ≥ 95 % · Ventana completa (~20 km)",
+            "status": "cumple",
+            "observed_value": 1,
+            "observed_unit": "ratio",
+            "reason": "Valor observado 1 (fracción 0–1; 100 %) cumple la condición ≥ 95 %.",
+            "evidence_ids": [
+              "cl-win-s2480-w06950-sentinel2"
+            ],
+            "scale_note": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A (SCL clase 5); no prueba tracción ni mineralogía. Snapshot: Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba.",
+            "period": "2025-01-01T00:00:00Z – 2026-01-01T00:00:00Z",
+            "conversion": "Umbral en % convertido a fracción 0–1 dividiendo por 100; el snapshot guarda la fracción."
+          },
+          {
+            "requirement_id": "ai1-3",
+            "label": "Permisos de acceso",
+            "importance": "preference",
+            "kind": "unmeasured",
+            "status": "no_evaluable",
+            "required": "Permisos de acceso — Tema no medido por el screening; requiere verificación externa de los permisos de acceso.",
+            "observed_value": null,
+            "observed_unit": null,
+            "reason": "«Permisos» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible.",
+            "evidence_ids": [],
+            "scale_note": null,
+            "period": null,
+            "conversion": null
+          }
+        ],
+        "snapshot_scores": {
+          "similarity": 91.87,
+          "confidence": 77.45,
+          "stability": 99.03
+        },
+        "territorial_feasibility": "pending",
+        "what_would_change": [
+          "Revisar si «Pendiente mediana regional de la ventana completa» es realmente necesario o elegir otro sector: observado 2,388°.",
+          "Medir «Permisos de acceso» a la escala requerida (preferencia): «Permisos» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible."
+        ],
+        "field_checks": [
+          "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+          "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+          "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+          "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+          "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+        ],
+        "limitations": [
+          "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+          "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+          "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+          "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+          "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+          "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+          "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+          "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+          "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+          "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+          "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+        ]
+      },
+      {
+        "site_id": "cl-win-s2520-w06950",
+        "name": "Interior de Antofagasta · 25,2° S, 69,5° O",
+        "country": "CL",
+        "role": "candidate",
+        "status": "no_cumple_requisitos",
+        "rank": null,
+        "critical_failed": [
+          "ai1-1"
+        ],
+        "critical_unknown": [],
+        "preferences": {
+          "met": 1,
+          "unmet": 0,
+          "unknown": 1,
+          "total": 2
+        },
+        "requirement_results": [
+          {
+            "requirement_id": "ai1-1",
+            "label": "Pendiente mediana regional de la ventana completa",
+            "importance": "critical",
+            "kind": "measurable",
+            "required": "Pendiente mediana regional de la ventana completa: ≤ 2,3° · Ventana completa (~20 km)",
+            "status": "no_cumple",
+            "observed_value": 2.375,
+            "observed_unit": "degree",
+            "reason": "Valor observado 2,375° no cumple la condición ≤ 2,3°.",
+            "evidence_ids": [
+              "cl-win-s2520-w06950-nasadem"
+            ],
+            "scale_note": "Mediana de la ventana completa, NASADEM agregado a ~471 m; no es pendiente puntual. Snapshot: Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente.",
+            "period": null,
+            "conversion": null
+          },
+          {
+            "requirement_id": "ai1-2",
+            "label": "Superficie no vegetada",
+            "importance": "preference",
+            "kind": "measurable",
+            "required": "Superficie no vegetada: ≥ 95 % · Ventana completa (~20 km)",
+            "status": "cumple",
+            "observed_value": 1,
+            "observed_unit": "ratio",
+            "reason": "Valor observado 1 (fracción 0–1; 100 %) cumple la condición ≥ 95 %.",
+            "evidence_ids": [
+              "cl-win-s2520-w06950-sentinel2"
+            ],
+            "scale_note": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A (SCL clase 5); no prueba tracción ni mineralogía. Snapshot: Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba.",
+            "period": "2025-01-01T00:00:00Z – 2026-01-01T00:00:00Z",
+            "conversion": "Umbral en % convertido a fracción 0–1 dividiendo por 100; el snapshot guarda la fracción."
+          },
+          {
+            "requirement_id": "ai1-3",
+            "label": "Permisos de acceso",
+            "importance": "preference",
+            "kind": "unmeasured",
+            "status": "no_evaluable",
+            "required": "Permisos de acceso — Tema no medido por el screening; requiere verificación externa de los permisos de acceso.",
+            "observed_value": null,
+            "observed_unit": null,
+            "reason": "«Permisos» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible.",
+            "evidence_ids": [],
+            "scale_note": null,
+            "period": null,
+            "conversion": null
+          }
+        ],
+        "snapshot_scores": {
+          "similarity": 90.35,
+          "confidence": 77.36,
+          "stability": 99.08
+        },
+        "territorial_feasibility": "pending",
+        "what_would_change": [
+          "Revisar si «Pendiente mediana regional de la ventana completa» es realmente necesario o elegir otro sector: observado 2,375°.",
+          "Medir «Permisos de acceso» a la escala requerida (preferencia): «Permisos» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible."
+        ],
+        "field_checks": [
+          "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+          "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+          "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+          "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+          "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+        ],
+        "limitations": [
+          "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+          "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+          "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+          "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+          "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+          "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+          "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+          "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+          "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+          "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+          "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+        ]
+      }
+    ],
+    "recommended_site_ids": [
+      "cl-win-s2500-w06970"
+    ],
+    "none_prioritized": false,
+    "pending_requirements": [
+      "ai1-3"
+    ],
+    "open_questions": [],
+    "data_request": null,
+    "evidence": [
+      {
+        "evidence_id": "ar-win-s2580-w06710-nasadem",
+        "kind": "artifact",
+        "site_id": "ar-win-s2580-w06710",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 2 tile(s), agregado a ~470 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "ar-win-s2580-w06710-sentinel2",
+        "kind": "artifact",
+        "site_id": "ar-win-s2580-w06710",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "claim": "Superficie: 99,6 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "ar-win-s2620-w06750-nasadem",
+        "kind": "artifact",
+        "site_id": "ar-win-s2620-w06750",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 1 tile(s), agregado a ~469 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "ar-win-s2620-w06750-sentinel2",
+        "kind": "artifact",
+        "site_id": "ar-win-s2620-w06750",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "claim": "Superficie: 99,4 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "ar-win-s2640-w06730-nasadem",
+        "kind": "artifact",
+        "site_id": "ar-win-s2640-w06730",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 1 tile(s), agregado a ~468 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "ar-win-s2640-w06730-sentinel2",
+        "kind": "artifact",
+        "site_id": "ar-win-s2640-w06730",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "claim": "Superficie: 98,4 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "cl-pampa-yungay-screening-nasadem",
+        "kind": "artifact",
+        "site_id": "cl-pampa-yungay-screening",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 4 tile(s), agregado a ~473 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "cl-pampa-yungay-screening-sentinel2",
+        "kind": "artifact",
+        "site_id": "cl-pampa-yungay-screening",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v1",
+        "claim": "Superficie: 100,0 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "cl-win-s2480-w06950-nasadem",
+        "kind": "artifact",
+        "site_id": "cl-win-s2480-w06950",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 1 tile(s), agregado a ~471 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "cl-win-s2480-w06950-sentinel2",
+        "kind": "artifact",
+        "site_id": "cl-win-s2480-w06950",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "claim": "Superficie: 100,0 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "cl-win-s2500-w06970-nasadem",
+        "kind": "artifact",
+        "site_id": "cl-win-s2500-w06970",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 2 tile(s), agregado a ~471 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "cl-win-s2500-w06970-sentinel2",
+        "kind": "artifact",
+        "site_id": "cl-win-s2500-w06970",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "claim": "Superficie: 100,0 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "cl-win-s2520-w06950-nasadem",
+        "kind": "artifact",
+        "site_id": "cl-win-s2520-w06950",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 1 tile(s), agregado a ~471 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "cl-win-s2520-w06950-sentinel2",
+        "kind": "artifact",
+        "site_id": "cl-win-s2520-w06950",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "claim": "Superficie: 100,0 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      }
+    ],
+    "limits": [
+      "Screening de escritorio sobre el snapshot science-screening-v3: prioriza reconocimiento; no aprueba, autoriza ni garantiza la seguridad de un sector.",
+      "Los requisitos son condiciones del ensayo definidas por el usuario, no estándares de NASA ni de otra agencia.",
+      "Las métricas son estadísticos de la ventana completa (análisis a ~471 m); no describen pendiente puntual, rocas, tracción ni suelo suelto.",
+      "El área es la extensión del polígono evaluado, no superficie libre ni utilizable.",
+      "SCL clase 5 mide superficie no vegetada; no prueba tracción ni mineralogía. NASA POWER es contexto regional: no aprueba lluvia local ni pronósticos.",
+      "La factibilidad territorial (permisos, acceso, áreas protegidas, propiedad) está pendiente y es independiente de este resultado.",
+      "Similitud y confianza son las del snapshot v3, sin recalcular; la similitud no es probabilidad de éxito. Es válido que ninguna opción resulte priorizada."
+    ]
+  },
+  "ai": {
+    "draft": {
+      "provenance": {
+        "provider": "anthropic",
+        "model": "claude-sonnet-5-5",
+        "request_id": "req_011Ch3V9sX8XWfnCFHCehTem",
+        "created_at": "2026-11-14T20:54:49.557Z",
+        "usage": {
+          "input_tokens": 2166,
+          "output_tokens": 870
+        },
+        "stop_reason": "end_turn"
+      },
+      "brief_fingerprint": "4311f39e5c95f8d89e444353adfb1fbefeef2ad3bfe14d6e8e02f58ace5d72cf",
+      "proposal_fingerprint": "a37d0bb40052acb3360a75f6ececfbed70bfb425860ada4d3c17306456c2102b",
+      "proposal": {
+        "activity": "Ensayo de navegación autónoma de un rover para Marte en terreno análogo",
+        "target_kind": "mars_rover_terrain",
+        "target_profile_id": "mars-rover-screening-v3",
+        "requirements": [
+          {
+            "requirement_id": "ai1-1",
+            "importance": "critical",
+            "origin": "ai",
+            "confirmed": false,
+            "source_quote": "pendiente mediana regional de la ventana completa como máximo 2,3 grados",
+            "kind": "measurable",
+            "label": "Pendiente mediana regional de la ventana completa",
+            "metric_id": "median_slope_degree",
+            "operator": "<=",
+            "value": 2.3,
+            "unit": "degree",
+            "scale": "window"
+          },
+          {
+            "requirement_id": "ai1-2",
+            "importance": "preference",
+            "origin": "ai",
+            "confirmed": false,
+            "source_quote": "al menos 95 % de superficie no vegetada",
+            "kind": "measurable",
+            "label": "Superficie no vegetada",
+            "metric_id": "nonvegetated_fraction",
+            "operator": ">=",
+            "value": 95,
+            "unit": "percent",
+            "scale": "window"
+          },
+          {
+            "requirement_id": "ai1-3",
+            "importance": "preference",
+            "origin": "ai",
+            "confirmed": false,
+            "source_quote": "También necesito verificar permisos de acceso.",
+            "kind": "unmeasured",
+            "label": "Permisos de acceso",
+            "topic_id": "permits",
+            "detail": "Tema no medido por el screening; requiere verificación externa de los permisos de acceso."
+          }
+        ],
+        "open_questions": [],
+        "warnings": []
+      },
+      "user_changes": {
+        "edited_requirement_ids": [],
+        "removed_requirement_ids": [],
+        "added_requirement_ids": []
+      }
+    },
+    "explanation": {
+      "provenance": {
+        "provider": "anthropic",
+        "model": "claude-sonnet-5-5",
+        "request_id": "req_011Ch3VD7AVeY7uEpeKT9i9e",
+        "created_at": "2026-11-14T20:55:30.448Z",
+        "usage": {
+          "input_tokens": 5751,
+          "output_tokens": 461
+        },
+        "stop_reason": "end_turn"
+      },
+      "selection": {
+        "options": [
+          {
+            "site_id": "cl-win-s2500-w06970",
+            "key_requirement_ids": [
+              "ai1-3",
+              "ai1-1"
+            ],
+            "evidence_ids": [
+              "cl-win-s2500-w06970-nasadem"
+            ]
+          },
+          {
+            "site_id": "cl-pampa-yungay-screening",
+            "key_requirement_ids": [
+              "ai1-1",
+              "ai1-3"
+            ],
+            "evidence_ids": [
+              "cl-pampa-yungay-screening-nasadem"
+            ]
+          },
+          {
+            "site_id": "cl-win-s2520-w06950",
+            "key_requirement_ids": [
+              "ai1-1",
+              "ai1-3"
+            ],
+            "evidence_ids": [
+              "cl-win-s2520-w06950-nasadem"
+            ]
+          },
+          {
+            "site_id": "cl-win-s2480-w06950",
+            "key_requirement_ids": [
+              "ai1-1",
+              "ai1-3"
+            ],
+            "evidence_ids": [
+              "cl-win-s2480-w06950-nasadem"
+            ]
+          }
+        ],
+        "verification_ids": [
+          "cl-win-s2500-w06970|req|ai1-3",
+          "cl-win-s2500-w06970|fc|0",
+          "cl-win-s2500-w06970|fc|3",
+          "cl-win-s2500-w06970|fc|1",
+          "cl-win-s2500-w06970|fc|2",
+          "cl-win-s2500-w06970|fc|4",
+          "cl-win-s2520-w06950|req|ai1-1",
+          "cl-win-s2480-w06950|req|ai1-1"
+        ]
+      },
+      "request_fingerprint": "ceb7102af95c1c7bb4c89544b224237cbd00421b6e19c7683493a328b681e7b9",
+      "evaluation_fingerprint": "1388398234b945dfa2f5c0a1855802048003c6f69d5d6e78b4fa7a71e43bee03"
+    }
+  }
+}

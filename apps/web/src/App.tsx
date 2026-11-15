@@ -8,6 +8,14 @@ import { AppShell } from './shell/AppShell'
 type SnapshotState = Pick<AppData, 'status' | 'snapshot' | 'error'>
 
 /**
+ * Promesa del producto (la misma que el planificador del equipo, ADR-009): prioriza para
+ * reconocimiento; no aprueba terreno. El armazón la muestra en el estado inicial de Explorar y
+ * en la cabecera de Misión.
+ */
+const PRODUCT_PROMISE =
+  'Prioriza qué sectores merecen reconocimiento para un ensayo de rover, con medidas regionales y verificaciones de campo pendientes. No mide tracción ni aprueba terreno.'
+
+/**
  * Carga los datos en el límite del sistema (snapshot validado contra los contratos y contexto
  * visual opcional) y entrega el armazón. El armazón se dibuja sin esperar los datos.
  */
@@ -54,7 +62,7 @@ function App() {
     )
   }
 
-  return <AppShell data={{ ...state, visual }} />
+  return <AppShell data={{ ...state, visual }} promise={PRODUCT_PROMISE} />
 }
 
 export default App

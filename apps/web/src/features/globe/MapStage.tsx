@@ -1,5 +1,6 @@
 import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import type { CandidateSite, GeoJsonFeatureCollection, ReferenceAnalog } from '../../domain/contracts'
+import type { CandidateSite, GeoJsonFeatureCollection, PrecedentCatalog, ReferenceAnalog, SearchResults } from '../../domain/contracts'
+import { rankMap, splitByRole } from '../../domain/discovery'
 import { shortCandidateName } from '../../domain/formatting'
 import { loadBasemaps, type ActiveSource, type Basemap, type BasemapManifest, type ContextPreview } from '../../data/loadBasemaps'
 import type { VisualContextState } from '../../data/loadVisualContext'
@@ -50,7 +51,11 @@ export type StageMilestone = 'globe' | 'texture'
 
 export interface MapStageProps {
   candidates: CandidateSite[]
-  chileOutline: GeoJsonFeatureCollection
+  /** Contorno de contexto (v3: Chile y Argentina; históricos: Chile). Referencial, no límite oficial. */
+  outline: GeoJsonFeatureCollection
+  /** Búsqueda y antecedentes del snapshot v3 (solo los usa el mapa SVG sin WebGL). */
+  search?: SearchResults | null
+  precedents?: PrecedentCatalog | null
   /** null = sin selección (Explorar arranca así). Solo sectores evaluados (● ○). */
   selectedId: string | null
   onSelect: (siteId: string) => void
@@ -84,6 +89,8 @@ export interface MapStageProps {
 export function contextLayers(visual: VisualContextState, previews: ContextPreview[] = []): Basemap[] {
   if (visual.status !== 'ready') return []
   const { index } = visual
+  // Las imágenes v3 viven en su propio directorio; los índices históricos, en visual-context/.
+  const dir = index.snapshot_version === 'science-screening-v3' ? 'visual-context-v3' : 'visual-context'
   return index.sites.map((site) => {
     // WebP liviano solo si fue derivado de este mismo PNG (mismo SHA-256); si no, el original.
     const preview = previews.find((item) => item.site_id === site.site_id && item.source_sha256 === site.sha256)
@@ -92,7 +99,7 @@ export function contextLayers(visual: VisualContextState, previews: ContextPrevi
     kind: 'context' as const,
     label: `Copernicus Sentinel-2 L2A · ≈${Math.round(site.approx_meters_per_pixel)} m`,
     bounds: site.bbox,
-    image: preview?.image ?? `visual-context/${site.image}`,
+    image: preview?.image ?? `${dir}/${site.image}`,
     layers: [index.source.collection],
     dates: [],
     resolution_m: site.approx_meters_per_pixel,
@@ -170,7 +177,9 @@ const touchCamera = () => uiActions.touchCamera()
  */
 export function MapStage({
   candidates,
-  chileOutline,
+  outline,
+  search = null,
+  precedents = null,
   selectedId,
   onSelect,
   insets,
@@ -398,7 +407,15 @@ export function MapStage({
   if (!webgl || failed) {
     return (
       <div className="map-stage map-stage-fallback">
-        <CandidateMap candidates={candidates} chileOutline={chileOutline} selectedId={selectedId ?? ''} onSelect={onSelect} />
+        <CandidateMap
+          candidates={candidates}
+          rankOf={rankMap(splitByRole(candidates).ranked)}
+          outline={outline}
+          search={search}
+          precedents={precedents}
+          selectedId={selectedId ?? ''}
+          onSelect={onSelect}
+        />
         <p className="view-note stage-note">Sin WebGL: se muestra el mapa SVG local (sin imágenes satelitales).</p>
       </div>
     )
@@ -413,7 +430,7 @@ export function MapStage({
           <Suspense fallback={<StageLoading text="Cargando globo 3D…" />}>
             <CandidateGlobe
               candidates={candidates}
-              chileOutline={chileOutline}
+              outline={outline}
               markerInput={markerInput}
               selection={selection}
               hoverId={hoverId}
@@ -443,7 +460,7 @@ export function MapStage({
             <Suspense fallback={<StageLoading text="Cargando mapa 2D…" />}>
               <CandidateFlatMap
                 candidates={candidates}
-                chileOutline={chileOutline}
+                outline={outline}
                 basemaps={layers}
                 markerInput={markerInput}
                 selection={selection}

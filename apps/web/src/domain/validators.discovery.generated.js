@@ -1,0 +1,3515 @@
+/* eslint-disable */
+// GENERADO por scripts/build-validators.mjs desde contracts/*.schema.json. No editar a mano.
+import * as __dep0 from 'ajv/dist/runtime/ucs2length.js'
+import * as __dep1 from 'ajv-formats/dist/formats.js'
+const __interop = (m) => (typeof m.default === 'function' ? m.default : m.default?.default ?? m)
+export const validateSearch = validate20;
+const schema31 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://analogos.cl/schemas/discovery-search.schema.json","title":"AnalogOS Discovery Search Results","type":"object","additionalProperties":false,"required":["search_id","snapshot_version","created_at","scope_note","crs","window_size_degree","stage1","selection","precedents","limits","mola_reference","regions","counts","explored_area_km2","shortlist","windows"],"properties":{"search_id":{"type":"string"},"snapshot_version":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"scope_note":{"type":"string","minLength":20},"crs":{"type":"string"},"window_size_degree":{"type":"number","exclusiveMinimum":0},"stage1":{"type":"object"},"selection":{"type":"object"},"precedents":{"type":"object"},"limits":{"type":"object"},"mola_reference":{"type":"object"},"regions":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["region_id","country","name","bbox","windows_evaluated","windows_selected","explored_area_km2"],"properties":{"region_id":{"type":"string"},"country":{"enum":["CL","AR"]},"name":{"type":"string"},"bbox":{"type":"array","minItems":4,"maxItems":4,"items":{"type":"number"}},"windows_evaluated":{"type":"integer","minimum":0},"windows_selected":{"type":"integer","minimum":0},"explored_area_km2":{"type":"number","minimum":0}}}},"counts":{"type":"object","required":["attempted","evaluated"],"additionalProperties":{"type":"integer","minimum":0}},"explored_area_km2":{"type":"number","minimum":0},"shortlist":{"type":"array","maxItems":6,"uniqueItems":true,"items":{"type":"string"}},"windows":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["window_id","region_id","country","name","center","bbox","area_km2","nasadem","topographic_similarities","topographic_priority","literature","decision","decision_reason","selection_rank","blocked_by"],"properties":{"window_id":{"type":"string","pattern":"^(cl|ar)-win-[sn][0-9]{4}-[we][0-9]{5}$"},"region_id":{"type":"string"},"country":{"enum":["CL","AR"]},"name":{"type":"string"},"center":{"type":"array","minItems":2,"maxItems":2,"items":{"type":"number"}},"bbox":{"type":"array","minItems":4,"maxItems":4,"items":{"type":"number"}},"area_km2":{"type":"number","exclusiveMinimum":0},"nasadem":{"oneOf":[{"type":"null"},{"type":"object","additionalProperties":false,"required":["tiles","source_valid_fraction","permanent_water_fraction","analysis_spacing_meter","median_slope_degree","median_neighbor_difference_meter","median_3x3_relief_meter"],"properties":{"tiles":{"type":"array","items":{"type":"string"}},"source_valid_fraction":{"type":"number","minimum":0,"maximum":1},"permanent_water_fraction":{"type":"number","minimum":0,"maximum":1},"analysis_spacing_meter":{"type":"number"},"median_slope_degree":{"type":["number","null"]},"median_neighbor_difference_meter":{"type":["number","null"]},"median_3x3_relief_meter":{"type":["number","null"]}}}]},"topographic_similarities":{"type":"object","additionalProperties":false,"required":["slope","terrain_roughness","local_relief"],"properties":{"slope":{"type":["number","null"],"minimum":0,"maximum":1},"terrain_roughness":{"type":["number","null"],"minimum":0,"maximum":1},"local_relief":{"type":["number","null"],"minimum":0,"maximum":1}}},"topographic_priority":{"type":["number","null"],"minimum":0,"maximum":100},"literature":{"type":"object","additionalProperties":false,"required":["status","matches"],"properties":{"status":{"enum":["known_reference","known_analogue_overlap","regional_precedent","literature_review_pending","no_match_in_reviewed_sources"]},"matches":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["precedent_id","relation","in_region_with_precedent"],"properties":{"precedent_id":{"type":"string"},"relation":{"enum":["contains_published_sampling_coordinate","study_area_overlap","proximity_heuristic","regional_precedent"]},"in_region_with_precedent":{"type":"boolean"},"points":{"type":"array","minItems":1,"items":{"type":"string"}},"nearest_point":{"type":"string"},"distance_km":{"type":"number","minimum":0}}}}}},"decision":{"enum":["selected","eligible","not_selected_proximity","not_selected_quota","rejected_coverage","rejected_water","rejected_precedent_overlap","evaluation_failed"]},"decision_reason":{"type":"string","minLength":5},"selection_rank":{"type":["integer","null"],"minimum":1},"blocked_by":{"type":["string","null"]}}}}}};
+const func1 = Object.prototype.hasOwnProperty;
+const func2 = __interop(__dep0);
+const formats0 = __dep1.fullFormats["date-time"];
+const pattern4 = new RegExp("^(cl|ar)-win-[sn][0-9]{4}-[we][0-9]{5}$", "u");
+
+function validate20(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="https://analogos.cl/schemas/discovery-search.schema.json" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate20.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.search_id === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "search_id"},message:"must have required property '"+"search_id"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.snapshot_version === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "snapshot_version"},message:"must have required property '"+"snapshot_version"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+if(data.created_at === undefined){
+const err2 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "created_at"},message:"must have required property '"+"created_at"+"'"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+if(data.scope_note === undefined){
+const err3 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "scope_note"},message:"must have required property '"+"scope_note"+"'"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(data.crs === undefined){
+const err4 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "crs"},message:"must have required property '"+"crs"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(data.window_size_degree === undefined){
+const err5 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "window_size_degree"},message:"must have required property '"+"window_size_degree"+"'"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+if(data.stage1 === undefined){
+const err6 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "stage1"},message:"must have required property '"+"stage1"+"'"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+if(data.selection === undefined){
+const err7 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "selection"},message:"must have required property '"+"selection"+"'"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+if(data.precedents === undefined){
+const err8 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "precedents"},message:"must have required property '"+"precedents"+"'"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+if(data.limits === undefined){
+const err9 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "limits"},message:"must have required property '"+"limits"+"'"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+if(data.mola_reference === undefined){
+const err10 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "mola_reference"},message:"must have required property '"+"mola_reference"+"'"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+if(data.regions === undefined){
+const err11 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "regions"},message:"must have required property '"+"regions"+"'"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+if(data.counts === undefined){
+const err12 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "counts"},message:"must have required property '"+"counts"+"'"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+if(data.explored_area_km2 === undefined){
+const err13 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "explored_area_km2"},message:"must have required property '"+"explored_area_km2"+"'"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+if(data.shortlist === undefined){
+const err14 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "shortlist"},message:"must have required property '"+"shortlist"+"'"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+if(data.windows === undefined){
+const err15 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "windows"},message:"must have required property '"+"windows"+"'"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+for(const key0 in data){
+if(!(func1.call(schema31.properties, key0))){
+const err16 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+}
+if(data.search_id !== undefined){
+if(typeof data.search_id !== "string"){
+const err17 = {instancePath:instancePath+"/search_id",schemaPath:"#/properties/search_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err17];
+}
+else {
+vErrors.push(err17);
+}
+errors++;
+}
+}
+if(data.snapshot_version !== undefined){
+if(typeof data.snapshot_version !== "string"){
+const err18 = {instancePath:instancePath+"/snapshot_version",schemaPath:"#/properties/snapshot_version/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err18];
+}
+else {
+vErrors.push(err18);
+}
+errors++;
+}
+}
+if(data.created_at !== undefined){
+let data2 = data.created_at;
+if(typeof data2 === "string"){
+if(!(formats0.validate(data2))){
+const err19 = {instancePath:instancePath+"/created_at",schemaPath:"#/properties/created_at/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
+if(vErrors === null){
+vErrors = [err19];
+}
+else {
+vErrors.push(err19);
+}
+errors++;
+}
+}
+else {
+const err20 = {instancePath:instancePath+"/created_at",schemaPath:"#/properties/created_at/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err20];
+}
+else {
+vErrors.push(err20);
+}
+errors++;
+}
+}
+if(data.scope_note !== undefined){
+let data3 = data.scope_note;
+if(typeof data3 === "string"){
+if(func2(data3) < 20){
+const err21 = {instancePath:instancePath+"/scope_note",schemaPath:"#/properties/scope_note/minLength",keyword:"minLength",params:{limit: 20},message:"must NOT have fewer than 20 characters"};
+if(vErrors === null){
+vErrors = [err21];
+}
+else {
+vErrors.push(err21);
+}
+errors++;
+}
+}
+else {
+const err22 = {instancePath:instancePath+"/scope_note",schemaPath:"#/properties/scope_note/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err22];
+}
+else {
+vErrors.push(err22);
+}
+errors++;
+}
+}
+if(data.crs !== undefined){
+if(typeof data.crs !== "string"){
+const err23 = {instancePath:instancePath+"/crs",schemaPath:"#/properties/crs/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err23];
+}
+else {
+vErrors.push(err23);
+}
+errors++;
+}
+}
+if(data.window_size_degree !== undefined){
+let data5 = data.window_size_degree;
+if(typeof data5 == "number"){
+if(data5 <= 0 || isNaN(data5)){
+const err24 = {instancePath:instancePath+"/window_size_degree",schemaPath:"#/properties/window_size_degree/exclusiveMinimum",keyword:"exclusiveMinimum",params:{comparison: ">", limit: 0},message:"must be > 0"};
+if(vErrors === null){
+vErrors = [err24];
+}
+else {
+vErrors.push(err24);
+}
+errors++;
+}
+}
+else {
+const err25 = {instancePath:instancePath+"/window_size_degree",schemaPath:"#/properties/window_size_degree/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err25];
+}
+else {
+vErrors.push(err25);
+}
+errors++;
+}
+}
+if(data.stage1 !== undefined){
+let data6 = data.stage1;
+if(!(data6 && typeof data6 == "object" && !Array.isArray(data6))){
+const err26 = {instancePath:instancePath+"/stage1",schemaPath:"#/properties/stage1/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err26];
+}
+else {
+vErrors.push(err26);
+}
+errors++;
+}
+}
+if(data.selection !== undefined){
+let data7 = data.selection;
+if(!(data7 && typeof data7 == "object" && !Array.isArray(data7))){
+const err27 = {instancePath:instancePath+"/selection",schemaPath:"#/properties/selection/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err27];
+}
+else {
+vErrors.push(err27);
+}
+errors++;
+}
+}
+if(data.precedents !== undefined){
+let data8 = data.precedents;
+if(!(data8 && typeof data8 == "object" && !Array.isArray(data8))){
+const err28 = {instancePath:instancePath+"/precedents",schemaPath:"#/properties/precedents/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err28];
+}
+else {
+vErrors.push(err28);
+}
+errors++;
+}
+}
+if(data.limits !== undefined){
+let data9 = data.limits;
+if(!(data9 && typeof data9 == "object" && !Array.isArray(data9))){
+const err29 = {instancePath:instancePath+"/limits",schemaPath:"#/properties/limits/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err29];
+}
+else {
+vErrors.push(err29);
+}
+errors++;
+}
+}
+if(data.mola_reference !== undefined){
+let data10 = data.mola_reference;
+if(!(data10 && typeof data10 == "object" && !Array.isArray(data10))){
+const err30 = {instancePath:instancePath+"/mola_reference",schemaPath:"#/properties/mola_reference/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err30];
+}
+else {
+vErrors.push(err30);
+}
+errors++;
+}
+}
+if(data.regions !== undefined){
+let data11 = data.regions;
+if(Array.isArray(data11)){
+if(data11.length < 1){
+const err31 = {instancePath:instancePath+"/regions",schemaPath:"#/properties/regions/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+if(vErrors === null){
+vErrors = [err31];
+}
+else {
+vErrors.push(err31);
+}
+errors++;
+}
+const len0 = data11.length;
+for(let i0=0; i0<len0; i0++){
+let data12 = data11[i0];
+if(data12 && typeof data12 == "object" && !Array.isArray(data12)){
+if(data12.region_id === undefined){
+const err32 = {instancePath:instancePath+"/regions/" + i0,schemaPath:"#/properties/regions/items/required",keyword:"required",params:{missingProperty: "region_id"},message:"must have required property '"+"region_id"+"'"};
+if(vErrors === null){
+vErrors = [err32];
+}
+else {
+vErrors.push(err32);
+}
+errors++;
+}
+if(data12.country === undefined){
+const err33 = {instancePath:instancePath+"/regions/" + i0,schemaPath:"#/properties/regions/items/required",keyword:"required",params:{missingProperty: "country"},message:"must have required property '"+"country"+"'"};
+if(vErrors === null){
+vErrors = [err33];
+}
+else {
+vErrors.push(err33);
+}
+errors++;
+}
+if(data12.name === undefined){
+const err34 = {instancePath:instancePath+"/regions/" + i0,schemaPath:"#/properties/regions/items/required",keyword:"required",params:{missingProperty: "name"},message:"must have required property '"+"name"+"'"};
+if(vErrors === null){
+vErrors = [err34];
+}
+else {
+vErrors.push(err34);
+}
+errors++;
+}
+if(data12.bbox === undefined){
+const err35 = {instancePath:instancePath+"/regions/" + i0,schemaPath:"#/properties/regions/items/required",keyword:"required",params:{missingProperty: "bbox"},message:"must have required property '"+"bbox"+"'"};
+if(vErrors === null){
+vErrors = [err35];
+}
+else {
+vErrors.push(err35);
+}
+errors++;
+}
+if(data12.windows_evaluated === undefined){
+const err36 = {instancePath:instancePath+"/regions/" + i0,schemaPath:"#/properties/regions/items/required",keyword:"required",params:{missingProperty: "windows_evaluated"},message:"must have required property '"+"windows_evaluated"+"'"};
+if(vErrors === null){
+vErrors = [err36];
+}
+else {
+vErrors.push(err36);
+}
+errors++;
+}
+if(data12.windows_selected === undefined){
+const err37 = {instancePath:instancePath+"/regions/" + i0,schemaPath:"#/properties/regions/items/required",keyword:"required",params:{missingProperty: "windows_selected"},message:"must have required property '"+"windows_selected"+"'"};
+if(vErrors === null){
+vErrors = [err37];
+}
+else {
+vErrors.push(err37);
+}
+errors++;
+}
+if(data12.explored_area_km2 === undefined){
+const err38 = {instancePath:instancePath+"/regions/" + i0,schemaPath:"#/properties/regions/items/required",keyword:"required",params:{missingProperty: "explored_area_km2"},message:"must have required property '"+"explored_area_km2"+"'"};
+if(vErrors === null){
+vErrors = [err38];
+}
+else {
+vErrors.push(err38);
+}
+errors++;
+}
+for(const key1 in data12){
+if(!(((((((key1 === "region_id") || (key1 === "country")) || (key1 === "name")) || (key1 === "bbox")) || (key1 === "windows_evaluated")) || (key1 === "windows_selected")) || (key1 === "explored_area_km2"))){
+const err39 = {instancePath:instancePath+"/regions/" + i0,schemaPath:"#/properties/regions/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err39];
+}
+else {
+vErrors.push(err39);
+}
+errors++;
+}
+}
+if(data12.region_id !== undefined){
+if(typeof data12.region_id !== "string"){
+const err40 = {instancePath:instancePath+"/regions/" + i0+"/region_id",schemaPath:"#/properties/regions/items/properties/region_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err40];
+}
+else {
+vErrors.push(err40);
+}
+errors++;
+}
+}
+if(data12.country !== undefined){
+let data14 = data12.country;
+if(!((data14 === "CL") || (data14 === "AR"))){
+const err41 = {instancePath:instancePath+"/regions/" + i0+"/country",schemaPath:"#/properties/regions/items/properties/country/enum",keyword:"enum",params:{allowedValues: schema31.properties.regions.items.properties.country.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err41];
+}
+else {
+vErrors.push(err41);
+}
+errors++;
+}
+}
+if(data12.name !== undefined){
+if(typeof data12.name !== "string"){
+const err42 = {instancePath:instancePath+"/regions/" + i0+"/name",schemaPath:"#/properties/regions/items/properties/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err42];
+}
+else {
+vErrors.push(err42);
+}
+errors++;
+}
+}
+if(data12.bbox !== undefined){
+let data16 = data12.bbox;
+if(Array.isArray(data16)){
+if(data16.length > 4){
+const err43 = {instancePath:instancePath+"/regions/" + i0+"/bbox",schemaPath:"#/properties/regions/items/properties/bbox/maxItems",keyword:"maxItems",params:{limit: 4},message:"must NOT have more than 4 items"};
+if(vErrors === null){
+vErrors = [err43];
+}
+else {
+vErrors.push(err43);
+}
+errors++;
+}
+if(data16.length < 4){
+const err44 = {instancePath:instancePath+"/regions/" + i0+"/bbox",schemaPath:"#/properties/regions/items/properties/bbox/minItems",keyword:"minItems",params:{limit: 4},message:"must NOT have fewer than 4 items"};
+if(vErrors === null){
+vErrors = [err44];
+}
+else {
+vErrors.push(err44);
+}
+errors++;
+}
+const len1 = data16.length;
+for(let i1=0; i1<len1; i1++){
+if(!(typeof data16[i1] == "number")){
+const err45 = {instancePath:instancePath+"/regions/" + i0+"/bbox/" + i1,schemaPath:"#/properties/regions/items/properties/bbox/items/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err45];
+}
+else {
+vErrors.push(err45);
+}
+errors++;
+}
+}
+}
+else {
+const err46 = {instancePath:instancePath+"/regions/" + i0+"/bbox",schemaPath:"#/properties/regions/items/properties/bbox/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err46];
+}
+else {
+vErrors.push(err46);
+}
+errors++;
+}
+}
+if(data12.windows_evaluated !== undefined){
+let data18 = data12.windows_evaluated;
+if(!((typeof data18 == "number") && (!(data18 % 1) && !isNaN(data18)))){
+const err47 = {instancePath:instancePath+"/regions/" + i0+"/windows_evaluated",schemaPath:"#/properties/regions/items/properties/windows_evaluated/type",keyword:"type",params:{type: "integer"},message:"must be integer"};
+if(vErrors === null){
+vErrors = [err47];
+}
+else {
+vErrors.push(err47);
+}
+errors++;
+}
+if(typeof data18 == "number"){
+if(data18 < 0 || isNaN(data18)){
+const err48 = {instancePath:instancePath+"/regions/" + i0+"/windows_evaluated",schemaPath:"#/properties/regions/items/properties/windows_evaluated/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err48];
+}
+else {
+vErrors.push(err48);
+}
+errors++;
+}
+}
+}
+if(data12.windows_selected !== undefined){
+let data19 = data12.windows_selected;
+if(!((typeof data19 == "number") && (!(data19 % 1) && !isNaN(data19)))){
+const err49 = {instancePath:instancePath+"/regions/" + i0+"/windows_selected",schemaPath:"#/properties/regions/items/properties/windows_selected/type",keyword:"type",params:{type: "integer"},message:"must be integer"};
+if(vErrors === null){
+vErrors = [err49];
+}
+else {
+vErrors.push(err49);
+}
+errors++;
+}
+if(typeof data19 == "number"){
+if(data19 < 0 || isNaN(data19)){
+const err50 = {instancePath:instancePath+"/regions/" + i0+"/windows_selected",schemaPath:"#/properties/regions/items/properties/windows_selected/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err50];
+}
+else {
+vErrors.push(err50);
+}
+errors++;
+}
+}
+}
+if(data12.explored_area_km2 !== undefined){
+let data20 = data12.explored_area_km2;
+if(typeof data20 == "number"){
+if(data20 < 0 || isNaN(data20)){
+const err51 = {instancePath:instancePath+"/regions/" + i0+"/explored_area_km2",schemaPath:"#/properties/regions/items/properties/explored_area_km2/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err51];
+}
+else {
+vErrors.push(err51);
+}
+errors++;
+}
+}
+else {
+const err52 = {instancePath:instancePath+"/regions/" + i0+"/explored_area_km2",schemaPath:"#/properties/regions/items/properties/explored_area_km2/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err52];
+}
+else {
+vErrors.push(err52);
+}
+errors++;
+}
+}
+}
+else {
+const err53 = {instancePath:instancePath+"/regions/" + i0,schemaPath:"#/properties/regions/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err53];
+}
+else {
+vErrors.push(err53);
+}
+errors++;
+}
+}
+}
+else {
+const err54 = {instancePath:instancePath+"/regions",schemaPath:"#/properties/regions/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err54];
+}
+else {
+vErrors.push(err54);
+}
+errors++;
+}
+}
+if(data.counts !== undefined){
+let data21 = data.counts;
+if(data21 && typeof data21 == "object" && !Array.isArray(data21)){
+if(data21.attempted === undefined){
+const err55 = {instancePath:instancePath+"/counts",schemaPath:"#/properties/counts/required",keyword:"required",params:{missingProperty: "attempted"},message:"must have required property '"+"attempted"+"'"};
+if(vErrors === null){
+vErrors = [err55];
+}
+else {
+vErrors.push(err55);
+}
+errors++;
+}
+if(data21.evaluated === undefined){
+const err56 = {instancePath:instancePath+"/counts",schemaPath:"#/properties/counts/required",keyword:"required",params:{missingProperty: "evaluated"},message:"must have required property '"+"evaluated"+"'"};
+if(vErrors === null){
+vErrors = [err56];
+}
+else {
+vErrors.push(err56);
+}
+errors++;
+}
+for(const key2 in data21){
+let data22 = data21[key2];
+if(!((typeof data22 == "number") && (!(data22 % 1) && !isNaN(data22)))){
+const err57 = {instancePath:instancePath+"/counts/" + key2.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/counts/additionalProperties/type",keyword:"type",params:{type: "integer"},message:"must be integer"};
+if(vErrors === null){
+vErrors = [err57];
+}
+else {
+vErrors.push(err57);
+}
+errors++;
+}
+if(typeof data22 == "number"){
+if(data22 < 0 || isNaN(data22)){
+const err58 = {instancePath:instancePath+"/counts/" + key2.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/counts/additionalProperties/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err58];
+}
+else {
+vErrors.push(err58);
+}
+errors++;
+}
+}
+}
+}
+else {
+const err59 = {instancePath:instancePath+"/counts",schemaPath:"#/properties/counts/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err59];
+}
+else {
+vErrors.push(err59);
+}
+errors++;
+}
+}
+if(data.explored_area_km2 !== undefined){
+let data23 = data.explored_area_km2;
+if(typeof data23 == "number"){
+if(data23 < 0 || isNaN(data23)){
+const err60 = {instancePath:instancePath+"/explored_area_km2",schemaPath:"#/properties/explored_area_km2/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err60];
+}
+else {
+vErrors.push(err60);
+}
+errors++;
+}
+}
+else {
+const err61 = {instancePath:instancePath+"/explored_area_km2",schemaPath:"#/properties/explored_area_km2/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err61];
+}
+else {
+vErrors.push(err61);
+}
+errors++;
+}
+}
+if(data.shortlist !== undefined){
+let data24 = data.shortlist;
+if(Array.isArray(data24)){
+if(data24.length > 6){
+const err62 = {instancePath:instancePath+"/shortlist",schemaPath:"#/properties/shortlist/maxItems",keyword:"maxItems",params:{limit: 6},message:"must NOT have more than 6 items"};
+if(vErrors === null){
+vErrors = [err62];
+}
+else {
+vErrors.push(err62);
+}
+errors++;
+}
+const len2 = data24.length;
+for(let i2=0; i2<len2; i2++){
+if(typeof data24[i2] !== "string"){
+const err63 = {instancePath:instancePath+"/shortlist/" + i2,schemaPath:"#/properties/shortlist/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err63];
+}
+else {
+vErrors.push(err63);
+}
+errors++;
+}
+}
+let i3 = data24.length;
+let j0;
+if(i3 > 1){
+const indices0 = {};
+for(;i3--;){
+let item0 = data24[i3];
+if(typeof item0 !== "string"){
+continue;
+}
+if(typeof indices0[item0] == "number"){
+j0 = indices0[item0];
+const err64 = {instancePath:instancePath+"/shortlist",schemaPath:"#/properties/shortlist/uniqueItems",keyword:"uniqueItems",params:{i: i3, j: j0},message:"must NOT have duplicate items (items ## "+j0+" and "+i3+" are identical)"};
+if(vErrors === null){
+vErrors = [err64];
+}
+else {
+vErrors.push(err64);
+}
+errors++;
+break;
+}
+indices0[item0] = i3;
+}
+}
+}
+else {
+const err65 = {instancePath:instancePath+"/shortlist",schemaPath:"#/properties/shortlist/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err65];
+}
+else {
+vErrors.push(err65);
+}
+errors++;
+}
+}
+if(data.windows !== undefined){
+let data26 = data.windows;
+if(Array.isArray(data26)){
+const len3 = data26.length;
+for(let i4=0; i4<len3; i4++){
+let data27 = data26[i4];
+if(data27 && typeof data27 == "object" && !Array.isArray(data27)){
+if(data27.window_id === undefined){
+const err66 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "window_id"},message:"must have required property '"+"window_id"+"'"};
+if(vErrors === null){
+vErrors = [err66];
+}
+else {
+vErrors.push(err66);
+}
+errors++;
+}
+if(data27.region_id === undefined){
+const err67 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "region_id"},message:"must have required property '"+"region_id"+"'"};
+if(vErrors === null){
+vErrors = [err67];
+}
+else {
+vErrors.push(err67);
+}
+errors++;
+}
+if(data27.country === undefined){
+const err68 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "country"},message:"must have required property '"+"country"+"'"};
+if(vErrors === null){
+vErrors = [err68];
+}
+else {
+vErrors.push(err68);
+}
+errors++;
+}
+if(data27.name === undefined){
+const err69 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "name"},message:"must have required property '"+"name"+"'"};
+if(vErrors === null){
+vErrors = [err69];
+}
+else {
+vErrors.push(err69);
+}
+errors++;
+}
+if(data27.center === undefined){
+const err70 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "center"},message:"must have required property '"+"center"+"'"};
+if(vErrors === null){
+vErrors = [err70];
+}
+else {
+vErrors.push(err70);
+}
+errors++;
+}
+if(data27.bbox === undefined){
+const err71 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "bbox"},message:"must have required property '"+"bbox"+"'"};
+if(vErrors === null){
+vErrors = [err71];
+}
+else {
+vErrors.push(err71);
+}
+errors++;
+}
+if(data27.area_km2 === undefined){
+const err72 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "area_km2"},message:"must have required property '"+"area_km2"+"'"};
+if(vErrors === null){
+vErrors = [err72];
+}
+else {
+vErrors.push(err72);
+}
+errors++;
+}
+if(data27.nasadem === undefined){
+const err73 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "nasadem"},message:"must have required property '"+"nasadem"+"'"};
+if(vErrors === null){
+vErrors = [err73];
+}
+else {
+vErrors.push(err73);
+}
+errors++;
+}
+if(data27.topographic_similarities === undefined){
+const err74 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "topographic_similarities"},message:"must have required property '"+"topographic_similarities"+"'"};
+if(vErrors === null){
+vErrors = [err74];
+}
+else {
+vErrors.push(err74);
+}
+errors++;
+}
+if(data27.topographic_priority === undefined){
+const err75 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "topographic_priority"},message:"must have required property '"+"topographic_priority"+"'"};
+if(vErrors === null){
+vErrors = [err75];
+}
+else {
+vErrors.push(err75);
+}
+errors++;
+}
+if(data27.literature === undefined){
+const err76 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "literature"},message:"must have required property '"+"literature"+"'"};
+if(vErrors === null){
+vErrors = [err76];
+}
+else {
+vErrors.push(err76);
+}
+errors++;
+}
+if(data27.decision === undefined){
+const err77 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "decision"},message:"must have required property '"+"decision"+"'"};
+if(vErrors === null){
+vErrors = [err77];
+}
+else {
+vErrors.push(err77);
+}
+errors++;
+}
+if(data27.decision_reason === undefined){
+const err78 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "decision_reason"},message:"must have required property '"+"decision_reason"+"'"};
+if(vErrors === null){
+vErrors = [err78];
+}
+else {
+vErrors.push(err78);
+}
+errors++;
+}
+if(data27.selection_rank === undefined){
+const err79 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "selection_rank"},message:"must have required property '"+"selection_rank"+"'"};
+if(vErrors === null){
+vErrors = [err79];
+}
+else {
+vErrors.push(err79);
+}
+errors++;
+}
+if(data27.blocked_by === undefined){
+const err80 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/required",keyword:"required",params:{missingProperty: "blocked_by"},message:"must have required property '"+"blocked_by"+"'"};
+if(vErrors === null){
+vErrors = [err80];
+}
+else {
+vErrors.push(err80);
+}
+errors++;
+}
+for(const key3 in data27){
+if(!(func1.call(schema31.properties.windows.items.properties, key3))){
+const err81 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key3},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err81];
+}
+else {
+vErrors.push(err81);
+}
+errors++;
+}
+}
+if(data27.window_id !== undefined){
+let data28 = data27.window_id;
+if(typeof data28 === "string"){
+if(!pattern4.test(data28)){
+const err82 = {instancePath:instancePath+"/windows/" + i4+"/window_id",schemaPath:"#/properties/windows/items/properties/window_id/pattern",keyword:"pattern",params:{pattern: "^(cl|ar)-win-[sn][0-9]{4}-[we][0-9]{5}$"},message:"must match pattern \""+"^(cl|ar)-win-[sn][0-9]{4}-[we][0-9]{5}$"+"\""};
+if(vErrors === null){
+vErrors = [err82];
+}
+else {
+vErrors.push(err82);
+}
+errors++;
+}
+}
+else {
+const err83 = {instancePath:instancePath+"/windows/" + i4+"/window_id",schemaPath:"#/properties/windows/items/properties/window_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err83];
+}
+else {
+vErrors.push(err83);
+}
+errors++;
+}
+}
+if(data27.region_id !== undefined){
+if(typeof data27.region_id !== "string"){
+const err84 = {instancePath:instancePath+"/windows/" + i4+"/region_id",schemaPath:"#/properties/windows/items/properties/region_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err84];
+}
+else {
+vErrors.push(err84);
+}
+errors++;
+}
+}
+if(data27.country !== undefined){
+let data30 = data27.country;
+if(!((data30 === "CL") || (data30 === "AR"))){
+const err85 = {instancePath:instancePath+"/windows/" + i4+"/country",schemaPath:"#/properties/windows/items/properties/country/enum",keyword:"enum",params:{allowedValues: schema31.properties.windows.items.properties.country.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err85];
+}
+else {
+vErrors.push(err85);
+}
+errors++;
+}
+}
+if(data27.name !== undefined){
+if(typeof data27.name !== "string"){
+const err86 = {instancePath:instancePath+"/windows/" + i4+"/name",schemaPath:"#/properties/windows/items/properties/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err86];
+}
+else {
+vErrors.push(err86);
+}
+errors++;
+}
+}
+if(data27.center !== undefined){
+let data32 = data27.center;
+if(Array.isArray(data32)){
+if(data32.length > 2){
+const err87 = {instancePath:instancePath+"/windows/" + i4+"/center",schemaPath:"#/properties/windows/items/properties/center/maxItems",keyword:"maxItems",params:{limit: 2},message:"must NOT have more than 2 items"};
+if(vErrors === null){
+vErrors = [err87];
+}
+else {
+vErrors.push(err87);
+}
+errors++;
+}
+if(data32.length < 2){
+const err88 = {instancePath:instancePath+"/windows/" + i4+"/center",schemaPath:"#/properties/windows/items/properties/center/minItems",keyword:"minItems",params:{limit: 2},message:"must NOT have fewer than 2 items"};
+if(vErrors === null){
+vErrors = [err88];
+}
+else {
+vErrors.push(err88);
+}
+errors++;
+}
+const len4 = data32.length;
+for(let i5=0; i5<len4; i5++){
+if(!(typeof data32[i5] == "number")){
+const err89 = {instancePath:instancePath+"/windows/" + i4+"/center/" + i5,schemaPath:"#/properties/windows/items/properties/center/items/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err89];
+}
+else {
+vErrors.push(err89);
+}
+errors++;
+}
+}
+}
+else {
+const err90 = {instancePath:instancePath+"/windows/" + i4+"/center",schemaPath:"#/properties/windows/items/properties/center/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err90];
+}
+else {
+vErrors.push(err90);
+}
+errors++;
+}
+}
+if(data27.bbox !== undefined){
+let data34 = data27.bbox;
+if(Array.isArray(data34)){
+if(data34.length > 4){
+const err91 = {instancePath:instancePath+"/windows/" + i4+"/bbox",schemaPath:"#/properties/windows/items/properties/bbox/maxItems",keyword:"maxItems",params:{limit: 4},message:"must NOT have more than 4 items"};
+if(vErrors === null){
+vErrors = [err91];
+}
+else {
+vErrors.push(err91);
+}
+errors++;
+}
+if(data34.length < 4){
+const err92 = {instancePath:instancePath+"/windows/" + i4+"/bbox",schemaPath:"#/properties/windows/items/properties/bbox/minItems",keyword:"minItems",params:{limit: 4},message:"must NOT have fewer than 4 items"};
+if(vErrors === null){
+vErrors = [err92];
+}
+else {
+vErrors.push(err92);
+}
+errors++;
+}
+const len5 = data34.length;
+for(let i6=0; i6<len5; i6++){
+if(!(typeof data34[i6] == "number")){
+const err93 = {instancePath:instancePath+"/windows/" + i4+"/bbox/" + i6,schemaPath:"#/properties/windows/items/properties/bbox/items/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err93];
+}
+else {
+vErrors.push(err93);
+}
+errors++;
+}
+}
+}
+else {
+const err94 = {instancePath:instancePath+"/windows/" + i4+"/bbox",schemaPath:"#/properties/windows/items/properties/bbox/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err94];
+}
+else {
+vErrors.push(err94);
+}
+errors++;
+}
+}
+if(data27.area_km2 !== undefined){
+let data36 = data27.area_km2;
+if(typeof data36 == "number"){
+if(data36 <= 0 || isNaN(data36)){
+const err95 = {instancePath:instancePath+"/windows/" + i4+"/area_km2",schemaPath:"#/properties/windows/items/properties/area_km2/exclusiveMinimum",keyword:"exclusiveMinimum",params:{comparison: ">", limit: 0},message:"must be > 0"};
+if(vErrors === null){
+vErrors = [err95];
+}
+else {
+vErrors.push(err95);
+}
+errors++;
+}
+}
+else {
+const err96 = {instancePath:instancePath+"/windows/" + i4+"/area_km2",schemaPath:"#/properties/windows/items/properties/area_km2/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err96];
+}
+else {
+vErrors.push(err96);
+}
+errors++;
+}
+}
+if(data27.nasadem !== undefined){
+let data37 = data27.nasadem;
+const _errs78 = errors;
+let valid17 = false;
+let passing0 = null;
+const _errs79 = errors;
+if(data37 !== null){
+const err97 = {instancePath:instancePath+"/windows/" + i4+"/nasadem",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/0/type",keyword:"type",params:{type: "null"},message:"must be null"};
+if(vErrors === null){
+vErrors = [err97];
+}
+else {
+vErrors.push(err97);
+}
+errors++;
+}
+var _valid0 = _errs79 === errors;
+if(_valid0){
+valid17 = true;
+passing0 = 0;
+}
+const _errs81 = errors;
+if(data37 && typeof data37 == "object" && !Array.isArray(data37)){
+if(data37.tiles === undefined){
+const err98 = {instancePath:instancePath+"/windows/" + i4+"/nasadem",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/required",keyword:"required",params:{missingProperty: "tiles"},message:"must have required property '"+"tiles"+"'"};
+if(vErrors === null){
+vErrors = [err98];
+}
+else {
+vErrors.push(err98);
+}
+errors++;
+}
+if(data37.source_valid_fraction === undefined){
+const err99 = {instancePath:instancePath+"/windows/" + i4+"/nasadem",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/required",keyword:"required",params:{missingProperty: "source_valid_fraction"},message:"must have required property '"+"source_valid_fraction"+"'"};
+if(vErrors === null){
+vErrors = [err99];
+}
+else {
+vErrors.push(err99);
+}
+errors++;
+}
+if(data37.permanent_water_fraction === undefined){
+const err100 = {instancePath:instancePath+"/windows/" + i4+"/nasadem",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/required",keyword:"required",params:{missingProperty: "permanent_water_fraction"},message:"must have required property '"+"permanent_water_fraction"+"'"};
+if(vErrors === null){
+vErrors = [err100];
+}
+else {
+vErrors.push(err100);
+}
+errors++;
+}
+if(data37.analysis_spacing_meter === undefined){
+const err101 = {instancePath:instancePath+"/windows/" + i4+"/nasadem",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/required",keyword:"required",params:{missingProperty: "analysis_spacing_meter"},message:"must have required property '"+"analysis_spacing_meter"+"'"};
+if(vErrors === null){
+vErrors = [err101];
+}
+else {
+vErrors.push(err101);
+}
+errors++;
+}
+if(data37.median_slope_degree === undefined){
+const err102 = {instancePath:instancePath+"/windows/" + i4+"/nasadem",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/required",keyword:"required",params:{missingProperty: "median_slope_degree"},message:"must have required property '"+"median_slope_degree"+"'"};
+if(vErrors === null){
+vErrors = [err102];
+}
+else {
+vErrors.push(err102);
+}
+errors++;
+}
+if(data37.median_neighbor_difference_meter === undefined){
+const err103 = {instancePath:instancePath+"/windows/" + i4+"/nasadem",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/required",keyword:"required",params:{missingProperty: "median_neighbor_difference_meter"},message:"must have required property '"+"median_neighbor_difference_meter"+"'"};
+if(vErrors === null){
+vErrors = [err103];
+}
+else {
+vErrors.push(err103);
+}
+errors++;
+}
+if(data37.median_3x3_relief_meter === undefined){
+const err104 = {instancePath:instancePath+"/windows/" + i4+"/nasadem",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/required",keyword:"required",params:{missingProperty: "median_3x3_relief_meter"},message:"must have required property '"+"median_3x3_relief_meter"+"'"};
+if(vErrors === null){
+vErrors = [err104];
+}
+else {
+vErrors.push(err104);
+}
+errors++;
+}
+for(const key4 in data37){
+if(!(((((((key4 === "tiles") || (key4 === "source_valid_fraction")) || (key4 === "permanent_water_fraction")) || (key4 === "analysis_spacing_meter")) || (key4 === "median_slope_degree")) || (key4 === "median_neighbor_difference_meter")) || (key4 === "median_3x3_relief_meter"))){
+const err105 = {instancePath:instancePath+"/windows/" + i4+"/nasadem",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key4},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err105];
+}
+else {
+vErrors.push(err105);
+}
+errors++;
+}
+}
+if(data37.tiles !== undefined){
+let data38 = data37.tiles;
+if(Array.isArray(data38)){
+const len6 = data38.length;
+for(let i7=0; i7<len6; i7++){
+if(typeof data38[i7] !== "string"){
+const err106 = {instancePath:instancePath+"/windows/" + i4+"/nasadem/tiles/" + i7,schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/properties/tiles/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err106];
+}
+else {
+vErrors.push(err106);
+}
+errors++;
+}
+}
+}
+else {
+const err107 = {instancePath:instancePath+"/windows/" + i4+"/nasadem/tiles",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/properties/tiles/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err107];
+}
+else {
+vErrors.push(err107);
+}
+errors++;
+}
+}
+if(data37.source_valid_fraction !== undefined){
+let data40 = data37.source_valid_fraction;
+if(typeof data40 == "number"){
+if(data40 > 1 || isNaN(data40)){
+const err108 = {instancePath:instancePath+"/windows/" + i4+"/nasadem/source_valid_fraction",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/properties/source_valid_fraction/maximum",keyword:"maximum",params:{comparison: "<=", limit: 1},message:"must be <= 1"};
+if(vErrors === null){
+vErrors = [err108];
+}
+else {
+vErrors.push(err108);
+}
+errors++;
+}
+if(data40 < 0 || isNaN(data40)){
+const err109 = {instancePath:instancePath+"/windows/" + i4+"/nasadem/source_valid_fraction",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/properties/source_valid_fraction/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err109];
+}
+else {
+vErrors.push(err109);
+}
+errors++;
+}
+}
+else {
+const err110 = {instancePath:instancePath+"/windows/" + i4+"/nasadem/source_valid_fraction",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/properties/source_valid_fraction/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err110];
+}
+else {
+vErrors.push(err110);
+}
+errors++;
+}
+}
+if(data37.permanent_water_fraction !== undefined){
+let data41 = data37.permanent_water_fraction;
+if(typeof data41 == "number"){
+if(data41 > 1 || isNaN(data41)){
+const err111 = {instancePath:instancePath+"/windows/" + i4+"/nasadem/permanent_water_fraction",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/properties/permanent_water_fraction/maximum",keyword:"maximum",params:{comparison: "<=", limit: 1},message:"must be <= 1"};
+if(vErrors === null){
+vErrors = [err111];
+}
+else {
+vErrors.push(err111);
+}
+errors++;
+}
+if(data41 < 0 || isNaN(data41)){
+const err112 = {instancePath:instancePath+"/windows/" + i4+"/nasadem/permanent_water_fraction",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/properties/permanent_water_fraction/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err112];
+}
+else {
+vErrors.push(err112);
+}
+errors++;
+}
+}
+else {
+const err113 = {instancePath:instancePath+"/windows/" + i4+"/nasadem/permanent_water_fraction",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/properties/permanent_water_fraction/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err113];
+}
+else {
+vErrors.push(err113);
+}
+errors++;
+}
+}
+if(data37.analysis_spacing_meter !== undefined){
+if(!(typeof data37.analysis_spacing_meter == "number")){
+const err114 = {instancePath:instancePath+"/windows/" + i4+"/nasadem/analysis_spacing_meter",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/properties/analysis_spacing_meter/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err114];
+}
+else {
+vErrors.push(err114);
+}
+errors++;
+}
+}
+if(data37.median_slope_degree !== undefined){
+let data43 = data37.median_slope_degree;
+if((!(typeof data43 == "number")) && (data43 !== null)){
+const err115 = {instancePath:instancePath+"/windows/" + i4+"/nasadem/median_slope_degree",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/properties/median_slope_degree/type",keyword:"type",params:{type: schema31.properties.windows.items.properties.nasadem.oneOf[1].properties.median_slope_degree.type},message:"must be number,null"};
+if(vErrors === null){
+vErrors = [err115];
+}
+else {
+vErrors.push(err115);
+}
+errors++;
+}
+}
+if(data37.median_neighbor_difference_meter !== undefined){
+let data44 = data37.median_neighbor_difference_meter;
+if((!(typeof data44 == "number")) && (data44 !== null)){
+const err116 = {instancePath:instancePath+"/windows/" + i4+"/nasadem/median_neighbor_difference_meter",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/properties/median_neighbor_difference_meter/type",keyword:"type",params:{type: schema31.properties.windows.items.properties.nasadem.oneOf[1].properties.median_neighbor_difference_meter.type},message:"must be number,null"};
+if(vErrors === null){
+vErrors = [err116];
+}
+else {
+vErrors.push(err116);
+}
+errors++;
+}
+}
+if(data37.median_3x3_relief_meter !== undefined){
+let data45 = data37.median_3x3_relief_meter;
+if((!(typeof data45 == "number")) && (data45 !== null)){
+const err117 = {instancePath:instancePath+"/windows/" + i4+"/nasadem/median_3x3_relief_meter",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/properties/median_3x3_relief_meter/type",keyword:"type",params:{type: schema31.properties.windows.items.properties.nasadem.oneOf[1].properties.median_3x3_relief_meter.type},message:"must be number,null"};
+if(vErrors === null){
+vErrors = [err117];
+}
+else {
+vErrors.push(err117);
+}
+errors++;
+}
+}
+}
+else {
+const err118 = {instancePath:instancePath+"/windows/" + i4+"/nasadem",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf/1/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err118];
+}
+else {
+vErrors.push(err118);
+}
+errors++;
+}
+var _valid0 = _errs81 === errors;
+if(_valid0 && valid17){
+valid17 = false;
+passing0 = [passing0, 1];
+}
+else {
+if(_valid0){
+valid17 = true;
+passing0 = 1;
+}
+}
+if(!valid17){
+const err119 = {instancePath:instancePath+"/windows/" + i4+"/nasadem",schemaPath:"#/properties/windows/items/properties/nasadem/oneOf",keyword:"oneOf",params:{passingSchemas: passing0},message:"must match exactly one schema in oneOf"};
+if(vErrors === null){
+vErrors = [err119];
+}
+else {
+vErrors.push(err119);
+}
+errors++;
+}
+else {
+errors = _errs78;
+if(vErrors !== null){
+if(_errs78){
+vErrors.length = _errs78;
+}
+else {
+vErrors = null;
+}
+}
+}
+}
+if(data27.topographic_similarities !== undefined){
+let data46 = data27.topographic_similarities;
+if(data46 && typeof data46 == "object" && !Array.isArray(data46)){
+if(data46.slope === undefined){
+const err120 = {instancePath:instancePath+"/windows/" + i4+"/topographic_similarities",schemaPath:"#/properties/windows/items/properties/topographic_similarities/required",keyword:"required",params:{missingProperty: "slope"},message:"must have required property '"+"slope"+"'"};
+if(vErrors === null){
+vErrors = [err120];
+}
+else {
+vErrors.push(err120);
+}
+errors++;
+}
+if(data46.terrain_roughness === undefined){
+const err121 = {instancePath:instancePath+"/windows/" + i4+"/topographic_similarities",schemaPath:"#/properties/windows/items/properties/topographic_similarities/required",keyword:"required",params:{missingProperty: "terrain_roughness"},message:"must have required property '"+"terrain_roughness"+"'"};
+if(vErrors === null){
+vErrors = [err121];
+}
+else {
+vErrors.push(err121);
+}
+errors++;
+}
+if(data46.local_relief === undefined){
+const err122 = {instancePath:instancePath+"/windows/" + i4+"/topographic_similarities",schemaPath:"#/properties/windows/items/properties/topographic_similarities/required",keyword:"required",params:{missingProperty: "local_relief"},message:"must have required property '"+"local_relief"+"'"};
+if(vErrors === null){
+vErrors = [err122];
+}
+else {
+vErrors.push(err122);
+}
+errors++;
+}
+for(const key5 in data46){
+if(!(((key5 === "slope") || (key5 === "terrain_roughness")) || (key5 === "local_relief"))){
+const err123 = {instancePath:instancePath+"/windows/" + i4+"/topographic_similarities",schemaPath:"#/properties/windows/items/properties/topographic_similarities/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key5},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err123];
+}
+else {
+vErrors.push(err123);
+}
+errors++;
+}
+}
+if(data46.slope !== undefined){
+let data47 = data46.slope;
+if((!(typeof data47 == "number")) && (data47 !== null)){
+const err124 = {instancePath:instancePath+"/windows/" + i4+"/topographic_similarities/slope",schemaPath:"#/properties/windows/items/properties/topographic_similarities/properties/slope/type",keyword:"type",params:{type: schema31.properties.windows.items.properties.topographic_similarities.properties.slope.type},message:"must be number,null"};
+if(vErrors === null){
+vErrors = [err124];
+}
+else {
+vErrors.push(err124);
+}
+errors++;
+}
+if(typeof data47 == "number"){
+if(data47 > 1 || isNaN(data47)){
+const err125 = {instancePath:instancePath+"/windows/" + i4+"/topographic_similarities/slope",schemaPath:"#/properties/windows/items/properties/topographic_similarities/properties/slope/maximum",keyword:"maximum",params:{comparison: "<=", limit: 1},message:"must be <= 1"};
+if(vErrors === null){
+vErrors = [err125];
+}
+else {
+vErrors.push(err125);
+}
+errors++;
+}
+if(data47 < 0 || isNaN(data47)){
+const err126 = {instancePath:instancePath+"/windows/" + i4+"/topographic_similarities/slope",schemaPath:"#/properties/windows/items/properties/topographic_similarities/properties/slope/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err126];
+}
+else {
+vErrors.push(err126);
+}
+errors++;
+}
+}
+}
+if(data46.terrain_roughness !== undefined){
+let data48 = data46.terrain_roughness;
+if((!(typeof data48 == "number")) && (data48 !== null)){
+const err127 = {instancePath:instancePath+"/windows/" + i4+"/topographic_similarities/terrain_roughness",schemaPath:"#/properties/windows/items/properties/topographic_similarities/properties/terrain_roughness/type",keyword:"type",params:{type: schema31.properties.windows.items.properties.topographic_similarities.properties.terrain_roughness.type},message:"must be number,null"};
+if(vErrors === null){
+vErrors = [err127];
+}
+else {
+vErrors.push(err127);
+}
+errors++;
+}
+if(typeof data48 == "number"){
+if(data48 > 1 || isNaN(data48)){
+const err128 = {instancePath:instancePath+"/windows/" + i4+"/topographic_similarities/terrain_roughness",schemaPath:"#/properties/windows/items/properties/topographic_similarities/properties/terrain_roughness/maximum",keyword:"maximum",params:{comparison: "<=", limit: 1},message:"must be <= 1"};
+if(vErrors === null){
+vErrors = [err128];
+}
+else {
+vErrors.push(err128);
+}
+errors++;
+}
+if(data48 < 0 || isNaN(data48)){
+const err129 = {instancePath:instancePath+"/windows/" + i4+"/topographic_similarities/terrain_roughness",schemaPath:"#/properties/windows/items/properties/topographic_similarities/properties/terrain_roughness/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err129];
+}
+else {
+vErrors.push(err129);
+}
+errors++;
+}
+}
+}
+if(data46.local_relief !== undefined){
+let data49 = data46.local_relief;
+if((!(typeof data49 == "number")) && (data49 !== null)){
+const err130 = {instancePath:instancePath+"/windows/" + i4+"/topographic_similarities/local_relief",schemaPath:"#/properties/windows/items/properties/topographic_similarities/properties/local_relief/type",keyword:"type",params:{type: schema31.properties.windows.items.properties.topographic_similarities.properties.local_relief.type},message:"must be number,null"};
+if(vErrors === null){
+vErrors = [err130];
+}
+else {
+vErrors.push(err130);
+}
+errors++;
+}
+if(typeof data49 == "number"){
+if(data49 > 1 || isNaN(data49)){
+const err131 = {instancePath:instancePath+"/windows/" + i4+"/topographic_similarities/local_relief",schemaPath:"#/properties/windows/items/properties/topographic_similarities/properties/local_relief/maximum",keyword:"maximum",params:{comparison: "<=", limit: 1},message:"must be <= 1"};
+if(vErrors === null){
+vErrors = [err131];
+}
+else {
+vErrors.push(err131);
+}
+errors++;
+}
+if(data49 < 0 || isNaN(data49)){
+const err132 = {instancePath:instancePath+"/windows/" + i4+"/topographic_similarities/local_relief",schemaPath:"#/properties/windows/items/properties/topographic_similarities/properties/local_relief/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err132];
+}
+else {
+vErrors.push(err132);
+}
+errors++;
+}
+}
+}
+}
+else {
+const err133 = {instancePath:instancePath+"/windows/" + i4+"/topographic_similarities",schemaPath:"#/properties/windows/items/properties/topographic_similarities/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err133];
+}
+else {
+vErrors.push(err133);
+}
+errors++;
+}
+}
+if(data27.topographic_priority !== undefined){
+let data50 = data27.topographic_priority;
+if((!(typeof data50 == "number")) && (data50 !== null)){
+const err134 = {instancePath:instancePath+"/windows/" + i4+"/topographic_priority",schemaPath:"#/properties/windows/items/properties/topographic_priority/type",keyword:"type",params:{type: schema31.properties.windows.items.properties.topographic_priority.type},message:"must be number,null"};
+if(vErrors === null){
+vErrors = [err134];
+}
+else {
+vErrors.push(err134);
+}
+errors++;
+}
+if(typeof data50 == "number"){
+if(data50 > 100 || isNaN(data50)){
+const err135 = {instancePath:instancePath+"/windows/" + i4+"/topographic_priority",schemaPath:"#/properties/windows/items/properties/topographic_priority/maximum",keyword:"maximum",params:{comparison: "<=", limit: 100},message:"must be <= 100"};
+if(vErrors === null){
+vErrors = [err135];
+}
+else {
+vErrors.push(err135);
+}
+errors++;
+}
+if(data50 < 0 || isNaN(data50)){
+const err136 = {instancePath:instancePath+"/windows/" + i4+"/topographic_priority",schemaPath:"#/properties/windows/items/properties/topographic_priority/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err136];
+}
+else {
+vErrors.push(err136);
+}
+errors++;
+}
+}
+}
+if(data27.literature !== undefined){
+let data51 = data27.literature;
+if(data51 && typeof data51 == "object" && !Array.isArray(data51)){
+if(data51.status === undefined){
+const err137 = {instancePath:instancePath+"/windows/" + i4+"/literature",schemaPath:"#/properties/windows/items/properties/literature/required",keyword:"required",params:{missingProperty: "status"},message:"must have required property '"+"status"+"'"};
+if(vErrors === null){
+vErrors = [err137];
+}
+else {
+vErrors.push(err137);
+}
+errors++;
+}
+if(data51.matches === undefined){
+const err138 = {instancePath:instancePath+"/windows/" + i4+"/literature",schemaPath:"#/properties/windows/items/properties/literature/required",keyword:"required",params:{missingProperty: "matches"},message:"must have required property '"+"matches"+"'"};
+if(vErrors === null){
+vErrors = [err138];
+}
+else {
+vErrors.push(err138);
+}
+errors++;
+}
+for(const key6 in data51){
+if(!((key6 === "status") || (key6 === "matches"))){
+const err139 = {instancePath:instancePath+"/windows/" + i4+"/literature",schemaPath:"#/properties/windows/items/properties/literature/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key6},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err139];
+}
+else {
+vErrors.push(err139);
+}
+errors++;
+}
+}
+if(data51.status !== undefined){
+let data52 = data51.status;
+if(!(((((data52 === "known_reference") || (data52 === "known_analogue_overlap")) || (data52 === "regional_precedent")) || (data52 === "literature_review_pending")) || (data52 === "no_match_in_reviewed_sources"))){
+const err140 = {instancePath:instancePath+"/windows/" + i4+"/literature/status",schemaPath:"#/properties/windows/items/properties/literature/properties/status/enum",keyword:"enum",params:{allowedValues: schema31.properties.windows.items.properties.literature.properties.status.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err140];
+}
+else {
+vErrors.push(err140);
+}
+errors++;
+}
+}
+if(data51.matches !== undefined){
+let data53 = data51.matches;
+if(Array.isArray(data53)){
+const len7 = data53.length;
+for(let i8=0; i8<len7; i8++){
+let data54 = data53[i8];
+if(data54 && typeof data54 == "object" && !Array.isArray(data54)){
+if(data54.precedent_id === undefined){
+const err141 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches/" + i8,schemaPath:"#/properties/windows/items/properties/literature/properties/matches/items/required",keyword:"required",params:{missingProperty: "precedent_id"},message:"must have required property '"+"precedent_id"+"'"};
+if(vErrors === null){
+vErrors = [err141];
+}
+else {
+vErrors.push(err141);
+}
+errors++;
+}
+if(data54.relation === undefined){
+const err142 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches/" + i8,schemaPath:"#/properties/windows/items/properties/literature/properties/matches/items/required",keyword:"required",params:{missingProperty: "relation"},message:"must have required property '"+"relation"+"'"};
+if(vErrors === null){
+vErrors = [err142];
+}
+else {
+vErrors.push(err142);
+}
+errors++;
+}
+if(data54.in_region_with_precedent === undefined){
+const err143 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches/" + i8,schemaPath:"#/properties/windows/items/properties/literature/properties/matches/items/required",keyword:"required",params:{missingProperty: "in_region_with_precedent"},message:"must have required property '"+"in_region_with_precedent"+"'"};
+if(vErrors === null){
+vErrors = [err143];
+}
+else {
+vErrors.push(err143);
+}
+errors++;
+}
+for(const key7 in data54){
+if(!((((((key7 === "precedent_id") || (key7 === "relation")) || (key7 === "in_region_with_precedent")) || (key7 === "points")) || (key7 === "nearest_point")) || (key7 === "distance_km"))){
+const err144 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches/" + i8,schemaPath:"#/properties/windows/items/properties/literature/properties/matches/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key7},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err144];
+}
+else {
+vErrors.push(err144);
+}
+errors++;
+}
+}
+if(data54.precedent_id !== undefined){
+if(typeof data54.precedent_id !== "string"){
+const err145 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches/" + i8+"/precedent_id",schemaPath:"#/properties/windows/items/properties/literature/properties/matches/items/properties/precedent_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err145];
+}
+else {
+vErrors.push(err145);
+}
+errors++;
+}
+}
+if(data54.relation !== undefined){
+let data56 = data54.relation;
+if(!((((data56 === "contains_published_sampling_coordinate") || (data56 === "study_area_overlap")) || (data56 === "proximity_heuristic")) || (data56 === "regional_precedent"))){
+const err146 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches/" + i8+"/relation",schemaPath:"#/properties/windows/items/properties/literature/properties/matches/items/properties/relation/enum",keyword:"enum",params:{allowedValues: schema31.properties.windows.items.properties.literature.properties.matches.items.properties.relation.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err146];
+}
+else {
+vErrors.push(err146);
+}
+errors++;
+}
+}
+if(data54.in_region_with_precedent !== undefined){
+if(typeof data54.in_region_with_precedent !== "boolean"){
+const err147 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches/" + i8+"/in_region_with_precedent",schemaPath:"#/properties/windows/items/properties/literature/properties/matches/items/properties/in_region_with_precedent/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+if(vErrors === null){
+vErrors = [err147];
+}
+else {
+vErrors.push(err147);
+}
+errors++;
+}
+}
+if(data54.points !== undefined){
+let data58 = data54.points;
+if(Array.isArray(data58)){
+if(data58.length < 1){
+const err148 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches/" + i8+"/points",schemaPath:"#/properties/windows/items/properties/literature/properties/matches/items/properties/points/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+if(vErrors === null){
+vErrors = [err148];
+}
+else {
+vErrors.push(err148);
+}
+errors++;
+}
+const len8 = data58.length;
+for(let i9=0; i9<len8; i9++){
+if(typeof data58[i9] !== "string"){
+const err149 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches/" + i8+"/points/" + i9,schemaPath:"#/properties/windows/items/properties/literature/properties/matches/items/properties/points/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err149];
+}
+else {
+vErrors.push(err149);
+}
+errors++;
+}
+}
+}
+else {
+const err150 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches/" + i8+"/points",schemaPath:"#/properties/windows/items/properties/literature/properties/matches/items/properties/points/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err150];
+}
+else {
+vErrors.push(err150);
+}
+errors++;
+}
+}
+if(data54.nearest_point !== undefined){
+if(typeof data54.nearest_point !== "string"){
+const err151 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches/" + i8+"/nearest_point",schemaPath:"#/properties/windows/items/properties/literature/properties/matches/items/properties/nearest_point/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err151];
+}
+else {
+vErrors.push(err151);
+}
+errors++;
+}
+}
+if(data54.distance_km !== undefined){
+let data61 = data54.distance_km;
+if(typeof data61 == "number"){
+if(data61 < 0 || isNaN(data61)){
+const err152 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches/" + i8+"/distance_km",schemaPath:"#/properties/windows/items/properties/literature/properties/matches/items/properties/distance_km/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err152];
+}
+else {
+vErrors.push(err152);
+}
+errors++;
+}
+}
+else {
+const err153 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches/" + i8+"/distance_km",schemaPath:"#/properties/windows/items/properties/literature/properties/matches/items/properties/distance_km/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err153];
+}
+else {
+vErrors.push(err153);
+}
+errors++;
+}
+}
+}
+else {
+const err154 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches/" + i8,schemaPath:"#/properties/windows/items/properties/literature/properties/matches/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err154];
+}
+else {
+vErrors.push(err154);
+}
+errors++;
+}
+}
+}
+else {
+const err155 = {instancePath:instancePath+"/windows/" + i4+"/literature/matches",schemaPath:"#/properties/windows/items/properties/literature/properties/matches/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err155];
+}
+else {
+vErrors.push(err155);
+}
+errors++;
+}
+}
+}
+else {
+const err156 = {instancePath:instancePath+"/windows/" + i4+"/literature",schemaPath:"#/properties/windows/items/properties/literature/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err156];
+}
+else {
+vErrors.push(err156);
+}
+errors++;
+}
+}
+if(data27.decision !== undefined){
+let data62 = data27.decision;
+if(!((((((((data62 === "selected") || (data62 === "eligible")) || (data62 === "not_selected_proximity")) || (data62 === "not_selected_quota")) || (data62 === "rejected_coverage")) || (data62 === "rejected_water")) || (data62 === "rejected_precedent_overlap")) || (data62 === "evaluation_failed"))){
+const err157 = {instancePath:instancePath+"/windows/" + i4+"/decision",schemaPath:"#/properties/windows/items/properties/decision/enum",keyword:"enum",params:{allowedValues: schema31.properties.windows.items.properties.decision.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err157];
+}
+else {
+vErrors.push(err157);
+}
+errors++;
+}
+}
+if(data27.decision_reason !== undefined){
+let data63 = data27.decision_reason;
+if(typeof data63 === "string"){
+if(func2(data63) < 5){
+const err158 = {instancePath:instancePath+"/windows/" + i4+"/decision_reason",schemaPath:"#/properties/windows/items/properties/decision_reason/minLength",keyword:"minLength",params:{limit: 5},message:"must NOT have fewer than 5 characters"};
+if(vErrors === null){
+vErrors = [err158];
+}
+else {
+vErrors.push(err158);
+}
+errors++;
+}
+}
+else {
+const err159 = {instancePath:instancePath+"/windows/" + i4+"/decision_reason",schemaPath:"#/properties/windows/items/properties/decision_reason/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err159];
+}
+else {
+vErrors.push(err159);
+}
+errors++;
+}
+}
+if(data27.selection_rank !== undefined){
+let data64 = data27.selection_rank;
+if((!((typeof data64 == "number") && (!(data64 % 1) && !isNaN(data64)))) && (data64 !== null)){
+const err160 = {instancePath:instancePath+"/windows/" + i4+"/selection_rank",schemaPath:"#/properties/windows/items/properties/selection_rank/type",keyword:"type",params:{type: schema31.properties.windows.items.properties.selection_rank.type},message:"must be integer,null"};
+if(vErrors === null){
+vErrors = [err160];
+}
+else {
+vErrors.push(err160);
+}
+errors++;
+}
+if(typeof data64 == "number"){
+if(data64 < 1 || isNaN(data64)){
+const err161 = {instancePath:instancePath+"/windows/" + i4+"/selection_rank",schemaPath:"#/properties/windows/items/properties/selection_rank/minimum",keyword:"minimum",params:{comparison: ">=", limit: 1},message:"must be >= 1"};
+if(vErrors === null){
+vErrors = [err161];
+}
+else {
+vErrors.push(err161);
+}
+errors++;
+}
+}
+}
+if(data27.blocked_by !== undefined){
+let data65 = data27.blocked_by;
+if((typeof data65 !== "string") && (data65 !== null)){
+const err162 = {instancePath:instancePath+"/windows/" + i4+"/blocked_by",schemaPath:"#/properties/windows/items/properties/blocked_by/type",keyword:"type",params:{type: schema31.properties.windows.items.properties.blocked_by.type},message:"must be string,null"};
+if(vErrors === null){
+vErrors = [err162];
+}
+else {
+vErrors.push(err162);
+}
+errors++;
+}
+}
+}
+else {
+const err163 = {instancePath:instancePath+"/windows/" + i4,schemaPath:"#/properties/windows/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err163];
+}
+else {
+vErrors.push(err163);
+}
+errors++;
+}
+}
+}
+else {
+const err164 = {instancePath:instancePath+"/windows",schemaPath:"#/properties/windows/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err164];
+}
+else {
+vErrors.push(err164);
+}
+errors++;
+}
+}
+}
+else {
+const err165 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err165];
+}
+else {
+vErrors.push(err165);
+}
+errors++;
+}
+validate20.errors = vErrors;
+return errors === 0;
+}
+validate20.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const validatePrecedents = validate21;
+const schema32 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://analogos.cl/schemas/precedent-catalog.schema.json","title":"AnalogOS Analog Precedent Catalog","type":"object","additionalProperties":false,"required":["catalog_id","catalog_version","reviewed_at","reviewed_by","scope_note","relation_definitions","precedents","context_sources","searches"],"properties":{"catalog_id":{"type":"string"},"catalog_version":{"type":"string"},"reviewed_at":{"type":"string","format":"date"},"reviewed_by":{"type":"string"},"scope_note":{"type":"string","minLength":20},"relation_definitions":{"type":"object","additionalProperties":false,"required":["contains_published_sampling_coordinate","study_area_overlap","proximity_heuristic","regional_precedent"],"properties":{"contains_published_sampling_coordinate":{"type":"string"},"study_area_overlap":{"type":"string"},"proximity_heuristic":{"type":"string"},"regional_precedent":{"type":"string"}}},"precedents":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["precedent_id","name","country","activity","spatial_precision","study_area","region_ids","points","sources"],"properties":{"precedent_id":{"type":"string","pattern":"^(cl|ar)-[a-z0-9-]+$"},"name":{"type":"string"},"country":{"enum":["CL","AR"]},"activity":{"type":"string"},"spatial_precision":{"type":"string","minLength":10},"study_area":{"type":"object","additionalProperties":false,"required":["description","geometry"],"properties":{"description":{"type":"string"},"geometry":{"oneOf":[{"type":"null"},{"type":"object","additionalProperties":false,"required":["type","bbox"],"properties":{"type":{"const":"BBox"},"bbox":{"type":"array","minItems":4,"maxItems":4,"items":{"type":"number"}}}}]}}},"region_ids":{"type":"array","items":{"type":"string"},"uniqueItems":true},"points":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["label","as_published","latitude","longitude"],"properties":{"label":{"type":"string"},"as_published":{"type":"string"},"latitude":{"type":"number","minimum":-90,"maximum":90},"longitude":{"type":"number","minimum":-180,"maximum":180}}}},"sources":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["title","url","accessed_at","finding"],"properties":{"title":{"type":"string"},"url":{"type":"string","format":"uri"},"accessed_at":{"type":"string","format":"date"},"finding":{"type":"string"}}}}}}},"context_sources":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["title","url","note"],"properties":{"title":{"type":"string"},"url":{"type":"string","format":"uri"},"note":{"type":"string"}}}},"searches":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["date","query","scope","finding"],"properties":{"date":{"type":"string","format":"date"},"query":{"type":"string"},"scope":{"type":"string"},"finding":{"type":"string"},"sources":{"type":"array","items":{"type":"string","format":"uri"}},"windows_without_match":{"type":"array","items":{"type":"string"}}}}}}};
+const formats2 = __dep1.fullFormats.date;
+const formats4 = __dep1.fullFormats.uri;
+const pattern5 = new RegExp("^(cl|ar)-[a-z0-9-]+$", "u");
+
+function validate21(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="https://analogos.cl/schemas/precedent-catalog.schema.json" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate21.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.catalog_id === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "catalog_id"},message:"must have required property '"+"catalog_id"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.catalog_version === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "catalog_version"},message:"must have required property '"+"catalog_version"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+if(data.reviewed_at === undefined){
+const err2 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "reviewed_at"},message:"must have required property '"+"reviewed_at"+"'"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+if(data.reviewed_by === undefined){
+const err3 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "reviewed_by"},message:"must have required property '"+"reviewed_by"+"'"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(data.scope_note === undefined){
+const err4 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "scope_note"},message:"must have required property '"+"scope_note"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(data.relation_definitions === undefined){
+const err5 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "relation_definitions"},message:"must have required property '"+"relation_definitions"+"'"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+if(data.precedents === undefined){
+const err6 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "precedents"},message:"must have required property '"+"precedents"+"'"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+if(data.context_sources === undefined){
+const err7 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "context_sources"},message:"must have required property '"+"context_sources"+"'"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+if(data.searches === undefined){
+const err8 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "searches"},message:"must have required property '"+"searches"+"'"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+for(const key0 in data){
+if(!(func1.call(schema32.properties, key0))){
+const err9 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+if(data.catalog_id !== undefined){
+if(typeof data.catalog_id !== "string"){
+const err10 = {instancePath:instancePath+"/catalog_id",schemaPath:"#/properties/catalog_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+if(data.catalog_version !== undefined){
+if(typeof data.catalog_version !== "string"){
+const err11 = {instancePath:instancePath+"/catalog_version",schemaPath:"#/properties/catalog_version/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+}
+if(data.reviewed_at !== undefined){
+let data2 = data.reviewed_at;
+if(typeof data2 === "string"){
+if(!(formats2.validate(data2))){
+const err12 = {instancePath:instancePath+"/reviewed_at",schemaPath:"#/properties/reviewed_at/format",keyword:"format",params:{format: "date"},message:"must match format \""+"date"+"\""};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+}
+else {
+const err13 = {instancePath:instancePath+"/reviewed_at",schemaPath:"#/properties/reviewed_at/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+}
+if(data.reviewed_by !== undefined){
+if(typeof data.reviewed_by !== "string"){
+const err14 = {instancePath:instancePath+"/reviewed_by",schemaPath:"#/properties/reviewed_by/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+}
+if(data.scope_note !== undefined){
+let data4 = data.scope_note;
+if(typeof data4 === "string"){
+if(func2(data4) < 20){
+const err15 = {instancePath:instancePath+"/scope_note",schemaPath:"#/properties/scope_note/minLength",keyword:"minLength",params:{limit: 20},message:"must NOT have fewer than 20 characters"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+}
+else {
+const err16 = {instancePath:instancePath+"/scope_note",schemaPath:"#/properties/scope_note/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+}
+if(data.relation_definitions !== undefined){
+let data5 = data.relation_definitions;
+if(data5 && typeof data5 == "object" && !Array.isArray(data5)){
+if(data5.contains_published_sampling_coordinate === undefined){
+const err17 = {instancePath:instancePath+"/relation_definitions",schemaPath:"#/properties/relation_definitions/required",keyword:"required",params:{missingProperty: "contains_published_sampling_coordinate"},message:"must have required property '"+"contains_published_sampling_coordinate"+"'"};
+if(vErrors === null){
+vErrors = [err17];
+}
+else {
+vErrors.push(err17);
+}
+errors++;
+}
+if(data5.study_area_overlap === undefined){
+const err18 = {instancePath:instancePath+"/relation_definitions",schemaPath:"#/properties/relation_definitions/required",keyword:"required",params:{missingProperty: "study_area_overlap"},message:"must have required property '"+"study_area_overlap"+"'"};
+if(vErrors === null){
+vErrors = [err18];
+}
+else {
+vErrors.push(err18);
+}
+errors++;
+}
+if(data5.proximity_heuristic === undefined){
+const err19 = {instancePath:instancePath+"/relation_definitions",schemaPath:"#/properties/relation_definitions/required",keyword:"required",params:{missingProperty: "proximity_heuristic"},message:"must have required property '"+"proximity_heuristic"+"'"};
+if(vErrors === null){
+vErrors = [err19];
+}
+else {
+vErrors.push(err19);
+}
+errors++;
+}
+if(data5.regional_precedent === undefined){
+const err20 = {instancePath:instancePath+"/relation_definitions",schemaPath:"#/properties/relation_definitions/required",keyword:"required",params:{missingProperty: "regional_precedent"},message:"must have required property '"+"regional_precedent"+"'"};
+if(vErrors === null){
+vErrors = [err20];
+}
+else {
+vErrors.push(err20);
+}
+errors++;
+}
+for(const key1 in data5){
+if(!((((key1 === "contains_published_sampling_coordinate") || (key1 === "study_area_overlap")) || (key1 === "proximity_heuristic")) || (key1 === "regional_precedent"))){
+const err21 = {instancePath:instancePath+"/relation_definitions",schemaPath:"#/properties/relation_definitions/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err21];
+}
+else {
+vErrors.push(err21);
+}
+errors++;
+}
+}
+if(data5.contains_published_sampling_coordinate !== undefined){
+if(typeof data5.contains_published_sampling_coordinate !== "string"){
+const err22 = {instancePath:instancePath+"/relation_definitions/contains_published_sampling_coordinate",schemaPath:"#/properties/relation_definitions/properties/contains_published_sampling_coordinate/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err22];
+}
+else {
+vErrors.push(err22);
+}
+errors++;
+}
+}
+if(data5.study_area_overlap !== undefined){
+if(typeof data5.study_area_overlap !== "string"){
+const err23 = {instancePath:instancePath+"/relation_definitions/study_area_overlap",schemaPath:"#/properties/relation_definitions/properties/study_area_overlap/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err23];
+}
+else {
+vErrors.push(err23);
+}
+errors++;
+}
+}
+if(data5.proximity_heuristic !== undefined){
+if(typeof data5.proximity_heuristic !== "string"){
+const err24 = {instancePath:instancePath+"/relation_definitions/proximity_heuristic",schemaPath:"#/properties/relation_definitions/properties/proximity_heuristic/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err24];
+}
+else {
+vErrors.push(err24);
+}
+errors++;
+}
+}
+if(data5.regional_precedent !== undefined){
+if(typeof data5.regional_precedent !== "string"){
+const err25 = {instancePath:instancePath+"/relation_definitions/regional_precedent",schemaPath:"#/properties/relation_definitions/properties/regional_precedent/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err25];
+}
+else {
+vErrors.push(err25);
+}
+errors++;
+}
+}
+}
+else {
+const err26 = {instancePath:instancePath+"/relation_definitions",schemaPath:"#/properties/relation_definitions/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err26];
+}
+else {
+vErrors.push(err26);
+}
+errors++;
+}
+}
+if(data.precedents !== undefined){
+let data10 = data.precedents;
+if(Array.isArray(data10)){
+const len0 = data10.length;
+for(let i0=0; i0<len0; i0++){
+let data11 = data10[i0];
+if(data11 && typeof data11 == "object" && !Array.isArray(data11)){
+if(data11.precedent_id === undefined){
+const err27 = {instancePath:instancePath+"/precedents/" + i0,schemaPath:"#/properties/precedents/items/required",keyword:"required",params:{missingProperty: "precedent_id"},message:"must have required property '"+"precedent_id"+"'"};
+if(vErrors === null){
+vErrors = [err27];
+}
+else {
+vErrors.push(err27);
+}
+errors++;
+}
+if(data11.name === undefined){
+const err28 = {instancePath:instancePath+"/precedents/" + i0,schemaPath:"#/properties/precedents/items/required",keyword:"required",params:{missingProperty: "name"},message:"must have required property '"+"name"+"'"};
+if(vErrors === null){
+vErrors = [err28];
+}
+else {
+vErrors.push(err28);
+}
+errors++;
+}
+if(data11.country === undefined){
+const err29 = {instancePath:instancePath+"/precedents/" + i0,schemaPath:"#/properties/precedents/items/required",keyword:"required",params:{missingProperty: "country"},message:"must have required property '"+"country"+"'"};
+if(vErrors === null){
+vErrors = [err29];
+}
+else {
+vErrors.push(err29);
+}
+errors++;
+}
+if(data11.activity === undefined){
+const err30 = {instancePath:instancePath+"/precedents/" + i0,schemaPath:"#/properties/precedents/items/required",keyword:"required",params:{missingProperty: "activity"},message:"must have required property '"+"activity"+"'"};
+if(vErrors === null){
+vErrors = [err30];
+}
+else {
+vErrors.push(err30);
+}
+errors++;
+}
+if(data11.spatial_precision === undefined){
+const err31 = {instancePath:instancePath+"/precedents/" + i0,schemaPath:"#/properties/precedents/items/required",keyword:"required",params:{missingProperty: "spatial_precision"},message:"must have required property '"+"spatial_precision"+"'"};
+if(vErrors === null){
+vErrors = [err31];
+}
+else {
+vErrors.push(err31);
+}
+errors++;
+}
+if(data11.study_area === undefined){
+const err32 = {instancePath:instancePath+"/precedents/" + i0,schemaPath:"#/properties/precedents/items/required",keyword:"required",params:{missingProperty: "study_area"},message:"must have required property '"+"study_area"+"'"};
+if(vErrors === null){
+vErrors = [err32];
+}
+else {
+vErrors.push(err32);
+}
+errors++;
+}
+if(data11.region_ids === undefined){
+const err33 = {instancePath:instancePath+"/precedents/" + i0,schemaPath:"#/properties/precedents/items/required",keyword:"required",params:{missingProperty: "region_ids"},message:"must have required property '"+"region_ids"+"'"};
+if(vErrors === null){
+vErrors = [err33];
+}
+else {
+vErrors.push(err33);
+}
+errors++;
+}
+if(data11.points === undefined){
+const err34 = {instancePath:instancePath+"/precedents/" + i0,schemaPath:"#/properties/precedents/items/required",keyword:"required",params:{missingProperty: "points"},message:"must have required property '"+"points"+"'"};
+if(vErrors === null){
+vErrors = [err34];
+}
+else {
+vErrors.push(err34);
+}
+errors++;
+}
+if(data11.sources === undefined){
+const err35 = {instancePath:instancePath+"/precedents/" + i0,schemaPath:"#/properties/precedents/items/required",keyword:"required",params:{missingProperty: "sources"},message:"must have required property '"+"sources"+"'"};
+if(vErrors === null){
+vErrors = [err35];
+}
+else {
+vErrors.push(err35);
+}
+errors++;
+}
+for(const key2 in data11){
+if(!(func1.call(schema32.properties.precedents.items.properties, key2))){
+const err36 = {instancePath:instancePath+"/precedents/" + i0,schemaPath:"#/properties/precedents/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key2},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err36];
+}
+else {
+vErrors.push(err36);
+}
+errors++;
+}
+}
+if(data11.precedent_id !== undefined){
+let data12 = data11.precedent_id;
+if(typeof data12 === "string"){
+if(!pattern5.test(data12)){
+const err37 = {instancePath:instancePath+"/precedents/" + i0+"/precedent_id",schemaPath:"#/properties/precedents/items/properties/precedent_id/pattern",keyword:"pattern",params:{pattern: "^(cl|ar)-[a-z0-9-]+$"},message:"must match pattern \""+"^(cl|ar)-[a-z0-9-]+$"+"\""};
+if(vErrors === null){
+vErrors = [err37];
+}
+else {
+vErrors.push(err37);
+}
+errors++;
+}
+}
+else {
+const err38 = {instancePath:instancePath+"/precedents/" + i0+"/precedent_id",schemaPath:"#/properties/precedents/items/properties/precedent_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err38];
+}
+else {
+vErrors.push(err38);
+}
+errors++;
+}
+}
+if(data11.name !== undefined){
+if(typeof data11.name !== "string"){
+const err39 = {instancePath:instancePath+"/precedents/" + i0+"/name",schemaPath:"#/properties/precedents/items/properties/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err39];
+}
+else {
+vErrors.push(err39);
+}
+errors++;
+}
+}
+if(data11.country !== undefined){
+let data14 = data11.country;
+if(!((data14 === "CL") || (data14 === "AR"))){
+const err40 = {instancePath:instancePath+"/precedents/" + i0+"/country",schemaPath:"#/properties/precedents/items/properties/country/enum",keyword:"enum",params:{allowedValues: schema32.properties.precedents.items.properties.country.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err40];
+}
+else {
+vErrors.push(err40);
+}
+errors++;
+}
+}
+if(data11.activity !== undefined){
+if(typeof data11.activity !== "string"){
+const err41 = {instancePath:instancePath+"/precedents/" + i0+"/activity",schemaPath:"#/properties/precedents/items/properties/activity/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err41];
+}
+else {
+vErrors.push(err41);
+}
+errors++;
+}
+}
+if(data11.spatial_precision !== undefined){
+let data16 = data11.spatial_precision;
+if(typeof data16 === "string"){
+if(func2(data16) < 10){
+const err42 = {instancePath:instancePath+"/precedents/" + i0+"/spatial_precision",schemaPath:"#/properties/precedents/items/properties/spatial_precision/minLength",keyword:"minLength",params:{limit: 10},message:"must NOT have fewer than 10 characters"};
+if(vErrors === null){
+vErrors = [err42];
+}
+else {
+vErrors.push(err42);
+}
+errors++;
+}
+}
+else {
+const err43 = {instancePath:instancePath+"/precedents/" + i0+"/spatial_precision",schemaPath:"#/properties/precedents/items/properties/spatial_precision/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err43];
+}
+else {
+vErrors.push(err43);
+}
+errors++;
+}
+}
+if(data11.study_area !== undefined){
+let data17 = data11.study_area;
+if(data17 && typeof data17 == "object" && !Array.isArray(data17)){
+if(data17.description === undefined){
+const err44 = {instancePath:instancePath+"/precedents/" + i0+"/study_area",schemaPath:"#/properties/precedents/items/properties/study_area/required",keyword:"required",params:{missingProperty: "description"},message:"must have required property '"+"description"+"'"};
+if(vErrors === null){
+vErrors = [err44];
+}
+else {
+vErrors.push(err44);
+}
+errors++;
+}
+if(data17.geometry === undefined){
+const err45 = {instancePath:instancePath+"/precedents/" + i0+"/study_area",schemaPath:"#/properties/precedents/items/properties/study_area/required",keyword:"required",params:{missingProperty: "geometry"},message:"must have required property '"+"geometry"+"'"};
+if(vErrors === null){
+vErrors = [err45];
+}
+else {
+vErrors.push(err45);
+}
+errors++;
+}
+for(const key3 in data17){
+if(!((key3 === "description") || (key3 === "geometry"))){
+const err46 = {instancePath:instancePath+"/precedents/" + i0+"/study_area",schemaPath:"#/properties/precedents/items/properties/study_area/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key3},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err46];
+}
+else {
+vErrors.push(err46);
+}
+errors++;
+}
+}
+if(data17.description !== undefined){
+if(typeof data17.description !== "string"){
+const err47 = {instancePath:instancePath+"/precedents/" + i0+"/study_area/description",schemaPath:"#/properties/precedents/items/properties/study_area/properties/description/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err47];
+}
+else {
+vErrors.push(err47);
+}
+errors++;
+}
+}
+if(data17.geometry !== undefined){
+let data19 = data17.geometry;
+const _errs43 = errors;
+let valid6 = false;
+let passing0 = null;
+const _errs44 = errors;
+if(data19 !== null){
+const err48 = {instancePath:instancePath+"/precedents/" + i0+"/study_area/geometry",schemaPath:"#/properties/precedents/items/properties/study_area/properties/geometry/oneOf/0/type",keyword:"type",params:{type: "null"},message:"must be null"};
+if(vErrors === null){
+vErrors = [err48];
+}
+else {
+vErrors.push(err48);
+}
+errors++;
+}
+var _valid0 = _errs44 === errors;
+if(_valid0){
+valid6 = true;
+passing0 = 0;
+}
+const _errs46 = errors;
+if(data19 && typeof data19 == "object" && !Array.isArray(data19)){
+if(data19.type === undefined){
+const err49 = {instancePath:instancePath+"/precedents/" + i0+"/study_area/geometry",schemaPath:"#/properties/precedents/items/properties/study_area/properties/geometry/oneOf/1/required",keyword:"required",params:{missingProperty: "type"},message:"must have required property '"+"type"+"'"};
+if(vErrors === null){
+vErrors = [err49];
+}
+else {
+vErrors.push(err49);
+}
+errors++;
+}
+if(data19.bbox === undefined){
+const err50 = {instancePath:instancePath+"/precedents/" + i0+"/study_area/geometry",schemaPath:"#/properties/precedents/items/properties/study_area/properties/geometry/oneOf/1/required",keyword:"required",params:{missingProperty: "bbox"},message:"must have required property '"+"bbox"+"'"};
+if(vErrors === null){
+vErrors = [err50];
+}
+else {
+vErrors.push(err50);
+}
+errors++;
+}
+for(const key4 in data19){
+if(!((key4 === "type") || (key4 === "bbox"))){
+const err51 = {instancePath:instancePath+"/precedents/" + i0+"/study_area/geometry",schemaPath:"#/properties/precedents/items/properties/study_area/properties/geometry/oneOf/1/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key4},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err51];
+}
+else {
+vErrors.push(err51);
+}
+errors++;
+}
+}
+if(data19.type !== undefined){
+if("BBox" !== data19.type){
+const err52 = {instancePath:instancePath+"/precedents/" + i0+"/study_area/geometry/type",schemaPath:"#/properties/precedents/items/properties/study_area/properties/geometry/oneOf/1/properties/type/const",keyword:"const",params:{allowedValue: "BBox"},message:"must be equal to constant"};
+if(vErrors === null){
+vErrors = [err52];
+}
+else {
+vErrors.push(err52);
+}
+errors++;
+}
+}
+if(data19.bbox !== undefined){
+let data21 = data19.bbox;
+if(Array.isArray(data21)){
+if(data21.length > 4){
+const err53 = {instancePath:instancePath+"/precedents/" + i0+"/study_area/geometry/bbox",schemaPath:"#/properties/precedents/items/properties/study_area/properties/geometry/oneOf/1/properties/bbox/maxItems",keyword:"maxItems",params:{limit: 4},message:"must NOT have more than 4 items"};
+if(vErrors === null){
+vErrors = [err53];
+}
+else {
+vErrors.push(err53);
+}
+errors++;
+}
+if(data21.length < 4){
+const err54 = {instancePath:instancePath+"/precedents/" + i0+"/study_area/geometry/bbox",schemaPath:"#/properties/precedents/items/properties/study_area/properties/geometry/oneOf/1/properties/bbox/minItems",keyword:"minItems",params:{limit: 4},message:"must NOT have fewer than 4 items"};
+if(vErrors === null){
+vErrors = [err54];
+}
+else {
+vErrors.push(err54);
+}
+errors++;
+}
+const len1 = data21.length;
+for(let i1=0; i1<len1; i1++){
+if(!(typeof data21[i1] == "number")){
+const err55 = {instancePath:instancePath+"/precedents/" + i0+"/study_area/geometry/bbox/" + i1,schemaPath:"#/properties/precedents/items/properties/study_area/properties/geometry/oneOf/1/properties/bbox/items/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err55];
+}
+else {
+vErrors.push(err55);
+}
+errors++;
+}
+}
+}
+else {
+const err56 = {instancePath:instancePath+"/precedents/" + i0+"/study_area/geometry/bbox",schemaPath:"#/properties/precedents/items/properties/study_area/properties/geometry/oneOf/1/properties/bbox/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err56];
+}
+else {
+vErrors.push(err56);
+}
+errors++;
+}
+}
+}
+else {
+const err57 = {instancePath:instancePath+"/precedents/" + i0+"/study_area/geometry",schemaPath:"#/properties/precedents/items/properties/study_area/properties/geometry/oneOf/1/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err57];
+}
+else {
+vErrors.push(err57);
+}
+errors++;
+}
+var _valid0 = _errs46 === errors;
+if(_valid0 && valid6){
+valid6 = false;
+passing0 = [passing0, 1];
+}
+else {
+if(_valid0){
+valid6 = true;
+passing0 = 1;
+}
+}
+if(!valid6){
+const err58 = {instancePath:instancePath+"/precedents/" + i0+"/study_area/geometry",schemaPath:"#/properties/precedents/items/properties/study_area/properties/geometry/oneOf",keyword:"oneOf",params:{passingSchemas: passing0},message:"must match exactly one schema in oneOf"};
+if(vErrors === null){
+vErrors = [err58];
+}
+else {
+vErrors.push(err58);
+}
+errors++;
+}
+else {
+errors = _errs43;
+if(vErrors !== null){
+if(_errs43){
+vErrors.length = _errs43;
+}
+else {
+vErrors = null;
+}
+}
+}
+}
+}
+else {
+const err59 = {instancePath:instancePath+"/precedents/" + i0+"/study_area",schemaPath:"#/properties/precedents/items/properties/study_area/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err59];
+}
+else {
+vErrors.push(err59);
+}
+errors++;
+}
+}
+if(data11.region_ids !== undefined){
+let data23 = data11.region_ids;
+if(Array.isArray(data23)){
+const len2 = data23.length;
+for(let i2=0; i2<len2; i2++){
+if(typeof data23[i2] !== "string"){
+const err60 = {instancePath:instancePath+"/precedents/" + i0+"/region_ids/" + i2,schemaPath:"#/properties/precedents/items/properties/region_ids/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err60];
+}
+else {
+vErrors.push(err60);
+}
+errors++;
+}
+}
+let i3 = data23.length;
+let j0;
+if(i3 > 1){
+const indices0 = {};
+for(;i3--;){
+let item0 = data23[i3];
+if(typeof item0 !== "string"){
+continue;
+}
+if(typeof indices0[item0] == "number"){
+j0 = indices0[item0];
+const err61 = {instancePath:instancePath+"/precedents/" + i0+"/region_ids",schemaPath:"#/properties/precedents/items/properties/region_ids/uniqueItems",keyword:"uniqueItems",params:{i: i3, j: j0},message:"must NOT have duplicate items (items ## "+j0+" and "+i3+" are identical)"};
+if(vErrors === null){
+vErrors = [err61];
+}
+else {
+vErrors.push(err61);
+}
+errors++;
+break;
+}
+indices0[item0] = i3;
+}
+}
+}
+else {
+const err62 = {instancePath:instancePath+"/precedents/" + i0+"/region_ids",schemaPath:"#/properties/precedents/items/properties/region_ids/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err62];
+}
+else {
+vErrors.push(err62);
+}
+errors++;
+}
+}
+if(data11.points !== undefined){
+let data25 = data11.points;
+if(Array.isArray(data25)){
+const len3 = data25.length;
+for(let i4=0; i4<len3; i4++){
+let data26 = data25[i4];
+if(data26 && typeof data26 == "object" && !Array.isArray(data26)){
+if(data26.label === undefined){
+const err63 = {instancePath:instancePath+"/precedents/" + i0+"/points/" + i4,schemaPath:"#/properties/precedents/items/properties/points/items/required",keyword:"required",params:{missingProperty: "label"},message:"must have required property '"+"label"+"'"};
+if(vErrors === null){
+vErrors = [err63];
+}
+else {
+vErrors.push(err63);
+}
+errors++;
+}
+if(data26.as_published === undefined){
+const err64 = {instancePath:instancePath+"/precedents/" + i0+"/points/" + i4,schemaPath:"#/properties/precedents/items/properties/points/items/required",keyword:"required",params:{missingProperty: "as_published"},message:"must have required property '"+"as_published"+"'"};
+if(vErrors === null){
+vErrors = [err64];
+}
+else {
+vErrors.push(err64);
+}
+errors++;
+}
+if(data26.latitude === undefined){
+const err65 = {instancePath:instancePath+"/precedents/" + i0+"/points/" + i4,schemaPath:"#/properties/precedents/items/properties/points/items/required",keyword:"required",params:{missingProperty: "latitude"},message:"must have required property '"+"latitude"+"'"};
+if(vErrors === null){
+vErrors = [err65];
+}
+else {
+vErrors.push(err65);
+}
+errors++;
+}
+if(data26.longitude === undefined){
+const err66 = {instancePath:instancePath+"/precedents/" + i0+"/points/" + i4,schemaPath:"#/properties/precedents/items/properties/points/items/required",keyword:"required",params:{missingProperty: "longitude"},message:"must have required property '"+"longitude"+"'"};
+if(vErrors === null){
+vErrors = [err66];
+}
+else {
+vErrors.push(err66);
+}
+errors++;
+}
+for(const key5 in data26){
+if(!((((key5 === "label") || (key5 === "as_published")) || (key5 === "latitude")) || (key5 === "longitude"))){
+const err67 = {instancePath:instancePath+"/precedents/" + i0+"/points/" + i4,schemaPath:"#/properties/precedents/items/properties/points/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key5},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err67];
+}
+else {
+vErrors.push(err67);
+}
+errors++;
+}
+}
+if(data26.label !== undefined){
+if(typeof data26.label !== "string"){
+const err68 = {instancePath:instancePath+"/precedents/" + i0+"/points/" + i4+"/label",schemaPath:"#/properties/precedents/items/properties/points/items/properties/label/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err68];
+}
+else {
+vErrors.push(err68);
+}
+errors++;
+}
+}
+if(data26.as_published !== undefined){
+if(typeof data26.as_published !== "string"){
+const err69 = {instancePath:instancePath+"/precedents/" + i0+"/points/" + i4+"/as_published",schemaPath:"#/properties/precedents/items/properties/points/items/properties/as_published/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err69];
+}
+else {
+vErrors.push(err69);
+}
+errors++;
+}
+}
+if(data26.latitude !== undefined){
+let data29 = data26.latitude;
+if(typeof data29 == "number"){
+if(data29 > 90 || isNaN(data29)){
+const err70 = {instancePath:instancePath+"/precedents/" + i0+"/points/" + i4+"/latitude",schemaPath:"#/properties/precedents/items/properties/points/items/properties/latitude/maximum",keyword:"maximum",params:{comparison: "<=", limit: 90},message:"must be <= 90"};
+if(vErrors === null){
+vErrors = [err70];
+}
+else {
+vErrors.push(err70);
+}
+errors++;
+}
+if(data29 < -90 || isNaN(data29)){
+const err71 = {instancePath:instancePath+"/precedents/" + i0+"/points/" + i4+"/latitude",schemaPath:"#/properties/precedents/items/properties/points/items/properties/latitude/minimum",keyword:"minimum",params:{comparison: ">=", limit: -90},message:"must be >= -90"};
+if(vErrors === null){
+vErrors = [err71];
+}
+else {
+vErrors.push(err71);
+}
+errors++;
+}
+}
+else {
+const err72 = {instancePath:instancePath+"/precedents/" + i0+"/points/" + i4+"/latitude",schemaPath:"#/properties/precedents/items/properties/points/items/properties/latitude/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err72];
+}
+else {
+vErrors.push(err72);
+}
+errors++;
+}
+}
+if(data26.longitude !== undefined){
+let data30 = data26.longitude;
+if(typeof data30 == "number"){
+if(data30 > 180 || isNaN(data30)){
+const err73 = {instancePath:instancePath+"/precedents/" + i0+"/points/" + i4+"/longitude",schemaPath:"#/properties/precedents/items/properties/points/items/properties/longitude/maximum",keyword:"maximum",params:{comparison: "<=", limit: 180},message:"must be <= 180"};
+if(vErrors === null){
+vErrors = [err73];
+}
+else {
+vErrors.push(err73);
+}
+errors++;
+}
+if(data30 < -180 || isNaN(data30)){
+const err74 = {instancePath:instancePath+"/precedents/" + i0+"/points/" + i4+"/longitude",schemaPath:"#/properties/precedents/items/properties/points/items/properties/longitude/minimum",keyword:"minimum",params:{comparison: ">=", limit: -180},message:"must be >= -180"};
+if(vErrors === null){
+vErrors = [err74];
+}
+else {
+vErrors.push(err74);
+}
+errors++;
+}
+}
+else {
+const err75 = {instancePath:instancePath+"/precedents/" + i0+"/points/" + i4+"/longitude",schemaPath:"#/properties/precedents/items/properties/points/items/properties/longitude/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err75];
+}
+else {
+vErrors.push(err75);
+}
+errors++;
+}
+}
+}
+else {
+const err76 = {instancePath:instancePath+"/precedents/" + i0+"/points/" + i4,schemaPath:"#/properties/precedents/items/properties/points/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err76];
+}
+else {
+vErrors.push(err76);
+}
+errors++;
+}
+}
+}
+else {
+const err77 = {instancePath:instancePath+"/precedents/" + i0+"/points",schemaPath:"#/properties/precedents/items/properties/points/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err77];
+}
+else {
+vErrors.push(err77);
+}
+errors++;
+}
+}
+if(data11.sources !== undefined){
+let data31 = data11.sources;
+if(Array.isArray(data31)){
+if(data31.length < 1){
+const err78 = {instancePath:instancePath+"/precedents/" + i0+"/sources",schemaPath:"#/properties/precedents/items/properties/sources/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+if(vErrors === null){
+vErrors = [err78];
+}
+else {
+vErrors.push(err78);
+}
+errors++;
+}
+const len4 = data31.length;
+for(let i5=0; i5<len4; i5++){
+let data32 = data31[i5];
+if(data32 && typeof data32 == "object" && !Array.isArray(data32)){
+if(data32.title === undefined){
+const err79 = {instancePath:instancePath+"/precedents/" + i0+"/sources/" + i5,schemaPath:"#/properties/precedents/items/properties/sources/items/required",keyword:"required",params:{missingProperty: "title"},message:"must have required property '"+"title"+"'"};
+if(vErrors === null){
+vErrors = [err79];
+}
+else {
+vErrors.push(err79);
+}
+errors++;
+}
+if(data32.url === undefined){
+const err80 = {instancePath:instancePath+"/precedents/" + i0+"/sources/" + i5,schemaPath:"#/properties/precedents/items/properties/sources/items/required",keyword:"required",params:{missingProperty: "url"},message:"must have required property '"+"url"+"'"};
+if(vErrors === null){
+vErrors = [err80];
+}
+else {
+vErrors.push(err80);
+}
+errors++;
+}
+if(data32.accessed_at === undefined){
+const err81 = {instancePath:instancePath+"/precedents/" + i0+"/sources/" + i5,schemaPath:"#/properties/precedents/items/properties/sources/items/required",keyword:"required",params:{missingProperty: "accessed_at"},message:"must have required property '"+"accessed_at"+"'"};
+if(vErrors === null){
+vErrors = [err81];
+}
+else {
+vErrors.push(err81);
+}
+errors++;
+}
+if(data32.finding === undefined){
+const err82 = {instancePath:instancePath+"/precedents/" + i0+"/sources/" + i5,schemaPath:"#/properties/precedents/items/properties/sources/items/required",keyword:"required",params:{missingProperty: "finding"},message:"must have required property '"+"finding"+"'"};
+if(vErrors === null){
+vErrors = [err82];
+}
+else {
+vErrors.push(err82);
+}
+errors++;
+}
+for(const key6 in data32){
+if(!((((key6 === "title") || (key6 === "url")) || (key6 === "accessed_at")) || (key6 === "finding"))){
+const err83 = {instancePath:instancePath+"/precedents/" + i0+"/sources/" + i5,schemaPath:"#/properties/precedents/items/properties/sources/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key6},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err83];
+}
+else {
+vErrors.push(err83);
+}
+errors++;
+}
+}
+if(data32.title !== undefined){
+if(typeof data32.title !== "string"){
+const err84 = {instancePath:instancePath+"/precedents/" + i0+"/sources/" + i5+"/title",schemaPath:"#/properties/precedents/items/properties/sources/items/properties/title/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err84];
+}
+else {
+vErrors.push(err84);
+}
+errors++;
+}
+}
+if(data32.url !== undefined){
+let data34 = data32.url;
+if(typeof data34 === "string"){
+if(!(formats4(data34))){
+const err85 = {instancePath:instancePath+"/precedents/" + i0+"/sources/" + i5+"/url",schemaPath:"#/properties/precedents/items/properties/sources/items/properties/url/format",keyword:"format",params:{format: "uri"},message:"must match format \""+"uri"+"\""};
+if(vErrors === null){
+vErrors = [err85];
+}
+else {
+vErrors.push(err85);
+}
+errors++;
+}
+}
+else {
+const err86 = {instancePath:instancePath+"/precedents/" + i0+"/sources/" + i5+"/url",schemaPath:"#/properties/precedents/items/properties/sources/items/properties/url/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err86];
+}
+else {
+vErrors.push(err86);
+}
+errors++;
+}
+}
+if(data32.accessed_at !== undefined){
+let data35 = data32.accessed_at;
+if(typeof data35 === "string"){
+if(!(formats2.validate(data35))){
+const err87 = {instancePath:instancePath+"/precedents/" + i0+"/sources/" + i5+"/accessed_at",schemaPath:"#/properties/precedents/items/properties/sources/items/properties/accessed_at/format",keyword:"format",params:{format: "date"},message:"must match format \""+"date"+"\""};
+if(vErrors === null){
+vErrors = [err87];
+}
+else {
+vErrors.push(err87);
+}
+errors++;
+}
+}
+else {
+const err88 = {instancePath:instancePath+"/precedents/" + i0+"/sources/" + i5+"/accessed_at",schemaPath:"#/properties/precedents/items/properties/sources/items/properties/accessed_at/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err88];
+}
+else {
+vErrors.push(err88);
+}
+errors++;
+}
+}
+if(data32.finding !== undefined){
+if(typeof data32.finding !== "string"){
+const err89 = {instancePath:instancePath+"/precedents/" + i0+"/sources/" + i5+"/finding",schemaPath:"#/properties/precedents/items/properties/sources/items/properties/finding/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err89];
+}
+else {
+vErrors.push(err89);
+}
+errors++;
+}
+}
+}
+else {
+const err90 = {instancePath:instancePath+"/precedents/" + i0+"/sources/" + i5,schemaPath:"#/properties/precedents/items/properties/sources/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err90];
+}
+else {
+vErrors.push(err90);
+}
+errors++;
+}
+}
+}
+else {
+const err91 = {instancePath:instancePath+"/precedents/" + i0+"/sources",schemaPath:"#/properties/precedents/items/properties/sources/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err91];
+}
+else {
+vErrors.push(err91);
+}
+errors++;
+}
+}
+}
+else {
+const err92 = {instancePath:instancePath+"/precedents/" + i0,schemaPath:"#/properties/precedents/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err92];
+}
+else {
+vErrors.push(err92);
+}
+errors++;
+}
+}
+}
+else {
+const err93 = {instancePath:instancePath+"/precedents",schemaPath:"#/properties/precedents/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err93];
+}
+else {
+vErrors.push(err93);
+}
+errors++;
+}
+}
+if(data.context_sources !== undefined){
+let data37 = data.context_sources;
+if(Array.isArray(data37)){
+const len5 = data37.length;
+for(let i6=0; i6<len5; i6++){
+let data38 = data37[i6];
+if(data38 && typeof data38 == "object" && !Array.isArray(data38)){
+if(data38.title === undefined){
+const err94 = {instancePath:instancePath+"/context_sources/" + i6,schemaPath:"#/properties/context_sources/items/required",keyword:"required",params:{missingProperty: "title"},message:"must have required property '"+"title"+"'"};
+if(vErrors === null){
+vErrors = [err94];
+}
+else {
+vErrors.push(err94);
+}
+errors++;
+}
+if(data38.url === undefined){
+const err95 = {instancePath:instancePath+"/context_sources/" + i6,schemaPath:"#/properties/context_sources/items/required",keyword:"required",params:{missingProperty: "url"},message:"must have required property '"+"url"+"'"};
+if(vErrors === null){
+vErrors = [err95];
+}
+else {
+vErrors.push(err95);
+}
+errors++;
+}
+if(data38.note === undefined){
+const err96 = {instancePath:instancePath+"/context_sources/" + i6,schemaPath:"#/properties/context_sources/items/required",keyword:"required",params:{missingProperty: "note"},message:"must have required property '"+"note"+"'"};
+if(vErrors === null){
+vErrors = [err96];
+}
+else {
+vErrors.push(err96);
+}
+errors++;
+}
+for(const key7 in data38){
+if(!(((key7 === "title") || (key7 === "url")) || (key7 === "note"))){
+const err97 = {instancePath:instancePath+"/context_sources/" + i6,schemaPath:"#/properties/context_sources/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key7},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err97];
+}
+else {
+vErrors.push(err97);
+}
+errors++;
+}
+}
+if(data38.title !== undefined){
+if(typeof data38.title !== "string"){
+const err98 = {instancePath:instancePath+"/context_sources/" + i6+"/title",schemaPath:"#/properties/context_sources/items/properties/title/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err98];
+}
+else {
+vErrors.push(err98);
+}
+errors++;
+}
+}
+if(data38.url !== undefined){
+let data40 = data38.url;
+if(typeof data40 === "string"){
+if(!(formats4(data40))){
+const err99 = {instancePath:instancePath+"/context_sources/" + i6+"/url",schemaPath:"#/properties/context_sources/items/properties/url/format",keyword:"format",params:{format: "uri"},message:"must match format \""+"uri"+"\""};
+if(vErrors === null){
+vErrors = [err99];
+}
+else {
+vErrors.push(err99);
+}
+errors++;
+}
+}
+else {
+const err100 = {instancePath:instancePath+"/context_sources/" + i6+"/url",schemaPath:"#/properties/context_sources/items/properties/url/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err100];
+}
+else {
+vErrors.push(err100);
+}
+errors++;
+}
+}
+if(data38.note !== undefined){
+if(typeof data38.note !== "string"){
+const err101 = {instancePath:instancePath+"/context_sources/" + i6+"/note",schemaPath:"#/properties/context_sources/items/properties/note/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err101];
+}
+else {
+vErrors.push(err101);
+}
+errors++;
+}
+}
+}
+else {
+const err102 = {instancePath:instancePath+"/context_sources/" + i6,schemaPath:"#/properties/context_sources/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err102];
+}
+else {
+vErrors.push(err102);
+}
+errors++;
+}
+}
+}
+else {
+const err103 = {instancePath:instancePath+"/context_sources",schemaPath:"#/properties/context_sources/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err103];
+}
+else {
+vErrors.push(err103);
+}
+errors++;
+}
+}
+if(data.searches !== undefined){
+let data42 = data.searches;
+if(Array.isArray(data42)){
+const len6 = data42.length;
+for(let i7=0; i7<len6; i7++){
+let data43 = data42[i7];
+if(data43 && typeof data43 == "object" && !Array.isArray(data43)){
+if(data43.date === undefined){
+const err104 = {instancePath:instancePath+"/searches/" + i7,schemaPath:"#/properties/searches/items/required",keyword:"required",params:{missingProperty: "date"},message:"must have required property '"+"date"+"'"};
+if(vErrors === null){
+vErrors = [err104];
+}
+else {
+vErrors.push(err104);
+}
+errors++;
+}
+if(data43.query === undefined){
+const err105 = {instancePath:instancePath+"/searches/" + i7,schemaPath:"#/properties/searches/items/required",keyword:"required",params:{missingProperty: "query"},message:"must have required property '"+"query"+"'"};
+if(vErrors === null){
+vErrors = [err105];
+}
+else {
+vErrors.push(err105);
+}
+errors++;
+}
+if(data43.scope === undefined){
+const err106 = {instancePath:instancePath+"/searches/" + i7,schemaPath:"#/properties/searches/items/required",keyword:"required",params:{missingProperty: "scope"},message:"must have required property '"+"scope"+"'"};
+if(vErrors === null){
+vErrors = [err106];
+}
+else {
+vErrors.push(err106);
+}
+errors++;
+}
+if(data43.finding === undefined){
+const err107 = {instancePath:instancePath+"/searches/" + i7,schemaPath:"#/properties/searches/items/required",keyword:"required",params:{missingProperty: "finding"},message:"must have required property '"+"finding"+"'"};
+if(vErrors === null){
+vErrors = [err107];
+}
+else {
+vErrors.push(err107);
+}
+errors++;
+}
+for(const key8 in data43){
+if(!((((((key8 === "date") || (key8 === "query")) || (key8 === "scope")) || (key8 === "finding")) || (key8 === "sources")) || (key8 === "windows_without_match"))){
+const err108 = {instancePath:instancePath+"/searches/" + i7,schemaPath:"#/properties/searches/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key8},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err108];
+}
+else {
+vErrors.push(err108);
+}
+errors++;
+}
+}
+if(data43.date !== undefined){
+let data44 = data43.date;
+if(typeof data44 === "string"){
+if(!(formats2.validate(data44))){
+const err109 = {instancePath:instancePath+"/searches/" + i7+"/date",schemaPath:"#/properties/searches/items/properties/date/format",keyword:"format",params:{format: "date"},message:"must match format \""+"date"+"\""};
+if(vErrors === null){
+vErrors = [err109];
+}
+else {
+vErrors.push(err109);
+}
+errors++;
+}
+}
+else {
+const err110 = {instancePath:instancePath+"/searches/" + i7+"/date",schemaPath:"#/properties/searches/items/properties/date/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err110];
+}
+else {
+vErrors.push(err110);
+}
+errors++;
+}
+}
+if(data43.query !== undefined){
+if(typeof data43.query !== "string"){
+const err111 = {instancePath:instancePath+"/searches/" + i7+"/query",schemaPath:"#/properties/searches/items/properties/query/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err111];
+}
+else {
+vErrors.push(err111);
+}
+errors++;
+}
+}
+if(data43.scope !== undefined){
+if(typeof data43.scope !== "string"){
+const err112 = {instancePath:instancePath+"/searches/" + i7+"/scope",schemaPath:"#/properties/searches/items/properties/scope/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err112];
+}
+else {
+vErrors.push(err112);
+}
+errors++;
+}
+}
+if(data43.finding !== undefined){
+if(typeof data43.finding !== "string"){
+const err113 = {instancePath:instancePath+"/searches/" + i7+"/finding",schemaPath:"#/properties/searches/items/properties/finding/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err113];
+}
+else {
+vErrors.push(err113);
+}
+errors++;
+}
+}
+if(data43.sources !== undefined){
+let data48 = data43.sources;
+if(Array.isArray(data48)){
+const len7 = data48.length;
+for(let i8=0; i8<len7; i8++){
+let data49 = data48[i8];
+if(typeof data49 === "string"){
+if(!(formats4(data49))){
+const err114 = {instancePath:instancePath+"/searches/" + i7+"/sources/" + i8,schemaPath:"#/properties/searches/items/properties/sources/items/format",keyword:"format",params:{format: "uri"},message:"must match format \""+"uri"+"\""};
+if(vErrors === null){
+vErrors = [err114];
+}
+else {
+vErrors.push(err114);
+}
+errors++;
+}
+}
+else {
+const err115 = {instancePath:instancePath+"/searches/" + i7+"/sources/" + i8,schemaPath:"#/properties/searches/items/properties/sources/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err115];
+}
+else {
+vErrors.push(err115);
+}
+errors++;
+}
+}
+}
+else {
+const err116 = {instancePath:instancePath+"/searches/" + i7+"/sources",schemaPath:"#/properties/searches/items/properties/sources/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err116];
+}
+else {
+vErrors.push(err116);
+}
+errors++;
+}
+}
+if(data43.windows_without_match !== undefined){
+let data50 = data43.windows_without_match;
+if(Array.isArray(data50)){
+const len8 = data50.length;
+for(let i9=0; i9<len8; i9++){
+if(typeof data50[i9] !== "string"){
+const err117 = {instancePath:instancePath+"/searches/" + i7+"/windows_without_match/" + i9,schemaPath:"#/properties/searches/items/properties/windows_without_match/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err117];
+}
+else {
+vErrors.push(err117);
+}
+errors++;
+}
+}
+}
+else {
+const err118 = {instancePath:instancePath+"/searches/" + i7+"/windows_without_match",schemaPath:"#/properties/searches/items/properties/windows_without_match/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err118];
+}
+else {
+vErrors.push(err118);
+}
+errors++;
+}
+}
+}
+else {
+const err119 = {instancePath:instancePath+"/searches/" + i7,schemaPath:"#/properties/searches/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err119];
+}
+else {
+vErrors.push(err119);
+}
+errors++;
+}
+}
+}
+else {
+const err120 = {instancePath:instancePath+"/searches",schemaPath:"#/properties/searches/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err120];
+}
+else {
+vErrors.push(err120);
+}
+errors++;
+}
+}
+}
+else {
+const err121 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err121];
+}
+else {
+vErrors.push(err121);
+}
+errors++;
+}
+validate21.errors = vErrors;
+return errors === 0;
+}
+validate21.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};

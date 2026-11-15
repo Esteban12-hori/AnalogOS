@@ -1,5 +1,5 @@
 /** Selección de las métricas principales para las líneas Tesla (docs/UX_REDESIGN.md §3.4). Pura. */
-import { CRITERION_IDS } from '../../domain/contracts'
+import { CRITERION_IDS } from '../../domain/criteria'
 import type { MetricView } from '../metrics'
 
 /** Pesos a menos de esto se consideran empatados (p. ej. 3/11 calculado por dos caminos). */

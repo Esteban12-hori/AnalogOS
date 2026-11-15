@@ -15,7 +15,8 @@
  * - Los textos generados no llevan dígitos ni % (lo exige el contrato).
  */
 import type { CriterionLevel, MissionInterpretation, UnsupportedReason } from '../../domain/aiContracts'
-import { CRITERION_IDS, type CriterionId } from '../../domain/contracts'
+import type { CriterionId } from '../../domain/contracts'
+import { CRITERION_IDS } from '../../domain/criteria'
 import { LEVEL_LABELS, MISSION_PRESETS, type BaseProfileRef } from './profiles'
 import type { DemoMatch, TextSpan } from './types'
 

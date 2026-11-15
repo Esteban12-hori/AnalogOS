@@ -15,8 +15,8 @@ import type { CandidateSite } from '../domain/contracts'
 const root = resolve(__dirname, '../../../..')
 const readJson = (path: string): unknown => JSON.parse(readFileSync(resolve(root, path), 'utf8'))
 
-const realIndex = readJson('artifacts/visual-context/index.json')
-const candidates = readJson('artifacts/science-v2/candidate-details.json') as CandidateSite[]
+const realIndex = readJson('artifacts/visual-context-v3/index.json')
+const candidates = readJson('artifacts/science-v3/candidate-details.json') as CandidateSite[]
 const fixtures = readJson('artifacts/demo/candidate-details.json') as CandidateSite[]
 const ready: VisualContextState = { status: 'ready', index: parseVisualContext(realIndex) }
 
@@ -33,7 +33,7 @@ function render(candidate: CandidateSite, state: VisualContextState, options: { 
 }
 
 describe('índice de contexto visual real', () => {
-  it('es válido y cubre exactamente los candidatos del snapshot v2', () => {
+  it('es válido y cubre exactamente los sitios del snapshot v3', () => {
     const index = parseVisualContext(realIndex)
     expect(index.sites.map((site) => site.site_id)).toEqual(candidates.map((candidate) => candidate.site_id))
     expect(index.sites.every((site) => site.image === `${site.site_id}.png`)).toBe(true)
@@ -89,9 +89,9 @@ describe('índice de contexto visual real', () => {
 
 describe('rutas y selección', () => {
   it('resuelve los archivos locales en raíz, ruta relativa y subcarpeta', () => {
-    expect(visualContextUrl('/', 'index.json')).toBe('/visual-context/index.json')
-    expect(visualContextUrl('./', 'a.png')).toBe('./visual-context/a.png')
-    expect(visualContextUrl('/AnalogOS/', 'a.png')).toBe('/AnalogOS/visual-context/a.png')
+    expect(visualContextUrl('/', 'index.json')).toBe('/visual-context-v3/index.json')
+    expect(visualContextUrl('./', 'a.png')).toBe('./visual-context-v3/a.png')
+    expect(visualContextUrl('/AnalogOS/', 'a.png')).toBe('/AnalogOS/visual-context-v3/a.png')
   })
 
   it('entrega la imagen propia de cada candidato real', () => {
@@ -113,8 +113,8 @@ describe('rutas y selección', () => {
 describe('panel de contexto satelital', () => {
   it('muestra imagen local, periodo, atribución, nota preliminar y procedencia', () => {
     const html = render(candidates[0], ready, { baseUrl: '/AnalogOS/' })
-    expect(html).toContain(`src="/AnalogOS/visual-context/${candidates[0].site_id}.png"`)
-    expect(html).toContain('href="/AnalogOS/visual-context/index.json"')
+    expect(html).toContain(`src="/AnalogOS/visual-context-v3/${candidates[0].site_id}.png"`)
+    expect(html).toContain('href="/AnalogOS/visual-context-v3/index.json"')
     expect(html).toContain('Mosaico de diciembre de 2025')
     expect(html).toContain('Copernicus Sentinel')
     expect(html).toContain('No cambia similitud, confianza ni factibilidad')
@@ -152,7 +152,7 @@ describe('loadVisualContext', () => {
     const fetchMock = vi.fn(async () => ({ ok: true, status: 200, json: async () => realIndex }))
     vi.stubGlobal('fetch', fetchMock)
     expect((await loadVisualContext('/AnalogOS/')).status).toBe('ready')
-    expect(fetchMock).toHaveBeenCalledExactlyOnceWith('/AnalogOS/visual-context/index.json')
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith('/AnalogOS/visual-context-v3/index.json')
 
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 404, json: async () => ({}) })))
     expect(await loadVisualContext('./')).toMatchObject({ status: 'unavailable' })

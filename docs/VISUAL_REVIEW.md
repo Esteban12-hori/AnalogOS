@@ -90,3 +90,25 @@ Para contrastarlas hacen falta las capas oficiales de áreas urbanas, infraestru
 - Imagen reciente (2026) o NASA Worldview para detectar cambios posteriores a diciembre de 2025.
 - Revisión de una persona con experiencia geológica o en campañas de rover.
 - Registro de falsos positivos y correcciones.
+
+## Paquete v3 (piloto Chile–Argentina)
+
+`artifacts/visual-context-v3/` contiene una vista por sitio del snapshot v3: seis candidatos consultados el 2026-11-14 hacia las 18:00 UTC y la referencia Yungay, reutilizada sin cambios del paquete v2. Misma colección, ventana, mosaico y transformación descritos arriba.
+
+```bash
+python -m pipelines.fetch_visual_context --snapshot v3            # reutiliza el paquete local
+python -m pipelines.fetch_visual_context --snapshot v3 --refresh  # hasta 6 consultas nuevas; requiere credenciales
+```
+
+Observaciones preliminares de Codex y Claude, hechas tras ver cada imagen. Describen apariencia; no identifican instalaciones, propietarios ni permisos y no cambian ningún score.
+
+| Ventana | Observación |
+|---|---|
+| `cl-win-s2500-w06970` | Numerosas trazas lineales y una red sinuosa y ramificada de tono claro en el noreste |
+| `cl-win-s2480-w06950` | Relieve con abanicos, una franja clara ancha y sinuosa y trazas lineales |
+| `cl-win-s2520-w06950` | Trazas rectilíneas y concentraciones geométricas de tono claro en el norte |
+| `ar-win-s2620-w06750` | Campos oscuros en el centro y el este y una franja verde u oscura en el borde noreste |
+| `ar-win-s2640-w06730` | Concentración densa de estructuras claras en el sur con una franja verde u oscura adyacente, compatible con intervención humana a contrastar |
+| `ar-win-s2580-w06710` | Franjas verdes u oscuras ramificadas en el norte y el oeste |
+
+Estas observaciones aparecen como advertencia en cada ficha. Una ventana de ~440 km² no es un terreno íntegramente libre ni apto; todas siguen en «requiere revisión» y necesitan cruce con capas territoriales oficiales de Chile y Argentina.

@@ -1,0 +1,1580 @@
+[
+  {
+    "site_id": "cl-win-s2500-w06970",
+    "name": "Interior de Antofagasta · 25,0° S, 69,7° O",
+    "country": "CL",
+    "role": "candidate",
+    "profile_id": "mars-rover-screening-v3",
+    "profile_version": "3.0.0-preliminary",
+    "data_snapshot_version": "science-screening-v3",
+    "pipeline_version": "0.2.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -69.8,
+            -25.1
+          ],
+          [
+            -69.60000000000001,
+            -25.1
+          ],
+          [
+            -69.60000000000001,
+            -24.9
+          ],
+          [
+            -69.8,
+            -24.9
+          ],
+          [
+            -69.8,
+            -25.1
+          ]
+        ]
+      ]
+    },
+    "area_km2": 447.3,
+    "status": "candidate",
+    "similarity": 94.87,
+    "confidence": 77.45,
+    "feasibility": "requires_review",
+    "stability": 99.33,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 2.169,
+        "unit": "degree",
+        "normalized_similarity": 0.974394,
+        "weight": 0.2,
+        "contribution": -0.0058,
+        "quality": 0.93,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": 11.291,
+        "unit": "meter",
+        "normalized_similarity": 0.974227,
+        "weight": 0.2,
+        "contribution": -0.0058,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Diferencia absoluta mediana entre celdas vecinas NASADEM y MOLA a escala aproximadamente equivalente."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 46.797,
+        "unit": "meter",
+        "normalized_similarity": 0.995681,
+        "weight": 0.15,
+        "contribution": -0.0007,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Relieve mediano 3×3 sobre NASADEM agregado comparado con la ventana regional MOLA."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": 1.0,
+        "unit": "ratio",
+        "normalized_similarity": 1.0,
+        "weight": 0.2,
+        "contribution": 0.0,
+        "quality": 0.9,
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "status": "valid",
+        "explanation": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": 10.96,
+        "unit": "millimeter_per_year",
+        "normalized_similarity": 0.695217,
+        "weight": 0.1,
+        "contribution": -0.0404,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "status": "valid",
+        "explanation": "Precipitación climatológica POWER como contexto regional; preferencia decreciente con escala de 25 mm/año heredada del perfil v1."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 53.82,
+        "unit": "kelvin",
+        "normalized_similarity": 1,
+        "weight": 0.05,
+        "contribution": 0.0,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "status": "valid",
+        "explanation": "Proxy regional de estrés térmico: rango climatológico POWER, saturado a 45 °C como en el perfil v1."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": null,
+        "unit": "category",
+        "normalized_similarity": null,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "needs_calibration",
+        "explanation": "Requiere cartografía geológica oficial (SERNAGEOMIN) y revisión experta; permanece fuera del score v3."
+      }
+    ],
+    "warnings": [
+      "SCREENING CIENTÍFICO: prioriza reconocimiento; no aprueba el sitio, no garantiza seguridad y no autoriza acceso.",
+      "OBSERVACIÓN VISUAL PRELIMINAR (Sentinel-2, diciembre de 2025; revisada el 2026-11-14): numerosas trazas lineales y una red sinuosa y ramificada de tono claro en el noreste. Es apariencia a contrastar: no identifica instalaciones, propietarios ni permisos, no cambia el score ni la factibilidad y requiere cruce territorial.",
+      "REVISIÓN PENDIENTE — protected_or_sensitive_area · IDE Chile y autoridad territorial competente: No se intersectó aún con el inventario oficial de áreas protegidas o sensibles. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — urban_area · IDE Chile y autoridad territorial competente: No se intersectó aún con límites urbanos e infraestructura oficial. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — land_access · Autoridad territorial, propietarios y operadores: Propiedad, accesos, seguridad y permisos requieren verificación humana. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — field_scale_slope · Equipo de campaña de rover: NASADEM a 30 m no detecta obstáculos ni pendientes a escala de rueda. Fuente: https://lpdaac.usgs.gov/documents/2237/NASADEM_User_Guide_V13.pdf"
+    ],
+    "limitations": [
+      "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+      "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+      "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+      "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+      "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+      "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+      "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+      "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+      "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+      "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+      "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+    ],
+    "field_checks": [
+      "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+      "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+      "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+      "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+      "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "cl-win-s2500-w06970-mola",
+        "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+        "claim": "Referencia marciana: topografía MOLA MEGDR del entorno regional de Jezero.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      },
+      {
+        "evidence_id": "cl-win-s2500-w06970-nasadem",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 2 tile(s), agregado a ~471 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "cl-win-s2500-w06970-sentinel2",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "claim": "Superficie: 100,0 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "cl-win-s2500-w06970-hls-inventory",
+        "dataset_id": "nasa-earthdata-hls-s30-inventory-2025-v3-search",
+        "claim": "Disponibilidad NASA independiente: 85 granules HLS Sentinel-2 intersectan el AOI en 2025; se registra como inventario, no entra al score.",
+        "source_url": "https://doi.org/10.5067/HLS/HLSS30.002"
+      },
+      {
+        "evidence_id": "cl-win-s2500-w06970-power",
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "claim": "Contexto regional: climatología NASA POWER 2001–2025 de una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana; no es lluvia medida en el sitio y requiere contraste local.",
+        "source_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-69.7&latitude=-25.0&format=JSON"
+      },
+      {
+        "evidence_id": "cl-win-s2500-w06970-precedent-cl-atacama-transect-navarro-gonzalez-2003",
+        "dataset_id": "analog-precedents-catalog-v1",
+        "claim": "Antecedente (cercanía a una coordenada publicada (heurística de 25 km, no perímetro del estudio)): Transecto norte–sur de Atacama (24–28° S), con núcleo en Yungay.",
+        "source_url": "https://www.astro.uantof.cl/wp-content/uploads/2015/06/navarro.SOM_.pdf"
+      },
+      {
+        "evidence_id": "cl-win-s2500-w06970-precedent-cl-atacama-rover-field-tests-astep",
+        "dataset_id": "analog-precedents-catalog-v1",
+        "claim": "Antecedente (región con antecedentes publicados): Ensayos de rover «Life in the Atacama» (Hyperion 2003; Zoë 2004).",
+        "source_url": "https://astrobiology.nasa.gov/news/dry-signs-of-life/"
+      }
+    ],
+    "discovery": {
+      "origin": "grid_search",
+      "search_id": "analogos-pilot-cl-ar-v3",
+      "region_id": "cl-antofagasta-interior",
+      "window_id": "cl-win-s2500-w06970",
+      "selection_rank": 1,
+      "topographic_priority": 98.01,
+      "note": "Preseleccionada por prioridad topográfica y separación mínima; no es un hallazgo validado."
+    },
+    "literature_review": {
+      "status": "regional_precedent",
+      "catalog_version": "1.0.0",
+      "reviewed_at": "2026-11-14",
+      "matches": [
+        {
+          "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+          "in_region_with_precedent": true,
+          "relation": "proximity_heuristic",
+          "nearest_point": "AT02-27",
+          "distance_km": 20.4
+        },
+        {
+          "precedent_id": "cl-atacama-rover-field-tests-astep",
+          "in_region_with_precedent": true,
+          "relation": "regional_precedent"
+        }
+      ],
+      "note": "La región tiene antecedentes publicados como análogo. Las fuentes revisadas no ubican coordenadas de muestreo dentro de esta ventana; eso no prueba que sea nueva."
+    }
+  },
+  {
+    "site_id": "cl-win-s2480-w06950",
+    "name": "Interior de Antofagasta · 24,8° S, 69,5° O",
+    "country": "CL",
+    "role": "candidate",
+    "profile_id": "mars-rover-screening-v3",
+    "profile_version": "3.0.0-preliminary",
+    "data_snapshot_version": "science-screening-v3",
+    "pipeline_version": "0.2.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -69.6,
+            -24.900000000000002
+          ],
+          [
+            -69.4,
+            -24.900000000000002
+          ],
+          [
+            -69.4,
+            -24.7
+          ],
+          [
+            -69.6,
+            -24.7
+          ],
+          [
+            -69.6,
+            -24.900000000000002
+          ]
+        ]
+      ]
+    },
+    "area_km2": 448.0,
+    "status": "candidate",
+    "similarity": 91.87,
+    "confidence": 77.45,
+    "feasibility": "requires_review",
+    "stability": 99.03,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 2.388,
+        "unit": "degree",
+        "normalized_similarity": 0.932161,
+        "weight": 0.2,
+        "contribution": -0.0156,
+        "quality": 0.93,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": 10.992,
+        "unit": "meter",
+        "normalized_similarity": 0.999273,
+        "weight": 0.2,
+        "contribution": -0.0002,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Diferencia absoluta mediana entre celdas vecinas NASADEM y MOLA a escala aproximadamente equivalente."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 49.348,
+        "unit": "meter",
+        "normalized_similarity": 0.95242,
+        "weight": 0.15,
+        "contribution": -0.0081,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Relieve mediano 3×3 sobre NASADEM agregado comparado con la ventana regional MOLA."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": 1.0,
+        "unit": "ratio",
+        "normalized_similarity": 1.0,
+        "weight": 0.2,
+        "contribution": 0.0,
+        "quality": 0.9,
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "status": "valid",
+        "explanation": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": 18.26,
+        "unit": "millimeter_per_year",
+        "normalized_similarity": 0.577901,
+        "weight": 0.1,
+        "contribution": -0.0609,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "status": "valid",
+        "explanation": "Precipitación climatológica POWER como contexto regional; preferencia decreciente con escala de 25 mm/año heredada del perfil v1."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 56.29,
+        "unit": "kelvin",
+        "normalized_similarity": 1,
+        "weight": 0.05,
+        "contribution": 0.0,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "status": "valid",
+        "explanation": "Proxy regional de estrés térmico: rango climatológico POWER, saturado a 45 °C como en el perfil v1."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": null,
+        "unit": "category",
+        "normalized_similarity": null,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "needs_calibration",
+        "explanation": "Requiere cartografía geológica oficial (SERNAGEOMIN) y revisión experta; permanece fuera del score v3."
+      }
+    ],
+    "warnings": [
+      "SCREENING CIENTÍFICO: prioriza reconocimiento; no aprueba el sitio, no garantiza seguridad y no autoriza acceso.",
+      "OBSERVACIÓN VISUAL PRELIMINAR (Sentinel-2, diciembre de 2025; revisada el 2026-11-14): relieve con abanicos, una franja clara ancha y sinuosa que cruza la ventana y trazas lineales. Es apariencia a contrastar: no identifica instalaciones, propietarios ni permisos, no cambia el score ni la factibilidad y requiere cruce territorial.",
+      "ADVERTENCIA — valores de contexto POWER coincidentes con cl-win-s2520-w06950; posible celda compartida: no son observaciones climáticas independientes.",
+      "REVISIÓN PENDIENTE — protected_or_sensitive_area · IDE Chile y autoridad territorial competente: No se intersectó aún con el inventario oficial de áreas protegidas o sensibles. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — urban_area · IDE Chile y autoridad territorial competente: No se intersectó aún con límites urbanos e infraestructura oficial. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — land_access · Autoridad territorial, propietarios y operadores: Propiedad, accesos, seguridad y permisos requieren verificación humana. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — field_scale_slope · Equipo de campaña de rover: NASADEM a 30 m no detecta obstáculos ni pendientes a escala de rueda. Fuente: https://lpdaac.usgs.gov/documents/2237/NASADEM_User_Guide_V13.pdf"
+    ],
+    "limitations": [
+      "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+      "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+      "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+      "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+      "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+      "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+      "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+      "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+      "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+      "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+      "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+    ],
+    "field_checks": [
+      "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+      "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+      "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+      "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+      "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "cl-win-s2480-w06950-mola",
+        "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+        "claim": "Referencia marciana: topografía MOLA MEGDR del entorno regional de Jezero.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      },
+      {
+        "evidence_id": "cl-win-s2480-w06950-nasadem",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 1 tile(s), agregado a ~471 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "cl-win-s2480-w06950-sentinel2",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "claim": "Superficie: 100,0 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "cl-win-s2480-w06950-hls-inventory",
+        "dataset_id": "nasa-earthdata-hls-s30-inventory-2025-v3-search",
+        "claim": "Disponibilidad NASA independiente: 85 granules HLS Sentinel-2 intersectan el AOI en 2025; se registra como inventario, no entra al score.",
+        "source_url": "https://doi.org/10.5067/HLS/HLSS30.002"
+      },
+      {
+        "evidence_id": "cl-win-s2480-w06950-power",
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "claim": "Contexto regional: climatología NASA POWER 2001–2025 de una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana; no es lluvia medida en el sitio y requiere contraste local.",
+        "source_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-69.5&latitude=-24.8&format=JSON"
+      },
+      {
+        "evidence_id": "cl-win-s2480-w06950-precedent-cl-atacama-transect-navarro-gonzalez-2003",
+        "dataset_id": "analog-precedents-catalog-v1",
+        "claim": "Antecedente (región con antecedentes publicados): Transecto norte–sur de Atacama (24–28° S), con núcleo en Yungay.",
+        "source_url": "https://www.astro.uantof.cl/wp-content/uploads/2015/06/navarro.SOM_.pdf"
+      },
+      {
+        "evidence_id": "cl-win-s2480-w06950-precedent-cl-atacama-rover-field-tests-astep",
+        "dataset_id": "analog-precedents-catalog-v1",
+        "claim": "Antecedente (región con antecedentes publicados): Ensayos de rover «Life in the Atacama» (Hyperion 2003; Zoë 2004).",
+        "source_url": "https://astrobiology.nasa.gov/news/dry-signs-of-life/"
+      }
+    ],
+    "discovery": {
+      "origin": "grid_search",
+      "search_id": "analogos-pilot-cl-ar-v3",
+      "region_id": "cl-antofagasta-interior",
+      "window_id": "cl-win-s2480-w06950",
+      "selection_rank": 2,
+      "topographic_priority": 96.16,
+      "note": "Preseleccionada por prioridad topográfica y separación mínima; no es un hallazgo validado."
+    },
+    "literature_review": {
+      "status": "regional_precedent",
+      "catalog_version": "1.0.0",
+      "reviewed_at": "2026-11-14",
+      "matches": [
+        {
+          "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+          "in_region_with_precedent": true,
+          "relation": "regional_precedent"
+        },
+        {
+          "precedent_id": "cl-atacama-rover-field-tests-astep",
+          "in_region_with_precedent": true,
+          "relation": "regional_precedent"
+        }
+      ],
+      "note": "La región tiene antecedentes publicados como análogo. Las fuentes revisadas no ubican coordenadas de muestreo dentro de esta ventana; eso no prueba que sea nueva."
+    }
+  },
+  {
+    "site_id": "cl-win-s2520-w06950",
+    "name": "Interior de Antofagasta · 25,2° S, 69,5° O",
+    "country": "CL",
+    "role": "candidate",
+    "profile_id": "mars-rover-screening-v3",
+    "profile_version": "3.0.0-preliminary",
+    "data_snapshot_version": "science-screening-v3",
+    "pipeline_version": "0.2.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -69.6,
+            -25.3
+          ],
+          [
+            -69.4,
+            -25.3
+          ],
+          [
+            -69.4,
+            -25.099999999999998
+          ],
+          [
+            -69.6,
+            -25.099999999999998
+          ],
+          [
+            -69.6,
+            -25.3
+          ]
+        ]
+      ]
+    },
+    "area_km2": 446.6,
+    "status": "candidate",
+    "similarity": 90.35,
+    "confidence": 77.36,
+    "feasibility": "requires_review",
+    "stability": 99.08,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 2.375,
+        "unit": "degree",
+        "normalized_similarity": 0.937263,
+        "weight": 0.2,
+        "contribution": -0.0144,
+        "quality": 0.93,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": 12.242,
+        "unit": "meter",
+        "normalized_similarity": 0.898546,
+        "weight": 0.2,
+        "contribution": -0.0238,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Diferencia absoluta mediana entre celdas vecinas NASADEM y MOLA a escala aproximadamente equivalente."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 47.68,
+        "unit": "meter",
+        "normalized_similarity": 0.985738,
+        "weight": 0.15,
+        "contribution": -0.0024,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Relieve mediano 3×3 sobre NASADEM agregado comparado con la ventana regional MOLA."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": 1.0,
+        "unit": "ratio",
+        "normalized_similarity": 1.0,
+        "weight": 0.2,
+        "contribution": 0.0,
+        "quality": 0.8955,
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "status": "valid",
+        "explanation": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": 18.26,
+        "unit": "millimeter_per_year",
+        "normalized_similarity": 0.577901,
+        "weight": 0.1,
+        "contribution": -0.0609,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "status": "valid",
+        "explanation": "Precipitación climatológica POWER como contexto regional; preferencia decreciente con escala de 25 mm/año heredada del perfil v1."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 56.29,
+        "unit": "kelvin",
+        "normalized_similarity": 1,
+        "weight": 0.05,
+        "contribution": 0.0,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "status": "valid",
+        "explanation": "Proxy regional de estrés térmico: rango climatológico POWER, saturado a 45 °C como en el perfil v1."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": null,
+        "unit": "category",
+        "normalized_similarity": null,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "needs_calibration",
+        "explanation": "Requiere cartografía geológica oficial (SERNAGEOMIN) y revisión experta; permanece fuera del score v3."
+      }
+    ],
+    "warnings": [
+      "SCREENING CIENTÍFICO: prioriza reconocimiento; no aprueba el sitio, no garantiza seguridad y no autoriza acceso.",
+      "OBSERVACIÓN VISUAL PRELIMINAR (Sentinel-2, diciembre de 2025; revisada el 2026-11-14): trazas rectilíneas y concentraciones geométricas de tono claro en el norte. Es apariencia a contrastar: no identifica instalaciones, propietarios ni permisos, no cambia el score ni la factibilidad y requiere cruce territorial.",
+      "ADVERTENCIA — valores de contexto POWER coincidentes con cl-win-s2480-w06950; posible celda compartida: no son observaciones climáticas independientes.",
+      "REVISIÓN PENDIENTE — protected_or_sensitive_area · IDE Chile y autoridad territorial competente: No se intersectó aún con el inventario oficial de áreas protegidas o sensibles. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — urban_area · IDE Chile y autoridad territorial competente: No se intersectó aún con límites urbanos e infraestructura oficial. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — land_access · Autoridad territorial, propietarios y operadores: Propiedad, accesos, seguridad y permisos requieren verificación humana. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — field_scale_slope · Equipo de campaña de rover: NASADEM a 30 m no detecta obstáculos ni pendientes a escala de rueda. Fuente: https://lpdaac.usgs.gov/documents/2237/NASADEM_User_Guide_V13.pdf"
+    ],
+    "limitations": [
+      "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+      "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+      "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+      "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+      "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+      "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+      "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+      "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+      "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+      "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+      "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+    ],
+    "field_checks": [
+      "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+      "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+      "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+      "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+      "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "cl-win-s2520-w06950-mola",
+        "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+        "claim": "Referencia marciana: topografía MOLA MEGDR del entorno regional de Jezero.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      },
+      {
+        "evidence_id": "cl-win-s2520-w06950-nasadem",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 1 tile(s), agregado a ~471 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "cl-win-s2520-w06950-sentinel2",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "claim": "Superficie: 100,0 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "cl-win-s2520-w06950-hls-inventory",
+        "dataset_id": "nasa-earthdata-hls-s30-inventory-2025-v3-search",
+        "claim": "Disponibilidad NASA independiente: 85 granules HLS Sentinel-2 intersectan el AOI en 2025; se registra como inventario, no entra al score.",
+        "source_url": "https://doi.org/10.5067/HLS/HLSS30.002"
+      },
+      {
+        "evidence_id": "cl-win-s2520-w06950-power",
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "claim": "Contexto regional: climatología NASA POWER 2001–2025 de una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana; no es lluvia medida en el sitio y requiere contraste local.",
+        "source_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-69.5&latitude=-25.2&format=JSON"
+      },
+      {
+        "evidence_id": "cl-win-s2520-w06950-precedent-cl-atacama-transect-navarro-gonzalez-2003",
+        "dataset_id": "analog-precedents-catalog-v1",
+        "claim": "Antecedente (región con antecedentes publicados): Transecto norte–sur de Atacama (24–28° S), con núcleo en Yungay.",
+        "source_url": "https://www.astro.uantof.cl/wp-content/uploads/2015/06/navarro.SOM_.pdf"
+      },
+      {
+        "evidence_id": "cl-win-s2520-w06950-precedent-cl-atacama-rover-field-tests-astep",
+        "dataset_id": "analog-precedents-catalog-v1",
+        "claim": "Antecedente (región con antecedentes publicados): Ensayos de rover «Life in the Atacama» (Hyperion 2003; Zoë 2004).",
+        "source_url": "https://astrobiology.nasa.gov/news/dry-signs-of-life/"
+      }
+    ],
+    "discovery": {
+      "origin": "grid_search",
+      "search_id": "analogos-pilot-cl-ar-v3",
+      "region_id": "cl-antofagasta-interior",
+      "window_id": "cl-win-s2520-w06950",
+      "selection_rank": 3,
+      "topographic_priority": 93.58,
+      "note": "Preseleccionada por prioridad topográfica y separación mínima; no es un hallazgo validado."
+    },
+    "literature_review": {
+      "status": "regional_precedent",
+      "catalog_version": "1.0.0",
+      "reviewed_at": "2026-11-14",
+      "matches": [
+        {
+          "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+          "in_region_with_precedent": true,
+          "relation": "regional_precedent"
+        },
+        {
+          "precedent_id": "cl-atacama-rover-field-tests-astep",
+          "in_region_with_precedent": true,
+          "relation": "regional_precedent"
+        }
+      ],
+      "note": "La región tiene antecedentes publicados como análogo. Las fuentes revisadas no ubican coordenadas de muestreo dentro de esta ventana; eso no prueba que sea nueva."
+    }
+  },
+  {
+    "site_id": "ar-win-s2620-w06750",
+    "name": "Puna de Catamarca y Salta · 26,2° S, 67,5° O",
+    "country": "AR",
+    "role": "candidate",
+    "profile_id": "mars-rover-screening-v3",
+    "profile_version": "3.0.0-preliminary",
+    "data_snapshot_version": "science-screening-v3",
+    "pipeline_version": "0.2.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -67.6,
+            -26.3
+          ],
+          [
+            -67.4,
+            -26.3
+          ],
+          [
+            -67.4,
+            -26.099999999999998
+          ],
+          [
+            -67.6,
+            -26.099999999999998
+          ],
+          [
+            -67.6,
+            -26.3
+          ]
+        ]
+      ]
+    },
+    "area_km2": 442.9,
+    "status": "candidate",
+    "similarity": 63.85,
+    "confidence": 77.0,
+    "feasibility": "requires_review",
+    "stability": 95.88,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 2.568,
+        "unit": "degree",
+        "normalized_similarity": 0.866822,
+        "weight": 0.2,
+        "contribution": -0.0318,
+        "quality": 0.93,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": 12.654,
+        "unit": "meter",
+        "normalized_similarity": 0.86929,
+        "weight": 0.2,
+        "contribution": -0.0311,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Diferencia absoluta mediana entre celdas vecinas NASADEM y MOLA a escala aproximadamente equivalente."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 55.867,
+        "unit": "meter",
+        "normalized_similarity": 0.841284,
+        "weight": 0.15,
+        "contribution": -0.0288,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Relieve mediano 3×3 sobre NASADEM agregado comparado con la ventana regional MOLA."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": 0.993911,
+        "unit": "ratio",
+        "normalized_similarity": 0.993911,
+        "weight": 0.2,
+        "contribution": -0.0014,
+        "quality": 0.8776,
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "status": "valid",
+        "explanation": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": 588.05,
+        "unit": "millimeter_per_year",
+        "normalized_similarity": 0.04078,
+        "weight": 0.1,
+        "contribution": -0.3555,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "status": "valid",
+        "explanation": "Precipitación climatológica POWER como contexto regional; preferencia decreciente con escala de 25 mm/año heredada del perfil v1."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 68.34,
+        "unit": "kelvin",
+        "normalized_similarity": 1,
+        "weight": 0.05,
+        "contribution": 0.0,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "status": "valid",
+        "explanation": "Proxy regional de estrés térmico: rango climatológico POWER, saturado a 45 °C como en el perfil v1."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": null,
+        "unit": "category",
+        "normalized_similarity": null,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "needs_calibration",
+        "explanation": "Requiere cartografía geológica oficial (SEGEMAR) y revisión experta; permanece fuera del score v3."
+      }
+    ],
+    "warnings": [
+      "SCREENING CIENTÍFICO: prioriza reconocimiento; no aprueba el sitio, no garantiza seguridad y no autoriza acceso.",
+      "OBSERVACIÓN VISUAL PRELIMINAR (Sentinel-2, diciembre de 2025; revisada el 2026-11-14): campos oscuros en el centro y el este y una franja verde u oscura en el borde noreste. Es apariencia a contrastar: no identifica instalaciones, propietarios ni permisos, no cambia el score ni la factibilidad y requiere cruce territorial.",
+      "REVISIÓN PENDIENTE — protected_or_sensitive_area · IDERA y autoridad territorial competente: No se intersectó aún con el inventario oficial de áreas protegidas o sensibles. Fuente: https://www.idera.gob.ar/",
+      "ADVERTENCIA — permanent_water_trace · NASA LP DAAC — NASADEM SWB: NASADEM SWB detectó 0,10 % de agua permanente. El polígono se conserva, pero el trazado de campaña debe evitar esos píxeles. Fuente: https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001",
+      "REVISIÓN PENDIENTE — urban_area · IDERA y autoridad territorial competente: No se intersectó aún con límites urbanos e infraestructura oficial. Fuente: https://www.idera.gob.ar/",
+      "REVISIÓN PENDIENTE — land_access · Autoridad territorial, propietarios y operadores: Propiedad, accesos, seguridad y permisos requieren verificación humana. Fuente: https://www.idera.gob.ar/",
+      "REVISIÓN PENDIENTE — field_scale_slope · Equipo de campaña de rover: NASADEM a 30 m no detecta obstáculos ni pendientes a escala de rueda. Fuente: https://lpdaac.usgs.gov/documents/2237/NASADEM_User_Guide_V13.pdf"
+    ],
+    "limitations": [
+      "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+      "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+      "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+      "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+      "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+      "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+      "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+      "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+      "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+      "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+      "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+    ],
+    "field_checks": [
+      "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+      "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+      "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+      "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+      "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ar-win-s2620-w06750-mola",
+        "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+        "claim": "Referencia marciana: topografía MOLA MEGDR del entorno regional de Jezero.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      },
+      {
+        "evidence_id": "ar-win-s2620-w06750-nasadem",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 1 tile(s), agregado a ~469 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "ar-win-s2620-w06750-sentinel2",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "claim": "Superficie: 99,4 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "ar-win-s2620-w06750-hls-inventory",
+        "dataset_id": "nasa-earthdata-hls-s30-inventory-2025-v3-search",
+        "claim": "Disponibilidad NASA independiente: 174 granules HLS Sentinel-2 intersectan el AOI en 2025; se registra como inventario, no entra al score.",
+        "source_url": "https://doi.org/10.5067/HLS/HLSS30.002"
+      },
+      {
+        "evidence_id": "ar-win-s2620-w06750-power",
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "claim": "Contexto regional: climatología NASA POWER 2001–2025 de una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana; no es lluvia medida en el sitio y requiere contraste local.",
+        "source_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-67.5&latitude=-26.2&format=JSON"
+      },
+      {
+        "evidence_id": "ar-win-s2620-w06750-precedent-ar-puna-catamarca-antofagasta-de-la-sierra",
+        "dataset_id": "analog-precedents-catalog-v1",
+        "claim": "Antecedente (región con antecedentes publicados): Puna catamarqueña, entorno de Antofagasta de la Sierra.",
+        "source_url": "https://tecno.unca.edu.ar/la-puna-catamarquena-un-sitio-con-similitudes-al-planeta-martela-puna-catamarquena-un-sitio/"
+      }
+    ],
+    "discovery": {
+      "origin": "grid_search",
+      "search_id": "analogos-pilot-cl-ar-v3",
+      "region_id": "ar-puna-catamarca-salta",
+      "window_id": "ar-win-s2620-w06750",
+      "selection_rank": 4,
+      "topographic_priority": 86.07,
+      "note": "Preseleccionada por prioridad topográfica y separación mínima; no es un hallazgo validado."
+    },
+    "literature_review": {
+      "status": "regional_precedent",
+      "catalog_version": "1.0.0",
+      "reviewed_at": "2026-11-14",
+      "matches": [
+        {
+          "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+          "in_region_with_precedent": true,
+          "relation": "regional_precedent"
+        }
+      ],
+      "note": "La región tiene antecedentes publicados como análogo. Las fuentes revisadas no ubican coordenadas de muestreo dentro de esta ventana; eso no prueba que sea nueva."
+    }
+  },
+  {
+    "site_id": "ar-win-s2640-w06730",
+    "name": "Puna de Catamarca y Salta · 26,4° S, 67,3° O",
+    "country": "AR",
+    "role": "candidate",
+    "profile_id": "mars-rover-screening-v3",
+    "profile_version": "3.0.0-preliminary",
+    "data_snapshot_version": "science-screening-v3",
+    "pipeline_version": "0.2.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -67.39999999999999,
+            -26.5
+          ],
+          [
+            -67.2,
+            -26.5
+          ],
+          [
+            -67.2,
+            -26.299999999999997
+          ],
+          [
+            -67.39999999999999,
+            -26.299999999999997
+          ],
+          [
+            -67.39999999999999,
+            -26.5
+          ]
+        ]
+      ]
+    },
+    "area_km2": 442.2,
+    "status": "candidate",
+    "similarity": 53.68,
+    "confidence": 77.25,
+    "feasibility": "requires_review",
+    "stability": 96.81,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 3.433,
+        "unit": "degree",
+        "normalized_similarity": 0.648412,
+        "weight": 0.2,
+        "contribution": -0.0963,
+        "quality": 0.93,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": 16.697,
+        "unit": "meter",
+        "normalized_similarity": 0.658801,
+        "weight": 0.2,
+        "contribution": -0.0927,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Diferencia absoluta mediana entre celdas vecinas NASADEM y MOLA a escala aproximadamente equivalente."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 75.355,
+        "unit": "meter",
+        "normalized_similarity": 0.623714,
+        "weight": 0.15,
+        "contribution": -0.0787,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Relieve mediano 3×3 sobre NASADEM agregado comparado con la ventana regional MOLA."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": 0.983938,
+        "unit": "ratio",
+        "normalized_similarity": 0.983938,
+        "weight": 0.2,
+        "contribution": -0.0036,
+        "quality": 0.8898,
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "status": "valid",
+        "explanation": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": 562.49,
+        "unit": "millimeter_per_year",
+        "normalized_similarity": 0.042554,
+        "weight": 0.1,
+        "contribution": -0.3508,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "status": "valid",
+        "explanation": "Precipitación climatológica POWER como contexto regional; preferencia decreciente con escala de 25 mm/año heredada del perfil v1."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 65.71,
+        "unit": "kelvin",
+        "normalized_similarity": 1,
+        "weight": 0.05,
+        "contribution": 0.0,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "status": "valid",
+        "explanation": "Proxy regional de estrés térmico: rango climatológico POWER, saturado a 45 °C como en el perfil v1."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": null,
+        "unit": "category",
+        "normalized_similarity": null,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "needs_calibration",
+        "explanation": "Requiere cartografía geológica oficial (SEGEMAR) y revisión experta; permanece fuera del score v3."
+      }
+    ],
+    "warnings": [
+      "SCREENING CIENTÍFICO: prioriza reconocimiento; no aprueba el sitio, no garantiza seguridad y no autoriza acceso.",
+      "OBSERVACIÓN VISUAL PRELIMINAR (Sentinel-2, diciembre de 2025; revisada el 2026-11-14): una concentración densa de estructuras claras en el sur con una franja verde u oscura adyacente, compatible con intervención humana a contrastar. Es apariencia a contrastar: no identifica instalaciones, propietarios ni permisos, no cambia el score ni la factibilidad y requiere cruce territorial.",
+      "REVISIÓN PENDIENTE — protected_or_sensitive_area · IDERA y autoridad territorial competente: No se intersectó aún con el inventario oficial de áreas protegidas o sensibles. Fuente: https://www.idera.gob.ar/",
+      "REVISIÓN PENDIENTE — urban_area · IDERA y autoridad territorial competente: No se intersectó aún con límites urbanos e infraestructura oficial. Fuente: https://www.idera.gob.ar/",
+      "REVISIÓN PENDIENTE — land_access · Autoridad territorial, propietarios y operadores: Propiedad, accesos, seguridad y permisos requieren verificación humana. Fuente: https://www.idera.gob.ar/",
+      "REVISIÓN PENDIENTE — field_scale_slope · Equipo de campaña de rover: NASADEM a 30 m no detecta obstáculos ni pendientes a escala de rueda. Fuente: https://lpdaac.usgs.gov/documents/2237/NASADEM_User_Guide_V13.pdf"
+    ],
+    "limitations": [
+      "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+      "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+      "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+      "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+      "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+      "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+      "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+      "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+      "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+      "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+      "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+    ],
+    "field_checks": [
+      "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+      "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+      "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+      "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+      "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ar-win-s2640-w06730-mola",
+        "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+        "claim": "Referencia marciana: topografía MOLA MEGDR del entorno regional de Jezero.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      },
+      {
+        "evidence_id": "ar-win-s2640-w06730-nasadem",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 1 tile(s), agregado a ~468 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "ar-win-s2640-w06730-sentinel2",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "claim": "Superficie: 98,4 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "ar-win-s2640-w06730-hls-inventory",
+        "dataset_id": "nasa-earthdata-hls-s30-inventory-2025-v3-search",
+        "claim": "Disponibilidad NASA independiente: 88 granules HLS Sentinel-2 intersectan el AOI en 2025; se registra como inventario, no entra al score.",
+        "source_url": "https://doi.org/10.5067/HLS/HLSS30.002"
+      },
+      {
+        "evidence_id": "ar-win-s2640-w06730-power",
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "claim": "Contexto regional: climatología NASA POWER 2001–2025 de una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana; no es lluvia medida en el sitio y requiere contraste local.",
+        "source_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-67.3&latitude=-26.4&format=JSON"
+      },
+      {
+        "evidence_id": "ar-win-s2640-w06730-precedent-ar-puna-catamarca-antofagasta-de-la-sierra",
+        "dataset_id": "analog-precedents-catalog-v1",
+        "claim": "Antecedente (región con antecedentes publicados): Puna catamarqueña, entorno de Antofagasta de la Sierra.",
+        "source_url": "https://tecno.unca.edu.ar/la-puna-catamarquena-un-sitio-con-similitudes-al-planeta-martela-puna-catamarquena-un-sitio/"
+      }
+    ],
+    "discovery": {
+      "origin": "grid_search",
+      "search_id": "analogos-pilot-cl-ar-v3",
+      "region_id": "ar-puna-catamarca-salta",
+      "window_id": "ar-win-s2640-w06730",
+      "selection_rank": 5,
+      "topographic_priority": 64.53,
+      "note": "Preseleccionada por prioridad topográfica y separación mínima; no es un hallazgo validado."
+    },
+    "literature_review": {
+      "status": "regional_precedent",
+      "catalog_version": "1.0.0",
+      "reviewed_at": "2026-11-14",
+      "matches": [
+        {
+          "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+          "in_region_with_precedent": true,
+          "relation": "regional_precedent"
+        }
+      ],
+      "note": "La región tiene antecedentes publicados como análogo. Las fuentes revisadas no ubican coordenadas de muestreo dentro de esta ventana; eso no prueba que sea nueva."
+    }
+  },
+  {
+    "site_id": "ar-win-s2580-w06710",
+    "name": "Puna de Catamarca y Salta · 25,8° S, 67,1° O",
+    "country": "AR",
+    "role": "candidate",
+    "profile_id": "mars-rover-screening-v3",
+    "profile_version": "3.0.0-preliminary",
+    "data_snapshot_version": "science-screening-v3",
+    "pipeline_version": "0.2.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -67.19999999999999,
+            -25.900000000000002
+          ],
+          [
+            -67.0,
+            -25.900000000000002
+          ],
+          [
+            -67.0,
+            -25.7
+          ],
+          [
+            -67.19999999999999,
+            -25.7
+          ],
+          [
+            -67.19999999999999,
+            -25.900000000000002
+          ]
+        ]
+      ]
+    },
+    "area_km2": 444.4,
+    "status": "candidate",
+    "similarity": 49.43,
+    "confidence": 77.4,
+    "feasibility": "requires_review",
+    "stability": 96.81,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 3.563,
+        "unit": "degree",
+        "normalized_similarity": 0.624754,
+        "weight": 0.2,
+        "contribution": -0.1045,
+        "quality": 0.93,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": 19.812,
+        "unit": "meter",
+        "normalized_similarity": 0.555219,
+        "weight": 0.2,
+        "contribution": -0.1308,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Diferencia absoluta mediana entre celdas vecinas NASADEM y MOLA a escala aproximadamente equivalente."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 78.023,
+        "unit": "meter",
+        "normalized_similarity": 0.602386,
+        "weight": 0.15,
+        "contribution": -0.0845,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Relieve mediano 3×3 sobre NASADEM agregado comparado con la ventana regional MOLA."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": 0.995811,
+        "unit": "ratio",
+        "normalized_similarity": 0.995811,
+        "weight": 0.2,
+        "contribution": -0.0009,
+        "quality": 0.8975,
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "status": "valid",
+        "explanation": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": 767.02,
+        "unit": "millimeter_per_year",
+        "normalized_similarity": 0.031565,
+        "weight": 0.1,
+        "contribution": -0.384,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "status": "valid",
+        "explanation": "Precipitación climatológica POWER como contexto regional; preferencia decreciente con escala de 25 mm/año heredada del perfil v1."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 64.46,
+        "unit": "kelvin",
+        "normalized_similarity": 1,
+        "weight": 0.05,
+        "contribution": 0.0,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "status": "valid",
+        "explanation": "Proxy regional de estrés térmico: rango climatológico POWER, saturado a 45 °C como en el perfil v1."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": null,
+        "unit": "category",
+        "normalized_similarity": null,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "needs_calibration",
+        "explanation": "Requiere cartografía geológica oficial (SEGEMAR) y revisión experta; permanece fuera del score v3."
+      }
+    ],
+    "warnings": [
+      "SCREENING CIENTÍFICO: prioriza reconocimiento; no aprueba el sitio, no garantiza seguridad y no autoriza acceso.",
+      "OBSERVACIÓN VISUAL PRELIMINAR (Sentinel-2, diciembre de 2025; revisada el 2026-11-14): franjas verdes u oscuras ramificadas en el norte y el oeste. Es apariencia a contrastar: no identifica instalaciones, propietarios ni permisos, no cambia el score ni la factibilidad y requiere cruce territorial.",
+      "REVISIÓN PENDIENTE — protected_or_sensitive_area · IDERA y autoridad territorial competente: No se intersectó aún con el inventario oficial de áreas protegidas o sensibles. Fuente: https://www.idera.gob.ar/",
+      "REVISIÓN PENDIENTE — urban_area · IDERA y autoridad territorial competente: No se intersectó aún con límites urbanos e infraestructura oficial. Fuente: https://www.idera.gob.ar/",
+      "REVISIÓN PENDIENTE — land_access · Autoridad territorial, propietarios y operadores: Propiedad, accesos, seguridad y permisos requieren verificación humana. Fuente: https://www.idera.gob.ar/",
+      "REVISIÓN PENDIENTE — field_scale_slope · Equipo de campaña de rover: NASADEM a 30 m no detecta obstáculos ni pendientes a escala de rueda. Fuente: https://lpdaac.usgs.gov/documents/2237/NASADEM_User_Guide_V13.pdf"
+    ],
+    "limitations": [
+      "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+      "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+      "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+      "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+      "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+      "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+      "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+      "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+      "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+      "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+      "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+    ],
+    "field_checks": [
+      "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+      "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+      "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+      "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+      "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ar-win-s2580-w06710-mola",
+        "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+        "claim": "Referencia marciana: topografía MOLA MEGDR del entorno regional de Jezero.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      },
+      {
+        "evidence_id": "ar-win-s2580-w06710-nasadem",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 2 tile(s), agregado a ~470 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "ar-win-s2580-w06710-sentinel2",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "claim": "Superficie: 99,6 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "ar-win-s2580-w06710-hls-inventory",
+        "dataset_id": "nasa-earthdata-hls-s30-inventory-2025-v3-search",
+        "claim": "Disponibilidad NASA independiente: 173 granules HLS Sentinel-2 intersectan el AOI en 2025; se registra como inventario, no entra al score.",
+        "source_url": "https://doi.org/10.5067/HLS/HLSS30.002"
+      },
+      {
+        "evidence_id": "ar-win-s2580-w06710-power",
+        "dataset_id": "nasa-power-climatology-points-v3-search",
+        "claim": "Contexto regional: climatología NASA POWER 2001–2025 de una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana; no es lluvia medida en el sitio y requiere contraste local.",
+        "source_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-67.1&latitude=-25.8&format=JSON"
+      },
+      {
+        "evidence_id": "ar-win-s2580-w06710-precedent-ar-puna-catamarca-antofagasta-de-la-sierra",
+        "dataset_id": "analog-precedents-catalog-v1",
+        "claim": "Antecedente (región con antecedentes publicados): Puna catamarqueña, entorno de Antofagasta de la Sierra.",
+        "source_url": "https://tecno.unca.edu.ar/la-puna-catamarquena-un-sitio-con-similitudes-al-planeta-martela-puna-catamarquena-un-sitio/"
+      }
+    ],
+    "discovery": {
+      "origin": "grid_search",
+      "search_id": "analogos-pilot-cl-ar-v3",
+      "region_id": "ar-puna-catamarca-salta",
+      "window_id": "ar-win-s2580-w06710",
+      "selection_rank": 6,
+      "topographic_priority": 59.26,
+      "note": "Preseleccionada por prioridad topográfica y separación mínima; no es un hallazgo validado."
+    },
+    "literature_review": {
+      "status": "regional_precedent",
+      "catalog_version": "1.0.0",
+      "reviewed_at": "2026-11-14",
+      "matches": [
+        {
+          "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+          "in_region_with_precedent": true,
+          "relation": "regional_precedent"
+        }
+      ],
+      "note": "La región tiene antecedentes publicados como análogo. Las fuentes revisadas no ubican coordenadas de muestreo dentro de esta ventana; eso no prueba que sea nueva."
+    }
+  },
+  {
+    "site_id": "cl-pampa-yungay-screening",
+    "name": "Pampa Yungay — sector de screening",
+    "country": "CL",
+    "role": "reference",
+    "profile_id": "mars-rover-screening-v3",
+    "profile_version": "3.0.0-preliminary",
+    "data_snapshot_version": "science-screening-v3",
+    "pipeline_version": "0.2.0",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -70.05,
+            -24.18
+          ],
+          [
+            -69.85000000000001,
+            -24.18
+          ],
+          [
+            -69.85000000000001,
+            -23.979999999999997
+          ],
+          [
+            -70.05,
+            -23.979999999999997
+          ],
+          [
+            -70.05,
+            -24.18
+          ]
+        ]
+      ]
+    },
+    "area_km2": 450.5,
+    "status": "reference",
+    "similarity": 75.67,
+    "confidence": 77.45,
+    "feasibility": "requires_review",
+    "stability": 99.03,
+    "score_breakdown": [
+      {
+        "criterion_id": "slope",
+        "raw_value": 3.207,
+        "unit": "degree",
+        "normalized_similarity": 0.694107,
+        "weight": 0.2,
+        "contribution": -0.0811,
+        "quality": 0.93,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente."
+      },
+      {
+        "criterion_id": "terrain_roughness",
+        "raw_value": 16.564,
+        "unit": "meter",
+        "normalized_similarity": 0.664091,
+        "weight": 0.2,
+        "contribution": -0.091,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Diferencia absoluta mediana entre celdas vecinas NASADEM y MOLA a escala aproximadamente equivalente."
+      },
+      {
+        "criterion_id": "local_relief",
+        "raw_value": 75.125,
+        "unit": "meter",
+        "normalized_similarity": 0.625624,
+        "weight": 0.15,
+        "contribution": -0.0782,
+        "quality": 0.91,
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "status": "valid",
+        "explanation": "Relieve mediano 3×3 sobre NASADEM agregado comparado con la ventana regional MOLA."
+      },
+      {
+        "criterion_id": "bare_ground_fraction",
+        "raw_value": 1.0,
+        "unit": "ratio",
+        "normalized_similarity": 1.0,
+        "weight": 0.2,
+        "contribution": 0.0,
+        "quality": 0.9,
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v1",
+        "status": "valid",
+        "explanation": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba."
+      },
+      {
+        "criterion_id": "aridity_context",
+        "raw_value": 7.3,
+        "unit": "millimeter_per_year",
+        "normalized_similarity": 0.773994,
+        "weight": 0.1,
+        "contribution": -0.0285,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "status": "valid",
+        "explanation": "Precipitación climatológica POWER como contexto regional; preferencia decreciente con escala de 25 mm/año heredada del perfil v1."
+      },
+      {
+        "criterion_id": "surface_temperature_variability",
+        "raw_value": 47.66,
+        "unit": "kelvin",
+        "normalized_similarity": 1,
+        "weight": 0.05,
+        "contribution": 0.0,
+        "quality": 0.6,
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "status": "valid",
+        "explanation": "Proxy regional de estrés térmico: rango climatológico POWER, saturado a 45 °C como en el perfil v1."
+      },
+      {
+        "criterion_id": "geologic_relevance",
+        "raw_value": null,
+        "unit": "category",
+        "normalized_similarity": null,
+        "weight": 0.1,
+        "contribution": null,
+        "quality": 0.0,
+        "dataset_id": "none",
+        "status": "needs_calibration",
+        "explanation": "Requiere cartografía geológica oficial (SERNAGEOMIN) y revisión experta; permanece fuera del score v3."
+      }
+    ],
+    "warnings": [
+      "SCREENING CIENTÍFICO: prioriza reconocimiento; no aprueba el sitio, no garantiza seguridad y no autoriza acceso.",
+      "OBSERVACIÓN VISUAL PRELIMINAR (Sentinel-2, diciembre de 2025; revisada el 2026-11-14): trazas rectilíneas y un conjunto de parches brillantes de contorno rectangular en el sureste. Es apariencia a contrastar: no identifica instalaciones, propietarios ni permisos, no cambia el score ni la factibilidad y requiere cruce territorial.",
+      "REFERENCIA CONOCIDA: Yungay se muestra para comparar; no es un candidato de la búsqueda.",
+      "REVISIÓN PENDIENTE — protected_or_sensitive_area · IDE Chile y autoridad territorial competente: No se intersectó aún con el inventario oficial de áreas protegidas o sensibles. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — urban_area · IDE Chile y autoridad territorial competente: No se intersectó aún con límites urbanos e infraestructura oficial. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — land_access · Autoridad territorial, propietarios y operadores: Propiedad, accesos, seguridad y permisos requieren verificación humana. Fuente: https://www.ide.cl/",
+      "REVISIÓN PENDIENTE — field_scale_slope · Equipo de campaña de rover: NASADEM a 30 m no detecta obstáculos ni pendientes a escala de rueda. Fuente: https://lpdaac.usgs.gov/documents/2237/NASADEM_User_Guide_V13.pdf"
+    ],
+    "limitations": [
+      "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+      "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+      "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+      "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+      "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+      "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+      "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+      "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+      "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+      "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+      "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+    ],
+    "field_checks": [
+      "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+      "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+      "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+      "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+      "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+    ],
+    "evidence": [
+      {
+        "evidence_id": "cl-pampa-yungay-screening-mola",
+        "dataset_id": "nasa-pds-mola-meg128-jezero-v1",
+        "claim": "Referencia marciana: topografía MOLA MEGDR del entorno regional de Jezero.",
+        "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      },
+      {
+        "evidence_id": "cl-pampa-yungay-screening-nasadem",
+        "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+        "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 4 tile(s), agregado a ~473 m.",
+        "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+      },
+      {
+        "evidence_id": "cl-pampa-yungay-screening-sentinel2",
+        "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v1",
+        "claim": "Superficie: 100,0 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+        "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+      },
+      {
+        "evidence_id": "cl-pampa-yungay-screening-hls-inventory",
+        "dataset_id": "nasa-earthdata-hls-s30-inventory-2025-v1",
+        "claim": "Disponibilidad NASA independiente: 338 granules HLS Sentinel-2 intersectan el AOI en 2025; se registra como inventario, no entra al score.",
+        "source_url": "https://doi.org/10.5067/HLS/HLSS30.002"
+      },
+      {
+        "evidence_id": "cl-pampa-yungay-screening-power",
+        "dataset_id": "nasa-power-climatology-points-v1",
+        "claim": "Contexto regional: climatología NASA POWER 2001–2025 de una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana; no es lluvia medida en el sitio y requiere contraste local.",
+        "source_url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR%2CTS%2CTS_MAX%2CTS_MIN&community=AG&longitude=-69.95&latitude=-24.08&format=JSON"
+      },
+      {
+        "evidence_id": "cl-pampa-yungay-screening-precedent-cl-atacama-transect-navarro-gonzalez-2003",
+        "dataset_id": "analog-precedents-catalog-v1",
+        "claim": "Antecedente (contiene coordenadas de muestreo publicadas): Transecto norte–sur de Atacama (24–28° S), con núcleo en Yungay.",
+        "source_url": "https://www.astro.uantof.cl/wp-content/uploads/2015/06/navarro.SOM_.pdf"
+      }
+    ],
+    "discovery": {
+      "origin": "known_reference",
+      "search_id": "analogos-pilot-cl-ar-v3",
+      "region_id": null,
+      "window_id": null,
+      "selection_rank": null,
+      "topographic_priority": 66.4,
+      "source_snapshot": "science-screening-v2",
+      "note": "Ventana de screening v2; no es el perímetro exacto de cada campaña histórica en Yungay."
+    },
+    "literature_review": {
+      "status": "known_reference",
+      "catalog_version": "1.0.0",
+      "reviewed_at": "2026-11-14",
+      "matches": [
+        {
+          "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+          "in_region_with_precedent": false,
+          "relation": "contains_published_sampling_coordinate",
+          "points": [
+            "AT03-39",
+            "AT03-38",
+            "AT03-44",
+            "AT03-37",
+            "AT03-36",
+            "AT03-35",
+            "AT03-48",
+            "AT03-34",
+            "AT03-33",
+            "AT02-03D",
+            "AT02-03E",
+            "AT02-03C",
+            "AT01-03, AT02-03A",
+            "AT02-03B",
+            "AT03-50",
+            "AT03-49",
+            "AT01-12"
+          ]
+        }
+      ],
+      "note": "Referencia conocida: se muestra para comparar y no participa en el ranking de candidatos."
+    }
+  }
+]

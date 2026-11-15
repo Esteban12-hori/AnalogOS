@@ -1,0 +1,391 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analogos.cl/schemas/discovery-search.schema.json",
+  "title": "AnalogOS Discovery Search Results",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "search_id",
+    "snapshot_version",
+    "created_at",
+    "scope_note",
+    "crs",
+    "window_size_degree",
+    "stage1",
+    "selection",
+    "precedents",
+    "limits",
+    "mola_reference",
+    "regions",
+    "counts",
+    "explored_area_km2",
+    "shortlist",
+    "windows"
+  ],
+  "properties": {
+    "search_id": {
+      "type": "string"
+    },
+    "snapshot_version": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "scope_note": {
+      "type": "string",
+      "minLength": 20
+    },
+    "crs": {
+      "type": "string"
+    },
+    "window_size_degree": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "stage1": {
+      "type": "object"
+    },
+    "selection": {
+      "type": "object"
+    },
+    "precedents": {
+      "type": "object"
+    },
+    "limits": {
+      "type": "object"
+    },
+    "mola_reference": {
+      "type": "object"
+    },
+    "regions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "region_id",
+          "country",
+          "name",
+          "bbox",
+          "windows_evaluated",
+          "windows_selected",
+          "explored_area_km2"
+        ],
+        "properties": {
+          "region_id": {
+            "type": "string"
+          },
+          "country": {
+            "enum": [
+              "CL",
+              "AR"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "bbox": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "number"
+            }
+          },
+          "windows_evaluated": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "windows_selected": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "explored_area_km2": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "attempted",
+        "evaluated"
+      ],
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "explored_area_km2": {
+      "type": "number",
+      "minimum": 0
+    },
+    "shortlist": {
+      "type": "array",
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "windows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "window_id",
+          "region_id",
+          "country",
+          "name",
+          "center",
+          "bbox",
+          "area_km2",
+          "nasadem",
+          "topographic_similarities",
+          "topographic_priority",
+          "literature",
+          "decision",
+          "decision_reason",
+          "selection_rank",
+          "blocked_by"
+        ],
+        "properties": {
+          "window_id": {
+            "type": "string",
+            "pattern": "^(cl|ar)-win-[sn][0-9]{4}-[we][0-9]{5}$"
+          },
+          "region_id": {
+            "type": "string"
+          },
+          "country": {
+            "enum": [
+              "CL",
+              "AR"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "center": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number"
+            }
+          },
+          "bbox": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "number"
+            }
+          },
+          "area_km2": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "nasadem": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "tiles",
+                  "source_valid_fraction",
+                  "permanent_water_fraction",
+                  "analysis_spacing_meter",
+                  "median_slope_degree",
+                  "median_neighbor_difference_meter",
+                  "median_3x3_relief_meter"
+                ],
+                "properties": {
+                  "tiles": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "source_valid_fraction": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "permanent_water_fraction": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "analysis_spacing_meter": {
+                    "type": "number"
+                  },
+                  "median_slope_degree": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "median_neighbor_difference_meter": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "median_3x3_relief_meter": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "topographic_similarities": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "slope",
+              "terrain_roughness",
+              "local_relief"
+            ],
+            "properties": {
+              "slope": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "terrain_roughness": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "local_relief": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
+          },
+          "topographic_priority": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 100
+          },
+          "literature": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "matches"
+            ],
+            "properties": {
+              "status": {
+                "enum": [
+                  "known_reference",
+                  "known_analogue_overlap",
+                  "regional_precedent",
+                  "literature_review_pending",
+                  "no_match_in_reviewed_sources"
+                ]
+              },
+              "matches": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "precedent_id",
+                    "relation",
+                    "in_region_with_precedent"
+                  ],
+                  "properties": {
+                    "precedent_id": {
+                      "type": "string"
+                    },
+                    "relation": {
+                      "enum": [
+                        "contains_published_sampling_coordinate",
+                        "study_area_overlap",
+                        "proximity_heuristic",
+                        "regional_precedent"
+                      ]
+                    },
+                    "in_region_with_precedent": {
+                      "type": "boolean"
+                    },
+                    "points": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "nearest_point": {
+                      "type": "string"
+                    },
+                    "distance_km": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "decision": {
+            "enum": [
+              "selected",
+              "eligible",
+              "not_selected_proximity",
+              "not_selected_quota",
+              "rejected_coverage",
+              "rejected_water",
+              "rejected_precedent_overlap",
+              "evaluation_failed"
+            ]
+          },
+          "decision_reason": {
+            "type": "string",
+            "minLength": 5
+          },
+          "selection_rank": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "blocked_by": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

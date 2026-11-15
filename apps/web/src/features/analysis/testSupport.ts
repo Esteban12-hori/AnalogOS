@@ -9,7 +9,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { CandidateSite, CriterionId, DataManifest, MissionProfile } from '../../domain/contracts'
-import { isCriterionId } from '../../domain/contracts'
+import { isCriterionId } from '../../domain/criteria'
 import { criterionLabels, formatRawValue } from '../../domain/formatting'
 import { parseMarsReference } from '../../domain/marsReference'
 import type { DemoSnapshot } from '../../data/loadDemoSnapshot'
@@ -27,7 +27,9 @@ export function loadScienceSnapshot(): DemoSnapshot {
     candidates: readJson('artifacts/science-v2/candidate-details.json') as CandidateSite[],
     manifest: readJson('artifacts/science-v2/manifest.json') as DataManifest,
     profile: readJson('artifacts/science-v2/mission-profile.json') as MissionProfile,
-    chileOutline: { type: 'FeatureCollection', features: [] },
+    outline: { type: 'FeatureCollection', features: [] },
+    search: null,
+    precedents: null,
     surfaceSeries: new Map(),
     marsReference: parseMarsReference(readJson('artifacts/science-v2/analysis-summary.json')),
   }

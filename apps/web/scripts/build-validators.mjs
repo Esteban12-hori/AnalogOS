@@ -4,10 +4,12 @@
 //
 // Genera un módulo por chunk que lo usa (docs/UX_REDESIGN.md §6.1: cada chunk paga solo lo suyo):
 // - validators.generated.js: snapshot (candidato, manifiesto, perfil). Va en el chunk principal.
+// - validators.discovery.generated.js: resultados de búsqueda y catálogo de antecedentes del
+//   snapshot v3 (ADR-008). Chunk aparte: el cargador lo importa solo si el snapshot es v3.
 // - validators.analogs.generated.js: catálogo de análogos de referencia (se carga con el catálogo).
-// - validators.interpretation.generated.js: interpretación de misión (chunk de misión).
-// - validators.mission.generated.js: paquete de evidencia y eventos de análisis IA (UX_REDESIGN
-//   §5). Solo lo importa el chunk diferido de la Lectura.
+//
+// Los contratos de misión (mission-request/evaluation/export/ai, ADR-009) NO se precompilan aquí:
+// los valida shared/mission con Ajv en runtime, dentro del chunk diferido de misión (ADR-013).
 //
 // Uso: node scripts/build-validators.mjs [--check]   (--check falla si algún archivo está desfasado)
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -29,15 +31,12 @@ const OUTPUTS = {
     validateManifest: 'data-manifest.schema.json',
     validateProfile: 'mission-profile.schema.json',
   },
+  'validators.discovery.generated.js': {
+    validateSearch: 'discovery-search.schema.json',
+    validatePrecedents: 'precedent-catalog.schema.json',
+  },
   'validators.analogs.generated.js': {
     validateReferenceAnalogs: 'reference-analog.schema.json',
-  },
-  'validators.interpretation.generated.js': {
-    validateMissionInterpretation: 'mission-interpretation.schema.json',
-  },
-  'validators.mission.generated.js': {
-    validateEvidencePacket: 'evidence-packet.schema.json',
-    validateAiAnalysisEvent: 'ai-analysis.schema.json',
   },
 }
 

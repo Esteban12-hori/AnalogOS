@@ -98,3 +98,22 @@
 - Sin M4: no usar lenguaje concluyente.
 - Si la demo depende de internet: reemplazar por snapshot.
 - IA, SAR y perfil lunar son P1/P2 y se eliminan primero.
+
+## M7 AnalogOS global — piloto Chile–Argentina
+
+- [x] Marca visible AnalogOS y subtítulo del piloto.
+- [x] Búsqueda por rejilla reproducible: 50 ventanas en dos regiones de prueba.
+- [x] Prioridad topográfica, rechazos registrados y diversificación determinista.
+- [x] Caracterización multifuente de hasta seis ventanas con fórmulas v2.
+- [x] Yungay como referencia conocida, fuera del ranking, con los valores v2.
+- [x] Catálogo de antecedentes con coordenadas publicadas y búsquedas registradas.
+- [x] Snapshot v3, contratos extendidos y v2 conservado.
+- [x] Mapa regional, filtro por país, ficha con origen y antecedentes, exportación.
+- [x] Contexto visual v3 y entregable `analogos-static.zip`.
+- [x] Aceptación de Codex (2026-11-14; `docs/CODEX_M7_REVIEW.md`).
+- [ ] Cruce territorial con capas oficiales de IDE Chile e IDERA.
+- [ ] Revisión bibliográfica de la Puna con textos completos y coordenadas.
+- [ ] Contraste local del contexto climático POWER en la Puna.
+- [ ] Ampliar la búsqueda a más regiones.
+
+**Gate M7:** la demo muestra una búsqueda documentada, con cada descarte explicado y sin declarar novedad.

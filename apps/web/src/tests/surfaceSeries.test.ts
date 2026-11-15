@@ -6,6 +6,14 @@ import { formatIndex, parseSurfaceSeries } from '../domain/surfaceSeries'
 const root = resolve(__dirname, '../../../..')
 
 describe('series mensuales Sentinel-2', () => {
+  it('conserva las doce observaciones de los seis candidatos y la referencia v3', () => {
+    const summary = JSON.parse(readFileSync(resolve(root, 'artifacts/science-v3/analysis-summary.json'), 'utf8'))
+    const series = parseSurfaceSeries(summary)
+    expect(series.size).toBe(7)
+    expect([...series.keys()].filter(id => id.startsWith('ar-'))).toHaveLength(3)
+    expect(series.get('cl-pampa-yungay-screening')).toHaveLength(12)
+    for (const points of series.values()) expect(points).toHaveLength(12)
+  })
   it('lee las doce observaciones de cada sector del snapshot científico v2', () => {
     const summary = JSON.parse(readFileSync(resolve(root, 'artifacts/science-v2/analysis-summary.json'), 'utf8')) as unknown
     const series = parseSurfaceSeries(summary)

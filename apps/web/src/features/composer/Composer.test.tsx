@@ -15,7 +15,9 @@ const snapshot: DemoSnapshot = {
   candidates: [...real.candidates],
   profile: real.profile,
   manifest: { snapshot_version: 'science-screening-v2', created_at: '', pipeline_version: '', datasets: [] },
-  chileOutline: { type: 'FeatureCollection', features: [] },
+  outline: { type: 'FeatureCollection', features: [] },
+  search: null,
+  precedents: null,
   surfaceSeries: new Map(),
   marsReference: null,
 }

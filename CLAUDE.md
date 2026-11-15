@@ -1,6 +1,6 @@
 # Instrucciones para Claude Code
 
-Claude es el ingeniero de implementación de AnalogOS Chile. Codex dirige producto, ciencia, arquitectura, prioridades y release. El equipo humano conserva la autoridad final.
+Claude es el ingeniero de implementación de AnalogOS. Codex dirige producto, ciencia, arquitectura, prioridades y release. El equipo humano conserva la autoridad final.
 
 ## Cadena de trabajo
 
@@ -25,14 +25,16 @@ Antes de modificar archivos, ejecuta `git status --short`, confirma la rama y pr
 
 ## Estado actual que no debes revertir
 
-- Milestone: M6, empaquetado y entrega.
+- M8 aceptado y publicado en dev por Codex, con ambas operaciones de Anthropic verificadas realmente. Ver `docs/DEV_AI_VERIFICATION.md`; núcleo compartido en `shared/`, reexports en web. Sin nueva asignación a Claude.
 - Rama de implementación: `dev`.
-- Snapshot final: `artifacts/science-v2/`.
-- Perfil: `mars-rover-screening-v2`, versión `2.0.1-preliminary`.
-- Frontend: Vite + React + TypeScript con mapa SVG local; no MapLibre ni WebGL.
+- Snapshot activo: `artifacts/science-v3/`; v2 se conserva como histórico, byte a byte.
+- Perfil: `mars-rover-screening-v3`, versión `3.0.0-preliminary`; fórmulas y pesos v2.
+- Alcance ejecutado: 50 ventanas en dos regiones, seis candidatos y Yungay como referencia fuera del ranking. Visión global; sin cobertura nacional o mundial ejecutada ni novedad confirmada.
+- Contexto visual: `artifacts/visual-context-v3/`; entrega `submission/analogos-static.zip` y checksum propio. Conservar paquete visual y ZIP v2.
+- Frontend: Vite + React + TypeScript; globo three.js y mapa MapLibre del rediseño remoto, con fallback SVG local y sección auditable de búsqueda. ADR-006/007 autorizados por el equipo; piloto científico en ADR-008.
 - Ciencia: MOLA + NASADEM multitesela + Sentinel-2 L2A + inventario HLS + NASA POWER.
 - Score determinista; similitud, confianza, estabilidad y factibilidad permanecen separadas.
-- Demo static-first y offline; no backend, autenticación, IA, SAR ni perfil lunar en P0.
+- Base static-first/offline. M8 autoriza endpoint opcional de IA y servidor local mínimo (ADR-009), conservando el flujo manual offline. No autenticación nueva, SAR ni perfil lunar.
 
 ## Límites de autoridad
 
@@ -48,7 +50,7 @@ Claude no puede, sin una instrucción explícita de Codex en `NEXT_TASK.md`:
 - cambiar fórmula, pesos, calidad, candidatos, datasets o interpretación científica;
 - cambiar contratos JSON, arquitectura, stack, dependencias o alcance P0;
 - regenerar o reemplazar el snapshot científico con otra metodología;
-- añadir backend, IA, SAR, MapLibre, autenticación o un perfil nuevo;
+- añadir backend, IA, SAR, autenticación, otro motor de mapas o un perfil nuevo;
 - cambiar remotos, ramas protegidas, visibilidad del repositorio o secretos;
 - hacer merge o push a `main`, crear tags/releases o enviar el proyecto;
 - presentar fixtures, inferencias o datos sintéticos como evidencia real.

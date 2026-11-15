@@ -4,7 +4,8 @@
  * el cliente: la IA (o el matcher DEMO) solo propone niveles, nunca cifras.
  */
 import type { CriterionLevel, MissionInterpretation } from '../../domain/aiContracts'
-import { CRITERION_IDS, isCriterionId, type CriterionId } from '../../domain/contracts'
+import type { CriterionId } from '../../domain/contracts'
+import { CRITERION_IDS, isCriterionId } from '../../domain/criteria'
 import type { MissionPreset, MissionProfileDraft } from './types'
 
 export type Levels = Readonly<Record<CriterionId, CriterionLevel>>

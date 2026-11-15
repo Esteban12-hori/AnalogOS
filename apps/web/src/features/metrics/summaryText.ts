@@ -2,7 +2,8 @@
  * Textos de las cifras del lugar (chunk principal). El resto de textos del riel vive en
  * metricText.ts, que solo carga el detalle diferido.
  */
-import { isCriterionId, type CandidateSite, type CriterionId, type MissionProfile } from '../../domain/contracts'
+import type { CandidateSite, CriterionId, MissionProfile } from '../../domain/contracts'
+import { isCriterionId } from '../../domain/criteria'
 import { criterionLabels, formatScore, formatWhole } from '../../domain/formatting'
 import type { SiteFigures } from './metricContext'
 

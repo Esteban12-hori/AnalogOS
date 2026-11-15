@@ -4,69 +4,504 @@
   "title": "AnalogOS Candidate Site",
   "type": "object",
   "additionalProperties": false,
-  "required": ["site_id", "name", "profile_id", "profile_version", "data_snapshot_version", "pipeline_version", "geometry", "area_km2", "status", "similarity", "confidence", "feasibility", "stability", "score_breakdown", "warnings", "limitations", "field_checks", "evidence"],
+  "required": [
+    "site_id",
+    "name",
+    "profile_id",
+    "profile_version",
+    "data_snapshot_version",
+    "pipeline_version",
+    "geometry",
+    "area_km2",
+    "status",
+    "similarity",
+    "confidence",
+    "feasibility",
+    "stability",
+    "score_breakdown",
+    "warnings",
+    "limitations",
+    "field_checks",
+    "evidence"
+  ],
   "properties": {
-    "site_id": {"type": "string", "pattern": "^cl-[a-z0-9-]+$"},
-    "name": {"type": "string", "minLength": 1},
-    "profile_id": {"type": "string"},
-    "profile_version": {"type": "string"},
-    "data_snapshot_version": {"type": "string"},
-    "pipeline_version": {"type": "string"},
-    "geometry": {"$ref": "#/$defs/polygonGeometry"},
-    "area_km2": {"type": "number", "exclusiveMinimum": 0},
-    "status": {"enum": ["fixture", "candidate", "insufficient_data", "excluded"]},
-    "similarity": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
-    "confidence": {"type": "number", "minimum": 0, "maximum": 100},
-    "feasibility": {"enum": ["unknown", "requires_review", "potentially_feasible", "excluded"]},
-    "stability": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+    "site_id": {
+      "type": "string",
+      "pattern": "^(cl|ar)-[a-z0-9-]+$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile_id": {
+      "type": "string"
+    },
+    "profile_version": {
+      "type": "string"
+    },
+    "data_snapshot_version": {
+      "type": "string"
+    },
+    "pipeline_version": {
+      "type": "string"
+    },
+    "geometry": {
+      "$ref": "#/$defs/polygonGeometry"
+    },
+    "area_km2": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "status": {
+      "enum": [
+        "fixture",
+        "candidate",
+        "reference",
+        "insufficient_data",
+        "excluded"
+      ]
+    },
+    "similarity": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "feasibility": {
+      "enum": [
+        "unknown",
+        "requires_review",
+        "potentially_feasible",
+        "excluded"
+      ]
+    },
+    "stability": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100
+    },
     "score_breakdown": {
       "type": "array",
-      "items": {"$ref": "#/$defs/scoreItem"}
+      "items": {
+        "$ref": "#/$defs/scoreItem"
+      }
     },
-    "warnings": {"type": "array", "items": {"type": "string"}},
-    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
-    "field_checks": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "field_checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
     "evidence": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["evidence_id", "dataset_id", "claim", "source_url"],
+        "required": [
+          "evidence_id",
+          "dataset_id",
+          "claim",
+          "source_url"
+        ],
         "properties": {
-          "evidence_id": {"type": "string"},
-          "dataset_id": {"type": "string"},
-          "claim": {"type": "string"},
-          "source_url": {"type": "string", "format": "uri"}
+          "evidence_id": {
+            "type": "string"
+          },
+          "dataset_id": {
+            "type": "string"
+          },
+          "claim": {
+            "type": "string"
+          },
+          "source_url": {
+            "type": "string",
+            "format": "uri"
+          }
         }
       }
+    },
+    "country": {
+      "enum": [
+        "CL",
+        "AR"
+      ]
+    },
+    "role": {
+      "enum": [
+        "candidate",
+        "reference"
+      ]
+    },
+    "discovery": {
+      "$ref": "#/$defs/discovery"
+    },
+    "literature_review": {
+      "$ref": "#/$defs/literatureReview"
     }
   },
   "$defs": {
     "polygonGeometry": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "coordinates"],
+      "required": [
+        "type",
+        "coordinates"
+      ],
       "properties": {
-        "type": {"enum": ["Polygon", "MultiPolygon"]},
-        "coordinates": {"type": "array", "minItems": 1}
+        "type": {
+          "enum": [
+            "Polygon",
+            "MultiPolygon"
+          ]
+        },
+        "coordinates": {
+          "type": "array",
+          "minItems": 1
+        }
       }
     },
     "scoreItem": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["criterion_id", "raw_value", "unit", "normalized_similarity", "weight", "contribution", "quality", "dataset_id", "status", "explanation"],
+      "required": [
+        "criterion_id",
+        "raw_value",
+        "unit",
+        "normalized_similarity",
+        "weight",
+        "contribution",
+        "quality",
+        "dataset_id",
+        "status",
+        "explanation"
+      ],
       "properties": {
-        "criterion_id": {"type": "string"},
-        "raw_value": {"type": ["number", "string", "null"]},
-        "unit": {"type": "string"},
-        "normalized_similarity": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
-        "weight": {"type": "number", "minimum": 0, "maximum": 1},
-        "contribution": {"type": ["number", "null"]},
-        "quality": {"type": "number", "minimum": 0, "maximum": 1},
-        "dataset_id": {"type": "string"},
-        "status": {"enum": ["valid", "missing", "needs_calibration", "excluded"]},
-        "explanation": {"type": "string"}
+        "criterion_id": {
+          "type": "string"
+        },
+        "raw_value": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ]
+        },
+        "unit": {
+          "type": "string"
+        },
+        "normalized_similarity": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "contribution": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "quality": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "dataset_id": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "valid",
+            "missing",
+            "needs_calibration",
+            "excluded"
+          ]
+        },
+        "explanation": {
+          "type": "string"
+        }
+      }
+    },
+    "precedentMatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "precedent_id",
+        "relation",
+        "in_region_with_precedent"
+      ],
+      "properties": {
+        "precedent_id": {
+          "type": "string"
+        },
+        "relation": {
+          "enum": [
+            "contains_published_sampling_coordinate",
+            "study_area_overlap",
+            "proximity_heuristic",
+            "regional_precedent"
+          ]
+        },
+        "in_region_with_precedent": {
+          "type": "boolean"
+        },
+        "points": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "nearest_point": {
+          "type": "string"
+        },
+        "distance_km": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "discovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "search_id",
+        "region_id",
+        "window_id",
+        "selection_rank",
+        "topographic_priority",
+        "note"
+      ],
+      "properties": {
+        "origin": {
+          "enum": [
+            "grid_search",
+            "known_reference"
+          ]
+        },
+        "search_id": {
+          "type": "string"
+        },
+        "region_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "window_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "selection_rank": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "topographic_priority": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "source_snapshot": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "literatureReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "catalog_version",
+        "reviewed_at",
+        "matches",
+        "note"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "known_reference",
+            "known_analogue_overlap",
+            "regional_precedent",
+            "literature_review_pending",
+            "no_match_in_reviewed_sources"
+          ]
+        },
+        "catalog_version": {
+          "type": "string"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date"
+        },
+        "matches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/precedentMatch"
+          }
+        },
+        "note": {
+          "type": "string",
+          "minLength": 10
+        }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "data_snapshot_version": {
+            "pattern": "^science-screening-v3"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "country",
+          "role",
+          "discovery",
+          "literature_review"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "country": {
+            "const": "CL"
+          }
+        },
+        "required": [
+          "country"
+        ]
+      },
+      "then": {
+        "properties": {
+          "site_id": {
+            "pattern": "^cl-"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "country": {
+            "const": "AR"
+          }
+        },
+        "required": [
+          "country"
+        ]
+      },
+      "then": {
+        "properties": {
+          "site_id": {
+            "pattern": "^ar-"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "role": {
+            "const": "reference"
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "then": {
+        "properties": {
+          "status": {
+            "const": "reference"
+          },
+          "discovery": {
+            "properties": {
+              "origin": {
+                "const": "known_reference"
+              }
+            }
+          },
+          "literature_review": {
+            "properties": {
+              "status": {
+                "const": "known_reference"
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "status": {
+            "not": {
+              "const": "reference"
+            }
+          },
+          "discovery": {
+            "properties": {
+              "origin": {
+                "const": "grid_search"
+              }
+            }
+          },
+          "literature_review": {
+            "properties": {
+              "status": {
+                "not": {
+                  "const": "known_reference"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

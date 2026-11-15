@@ -1,301 +1,37 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14 21:30 America/Santiago (rediseño Explorar / Misión: correcciones de la revisión de honestidad, accesibilidad, rendimiento y recorrido visual)
+**Última actualización:** 2026-11-14, M8 publicado e IA verificada en dev (America/Santiago)
 **Responsable del checkpoint:** Codex
-**Milestone activo:** M6 — empaquetado y entrega
-**Estado general:** producto funcional y presentable con snapshot científico v2 autenticado. NASADEM corrige el mosaico de borde y Sentinel-2 completa superficie no vegetada. Faltan acciones humanas/externas: video, URLs públicas, integrantes, capas territoriales y revisión experta.
+**Milestone activo:** M8 aceptado y entregado. Claude espera nueva asignación.
+**Estado general:** planificador de ensayo/sector con motor determinista, snapshot científico v3 y Anthropic opcional funcionando en dev. Siete áreas con evidencia; faltan capas territoriales, contraste local y revisión experta de campo.
 
+## Integración en curso: rediseño Explorar/Misión sobre dev (Claude Code, rama feature/mision-redesign)
 
-## Rediseño Explorar / Misión — correcciones de la revisión (2026-11-14, Claude, rama `feature/mision-redesign`)
+- **Fase F1 (este commit):** fusión de `origin/dev` (`92392f1`) en el rediseño, según `docs/INTEGRATION_PLAN.md`. Conflictos resueltos: la interfaz es la del rediseño; datos v3, contratos, `shared/`, `server/`, `api/` y CI del equipo entran sin cambios.
+- Pendiente en las fases siguientes: Explorar con v3 (REF fuera del ranking, filtro por país), Misión sobre el planificador del equipo, Lectura con la IA de Anthropic, retiro del motor propio y de lktron, ADR y documentación. Este bloque se reemplaza al cerrar la integración.
 
-Cuatro revisiones sobre 1161db6 (honestidad científica, accesibilidad, rendimiento §6.1 y recorrido visual §4) dejaron 7 hallazgos high, 27 medium y 18 low. Se corrigieron todos los high y los medium salvo los anotados abajo, más los low triviales. Cada corrección tiene un test o una verificación en el navegador.
+## Entrega vigente — dev e IA real comprobados
 
-### Qué funciona (lo corregido)
+- URL: https://analogos-dev.vercel.app/. Código desplegado `9060970ecf71e3c68f7b11a8d220e37e49057dc8`; Actions 43639834860 correcto. El checkpoint posterior solo agrega documentación/evidencia con `[skip ci]` y conserva ese despliegue verificado. Main no se publica.
+- Dan autorizó subir a dev y verificar la IA. La clave está en GitHub Secrets, inyectada solo en runtime del deploy dev. Protección de Vercel conservada; clave ausente del código, bundle, ZIP y evidencia.
+- Prueba real desde navegador: Anthropic propuso tres requisitos editables y explicó la evaluación confirmada. Ejemplo: pendiente regional ≤ 2,3°, superficie no vegetada ≥ 95 %, permisos pendientes. Resultado: una ventana priorizada y seis descartadas. JSON descargado validado y evaluación idéntica al recálculo local.
+- Corregido fallo del primer deploy (`707d4b1`, `ERR_REQUIRE_ESM`): núcleo puro movido a `shared/`, web con reexports, servidor con imports directos y NodeNext. CI prueba el arranque de la función realmente empaquetada antes de desplegar.
+- Verificación tras la corrección: 177 Python, 196 web (+2 pruebas reales opt-in omitidas por defecto), typecheck/build y arranque Node correctos. Los 38 hashes de baseline permanecen intactos.
+- ZIP final: 30 entradas, 12.987.707 bytes, SHA-256 `eacf5dce441763b2c5e21d2aa2d75fe88130cccfeafb098c72e73bba1f2bd32f`, repetido idéntico y cotejado con dist.
+- Informe vigente: `docs/DEV_AI_VERIFICATION.md`. Evidencia: `submission/evidence/m8-dev-ai-export.json`, captura `submission/assets/analogos-m8-dev-ai.png`. Configuración/rotación en `docs/AI_SETUP.md`.
+- Pendientes delimitados: impresión nativa (contenido/CSS comprobados), territorio, bibliografía, contraste climático y validación con usuarios. No se certifica aptitud de campo ni se adquirieron datos para nuevas geometrías.
+- La aceptación local y las dos devoluciones a Claude permanecen como historia en `docs/CODEX_M8_REVIEW.md` y `project/M8_PROGRESS.md`. Las secciones siguientes documentan M7 y entregas anteriores.
 
-- **Honestidad de las cifras.**
-  - Comparar (ficha) usa el perfil activo: en Misión, orden, similitud, confianza y estabilidad del motor, con el rótulo «tu misión: … · motor v1.0.0». Con el perfil base, «perfil base v2.0.1-preliminary» (`components/CandidateComparison.tsx`, `comparisonModel`).
-  - Una sola estabilidad: `scoreMission` entrega `stability` con `sensitivity` (±20 %, la misma regla que la Lectura). El riel, la ficha y la Lectura muestran 99,1 para Yungay; un test compara las cifras en los 3 presets.
-  - Filtro de la IA: el léxico de orden («primera», «encabeza», «lidera», «ranking», «preferible», «recomendable», «adecuado», «confiable»…) se rechaza con el motivo `rank`; los cuantificadores «medio/media», «par» y «cuarto» se rechazan como números escritos. Un `summary` o `tradeoff` que compara («más», «mejor», «supera»…) debe citar `site:…:rank`, `rank:…` o un hecho de un criterio `best_of_n` (motivo `rank_fact`). El análisis pregenerado pasa sin descartes y su huella no cambió.
-  - Geología sin dato se muestra «por calcular · fuera de tu perfil», no «excluido». Un criterio con peso 0 no «satura» y su anillo dice «excl».
-  - Si la confianza de misión sube porque un criterio sin dato quedó fuera, el riel lo dice: «Sube frente al perfil base (77,5) porque Geología (sin dato) quedó fuera de tu perfil: no es más evidencia».
-  - Rótulos: la frase bajo LIMITANTE lleva ✦; cada bloque redactado se anuncia a lectores de pantalla («Texto de IA:» o «Texto pregenerado, no científico:»). «Prueba sugerida» se rotula según la fuente. ✦ solo para lktron (DEMO y presets no lo llevan). El rótulo «DEMO · sin IA» va primero en la línea de estado y ya no se trunca a 390 px.
-  - La pestaña Señal muestra la cifra final, sin odómetro. NDVI usa un azul y la dirección se marca con ↑/↓.
-  - Atribución siempre visible: «Datos: NASADEM · Copernicus Sentinel-2 · MOLA (PDS) · NASA POWER · Natural Earth», generada desde `manifest.datasets` (`shell/attribution.ts`). Va en la franja del escenario a todos los tamaños y también en el HTML estático.
-  - «◆ 7 por calcular · 1 coincide con un sector»: el chip y el carrusel cuentan los ◆ que se dibujan.
-  - Sin criterios de terreno, el error lista lo pedido que no se mide («Pediste, sin datos aún: hielo · minerales — no se miden en este snapshot»).
-- **Accesibilidad.**
-  - Foco: ninguna transición de la hoja ni del riel lo deja en `<body>`. Va al título de la hoja, a la pestaña de la ficha, a «Ficha», a «Ver ficha completa», a la opción del carrusel del lugar cerrado o al conmutador lista/carrusel.
-  - Esc dentro de un popover (Tu misión, recientes) lo cierra y no borra la selección.
-  - La barra superior va antes del escenario en el DOM (Tab 1 = pestaña Explorar). Se agregaron `<main>`, un `h1` sr-only y `role="group"` en la franja del HUD.
-  - El aviso científico tiene texto accesible bajo 860 px.
-  - Los pines tapados por un panel o con visibilidad < 0,25 salen del orden de foco (`pinUnfocusable`). Un pin atenuado recupera la opacidad al enfocarse. Los elementos del escenario tienen foco de dos tonos (anillo y halo oscuro).
-  - Contraste: barra superior sin blur con tinte .9, vidrio .86 y pulgar del modo #0274AD (blanco 5,1:1). `prefers-reduced-transparency` da tinte sólido sin blur.
-  - Sin bucles de más de 4,8 s: el spinner da 2 vueltas, el pulso del 2D sin WebGL se da una vez y en azul, y las manchas de la pantalla de error no se repiten. Se quitaron las regiones `role=status` duplicadas.
-  - Objetivos táctiles de 44 px con puntero grueso: área invisible centrada, la manija crece hacia arriba y el conmutador y las flechas miden 44 px de verdad.
-  - Texto de 7–9 px de la ficha subido a `--fs-min`.
-  - Menores: el carrusel de métricas no anuncia dos veces; `aria-controls` apunta solo al panel que existe; `.metrics-track` no es enfocable; «/» solo actúa con el foco en la página o el escenario; el anillo de foco de «Ver lista» no se recorta; el contador del carrusel tiene ancho fijo.
-- **Diseño (§4).**
-  - Tarjetas compactas cuando la pista no da el alto (container query): confianza y factibilidad siempre a la vista a 1280×800, 1440 y 390 en Misión.
-  - Panel izquierdo con dos regiones de scroll: la Lectura empieza a 471 px a 1440×900. Los perfiles predefinidos se pliegan cuando hay resultados.
-  - Hoja lateral (844×390): la bandeja usa el alto de la hoja y el rótulo del pin cede ante la línea.
-  - El hover táctil ya no queda pegado: solo el foco de teclado lo publica, se limpia al desmontar y `clearSelection` lo borra.
-- **Rendimiento (§6.1).**
-  - JS inicial: 119,1 → 111,9 KB gz (base 857b05f: 100,0; +11,9 ≤ +12). Para eso `buildMetricViews`, `layoutLeaders` y `pickPrincipalMetrics` salieron de los índices (se importan directo desde los chunks diferidos), y Método y Fuentes se cargan al abrir su pestaña.
-  - Validadores: un módulo por chunk. El snapshot va en el principal; el catálogo ◆ en `analogCatalog`; la interpretación en el de misión; paquete y análisis en el de Lectura.
-  - El chunk `engine` baja de 15,6 a 8,5 KB gz. `lktronClient` se descarga solo si se usa.
-  - PlaceRail ya no fuerza un layout síncrono en el arranque: el FLIP mide en el primer cuadro.
+## Integración revisada por Codex para dev
 
-### Cómo ejecutarlo
+- Conservados el globo 3D, paso automático a mapa 2D, liquid glass, ficha flotante, desglose de magnitudes, series mensuales y despliegue del equipo. La aplicación carga v3 y sus siete imágenes; Yungay aparece como REF, fuera de los seis puestos, también en globo, mapa y selector.
+- La sección Búsqueda mantiene el alcance de 50 ventanas, los descartes, filtro por país y mapa SVG auditable. Las series Sentinel-2 cubren los siete sitios; no intervienen en los scores. Sin modificar fórmulas, pesos ni artefactos científicos v2/v3.
+- ADR-006/007 conservados del rediseño; el ADR de descubrimiento pasa a ADR-008. `CLAUDE.md` refleja el stack actual. El ZIP v2 actualizado por el equipo se conserva como histórico; los once hashes del baseline científico v2 siguen intactos.
+- Verificación: `source .venv/bin/activate && npm run verify` → 177 Python, 69 web y build correctos. `npm run release:package` → 30 archivos, 12.865.983 bytes, SHA-256 `804184d6015440fa073e451bfea376fc9b1c9ae6b672e133094cd528ac3af12b`. Empaquetado repetido idéntico y entradas cotejadas con dist.
+- Revisión del ZIP bajo `/AnalogOS/`: candidato argentino y su imagen Sentinel-2 real en mapa 2D, referencia Yungay, filtro Argentina, vista de escritorio y móvil de 390 px sin desborde horizontal. Sin errores de aplicación registrados en el servidor de producción local. Captura: `submission/assets/analogos-integrated-dev.jpg`.
+- Archivos grandes versionados: ZIP v3, siete PNG de contexto y basemaps/texturas del equipo. Datos crudos y credenciales permanecen locales e ignorados. El mapa puede usar GIBS público como mejora opcional; el núcleo y las imágenes están empaquetados.
+- La autorización incluye `dev`; no cambia el alcance científico ni inicia una nueva tarea a Claude. Próximos pasos: cruce territorial oficial, bibliografía completa de la Puna y contraste climático local.
 
-- `npm run test` y `npm run build` desde la raíz.
-- `/tmp/claude-venv314/bin/python -m pytest -q`.
-- Recorrido: `node /tmp/claude-srv/serve.mjs apps/web/dist 4398` y luego `node /tmp/claude-pw/integ-4398.mjs` (smoke) y `node /tmp/claude-pw/fixes-4398.mjs` (hallazgos).
-
-### Pruebas
-
-- `npm run test`: 57 archivos y 856 tests en verde. Nuevos: `tests/comparison.test.ts`, la estabilidad de misión en los 3 presets, el léxico de orden y los cuantificadores, `rank_fact`, `pinUnfocusable`, `confidenceRiseNote`, atribución y aviso del armazón, transparencia reducida, bucles y contraste del pulgar.
-- `npm run build`: verde (validate 9/9, validadores `--check`, tsc estricto, vite y prune).
-- pytest: 170 passed, 1 skipped (NASADEM opcional).
-- Navegador (Chrome for Testing con Metal, :4398), sin errores de consola:
-  - smoke de integración: 34/34 a 1440 y 390 táctil;
-  - hallazgos: 35/35 a 1440, 1280×800, 390×844 táctil y 844×390 táctil (foco, popover, atribución, estabilidad, Comparar, Señal, tarjetas, objetivos táctiles).
-- Lighthouse 12.6.0, mediana de 3 corridas intercaladas contra 857b05f (mismo servidor brotli):
-  - móvil: puntaje 74 contra 75; LCP 5,4 contra 5,0 s; TBT 204 contra 180 ms; CLS 0 contra 0,10;
-  - escritorio: puntaje 98 contra 99; LCP 1,1 contra 0,8 s; TBT 0 contra 39 ms; CLS 0,0003 contra 0,047.
-- ZIP de entrega en `/tmp/claude-rel/final.zip` (59 archivos, sha256 en `/tmp/claude-rel/FINAL.txt`). `submission/` no se tocó.
-
-### Archivos cambiados
-
-- **Armazón:** `shell/AppShell.tsx` (foco, Esc, orden, main/h1, atribución), `shell/attribution.ts` (nuevo), `shell/shell.css`, `shell/tokens.css`, `shell/Tabs.tsx`, `shell/detail/FullDetail.tsx`, `content/shell.ts`, `features/boot/loadingHints.ts`, `state/ui.ts`.
-- **Cifras:** `features/engine/{scoreMission,types,demoMatcher}.ts`, `features/metrics/{metricContext,metricText,summaryText,buildMetricViews,MetricRail,MetricDetails,MetricViz,index}.ts(x)`, `components/CandidateComparison.tsx`, `domain/formatting.ts`.
-- **IA:** `features/analysis/{analysisTokens,eventGate,types,ReadingView,runtime}.ts(x)`.
-- **Composer:** `MissionComposer.tsx`, `MissionPanel.tsx`, `Composer.tsx`, `model.ts`, `missionRun.ts`, `composer-form.css`.
-- **Globo y lugares:** `features/globe/{CandidateGlobe,MapStage,markers}.ts(x)`, `features/places/{PlaceRail,referenceAnalogs,analogCatalog,index}.ts(x)`, `places.css`, `features/boot/StatusChip.tsx`, `features/leaders/{LeaderLayer,LeaderCanvas,index}.ts(x)`.
-- **Contratos:** `scripts/build-validators.mjs`, `domain/validators.*.generated.*`, `domain/{contracts,aiContracts,interpretationContract,referenceAnalogContract}.ts`.
-- **Legado:** `components/{SignalCard,SurfaceSignals,VisualContext}.tsx`, `styles.css`, `liquid/liquid-glass.css`.
-- **Documentación:** `docs/BUILD_CONTRACTS.md`, `docs/PERFORMANCE.md`, `project/CHANGELOG.md`.
-
-### Decisiones nuevas
-
-- `ScoredSite.stability` (opcional) es parte de la salida del motor TS. No cambia ningún esquema JSON.
-- Interfaz de features: `buildMetricViews`, `layoutLeaders` y `pickPrincipalMetrics` ya no se reexportan desde los índices; se importan desde su módulo. `featureContracts.test.ts` y `BUILD_CONTRACTS.md` quedan actualizados.
-- La regla «el motor fija el orden» queda en el filtro: la IA no escribe léxico de orden y cita `{{site:…:rank}}`.
-- «Variabilidad térmica» pasa a «Rango térmico» en todas las superficies.
-
-### Bloqueos y pendientes reales
-
-- **Lighthouse móvil, LCP 5,4 s contra 5,0 s (Lantern).** El LCP es la línea de atribución que pinta React con el JS principal, con una demora de render de unos 4,9 s. Hay una copia idéntica en el HTML estático, pero Chrome igual toma la de React como candidato. Pendiente: confirmar por qué la copia estática no cuenta, o adelantar el render del armazón.
-- **Diferidos sobre su presupuesto:**
-  - Misión: MissionPanel 3,2 + missionRun 5,0 + motor 8,5 ≈ 17 KB, contra ≤8.
-  - Lectura: deferred 14,2 KB, contra ≤10.
-  - Líneas: LeaderCanvas 6,7 + buildMetricViews compartido 2,0, contra ≤4.
-  - Marcadores: 5,7 KB, contra ≤4.
-  - El chunk `deferred` se sigue pidiendo al entrar en Misión ≥1440, porque el panel izquierdo muestra la Lectura de hechos de inmediato.
-- **Low no corregidos (no triviales):**
-  - Precisión desigual de Jezero («11 m»): cambiarla altera la huella del paquete y obliga a regenerar el pregenerado.
-  - La línea móvil corta por la franja del HUD de 2 filas.
-  - El rótulo atenuado bajo 0,6 sigue visible.
-  - Textos truncados del riel y del dock.
-  - La bitácora sobre el disco a 1440.
-  - El chunk MarkerLayer.
-  - `reference_analogs.json` pesa 3,2 KB (límite 3).
-- **Sin probar:** lktron real, VoiceOver y TalkBack.
-- **Aprobaciones:** ADR-008, ADR-009 (equipo científico) y ADR-010 siguen propuestos. El vocabulario DEMO y los presets están pendientes de revisión de producto. Las cifras de los ◆ siguen «por calcular» hasta que haya datos.
-
-### Próximos 3 pasos
-
-1. Aprobación humana de ADR-008, ADR-009 y ADR-010, y revisión del vocabulario DEMO y los presets.
-2. Diferidos de misión y Lectura: cargar `deferred` al abrir la Lectura y separar `MissionPanel` del arranque de la pestaña. Medir LCP móvil con trazas reales (no Lantern).
-3. Incremento 11: VoiceOver y TalkBack, lktron real contra el mock, regenerar el pregenerado si se unifica la precisión de Jezero y empaquetar `submission/` cuando el equipo lo apruebe.
-
-### Corrección posterior a la revisión (Claude, verificación propia)
-
-- En Misión, la fila de sugerencias «Refinar» tapaba las tarjetas de lugares recién ordenadas, porque el foco sigue en el campo tras enviar (1280×800 y 390×844). Ahora solo aparece antes de los resultados; el selector «Tu perfil» cubre el cambio de perfil (`showPresetChips`, con test).
-- Pendientes de pulido (low): en móvil se trunca la cabecera del carrusel y la línea Tesla cruza la franja de la leyenda.
-
-## Rediseño Explorar / Misión — integración de los incrementos 3–10 (2026-11-14, Claude, rama `feature/mision-redesign`)
-
-Los 8 constructores trabajaron en paralelo según `docs/BUILD_CONTRACTS.md`. El integrador fusionó sus ramas con `--no-ff`, en este orden: engine, places, globe, metrics, leaders, boot, composer y analysis. No hubo conflictos de texto: cada rama tocó solo su carpeta. Después de cada fusión se corrió `npm run test`.
-
-### Qué funciona
-
-- **Explorar.**
-  - Arranque «Órbita honesta» con hitos reales que se pliegan en el chip «Snapshot v2 · 3 evaluados · 8 por calcular».
-  - Globo con marcadores ● ◆ ○, agrupación «Chile · 3 ●», vuelo y teclado.
-  - Carrusel con 3 sectores evaluados y 7 ◆ con fuente citada, sin % ni ranking.
-  - Píldora «✦ Lectura de la comparativa».
-- **Lugar seleccionado.**
-  - Riel de métricas ordenado por peso. El limitante sale de `contribution`, ■ Jezero aparece solo en la topografía y el riel marca «satura» y el valor regional compartido.
-  - Líneas Tesla con 4 etiquetas, sin cruces y fuera de los paneles.
-  - En móvil, S1 con pestañas y una sola línea hacia la hoja.
-- **Misión DEMO, sin red.**
-  - El composer interpreta con el matcher «DEMO · sin IA».
-  - `profileFromLevels` arma el perfil y `scoreMission` (motor 1.0.0, paridad ≤1e-6 con `pipelines/scoring.py`) da el orden. Resultado: Yungay 72,6 · Domeyko 68,4 · María Elena 44,6.
-  - Un solo anuncio, el #1 en vista previa, «Tu misión» con niveles, Deshacer, historial y presets.
-  - La Lectura se arma desde los hechos del motor. El análisis pregenerado solo se muestra si coincide su huella FNV (perfil base); con un perfil de misión, la Lectura queda en «Solo hechos del motor · sin IA».
-- **Paso a 2D y vuelta**, en el globo y en el mapa.
-
-### Integración: cambios del integrador
-
-- **Slots y obstáculos** (`shell/AppShell.tsx`, `features/globe/MapStage.tsx`):
-  - `onListViewChange` cableado: «Ver lista» en la bandeja abre S1 con `sheet.list`, y cerrarla vuelve a S0.
-  - `data-obstacle` en la píldora `pill.reading`, la franja del HUD (`.stage-dock`) y los controles + − ⌂ (`.stage-controls`).
-  - Los obstáculos se vuelven a medir después de que el escenario aplica los márgenes asentados. Antes se medían un render antes y la franja del HUD quedaba en su posición vieja.
-  - Resultado: en Misión a 1440 las etiquetas ya no tapan + − ⌂.
-- **Globo ↔ líneas** (`shell/shell.css`): si la columna de líneas va a la derecha, se oculta el rótulo del pin seleccionado, que el globo dibuja a la derecha. El nombre y el % siguen en el riel.
-- **Rótulo del pin ↔ paneles** (`features/globe/MarkerLayer.tsx`, `markers.css`):
-  - En Misión a 1440, el panel izquierdo desplaza el globo y la cola del rótulo («◆ coincide con Desierto de Atacama · Yungay») quedaba bajo el riel derecho. A 390 se cortaba en el borde de la pantalla.
-  - Ahora `applyPinFrame` escribe `--pin-x` en el mismo paso por cuadro que la posición, sin estado de React. El rótulo tiene `max-width` hasta el borde del área libre (`--inset-right`).
-  - Se acorta con «…» primero la insignia. Con hoja (<1100 px) la insignia se omite y, si hace falta, se acorta el nombre. El % y el puesto nunca se cortan.
-  - El texto completo sigue en el nombre accesible del pin y en la tarjeta del carrusel. En Explorar a 1440 el rótulo se ve entero, como antes.
-- **Composer:**
-  - `matchMissionDemo` recibe `{ id, version }` del perfil cargado, como pide engine.
-  - La franja «Refinar» tiene fondo sólido; antes se mezclaba con las tarjetas del carrusel.
-- **Tests:**
-  - El test del stub del motor en `featureContracts.test.ts` ahora fija la regla honesta sin condición: perfil vacío y perfil base inutilizable → «por calcular».
-  - Se retiró el caso «solo stub» del composer.
-  - `analysis/integration.test.ts` ya no se salta: falla si metrics o engine vuelven a ser stubs.
-  - La aserción del composer usa el `OrbitLoader` real (`boot-inline`).
-- **Bundler** (`vite.config.ts`): `codeSplitting.groups = [{ tags: ['$initial'] }]`. Todo lo que la entrada importa de forma estática va en un único chunk inicial. Sin esto, Rolldown partía la ruta crítica en ~18 `modulepreload`, incluido código diferido de analysis. Ahorro: −5,7 KB gz de JS y −0,5 KB gz de CSS. Los chunks diferidos no cambian.
-- **Empaquetador** (`scripts/package_release.py`): admite `analysis/ai-analysis.default.json` como opcional y con nombre fijo, más un test.
-- **Limpieza:** se quitaron de `liquid/` las reglas muertas `.globe-label` y `.globe-callout`.
-- **Reproducibilidad del pregenerado:** el generador de `artifacts/analysis/ai-analysis.default.json` estaba solo en `/tmp`. Ahora vive en `scripts/make_pregenerated_analysis.py` y reproduce el archivo commiteado byte a byte con `fnv1a64:a6e090bf523550de`. `features/analysis/README.md` explica cómo regenerarlo.
-- **Ramas:** las 8 ramas `build/*` se borraron con `git branch -d`, porque todas están fusionadas. Sus worktrees en `.claude/worktrees/wf_e97c78e8-41a-*` quedaron en HEAD separado, en el último commit de cada rama, y se pueden quitar con `git worktree remove`.
-
-### Cómo ejecutarlo
-
-- `npm run dev`, o `npm run build && node /tmp/claude-srv/serve.mjs apps/web/dist 4395`.
-- Para probar Misión: pestaña Misión, escribir p. ej. «probar navegación autónoma de un rover en terreno rocoso» y pulsar Enter.
-- lktron es opcional: `VITE_LKTRON_URL`, ver `features/analysis/README.md`.
-
-### Pruebas
-
-- `npm run test`: 56 archivos y 817 tests en verde, sin omitidos.
-- `npm run build`: verde (validate 9/9, validadores `--check`, tsc estricto, vite y prune).
-- `/tmp/claude-venv314/bin/python -m pytest -q`: 170 passed, 1 skipped. El omitido es el test opcional de NASADEM.
-- `scripts/package_release.py` contra el build integrado, con destino en `/tmp`: el ZIP incluye `analysis/ai-analysis.default.json`. `submission/` no se tocó.
-- Navegador (build servido en :4395, Chrome for Testing con GPU Metal; script `/tmp/claude-pw/integ-4395.mjs`): 34/34 comprobaciones OK, 21 en escritorio y 13 en móvil. Capturas en `/tmp/claude-pw/shots-4395/`. Incluye que el rótulo del pin seleccionado no pase del área libre: a 1440 en Misión termina en x = 1034 con límite 1042; a 390 en S1, en x = 382 con límite 390.
-  - **1440×900:** Explorar (globo, 10 marcadores, carrusel 3 ● + 7 ◆, chip, píldora); selección (riel con 7 criterios, líneas en modo `lines`); Misión DEMO (orden del motor, un anuncio, «Tu misión», Lectura con hechos y rótulos, % del motor en el riel, etiquetas sin tapar + − ⌂); 2D con «Acercar» y vuelta con «Vista global»; 0 errores de consola.
-  - **390×844 táctil:** S0 con carrusel; «Ver lista» → S1; tocar una tarjeta → S1 con métricas y una línea; Misión DEMO con anuncio; S2 «Lectura IA» con hechos; 2D y vuelta; sin scroll horizontal; 0 errores de consola.
-  - Avisos previos, sin cambio: `THREE.Clock` obsoleto y preload de texturas con distinto modo de credenciales.
-- Peso de la carga inicial, contado desde el manifiesto (`/tmp/initial-size.cjs`, gzip -9):
-  - JS: 116,6 KB gz, contra 98,8 en `857b05f` y 101,4 en `ffd9ce0` (+17,8 KB respecto de `857b05f`).
-  - CSS: 14,6 KB gz, contra 10,8 en `857b05f` (+3,8 KB).
-  - Antes del ajuste del bundler eran 122,3 KB de JS y 15,1 KB de CSS.
-- Lighthouse 12.6, mediana de 3 corridas intercaladas contra el build de `857b05f` (`/tmp/analogos-boot-base`, servido en :4396; prefijo `INTEG3` en `/tmp/claude-lh/`):
-
-  | | Puntaje | FCP | LCP | TBT | SI |
-  |---|---|---|---|---|---|
-  | Móvil · `857b05f` | 75 | 2,0 s | 5,0 s | 172 ms | 2,9 s |
-  | Móvil · integrado | 75 | 2,1 s | 5,3 s | 196 ms | 2,8 s |
-  | Escritorio · `857b05f` | 98 | 0,4 s | 1,0 s | 24 ms | 0,8 s |
-  | Escritorio · integrado | 98 | 0,5 s | 1,1 s | 0 ms | 0,7 s |
-
-  - En móvil el LCP sube 0,3 s. El LCP es un texto: el composer, antes la pregunta del panel. Lo que sube es el «render delay» (4,56 → 4,83 s), es decir, el JS de arranque. Coincide con el exceso de JS inicial (ver pendientes).
-
-### Decisiones nuevas
-
-- Un único chunk inicial (`$initial`) en lugar del reparto automático de Rolldown. Es reversible: es una línea de `vite.config.ts`.
-- Si las líneas Tesla van a la derecha del anillo, manda la columna sobre el rótulo del pin seleccionado.
-- ADR-008, ADR-009 y ADR-010 siguen en estado **propuesto**.
-
-### Bloqueos y pendientes reales
-
-- **Presupuesto §6.1 excedido.** Cada constructor gastó una parte y la suma supera el límite:
-  - JS inicial: +17,8 KB gz contra +≤12. Sobran ~5,8 KB. En Lighthouse móvil se nota como +0,3 s de LCP (5,0 → 5,3 s, mediana de 3).
-  - Peso por feature en el chunk inicial:
-    - places: PlaceRail + modelo, ≈ 6–8 KB;
-    - composer: formulario, ≈ 5 KB;
-    - metrics: MetricRail + `buildMetricViews`, ≈ 6 KB;
-    - boot: ≈ 4 KB;
-    - analysis: controlador + píldora, ≈ 3 KB;
-    - leaders: `layoutLeaders`, ≈ 3 KB.
-  - Candidatos para diferir: el controlador de analysis (cargarlo al entrar en fase `analysis`), `layoutLeaders`/`pickPrincipalMetrics` (solo los usa el chunk diferido) y `buildMetricViews` junto con el riel.
-  - Diferidos, contra su presupuesto:
-
-    | Chunk | Peso (gz) | Presupuesto |
-    |---|---|---|
-    | Marcadores (MarkerLayer) | 5,7 KB | ≤4 |
-    | Líneas (LeaderCanvas) | 5,1 KB | ≤4 |
-    | Misión (missionRun 5,0 + MissionPanel 3,3 + motor 6,1, sin los validadores) | ≈ 14 KB | ≤8 |
-    | Lectura (deferred 13,8 + lktronClient 3,2) | 17 KB | ≤10 con validadores |
-
-  - Validadores de misión: ≈ 9,4 KB, compartidos entre misión y lectura.
-  - El riel (MetricDetails, 7,2 KB) sí cumple.
-- **Pestaña Señal:** `SignalCard` todavía interpola cifras (odómetro), y §2.2 lo prohíbe. Sigue pendiente del integrador: es un componente de 1.200 líneas anterior al rediseño.
-- **Sin cablear, opcionales:**
-  - «¿Por qué este orden?» del composer: falta un hook `onOpenReading` para abrir la Lectura bajo 1440.
-  - `ReadingSnippet` de analysis en las tarjetas del riel de métricas (§3.6, «✦ Lectura para tu misión»).
-  - `MapStage.onSelectReference`: sin ese prop, el globo escribe `ui.selection` con `kind: 'reference'`, que es lo esperado.
-- **Contenido pendiente de revisión:**
-  - El análisis pregenerado está atado a la huella del paquete base `fnv1a64:a6e090bf523550de`. Si cambian metrics, engine o el snapshot, `integration.test.ts` falla y hay que revisar el texto y regenerarlo con `scripts/make_pregenerated_analysis.py`.
-  - El vocabulario DEMO y las descripciones de los presets son decisiones de producto por revisar.
-  - ADR-009 necesita la aceptación del equipo científico.
-- **Sin probar en navegador:** lktron real (solo con el mock NDJSON de analysis) y VoiceOver/TalkBack (incremento 11).
-
-### Próximos 3 pasos
-
-1. Bajar el JS inicial a +≤12 KB gz: diferir el controlador de analysis, `layoutLeaders` y `buildMetricViews`, y medir con `/tmp/initial-size.cjs`.
-2. Incremento 11 (QA): VoiceOver y TalkBack, reduced transparency, CPU ×4 en el arrastre de la hoja, ZIP sin conexión, y `docs/` y `DEMO_ACCEPTANCE`.
-3. Aceptación humana de ADR-008, ADR-009 y ADR-010, y retirar la interpolación de `SignalCard`.
-
-## Rediseño Explorar / Misión — incrementos 0–2 (2026-11-14, Claude, rama `feature/mision-redesign`)
-
-Especificación: `docs/UX_REDESIGN.md`. El trabajo en paralelo se reparte según `docs/BUILD_CONTRACTS.md`.
-
-### Qué funciona
-
-**Escenario fijo (sin scroll del documento):**
-- Globo con paso a 2D y datos reales del snapshot v2.
-- Pestañas Explorar | Misión.
-- Dock con lugares y composer.
-- Riel derecho al seleccionar, con «Ver ficha completa»: Métricas · Lectura IA · Señal · Comparar · Método · Fuentes.
-- Panel izquierdo en Misión ≥1440.
-- Hoja S0/S1/S2 en <1100: manija con teclado, arrastre, Atrás/Esc y `inert` en S2.
-- La tecla «/» abre el composer.
-- El globo se centra en el área libre (`insets`).
-
-**Contratos:** cuatro esquemas nuevos con validadores precompilados (`validators.mission.generated.js` va diferido). Tipos en `domain/aiContracts.ts`.
-
-**Stubs honestos de las 8 features**, montados en sus slots:
-- places: lista simple;
-- metrics: ficha existente;
-- composer: píldora y textarea sin envío;
-- analysis y boot: rótulos «por calcular»;
-- engine: sectores «por calcular»;
-- leaders: no dibuja.
-
-### Cómo ejecutarlo
-
-- `npm run dev`, o `npm run build && node /tmp/claude-srv/serve.mjs apps/web/dist 4390`.
-- Tests: `npm run test` y `/tmp/claude-venv314/bin/python -m pytest -q`.
-
-### Pruebas
-
-- 141 web (16 archivos), 165 Python con 1 omitido, y build con `--check` de validadores en verde.
-- Navegador (Chromium con GPU) a 1440×900, 1280×800 y 390×844:
-  - 0 errores de consola;
-  - selección → riel o S1; ficha completa y pestañas; Esc;
-  - «/» → `?modo=mision` con foco en el textarea;
-  - rueda → mapa 2D, también con el panel izquierdo abierto;
-  - S2 con escenario `inert` y Atrás → S1; arrastre de la manija → S0;
-  - un dedo sobre el globo no desplaza el documento.
-- Avisos previos, sin cambio: `THREE.Clock` obsoleto y preload de texturas con distinto modo de credenciales.
-
-### Decisiones nuevas
-
-ADR-008, ADR-009 y ADR-010, en estado **propuesto**.
-
-### Pendiente
-
-- `SignalCard` (pestaña Señal) aún interpola cifras: §2.2 lo prohíbe; lo corrige el integrador.
-- Las etiquetas del globo siguen en naranja al seleccionar (incremento 4).
-
-### Próximos 3 pasos
-
-1. Lanzar los 8 constructores en worktrees según `docs/BUILD_CONTRACTS.md` (engine primero en el orden de fusión).
-2. Aceptación humana de ADR-008/009/010.
-3. Integrar rama por rama: tests, build, navegador y Lighthouse contra `857b05f`.
 
 ## Fusión en `dev` (2026-11-14, Claude, decisión directa del equipo)
 
@@ -306,6 +42,8 @@ ADR-008, ADR-009 y ADR-010, en estado **propuesto**.
 
 ## Modelo de trabajo activo
 
+- Dan autorizó ampliar la visión a AnalogOS global, buscar candidatos en Chile y Argentina y mantener Yungay como referencia conocida. Encargo `M7-GLOBAL-DISCOVERY` aceptado; Claude espera una nueva asignación. La entrega v2 de abajo es histórica. La autorización posterior permite actualizar `dev`.
+
 - Codex dirige producto, ciencia, arquitectura, prioridades, revisión y release.
 - Claude implementa solo tareas asignadas en `project/NEXT_TASK.md` y entrega en estado `review`.
 - La rama de implementación es `dev`; `main` queda reservada para entregas revisadas.
@@ -313,6 +51,33 @@ ADR-008, ADR-009 y ADR-010, en estado **propuesto**.
 - Encargo `M6-PORTABLE-RELEASE`: implementado por Claude, corregido tras revisión y aceptado por Codex (12:44). Dan autorizó su commit y push a `dev` (12:48); Claude espera una nueva asignación.
 
 - Encargo `M4-VISUAL-EVIDENCE`: implementado por Claude, corregido tras revisión y aceptado por Codex (13:54). Dan autorizó su commit y push a `dev` (14:15); Claude espera una nueva asignación.
+
+## Entrega M7 aceptada (Codex, 15:33)
+
+Revisión independiente en `docs/CODEX_M7_REVIEW.md`: 167 pruebas Python, 39 web y build; scores y selección recalculados, rebuild v2/v3 byte a byte, cachés sin red, ZIP determinista y navegador en raíz/subcarpeta. ADR-008 aceptado. La aceptación del software no certifica novedad ni aptitud de campo.
+
+AnalogOS con piloto Chile–Argentina. Búsqueda real sobre 50 ventanas de ~20 km en dos regiones de prueba; seis candidatos preseleccionados y Yungay como referencia conocida, fuera del ranking.
+
+| Rol | Sitio | Similitud | Confianza | Estabilidad | Factibilidad |
+|---|---|---:|---:|---:|---|
+| Candidato 1 | `cl-win-s2500-w06970` · 25,0° S, 69,7° O | 94,87 | 77,45 | 99,33 | requiere revisión |
+| Candidato 2 | `cl-win-s2480-w06950` · 24,8° S, 69,5° O | 91,87 | 77,45 | 99,03 | requiere revisión |
+| Candidato 3 | `cl-win-s2520-w06950` · 25,2° S, 69,5° O | 90,35 | 77,36 | 99,08 | requiere revisión |
+| Candidato 4 | `ar-win-s2620-w06750` · 26,2° S, 67,5° O | 63,85 | 77,00 | 95,88 | requiere revisión |
+| Candidato 5 | `ar-win-s2640-w06730` · 26,4° S, 67,3° O | 53,68 | 77,25 | 96,81 | requiere revisión |
+| Candidato 6 | `ar-win-s2580-w06710` · 25,8° S, 67,1° O | 49,43 | 77,40 | 96,81 | requiere revisión |
+| Referencia | `cl-pampa-yungay-screening` | 75,67 | 77,45 | 99,03 | requiere revisión |
+
+- Etapa 1: 50 ventanas evaluadas (≈ 22.274 km²); 4 excluidas por contener coordenadas de muestreo publicadas, 2 por cercanía, 38 fuera del cupo, 6 preseleccionadas.
+- Ningún candidato se declara nuevo: ambas regiones tienen antecedentes y los seis quedan como `regional_precedent`.
+- Los argentinos bajan sobre todo por el contexto climático POWER (celda MERRA-2 mayor que la ventana); no se cambiaron pesos ni valores.
+- Las siete imágenes Sentinel-2 muestran trazas y estructuras a contrastar; van como advertencia en cada ficha.
+- Snapshot v2, paquete visual v2 y ZIP v2 intactos (`git diff --quiet HEAD` sobre ellos devuelve 0).
+- Entregable nuevo: `submission/analogos-static.zip` (18 archivos, 9.012.267 bytes, sha256 `3b419d770f1a1dce5e01f7345aaafef3f33ca18df4d2f73e6d3fb8c7c9853415`).
+- Verificado: 167 tests Python, 39 tests web, build, empaquetado repetido idéntico, demo por HTTP en `/AnalogOS/`.
+- Detalle: `docs/DISCOVERY_REPORT.md`, ADR-008 (`accepted`) y el reporte en `project/NEXT_TASK.md`.
+
+Próximos tres pasos: cruce territorial con capas oficiales de IDE Chile e IDERA; revisión bibliográfica con textos completos y coordenadas de la Puna; contraste local del clima. Requieren una nueva asignación, sin ampliar automáticamente regiones ni pesos.
 
 ## Rediseño integrado — rama `redesign/planeta-3d` (2026-11-14 13:10)
 
@@ -330,35 +95,6 @@ Fusiona dos ramas: el globo 3D (`redesign/planeta-3d`) y el rediseño visual (`r
 - **Decisiones:** ADR-007 (antes ADR-004) amplía el stack con three.js sin retirar ADR-001. Las series mensuales no entran al score y no se interpolan meses faltantes.
 - **Bloqueos:** ninguno técnico. Abierto: con zoom, el globo se ve pixelado, porque Blue Marble tiene ~10 km por píxel. Propuesta evaluada, pendiente de decisión del usuario: hornear offline parches NASA GIBS, HLS S30 a 30 m por sector y MODIS a 250 m regional.
 - **Próximos pasos:** 1) ~~aceptar ADR-007~~ aceptado por el equipo; 2) decidir la mejora de textura con GIBS; 3) revisar en el equipo de presentación real.
-
-## Optimización máxima — `dev` (2026-11-14 17:15, Claude, pedido directo del equipo)
-
-- **Qué cambió:**
-  - Validadores Ajv precompilados.
-  - Armazón estático en `index.html` y armazón inmediato en React.
-  - Precarga de datos desde el HTML.
-  - Secciones bajo el pliegue diferidas.
-  - Mapa 2D instanciado al empezar a acercarse.
-  - Póster del globo en escritorio.
-  - Textura 2K/4K adaptativa.
-  - Detalle en `docs/PERFORMANCE.md`.
-- **Mediciones** (mediana de 5, mismo servidor): escritorio 99 en `dev` y en `main`, con Speed Index de 0,7 s contra 0,8 s. Móvil: TBT de 148 ms contra 222 ms y LCP observado de 140 ms contra 482 ms. El LCP móvil simulado por Lighthouse empata (~5 s en ambas).
-- **Pruebas:** web, Python, build, `package_release.py`, flujo completo en navegador y ZIP sin conexión (ver CHANGELOG).
-- **Pendiente:** medir en producción después de desplegar; `.fixture-banner` en móvil salta ~5 px al llegar los datos (la regla de `styles.css` pisa la altura reservada).
-
-## Nitidez y carga — `dev` (2026-11-14 15:45, Claude, pedido directo del equipo)
-
-- **Problema reportado:** el globo Blue Marble se pixelaba al hacer zoom (la textura 2K de la iteración anterior era insuficiente) y la carga era lenta.
-- **Qué cambió:**
-  - Textura progresiva 1K → 4K WebP.
-  - El paso al 2D ocurre al acercarse ~×1,4 desde la vista global (`flatThresholds`, según la pantalla), donde Blue Marble ~500 m ya es nítido.
-  - La precarga del 2D espera a que el globo esté listo.
-  - Sentinel-2 en el mapa como WebP derivado (229 KB contra 3,4 MB), ligado al SHA del PNG original.
-  - Mundo local para el 2D sin conexión.
-- **Mediciones** (`docs/PERFORMANCE.md`; 8 Mbps, gzip): globo de 2,9 s a 1,9 s; bytes de la sesión de 5,6 MB a 3,4 MB.
-- **Rust:** evaluado y descartado con datos. La CPU es ~0,4 s, el render ya va en GPU, no hay backend y lo que domina son los bytes.
-- **Pruebas:** 129 Python pasan y 1 se omite; 58 web; build, `package_release.py` (ZIP de 29 archivos) y ZIP sin conexión bajo `/AnalogOS/` sin fallas.
-- **Próximos pasos:** 1) medir en producción (Vercel) con Brotli y caché; 2) decidir si conviene la proyección globo de MapLibre (ver PERFORMANCE.md); 3) aceptar ADR-006 y ADR-007.
 
 ## Rendimiento y precarga — rama `redesign/planeta-3d` (2026-11-14 14:55, Claude)
 
@@ -387,7 +123,7 @@ Fusiona dos ramas: el globo 3D (`redesign/planeta-3d`) y el rediseño visual (`r
 
 ## Resultado disponible
 
-La vista final consume `artifacts/science-v2/`, no fixtures.
+La app consume `artifacts/science-v3/` (ver la sección anterior). La tabla siguiente es el snapshot v2, que se conserva como histórico.
 
 | Rank | Sector | Similitud | Confianza | Estabilidad | Factibilidad |
 |---:|---|---:|---:|---:|---|
@@ -397,7 +133,9 @@ La vista final consume `artifacts/science-v2/`, no fixtures.
 
 Interpretación obligatoria: es un screening de escritorio para ordenar investigación. No aprueba sitios ni autoriza acceso.
 
-## Qué funciona
+## Base funcional heredada de v2
+
+Los conteos y nombres de los tres sectores en esta sección describen el histórico v2; el resultado activo v3 y su entrega están arriba. El comportamiento de ranking, mapa, ficha, comparador y exportación se amplió a los siete sitios y ambos países.
 
 - Pipeline autenticado con Earthdata Login y OAuth Copernicus; ningún secreto se persiste en artefactos.
 - NASADEM_HGT.001 mosaico multitesela; Yungay usa correctamente cuatro tiles antes de agregarse a ~473 m.
@@ -437,14 +175,16 @@ Interpretación obligatoria: es un screening de escritorio para ordenar investig
 
 ## Limitaciones abiertas
 
-- No existe barrido nacional exhaustivo; se evaluaron tres sectores semilla de 0,2°.
+- No existe barrido nacional exhaustivo: v3 evalúa 50 ventanas en dos regiones de prueba; v2 evaluaba tres sectores semilla de 0,2°.
 - Geología sigue fuera del score por falta de revisión experta.
 - No se intersectaron capas oficiales de urbano, áreas sensibles, propiedad o acceso; agua sí está screenada.
 - La resolución ~460–480 m no evalúa obstáculos o tracción a escala de rueda.
 - Falta inspección Worldview/imagen reciente y revisión experta, si el tiempo lo permite. El contexto Sentinel-2 de diciembre de 2025 es un avance parcial: muestra trazas rectilíneas y estructuras geométricas en Yungay y María Elena que son hipótesis a contrastar con capas oficiales, no hechos comprobados.
 - La estabilidad mide cambio de score por un peso a la vez; no es incertidumbre científica total.
 
-## Verificación ejecutada
+## Verificación histórica de v2
+
+La revisión actual de M7 está en `docs/CODEX_M7_REVIEW.md`. Los resultados siguientes corresponden a los hitos previos y sus ZIP históricos.
 
 | Comando | Resultado |
 |---|---|
@@ -473,18 +213,28 @@ El build estático queda en `apps/web/dist/` (~3,2 MiB; ZIP ~2,2 MiB, casi todo 
 npm install
 npm run dev
 
-# Ciencia v2 desde fuentes autenticadas
+# Entorno y ciencia histórica v2 (también aporta la referencia Yungay)
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[dev]'
 python -m pipelines.fetch_precision_data
 python -m pipelines.build_precision_snapshot
 
+# Piloto activo v3; descargas acotadas y reutilización de caché
+python -m pipelines.fetch_discovery_data --stage tiles
+python -m pipelines.discover_candidates
+python -m pipelines.fetch_discovery_data --stage sources
+python -m pipelines.build_context_outline
+python -m pipelines.build_discovery_snapshot
+python -m pipelines.fetch_visual_context --snapshot v3
+
 # Auditoría completa
 npm run verify
 ```
 
 ## Archivos grandes/no versionables
+
+M7 añade siete teselas NASADEM (~102 MB), estadísticas e inventario de seis ventanas y el registro de adquisición en `data/raw/`; ver rutas exactas en `docs/DISCOVERY_REPORT.md`. La lista siguiente describe los insumos históricos reutilizados.
 
 - `data/raw/mola/megt44n000hb.img`: ~124 MiB.
 - `data/raw/nasadem/*.zip`: seis archivos, ~61 MiB combinados.
@@ -499,11 +249,12 @@ npm run verify
 - `docs/decisions/ADR-003-authenticated-precision-snapshot-v2.md`
 - `docs/decisions/ADR-004-portable-static-release.md`
 - `docs/decisions/ADR-005-offline-visual-context.md`
+- `docs/decisions/ADR-006-global-discovery-pilot.md`
 
 ## Acciones humanas antes de enviar
 
 1. Grabar el video usando `submission/VIDEO_SHOT_LIST.md`.
-2. Publicar `apps/web/dist/` o `submission/analogos-chile-static.zip`.
+2. Publicar, cuando se autorice, `apps/web/dist/` o `submission/analogos-static.zip` (v3).
 3. Probar demo/repositorio/video en incógnito y completar sus URLs.
 4. Añadir integrantes y contribuciones del equipo.
 5. Guardar el comprobante de envío.

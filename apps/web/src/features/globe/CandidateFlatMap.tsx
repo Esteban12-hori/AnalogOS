@@ -42,7 +42,7 @@ export type FlatCommand = { kind: 'zoom'; delta: number; nonce: number }
 
 interface CandidateFlatMapProps {
   candidates: CandidateSite[]
-  chileOutline: GeoJsonFeatureCollection
+  outline: GeoJsonFeatureCollection
   basemaps: Basemap[]
   markerInput: MarkerInput
   selection: StageSelection | null
@@ -279,7 +279,7 @@ function readEntries(features: GeoJSONFeature[]): FlatEntry[] {
 
 export default function CandidateFlatMap({
   candidates,
-  chileOutline,
+  outline,
   basemaps,
   markerInput,
   selection,
@@ -404,7 +404,7 @@ export default function CandidateFlatMap({
     if (!container) return
     const map = new MapLibreMap({
       container,
-      style: buildStyle(basemaps, chileOutline, candidates),
+      style: buildStyle(basemaps, outline, candidates),
       center: [entry.lon, entry.lat],
       zoom: entry.zoom,
       minZoom: thresholds.exit - 0.6,

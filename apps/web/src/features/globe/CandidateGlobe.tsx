@@ -93,7 +93,7 @@ export interface StageSelection {
 
 interface CandidateGlobeProps {
   candidates: CandidateSite[]
-  chileOutline: GeoJsonFeatureCollection
+  outline: GeoJsonFeatureCollection
   markerInput: MarkerInput
   selection: StageSelection | null
   hoverId: string | null
@@ -707,7 +707,7 @@ const INTRO_PENDING_LIMIT_MS = 1500
 
 export default function CandidateGlobe({
   candidates,
-  chileOutline,
+  outline,
   markerInput,
   selection,
   hoverId,
@@ -866,7 +866,7 @@ export default function CandidateGlobe({
           {/* Fallback nulo: un <Html> de drei como fallback falla al retirarse con React 19. */}
           <Suspense fallback={null}>
             <Earth onReady={markReady} onDetailReady={onDetailReady} />
-            <ChileOutline outline={chileOutline} trace={trace} />
+            <ChileOutline outline={outline} trace={trace} />
             {footprints.map(({ id, rings, pending }) =>
               rings.map((ring, index) => (
                 <ZoneLine

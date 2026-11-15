@@ -1,0 +1,100 @@
+name: Deploy a Vercel
+
+# Despliega con un token de la cuenta dueña del proyecto, de modo que
+# el autor del commit no importe. URLs fijas y cortas:
+#   main -> produccion -> https://analogos.vercel.app
+#   dev  -> preview    -> https://analogos-dev.vercel.app
+on:
+  push:
+    branches: [main, dev]
+
+concurrency:
+  group: vercel-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VERCEL_ORG_ID: team_A583nI4RAGtbkFJEUldqWYEy
+  VERCEL_PROJECT_ID: prj_212cKp3iwgPNItQuyQrPrzWbjVHJ
+  DEV_ALIAS: analogos-dev.vercel.app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Determinar entorno
+        id: env
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "target=production" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=--prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "target=preview" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Vercel pull
+        run: vercel pull --yes --environment=${{ steps.env.outputs.target }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Vercel build
+        run: vercel build ${{ steps.env.outputs.prod_flag }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Comprobar arranque de la función empaquetada
+        run: node scripts/check-vercel-function.mjs
+
+      - name: Vercel deploy
+        id: deploy
+        env:
+          # Solo dev recibe la clave, desde GitHub Secrets y en runtime (no en el build).
+          ANTHROPIC_API_KEY: ${{ github.ref == 'refs/heads/dev' && secrets.ANTHROPIC_API_KEY || '' }}
+        run: |
+          AI_ARGS=()
+          if [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+            if [ -z "$ANTHROPIC_API_KEY" ]; then
+              echo "Falta el secreto ANTHROPIC_API_KEY para la IA de dev." >&2
+              exit 1
+            fi
+            AI_ARGS=(--env "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" --env "ANTHROPIC_MODEL=claude-sonnet-5-5")
+          fi
+          URL=$(vercel deploy --prebuilt ${{ steps.env.outputs.prod_flag }} "${AI_ARGS[@]}" --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Desplegado: $URL"
+
+      - name: Alias fijo para dev
+        if: github.ref == 'refs/heads/dev'
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          # La CLI de alias consulta el usuario incluso con scope explícito.
+          # La API asigna directamente en el equipo del despliegue.
+          node --input-type=module <<'JS'
+          const { DEPLOYMENT_URL, DEV_ALIAS, VERCEL_ORG_ID, VERCEL_TOKEN } = process.env;
+          const deployment = new URL(DEPLOYMENT_URL);
+          if (deployment.protocol !== 'https:' || !deployment.hostname.endsWith('.vercel.app')) {
+            throw new Error('URL de despliegue inesperada');
+          }
+          const endpoint = new URL(`https://api.vercel.com/v2/deployments/${encodeURIComponent(deployment.hostname)}/aliases`);
+          endpoint.searchParams.set('teamId', VERCEL_ORG_ID);
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${VERCEL_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ alias: DEV_ALIAS }),
+            signal: AbortSignal.timeout(30000),
+          });
+          const result = await response.json();
+          if (!response.ok || result.alias !== DEV_ALIAS) {
+            throw new Error(`Alias no asignado (${response.status}): ${result.error?.message ?? 'respuesta inesperada'}`);
+          }
+          console.log(`dev disponible en https://${result.alias}`);
+          JS

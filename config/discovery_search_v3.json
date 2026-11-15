@@ -1,0 +1,89 @@
+{
+  "search_id": "analogos-pilot-cl-ar-v3",
+  "snapshot_version": "science-screening-v3",
+  "created_at": "2026-11-14T18:19:27Z",
+  "description": "Experimento regional acotado del piloto Chile–Argentina. Las dos regiones son una selección de prueba, no una muestra representativa nacional ni regiones garantizadas inéditas.",
+  "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+  "window_size_degree": 0.2,
+  "regions": [
+    {
+      "region_id": "cl-antofagasta-interior",
+      "country": "CL",
+      "name": "Interior de Antofagasta",
+      "bbox": [
+        -70.0,
+        -25.5,
+        -69.0,
+        -24.5
+      ],
+      "columns": 5,
+      "rows": 5
+    },
+    {
+      "region_id": "ar-puna-catamarca-salta",
+      "country": "AR",
+      "name": "Puna de Catamarca y Salta",
+      "bbox": [
+        -67.8,
+        -26.5,
+        -66.8,
+        -25.5
+      ],
+      "columns": 5,
+      "rows": 5
+    }
+  ],
+  "stage1": {
+    "name": "prioridad topográfica",
+    "min_valid_fraction": 0.95,
+    "max_permanent_water_fraction": 0.05,
+    "criteria": [
+      {
+        "id": "slope",
+        "weight": 0.2,
+        "unit": "degree"
+      },
+      {
+        "id": "terrain_roughness",
+        "weight": 0.2,
+        "unit": "meter"
+      },
+      {
+        "id": "local_relief",
+        "weight": 0.15,
+        "unit": "meter"
+      }
+    ],
+    "epsilon": 0.01
+  },
+  "selection": {
+    "max_per_country": 3,
+    "min_center_distance_km": 25,
+    "order": "prioridad topográfica descendente; empate por window_id"
+  },
+  "precedents": {
+    "catalog": "config/analog_precedents_v1.json",
+    "proximity_km": 25
+  },
+  "limits": {
+    "max_windows": 50,
+    "max_multisource_windows": 6,
+    "max_new_nasadem_tiles": 20,
+    "max_rgb_images": 6,
+    "attempts_per_request": 3
+  },
+  "reference": {
+    "site_id": "cl-pampa-yungay-screening",
+    "source_config": "config/science_snapshot_v2.json",
+    "source_snapshot": "science-screening-v2",
+    "note": "Ventana de screening v2; no es el perímetro exacto de cada campaña histórica en Yungay."
+  },
+  "sources": {
+    "science_config": "config/science_snapshot_v2.json",
+    "sentinel2_file": "data/raw/copernicus/sentinel2_stats_2025_v3.json",
+    "power_file": "data/raw/power/climatology_points_v3.json",
+    "inventory_file": "data/raw/earthdata/cmr_inventory_v3.json",
+    "acquisition_log": "data/raw/discovery/acquisition_v3.json",
+    "visual_observations": "config/visual_observations_v3.json"
+  }
+}

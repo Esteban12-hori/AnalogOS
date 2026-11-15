@@ -3,12 +3,12 @@
  * Métricas · Lectura IA · [Tu misión] · Señal · Comparar · Método · Fuentes.
  * Métricas, Lectura y Tu misión son slots de features; el resto, contenido existente.
  */
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { MissionCard } from '../../features/composer'
 import { MetricRail } from '../../features/metrics'
 import { ReadingPanel } from '../../features/analysis'
 import type { CandidateSite } from '../../domain/contracts'
-import { useMission } from '../../state/mission'
+import { rankMap, splitByRole } from '../../domain/discovery'
 import { uiActions, useUi } from '../../state/ui'
 import type { AppData } from '../appData'
 import { panelId, TabList, type TabItem } from '../Tabs'
@@ -57,13 +57,9 @@ export function FullDetail({ data, site, placement, onShowOnMap }: FullDetailPro
   const snapshot = data.snapshot
   const prefix = `detail-${placement}`
   const items: TabItem<DetailTab>[] = tabs.map((id) => ({ id, label: LABELS[id] }))
-  // Comparar usa el MISMO perfil que la cabecera y el riel: en Misión, orden y cifras del motor.
-  const missionProfile = useMission((state) => state.profile)
-  const scoring = useMission((state) => state.scoring)
-  const mission =
-    mode === 'mision' && missionProfile !== null && scoring !== null && scoring.profileId === missionProfile.id
-      ? { label: missionProfile.label, engineVersion: scoring.engineVersion, sites: scoring.sites }
-      : null
+  // Comparar: candidatos en su orden global y la referencia conocida aparte (ADR-008).
+  const roles = useMemo(() => splitByRole(snapshot?.candidates ?? []), [snapshot])
+  const rankOf = useMemo(() => rankMap(roles.ranked), [roles])
 
   return (
     <div className="full-detail" data-placement={placement}>
@@ -80,11 +76,11 @@ export function FullDetail({ data, site, placement, onShowOnMap }: FullDetailPro
         {tab === 'comparar' && snapshot && (
           <Suspense fallback={<Pending />}>
             <CandidateComparison
-              candidates={snapshot.candidates}
+              ranked={roles.ranked}
+              references={roles.references}
+              rankOf={rankOf}
               selectedId={site.site_id}
               onSelect={(id) => uiActions.select(id)}
-              baseLabel={`perfil base v${snapshot.profile.version}`}
-              mission={mission}
             />
           </Suspense>
         )}

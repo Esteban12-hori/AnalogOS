@@ -4,7 +4,8 @@
  * pipelines/scoring.py, ±20 % por peso, renormalizado); aquí solo se comparan órdenes.
  * Funciones puras: sin stores ni red.
  */
-import { CRITERION_IDS, isCriterionId, type CandidateSite, type CriterionId, type MissionProfile } from '../../domain/contracts'
+import type { CandidateSite, CriterionId, MissionProfile } from '../../domain/contracts'
+import { CRITERION_IDS, isCriterionId } from '../../domain/criteria'
 import type { AggregateCriterion, AggregateInput, SensitivityResult } from '../engine'
 
 /** Perturbación que usa el pipeline (scoring.py) y el motor TS por defecto. */

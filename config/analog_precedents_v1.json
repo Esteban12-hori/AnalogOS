@@ -1,0 +1,391 @@
+{
+  "catalog_id": "analog-precedents-v1",
+  "catalog_version": "1.0.0",
+  "reviewed_at": "2026-11-14",
+  "reviewed_by": "Claude Code (revisión documental sin validación experta)",
+  "scope_note": "Catálogo incompleto y acotado a las fuentes listadas. No encontrar una coincidencia aquí no prueba que una ventana sea nueva. Un punto de muestreo no delimita toda una campaña.",
+  "relation_definitions": {
+    "contains_published_sampling_coordinate": "La ventana contiene al menos una coordenada de muestreo impresa en la fuente.",
+    "study_area_overlap": "La fuente publica una geometría de área de estudio que se superpone a la ventana.",
+    "proximity_heuristic": "Hay una coordenada publicada a 25 km o menos del centro de la ventana. Es una heurística de cercanía, no el perímetro del estudio.",
+    "regional_precedent": "La fuente describe actividad análoga en la región de búsqueda sin coordenadas utilizables."
+  },
+  "precedents": [
+    {
+      "precedent_id": "cl-atacama-transect-navarro-gonzalez-2003",
+      "name": "Transecto norte–sur de Atacama (24–28° S), con núcleo en Yungay",
+      "country": "CL",
+      "activity": "Muestreo de suelos (1997–2003) para materia orgánica, bacterias cultivables y ADN recuperable; describe suelos tipo Marte en el área de Yungay y el límite seco de la vida microbiana.",
+      "spatial_precision": "Coordenadas de muestreo publicadas al segundo de arco. El área de estudio es un transecto centrado en ~70° W entre 24° S y 28° S, no un punto.",
+      "study_area": {
+        "description": "Transecto norte–sur centrado en ~70° W entre 24° S y 28° S",
+        "geometry": null
+      },
+      "region_ids": [
+        "cl-antofagasta-interior"
+      ],
+      "points": [
+        {
+          "label": "AT97-3",
+          "as_published": "S 23° 18’ 56.4”, W 70° 25’ 4.4”",
+          "latitude": -23.315667,
+          "longitude": -70.417889
+        },
+        {
+          "label": "AT03-39",
+          "as_published": "S 24° 3’ 33.0”, W 69° 52’ 11.3”",
+          "latitude": -24.059167,
+          "longitude": -69.869806
+        },
+        {
+          "label": "AT03-38",
+          "as_published": "S 24° 3’ 38.8”, W 69° 52’ 5.3”",
+          "latitude": -24.060778,
+          "longitude": -69.868139
+        },
+        {
+          "label": "AT03-44",
+          "as_published": "S 24° 3’ 41.8”, W 69° 54’ 29.8”",
+          "latitude": -24.061611,
+          "longitude": -69.908278
+        },
+        {
+          "label": "AT03-37",
+          "as_published": "S 24° 3’ 44.0”, W 69° 51’ 53.3”",
+          "latitude": -24.062222,
+          "longitude": -69.864806
+        },
+        {
+          "label": "AT03-36",
+          "as_published": "S 24° 3’ 50.2”, W 69° 51’ 51.2”",
+          "latitude": -24.063944,
+          "longitude": -69.864222
+        },
+        {
+          "label": "AT03-35",
+          "as_published": "S 24° 4’ 0.4”, W 69° 51” 49.7”",
+          "latitude": -24.066778,
+          "longitude": -69.863806
+        },
+        {
+          "label": "AT03-48",
+          "as_published": "S 24° 4’ 0.9”, W 69° 52’ 11.6”",
+          "latitude": -24.066917,
+          "longitude": -69.869889
+        },
+        {
+          "label": "AT03-34",
+          "as_published": "S 24° 4’ 6.2”, W 69° 51’ 48.4”",
+          "latitude": -24.068389,
+          "longitude": -69.863444
+        },
+        {
+          "label": "AT03-33",
+          "as_published": "S 24° 4’ 6.8’, W 69° 51’ 58.1”",
+          "latitude": -24.068556,
+          "longitude": -69.866139
+        },
+        {
+          "label": "AT02-03D",
+          "as_published": "S 24° 4’ 7.1”, W 69° 51’ 57.7”",
+          "latitude": -24.068639,
+          "longitude": -69.866028
+        },
+        {
+          "label": "AT02-03E",
+          "as_published": "S 24° 4’ 8.3”, W 69° 52’ 50.1”",
+          "latitude": -24.068972,
+          "longitude": -69.880583
+        },
+        {
+          "label": "AT02-03C",
+          "as_published": "S 24° 4’ 8.9”, W 69° 51’ 54.5”",
+          "latitude": -24.069139,
+          "longitude": -69.865139
+        },
+        {
+          "label": "AT01-03, AT02-03A",
+          "as_published": "S 24° 4’ 9.6”, W 69° 51’ 58.8”",
+          "latitude": -24.069333,
+          "longitude": -69.866333
+        },
+        {
+          "label": "AT02-03B",
+          "as_published": "S 24° 4’ 11.1”, W 69° 51’ 58.1”",
+          "latitude": -24.06975,
+          "longitude": -69.866139
+        },
+        {
+          "label": "AT03-50",
+          "as_published": "S 24° 4’ 27.2”, W 69° 52’ 55.4”",
+          "latitude": -24.074222,
+          "longitude": -69.882056
+        },
+        {
+          "label": "AT03-49",
+          "as_published": "S 24° 4’ 32.6”, W 69° 52’ 38.3”",
+          "latitude": -24.075722,
+          "longitude": -69.877306
+        },
+        {
+          "label": "AT01-12",
+          "as_published": "S 24° 6’ 10.2”, W 70° 1’ 9.7”",
+          "latitude": -24.102833,
+          "longitude": -70.019361
+        },
+        {
+          "label": "AT02-31",
+          "as_published": "S 24° 17’ 29.8”, W 69° 58’ 0.3”",
+          "latitude": -24.291611,
+          "longitude": -69.96675
+        },
+        {
+          "label": "AT02-30",
+          "as_published": "S 24° 24’ 1.9”, W 69° 55’ 45.2”",
+          "latitude": -24.400528,
+          "longitude": -69.929222
+        },
+        {
+          "label": "AT02-29",
+          "as_published": "S 24° 34’ 26.2”, W 69° 47’ 44.8”",
+          "latitude": -24.573944,
+          "longitude": -69.795778
+        },
+        {
+          "label": "AT02-28",
+          "as_published": "S 24° 49’ 1.2”, W 69° 47’ 2”",
+          "latitude": -24.817,
+          "longitude": -69.783889
+        },
+        {
+          "label": "AT02-26",
+          "as_published": "S 24° 54’ 15.8”, W 69° 54’ 28.7”",
+          "latitude": -24.904389,
+          "longitude": -69.907972
+        },
+        {
+          "label": "AT02-27",
+          "as_published": "S 25° 4’ 6”, W 69° 53’ 17.1”",
+          "latitude": -25.068333,
+          "longitude": -69.888083
+        },
+        {
+          "label": "AT01-16, AT02-16",
+          "as_published": "S 25° 18’ 17.4”, W 69° 50’ 32.2”",
+          "latitude": -25.304833,
+          "longitude": -69.842278
+        },
+        {
+          "label": "AT01-24, AT02-24",
+          "as_published": "S 25° 45’ 36.9”, W 70° 11’ 46.5”",
+          "latitude": -25.76025,
+          "longitude": -70.19625
+        },
+        {
+          "label": "AT01-17",
+          "as_published": "S 25° 47’ 46.7”, W 69° 50’ 39.2”",
+          "latitude": -25.796306,
+          "longitude": -69.844222
+        },
+        {
+          "label": "AT01-19",
+          "as_published": "S 26° 2’ 9.2”, W 69° 51’ 52.2”",
+          "latitude": -26.035889,
+          "longitude": -69.8645
+        },
+        {
+          "label": "AT01-23, AT02-23",
+          "as_published": "S 27° 1’ 17.4”, W 70° 17’ 40.7”",
+          "latitude": -27.0215,
+          "longitude": -70.294639
+        },
+        {
+          "label": "AT01-22, AT02-22",
+          "as_published": "S 28° 7’ 4.5”, W 69° 55’ 8”",
+          "latitude": -28.117917,
+          "longitude": -69.918889
+        }
+      ],
+      "sources": [
+        {
+          "title": "Navarro-González et al. (2003). Mars-like Soils in the Atacama Desert, Chile, and the Dry Limit of Microbial Life. Science 302(5647). Supporting Online Material.",
+          "url": "https://www.astro.uantof.cl/wp-content/uploads/2015/06/navarro.SOM_.pdf",
+          "accessed_at": "2026-11-14",
+          "finding": "Lista 30 sitios con coordenadas; 17 dentro de la ventana de referencia de Yungay y 5 dentro de la región de búsqueda chilena."
+        },
+        {
+          "title": "Registro PubMed del artículo (PMID 14605363)",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/14605363/",
+          "accessed_at": "2026-11-14",
+          "finding": "Referencia bibliográfica; la página no mostró contenido sin cookies en esta revisión."
+        }
+      ]
+    },
+    {
+      "precedent_id": "cl-atacama-rover-field-tests-astep",
+      "name": "Ensayos de rover «Life in the Atacama» (Hyperion 2003; Zoë 2004)",
+      "country": "CL",
+      "activity": "Programa ASTEP de la NASA para probar detección de vida con un rover operado por un equipo científico remoto.",
+      "spatial_precision": "Desierto de Atacama, sin coordenadas en la fuente revisada. No prueba ocupación continua del polígono de Yungay ni de ninguna ventana.",
+      "study_area": {
+        "description": "Desierto de Atacama (sin localización en la fuente revisada)",
+        "geometry": null
+      },
+      "region_ids": [
+        "cl-antofagasta-interior"
+      ],
+      "points": [],
+      "sources": [
+        {
+          "title": "NASA Astrobiology (2005-03-13). Dry Signs of Life.",
+          "url": "https://astrobiology.nasa.gov/news/dry-signs-of-life/",
+          "accessed_at": "2026-11-14",
+          "finding": "Describe la temporada 2004 y la fase 2003 con Hyperion; no da coordenadas."
+        }
+      ]
+    },
+    {
+      "precedent_id": "cl-maria-elena-south-2015",
+      "name": "María Elena South (MES)",
+      "country": "CL",
+      "activity": "Sitio descrito como más seco que Yungay, con bacterias viables en el perfil de suelo; propuesto como modelo análogo de Marte.",
+      "spatial_precision": "Topónimo; el resumen revisado no da coordenadas. No se asume que coincida con la ventana «Pampa María Elena» del snapshot v2.",
+      "study_area": {
+        "description": "Entorno de María Elena, fuera de las dos regiones de búsqueda",
+        "geometry": null
+      },
+      "region_ids": [],
+      "points": [],
+      "sources": [
+        {
+          "title": "Azua-Bustos, Caro-Lara y Vicuña (2015). Discovery and microbial content of the driest site of the hyperarid Atacama Desert, Chile. Environ Microbiol Rep 7(3):388–394.",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25545388/",
+          "accessed_at": "2026-11-14",
+          "finding": "Resumen leído; sin coordenadas."
+        }
+      ]
+    },
+    {
+      "precedent_id": "ar-puna-catamarca-antofagasta-de-la-sierra",
+      "name": "Puna catamarqueña, entorno de Antofagasta de la Sierra",
+      "country": "AR",
+      "activity": "Geología planetaria comparada: yardangs, megaóndulas y crestas eólicas transversales (TAR), volcanismo; salidas de campo y vuelos de dron.",
+      "spatial_precision": "Topónimos sin coordenadas en las fuentes revisadas: Campo de Piedra Pómez, Dunas Blancas, campo de megaóndulas, volcán Carachi Pampa con su salar y laguna, y el entorno de Antofagasta de la Sierra. No se asignan coordenadas a esos nombres.",
+      "study_area": {
+        "description": "Puna Austral / puna catamarqueña (sin geometría publicada en las fuentes revisadas)",
+        "geometry": null
+      },
+      "region_ids": [
+        "ar-puna-catamarca-salta"
+      ],
+      "points": [],
+      "sources": [
+        {
+          "title": "Universidad Nacional de Catamarca, Facultad de Tecnología y Ciencias Aplicadas (2025-04-08). La puna catamarqueña, un sitio con similitudes al planeta Marte.",
+          "url": "https://tecno.unca.edu.ar/la-puna-catamarquena-un-sitio-con-similitudes-al-planeta-martela-puna-catamarquena-un-sitio/",
+          "accessed_at": "2026-11-14",
+          "finding": "Nombra los sitios visitados y cita estudios previos del IDEAN (CONICET–UBA); no da coordenadas."
+        },
+        {
+          "title": "Rojas, M. C. (2021). Estudio de las megaóndulas de la Puna Austral, y su relevancia para el planeta Marte. Tesis; ficha CONICET.",
+          "url": "https://bicyt.conicet.gov.ar/fichas/produccion/12391989",
+          "accessed_at": "2026-11-14",
+          "finding": "Resumen parcial sobre megaóndulas y TAR; no da coordenadas."
+        }
+      ]
+    },
+    {
+      "precedent_id": "cl-yungay-station-arads-2017",
+      "name": "Estación Yungay — primera campaña ARADS (2017)",
+      "country": "CL",
+      "activity": "Prueba de un taladro de detección de vida y transferencia robótica de muestras del proyecto Atacama Rover Astrobiology Drilling Studies.",
+      "spatial_precision": "Topónimo (Yungay Station); la nota revisada no da coordenadas. Refuerza a Yungay como referencia conocida; no delimita un polígono.",
+      "study_area": {
+        "description": "Estación Yungay, núcleo hiperárido de Atacama",
+        "geometry": null
+      },
+      "region_ids": [],
+      "points": [],
+      "sources": [
+        {
+          "title": "NASA Astrobiology (2017-04-25). NASA Tests Life-Detection Drill in the Mars-Like Atacama Desert.",
+          "url": "https://astrobiology.nasa.gov/news/nasa-tests-life-detection-drill-in-the-atacama-desert/",
+          "accessed_at": "2026-11-14",
+          "finding": "El trabajo de la campaña fue principalmente en Yungay Station; sin coordenadas."
+        }
+      ]
+    },
+    {
+      "precedent_id": "ar-high-altitude-andean-lakes-astrobiology",
+      "name": "Lagos andinos de altura (HAAL) como laboratorios de astrobiología",
+      "country": "AR",
+      "activity": "Depósitos sedimentarios y comunidades microbianas de lagos de altura propuestos como análogos para geología planetaria y astrobiología.",
+      "spatial_precision": "Topónimos (Laguna Negra, Laguna de Alumbrea) sin coordenadas en los resúmenes revisados. Su posición respecto de la región de búsqueda no se verificó, así que no se asocia a ninguna ventana.",
+      "study_area": {
+        "description": "Lagos de altura de los Andes argentinos; ubicación no verificada en esta revisión",
+        "geometry": null
+      },
+      "region_ids": [],
+      "points": [],
+      "sources": [
+        {
+          "title": "Gomez et al. (2022). High-Altitude Andean Lakes as Natural Laboratories for Planetary Geology and Astrobiology Research: The Laguna Negra case (Argentina). EPSC2022-822.",
+          "url": "https://meetingorganizer.copernicus.org/EPSC2022/EPSC2022-822.html",
+          "accessed_at": "2026-11-14",
+          "finding": "Presenta los lagos andinos de altura como análogos; sin coordenadas en el resumen."
+        },
+        {
+          "title": "Tatton et al. (2022). Scratching beneath the surface of a Mars analogue site: Microbial stratification in Laguna de Alumbrea. EPSC2022-1152.",
+          "url": "https://meetingorganizer.copernicus.org/EPSC2022/EPSC2022-1152.html",
+          "accessed_at": "2026-11-14",
+          "finding": "Describe un sitio análogo de Marte de gran altitud; sin coordenadas en el resumen."
+        }
+      ]
+    }
+  ],
+  "context_sources": [
+    {
+      "title": "NASA Space Apps Challenge 2026: Permanent Moon Base Locations and Mars",
+      "url": "https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/",
+      "note": "Enunciado del desafío; no es un antecedente de sitio."
+    },
+    {
+      "title": "Navarro-González et al. (2010), JGR Planets, doi:10.1029/2010JE003599",
+      "url": "https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/2010JE003599",
+      "note": "Señalada por Codex como fuente con coordenadas de muestreo; no se pudo leer en esta revisión, así que no aporta coordenadas al catálogo."
+    }
+  ],
+  "searches": [
+    {
+      "date": "2026-11-14",
+      "scope": "Región argentina: megaóndulas y geoformas eólicas de la Puna cerca de las ventanas preseleccionadas",
+      "query": "gravel-mantled megaripples Argentinean Puna Mars analog Carachi Pampa Campo de Piedra Pómez coordinates study site",
+      "finding": "La búsqueda identificó literatura revisada por pares sobre megaóndulas de la Puna como análogo de Marte (de Silva et al. 2013, GSA Bulletin, doi:10.1130/B30916.1; Bridges et al. 2015, Aeolian Research, doi:10.1016/j.aeolia.2015.01.007; un estudio de 2020 en Icarus sobre Campo de Piedra Pómez; Zimbelman et al. 2023, PSJ, doi:10.3847/PSJ/accdd9). No se obtuvieron coordenadas: los resultados no las muestran y el registro ADS pidió verificación humana, que no se intentó sortear. Los textos completos quedan sin revisar.",
+      "sources": [
+        "https://ri.conicet.gov.ar/handle/11336/18486",
+        "https://ui.adsabs.harvard.edu/abs/2020Icar..34613765F"
+      ]
+    },
+    {
+      "date": "2026-11-14",
+      "scope": "Región argentina: lagunas de altura y astrobiología cerca de las ventanas preseleccionadas",
+      "query": "Laguna Diamante Galán caldera Catamarca astrobiology Mars analog extremophiles study",
+      "finding": "Hay estudios de extremófilos en Laguna Diamante (caldera del Galán) y resúmenes EPSC 2022 que presentan lagos andinos de altura como análogos (Laguna Negra, Laguna de Alumbrea). Ninguna fuente revisada da coordenadas ni permite afirmar que esos lagos estén dentro de una ventana preseleccionada. Queda pendiente verificarlo con cartografía y textos completos.",
+      "sources": [
+        "https://www.conicet.gov.ar/ecosistema-a-la-antigua",
+        "https://meetingorganizer.copernicus.org/EPSC2022/EPSC2022-822.html",
+        "https://meetingorganizer.copernicus.org/EPSC2022/EPSC2022-1152.html"
+      ]
+    },
+    {
+      "date": "2026-11-14",
+      "scope": "Región chilena: sitios análogos con coordenadas cerca de las tres ventanas preseleccionadas (24,7–25,3° S; 69,4–69,8° O)",
+      "query": "Atacama Desert Mars analog field site 25°S 69.5°W Antofagasta interior Taltal astrobiology sampling coordinates",
+      "finding": "No apareció una fuente con coordenadas dentro de las tres ventanas. Aparecieron antecedentes del desierto en general: ARADS en Yungay Station (2017), el sitio Red Stone al sur de Antofagasta (2023) y el proyecto Life in the Atacama. Esto no prueba que las ventanas carezcan de antecedentes: el transecto de Navarro-González et al. (2003) pasa a menos de 25 km de una de ellas y cruza la región.",
+      "sources": [
+        "https://astrobiology.nasa.gov/news/nasa-tests-life-detection-drill-in-the-atacama-desert/",
+        "https://link.springer.com/10.1038/s41467-023-36172-1"
+      ]
+    }
+  ]
+}

@@ -23,7 +23,9 @@ const snapshot: DemoSnapshot = {
   candidates,
   manifest: read('artifacts/science-v2/manifest.json') as DataManifest,
   profile: read('artifacts/science-v2/mission-profile.json') as MissionProfile,
-  chileOutline: { type: 'FeatureCollection', features: [] },
+  outline: { type: 'FeatureCollection', features: [] },
+  search: null,
+  precedents: null,
   surfaceSeries: new Map(),
   marsReference: null,
 }

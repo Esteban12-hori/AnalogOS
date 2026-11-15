@@ -4,13 +4,370 @@ import * as __dep0 from 'ajv/dist/runtime/ucs2length.js'
 import * as __dep1 from 'ajv-formats/dist/formats.js'
 const __interop = (m) => (typeof m.default === 'function' ? m.default : m.default?.default ?? m)
 export const validateCandidate = validate20;
-const schema31 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://analogos.cl/schemas/candidate-site.schema.json","title":"AnalogOS Candidate Site","type":"object","additionalProperties":false,"required":["site_id","name","profile_id","profile_version","data_snapshot_version","pipeline_version","geometry","area_km2","status","similarity","confidence","feasibility","stability","score_breakdown","warnings","limitations","field_checks","evidence"],"properties":{"site_id":{"type":"string","pattern":"^cl-[a-z0-9-]+$"},"name":{"type":"string","minLength":1},"profile_id":{"type":"string"},"profile_version":{"type":"string"},"data_snapshot_version":{"type":"string"},"pipeline_version":{"type":"string"},"geometry":{"$ref":"#/$defs/polygonGeometry"},"area_km2":{"type":"number","exclusiveMinimum":0},"status":{"enum":["fixture","candidate","insufficient_data","excluded"]},"similarity":{"type":["number","null"],"minimum":0,"maximum":100},"confidence":{"type":"number","minimum":0,"maximum":100},"feasibility":{"enum":["unknown","requires_review","potentially_feasible","excluded"]},"stability":{"type":["number","null"],"minimum":0,"maximum":100},"score_breakdown":{"type":"array","items":{"$ref":"#/$defs/scoreItem"}},"warnings":{"type":"array","items":{"type":"string"}},"limitations":{"type":"array","minItems":1,"items":{"type":"string"}},"field_checks":{"type":"array","minItems":1,"items":{"type":"string"}},"evidence":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["evidence_id","dataset_id","claim","source_url"],"properties":{"evidence_id":{"type":"string"},"dataset_id":{"type":"string"},"claim":{"type":"string"},"source_url":{"type":"string","format":"uri"}}}}},"$defs":{"polygonGeometry":{"type":"object","additionalProperties":false,"required":["type","coordinates"],"properties":{"type":{"enum":["Polygon","MultiPolygon"]},"coordinates":{"type":"array","minItems":1}}},"scoreItem":{"type":"object","additionalProperties":false,"required":["criterion_id","raw_value","unit","normalized_similarity","weight","contribution","quality","dataset_id","status","explanation"],"properties":{"criterion_id":{"type":"string"},"raw_value":{"type":["number","string","null"]},"unit":{"type":"string"},"normalized_similarity":{"type":["number","null"],"minimum":0,"maximum":1},"weight":{"type":"number","minimum":0,"maximum":1},"contribution":{"type":["number","null"]},"quality":{"type":"number","minimum":0,"maximum":1},"dataset_id":{"type":"string"},"status":{"enum":["valid","missing","needs_calibration","excluded"]},"explanation":{"type":"string"}}}}};
+const schema31 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://analogos.cl/schemas/candidate-site.schema.json","title":"AnalogOS Candidate Site","type":"object","additionalProperties":false,"required":["site_id","name","profile_id","profile_version","data_snapshot_version","pipeline_version","geometry","area_km2","status","similarity","confidence","feasibility","stability","score_breakdown","warnings","limitations","field_checks","evidence"],"properties":{"site_id":{"type":"string","pattern":"^(cl|ar)-[a-z0-9-]+$"},"name":{"type":"string","minLength":1},"profile_id":{"type":"string"},"profile_version":{"type":"string"},"data_snapshot_version":{"type":"string"},"pipeline_version":{"type":"string"},"geometry":{"$ref":"#/$defs/polygonGeometry"},"area_km2":{"type":"number","exclusiveMinimum":0},"status":{"enum":["fixture","candidate","reference","insufficient_data","excluded"]},"similarity":{"type":["number","null"],"minimum":0,"maximum":100},"confidence":{"type":"number","minimum":0,"maximum":100},"feasibility":{"enum":["unknown","requires_review","potentially_feasible","excluded"]},"stability":{"type":["number","null"],"minimum":0,"maximum":100},"score_breakdown":{"type":"array","items":{"$ref":"#/$defs/scoreItem"}},"warnings":{"type":"array","items":{"type":"string"}},"limitations":{"type":"array","minItems":1,"items":{"type":"string"}},"field_checks":{"type":"array","minItems":1,"items":{"type":"string"}},"evidence":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["evidence_id","dataset_id","claim","source_url"],"properties":{"evidence_id":{"type":"string"},"dataset_id":{"type":"string"},"claim":{"type":"string"},"source_url":{"type":"string","format":"uri"}}}},"country":{"enum":["CL","AR"]},"role":{"enum":["candidate","reference"]},"discovery":{"$ref":"#/$defs/discovery"},"literature_review":{"$ref":"#/$defs/literatureReview"}},"$defs":{"polygonGeometry":{"type":"object","additionalProperties":false,"required":["type","coordinates"],"properties":{"type":{"enum":["Polygon","MultiPolygon"]},"coordinates":{"type":"array","minItems":1}}},"scoreItem":{"type":"object","additionalProperties":false,"required":["criterion_id","raw_value","unit","normalized_similarity","weight","contribution","quality","dataset_id","status","explanation"],"properties":{"criterion_id":{"type":"string"},"raw_value":{"type":["number","string","null"]},"unit":{"type":"string"},"normalized_similarity":{"type":["number","null"],"minimum":0,"maximum":1},"weight":{"type":"number","minimum":0,"maximum":1},"contribution":{"type":["number","null"]},"quality":{"type":"number","minimum":0,"maximum":1},"dataset_id":{"type":"string"},"status":{"enum":["valid","missing","needs_calibration","excluded"]},"explanation":{"type":"string"}}},"precedentMatch":{"type":"object","additionalProperties":false,"required":["precedent_id","relation","in_region_with_precedent"],"properties":{"precedent_id":{"type":"string"},"relation":{"enum":["contains_published_sampling_coordinate","study_area_overlap","proximity_heuristic","regional_precedent"]},"in_region_with_precedent":{"type":"boolean"},"points":{"type":"array","minItems":1,"items":{"type":"string"}},"nearest_point":{"type":"string"},"distance_km":{"type":"number","minimum":0}}},"discovery":{"type":"object","additionalProperties":false,"required":["origin","search_id","region_id","window_id","selection_rank","topographic_priority","note"],"properties":{"origin":{"enum":["grid_search","known_reference"]},"search_id":{"type":"string"},"region_id":{"type":["string","null"]},"window_id":{"type":["string","null"]},"selection_rank":{"type":["integer","null"],"minimum":1},"topographic_priority":{"type":["number","null"],"minimum":0,"maximum":100},"source_snapshot":{"type":"string"},"note":{"type":"string"}}},"literatureReview":{"type":"object","additionalProperties":false,"required":["status","catalog_version","reviewed_at","matches","note"],"properties":{"status":{"enum":["known_reference","known_analogue_overlap","regional_precedent","literature_review_pending","no_match_in_reviewed_sources"]},"catalog_version":{"type":"string"},"reviewed_at":{"type":"string","format":"date"},"matches":{"type":"array","items":{"$ref":"#/$defs/precedentMatch"}},"note":{"type":"string","minLength":10}}}},"allOf":[{"if":{"properties":{"data_snapshot_version":{"pattern":"^science-screening-v3"}}},"then":{"required":["country","role","discovery","literature_review"]}},{"if":{"properties":{"country":{"const":"CL"}},"required":["country"]},"then":{"properties":{"site_id":{"pattern":"^cl-"}}}},{"if":{"properties":{"country":{"const":"AR"}},"required":["country"]},"then":{"properties":{"site_id":{"pattern":"^ar-"}}}},{"if":{"properties":{"role":{"const":"reference"}},"required":["role"]},"then":{"properties":{"status":{"const":"reference"},"discovery":{"properties":{"origin":{"const":"known_reference"}}},"literature_review":{"properties":{"status":{"const":"known_reference"}}}}},"else":{"properties":{"status":{"not":{"const":"reference"}},"discovery":{"properties":{"origin":{"const":"grid_search"}}},"literature_review":{"properties":{"status":{"not":{"const":"known_reference"}}}}}}}]};
 const schema32 = {"type":"object","additionalProperties":false,"required":["type","coordinates"],"properties":{"type":{"enum":["Polygon","MultiPolygon"]},"coordinates":{"type":"array","minItems":1}}};
 const schema33 = {"type":"object","additionalProperties":false,"required":["criterion_id","raw_value","unit","normalized_similarity","weight","contribution","quality","dataset_id","status","explanation"],"properties":{"criterion_id":{"type":"string"},"raw_value":{"type":["number","string","null"]},"unit":{"type":"string"},"normalized_similarity":{"type":["number","null"],"minimum":0,"maximum":1},"weight":{"type":"number","minimum":0,"maximum":1},"contribution":{"type":["number","null"]},"quality":{"type":"number","minimum":0,"maximum":1},"dataset_id":{"type":"string"},"status":{"enum":["valid","missing","needs_calibration","excluded"]},"explanation":{"type":"string"}}};
+const schema34 = {"type":"object","additionalProperties":false,"required":["origin","search_id","region_id","window_id","selection_rank","topographic_priority","note"],"properties":{"origin":{"enum":["grid_search","known_reference"]},"search_id":{"type":"string"},"region_id":{"type":["string","null"]},"window_id":{"type":["string","null"]},"selection_rank":{"type":["integer","null"],"minimum":1},"topographic_priority":{"type":["number","null"],"minimum":0,"maximum":100},"source_snapshot":{"type":"string"},"note":{"type":"string"}}};
+const pattern4 = new RegExp("^science-screening-v3", "u");
+const pattern5 = new RegExp("^cl-", "u");
+const pattern6 = new RegExp("^ar-", "u");
+const pattern7 = new RegExp("^(cl|ar)-[a-z0-9-]+$", "u");
 const func1 = Object.prototype.hasOwnProperty;
 const func2 = __interop(__dep0);
-const pattern4 = new RegExp("^cl-[a-z0-9-]+$", "u");
 const formats0 = __dep1.fullFormats.uri;
+const schema35 = {"type":"object","additionalProperties":false,"required":["status","catalog_version","reviewed_at","matches","note"],"properties":{"status":{"enum":["known_reference","known_analogue_overlap","regional_precedent","literature_review_pending","no_match_in_reviewed_sources"]},"catalog_version":{"type":"string"},"reviewed_at":{"type":"string","format":"date"},"matches":{"type":"array","items":{"$ref":"#/$defs/precedentMatch"}},"note":{"type":"string","minLength":10}}};
+const schema36 = {"type":"object","additionalProperties":false,"required":["precedent_id","relation","in_region_with_precedent"],"properties":{"precedent_id":{"type":"string"},"relation":{"enum":["contains_published_sampling_coordinate","study_area_overlap","proximity_heuristic","regional_precedent"]},"in_region_with_precedent":{"type":"boolean"},"points":{"type":"array","minItems":1,"items":{"type":"string"}},"nearest_point":{"type":"string"},"distance_km":{"type":"number","minimum":0}}};
+const formats2 = __dep1.fullFormats.date;
+
+function validate21(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate21.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.status === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "status"},message:"must have required property '"+"status"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.catalog_version === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "catalog_version"},message:"must have required property '"+"catalog_version"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+if(data.reviewed_at === undefined){
+const err2 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "reviewed_at"},message:"must have required property '"+"reviewed_at"+"'"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+if(data.matches === undefined){
+const err3 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "matches"},message:"must have required property '"+"matches"+"'"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(data.note === undefined){
+const err4 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "note"},message:"must have required property '"+"note"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+for(const key0 in data){
+if(!(((((key0 === "status") || (key0 === "catalog_version")) || (key0 === "reviewed_at")) || (key0 === "matches")) || (key0 === "note"))){
+const err5 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+}
+if(data.status !== undefined){
+let data0 = data.status;
+if(!(((((data0 === "known_reference") || (data0 === "known_analogue_overlap")) || (data0 === "regional_precedent")) || (data0 === "literature_review_pending")) || (data0 === "no_match_in_reviewed_sources"))){
+const err6 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema35.properties.status.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+}
+if(data.catalog_version !== undefined){
+if(typeof data.catalog_version !== "string"){
+const err7 = {instancePath:instancePath+"/catalog_version",schemaPath:"#/properties/catalog_version/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+if(data.reviewed_at !== undefined){
+let data2 = data.reviewed_at;
+if(typeof data2 === "string"){
+if(!(formats2.validate(data2))){
+const err8 = {instancePath:instancePath+"/reviewed_at",schemaPath:"#/properties/reviewed_at/format",keyword:"format",params:{format: "date"},message:"must match format \""+"date"+"\""};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+else {
+const err9 = {instancePath:instancePath+"/reviewed_at",schemaPath:"#/properties/reviewed_at/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+if(data.matches !== undefined){
+let data3 = data.matches;
+if(Array.isArray(data3)){
+const len0 = data3.length;
+for(let i0=0; i0<len0; i0++){
+let data4 = data3[i0];
+if(data4 && typeof data4 == "object" && !Array.isArray(data4)){
+if(data4.precedent_id === undefined){
+const err10 = {instancePath:instancePath+"/matches/" + i0,schemaPath:"#/$defs/precedentMatch/required",keyword:"required",params:{missingProperty: "precedent_id"},message:"must have required property '"+"precedent_id"+"'"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+if(data4.relation === undefined){
+const err11 = {instancePath:instancePath+"/matches/" + i0,schemaPath:"#/$defs/precedentMatch/required",keyword:"required",params:{missingProperty: "relation"},message:"must have required property '"+"relation"+"'"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+if(data4.in_region_with_precedent === undefined){
+const err12 = {instancePath:instancePath+"/matches/" + i0,schemaPath:"#/$defs/precedentMatch/required",keyword:"required",params:{missingProperty: "in_region_with_precedent"},message:"must have required property '"+"in_region_with_precedent"+"'"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+for(const key1 in data4){
+if(!((((((key1 === "precedent_id") || (key1 === "relation")) || (key1 === "in_region_with_precedent")) || (key1 === "points")) || (key1 === "nearest_point")) || (key1 === "distance_km"))){
+const err13 = {instancePath:instancePath+"/matches/" + i0,schemaPath:"#/$defs/precedentMatch/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+}
+if(data4.precedent_id !== undefined){
+if(typeof data4.precedent_id !== "string"){
+const err14 = {instancePath:instancePath+"/matches/" + i0+"/precedent_id",schemaPath:"#/$defs/precedentMatch/properties/precedent_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+}
+if(data4.relation !== undefined){
+let data6 = data4.relation;
+if(!((((data6 === "contains_published_sampling_coordinate") || (data6 === "study_area_overlap")) || (data6 === "proximity_heuristic")) || (data6 === "regional_precedent"))){
+const err15 = {instancePath:instancePath+"/matches/" + i0+"/relation",schemaPath:"#/$defs/precedentMatch/properties/relation/enum",keyword:"enum",params:{allowedValues: schema36.properties.relation.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+}
+if(data4.in_region_with_precedent !== undefined){
+if(typeof data4.in_region_with_precedent !== "boolean"){
+const err16 = {instancePath:instancePath+"/matches/" + i0+"/in_region_with_precedent",schemaPath:"#/$defs/precedentMatch/properties/in_region_with_precedent/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+}
+if(data4.points !== undefined){
+let data8 = data4.points;
+if(Array.isArray(data8)){
+if(data8.length < 1){
+const err17 = {instancePath:instancePath+"/matches/" + i0+"/points",schemaPath:"#/$defs/precedentMatch/properties/points/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+if(vErrors === null){
+vErrors = [err17];
+}
+else {
+vErrors.push(err17);
+}
+errors++;
+}
+const len1 = data8.length;
+for(let i1=0; i1<len1; i1++){
+if(typeof data8[i1] !== "string"){
+const err18 = {instancePath:instancePath+"/matches/" + i0+"/points/" + i1,schemaPath:"#/$defs/precedentMatch/properties/points/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err18];
+}
+else {
+vErrors.push(err18);
+}
+errors++;
+}
+}
+}
+else {
+const err19 = {instancePath:instancePath+"/matches/" + i0+"/points",schemaPath:"#/$defs/precedentMatch/properties/points/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err19];
+}
+else {
+vErrors.push(err19);
+}
+errors++;
+}
+}
+if(data4.nearest_point !== undefined){
+if(typeof data4.nearest_point !== "string"){
+const err20 = {instancePath:instancePath+"/matches/" + i0+"/nearest_point",schemaPath:"#/$defs/precedentMatch/properties/nearest_point/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err20];
+}
+else {
+vErrors.push(err20);
+}
+errors++;
+}
+}
+if(data4.distance_km !== undefined){
+let data11 = data4.distance_km;
+if(typeof data11 == "number"){
+if(data11 < 0 || isNaN(data11)){
+const err21 = {instancePath:instancePath+"/matches/" + i0+"/distance_km",schemaPath:"#/$defs/precedentMatch/properties/distance_km/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err21];
+}
+else {
+vErrors.push(err21);
+}
+errors++;
+}
+}
+else {
+const err22 = {instancePath:instancePath+"/matches/" + i0+"/distance_km",schemaPath:"#/$defs/precedentMatch/properties/distance_km/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(vErrors === null){
+vErrors = [err22];
+}
+else {
+vErrors.push(err22);
+}
+errors++;
+}
+}
+}
+else {
+const err23 = {instancePath:instancePath+"/matches/" + i0,schemaPath:"#/$defs/precedentMatch/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err23];
+}
+else {
+vErrors.push(err23);
+}
+errors++;
+}
+}
+}
+else {
+const err24 = {instancePath:instancePath+"/matches",schemaPath:"#/properties/matches/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err24];
+}
+else {
+vErrors.push(err24);
+}
+errors++;
+}
+}
+if(data.note !== undefined){
+let data12 = data.note;
+if(typeof data12 === "string"){
+if(func2(data12) < 10){
+const err25 = {instancePath:instancePath+"/note",schemaPath:"#/properties/note/minLength",keyword:"minLength",params:{limit: 10},message:"must NOT have fewer than 10 characters"};
+if(vErrors === null){
+vErrors = [err25];
+}
+else {
+vErrors.push(err25);
+}
+errors++;
+}
+}
+else {
+const err26 = {instancePath:instancePath+"/note",schemaPath:"#/properties/note/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err26];
+}
+else {
+vErrors.push(err26);
+}
+errors++;
+}
+}
+}
+else {
+const err27 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err27];
+}
+else {
+vErrors.push(err27);
+}
+errors++;
+}
+validate21.errors = vErrors;
+return errors === 0;
+}
+validate21.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
 
 function validate20(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="https://analogos.cl/schemas/candidate-site.schema.json" */;
@@ -23,9 +380,15 @@ evaluated0.props = undefined;
 if(evaluated0.dynamicItems){
 evaluated0.items = undefined;
 }
+const _errs2 = errors;
+let valid1 = true;
+const _errs3 = errors;
 if(data && typeof data == "object" && !Array.isArray(data)){
-if(data.site_id === undefined){
-const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "site_id"},message:"must have required property '"+"site_id"+"'"};
+if(data.data_snapshot_version !== undefined){
+let data0 = data.data_snapshot_version;
+if(typeof data0 === "string"){
+if(!pattern4.test(data0)){
+const err0 = {};
 if(vErrors === null){
 vErrors = [err0];
 }
@@ -34,8 +397,24 @@ vErrors.push(err0);
 }
 errors++;
 }
-if(data.name === undefined){
-const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "name"},message:"must have required property '"+"name"+"'"};
+}
+}
+}
+var _valid0 = _errs3 === errors;
+errors = _errs2;
+if(vErrors !== null){
+if(_errs2){
+vErrors.length = _errs2;
+}
+else {
+vErrors = null;
+}
+}
+if(_valid0){
+const _errs5 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.country === undefined){
+const err1 = {instancePath,schemaPath:"#/allOf/0/then/required",keyword:"required",params:{missingProperty: "country"},message:"must have required property '"+"country"+"'"};
 if(vErrors === null){
 vErrors = [err1];
 }
@@ -44,8 +423,8 @@ vErrors.push(err1);
 }
 errors++;
 }
-if(data.profile_id === undefined){
-const err2 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "profile_id"},message:"must have required property '"+"profile_id"+"'"};
+if(data.role === undefined){
+const err2 = {instancePath,schemaPath:"#/allOf/0/then/required",keyword:"required",params:{missingProperty: "role"},message:"must have required property '"+"role"+"'"};
 if(vErrors === null){
 vErrors = [err2];
 }
@@ -54,8 +433,8 @@ vErrors.push(err2);
 }
 errors++;
 }
-if(data.profile_version === undefined){
-const err3 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "profile_version"},message:"must have required property '"+"profile_version"+"'"};
+if(data.discovery === undefined){
+const err3 = {instancePath,schemaPath:"#/allOf/0/then/required",keyword:"required",params:{missingProperty: "discovery"},message:"must have required property '"+"discovery"+"'"};
 if(vErrors === null){
 vErrors = [err3];
 }
@@ -64,8 +443,8 @@ vErrors.push(err3);
 }
 errors++;
 }
-if(data.data_snapshot_version === undefined){
-const err4 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "data_snapshot_version"},message:"must have required property '"+"data_snapshot_version"+"'"};
+if(data.literature_review === undefined){
+const err4 = {instancePath,schemaPath:"#/allOf/0/then/required",keyword:"required",params:{missingProperty: "literature_review"},message:"must have required property '"+"literature_review"+"'"};
 if(vErrors === null){
 vErrors = [err4];
 }
@@ -74,8 +453,12 @@ vErrors.push(err4);
 }
 errors++;
 }
-if(data.pipeline_version === undefined){
-const err5 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "pipeline_version"},message:"must have required property '"+"pipeline_version"+"'"};
+}
+var _valid0 = _errs5 === errors;
+valid1 = _valid0;
+}
+if(!valid1){
+const err5 = {instancePath,schemaPath:"#/allOf/0/if",keyword:"if",params:{failingKeyword: "then"},message:"must match \"then\" schema"};
 if(vErrors === null){
 vErrors = [err5];
 }
@@ -84,8 +467,13 @@ vErrors.push(err5);
 }
 errors++;
 }
-if(data.geometry === undefined){
-const err6 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "geometry"},message:"must have required property '"+"geometry"+"'"};
+const _errs7 = errors;
+let valid3 = true;
+const _errs8 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+let missing0;
+if((data.country === undefined) && (missing0 = "country")){
+const err6 = {};
 if(vErrors === null){
 vErrors = [err6];
 }
@@ -94,8 +482,10 @@ vErrors.push(err6);
 }
 errors++;
 }
-if(data.area_km2 === undefined){
-const err7 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "area_km2"},message:"must have required property '"+"area_km2"+"'"};
+else {
+if(data.country !== undefined){
+if("CL" !== data.country){
+const err7 = {};
 if(vErrors === null){
 vErrors = [err7];
 }
@@ -104,8 +494,27 @@ vErrors.push(err7);
 }
 errors++;
 }
-if(data.status === undefined){
-const err8 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "status"},message:"must have required property '"+"status"+"'"};
+}
+}
+}
+var _valid1 = _errs8 === errors;
+errors = _errs7;
+if(vErrors !== null){
+if(_errs7){
+vErrors.length = _errs7;
+}
+else {
+vErrors = null;
+}
+}
+if(_valid1){
+const _errs10 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.site_id !== undefined){
+let data2 = data.site_id;
+if(typeof data2 === "string"){
+if(!pattern5.test(data2)){
+const err8 = {instancePath:instancePath+"/site_id",schemaPath:"#/allOf/1/then/properties/site_id/pattern",keyword:"pattern",params:{pattern: "^cl-"},message:"must match pattern \""+"^cl-"+"\""};
 if(vErrors === null){
 vErrors = [err8];
 }
@@ -114,8 +523,19 @@ vErrors.push(err8);
 }
 errors++;
 }
-if(data.similarity === undefined){
-const err9 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "similarity"},message:"must have required property '"+"similarity"+"'"};
+}
+}
+}
+var _valid1 = _errs10 === errors;
+valid3 = _valid1;
+if(valid3){
+var props0 = {};
+props0.site_id = true;
+props0.country = true;
+}
+}
+if(!valid3){
+const err9 = {instancePath,schemaPath:"#/allOf/1/if",keyword:"if",params:{failingKeyword: "then"},message:"must match \"then\" schema"};
 if(vErrors === null){
 vErrors = [err9];
 }
@@ -124,8 +544,17 @@ vErrors.push(err9);
 }
 errors++;
 }
-if(data.confidence === undefined){
-const err10 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "confidence"},message:"must have required property '"+"confidence"+"'"};
+if(props0 !== true){
+props0 = props0 || {};
+props0.data_snapshot_version = true;
+}
+const _errs13 = errors;
+let valid6 = true;
+const _errs14 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+let missing1;
+if((data.country === undefined) && (missing1 = "country")){
+const err10 = {};
 if(vErrors === null){
 vErrors = [err10];
 }
@@ -134,8 +563,10 @@ vErrors.push(err10);
 }
 errors++;
 }
-if(data.feasibility === undefined){
-const err11 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "feasibility"},message:"must have required property '"+"feasibility"+"'"};
+else {
+if(data.country !== undefined){
+if("AR" !== data.country){
+const err11 = {};
 if(vErrors === null){
 vErrors = [err11];
 }
@@ -144,8 +575,27 @@ vErrors.push(err11);
 }
 errors++;
 }
-if(data.stability === undefined){
-const err12 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "stability"},message:"must have required property '"+"stability"+"'"};
+}
+}
+}
+var _valid2 = _errs14 === errors;
+errors = _errs13;
+if(vErrors !== null){
+if(_errs13){
+vErrors.length = _errs13;
+}
+else {
+vErrors = null;
+}
+}
+if(_valid2){
+const _errs16 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.site_id !== undefined){
+let data4 = data.site_id;
+if(typeof data4 === "string"){
+if(!pattern6.test(data4)){
+const err12 = {instancePath:instancePath+"/site_id",schemaPath:"#/allOf/2/then/properties/site_id/pattern",keyword:"pattern",params:{pattern: "^ar-"},message:"must match pattern \""+"^ar-"+"\""};
 if(vErrors === null){
 vErrors = [err12];
 }
@@ -154,8 +604,19 @@ vErrors.push(err12);
 }
 errors++;
 }
-if(data.score_breakdown === undefined){
-const err13 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "score_breakdown"},message:"must have required property '"+"score_breakdown"+"'"};
+}
+}
+}
+var _valid2 = _errs16 === errors;
+valid6 = _valid2;
+if(valid6){
+var props1 = {};
+props1.site_id = true;
+props1.country = true;
+}
+}
+if(!valid6){
+const err13 = {instancePath,schemaPath:"#/allOf/2/if",keyword:"if",params:{failingKeyword: "then"},message:"must match \"then\" schema"};
 if(vErrors === null){
 vErrors = [err13];
 }
@@ -164,8 +625,22 @@ vErrors.push(err13);
 }
 errors++;
 }
-if(data.warnings === undefined){
-const err14 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "warnings"},message:"must have required property '"+"warnings"+"'"};
+if(props0 !== true && props1 !== undefined){
+if(props1 === true){
+props0 = true;
+}
+else {
+props0 = props0 || {};
+Object.assign(props0, props1);
+}
+}
+const _errs19 = errors;
+let valid9 = true;
+const _errs20 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+let missing2;
+if((data.role === undefined) && (missing2 = "role")){
+const err14 = {};
 if(vErrors === null){
 vErrors = [err14];
 }
@@ -174,8 +649,10 @@ vErrors.push(err14);
 }
 errors++;
 }
-if(data.limitations === undefined){
-const err15 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "limitations"},message:"must have required property '"+"limitations"+"'"};
+else {
+if(data.role !== undefined){
+if("reference" !== data.role){
+const err15 = {};
 if(vErrors === null){
 vErrors = [err15];
 }
@@ -184,8 +661,26 @@ vErrors.push(err15);
 }
 errors++;
 }
-if(data.field_checks === undefined){
-const err16 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "field_checks"},message:"must have required property '"+"field_checks"+"'"};
+}
+}
+}
+var _valid3 = _errs20 === errors;
+errors = _errs19;
+if(vErrors !== null){
+if(_errs19){
+vErrors.length = _errs19;
+}
+else {
+vErrors = null;
+}
+}
+let ifClause0;
+if(_valid3){
+const _errs22 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.status !== undefined){
+if("reference" !== data.status){
+const err16 = {instancePath:instancePath+"/status",schemaPath:"#/allOf/3/then/properties/status/const",keyword:"const",params:{allowedValue: "reference"},message:"must be equal to constant"};
 if(vErrors === null){
 vErrors = [err16];
 }
@@ -194,8 +689,13 @@ vErrors.push(err16);
 }
 errors++;
 }
-if(data.evidence === undefined){
-const err17 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "evidence"},message:"must have required property '"+"evidence"+"'"};
+}
+if(data.discovery !== undefined){
+let data7 = data.discovery;
+if(data7 && typeof data7 == "object" && !Array.isArray(data7)){
+if(data7.origin !== undefined){
+if("known_reference" !== data7.origin){
+const err17 = {instancePath:instancePath+"/discovery/origin",schemaPath:"#/allOf/3/then/properties/discovery/properties/origin/const",keyword:"const",params:{allowedValue: "known_reference"},message:"must be equal to constant"};
 if(vErrors === null){
 vErrors = [err17];
 }
@@ -204,9 +704,15 @@ vErrors.push(err17);
 }
 errors++;
 }
-for(const key0 in data){
-if(!(func1.call(schema31.properties, key0))){
-const err18 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+}
+}
+}
+if(data.literature_review !== undefined){
+let data9 = data.literature_review;
+if(data9 && typeof data9 == "object" && !Array.isArray(data9)){
+if(data9.status !== undefined){
+if("known_reference" !== data9.status){
+const err18 = {instancePath:instancePath+"/literature_review/status",schemaPath:"#/allOf/3/then/properties/literature_review/properties/status/const",keyword:"const",params:{allowedValue: "known_reference"},message:"must be equal to constant"};
 if(vErrors === null){
 vErrors = [err18];
 }
@@ -216,11 +722,28 @@ vErrors.push(err18);
 errors++;
 }
 }
-if(data.site_id !== undefined){
-let data0 = data.site_id;
-if(typeof data0 === "string"){
-if(!pattern4.test(data0)){
-const err19 = {instancePath:instancePath+"/site_id",schemaPath:"#/properties/site_id/pattern",keyword:"pattern",params:{pattern: "^cl-[a-z0-9-]+$"},message:"must match pattern \""+"^cl-[a-z0-9-]+$"+"\""};
+}
+}
+}
+var _valid3 = _errs22 === errors;
+valid9 = _valid3;
+if(valid9){
+var props2 = {};
+props2.status = true;
+props2.discovery = true;
+props2.literature_review = true;
+props2.role = true;
+}
+ifClause0 = "then";
+}
+else {
+const _errs28 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.status !== undefined){
+const _errs30 = errors;
+const _errs31 = errors;
+if("reference" !== data.status){
+const err19 = {};
 if(vErrors === null){
 vErrors = [err19];
 }
@@ -229,9 +752,9 @@ vErrors.push(err19);
 }
 errors++;
 }
-}
-else {
-const err20 = {instancePath:instancePath+"/site_id",schemaPath:"#/properties/site_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+var valid15 = _errs31 === errors;
+if(valid15){
+const err20 = {instancePath:instancePath+"/status",schemaPath:"#/allOf/3/else/properties/status/not",keyword:"not",params:{},message:"must NOT be valid"};
 if(vErrors === null){
 vErrors = [err20];
 }
@@ -240,12 +763,24 @@ vErrors.push(err20);
 }
 errors++;
 }
+else {
+errors = _errs30;
+if(vErrors !== null){
+if(_errs30){
+vErrors.length = _errs30;
 }
-if(data.name !== undefined){
-let data1 = data.name;
-if(typeof data1 === "string"){
-if(func2(data1) < 1){
-const err21 = {instancePath:instancePath+"/name",schemaPath:"#/properties/name/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+else {
+vErrors = null;
+}
+}
+}
+}
+if(data.discovery !== undefined){
+let data12 = data.discovery;
+if(data12 && typeof data12 == "object" && !Array.isArray(data12)){
+if(data12.origin !== undefined){
+if("grid_search" !== data12.origin){
+const err21 = {instancePath:instancePath+"/discovery/origin",schemaPath:"#/allOf/3/else/properties/discovery/properties/origin/const",keyword:"const",params:{allowedValue: "grid_search"},message:"must be equal to constant"};
 if(vErrors === null){
 vErrors = [err21];
 }
@@ -255,8 +790,16 @@ vErrors.push(err21);
 errors++;
 }
 }
-else {
-const err22 = {instancePath:instancePath+"/name",schemaPath:"#/properties/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
+}
+}
+if(data.literature_review !== undefined){
+let data14 = data.literature_review;
+if(data14 && typeof data14 == "object" && !Array.isArray(data14)){
+if(data14.status !== undefined){
+const _errs36 = errors;
+const _errs37 = errors;
+if("known_reference" !== data14.status){
+const err22 = {};
 if(vErrors === null){
 vErrors = [err22];
 }
@@ -265,10 +808,9 @@ vErrors.push(err22);
 }
 errors++;
 }
-}
-if(data.profile_id !== undefined){
-if(typeof data.profile_id !== "string"){
-const err23 = {instancePath:instancePath+"/profile_id",schemaPath:"#/properties/profile_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+var valid18 = _errs37 === errors;
+if(valid18){
+const err23 = {instancePath:instancePath+"/literature_review/status",schemaPath:"#/allOf/3/else/properties/literature_review/properties/status/not",keyword:"not",params:{},message:"must NOT be valid"};
 if(vErrors === null){
 vErrors = [err23];
 }
@@ -277,10 +819,35 @@ vErrors.push(err23);
 }
 errors++;
 }
+else {
+errors = _errs36;
+if(vErrors !== null){
+if(_errs36){
+vErrors.length = _errs36;
 }
-if(data.profile_version !== undefined){
-if(typeof data.profile_version !== "string"){
-const err24 = {instancePath:instancePath+"/profile_version",schemaPath:"#/properties/profile_version/type",keyword:"type",params:{type: "string"},message:"must be string"};
+else {
+vErrors = null;
+}
+}
+}
+}
+}
+}
+}
+var _valid3 = _errs28 === errors;
+valid9 = _valid3;
+if(valid9){
+if(props2 !== true){
+props2 = props2 || {};
+props2.status = true;
+props2.discovery = true;
+props2.literature_review = true;
+}
+}
+ifClause0 = "else";
+}
+if(!valid9){
+const err24 = {instancePath,schemaPath:"#/allOf/3/if",keyword:"if",params:{failingKeyword: ifClause0},message:"must match \""+ifClause0+"\" schema"};
 if(vErrors === null){
 vErrors = [err24];
 }
@@ -289,10 +856,18 @@ vErrors.push(err24);
 }
 errors++;
 }
+if(props0 !== true && props2 !== undefined){
+if(props2 === true){
+props0 = true;
 }
-if(data.data_snapshot_version !== undefined){
-if(typeof data.data_snapshot_version !== "string"){
-const err25 = {instancePath:instancePath+"/data_snapshot_version",schemaPath:"#/properties/data_snapshot_version/type",keyword:"type",params:{type: "string"},message:"must be string"};
+else {
+props0 = props0 || {};
+Object.assign(props0, props2);
+}
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.site_id === undefined){
+const err25 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "site_id"},message:"must have required property '"+"site_id"+"'"};
 if(vErrors === null){
 vErrors = [err25];
 }
@@ -301,10 +876,8 @@ vErrors.push(err25);
 }
 errors++;
 }
-}
-if(data.pipeline_version !== undefined){
-if(typeof data.pipeline_version !== "string"){
-const err26 = {instancePath:instancePath+"/pipeline_version",schemaPath:"#/properties/pipeline_version/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data.name === undefined){
+const err26 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "name"},message:"must have required property '"+"name"+"'"};
 if(vErrors === null){
 vErrors = [err26];
 }
@@ -313,12 +886,8 @@ vErrors.push(err26);
 }
 errors++;
 }
-}
-if(data.geometry !== undefined){
-let data6 = data.geometry;
-if(data6 && typeof data6 == "object" && !Array.isArray(data6)){
-if(data6.type === undefined){
-const err27 = {instancePath:instancePath+"/geometry",schemaPath:"#/$defs/polygonGeometry/required",keyword:"required",params:{missingProperty: "type"},message:"must have required property '"+"type"+"'"};
+if(data.profile_id === undefined){
+const err27 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "profile_id"},message:"must have required property '"+"profile_id"+"'"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -327,8 +896,8 @@ vErrors.push(err27);
 }
 errors++;
 }
-if(data6.coordinates === undefined){
-const err28 = {instancePath:instancePath+"/geometry",schemaPath:"#/$defs/polygonGeometry/required",keyword:"required",params:{missingProperty: "coordinates"},message:"must have required property '"+"coordinates"+"'"};
+if(data.profile_version === undefined){
+const err28 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "profile_version"},message:"must have required property '"+"profile_version"+"'"};
 if(vErrors === null){
 vErrors = [err28];
 }
@@ -337,9 +906,8 @@ vErrors.push(err28);
 }
 errors++;
 }
-for(const key1 in data6){
-if(!((key1 === "type") || (key1 === "coordinates"))){
-const err29 = {instancePath:instancePath+"/geometry",schemaPath:"#/$defs/polygonGeometry/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(data.data_snapshot_version === undefined){
+const err29 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "data_snapshot_version"},message:"must have required property '"+"data_snapshot_version"+"'"};
 if(vErrors === null){
 vErrors = [err29];
 }
@@ -348,11 +916,8 @@ vErrors.push(err29);
 }
 errors++;
 }
-}
-if(data6.type !== undefined){
-let data7 = data6.type;
-if(!((data7 === "Polygon") || (data7 === "MultiPolygon"))){
-const err30 = {instancePath:instancePath+"/geometry/type",schemaPath:"#/$defs/polygonGeometry/properties/type/enum",keyword:"enum",params:{allowedValues: schema32.properties.type.enum},message:"must be equal to one of the allowed values"};
+if(data.pipeline_version === undefined){
+const err30 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "pipeline_version"},message:"must have required property '"+"pipeline_version"+"'"};
 if(vErrors === null){
 vErrors = [err30];
 }
@@ -361,12 +926,8 @@ vErrors.push(err30);
 }
 errors++;
 }
-}
-if(data6.coordinates !== undefined){
-let data8 = data6.coordinates;
-if(Array.isArray(data8)){
-if(data8.length < 1){
-const err31 = {instancePath:instancePath+"/geometry/coordinates",schemaPath:"#/$defs/polygonGeometry/properties/coordinates/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+if(data.geometry === undefined){
+const err31 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "geometry"},message:"must have required property '"+"geometry"+"'"};
 if(vErrors === null){
 vErrors = [err31];
 }
@@ -375,9 +936,8 @@ vErrors.push(err31);
 }
 errors++;
 }
-}
-else {
-const err32 = {instancePath:instancePath+"/geometry/coordinates",schemaPath:"#/$defs/polygonGeometry/properties/coordinates/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(data.area_km2 === undefined){
+const err32 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "area_km2"},message:"must have required property '"+"area_km2"+"'"};
 if(vErrors === null){
 vErrors = [err32];
 }
@@ -386,10 +946,8 @@ vErrors.push(err32);
 }
 errors++;
 }
-}
-}
-else {
-const err33 = {instancePath:instancePath+"/geometry",schemaPath:"#/$defs/polygonGeometry/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(data.status === undefined){
+const err33 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "status"},message:"must have required property '"+"status"+"'"};
 if(vErrors === null){
 vErrors = [err33];
 }
@@ -398,12 +956,8 @@ vErrors.push(err33);
 }
 errors++;
 }
-}
-if(data.area_km2 !== undefined){
-let data9 = data.area_km2;
-if(typeof data9 == "number"){
-if(data9 <= 0 || isNaN(data9)){
-const err34 = {instancePath:instancePath+"/area_km2",schemaPath:"#/properties/area_km2/exclusiveMinimum",keyword:"exclusiveMinimum",params:{comparison: ">", limit: 0},message:"must be > 0"};
+if(data.similarity === undefined){
+const err34 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "similarity"},message:"must have required property '"+"similarity"+"'"};
 if(vErrors === null){
 vErrors = [err34];
 }
@@ -412,9 +966,8 @@ vErrors.push(err34);
 }
 errors++;
 }
-}
-else {
-const err35 = {instancePath:instancePath+"/area_km2",schemaPath:"#/properties/area_km2/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(data.confidence === undefined){
+const err35 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "confidence"},message:"must have required property '"+"confidence"+"'"};
 if(vErrors === null){
 vErrors = [err35];
 }
@@ -423,11 +976,8 @@ vErrors.push(err35);
 }
 errors++;
 }
-}
-if(data.status !== undefined){
-let data10 = data.status;
-if(!((((data10 === "fixture") || (data10 === "candidate")) || (data10 === "insufficient_data")) || (data10 === "excluded"))){
-const err36 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema31.properties.status.enum},message:"must be equal to one of the allowed values"};
+if(data.feasibility === undefined){
+const err36 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "feasibility"},message:"must have required property '"+"feasibility"+"'"};
 if(vErrors === null){
 vErrors = [err36];
 }
@@ -436,11 +986,8 @@ vErrors.push(err36);
 }
 errors++;
 }
-}
-if(data.similarity !== undefined){
-let data11 = data.similarity;
-if((!(typeof data11 == "number")) && (data11 !== null)){
-const err37 = {instancePath:instancePath+"/similarity",schemaPath:"#/properties/similarity/type",keyword:"type",params:{type: schema31.properties.similarity.type},message:"must be number,null"};
+if(data.stability === undefined){
+const err37 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "stability"},message:"must have required property '"+"stability"+"'"};
 if(vErrors === null){
 vErrors = [err37];
 }
@@ -449,9 +996,8 @@ vErrors.push(err37);
 }
 errors++;
 }
-if(typeof data11 == "number"){
-if(data11 > 100 || isNaN(data11)){
-const err38 = {instancePath:instancePath+"/similarity",schemaPath:"#/properties/similarity/maximum",keyword:"maximum",params:{comparison: "<=", limit: 100},message:"must be <= 100"};
+if(data.score_breakdown === undefined){
+const err38 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "score_breakdown"},message:"must have required property '"+"score_breakdown"+"'"};
 if(vErrors === null){
 vErrors = [err38];
 }
@@ -460,8 +1006,8 @@ vErrors.push(err38);
 }
 errors++;
 }
-if(data11 < 0 || isNaN(data11)){
-const err39 = {instancePath:instancePath+"/similarity",schemaPath:"#/properties/similarity/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(data.warnings === undefined){
+const err39 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "warnings"},message:"must have required property '"+"warnings"+"'"};
 if(vErrors === null){
 vErrors = [err39];
 }
@@ -470,13 +1016,8 @@ vErrors.push(err39);
 }
 errors++;
 }
-}
-}
-if(data.confidence !== undefined){
-let data12 = data.confidence;
-if(typeof data12 == "number"){
-if(data12 > 100 || isNaN(data12)){
-const err40 = {instancePath:instancePath+"/confidence",schemaPath:"#/properties/confidence/maximum",keyword:"maximum",params:{comparison: "<=", limit: 100},message:"must be <= 100"};
+if(data.limitations === undefined){
+const err40 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "limitations"},message:"must have required property '"+"limitations"+"'"};
 if(vErrors === null){
 vErrors = [err40];
 }
@@ -485,8 +1026,8 @@ vErrors.push(err40);
 }
 errors++;
 }
-if(data12 < 0 || isNaN(data12)){
-const err41 = {instancePath:instancePath+"/confidence",schemaPath:"#/properties/confidence/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(data.field_checks === undefined){
+const err41 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "field_checks"},message:"must have required property '"+"field_checks"+"'"};
 if(vErrors === null){
 vErrors = [err41];
 }
@@ -495,9 +1036,8 @@ vErrors.push(err41);
 }
 errors++;
 }
-}
-else {
-const err42 = {instancePath:instancePath+"/confidence",schemaPath:"#/properties/confidence/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(data.evidence === undefined){
+const err42 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "evidence"},message:"must have required property '"+"evidence"+"'"};
 if(vErrors === null){
 vErrors = [err42];
 }
@@ -506,11 +1046,9 @@ vErrors.push(err42);
 }
 errors++;
 }
-}
-if(data.feasibility !== undefined){
-let data13 = data.feasibility;
-if(!((((data13 === "unknown") || (data13 === "requires_review")) || (data13 === "potentially_feasible")) || (data13 === "excluded"))){
-const err43 = {instancePath:instancePath+"/feasibility",schemaPath:"#/properties/feasibility/enum",keyword:"enum",params:{allowedValues: schema31.properties.feasibility.enum},message:"must be equal to one of the allowed values"};
+for(const key0 in data){
+if(!(func1.call(schema31.properties, key0))){
+const err43 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err43];
 }
@@ -520,10 +1058,11 @@ vErrors.push(err43);
 errors++;
 }
 }
-if(data.stability !== undefined){
-let data14 = data.stability;
-if((!(typeof data14 == "number")) && (data14 !== null)){
-const err44 = {instancePath:instancePath+"/stability",schemaPath:"#/properties/stability/type",keyword:"type",params:{type: schema31.properties.stability.type},message:"must be number,null"};
+if(data.site_id !== undefined){
+let data16 = data.site_id;
+if(typeof data16 === "string"){
+if(!pattern7.test(data16)){
+const err44 = {instancePath:instancePath+"/site_id",schemaPath:"#/properties/site_id/pattern",keyword:"pattern",params:{pattern: "^(cl|ar)-[a-z0-9-]+$"},message:"must match pattern \""+"^(cl|ar)-[a-z0-9-]+$"+"\""};
 if(vErrors === null){
 vErrors = [err44];
 }
@@ -532,9 +1071,9 @@ vErrors.push(err44);
 }
 errors++;
 }
-if(typeof data14 == "number"){
-if(data14 > 100 || isNaN(data14)){
-const err45 = {instancePath:instancePath+"/stability",schemaPath:"#/properties/stability/maximum",keyword:"maximum",params:{comparison: "<=", limit: 100},message:"must be <= 100"};
+}
+else {
+const err45 = {instancePath:instancePath+"/site_id",schemaPath:"#/properties/site_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err45];
 }
@@ -543,8 +1082,12 @@ vErrors.push(err45);
 }
 errors++;
 }
-if(data14 < 0 || isNaN(data14)){
-const err46 = {instancePath:instancePath+"/stability",schemaPath:"#/properties/stability/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+}
+if(data.name !== undefined){
+let data17 = data.name;
+if(typeof data17 === "string"){
+if(func2(data17) < 1){
+const err46 = {instancePath:instancePath+"/name",schemaPath:"#/properties/name/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
 if(vErrors === null){
 vErrors = [err46];
 }
@@ -554,16 +1097,8 @@ vErrors.push(err46);
 errors++;
 }
 }
-}
-if(data.score_breakdown !== undefined){
-let data15 = data.score_breakdown;
-if(Array.isArray(data15)){
-const len0 = data15.length;
-for(let i0=0; i0<len0; i0++){
-let data16 = data15[i0];
-if(data16 && typeof data16 == "object" && !Array.isArray(data16)){
-if(data16.criterion_id === undefined){
-const err47 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "criterion_id"},message:"must have required property '"+"criterion_id"+"'"};
+else {
+const err47 = {instancePath:instancePath+"/name",schemaPath:"#/properties/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err47];
 }
@@ -572,8 +1107,10 @@ vErrors.push(err47);
 }
 errors++;
 }
-if(data16.raw_value === undefined){
-const err48 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "raw_value"},message:"must have required property '"+"raw_value"+"'"};
+}
+if(data.profile_id !== undefined){
+if(typeof data.profile_id !== "string"){
+const err48 = {instancePath:instancePath+"/profile_id",schemaPath:"#/properties/profile_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err48];
 }
@@ -582,8 +1119,10 @@ vErrors.push(err48);
 }
 errors++;
 }
-if(data16.unit === undefined){
-const err49 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "unit"},message:"must have required property '"+"unit"+"'"};
+}
+if(data.profile_version !== undefined){
+if(typeof data.profile_version !== "string"){
+const err49 = {instancePath:instancePath+"/profile_version",schemaPath:"#/properties/profile_version/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err49];
 }
@@ -592,8 +1131,10 @@ vErrors.push(err49);
 }
 errors++;
 }
-if(data16.normalized_similarity === undefined){
-const err50 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "normalized_similarity"},message:"must have required property '"+"normalized_similarity"+"'"};
+}
+if(data.data_snapshot_version !== undefined){
+if(typeof data.data_snapshot_version !== "string"){
+const err50 = {instancePath:instancePath+"/data_snapshot_version",schemaPath:"#/properties/data_snapshot_version/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err50];
 }
@@ -602,8 +1143,10 @@ vErrors.push(err50);
 }
 errors++;
 }
-if(data16.weight === undefined){
-const err51 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "weight"},message:"must have required property '"+"weight"+"'"};
+}
+if(data.pipeline_version !== undefined){
+if(typeof data.pipeline_version !== "string"){
+const err51 = {instancePath:instancePath+"/pipeline_version",schemaPath:"#/properties/pipeline_version/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err51];
 }
@@ -612,8 +1155,12 @@ vErrors.push(err51);
 }
 errors++;
 }
-if(data16.contribution === undefined){
-const err52 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "contribution"},message:"must have required property '"+"contribution"+"'"};
+}
+if(data.geometry !== undefined){
+let data22 = data.geometry;
+if(data22 && typeof data22 == "object" && !Array.isArray(data22)){
+if(data22.type === undefined){
+const err52 = {instancePath:instancePath+"/geometry",schemaPath:"#/$defs/polygonGeometry/required",keyword:"required",params:{missingProperty: "type"},message:"must have required property '"+"type"+"'"};
 if(vErrors === null){
 vErrors = [err52];
 }
@@ -622,8 +1169,8 @@ vErrors.push(err52);
 }
 errors++;
 }
-if(data16.quality === undefined){
-const err53 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "quality"},message:"must have required property '"+"quality"+"'"};
+if(data22.coordinates === undefined){
+const err53 = {instancePath:instancePath+"/geometry",schemaPath:"#/$defs/polygonGeometry/required",keyword:"required",params:{missingProperty: "coordinates"},message:"must have required property '"+"coordinates"+"'"};
 if(vErrors === null){
 vErrors = [err53];
 }
@@ -632,8 +1179,9 @@ vErrors.push(err53);
 }
 errors++;
 }
-if(data16.dataset_id === undefined){
-const err54 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "dataset_id"},message:"must have required property '"+"dataset_id"+"'"};
+for(const key1 in data22){
+if(!((key1 === "type") || (key1 === "coordinates"))){
+const err54 = {instancePath:instancePath+"/geometry",schemaPath:"#/$defs/polygonGeometry/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err54];
 }
@@ -642,8 +1190,11 @@ vErrors.push(err54);
 }
 errors++;
 }
-if(data16.status === undefined){
-const err55 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "status"},message:"must have required property '"+"status"+"'"};
+}
+if(data22.type !== undefined){
+let data23 = data22.type;
+if(!((data23 === "Polygon") || (data23 === "MultiPolygon"))){
+const err55 = {instancePath:instancePath+"/geometry/type",schemaPath:"#/$defs/polygonGeometry/properties/type/enum",keyword:"enum",params:{allowedValues: schema32.properties.type.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err55];
 }
@@ -652,8 +1203,12 @@ vErrors.push(err55);
 }
 errors++;
 }
-if(data16.explanation === undefined){
-const err56 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "explanation"},message:"must have required property '"+"explanation"+"'"};
+}
+if(data22.coordinates !== undefined){
+let data24 = data22.coordinates;
+if(Array.isArray(data24)){
+if(data24.length < 1){
+const err56 = {instancePath:instancePath+"/geometry/coordinates",schemaPath:"#/$defs/polygonGeometry/properties/coordinates/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
 if(vErrors === null){
 vErrors = [err56];
 }
@@ -662,9 +1217,9 @@ vErrors.push(err56);
 }
 errors++;
 }
-for(const key2 in data16){
-if(!(func1.call(schema33.properties, key2))){
-const err57 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key2},message:"must NOT have additional properties"};
+}
+else {
+const err57 = {instancePath:instancePath+"/geometry/coordinates",schemaPath:"#/$defs/polygonGeometry/properties/coordinates/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err57];
 }
@@ -674,9 +1229,9 @@ vErrors.push(err57);
 errors++;
 }
 }
-if(data16.criterion_id !== undefined){
-if(typeof data16.criterion_id !== "string"){
-const err58 = {instancePath:instancePath+"/score_breakdown/" + i0+"/criterion_id",schemaPath:"#/$defs/scoreItem/properties/criterion_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+}
+else {
+const err58 = {instancePath:instancePath+"/geometry",schemaPath:"#/$defs/polygonGeometry/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err58];
 }
@@ -686,10 +1241,11 @@ vErrors.push(err58);
 errors++;
 }
 }
-if(data16.raw_value !== undefined){
-let data18 = data16.raw_value;
-if(((!(typeof data18 == "number")) && (typeof data18 !== "string")) && (data18 !== null)){
-const err59 = {instancePath:instancePath+"/score_breakdown/" + i0+"/raw_value",schemaPath:"#/$defs/scoreItem/properties/raw_value/type",keyword:"type",params:{type: schema33.properties.raw_value.type},message:"must be number,string,null"};
+if(data.area_km2 !== undefined){
+let data25 = data.area_km2;
+if(typeof data25 == "number"){
+if(data25 <= 0 || isNaN(data25)){
+const err59 = {instancePath:instancePath+"/area_km2",schemaPath:"#/properties/area_km2/exclusiveMinimum",keyword:"exclusiveMinimum",params:{comparison: ">", limit: 0},message:"must be > 0"};
 if(vErrors === null){
 vErrors = [err59];
 }
@@ -699,9 +1255,8 @@ vErrors.push(err59);
 errors++;
 }
 }
-if(data16.unit !== undefined){
-if(typeof data16.unit !== "string"){
-const err60 = {instancePath:instancePath+"/score_breakdown/" + i0+"/unit",schemaPath:"#/$defs/scoreItem/properties/unit/type",keyword:"type",params:{type: "string"},message:"must be string"};
+else {
+const err60 = {instancePath:instancePath+"/area_km2",schemaPath:"#/properties/area_km2/type",keyword:"type",params:{type: "number"},message:"must be number"};
 if(vErrors === null){
 vErrors = [err60];
 }
@@ -711,10 +1266,10 @@ vErrors.push(err60);
 errors++;
 }
 }
-if(data16.normalized_similarity !== undefined){
-let data20 = data16.normalized_similarity;
-if((!(typeof data20 == "number")) && (data20 !== null)){
-const err61 = {instancePath:instancePath+"/score_breakdown/" + i0+"/normalized_similarity",schemaPath:"#/$defs/scoreItem/properties/normalized_similarity/type",keyword:"type",params:{type: schema33.properties.normalized_similarity.type},message:"must be number,null"};
+if(data.status !== undefined){
+let data26 = data.status;
+if(!(((((data26 === "fixture") || (data26 === "candidate")) || (data26 === "reference")) || (data26 === "insufficient_data")) || (data26 === "excluded"))){
+const err61 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema31.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err61];
 }
@@ -723,9 +1278,11 @@ vErrors.push(err61);
 }
 errors++;
 }
-if(typeof data20 == "number"){
-if(data20 > 1 || isNaN(data20)){
-const err62 = {instancePath:instancePath+"/score_breakdown/" + i0+"/normalized_similarity",schemaPath:"#/$defs/scoreItem/properties/normalized_similarity/maximum",keyword:"maximum",params:{comparison: "<=", limit: 1},message:"must be <= 1"};
+}
+if(data.similarity !== undefined){
+let data27 = data.similarity;
+if((!(typeof data27 == "number")) && (data27 !== null)){
+const err62 = {instancePath:instancePath+"/similarity",schemaPath:"#/properties/similarity/type",keyword:"type",params:{type: schema31.properties.similarity.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err62];
 }
@@ -734,8 +1291,9 @@ vErrors.push(err62);
 }
 errors++;
 }
-if(data20 < 0 || isNaN(data20)){
-const err63 = {instancePath:instancePath+"/score_breakdown/" + i0+"/normalized_similarity",schemaPath:"#/$defs/scoreItem/properties/normalized_similarity/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(typeof data27 == "number"){
+if(data27 > 100 || isNaN(data27)){
+const err63 = {instancePath:instancePath+"/similarity",schemaPath:"#/properties/similarity/maximum",keyword:"maximum",params:{comparison: "<=", limit: 100},message:"must be <= 100"};
 if(vErrors === null){
 vErrors = [err63];
 }
@@ -744,13 +1302,8 @@ vErrors.push(err63);
 }
 errors++;
 }
-}
-}
-if(data16.weight !== undefined){
-let data21 = data16.weight;
-if(typeof data21 == "number"){
-if(data21 > 1 || isNaN(data21)){
-const err64 = {instancePath:instancePath+"/score_breakdown/" + i0+"/weight",schemaPath:"#/$defs/scoreItem/properties/weight/maximum",keyword:"maximum",params:{comparison: "<=", limit: 1},message:"must be <= 1"};
+if(data27 < 0 || isNaN(data27)){
+const err64 = {instancePath:instancePath+"/similarity",schemaPath:"#/properties/similarity/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
 if(vErrors === null){
 vErrors = [err64];
 }
@@ -759,8 +1312,13 @@ vErrors.push(err64);
 }
 errors++;
 }
-if(data21 < 0 || isNaN(data21)){
-const err65 = {instancePath:instancePath+"/score_breakdown/" + i0+"/weight",schemaPath:"#/$defs/scoreItem/properties/weight/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+}
+}
+if(data.confidence !== undefined){
+let data28 = data.confidence;
+if(typeof data28 == "number"){
+if(data28 > 100 || isNaN(data28)){
+const err65 = {instancePath:instancePath+"/confidence",schemaPath:"#/properties/confidence/maximum",keyword:"maximum",params:{comparison: "<=", limit: 100},message:"must be <= 100"};
 if(vErrors === null){
 vErrors = [err65];
 }
@@ -769,9 +1327,8 @@ vErrors.push(err65);
 }
 errors++;
 }
-}
-else {
-const err66 = {instancePath:instancePath+"/score_breakdown/" + i0+"/weight",schemaPath:"#/$defs/scoreItem/properties/weight/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(data28 < 0 || isNaN(data28)){
+const err66 = {instancePath:instancePath+"/confidence",schemaPath:"#/properties/confidence/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
 if(vErrors === null){
 vErrors = [err66];
 }
@@ -781,10 +1338,8 @@ vErrors.push(err66);
 errors++;
 }
 }
-if(data16.contribution !== undefined){
-let data22 = data16.contribution;
-if((!(typeof data22 == "number")) && (data22 !== null)){
-const err67 = {instancePath:instancePath+"/score_breakdown/" + i0+"/contribution",schemaPath:"#/$defs/scoreItem/properties/contribution/type",keyword:"type",params:{type: schema33.properties.contribution.type},message:"must be number,null"};
+else {
+const err67 = {instancePath:instancePath+"/confidence",schemaPath:"#/properties/confidence/type",keyword:"type",params:{type: "number"},message:"must be number"};
 if(vErrors === null){
 vErrors = [err67];
 }
@@ -794,11 +1349,10 @@ vErrors.push(err67);
 errors++;
 }
 }
-if(data16.quality !== undefined){
-let data23 = data16.quality;
-if(typeof data23 == "number"){
-if(data23 > 1 || isNaN(data23)){
-const err68 = {instancePath:instancePath+"/score_breakdown/" + i0+"/quality",schemaPath:"#/$defs/scoreItem/properties/quality/maximum",keyword:"maximum",params:{comparison: "<=", limit: 1},message:"must be <= 1"};
+if(data.feasibility !== undefined){
+let data29 = data.feasibility;
+if(!((((data29 === "unknown") || (data29 === "requires_review")) || (data29 === "potentially_feasible")) || (data29 === "excluded"))){
+const err68 = {instancePath:instancePath+"/feasibility",schemaPath:"#/properties/feasibility/enum",keyword:"enum",params:{allowedValues: schema31.properties.feasibility.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err68];
 }
@@ -807,8 +1361,11 @@ vErrors.push(err68);
 }
 errors++;
 }
-if(data23 < 0 || isNaN(data23)){
-const err69 = {instancePath:instancePath+"/score_breakdown/" + i0+"/quality",schemaPath:"#/$defs/scoreItem/properties/quality/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+}
+if(data.stability !== undefined){
+let data30 = data.stability;
+if((!(typeof data30 == "number")) && (data30 !== null)){
+const err69 = {instancePath:instancePath+"/stability",schemaPath:"#/properties/stability/type",keyword:"type",params:{type: schema31.properties.stability.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err69];
 }
@@ -817,9 +1374,9 @@ vErrors.push(err69);
 }
 errors++;
 }
-}
-else {
-const err70 = {instancePath:instancePath+"/score_breakdown/" + i0+"/quality",schemaPath:"#/$defs/scoreItem/properties/quality/type",keyword:"type",params:{type: "number"},message:"must be number"};
+if(typeof data30 == "number"){
+if(data30 > 100 || isNaN(data30)){
+const err70 = {instancePath:instancePath+"/stability",schemaPath:"#/properties/stability/maximum",keyword:"maximum",params:{comparison: "<=", limit: 100},message:"must be <= 100"};
 if(vErrors === null){
 vErrors = [err70];
 }
@@ -828,10 +1385,8 @@ vErrors.push(err70);
 }
 errors++;
 }
-}
-if(data16.dataset_id !== undefined){
-if(typeof data16.dataset_id !== "string"){
-const err71 = {instancePath:instancePath+"/score_breakdown/" + i0+"/dataset_id",schemaPath:"#/$defs/scoreItem/properties/dataset_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data30 < 0 || isNaN(data30)){
+const err71 = {instancePath:instancePath+"/stability",schemaPath:"#/properties/stability/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
 if(vErrors === null){
 vErrors = [err71];
 }
@@ -841,10 +1396,16 @@ vErrors.push(err71);
 errors++;
 }
 }
-if(data16.status !== undefined){
-let data25 = data16.status;
-if(!((((data25 === "valid") || (data25 === "missing")) || (data25 === "needs_calibration")) || (data25 === "excluded"))){
-const err72 = {instancePath:instancePath+"/score_breakdown/" + i0+"/status",schemaPath:"#/$defs/scoreItem/properties/status/enum",keyword:"enum",params:{allowedValues: schema33.properties.status.enum},message:"must be equal to one of the allowed values"};
+}
+if(data.score_breakdown !== undefined){
+let data31 = data.score_breakdown;
+if(Array.isArray(data31)){
+const len0 = data31.length;
+for(let i0=0; i0<len0; i0++){
+let data32 = data31[i0];
+if(data32 && typeof data32 == "object" && !Array.isArray(data32)){
+if(data32.criterion_id === undefined){
+const err72 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "criterion_id"},message:"must have required property '"+"criterion_id"+"'"};
 if(vErrors === null){
 vErrors = [err72];
 }
@@ -853,10 +1414,8 @@ vErrors.push(err72);
 }
 errors++;
 }
-}
-if(data16.explanation !== undefined){
-if(typeof data16.explanation !== "string"){
-const err73 = {instancePath:instancePath+"/score_breakdown/" + i0+"/explanation",schemaPath:"#/$defs/scoreItem/properties/explanation/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data32.raw_value === undefined){
+const err73 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "raw_value"},message:"must have required property '"+"raw_value"+"'"};
 if(vErrors === null){
 vErrors = [err73];
 }
@@ -865,10 +1424,8 @@ vErrors.push(err73);
 }
 errors++;
 }
-}
-}
-else {
-const err74 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(data32.unit === undefined){
+const err74 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "unit"},message:"must have required property '"+"unit"+"'"};
 if(vErrors === null){
 vErrors = [err74];
 }
@@ -877,10 +1434,8 @@ vErrors.push(err74);
 }
 errors++;
 }
-}
-}
-else {
-const err75 = {instancePath:instancePath+"/score_breakdown",schemaPath:"#/properties/score_breakdown/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(data32.normalized_similarity === undefined){
+const err75 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "normalized_similarity"},message:"must have required property '"+"normalized_similarity"+"'"};
 if(vErrors === null){
 vErrors = [err75];
 }
@@ -889,14 +1444,8 @@ vErrors.push(err75);
 }
 errors++;
 }
-}
-if(data.warnings !== undefined){
-let data27 = data.warnings;
-if(Array.isArray(data27)){
-const len1 = data27.length;
-for(let i1=0; i1<len1; i1++){
-if(typeof data27[i1] !== "string"){
-const err76 = {instancePath:instancePath+"/warnings/" + i1,schemaPath:"#/properties/warnings/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data32.weight === undefined){
+const err76 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "weight"},message:"must have required property '"+"weight"+"'"};
 if(vErrors === null){
 vErrors = [err76];
 }
@@ -905,10 +1454,8 @@ vErrors.push(err76);
 }
 errors++;
 }
-}
-}
-else {
-const err77 = {instancePath:instancePath+"/warnings",schemaPath:"#/properties/warnings/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(data32.contribution === undefined){
+const err77 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "contribution"},message:"must have required property '"+"contribution"+"'"};
 if(vErrors === null){
 vErrors = [err77];
 }
@@ -917,12 +1464,8 @@ vErrors.push(err77);
 }
 errors++;
 }
-}
-if(data.limitations !== undefined){
-let data29 = data.limitations;
-if(Array.isArray(data29)){
-if(data29.length < 1){
-const err78 = {instancePath:instancePath+"/limitations",schemaPath:"#/properties/limitations/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+if(data32.quality === undefined){
+const err78 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "quality"},message:"must have required property '"+"quality"+"'"};
 if(vErrors === null){
 vErrors = [err78];
 }
@@ -931,10 +1474,8 @@ vErrors.push(err78);
 }
 errors++;
 }
-const len2 = data29.length;
-for(let i2=0; i2<len2; i2++){
-if(typeof data29[i2] !== "string"){
-const err79 = {instancePath:instancePath+"/limitations/" + i2,schemaPath:"#/properties/limitations/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data32.dataset_id === undefined){
+const err79 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "dataset_id"},message:"must have required property '"+"dataset_id"+"'"};
 if(vErrors === null){
 vErrors = [err79];
 }
@@ -943,10 +1484,8 @@ vErrors.push(err79);
 }
 errors++;
 }
-}
-}
-else {
-const err80 = {instancePath:instancePath+"/limitations",schemaPath:"#/properties/limitations/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(data32.status === undefined){
+const err80 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "status"},message:"must have required property '"+"status"+"'"};
 if(vErrors === null){
 vErrors = [err80];
 }
@@ -955,12 +1494,8 @@ vErrors.push(err80);
 }
 errors++;
 }
-}
-if(data.field_checks !== undefined){
-let data31 = data.field_checks;
-if(Array.isArray(data31)){
-if(data31.length < 1){
-const err81 = {instancePath:instancePath+"/field_checks",schemaPath:"#/properties/field_checks/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+if(data32.explanation === undefined){
+const err81 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/required",keyword:"required",params:{missingProperty: "explanation"},message:"must have required property '"+"explanation"+"'"};
 if(vErrors === null){
 vErrors = [err81];
 }
@@ -969,10 +1504,9 @@ vErrors.push(err81);
 }
 errors++;
 }
-const len3 = data31.length;
-for(let i3=0; i3<len3; i3++){
-if(typeof data31[i3] !== "string"){
-const err82 = {instancePath:instancePath+"/field_checks/" + i3,schemaPath:"#/properties/field_checks/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+for(const key2 in data32){
+if(!(func1.call(schema33.properties, key2))){
+const err82 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key2},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err82];
 }
@@ -982,9 +1516,9 @@ vErrors.push(err82);
 errors++;
 }
 }
-}
-else {
-const err83 = {instancePath:instancePath+"/field_checks",schemaPath:"#/properties/field_checks/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(data32.criterion_id !== undefined){
+if(typeof data32.criterion_id !== "string"){
+const err83 = {instancePath:instancePath+"/score_breakdown/" + i0+"/criterion_id",schemaPath:"#/$defs/scoreItem/properties/criterion_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err83];
 }
@@ -994,15 +1528,10 @@ vErrors.push(err83);
 errors++;
 }
 }
-if(data.evidence !== undefined){
-let data33 = data.evidence;
-if(Array.isArray(data33)){
-const len4 = data33.length;
-for(let i4=0; i4<len4; i4++){
-let data34 = data33[i4];
-if(data34 && typeof data34 == "object" && !Array.isArray(data34)){
-if(data34.evidence_id === undefined){
-const err84 = {instancePath:instancePath+"/evidence/" + i4,schemaPath:"#/properties/evidence/items/required",keyword:"required",params:{missingProperty: "evidence_id"},message:"must have required property '"+"evidence_id"+"'"};
+if(data32.raw_value !== undefined){
+let data34 = data32.raw_value;
+if(((!(typeof data34 == "number")) && (typeof data34 !== "string")) && (data34 !== null)){
+const err84 = {instancePath:instancePath+"/score_breakdown/" + i0+"/raw_value",schemaPath:"#/$defs/scoreItem/properties/raw_value/type",keyword:"type",params:{type: schema33.properties.raw_value.type},message:"must be number,string,null"};
 if(vErrors === null){
 vErrors = [err84];
 }
@@ -1011,8 +1540,10 @@ vErrors.push(err84);
 }
 errors++;
 }
-if(data34.dataset_id === undefined){
-const err85 = {instancePath:instancePath+"/evidence/" + i4,schemaPath:"#/properties/evidence/items/required",keyword:"required",params:{missingProperty: "dataset_id"},message:"must have required property '"+"dataset_id"+"'"};
+}
+if(data32.unit !== undefined){
+if(typeof data32.unit !== "string"){
+const err85 = {instancePath:instancePath+"/score_breakdown/" + i0+"/unit",schemaPath:"#/$defs/scoreItem/properties/unit/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err85];
 }
@@ -1021,8 +1552,11 @@ vErrors.push(err85);
 }
 errors++;
 }
-if(data34.claim === undefined){
-const err86 = {instancePath:instancePath+"/evidence/" + i4,schemaPath:"#/properties/evidence/items/required",keyword:"required",params:{missingProperty: "claim"},message:"must have required property '"+"claim"+"'"};
+}
+if(data32.normalized_similarity !== undefined){
+let data36 = data32.normalized_similarity;
+if((!(typeof data36 == "number")) && (data36 !== null)){
+const err86 = {instancePath:instancePath+"/score_breakdown/" + i0+"/normalized_similarity",schemaPath:"#/$defs/scoreItem/properties/normalized_similarity/type",keyword:"type",params:{type: schema33.properties.normalized_similarity.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err86];
 }
@@ -1031,8 +1565,9 @@ vErrors.push(err86);
 }
 errors++;
 }
-if(data34.source_url === undefined){
-const err87 = {instancePath:instancePath+"/evidence/" + i4,schemaPath:"#/properties/evidence/items/required",keyword:"required",params:{missingProperty: "source_url"},message:"must have required property '"+"source_url"+"'"};
+if(typeof data36 == "number"){
+if(data36 > 1 || isNaN(data36)){
+const err87 = {instancePath:instancePath+"/score_breakdown/" + i0+"/normalized_similarity",schemaPath:"#/$defs/scoreItem/properties/normalized_similarity/maximum",keyword:"maximum",params:{comparison: "<=", limit: 1},message:"must be <= 1"};
 if(vErrors === null){
 vErrors = [err87];
 }
@@ -1041,9 +1576,8 @@ vErrors.push(err87);
 }
 errors++;
 }
-for(const key3 in data34){
-if(!((((key3 === "evidence_id") || (key3 === "dataset_id")) || (key3 === "claim")) || (key3 === "source_url"))){
-const err88 = {instancePath:instancePath+"/evidence/" + i4,schemaPath:"#/properties/evidence/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key3},message:"must NOT have additional properties"};
+if(data36 < 0 || isNaN(data36)){
+const err88 = {instancePath:instancePath+"/score_breakdown/" + i0+"/normalized_similarity",schemaPath:"#/$defs/scoreItem/properties/normalized_similarity/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
 if(vErrors === null){
 vErrors = [err88];
 }
@@ -1053,9 +1587,12 @@ vErrors.push(err88);
 errors++;
 }
 }
-if(data34.evidence_id !== undefined){
-if(typeof data34.evidence_id !== "string"){
-const err89 = {instancePath:instancePath+"/evidence/" + i4+"/evidence_id",schemaPath:"#/properties/evidence/items/properties/evidence_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+}
+if(data32.weight !== undefined){
+let data37 = data32.weight;
+if(typeof data37 == "number"){
+if(data37 > 1 || isNaN(data37)){
+const err89 = {instancePath:instancePath+"/score_breakdown/" + i0+"/weight",schemaPath:"#/$defs/scoreItem/properties/weight/maximum",keyword:"maximum",params:{comparison: "<=", limit: 1},message:"must be <= 1"};
 if(vErrors === null){
 vErrors = [err89];
 }
@@ -1064,10 +1601,8 @@ vErrors.push(err89);
 }
 errors++;
 }
-}
-if(data34.dataset_id !== undefined){
-if(typeof data34.dataset_id !== "string"){
-const err90 = {instancePath:instancePath+"/evidence/" + i4+"/dataset_id",schemaPath:"#/properties/evidence/items/properties/dataset_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data37 < 0 || isNaN(data37)){
+const err90 = {instancePath:instancePath+"/score_breakdown/" + i0+"/weight",schemaPath:"#/$defs/scoreItem/properties/weight/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
 if(vErrors === null){
 vErrors = [err90];
 }
@@ -1077,9 +1612,8 @@ vErrors.push(err90);
 errors++;
 }
 }
-if(data34.claim !== undefined){
-if(typeof data34.claim !== "string"){
-const err91 = {instancePath:instancePath+"/evidence/" + i4+"/claim",schemaPath:"#/properties/evidence/items/properties/claim/type",keyword:"type",params:{type: "string"},message:"must be string"};
+else {
+const err91 = {instancePath:instancePath+"/score_breakdown/" + i0+"/weight",schemaPath:"#/$defs/scoreItem/properties/weight/type",keyword:"type",params:{type: "number"},message:"must be number"};
 if(vErrors === null){
 vErrors = [err91];
 }
@@ -1089,11 +1623,10 @@ vErrors.push(err91);
 errors++;
 }
 }
-if(data34.source_url !== undefined){
-let data38 = data34.source_url;
-if(typeof data38 === "string"){
-if(!(formats0(data38))){
-const err92 = {instancePath:instancePath+"/evidence/" + i4+"/source_url",schemaPath:"#/properties/evidence/items/properties/source_url/format",keyword:"format",params:{format: "uri"},message:"must match format \""+"uri"+"\""};
+if(data32.contribution !== undefined){
+let data38 = data32.contribution;
+if((!(typeof data38 == "number")) && (data38 !== null)){
+const err92 = {instancePath:instancePath+"/score_breakdown/" + i0+"/contribution",schemaPath:"#/$defs/scoreItem/properties/contribution/type",keyword:"type",params:{type: schema33.properties.contribution.type},message:"must be number,null"};
 if(vErrors === null){
 vErrors = [err92];
 }
@@ -1103,8 +1636,11 @@ vErrors.push(err92);
 errors++;
 }
 }
-else {
-const err93 = {instancePath:instancePath+"/evidence/" + i4+"/source_url",schemaPath:"#/properties/evidence/items/properties/source_url/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data32.quality !== undefined){
+let data39 = data32.quality;
+if(typeof data39 == "number"){
+if(data39 > 1 || isNaN(data39)){
+const err93 = {instancePath:instancePath+"/score_breakdown/" + i0+"/quality",schemaPath:"#/$defs/scoreItem/properties/quality/maximum",keyword:"maximum",params:{comparison: "<=", limit: 1},message:"must be <= 1"};
 if(vErrors === null){
 vErrors = [err93];
 }
@@ -1113,10 +1649,8 @@ vErrors.push(err93);
 }
 errors++;
 }
-}
-}
-else {
-const err94 = {instancePath:instancePath+"/evidence/" + i4,schemaPath:"#/properties/evidence/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(data39 < 0 || isNaN(data39)){
+const err94 = {instancePath:instancePath+"/score_breakdown/" + i0+"/quality",schemaPath:"#/$defs/scoreItem/properties/quality/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
 if(vErrors === null){
 vErrors = [err94];
 }
@@ -1126,9 +1660,8 @@ vErrors.push(err94);
 errors++;
 }
 }
-}
 else {
-const err95 = {instancePath:instancePath+"/evidence",schemaPath:"#/properties/evidence/type",keyword:"type",params:{type: "array"},message:"must be array"};
+const err95 = {instancePath:instancePath+"/score_breakdown/" + i0+"/quality",schemaPath:"#/$defs/scoreItem/properties/quality/type",keyword:"type",params:{type: "number"},message:"must be number"};
 if(vErrors === null){
 vErrors = [err95];
 }
@@ -1138,9 +1671,9 @@ vErrors.push(err95);
 errors++;
 }
 }
-}
-else {
-const err96 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(data32.dataset_id !== undefined){
+if(typeof data32.dataset_id !== "string"){
+const err96 = {instancePath:instancePath+"/score_breakdown/" + i0+"/dataset_id",schemaPath:"#/$defs/scoreItem/properties/dataset_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err96];
 }
@@ -1149,20 +1682,593 @@ vErrors.push(err96);
 }
 errors++;
 }
+}
+if(data32.status !== undefined){
+let data41 = data32.status;
+if(!((((data41 === "valid") || (data41 === "missing")) || (data41 === "needs_calibration")) || (data41 === "excluded"))){
+const err97 = {instancePath:instancePath+"/score_breakdown/" + i0+"/status",schemaPath:"#/$defs/scoreItem/properties/status/enum",keyword:"enum",params:{allowedValues: schema33.properties.status.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err97];
+}
+else {
+vErrors.push(err97);
+}
+errors++;
+}
+}
+if(data32.explanation !== undefined){
+if(typeof data32.explanation !== "string"){
+const err98 = {instancePath:instancePath+"/score_breakdown/" + i0+"/explanation",schemaPath:"#/$defs/scoreItem/properties/explanation/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err98];
+}
+else {
+vErrors.push(err98);
+}
+errors++;
+}
+}
+}
+else {
+const err99 = {instancePath:instancePath+"/score_breakdown/" + i0,schemaPath:"#/$defs/scoreItem/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err99];
+}
+else {
+vErrors.push(err99);
+}
+errors++;
+}
+}
+}
+else {
+const err100 = {instancePath:instancePath+"/score_breakdown",schemaPath:"#/properties/score_breakdown/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err100];
+}
+else {
+vErrors.push(err100);
+}
+errors++;
+}
+}
+if(data.warnings !== undefined){
+let data43 = data.warnings;
+if(Array.isArray(data43)){
+const len1 = data43.length;
+for(let i1=0; i1<len1; i1++){
+if(typeof data43[i1] !== "string"){
+const err101 = {instancePath:instancePath+"/warnings/" + i1,schemaPath:"#/properties/warnings/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err101];
+}
+else {
+vErrors.push(err101);
+}
+errors++;
+}
+}
+}
+else {
+const err102 = {instancePath:instancePath+"/warnings",schemaPath:"#/properties/warnings/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err102];
+}
+else {
+vErrors.push(err102);
+}
+errors++;
+}
+}
+if(data.limitations !== undefined){
+let data45 = data.limitations;
+if(Array.isArray(data45)){
+if(data45.length < 1){
+const err103 = {instancePath:instancePath+"/limitations",schemaPath:"#/properties/limitations/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+if(vErrors === null){
+vErrors = [err103];
+}
+else {
+vErrors.push(err103);
+}
+errors++;
+}
+const len2 = data45.length;
+for(let i2=0; i2<len2; i2++){
+if(typeof data45[i2] !== "string"){
+const err104 = {instancePath:instancePath+"/limitations/" + i2,schemaPath:"#/properties/limitations/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err104];
+}
+else {
+vErrors.push(err104);
+}
+errors++;
+}
+}
+}
+else {
+const err105 = {instancePath:instancePath+"/limitations",schemaPath:"#/properties/limitations/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err105];
+}
+else {
+vErrors.push(err105);
+}
+errors++;
+}
+}
+if(data.field_checks !== undefined){
+let data47 = data.field_checks;
+if(Array.isArray(data47)){
+if(data47.length < 1){
+const err106 = {instancePath:instancePath+"/field_checks",schemaPath:"#/properties/field_checks/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+if(vErrors === null){
+vErrors = [err106];
+}
+else {
+vErrors.push(err106);
+}
+errors++;
+}
+const len3 = data47.length;
+for(let i3=0; i3<len3; i3++){
+if(typeof data47[i3] !== "string"){
+const err107 = {instancePath:instancePath+"/field_checks/" + i3,schemaPath:"#/properties/field_checks/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err107];
+}
+else {
+vErrors.push(err107);
+}
+errors++;
+}
+}
+}
+else {
+const err108 = {instancePath:instancePath+"/field_checks",schemaPath:"#/properties/field_checks/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err108];
+}
+else {
+vErrors.push(err108);
+}
+errors++;
+}
+}
+if(data.evidence !== undefined){
+let data49 = data.evidence;
+if(Array.isArray(data49)){
+const len4 = data49.length;
+for(let i4=0; i4<len4; i4++){
+let data50 = data49[i4];
+if(data50 && typeof data50 == "object" && !Array.isArray(data50)){
+if(data50.evidence_id === undefined){
+const err109 = {instancePath:instancePath+"/evidence/" + i4,schemaPath:"#/properties/evidence/items/required",keyword:"required",params:{missingProperty: "evidence_id"},message:"must have required property '"+"evidence_id"+"'"};
+if(vErrors === null){
+vErrors = [err109];
+}
+else {
+vErrors.push(err109);
+}
+errors++;
+}
+if(data50.dataset_id === undefined){
+const err110 = {instancePath:instancePath+"/evidence/" + i4,schemaPath:"#/properties/evidence/items/required",keyword:"required",params:{missingProperty: "dataset_id"},message:"must have required property '"+"dataset_id"+"'"};
+if(vErrors === null){
+vErrors = [err110];
+}
+else {
+vErrors.push(err110);
+}
+errors++;
+}
+if(data50.claim === undefined){
+const err111 = {instancePath:instancePath+"/evidence/" + i4,schemaPath:"#/properties/evidence/items/required",keyword:"required",params:{missingProperty: "claim"},message:"must have required property '"+"claim"+"'"};
+if(vErrors === null){
+vErrors = [err111];
+}
+else {
+vErrors.push(err111);
+}
+errors++;
+}
+if(data50.source_url === undefined){
+const err112 = {instancePath:instancePath+"/evidence/" + i4,schemaPath:"#/properties/evidence/items/required",keyword:"required",params:{missingProperty: "source_url"},message:"must have required property '"+"source_url"+"'"};
+if(vErrors === null){
+vErrors = [err112];
+}
+else {
+vErrors.push(err112);
+}
+errors++;
+}
+for(const key3 in data50){
+if(!((((key3 === "evidence_id") || (key3 === "dataset_id")) || (key3 === "claim")) || (key3 === "source_url"))){
+const err113 = {instancePath:instancePath+"/evidence/" + i4,schemaPath:"#/properties/evidence/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key3},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err113];
+}
+else {
+vErrors.push(err113);
+}
+errors++;
+}
+}
+if(data50.evidence_id !== undefined){
+if(typeof data50.evidence_id !== "string"){
+const err114 = {instancePath:instancePath+"/evidence/" + i4+"/evidence_id",schemaPath:"#/properties/evidence/items/properties/evidence_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err114];
+}
+else {
+vErrors.push(err114);
+}
+errors++;
+}
+}
+if(data50.dataset_id !== undefined){
+if(typeof data50.dataset_id !== "string"){
+const err115 = {instancePath:instancePath+"/evidence/" + i4+"/dataset_id",schemaPath:"#/properties/evidence/items/properties/dataset_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err115];
+}
+else {
+vErrors.push(err115);
+}
+errors++;
+}
+}
+if(data50.claim !== undefined){
+if(typeof data50.claim !== "string"){
+const err116 = {instancePath:instancePath+"/evidence/" + i4+"/claim",schemaPath:"#/properties/evidence/items/properties/claim/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err116];
+}
+else {
+vErrors.push(err116);
+}
+errors++;
+}
+}
+if(data50.source_url !== undefined){
+let data54 = data50.source_url;
+if(typeof data54 === "string"){
+if(!(formats0(data54))){
+const err117 = {instancePath:instancePath+"/evidence/" + i4+"/source_url",schemaPath:"#/properties/evidence/items/properties/source_url/format",keyword:"format",params:{format: "uri"},message:"must match format \""+"uri"+"\""};
+if(vErrors === null){
+vErrors = [err117];
+}
+else {
+vErrors.push(err117);
+}
+errors++;
+}
+}
+else {
+const err118 = {instancePath:instancePath+"/evidence/" + i4+"/source_url",schemaPath:"#/properties/evidence/items/properties/source_url/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err118];
+}
+else {
+vErrors.push(err118);
+}
+errors++;
+}
+}
+}
+else {
+const err119 = {instancePath:instancePath+"/evidence/" + i4,schemaPath:"#/properties/evidence/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err119];
+}
+else {
+vErrors.push(err119);
+}
+errors++;
+}
+}
+}
+else {
+const err120 = {instancePath:instancePath+"/evidence",schemaPath:"#/properties/evidence/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err120];
+}
+else {
+vErrors.push(err120);
+}
+errors++;
+}
+}
+if(data.country !== undefined){
+let data55 = data.country;
+if(!((data55 === "CL") || (data55 === "AR"))){
+const err121 = {instancePath:instancePath+"/country",schemaPath:"#/properties/country/enum",keyword:"enum",params:{allowedValues: schema31.properties.country.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err121];
+}
+else {
+vErrors.push(err121);
+}
+errors++;
+}
+}
+if(data.role !== undefined){
+let data56 = data.role;
+if(!((data56 === "candidate") || (data56 === "reference"))){
+const err122 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema31.properties.role.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err122];
+}
+else {
+vErrors.push(err122);
+}
+errors++;
+}
+}
+if(data.discovery !== undefined){
+let data57 = data.discovery;
+if(data57 && typeof data57 == "object" && !Array.isArray(data57)){
+if(data57.origin === undefined){
+const err123 = {instancePath:instancePath+"/discovery",schemaPath:"#/$defs/discovery/required",keyword:"required",params:{missingProperty: "origin"},message:"must have required property '"+"origin"+"'"};
+if(vErrors === null){
+vErrors = [err123];
+}
+else {
+vErrors.push(err123);
+}
+errors++;
+}
+if(data57.search_id === undefined){
+const err124 = {instancePath:instancePath+"/discovery",schemaPath:"#/$defs/discovery/required",keyword:"required",params:{missingProperty: "search_id"},message:"must have required property '"+"search_id"+"'"};
+if(vErrors === null){
+vErrors = [err124];
+}
+else {
+vErrors.push(err124);
+}
+errors++;
+}
+if(data57.region_id === undefined){
+const err125 = {instancePath:instancePath+"/discovery",schemaPath:"#/$defs/discovery/required",keyword:"required",params:{missingProperty: "region_id"},message:"must have required property '"+"region_id"+"'"};
+if(vErrors === null){
+vErrors = [err125];
+}
+else {
+vErrors.push(err125);
+}
+errors++;
+}
+if(data57.window_id === undefined){
+const err126 = {instancePath:instancePath+"/discovery",schemaPath:"#/$defs/discovery/required",keyword:"required",params:{missingProperty: "window_id"},message:"must have required property '"+"window_id"+"'"};
+if(vErrors === null){
+vErrors = [err126];
+}
+else {
+vErrors.push(err126);
+}
+errors++;
+}
+if(data57.selection_rank === undefined){
+const err127 = {instancePath:instancePath+"/discovery",schemaPath:"#/$defs/discovery/required",keyword:"required",params:{missingProperty: "selection_rank"},message:"must have required property '"+"selection_rank"+"'"};
+if(vErrors === null){
+vErrors = [err127];
+}
+else {
+vErrors.push(err127);
+}
+errors++;
+}
+if(data57.topographic_priority === undefined){
+const err128 = {instancePath:instancePath+"/discovery",schemaPath:"#/$defs/discovery/required",keyword:"required",params:{missingProperty: "topographic_priority"},message:"must have required property '"+"topographic_priority"+"'"};
+if(vErrors === null){
+vErrors = [err128];
+}
+else {
+vErrors.push(err128);
+}
+errors++;
+}
+if(data57.note === undefined){
+const err129 = {instancePath:instancePath+"/discovery",schemaPath:"#/$defs/discovery/required",keyword:"required",params:{missingProperty: "note"},message:"must have required property '"+"note"+"'"};
+if(vErrors === null){
+vErrors = [err129];
+}
+else {
+vErrors.push(err129);
+}
+errors++;
+}
+for(const key4 in data57){
+if(!((((((((key4 === "origin") || (key4 === "search_id")) || (key4 === "region_id")) || (key4 === "window_id")) || (key4 === "selection_rank")) || (key4 === "topographic_priority")) || (key4 === "source_snapshot")) || (key4 === "note"))){
+const err130 = {instancePath:instancePath+"/discovery",schemaPath:"#/$defs/discovery/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key4},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err130];
+}
+else {
+vErrors.push(err130);
+}
+errors++;
+}
+}
+if(data57.origin !== undefined){
+let data58 = data57.origin;
+if(!((data58 === "grid_search") || (data58 === "known_reference"))){
+const err131 = {instancePath:instancePath+"/discovery/origin",schemaPath:"#/$defs/discovery/properties/origin/enum",keyword:"enum",params:{allowedValues: schema34.properties.origin.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err131];
+}
+else {
+vErrors.push(err131);
+}
+errors++;
+}
+}
+if(data57.search_id !== undefined){
+if(typeof data57.search_id !== "string"){
+const err132 = {instancePath:instancePath+"/discovery/search_id",schemaPath:"#/$defs/discovery/properties/search_id/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err132];
+}
+else {
+vErrors.push(err132);
+}
+errors++;
+}
+}
+if(data57.region_id !== undefined){
+let data60 = data57.region_id;
+if((typeof data60 !== "string") && (data60 !== null)){
+const err133 = {instancePath:instancePath+"/discovery/region_id",schemaPath:"#/$defs/discovery/properties/region_id/type",keyword:"type",params:{type: schema34.properties.region_id.type},message:"must be string,null"};
+if(vErrors === null){
+vErrors = [err133];
+}
+else {
+vErrors.push(err133);
+}
+errors++;
+}
+}
+if(data57.window_id !== undefined){
+let data61 = data57.window_id;
+if((typeof data61 !== "string") && (data61 !== null)){
+const err134 = {instancePath:instancePath+"/discovery/window_id",schemaPath:"#/$defs/discovery/properties/window_id/type",keyword:"type",params:{type: schema34.properties.window_id.type},message:"must be string,null"};
+if(vErrors === null){
+vErrors = [err134];
+}
+else {
+vErrors.push(err134);
+}
+errors++;
+}
+}
+if(data57.selection_rank !== undefined){
+let data62 = data57.selection_rank;
+if((!((typeof data62 == "number") && (!(data62 % 1) && !isNaN(data62)))) && (data62 !== null)){
+const err135 = {instancePath:instancePath+"/discovery/selection_rank",schemaPath:"#/$defs/discovery/properties/selection_rank/type",keyword:"type",params:{type: schema34.properties.selection_rank.type},message:"must be integer,null"};
+if(vErrors === null){
+vErrors = [err135];
+}
+else {
+vErrors.push(err135);
+}
+errors++;
+}
+if(typeof data62 == "number"){
+if(data62 < 1 || isNaN(data62)){
+const err136 = {instancePath:instancePath+"/discovery/selection_rank",schemaPath:"#/$defs/discovery/properties/selection_rank/minimum",keyword:"minimum",params:{comparison: ">=", limit: 1},message:"must be >= 1"};
+if(vErrors === null){
+vErrors = [err136];
+}
+else {
+vErrors.push(err136);
+}
+errors++;
+}
+}
+}
+if(data57.topographic_priority !== undefined){
+let data63 = data57.topographic_priority;
+if((!(typeof data63 == "number")) && (data63 !== null)){
+const err137 = {instancePath:instancePath+"/discovery/topographic_priority",schemaPath:"#/$defs/discovery/properties/topographic_priority/type",keyword:"type",params:{type: schema34.properties.topographic_priority.type},message:"must be number,null"};
+if(vErrors === null){
+vErrors = [err137];
+}
+else {
+vErrors.push(err137);
+}
+errors++;
+}
+if(typeof data63 == "number"){
+if(data63 > 100 || isNaN(data63)){
+const err138 = {instancePath:instancePath+"/discovery/topographic_priority",schemaPath:"#/$defs/discovery/properties/topographic_priority/maximum",keyword:"maximum",params:{comparison: "<=", limit: 100},message:"must be <= 100"};
+if(vErrors === null){
+vErrors = [err138];
+}
+else {
+vErrors.push(err138);
+}
+errors++;
+}
+if(data63 < 0 || isNaN(data63)){
+const err139 = {instancePath:instancePath+"/discovery/topographic_priority",schemaPath:"#/$defs/discovery/properties/topographic_priority/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err139];
+}
+else {
+vErrors.push(err139);
+}
+errors++;
+}
+}
+}
+if(data57.source_snapshot !== undefined){
+if(typeof data57.source_snapshot !== "string"){
+const err140 = {instancePath:instancePath+"/discovery/source_snapshot",schemaPath:"#/$defs/discovery/properties/source_snapshot/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err140];
+}
+else {
+vErrors.push(err140);
+}
+errors++;
+}
+}
+if(data57.note !== undefined){
+if(typeof data57.note !== "string"){
+const err141 = {instancePath:instancePath+"/discovery/note",schemaPath:"#/$defs/discovery/properties/note/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err141];
+}
+else {
+vErrors.push(err141);
+}
+errors++;
+}
+}
+}
+else {
+const err142 = {instancePath:instancePath+"/discovery",schemaPath:"#/$defs/discovery/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err142];
+}
+else {
+vErrors.push(err142);
+}
+errors++;
+}
+}
+if(data.literature_review !== undefined){
+if(!(validate21(data.literature_review, {instancePath:instancePath+"/literature_review",parentData:data,parentDataProperty:"literature_review",rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate21.errors : vErrors.concat(validate21.errors);
+errors = vErrors.length;
+}
+}
+}
+else {
+const err143 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err143];
+}
+else {
+vErrors.push(err143);
+}
+errors++;
+}
 validate20.errors = vErrors;
 return errors === 0;
 }
 validate20.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const validateManifest = validate21;
-const schema34 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://analogos.cl/schemas/data-manifest.schema.json","title":"AnalogOS Data Manifest","type":"object","additionalProperties":false,"required":["snapshot_version","created_at","pipeline_version","datasets"],"properties":{"snapshot_version":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"pipeline_version":{"type":"string"},"datasets":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["dataset_id","provider","product","collection_version","landing_url","access_url","downloaded_at","time_start","time_end","spatial_resolution","temporal_resolution","crs","units","license","checksum","nodata","quality_notes","transformations"],"properties":{"dataset_id":{"type":"string"},"provider":{"type":"string"},"product":{"type":"string"},"collection_version":{"type":"string"},"landing_url":{"type":"string","format":"uri"},"access_url":{"type":"string","format":"uri"},"downloaded_at":{"type":"string","format":"date-time"},"time_start":{"type":["string","null"],"format":"date-time"},"time_end":{"type":["string","null"],"format":"date-time"},"spatial_resolution":{"type":"string"},"temporal_resolution":{"type":"string"},"crs":{"type":"string"},"units":{"type":"string"},"license":{"type":"string"},"checksum":{"type":"string"},"nodata":{"type":["string","number","null"]},"quality_notes":{"type":"array","items":{"type":"string"}},"transformations":{"type":"array","items":{"type":"string"}}}}}}};
-const formats2 = __dep1.fullFormats["date-time"];
+export const validateManifest = validate23;
+const schema37 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://analogos.cl/schemas/data-manifest.schema.json","title":"AnalogOS Data Manifest","type":"object","additionalProperties":false,"required":["snapshot_version","created_at","pipeline_version","datasets"],"properties":{"snapshot_version":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"pipeline_version":{"type":"string"},"datasets":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["dataset_id","provider","product","collection_version","landing_url","access_url","downloaded_at","time_start","time_end","spatial_resolution","temporal_resolution","crs","units","license","checksum","nodata","quality_notes","transformations"],"properties":{"dataset_id":{"type":"string"},"provider":{"type":"string"},"product":{"type":"string"},"collection_version":{"type":"string"},"landing_url":{"type":"string","format":"uri"},"access_url":{"type":"string","format":"uri"},"downloaded_at":{"type":"string","format":"date-time"},"time_start":{"type":["string","null"],"format":"date-time"},"time_end":{"type":["string","null"],"format":"date-time"},"spatial_resolution":{"type":"string"},"temporal_resolution":{"type":"string"},"crs":{"type":"string"},"units":{"type":"string"},"license":{"type":"string"},"checksum":{"type":"string"},"nodata":{"type":["string","number","null"]},"quality_notes":{"type":"array","items":{"type":"string"}},"transformations":{"type":"array","items":{"type":"string"}}}}}}};
+const formats4 = __dep1.fullFormats["date-time"];
 
-function validate21(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate23(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="https://analogos.cl/schemas/data-manifest.schema.json" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate21.evaluated;
+const evaluated0 = validate23.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -1237,7 +2343,7 @@ errors++;
 if(data.created_at !== undefined){
 let data1 = data.created_at;
 if(typeof data1 === "string"){
-if(!(formats2.validate(data1))){
+if(!(formats4.validate(data1))){
 const err6 = {instancePath:instancePath+"/created_at",schemaPath:"#/properties/created_at/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
 if(vErrors === null){
 vErrors = [err6];
@@ -1469,7 +2575,7 @@ vErrors.push(err27);
 errors++;
 }
 for(const key1 in data4){
-if(!(func1.call(schema34.properties.datasets.items.properties, key1))){
+if(!(func1.call(schema37.properties.datasets.items.properties, key1))){
 const err28 = {instancePath:instancePath+"/datasets/" + i0,schemaPath:"#/properties/datasets/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err28];
@@ -1581,7 +2687,7 @@ errors++;
 if(data4.downloaded_at !== undefined){
 let data11 = data4.downloaded_at;
 if(typeof data11 === "string"){
-if(!(formats2.validate(data11))){
+if(!(formats4.validate(data11))){
 const err37 = {instancePath:instancePath+"/datasets/" + i0+"/downloaded_at",schemaPath:"#/properties/datasets/items/properties/downloaded_at/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
 if(vErrors === null){
 vErrors = [err37];
@@ -1606,7 +2712,7 @@ errors++;
 if(data4.time_start !== undefined){
 let data12 = data4.time_start;
 if((typeof data12 !== "string") && (data12 !== null)){
-const err39 = {instancePath:instancePath+"/datasets/" + i0+"/time_start",schemaPath:"#/properties/datasets/items/properties/time_start/type",keyword:"type",params:{type: schema34.properties.datasets.items.properties.time_start.type},message:"must be string,null"};
+const err39 = {instancePath:instancePath+"/datasets/" + i0+"/time_start",schemaPath:"#/properties/datasets/items/properties/time_start/type",keyword:"type",params:{type: schema37.properties.datasets.items.properties.time_start.type},message:"must be string,null"};
 if(vErrors === null){
 vErrors = [err39];
 }
@@ -1616,7 +2722,7 @@ vErrors.push(err39);
 errors++;
 }
 if(typeof data12 === "string"){
-if(!(formats2.validate(data12))){
+if(!(formats4.validate(data12))){
 const err40 = {instancePath:instancePath+"/datasets/" + i0+"/time_start",schemaPath:"#/properties/datasets/items/properties/time_start/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
 if(vErrors === null){
 vErrors = [err40];
@@ -1631,7 +2737,7 @@ errors++;
 if(data4.time_end !== undefined){
 let data13 = data4.time_end;
 if((typeof data13 !== "string") && (data13 !== null)){
-const err41 = {instancePath:instancePath+"/datasets/" + i0+"/time_end",schemaPath:"#/properties/datasets/items/properties/time_end/type",keyword:"type",params:{type: schema34.properties.datasets.items.properties.time_end.type},message:"must be string,null"};
+const err41 = {instancePath:instancePath+"/datasets/" + i0+"/time_end",schemaPath:"#/properties/datasets/items/properties/time_end/type",keyword:"type",params:{type: schema37.properties.datasets.items.properties.time_end.type},message:"must be string,null"};
 if(vErrors === null){
 vErrors = [err41];
 }
@@ -1641,7 +2747,7 @@ vErrors.push(err41);
 errors++;
 }
 if(typeof data13 === "string"){
-if(!(formats2.validate(data13))){
+if(!(formats4.validate(data13))){
 const err42 = {instancePath:instancePath+"/datasets/" + i0+"/time_end",schemaPath:"#/properties/datasets/items/properties/time_end/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
 if(vErrors === null){
 vErrors = [err42];
@@ -1728,7 +2834,7 @@ errors++;
 if(data4.nodata !== undefined){
 let data20 = data4.nodata;
 if(((typeof data20 !== "string") && (!(typeof data20 == "number"))) && (data20 !== null)){
-const err49 = {instancePath:instancePath+"/datasets/" + i0+"/nodata",schemaPath:"#/properties/datasets/items/properties/nodata/type",keyword:"type",params:{type: schema34.properties.datasets.items.properties.nodata.type},message:"must be string,number,null"};
+const err49 = {instancePath:instancePath+"/datasets/" + i0+"/nodata",schemaPath:"#/properties/datasets/items/properties/nodata/type",keyword:"type",params:{type: schema37.properties.datasets.items.properties.nodata.type},message:"must be string,number,null"};
 if(vErrors === null){
 vErrors = [err49];
 }
@@ -1829,21 +2935,21 @@ vErrors.push(err56);
 }
 errors++;
 }
-validate21.errors = vErrors;
+validate23.errors = vErrors;
 return errors === 0;
 }
-validate21.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate23.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const validateProfile = validate22;
-const schema35 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://analogos.cl/schemas/mission-profile.schema.json","title":"AnalogOS Mission Profile","type":"object","additionalProperties":false,"required":["id","version","name","purpose","status","planetary_reference","aggregation","criteria","hard_constraints","limitations"],"properties":{"id":{"type":"string","pattern":"^[a-z0-9-]+$"},"version":{"type":"string"},"name":{"type":"string","minLength":3},"purpose":{"type":"string","minLength":10},"status":{"enum":["needs_calibration","validated","deprecated"]},"planetary_reference":{"type":"object","additionalProperties":false,"required":["dataset_id","body","notes"],"properties":{"dataset_id":{"type":"string"},"body":{"enum":["mars","moon"]},"notes":{"type":"string"}}},"aggregation":{"type":"object","additionalProperties":false,"required":["method","epsilon","minimum_valid_weight"],"properties":{"method":{"const":"weighted_geometric_mean"},"epsilon":{"type":"number","exclusiveMinimum":0,"maximum":0.1},"minimum_valid_weight":{"type":"number","minimum":0.5,"maximum":1}}},"criteria":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["id","label","weight","unit","method","status"],"properties":{"id":{"type":"string","pattern":"^[a-z0-9_]+$"},"label":{"type":"string"},"weight":{"type":"number","minimum":0,"maximum":1},"unit":{"type":"string"},"method":{"enum":["reference_distribution_distance","bounded_preference","categorical_compatibility","hard_constraint"]},"status":{"enum":["needs_calibration","needs_expert_review","optional","validated"]}}}},"hard_constraints":{"type":"array","items":{"type":"string"},"uniqueItems":true},"limitations":{"type":"array","minItems":1,"items":{"type":"string"}}}};
-const pattern5 = new RegExp("^[a-z0-9-]+$", "u");
-const pattern6 = new RegExp("^[a-z0-9_]+$", "u");
+export const validateProfile = validate24;
+const schema38 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://analogos.cl/schemas/mission-profile.schema.json","title":"AnalogOS Mission Profile","type":"object","additionalProperties":false,"required":["id","version","name","purpose","status","planetary_reference","aggregation","criteria","hard_constraints","limitations"],"properties":{"id":{"type":"string","pattern":"^[a-z0-9-]+$"},"version":{"type":"string"},"name":{"type":"string","minLength":3},"purpose":{"type":"string","minLength":10},"status":{"enum":["needs_calibration","validated","deprecated"]},"planetary_reference":{"type":"object","additionalProperties":false,"required":["dataset_id","body","notes"],"properties":{"dataset_id":{"type":"string"},"body":{"enum":["mars","moon"]},"notes":{"type":"string"}}},"aggregation":{"type":"object","additionalProperties":false,"required":["method","epsilon","minimum_valid_weight"],"properties":{"method":{"const":"weighted_geometric_mean"},"epsilon":{"type":"number","exclusiveMinimum":0,"maximum":0.1},"minimum_valid_weight":{"type":"number","minimum":0.5,"maximum":1}}},"criteria":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["id","label","weight","unit","method","status"],"properties":{"id":{"type":"string","pattern":"^[a-z0-9_]+$"},"label":{"type":"string"},"weight":{"type":"number","minimum":0,"maximum":1},"unit":{"type":"string"},"method":{"enum":["reference_distribution_distance","bounded_preference","categorical_compatibility","hard_constraint"]},"status":{"enum":["needs_calibration","needs_expert_review","optional","validated"]}}}},"hard_constraints":{"type":"array","items":{"type":"string"},"uniqueItems":true},"limitations":{"type":"array","minItems":1,"items":{"type":"string"}}}};
+const pattern8 = new RegExp("^[a-z0-9-]+$", "u");
+const pattern9 = new RegExp("^[a-z0-9_]+$", "u");
 
-function validate22(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate24(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="https://analogos.cl/schemas/mission-profile.schema.json" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate22.evaluated;
+const evaluated0 = validate24.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -1952,7 +3058,7 @@ vErrors.push(err9);
 errors++;
 }
 for(const key0 in data){
-if(!(func1.call(schema35.properties, key0))){
+if(!(func1.call(schema38.properties, key0))){
 const err10 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err10];
@@ -1966,7 +3072,7 @@ errors++;
 if(data.id !== undefined){
 let data0 = data.id;
 if(typeof data0 === "string"){
-if(!pattern5.test(data0)){
+if(!pattern8.test(data0)){
 const err11 = {instancePath:instancePath+"/id",schemaPath:"#/properties/id/pattern",keyword:"pattern",params:{pattern: "^[a-z0-9-]+$"},message:"must match pattern \""+"^[a-z0-9-]+$"+"\""};
 if(vErrors === null){
 vErrors = [err11];
@@ -2053,7 +3159,7 @@ errors++;
 if(data.status !== undefined){
 let data4 = data.status;
 if(!(((data4 === "needs_calibration") || (data4 === "validated")) || (data4 === "deprecated"))){
-const err18 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema35.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err18 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema38.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err18];
 }
@@ -2123,7 +3229,7 @@ errors++;
 if(data5.body !== undefined){
 let data7 = data5.body;
 if(!((data7 === "mars") || (data7 === "moon"))){
-const err24 = {instancePath:instancePath+"/planetary_reference/body",schemaPath:"#/properties/planetary_reference/properties/body/enum",keyword:"enum",params:{allowedValues: schema35.properties.planetary_reference.properties.body.enum},message:"must be equal to one of the allowed values"};
+const err24 = {instancePath:instancePath+"/planetary_reference/body",schemaPath:"#/properties/planetary_reference/properties/body/enum",keyword:"enum",params:{allowedValues: schema38.properties.planetary_reference.properties.body.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err24];
 }
@@ -2388,7 +3494,7 @@ errors++;
 if(data14.id !== undefined){
 let data15 = data14.id;
 if(typeof data15 === "string"){
-if(!pattern6.test(data15)){
+if(!pattern9.test(data15)){
 const err47 = {instancePath:instancePath+"/criteria/" + i0+"/id",schemaPath:"#/properties/criteria/items/properties/id/pattern",keyword:"pattern",params:{pattern: "^[a-z0-9_]+$"},message:"must match pattern \""+"^[a-z0-9_]+$"+"\""};
 if(vErrors === null){
 vErrors = [err47];
@@ -2472,7 +3578,7 @@ errors++;
 if(data14.method !== undefined){
 let data19 = data14.method;
 if(!((((data19 === "reference_distribution_distance") || (data19 === "bounded_preference")) || (data19 === "categorical_compatibility")) || (data19 === "hard_constraint"))){
-const err54 = {instancePath:instancePath+"/criteria/" + i0+"/method",schemaPath:"#/properties/criteria/items/properties/method/enum",keyword:"enum",params:{allowedValues: schema35.properties.criteria.items.properties.method.enum},message:"must be equal to one of the allowed values"};
+const err54 = {instancePath:instancePath+"/criteria/" + i0+"/method",schemaPath:"#/properties/criteria/items/properties/method/enum",keyword:"enum",params:{allowedValues: schema38.properties.criteria.items.properties.method.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err54];
 }
@@ -2485,7 +3591,7 @@ errors++;
 if(data14.status !== undefined){
 let data20 = data14.status;
 if(!((((data20 === "needs_calibration") || (data20 === "needs_expert_review")) || (data20 === "optional")) || (data20 === "validated"))){
-const err55 = {instancePath:instancePath+"/criteria/" + i0+"/status",schemaPath:"#/properties/criteria/items/properties/status/enum",keyword:"enum",params:{allowedValues: schema35.properties.criteria.items.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err55 = {instancePath:instancePath+"/criteria/" + i0+"/status",schemaPath:"#/properties/criteria/items/properties/status/enum",keyword:"enum",params:{allowedValues: schema38.properties.criteria.items.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err55];
 }
@@ -2620,7 +3726,7 @@ vErrors.push(err64);
 }
 errors++;
 }
-validate22.errors = vErrors;
+validate24.errors = vErrors;
 return errors === 0;
 }
-validate22.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate24.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};

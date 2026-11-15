@@ -11,7 +11,8 @@
  *  - «satura»: preferencia acotada que alcanzó el tope de su regla.
  *  - Valor regional compartido: mismo valor y misma fuente en otro sector evaluado.
  */
-import { CRITERION_IDS, isCriterionId, type CriterionId, type MissionCriterion, type ScoreBreakdownItem } from '../../domain/contracts'
+import type { CriterionId, MissionCriterion, ScoreBreakdownItem } from '../../domain/contracts'
+import { CRITERION_IDS, isCriterionId } from '../../domain/criteria'
 import { criterionLabels, formatRawValue } from '../../domain/formatting'
 import type { BuildMetricViewsInput, MetricView } from './index'
 

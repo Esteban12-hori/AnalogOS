@@ -1,120 +1,53 @@
 # Changelog de trabajo
 
-## 2026-11-14 Claude Code · rediseño Explorar / Misión: correcciones de la revisión (rama feature/mision-redesign)
+## 2026-11-14 Claude Code · fusión de origin/dev en el rediseño (F1 de docs/INTEGRATION_PLAN.md)
 
-- **Cifras de una sola fuente:**
-  - Comparar usa el perfil activo, con orden y cifras del motor en Misión y rótulo de perfil.
-  - `scoreMission` entrega `stability`, la misma de la Lectura.
-  - Geología sin dato se muestra «por calcular · fuera de tu perfil».
-  - Un criterio excluido no «satura».
-  - Nota cuando la confianza sube solo porque un criterio sin dato quedó fuera.
-- **Filtro de la IA:**
-  - Rechaza el léxico de orden (`rank`) y los cuantificadores «medio/media», «par» y «cuarto».
-  - Un `summary` o `tradeoff` que compara debe citar el puesto o un `best_of_n` (`rank_fact`).
-- **Rótulos:**
-  - ✦ en la frase bajo LIMITANTE.
-  - Prefijo sr-only «Texto de IA:» o «Texto pregenerado, no científico:».
-  - ✦ solo con lktron.
-  - «DEMO · sin IA» primero en la línea de estado.
-  - «Prueba sugerida» según la fuente.
-  - «Rango térmico» en todas partes.
-- **Atribución de datos siempre visible**, generada desde `manifest.datasets` (`shell/attribution.ts`), en la franja del escenario y en el HTML estático.
-- **Señal:** cifra final sin odómetro; NDVI en azul con ↑/↓.
-- **Accesibilidad:**
-  - Gestión de foco en hoja y riel.
-  - Esc en un popover ya no borra la selección.
-  - Barra superior primera en el DOM, `<main>`, `h1` y aviso accesible bajo 860 px.
-  - Pines tapados o casi en el horizonte, fuera del orden de foco.
-  - Foco de dos tonos sobre imágenes.
-  - Topbar sin blur y vidrio .86.
-  - Pulgar #0274AD.
-  - `prefers-reduced-transparency`.
-  - Bucles acotados.
-  - Objetivos táctiles de 44 px.
-  - Texto mínimo de 10 px.
-  - Anuncios sin duplicar.
-  - «/» acotado.
-- **Diseño:**
-  - Tarjetas compactas por container query.
-  - Panel izquierdo en dos regiones de scroll, con los presets plegados tras los resultados.
-  - Hoja lateral a todo el alto.
-  - Hover táctil sin quedar pegado.
-  - El chip y el carrusel cuentan los ◆ dibujados.
-  - Error sin criterios de terreno que lista lo no medido.
-- **Rendimiento:**
-  - JS inicial 119,1 → 111,9 KB gz (+11,9 sobre 857b05f).
-  - Validadores separados por chunk.
-  - `engine` 15,6 → 8,5 KB gz.
-  - `lktronClient` diferido.
-  - Método y Fuentes diferidos.
-  - FLIP sin layout síncrono al montar.
-- **Verificación:**
-  - 856 tests; build verde; pytest 170/1 skip.
-  - Smoke 34/34 y hallazgos 35/35 en el navegador, sin errores de consola.
-  - Lighthouse intercalado (ver `docs/PERFORMANCE.md`).
-  - ZIP en `/tmp/claude-rel/final.zip`.
+- Fusión sin squash de `origin/dev` (`92392f1`) en `feature/mision-redesign`. Se conservan la UI del rediseño y, sin cambios, `shared/`, `server/`, `api/`, los artefactos v1/v2/v3, los contratos M8 y el CI del equipo.
+- Arreglos mecánicos: `chileOutline` → `outline`; validadores precompilados con búsqueda y antecedentes en un chunk aparte; `CandidateMap` con contenido de dev en `features/globe/`; Comparar con la firma del equipo; `contextLayers` según la versión del índice; empaquetador con la base de dev y lo nuestro (mapas base, precarga, favicon).
+- Retirados al fusionar: `components/{CandidateDetails,CandidateRanking,CandidateGlobe,CandidateFlatMap,MapStage,LiquidNav}.tsx` y `breakdown/ScoreBreakdown.tsx`. El bloque «ranking y ficha» de `discovery.test.tsx` se porta en F3.
 
-## 2026-11-14 Claude Code · rediseño Explorar / Misión: integración de los incrementos 3–10 (rama feature/mision-redesign)
+## 2026-11-14 Codex — dev e IA real verificados
 
-- **Fusiones** con `--no-ff`, sin conflictos de texto, en este orden:
-  - `build/engine`: motor 1.0.0 con paridad ≤1e-6 con `pipelines/scoring.py`, perfiles, matcher DEMO y fases;
-  - `build/places`: PlaceRail y `config/reference_analogs.json` con 7 ◆ y fuentes;
-  - `build/globe`: marcadores ● ◆ ○, vuelo, agrupación y teclado;
-  - `build/metrics`: MetricRail, `buildMetricViews` y S1; retira `breakdown/`;
-  - `build/leaders`: líneas Tesla;
-  - `build/boot`: «Órbita honesta» con hitos reales;
-  - `build/composer`: composer, «Tu misión», historial y coreografía de resultados;
-  - `build/analysis`: evidencia, filtro de la IA, robustez, Lectura, pregenerado y lktron NDJSON.
-- **Integración:**
-  - «Ver lista» en la hoja abre S1 con `sheet.list` (`onListViewChange`).
-  - `data-obstacle` en `pill.reading`, `.stage-dock` y `.stage-controls`.
-  - Los obstáculos se vuelven a medir después de aplicar los márgenes asentados.
-  - Si las líneas van a la derecha, se oculta el rótulo del pin seleccionado.
-  - El DEMO recibe el id y la versión del perfil cargado.
-  - La franja «Refinar» tiene fondo sólido.
-  - El rótulo del pin seleccionado termina en el borde del área libre (`--pin-x` por cuadro y `max-width`): ya no queda bajo el riel en Misión a 1440 ni se corta en el borde a 390.
-- **Bundler:** un único chunk inicial (`codeSplitting` con `$initial`): −5,7 KB gz de JS, −0,5 KB gz de CSS y ~18 `modulepreload` menos en la ruta crítica.
-- **Empaquetador:** admite `analysis/ai-analysis.default.json` (opcional, nombre fijo), con un test.
-- **Tests:**
-  - El test del stub del motor pasa a ser la regla honesta sin condición.
-  - Se retira el caso del composer que solo corría con el stub.
-  - La integración de analysis ya no se salta sola.
-- **Limpieza:** reglas muertas `.globe-label` y `.globe-callout` en `liquid/`.
-- **Reproducibilidad:** el generador del análisis pregenerado pasa de `/tmp` a `scripts/make_pregenerated_analysis.py` y reproduce el JSON commiteado byte a byte.
-- **Ramas:** las 8 ramas `build/*` se borraron porque estaban fusionadas; sus worktrees quedaron en HEAD separado.
-- **Verificación:**
-  - 817 tests web (56 archivos), build en verde y pytest con 170 passed y 1 skipped.
-  - Recorrido en navegador a 1440×900 y 390×844 (Explorar, selección, Misión DEMO → Lectura, 2D y vuelta): 34/34 comprobaciones y 0 errores de consola.
-  - Lighthouse, mediana de 3 contra `857b05f`: en móvil el puntaje queda igual (75) y el LCP pasa de 5,0 a 5,3 s; en escritorio, 98 = 98.
-  - ZIP de entrega generado en `/tmp` con `analysis/ai-analysis.default.json`.
-- **Pendiente:** el JS inicial está +17,8 KB gz sobre `857b05f` (límite +12) y varios chunks diferidos superan su línea de §6.1. El detalle está en `project/STATUS.md`.
+- Publicación corregida `9060970`, Actions 43639834860 correcto, alias `https://analogos-dev.vercel.app/`. Main y protección de acceso sin cambios.
+- Prueba real desde navegador: borrador de tres requisitos (`req_011Ch3V9sX8XWfnCFHCehTem`) y explicación (`req_011Ch3VD7AVeY7uEpeKT9i9e`), ambos con `claude-sonnet-5-5`. Un área priorizada y seis descartadas; permisos siguen pendientes.
+- JSON descargado validado contra contrato y recálculo local idéntico. Exportación sintética y captura en `submission/evidence/m8-dev-ai-export.json` y `submission/assets/analogos-m8-dev-ai.png`.
+- Evidencia y operación en `docs/DEV_AI_VERIFICATION.md`. ZIP final determinista: 30 entradas, 12.987.707 bytes, SHA-256 `eacf5dce441763b2c5e21d2aa2d75fe88130cccfeafb098c72e73bba1f2bd32f`; 38 hashes de baseline intactos. 177 Python y 196 web correctos, más arranque del paquete real en CI.
+- Este checkpoint solo agrega documentación y evidencia, con `[skip ci]`; conserva el código desplegado y ya verificado. Claude queda sin nueva asignación.
 
-## 2026-11-14 Claude Code · rediseño Explorar / Misión: incrementos 0–2 y contrato del paralelo (rama feature/mision-redesign)
+## 2026-11-14 Codex — corrección de ejecución en Vercel
 
-- Incremento 0:
-  - ADR-008 (escenario fijo y hoja), ADR-009 (recálculo determinista en cliente) y ADR-010 (IA opcional), en estado propuesto.
-  - Esquemas `reference-analog`, `mission-interpretation`, `evidence-packet` y `ai-analysis` con 30 fixtures válidos e inválidos (`tests/fixtures/contracts/`), probados con Ajv precompilado (Vitest) y con jsonschema (pytest).
-  - Segundo módulo de validadores diferido (`validators.mission.generated.js`), con `--check` en el build.
-- Incremento 1:
-  - Tokens de movimiento, color y glifos (`shell/tokens.css`, `shell/glyphs.ts`).
-  - Store `ui` y store `mission` con `useSyncExternalStore`.
-  - `useReducedMotion` con listener.
-  - `formatScore` con 1 decimal fijo (49,99 → «50,0»).
-- Incremento 2: armazón de escenario fijo 100dvh sin scroll del documento.
-  - Pestañas APG Explorar | Misión con `?modo=`.
-  - Dock inferior, riel derecho con «Ver ficha completa» (520 px, pestañas Métricas · Lectura IA · Señal · Comparar · Método · Fuentes) y panel izquierdo ≥1440.
-  - Hoja S0/S1/S2 <1100 con `resolveDetent` (umbral, histéresis y cancelación), `useKeyboardInset`, `pushState`/Esc e `inert`.
-  - `MapStage` recibe `insets`/`baseInsets` (`setViewOffset` x/y y `setPadding`).
-  - El póster previo a React se alinea con los nuevos márgenes base.
-  - Se retiran el hero, la ficha flotante, `LiquidNav` y `LazySection`.
-- Contrato del paralelo:
-  - 8 features con `index.ts` estable y stubs honestos montados en sus slots (`data-slot`).
-  - `docs/BUILD_CONTRACTS.md` con la propiedad de archivos.
-  - Guardia `featureContracts.test.ts`.
-- Verificación:
-  - 141 tests web, 165 Python (1 omitido) y build en verde.
-  - Navegador a 1440×900, 1280×800 y 390×844 sin errores de consola.
-  - Chunk principal +2,6 KB gz de JS y +1,0 KB gz de CSS.
+- El primer deploy de M8 (`707d4b1`, Actions 43639120488) compiló y publicó, pero la prueba de IA en navegador reveló `ERR_REQUIRE_ESM`: la función Node requería módulos dentro del paquete ESM de la web.
+- Extraído el mismo núcleo puro a `shared/`, con reexports compatibles para el frontend e imports directos desde servidor. Sin cambios de reglas, datos ni dependencias. Typecheck servidor alineado con NodeNext.
+- Nueva comprobación de arranque sobre la función realmente empaquetada antes del deploy: carga módulos, snapshot/contratos y valida GET 405 y POST sin clave 503. Verificado también con compilación Node local.
+- Repetidos 177 Python, 196 web (+2 opt-in omitidas), typecheck y build. Segunda publicación y prueba real remota en curso.
+
+## 2026-11-14 Codex — publicación M8 en dev autorizada
+
+- Dan pidió commit/push a dev y comprobación de la IA remota. Preparado despliegue con `ANTHROPIC_API_KEY` como secreto de GitHub, inyectado por `vercel deploy --env` únicamente en runtime de dev. Main y protección de Vercel se conservan.
+- Verificación previa repetida: 177 Python, 196 web (+2 pruebas opt-in omitidas), typecheck y build correctos. Se seguirá Actions y se comprobarán las dos operaciones desde la web protegida.
+
+## 2026-11-14 Codex — aceptación local de M8
+
+- Revisada la implementación de Claude y verificadas las correcciones de geometría, escala, timeout, estado de IA, exportación y presentación. Ajuste final de Codex: umbrales diminutos conservan notación científica y la etiqueta de cobertura sirve para una o siete ventanas.
+- Verificación independiente final: 177 Python, 196 web (+2 de IA real omitidas por defecto), typecheck/build; 10/10 casos adicionales de auditoría. Los 38 hashes de baseline siguen intactos.
+- Navegador: recorridos de prueba/sector, IA real de borrador y explicación, exportación con procedencia, invalidación, cero priorizados, puntos y cobertura, teclado y móvil. ZIP manual bajo `/AnalogOS/` con red externa bloqueada.
+- ZIP final determinista: 30 entradas, 12.987.711 bytes, SHA-256 `440b295e936613eea74e43e74cd2f978defd2e8c01b72e7bedcdd359b8d2b5da`; contenido cotejado con dist y sin clave. Captura `submission/assets/analogos-m8-review.png`.
+- Informe `docs/CODEX_M8_REVIEW.md`; NEXT_TASK y ADR-009 aceptados localmente. Pendientes: despliegue/prueba en Vercel e inspección visual de impresión nativa. No hay commit, push ni nueva tarea a Claude.
+
+## 2026-11-14 Claude Code · M8 revisión B (presentación)
+
+- Formateo compartido (`mission/format.ts`): unidades humanas y números es-CL en razones, tablas, confirmación e informe; JSON con unidad canónica sin cambios.
+- Confirmación con condiciones efectivas y geometría pedida; informe impreso con condición efectiva por requisito y geometría pedida/medida en texto aunque no haya opciones.
+- «Esta versión» en lugar de «M8» en textos de usuario; escala «Ventana completa (~20 km)»; hero sin promesa de tracción.
+- Verificación: 177 Python, 196 web (+2 de IA real omitidas), typecheck del servidor, build; auditoría Codex 9/9; ZIP repetido idéntico (SHA-256 `7b2b30b5…d2ec`); baseline de 38 archivos intacto. Sin llamadas de IA nuevas. Sin commit ni push.
+
+## 2026-11-14 Claude Code · M8 recomendación guiada por prueba y sector (entrega para revisión)
+
+- Corrección de la revisión de A: geometría solo con épsilon 1e-9°, timeout que cubre la lectura del cuerpo, exportación con borrador y explicación de IA separados y validada semánticamente, salida del proveedor validada con Ajv, escala/cifras ancladas al brief, «otro objetivo» no soportado. Auditoría independiente 9/9 (incluye respuesta de IA con huellas ajenas ⇒ error, y reintento fallido que conserva la procedencia).
+- Etapa B: planificador integrado (`components/planner/`), estado puro con invalidación y protección contra respuestas tardías (`mission/plannerState.ts`), esquema SVG local, resultado, informe imprimible y JSON validado; entradas en el hero y botón en la ficha.
+- Servidor opcional de IA (`server/ai/`, `api/ai.ts`) y servidor local en el plugin de Vite; contratos `mission-*`; docs `AI_SETUP`, arquitectura, producto, guía de aceptación y README.
+- Verificación: 177 Python, 196 web (+2 de IA real omitidas), typecheck del servidor, build; ZIP repetido idéntico (SHA-256 `7b2b30b5…d2ec`); baseline de 38 archivos intacto. IA real registrada en `project/M8_PROGRESS.md`.
+- Pendiente: revisión de Codex (CUA, Vercel sin publicar). Sin commit ni push.
 
 ## 2026-11-14 Claude Code · rediseño fusionado en dev
 
@@ -328,20 +261,63 @@
 - `vercel.json`: caché inmutable en assets con hash y corta en JSON.
 - `package_release.py` lee `.vite/manifest.json` para los chunks diferidos y admite `basemaps/` explícitos; 7 tests nuevos.
 
-## 2026-11-14 Claude Code — nitidez del globo y carga en `dev`
 
-- Textura del globo progresiva (1K inmediata, 4K WebP nítida); paso al 2D relativo a la vista global (`flatThresholds`).
-- `fetch_basemaps.py --only-derived`: mundo Blue Marble en Mercator y vistas previas WebP de las Sentinel-2 de ADR-005, verificadas por SHA-256.
-- La precarga del 2D espera al globo; el empaquetador admite los nuevos `basemaps/` con nombres fijos.
-- `docs/PERFORMANCE.md`: mediciones y evaluación de Rust (descartado con datos).
+## 2026-11-14 Codex — asignación M7-GLOBAL-DISCOVERY
 
-## 2026-11-14 Claude Code — optimización máxima en `dev`
+- Dan autorizó AnalogOS con visión global y primer piloto de búsqueda Chile–Argentina, usando Yungay como referencia conocida.
+- Asignado a Claude un corte vertical: 50 ventanas topográficas en dos regiones declaradas, hasta seis preselecciones multifuente, auditoría bibliográfica, snapshot v3, roles referencia/candidato, mapa binacional, exportación y paquete offline.
+- Preservar v2 y pesos/fórmulas como línea base; distinguir alcance regional de cobertura mundial y ausencia de antecedentes de novedad demostrada.
+- Baseline comprobada antes del handoff: 119 pruebas Python, 24 web y build verdes. Sin cambios de implementación, commit ni push en esta asignación.
 
-- Validadores Ajv precompilados (`apps/web/scripts/build-validators.mjs`, con `--check` en el build y tests).
-- Armazón estático en `index.html` (`src/content/shell.ts`) y armazón inmediato en React; Señal y Comparar diferidas por scroll.
-- Plugin de Vite: precarga de datos, `prefetch` del chunk 2D, favicon en línea y póster del globo solo en escritorio, posicionado por `src/boot/posterLayout.js` (test de paridad con `mapZoom`).
-- Mapa 2D instanciado al empezar a acercarse; código, worker e imágenes a la caché en reposo.
-- Textura del globo 2K/4K según pantalla; cámara inicial en el encuadre final.
-- `package_release.py` acepta precargas de archivos listados, favicon `data:` y el póster WebP; 5 tests nuevos.
-- Verificado: 134 pruebas Python, 66 web, build, ZIP sin conexión bajo `/AnalogOS/` y flujo completo en navegador sin errores.
+## 2026-11-14 Claude Code — M7-GLOBAL-DISCOVERY (entregado en `review`, sin commit)
 
+- Marca visible «AnalogOS» con subtítulo «Exploración de análogos planetarios · Piloto Chile–Argentina». Carpeta, remoto y paquetes no cambian.
+- Búsqueda reproducible: `config/discovery_search_v3.json`, `pipelines/discover_candidates.py` y `pipelines/fetch_discovery_data.py`. 50 ventanas de 0,2° en dos regiones de prueba, prioridad topográfica con pesos relativos 0,20/0,20/0,15, hasta 3 por país con centros a ≥ 25 km. Cada ventana guarda su motivo.
+- Resultado de la etapa 1: 50 evaluadas, 4 excluidas por coordenadas de muestreo publicadas, 2 por cercanía, 38 fuera del cupo y 6 preseleccionadas (3 por país).
+- Snapshot `artifacts/science-v3/` con `pipelines/build_discovery_snapshot.py`: seis candidatos y Yungay como referencia, con las fórmulas y pesos v2. Yungay conserva 75,67 / 77,45 / 99,03. Los candidatos chilenos obtienen 94,87 / 91,87 / 90,35 y los argentinos 63,85 / 53,68 / 49,43; coinciden con el cálculo independiente de Codex.
+- Antecedentes: `config/analog_precedents_v1.json` con las 30 coordenadas del material suplementario de Navarro-González et al. (2003) y fuentes sobre Atacama y la Puna; tres búsquedas dirigidas registradas. Ningún candidato se declara nuevo.
+- Contratos: `candidate-site` admite `cl-`/`ar-`, añade `country`, `role`, `discovery`, `literature_review` y el estado `reference`; nuevos `discovery-search` y `precedent-catalog`. Los snapshots históricos siguen validando.
+- Calidad sin confianza falsa: completitud Sentinel-2 contra 12 meses con rechazo de filas mal formadas, calidad topográfica × cobertura, validación de POWER y caché ligada a la petición exacta. Los valores v2 no cambian.
+- Correcciones tras las revisiones de Codex: fallos de datos por ventana sin abortar la búsqueda, identidad de petición en el build, filas Sentinel-2 y POWER estrictas, redacción «valores coincidentes; posible celda compartida», búsqueda sin preselección como experimento negativo y etiqueta accesible del mapa.
+- Web: alcance de la búsqueda, ranking con filtro por país, tarjeta de referencia aparte, mapa SVG regional con las 50 ventanas, ambos países y recuadro de ubicación, sección «Origen y antecedentes» en la ficha y exportación con rol, origen y alcance.
+- Contexto visual v3 en `artifacts/visual-context-v3/`: seis imágenes nuevas y la de Yungay reutilizada del paquete v2. Observaciones preliminares en `config/visual_observations_v3.json`, visibles como advertencia.
+- Empaquetador v3: lista derivada de metadata validada; `submission/analogos-static.zip` (18 archivos, 9.012.267 bytes) con `analogos-static.zip.sha256`. El ZIP v2 se conserva.
+- Documentación: ADR-006 (`proposed`), `docs/DISCOVERY_REPORT.md`, README, documentos de producto y ciencia, material de `submission/` y captura `assets/analogos-pilot-overview.jpg`.
+- Verificado: 167 tests Python, 39 tests web, build, empaquetado repetido byte a byte, demo en `/AnalogOS/` por HTTP y `git diff --check` limpio. v2 y sus artefactos sin cambios.
+- Uso de red: 7 teselas NASADEM, 6 consultas Statistical API, 6 POWER, 6 inventarios HLS y 6 imágenes Process API, todas dentro de los límites; credenciales solo desde el programa.
+
+## 2026-11-14 Codex — aceptación M7-GLOBAL-DISCOVERY (15:33)
+
+- Aceptada la implementación de Claude como piloto regional de AnalogOS: 50 ventanas, seis candidatos, referencia Yungay fuera del ranking y precedentes visibles. Sin declarar descubrimientos confirmados ni cobertura global.
+- Repetidos de forma independiente: 167 tests Python, 39 web y build; reconstrucción byte a byte de v2/v3; 11 hashes de baseline; cachés de 18 entradas y paquetes visuales v2/v3 sin red/login.
+- Recalculadas las 50 prioridades, la selección y las seis similitudes/confianzas desde datos crudos. Verificados los puntos bibliográficos y las seis imágenes nuevas. Correcciones devueltas a Claude y regresiones incluidas.
+- Navegador: filtro Argentina, fichas, referencia, exportación real con rol/origen, teclado del mapa, móvil y ZIP extraído en raíz y /AnalogOS/. Sin errores de aplicación durante la comprobación.
+- ZIP determinista: 18 entradas, 9.012.267 bytes, SHA-256 3b419d770f1a1dce5e01f7345aaafef3f33ca18df4d2f73e6d3fb8c7c9853415. Baseline v2 intacto.
+- ADR-006 y NEXT_TASK aceptados; informe independiente en docs/CODEX_M7_REVIEW.md. Actualizados STATUS, BACKLOG, instrucciones de continuidad y referencias activas de producto/ciencia para evitar volver a v2.
+- Pendientes explícitos: territorio, bibliografía completa de la Puna y contraste climático local. Claude espera nueva asignación. Sin commit, push ni publicación.
+
+## 2026-11-14 Codex — integración revisada y autorizada para dev
+
+- Dan pidió «actualiza dev». Checkpoint científico M7 guardado en 1302ed8 e integrado con el rediseño remoto del equipo, preservando sus decisiones y despliegue. ADR de descubrimiento renumerado a 008; ADR-006/007 del equipo conservados.
+- Conectado v3 a globo/2D, ficha flotante, series y desglose. Yungay REF queda fuera del ranking en todas las vistas. La sección Búsqueda conserva alcance, rejilla y filtro por país. Corregidas rutas de imágenes v3, propagación de rankings y encaje de nombres largos.
+- 177 pruebas Python, 69 web y build correctos. ZIP repetido idéntico: 30 entradas, 12.865.983 bytes, SHA-256 804184d6015440fa073e451bfea376fc9b1c9ae6b672e133094cd528ac3af12b. Once hashes de baseline científico v2 y artefactos v3 sin cambios.
+- Revisado el ZIP servido en /AnalogOS/: globo, Argentina y Sentinel-2 en 2D, Yungay como referencia, filtro por país, escritorio y móvil sin desborde horizontal. Captura submission/assets/analogos-integrated-dev.jpg. Actualizadas instrucciones del stack, entrega e informe de revisión.
+- Comandos: source .venv/bin/activate && npm run verify; npm run release:package. No nuevas adquisiciones de datos ni cambios de pesos. Pendientes científicos: territorio, bibliografía de la Puna y clima local. Claude espera nueva asignación.
+
+## 2026-11-14 Codex — corrección del alias dev en Vercel
+
+- Integración publicada en origin/dev (8df83c0), árbol local limpio y SHA remoto verificado. Actions 43629101506 completó build/deploy, pero falló al asignar analogos-dev.vercel.app con «User not found», el mismo error del run anterior 43628749578.
+- El paso del alias ahora pasa explícitamente --scope "$VERCEL_ORG_ID", usando el equipo ya configurado en el workflow. Referencia: https://vercel.com/docs/cli/global-options#scope (acepta slug o ID de equipo).
+- Cambio limitado al despliegue y registro de estado; no requiere reconstruir ZIP ni repetir pruebas científicas. Se valida ejecutando el workflow en dev.
+
+## 2026-11-14 Codex — alias mediante API de equipo
+
+- Run 43629219568: build/deploy correctos; la CLI de alias sigue intentando cargar un usuario y devuelve 404 incluso con --scope. Sustituido ese paso por POST /v2/deployments/{hostname}/aliases?teamId=... de la API oficial, con el mismo secreto del workflow, timeout y comprobación del alias dev devuelto.
+- Referencia: https://vercel.com/docs/rest-api/aliases/assign-an-alias. No se cambian permisos, secretos ni el destino aprobado. El secreto se usa por variable de entorno y no se imprime.
+
+## 2026-11-14 Codex — encargo M8-MISSION-RECOMMENDATION
+
+- Dan autorizó convertir el producto a definición de ensayo/evaluación de sector, recomendación con datos e IA y supervisión de Claude. Proveedor seleccionado: Anthropic.
+- M7 archivado en project/tasks/M7_GLOBAL_DISCOVERY.md. NEXT_TASK asigna M8 a Claude con checkpoint de plan, criterios verificables y devolución a Codex.
+- ADR-009 autoriza capa determinista de requisitos sobre v3, Yungay como alternativa conocida, geometrías con cobertura explícita y API mínima opcional de IA. Sin nuevos datos ni perfiles; no se traslada evidencia agregada a polígonos distintos.
+- Base 4d197e1 verificada: 177 Python, 69 web, build; 38 hashes de ciencia/config/contratos en /tmp/analogos-m8-baseline-hashes.json. Publicación anterior verificada en Actions y navegador autenticado.

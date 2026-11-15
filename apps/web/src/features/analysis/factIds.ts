@@ -3,7 +3,8 @@
  * Vive en el chunk principal (lo usan las fichas de TokenText) para que la vista diferida y el
  * runtime diferido no compartan un chunk propio.
  */
-import { isCriterionId, type CriterionId } from '../../domain/contracts'
+import type { CriterionId } from '../../domain/contracts'
+import { isCriterionId } from '../../domain/criteria'
 
 /** Sitio y criterio de un id de hecho; null donde no aplica. */
 export function parseFactId(id: string): { siteId: string | null; criterionId: CriterionId | null } {

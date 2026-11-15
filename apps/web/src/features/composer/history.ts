@@ -5,7 +5,8 @@
  * Guarda niveles, no cifras: al restaurar, el motor vuelve a calcular el %.
  */
 import type { CriterionLevel } from '../../domain/aiContracts'
-import { CRITERION_IDS, type CriterionId } from '../../domain/contracts'
+import type { CriterionId } from '../../domain/contracts'
+import { CRITERION_IDS } from '../../domain/criteria'
 import type { MissionSource } from '../../state/mission'
 
 export type Levels = Readonly<Record<CriterionId, CriterionLevel>>

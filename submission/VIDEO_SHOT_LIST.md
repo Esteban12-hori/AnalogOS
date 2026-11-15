@@ -13,11 +13,11 @@
 | Tiempo | Imagen | Narración clave |
 |---|---|---|
 | 0:00–0:08 | Título y pregunta de misión | “Parecido a Marte no es una especificación de prueba.” |
-| 0:08–0:20 | Ranking y mapa | “AnalogOS prioriza tres sectores con datos NASA y límites visibles.” |
-| 0:20–0:38 | Ficha de Yungay | “75,7 de similitud, 77,5 de confianza y factibilidad todavía pendiente.” |
+| 0:08–0:20 | Alcance, mapa y ranking | “AnalogOS busca en 50 ventanas de Chile y Argentina con datos NASA y límites visibles.” |
+| 0:20–0:38 | Ficha del candidato 1 | “94,9 de similitud, 77,5 de confianza, antecedentes regionales a la vista y factibilidad pendiente.” |
 | 0:38–0:52 | Desglose | “MOLA y NASADEM se comparan a escala equivalente; Sentinel-2 mide el suelo expuesto durante doce meses.” |
 | 0:52–1:05 | Verificaciones y fuentes | “Cada afirmación conserva fuente, incertidumbre y trabajo de campo pendiente.” |
-| 1:05–1:18 | Comparación rápida | “Yungay y Domeyko son más cercanos a la firma topográfica que María Elena.” |
+| 1:05–1:18 | Comparación rápida y referencia | “Yungay queda como referencia conocida, fuera del ranking; ningún candidato se declara nuevo.” |
 | 1:18–1:30 | Método reproducible | “Un snapshot estático, auditable y offline transforma intuición en una hipótesis medible.” |
 
 ## Pantalla final

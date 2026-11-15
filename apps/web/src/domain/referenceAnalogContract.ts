@@ -2,7 +2,8 @@
  * Validación en el límite de config/reference_analogs.json (contracts/reference-analog.schema.json).
  * Módulo propio: se descarga con el catálogo (chunk diferido), no en el chunk principal (§6.1).
  */
-import { errorSummary, type ReferenceAnalog, type ReferenceAnalogCatalog } from './contracts'
+import type { ReferenceAnalog, ReferenceAnalogCatalog } from './contracts'
+import { errorSummary } from './snapshotContracts'
 import { validateReferenceAnalogs } from './validators.analogs.generated.js'
 
 /** Valida el catálogo; lanza con un resumen legible. */

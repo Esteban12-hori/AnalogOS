@@ -36,6 +36,8 @@ from pipelines.contracts import ROOT
 CANDIDATES = ROOT / "artifacts" / "science-v2" / "candidate-details.json"
 CONFIG = ROOT / "config" / "science_snapshot_v2.json"
 DEFAULT_OUT = ROOT / "artifacts" / "visual-context"
+V3_CANDIDATES = ROOT / "artifacts" / "science-v3" / "candidate-details.json"
+V3_OUT = ROOT / "artifacts" / "visual-context-v3"
 
 TOKEN_URL = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
 PROCESS_URL = "https://sh.dataspace.copernicus.eu/process/v1"
@@ -146,22 +148,33 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def site_plans(candidates: list[dict], config: dict) -> list[dict]:
-    """Deriva bbox y tamaño de cada vista desde la geometría versionada del candidato."""
-    configured = {site["site_id"]: site for site in config["sites"]}
+def configured_bboxes(sites: list[dict]) -> dict[str, list[float]]:
+    """Bbox esperada por sitio a partir de centro y medio lado (sitios v2 o ventanas de la rejilla v3)."""
+    return {
+        site.get("site_id") or site["window_id"]: [
+            site["longitude"] - site["half_size_degree"], site["latitude"] - site["half_size_degree"],
+            site["longitude"] + site["half_size_degree"], site["latitude"] + site["half_size_degree"],
+        ]
+        for site in sites
+    }
+
+
+def site_plans(candidates: list[dict], config: dict | None = None, expected: dict[str, list[float]] | None = None) -> list[dict]:
+    """Deriva bbox y tamaño de cada vista desde la geometría versionada del candidato.
+
+    ``expected`` liga cada sitio a la configuración que lo generó; por defecto, los sitios del config v2.
+    """
+    expected = expected if expected is not None else configured_bboxes(config["sites"])
     plans = []
     for candidate in candidates:
         site_id = candidate["site_id"]
-        if candidate["geometry"]["type"] != "Polygon" or site_id not in configured:
-            raise VisualContextError(f"{site_id}: geometría o configuración no compatibles con el snapshot v2.")
+        if candidate["geometry"]["type"] != "Polygon" or site_id not in expected:
+            raise VisualContextError(f"{site_id}: geometría o configuración no compatibles con el snapshot.")
         ring = candidate["geometry"]["coordinates"][0]
         longitudes, latitudes = [point[0] for point in ring], [point[1] for point in ring]
         bbox = [round(value, 6) for value in (min(longitudes), min(latitudes), max(longitudes), max(latitudes))]
-        site = configured[site_id]
-        half = site["half_size_degree"]
-        expected = [site["longitude"] - half, site["latitude"] - half, site["longitude"] + half, site["latitude"] + half]
-        if any(abs(actual - wanted) > 1e-6 for actual, wanted in zip(bbox, expected)):
-            raise VisualContextError(f"{site_id}: la geometría del candidato no coincide con config/science_snapshot_v2.json.")
+        if any(abs(actual - wanted) > 1e-6 for actual, wanted in zip(bbox, expected[site_id])):
+            raise VisualContextError(f"{site_id}: la geometría del candidato no coincide con la configuración versionada.")
         west, south, east, north = bbox
         middle = (south + north) / 2
         width_m = _GEOD.line_length([west, east], [middle, middle])
@@ -391,11 +404,31 @@ def _swap(staging: Path, target: Path) -> None:
             ) from error
 
 
+def _reusable(plan: dict, package: Path | None) -> tuple[dict, bytes] | None:
+    """Entrada e imagen de otro paquete para el mismo sitio y exactamente la misma petición."""
+    if package is None:
+        return None
+    try:
+        index = json.loads((package / "index.json").read_text(encoding="utf-8"))
+        entry = next(site for site in index["sites"] if site["site_id"] == plan["site_id"])
+        image = (package / entry["image"]).read_bytes()
+    except (OSError, ValueError, KeyError, TypeError, StopIteration):
+        return None
+    same = all(entry.get(key) == value for key, value in _static_site(plan).items())
+    return (entry, image) if same and hashlib.sha256(image).hexdigest() == entry.get("sha256") else None
+
+
 def build(out_dir: Path, fetch_tar, *, refresh: bool = False, clock=_utc_now,
-          candidates_path: Path = CANDIDATES, config_path: Path = CONFIG) -> tuple[dict, bool]:
-    """Devuelve ``(índice, reutilizado)``. ``fetch_tar(request) -> bytes`` hace la consulta."""
-    candidates = json.loads(candidates_path.read_text(encoding="utf-8"))
-    plans = site_plans(candidates, json.loads(config_path.read_text(encoding="utf-8")))
+          candidates_path: Path = CANDIDATES, config_path: Path = CONFIG,
+          plans: list[dict] | None = None, reuse_from: Path | None = None, max_new: int | None = None) -> tuple[dict, bool]:
+    """Devuelve ``(índice, reutilizado)``. ``fetch_tar(request) -> bytes`` hace la consulta.
+
+    ``plans`` permite otro snapshot; ``reuse_from`` copia sin red las vistas idénticas de otro
+    paquete (misma petición y hash); ``max_new`` acota las consultas nuevas.
+    """
+    if plans is None:
+        candidates = json.loads(candidates_path.read_text(encoding="utf-8"))
+        plans = site_plans(candidates, json.loads(config_path.read_text(encoding="utf-8")))
     if not refresh:
         existing = load_valid_package(out_dir, plans)
         if existing is not None:
@@ -406,10 +439,17 @@ def build(out_dir: Path, fetch_tar, *, refresh: bool = False, clock=_utc_now,
     staging = Path(tempfile.mkdtemp(dir=out_dir.parent, prefix=f".{out_dir.name}."))
     try:
         sites = []
+        reused = {plan["site_id"]: _reusable(plan, reuse_from) for plan in plans}
+        new = [plan["site_id"] for plan in plans if reused[plan["site_id"]] is None]
+        if max_new is not None and len(new) > max_new:
+            raise VisualContextError(f"Harían falta {len(new)} imágenes nuevas; el límite autorizado es {max_new}.")
         for plan in plans:
-            queried_at = clock()
-            image, userdata = parse_response(fetch_tar(build_request(plan)))
-            entry = describe_site(plan, image, userdata, queried_at)
+            if reused[plan["site_id"]] is not None:
+                entry, image = reused[plan["site_id"]]
+            else:
+                queried_at = clock()
+                image, userdata = parse_response(fetch_tar(build_request(plan)))
+                entry = describe_site(plan, image, userdata, queried_at)
             (staging / entry["image"]).write_bytes(image)
             sites.append(entry)
         header = _static_header(plans)
@@ -429,6 +469,19 @@ def build(out_dir: Path, fetch_tar, *, refresh: bool = False, clock=_utc_now,
     finally:
         shutil.rmtree(staging, ignore_errors=True)
     return index, False
+
+
+def v3_options() -> dict:
+    """Planes del snapshot v3: ventanas de la rejilla versionada y la referencia v2; Yungay se reutiliza."""
+    from pipelines.discover_candidates import DEFAULT_CONFIG, grid_windows
+
+    search = json.loads(DEFAULT_CONFIG.read_text(encoding="utf-8"))
+    science = json.loads((ROOT / search["reference"]["source_config"]).read_text(encoding="utf-8"))
+    reference = [site for site in science["sites"] if site["site_id"] == search["reference"]["site_id"]]
+    expected = configured_bboxes(grid_windows(search) + reference)
+    candidates = json.loads(V3_CANDIDATES.read_text(encoding="utf-8"))
+    return {"plans": site_plans(candidates, expected=expected), "reuse_from": DEFAULT_OUT,
+            "max_new": search["limits"]["max_rgb_images"]}
 
 
 class CopernicusClient:
@@ -476,7 +529,7 @@ class CopernicusClient:
         # El cuerpo y las cabeceras se omiten a propósito: podrían reflejar credenciales.
         raise VisualContextError(f"{target.hostname} no respondió correctamente: {outcome}.")
 
-    def fetch_tar(self, request: dict) -> bytes:
+    def _authorized(self, url: str, accept: str, payload: dict):
         if self._token is None:
             try:
                 self._token = self._request(TOKEN_URL, data=self._credentials()).json()["access_token"]
@@ -485,23 +538,41 @@ class CopernicusClient:
                     raise
                 raise VisualContextError("Copernicus no devolvió un access token.") from None
         return self._request(
-            PROCESS_URL,
-            headers={
-                "Authorization": f"Bearer {self._token}",
-                "Accept": "application/tar",
-                "Content-Type": "application/json",
-            },
-            json=request,
-        ).content
+            url,
+            headers={"Authorization": f"Bearer {self._token}", "Accept": accept, "Content-Type": "application/json"},
+            json=payload,
+        )
+
+    def fetch_tar(self, request: dict) -> bytes:
+        return self._authorized(PROCESS_URL, "application/tar", request).content
+
+    def post_json(self, url: str, payload: dict) -> dict:
+        """POST autenticado a otro endpoint oficial de Sentinel Hub (p. ej. Statistical API)."""
+        try:
+            result = self._authorized(url, "application/json", payload).json()
+        except ValueError as error:
+            if isinstance(error, VisualContextError):
+                raise
+            raise VisualContextError(f"{urlsplit(url).hostname} devolvió una respuesta que no es JSON.") from None
+        if not isinstance(result, dict):
+            raise VisualContextError(f"{urlsplit(url).hostname} devolvió un JSON inesperado.")
+        return result
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--refresh", action="store_true", help="consulta de nuevo aunque el paquete local sea válido")
+    parser.add_argument("--snapshot", choices=("v2", "v3"), default="v2",
+                        help="v3: candidatos de la búsqueda y referencia, en artifacts/visual-context-v3/")
     args = parser.parse_args(argv)
+    options: dict = {}
+    if args.snapshot == "v3":
+        if args.out == DEFAULT_OUT:
+            args.out = V3_OUT
+        options = v3_options()
     try:
-        index, reused = build(args.out, CopernicusClient().fetch_tar, refresh=args.refresh)
+        index, reused = build(args.out, CopernicusClient().fetch_tar, refresh=args.refresh, **options)
     except PackageStateError as error:
         print(f"ERROR de contexto visual: {error}", file=sys.stderr)
         return 1

@@ -4,15 +4,16 @@ Uso: ``npm run release:package`` (construye antes) o, con el build ya hecho,
 ``python scripts/package_release.py``.
 
 Solo entra al ZIP una lista explícita: ``index.html``, los JS/CSS compilados
-que ese HTML referencia de forma relativa, los cinco archivos ``science-v2/``
-y el contexto visual (``visual-context/index.json`` más sus tres PNG, cuyo
-SHA-256 debe coincidir con el declarado en ese índice).
+que ese HTML referencia de forma relativa, los archivos fijos de ``science-v3/``
+y el contexto visual (``visual-context-v3/index.json`` más una imagen por sitio
+de ``candidate-details.json``, con el SHA-256 que declara ese índice). La lista
+de imágenes se deriva de metadata validada, nunca de un patrón por extensión.
 Si el build trae ``.vite/manifest.json``, también entran los chunks diferidos,
 CSS y assets (worker, texturas) alcanzables desde la entrada que referencia
 ``index.html``; nada que el manifiesto no alcance. El manifiesto no entra al ZIP.
 Los mapas base 2D (``basemaps/``) son opcionales, pero solo con nombres fijos.
-También es opcional el análisis pregenerado no científico
-(``analysis/ai-analysis.default.json``), que la app carga en diferido.
+``index.html`` puede precargar (``rel=preload``) solo datos que ya están en esa
+lista, y su favicon en línea (``data:``) no es un archivo.
 Cualquier archivo adicional, enlace simbólico, referencia no portable,
 archivo requerido ausente o destino solapado con el build detiene el
 empaquetado antes de escribir nada.
@@ -40,23 +41,25 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DIST = ROOT / "apps" / "web" / "dist"
-DEFAULT_ZIP = ROOT / "submission" / "analogos-chile-static.zip"
-DEFAULT_CHECKSUM = ROOT / "submission" / "SHA256SUMS.txt"
+# Entregable v3. El ZIP v2 (analogos-chile-static.zip) se conserva como histórico y no se regenera.
+DEFAULT_ZIP = ROOT / "submission" / "analogos-static.zip"
+DEFAULT_CHECKSUM = ROOT / "submission" / "analogos-static.zip.sha256"
 
+CANDIDATES = "science-v3/candidate-details.json"
+MANIFEST = "science-v3/manifest.json"
 SCIENCE_FILES = (
-    "science-v2/analysis-summary.json",
-    "science-v2/candidate-details.json",
-    "science-v2/chile-outline.geojson",
-    "science-v2/manifest.json",
-    "science-v2/mission-profile.json",
+    "science-v3/analysis-summary.json",
+    CANDIDATES,
+    "science-v3/context-outline.geojson",
+    MANIFEST,
+    "science-v3/mission-profile.json",
+    "science-v3/precedents.json",
+    "science-v3/search-results.json",
 )
-# Contexto visual: el índice y exactamente estas tres imágenes; ningún otro PNG o JSON.
-VISUAL_INDEX = "visual-context/index.json"
-VISUAL_IMAGES = (
-    "visual-context/cl-domeyko-interior-screening.png",
-    "visual-context/cl-pampa-maria-elena-screening.png",
-    "visual-context/cl-pampa-yungay-screening.png",
-)
+# Contexto visual: el índice y exactamente una imagen por sitio del snapshot; ningún otro PNG o JSON.
+VISUAL_DIR = "visual-context-v3"
+VISUAL_INDEX = f"{VISUAL_DIR}/index.json"
+SITE_ID = re.compile(r"^(cl|ar)-[a-z0-9-]+$")  # mismo patrón del contrato: sin barras ni rutas relativas
 # Mapas base 2D horneados por pipelines/fetch_basemaps.py: opcionales, nombres fijos.
 BASEMAP_FILES = (
     "basemaps/basemaps.json",
@@ -69,8 +72,6 @@ BASEMAP_FILES = (
     "basemaps/s2-cl-pampa-yungay-screening.webp",
     "basemaps/world.webp",
 )
-# Análisis pregenerado (incremento 10): opcional, rotulado no científico, fuera de science-v2.
-ANALYSIS_FILES = ("analysis/ai-analysis.default.json",)
 # Datos que index.html puede precargar (rel=preload): solo estos, ya permitidos arriba.
 DATA_REFERENCES = frozenset({*SCIENCE_FILES, VISUAL_INDEX, BASEMAP_FILES[0]})
 # Referencia relativa a un JS/CSS compilado: carga igual en "/" y en "/AnalogOS/".
@@ -165,12 +166,11 @@ def allowed_files(dist: Path) -> list[str]:
     if not any(name.endswith(".js") for name in assets):
         raise ReleaseError("index.html no referencia ningún JavaScript compilado en assets/.")
 
-    optional = [
-        name for name in (*BASEMAP_FILES, *ANALYSIS_FILES) if (dist / name).exists() or (dist / name).is_symlink()
-    ]
+    images = visual_images(dist)
+    optional = [name for name in BASEMAP_FILES if (dist / name).exists() or (dist / name).is_symlink()]
     allowed = sorted({
-        "index.html", *assets, *_manifest_assets(dist, assets), *SCIENCE_FILES, VISUAL_INDEX, *VISUAL_IMAGES,
-        *optional, *preloaded,
+        "index.html", *assets, *_manifest_assets(dist, assets), *SCIENCE_FILES, VISUAL_INDEX, *images, *optional,
+        *preloaded,
     })
     found = set()
     for folder, folders, files in os.walk(dist):
@@ -188,19 +188,50 @@ def allowed_files(dist: Path) -> list[str]:
     missing = [name for name in allowed if name not in found]
     if missing:
         raise ReleaseError("Faltan archivos requeridos o referenciados: " + ", ".join(missing))
-    _check_visual_hashes(dist)
+    _check_visual_hashes(dist, images)
     return allowed
 
 
-def _check_visual_hashes(dist: Path) -> None:
-    """Las tres imágenes deben ser las que declara el índice, con su mismo SHA-256."""
+def _load(dist: Path, name: str) -> object:
+    path = dist / name
+    if path.is_symlink() or not path.is_file():
+        raise ReleaseError(f"Falta el archivo requerido {name}.")
     try:
-        sites = json.loads((dist / VISUAL_INDEX).read_text(encoding="utf-8"))["sites"]
-        declared = {f"visual-context/{site['image']}": site["sha256"] for site in sites}
-    except (ValueError, KeyError, TypeError) as error:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except ValueError:
+        raise ReleaseError(f"{name} no es JSON legible.") from None
+
+
+def visual_images(dist: Path) -> list[str]:
+    """Imágenes permitidas: una por sitio de ``candidate-details.json``, con identificador validado."""
+    try:
+        candidates = _load(dist, CANDIDATES)
+        versions = {candidate["data_snapshot_version"] for candidate in candidates}
+        identifiers = [candidate["site_id"] for candidate in candidates]
+        snapshot = _load(dist, MANIFEST)["snapshot_version"]
+    except (KeyError, TypeError) as error:
+        raise ReleaseError(f"Metadata de sitios o manifiesto ilegible ({type(error).__name__}).") from None
+    if not identifiers or len(set(identifiers)) != len(identifiers) or not all(
+        isinstance(identifier, str) and SITE_ID.match(identifier) for identifier in identifiers
+    ):
+        raise ReleaseError(f"{CANDIDATES} contiene identificadores de sitio vacíos, repetidos o no válidos.")
+    if versions != {snapshot}:
+        raise ReleaseError("Los sitios y el manifiesto no pertenecen a la misma versión de snapshot.")
+    return [f"{VISUAL_DIR}/{identifier}.png" for identifier in identifiers]
+
+
+def _check_visual_hashes(dist: Path, images: list[str]) -> None:
+    """El índice visual debe ser de este snapshot y declarar exactamente esas imágenes, con su SHA-256."""
+    try:
+        index = _load(dist, VISUAL_INDEX)
+        declared = {f"{VISUAL_DIR}/{site['image']}": site["sha256"] for site in index["sites"]}
+        version = index["snapshot_version"]
+    except (KeyError, TypeError) as error:
         raise ReleaseError(f"{VISUAL_INDEX} no es un índice de contexto visual legible ({type(error).__name__}).") from None
-    if sorted(declared) != sorted(VISUAL_IMAGES):
-        raise ReleaseError(f"{VISUAL_INDEX} no declara exactamente las tres imágenes permitidas.")
+    if version != _load(dist, MANIFEST)["snapshot_version"]:
+        raise ReleaseError(f"{VISUAL_INDEX} pertenece a otra versión de snapshot.")
+    if sorted(declared) != sorted(images):
+        raise ReleaseError(f"{VISUAL_INDEX} no declara exactamente una imagen por sitio del snapshot.")
     for name, expected in declared.items():
         if hashlib.sha256((dist / name).read_bytes()).hexdigest() != expected:
             raise ReleaseError(f"El SHA-256 de {name} no coincide con el declarado en {VISUAL_INDEX}.")

@@ -7,7 +7,8 @@
  * del snapshot (pipeline).
  */
 import type { CriterionLevel, MissionInterpretRequest, MissionInterpretation } from '../../domain/aiContracts'
-import { CRITERION_IDS, isCriterionId, type CandidateSite, type CriterionId, type MissionProfile } from '../../domain/contracts'
+import type { CandidateSite, CriterionId, MissionProfile } from '../../domain/contracts'
+import { CRITERION_IDS, isCriterionId } from '../../domain/criteria'
 import { criterionLabels, formatScore, formatWhole, shortCandidateName } from '../../domain/formatting'
 import { rankCandidates } from '../../domain/scoring'
 import type { MissionProfileDraft, MissionScoring } from '../engine'

@@ -1,8 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { contextLayers } from '../features/globe/MapStage'
 import type { VisualContextState } from '../data/loadVisualContext'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 describe('contextLayers', () => {
+  it('enlaza los siete sitios v3 a sus imágenes reales sin volver al directorio histórico', () => {
+    const root = resolve(__dirname, '../../../..')
+    const index = JSON.parse(readFileSync(resolve(root, 'artifacts/visual-context-v3/index.json'), 'utf8'))
+    const layers = contextLayers({ status: 'ready', index })
+    expect(layers).toHaveLength(7)
+    expect(layers.filter(layer => layer.id.startsWith('s2-ar-'))).toHaveLength(3)
+    for (const layer of layers) {
+      expect(layer.image).toMatch(/^visual-context-v3\//)
+      expect(readFileSync(resolve(root, 'artifacts', layer.image)).byteLength).toBeGreaterThan(0)
+    }
+  })
   it('no produce capas mientras carga o si no está disponible', () => {
     expect(contextLayers({ status: 'loading' })).toEqual([])
     expect(contextLayers({ status: 'unavailable', reason: 'x' })).toEqual([])

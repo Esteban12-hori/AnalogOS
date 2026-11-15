@@ -2,54 +2,59 @@
 
 ## Preparación
 
-- Abrir la app antes de comenzar.
-- Mantener zoom del navegador en 100 %.
-- Seleccionar Pampa Yungay.
-- Tener una segunda pestaña con `analysis-summary.json` por si preguntan por reproducibilidad.
+- Servir `submission/analogos-static.zip` descomprimido por HTTP, en la raíz o en `/AnalogOS/`, o ejecutar `npm run dev`.
+- Ventana de al menos 1280 × 800. Dejar seleccionado el candidato 1 (se selecciona solo al abrir).
+- Tener a mano `docs/DISCOVERY_REPORT.md` por si preguntan por una ventana concreta.
 
 ## 0:00–0:20 — Enmarcar
 
-Señalar el banner superior: “datos reales, screening preliminar, no autorización”. Decir: “La interfaz está diseñada para impedir una lectura más concluyente que la evidencia”.
+Mostrar el encabezado y la franja «Alcance de la búsqueda».
 
-Mostrar la pregunta de misión. No describir aún todas las funciones.
+«Esto es AnalogOS, un piloto en Chile y Argentina. No es una búsqueda global: son dos regiones de prueba, 50 ventanas de unos 20 kilómetros y unos 22.000 kilómetros cuadrados. Lo que ven es un screening preliminar con datos reales, no una autorización de terreno.»
 
-## 0:20–0:45 — Ranking y mapa
+## 0:20–0:45 — Mapa y ranking
 
-Mostrar el ranking y las llamadas conectadas a su posición en Chile. Decir:
+Señalar el mapa: las dos rejillas, las celdas azules y las naranjas.
 
-“Pampa Yungay lidera con 75,67; Domeyko queda segundo con 71,60 y María Elena tercero con 49,99. Los números del mapa y del ranking coinciden. La app funciona offline y el mapa no requiere WebGL ni teselas externas”.
+«Cada celda es una ventana evaluada. Las azules contienen coordenadas de muestreo ya publicadas y quedaron fuera del ranking. Las naranjas son las seis preseleccionadas, tres por país. Arriba, con borde discontinuo, está Yungay: la mostramos como referencia conocida, no como resultado.»
 
-## 0:45–1:15 — Ficha de Yungay
+Pulsar el filtro «Argentina» y volver a «Todos».
 
-Desplazarse a la ficha. Marcar cuatro valores:
+«El ranking conserva la posición global aunque filtre por país.»
 
-- similitud 75,67;
-- confianza 77,45;
-- factibilidad “requiere revisión”;
-- estabilidad del score ante pesos ±20 %.
+## 0:45–1:15 — Ficha de un candidato
 
-Abrir “verificaciones pendientes”. Decir: “Un score alto no oculta que aún no evaluamos permisos, áreas sensibles, urbano ni obstáculos a escala de rueda. El agua permanente sí tiene un primer screening con NASADEM SWB”.
+Con el candidato 1 seleccionado, recorrer la ficha.
 
-## 1:15–1:35 — Evidencia
+«Similitud 94,9, confianza 77,5 y factibilidad "requiere revisión", siempre por separado. En "Origen y antecedentes" se ve de dónde sale: una ventana de la rejilla, primera en prioridad topográfica. También dice que la región tiene antecedentes publicados y que hay una coordenada de un estudio de 2003 a unos 20 kilómetros del centro. No lo presentamos como nuevo.»
 
-Mostrar el desglose. Señalar que superficie no vegetada ahora está medida con doce intervalos mensuales Sentinel-2 y que geología permanece “sin calibrar”. Abrir una fuente MOLA, NASADEM o Sentinel-2 si hay internet; si no, mostrar que las URLs están en el snapshot.
+Bajar a «Contexto satelital».
 
-Decir: “Los faltantes bajan la confianza; no se convierten arbitrariamente en similitud cero”.
+«Esta es una imagen Sentinel-2 real de diciembre de 2025, guardada offline. Se ven trazas lineales: es una observación a contrastar, no una identificación.»
 
-## 1:35–1:50 — Comparación
+## 1:15–1:35 — Un candidato argentino
 
-Ir a “Comparación rápida” y elegir María Elena. Señalar que es más plana que la referencia MOLA y por eso baja en los tres criterios topográficos, aunque sigue siendo árida.
+Seleccionar el candidato 4 en el mapa.
+
+«Su topografía se parece a la de los chilenos, pero baja a 63,9. La causa principal está en el desglose: el contexto climático POWER le asigna cientos de milímetros de lluvia. Ese dato es de una celda mucho mayor que la ventana, y la ficha lo advierte. No tocamos los pesos para corregirlo.»
+
+## 1:35–1:50 — Referencia y comparación
+
+Seleccionar la tarjeta «REF» y bajar a la comparación rápida.
+
+«Yungay obtiene 75,67, el mismo valor de nuestra versión anterior. Que un candidato puntúe más no lo hace mejor sitio: Yungay tiene dos décadas de trabajo de campo.»
 
 ## 1:50–2:00 — Cierre
 
-Mostrar “Método reproducible” y abrir el análisis auditable. Cerrar con:
+Pulsar «Descargar ficha» y abrir «Abrir las 50 ventanas y sus motivos».
 
-“AnalogOS no elige el sitio final. Reduce y explica el espacio de búsqueda para que el siguiente peso invertido sea trabajo de campo, no intuición”.
+«Todo es exportable y auditable: la ficha conserva el rol, el origen y los antecedentes, y cada ventana tiene registrado por qué quedó dentro o fuera.»
 
 ## Respuestas rápidas
 
-- **¿Por qué Jezero?** Es una referencia rover reconocible y permite demostrar el método; el perfil es reemplazable y no pretende representar todo Marte.
-- **¿Por qué solo tres sectores?** Es el snapshot preliminar de hackathon. La arquitectura soporta una grilla nacional; preferimos tres resultados auditables a miles de celdas opacas.
-- **¿Por qué subió la confianza?** Porque NASADEM autenticado corrigió el mosaico multitesela y Sentinel-2 convirtió la continuidad no vegetada de supuesto a evidencia; geología y restricciones territoriales siguen pendientes.
-- **¿La estabilidad cercana a 100 prueba robustez científica?** No. Solo indica poca variación del score bajo perturbaciones univariadas de peso ±20 %; no cubre incertidumbre de datos ni modelos alternativos.
-- **¿Puede usarse para ir a terreno?** No sin revisar capas oficiales, permisos, seguridad, accesos y resolución de campo.
+- **¿Encontraron análogos nuevos?** No lo afirmamos. Encontramos ventanas que merecen revisión en regiones con antecedentes.
+- **¿Por qué solo dos regiones?** Es un piloto acotado para demostrar el método con datos reales y límites de consulta explícitos.
+- **¿Por qué los candidatos chilenos superan a Yungay?** Por topografía a ~480 m más parecida a la de Jezero. No mide suelo, acceso ni historia de campañas.
+- **¿Se puede ir a esos sitios?** No lo sabemos. Propiedad, acceso, áreas protegidas y uso urbano no están evaluados en ningún país.
+- **¿Usa IA para el ranking?** No. El score es una media geométrica ponderada, determinista.
+- **¿Funciona sin internet?** Sí. Datos e imágenes están en el paquete; la web no llama a ninguna API.

@@ -1,20 +1,23 @@
-# AnalogOS Chile
+# AnalogOS
 
-Plataforma geoespacial explicable para identificar y caracterizar zonas de Chile útiles como análogos terrestres de una prueba de movilidad, navegación y autonomía de rover marciano.
+Exploración de análogos planetarios · Piloto Chile–Argentina. Plataforma geoespacial explicable para buscar y caracterizar zonas terrestres útiles como análogos de una prueba de movilidad, navegación y autonomía de rover marciano. La carpeta y el repositorio conservan el nombre `analogos-chile`.
 
 ## Estado de la entrega
 
-La app final consume `science-screening-v2`, un snapshot real y reproducible construido con NASA PDS MOLA, NASADEM mediante Earthdata Login, Sentinel-2 L2A mediante Copernicus y NASA POWER. Prioriza tres sectores de screening:
+La app final consume `science-screening-v3`: una búsqueda real y reproducible sobre 50 ventanas de ~20 km en dos regiones de prueba (interior de Antofagasta, Chile, y Puna de Catamarca y Salta, Argentina), con NASA PDS MOLA, NASADEM, Sentinel-2 L2A y NASA POWER. Cuatro ventanas quedaron excluidas por contener coordenadas de muestreo publicadas y seis se preseleccionaron:
 
-| Ranking | Sector | Similitud | Confianza | Factibilidad |
+| Ranking | Candidato | Similitud | Confianza | Factibilidad |
 |---:|---|---:|---:|---|
-| 1 | Pampa Yungay | 75,67 | 77,45 | requiere revisión |
-| 2 | Cordón de Domeyko | 71,60 | 77,41 | requiere revisión |
-| 3 | Pampa María Elena | 49,99 | 77,44 | requiere revisión |
+| 1 | Interior de Antofagasta · 25,0° S, 69,7° O | 94,87 | 77,45 | requiere revisión |
+| 2 | Interior de Antofagasta · 24,8° S, 69,5° O | 91,87 | 77,45 | requiere revisión |
+| 3 | Interior de Antofagasta · 25,2° S, 69,5° O | 90,35 | 77,36 | requiere revisión |
+| 4 | Puna de Catamarca y Salta · 26,2° S, 67,5° O | 63,85 | 77,00 | requiere revisión |
+| 5 | Puna de Catamarca y Salta · 26,4° S, 67,3° O | 53,68 | 77,25 | requiere revisión |
+| 6 | Puna de Catamarca y Salta · 25,8° S, 67,1° O | 49,43 | 77,40 | requiere revisión |
 
-La confianza sigue separada del score. El suelo no vegetado ya se mide en doce mosaicos mensuales; geología y restricciones territoriales todavía no se rellenan manualmente.
+Pampa Yungay se recalcula con las mismas reglas como referencia conocida (75,67) y queda fuera del ranking. Ningún candidato se declara nuevo ni validado: ambas regiones tienen antecedentes publicados, el contexto climático de los argentinos es de resolución gruesa y todas las ventanas necesitan cruce territorial. El detalle está en `docs/DISCOVERY_REPORT.md` y la decisión, en `docs/decisions/ADR-008-global-discovery-pilot.md`. El snapshot v2 (Yungay, Domeyko, María Elena) se conserva como histórico.
 
-![Vista principal](submission/assets/analogos-chile-overview.jpg)
+![AnalogOS integrado: piloto Chile–Argentina con globo y ficha](submission/assets/analogos-integrated-dev.jpg)
 
 ## Demo rápida
 
@@ -32,7 +35,7 @@ npm run build
 npm run preview
 ```
 
-La carpeta desplegable queda en `apps/web/dist/` y no realiza llamadas externas.
+La carpeta desplegable queda en `apps/web/dist/`. El núcleo funciona con archivos locales; el mapa 2D puede solicitar teselas públicas NASA GIBS como mejora opcional, sin credenciales.
 
 ### Empaquetar y probar la demo portable
 
@@ -40,16 +43,16 @@ Instalación previa, una sola vez: `npm install`, y el entorno Python de la secc
 
 ```bash
 npm run release:package
-(cd submission && shasum -a 256 -c SHA256SUMS.txt)
+(cd submission && shasum -a 256 -c analogos-static.zip.sha256)
 ```
 
-El comando reconstruye el frontend, comprueba que el build contenga solo `index.html`, el JS/CSS compilado, los cinco archivos `science-v2/` y el contexto visual (`visual-context/index.json` más sus tres PNG, con el SHA-256 que declara ese índice), y escribe `submission/analogos-chile-static.zip` con su SHA-256. El ZIP es determinista para un mismo build. Si la validación falla, la entrega anterior no se toca.
+El comando reconstruye el frontend, comprueba que el build contenga solo `index.html`, el JS/CSS y assets alcanzables desde el manifiesto de Vite, los mapas base locales permitidos, los siete archivos `science-v3/` y el contexto visual (`visual-context-v3/index.json` más una imagen por sitio del snapshot, con el SHA-256 que declara ese índice), y escribe `submission/analogos-static.zip` con su SHA-256. La lista de imágenes se deriva de la metadata validada, no de un patrón por extensión. El ZIP v2 (`analogos-chile-static.zip`) se conserva como histórico y no se regenera. El ZIP es determinista para un mismo build. Si la validación falla, la entrega anterior no se toca.
 
 El build usa rutas relativas: carga igual en la raíz o en un subdirectorio. Para probarlo por HTTP local en `/AnalogOS/`:
 
 ```bash
 mkdir -p /tmp/analogos-demo/AnalogOS
-unzip -o -q submission/analogos-chile-static.zip -d /tmp/analogos-demo/AnalogOS
+unzip -o -q submission/analogos-static.zip -d /tmp/analogos-demo/AnalogOS
 python3 -m http.server 8080 --bind 127.0.0.1 --directory /tmp/analogos-demo
 ```
 
@@ -57,14 +60,30 @@ Abrir `http://127.0.0.1:8080/AnalogOS/` (con la barra final). No se garantiza ab
 
 ### Contexto visual Sentinel-2
 
-La ficha de cada candidato muestra una vista Sentinel-2 L2A en color natural (mosaico de diciembre de 2025) guardada en `artifacts/visual-context/` con su procedencia. Es contexto preliminar para inspección: no cambia ningún score ni cierra verificaciones. La web la sirve como archivo local; nunca llama a Copernicus.
+La ficha de cada sitio muestra una vista Sentinel-2 L2A en color natural (mosaico de diciembre de 2025) guardada en `artifacts/visual-context-v3/` con su procedencia; el paquete v2 sigue en `artifacts/visual-context/`. Es contexto preliminar para inspección: no cambia ningún score ni cierra verificaciones. La web la sirve como archivo local; nunca llama a Copernicus.
 
 ```bash
-python -m pipelines.fetch_visual_context            # reutiliza el paquete local; sin red ni credenciales
-python -m pipelines.fetch_visual_context --refresh  # consulta de nuevo; requiere credenciales Copernicus en .env
+python -m pipelines.fetch_visual_context --snapshot v3            # reutiliza el paquete local; sin red ni credenciales
+python -m pipelines.fetch_visual_context --snapshot v3 --refresh  # consulta de nuevo; requiere credenciales Copernicus en .env
 ```
 
 Qué mirar, qué se observó y qué falta está en `docs/VISUAL_REVIEW.md`; la decisión, en `docs/decisions/ADR-005-offline-visual-context.md`.
+
+## Reproducir la búsqueda v3
+
+Con el entorno Python activo y credenciales Earthdata y Copernicus en `.env` (solo las leen los programas):
+
+```bash
+python -m pipelines.fetch_discovery_data --stage tiles     # teselas NASADEM que falten
+python -m pipelines.discover_candidates                    # etapa 1: 50 ventanas y preselección
+python -m pipelines.fetch_discovery_data --stage sources   # Sentinel-2, POWER y HLS de la preselección
+python -m pipelines.build_context_outline                  # contornos de Chile y Argentina
+python -m pipelines.build_discovery_snapshot               # snapshot v3 en artifacts/science-v3/
+python -m pipelines.fetch_visual_context --snapshot v3     # imágenes de los sitios
+npm run verify
+```
+
+Las descargas son reanudables y están acotadas: 50 ventanas, hasta 6 ventanas multifuente, hasta 20 teselas y hasta 6 imágenes nuevas. La caché se liga a la petición exacta, así que cambiar regiones o periodo exige consultar de nuevo. Los mismos pasos existen como `npm run discovery:tiles`, `discovery:search`, `discovery:sources`, `discovery:build` y `discovery:images`.
 
 ## Reproducir la ciencia v2 desde las fuentes
 
@@ -127,7 +146,8 @@ analogos-chile/
 ├── apps/web/                    # React + TypeScript + globo 3D / mapa SVG
 ├── pipelines/                   # ingesta, features, scoring y candidatos
 ├── artifacts/demo/              # fixtures sintéticos para contratos y estados límite
-├── artifacts/science-v2/        # snapshot científico consumido por la web final
+├── artifacts/science-v2/        # histórico científico preservado
+├── artifacts/science-v3/        # piloto Chile–Argentina consumido por la web
 ├── config/mission_profiles/     # perfil versionado
 ├── contracts/                   # JSON Schema
 ├── docs/                        # decisiones, ciencia y arquitectura
@@ -173,12 +193,16 @@ python -m pytest
 python -m pipelines.build_demo --profile config/mission_profiles/mars-rover-mobility-v1.json
 ```
 
-`build_demo` regenera `artifacts/demo/` para pruebas sintéticas. `build_precision_snapshot` regenera `artifacts/science-v2/`, que es lo que lee la web final. La demo no requiere internet porque el snapshot está incluido; solo la reproducción científica requiere credenciales.
+`build_demo` regenera `artifacts/demo/` para pruebas sintéticas. `build_precision_snapshot` regenera el histórico `artifacts/science-v2/`; `build_discovery_snapshot` genera `artifacts/science-v3/`, que lee la web actual. La demo no requiere internet porque el snapshot está incluido; solo la reproducción científica requiere credenciales.
 
-## Ventana del evento
+## Ventana del evento .
 
 NASA Space Apps Challenge 2026 se realiza el 14 y 15 de noviembre de 2026. La plataforma global indica cierre el 15 de noviembre a las 23:59 hora local. Confirmar cualquier deadline interno anterior con la sede de Santiago.
 
 ## Regla de continuidad
 
-Antes de terminar una sesión, cualquier agente debe actualizar [`project/STATUS.md`](project/STATUS.md) y seguir [`project/HANDOFF_PROTOCOL.md`](project/HANDOFF_PROTOCOL.md). Ese archivo es la fuente de verdad para que Codex tome el control después.
+Antes de terminar una sesión, cualquier agente debe actualizar [`project/STATUS.md`](project/STATUS.md) y seguir [`project/HANDOFF_PROTOCOL.md`](project/HANDOFF_PROTOCOL.md). Ese archivo es la fuente de verdad para que Codex tome el control después .
+
+## Planificador de pruebas (M8)
+
+AnalogOS permite definir una prueba o evaluar un sector y obtener una recomendación explicable sobre el snapshot v3, con exportación JSON e informe imprimible. La IA de Anthropic es opcional (borrador de requisitos y selección de motivos) y solo corre en servidor; ver `docs/AI_SETUP.md` y ADR-009. El recorrido manual y el ZIP portable funcionan sin red ni clave.
