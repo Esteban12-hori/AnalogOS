@@ -1,5 +1,11 @@
 # Changelog de trabajo
 
+## 2026-11-14 Codex · M9 publicado y verificado en dev
+
+- Código `34e76b9`, Actions 43658989969 correcto; alias dev actualizado y función empaquetada verificada. Main conservado.
+- Contexto geológico remoto y exportación argentina validados; referencia Yungay conservada. Borrador y explicación reales de Anthropic correctos; JSON descargado validado y recalculado idéntico.
+- Evidencia en `submission/evidence/m9-dev-*.json`, capturas en `submission/assets/analogos-m9-dev*.jpg` e informes en `docs/CODEX_M9_REVIEW.md` / `docs/DEV_AI_VERIFICATION.md`. Este checkpoint documental usa `[skip ci]` y no cambia el código desplegado. M9 accepted; Claude sin nueva tarea.
+
 ## 2026-11-14 Codex · M9 aceptado localmente y listo para dev
 
 - Revisión independiente de A/B, cierres adversos y procedencia. Ficha oficial, exportación propia y paquete portable; ciencia y núcleo M8 intactos. Ajustes de legibilidad (12 px mínimo), errores de carga comprensibles y advertencias históricas actualizadas solo en presentación.

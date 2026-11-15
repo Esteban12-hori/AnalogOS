@@ -4,7 +4,7 @@
 
 - **Task ID:** M9-GEOLOGY-CONTEXT
 - **Owner:** Codex
-- **Status:** in_progress — A/B aceptadas localmente por Codex; ejecutando publicación dev y comprobación remota. Claude sin nueva asignación.
+- **Status:** accepted — M9 completado y publicado en dev (`34e76b9`, Actions 43658989969); revisión independiente y geología/IA remotas correctas. Claude sin nueva asignación.
 - **Branch:** dev
 - **Base commit:** 92392f1181133ee2b86fb6b13c97ec9b10de021d
 - **Dirección/revisión/aceptación:** Codex. Dan aprobó la recomendación de `docs/GEOLOGY_FEASIBILITY.md`: «ok saquemoslo que quede perfecto y que nada se rompa». Completar el corte recomendado preservando M8. Codex se encarga de aceptación y salida a dev; Claude no hace commit, push ni deploy.
@@ -65,3 +65,7 @@ Luego implementar B completo dentro del alcance existente, sin esperar otro chec
 Ficha compacta en diseño existente: resumen de cobertura/gaps/ambigüedad, escala y fuentes; detalle expandible con unidades originales y preguntas de campo. Exportación geológica independiente y autodescriptiva validada, sin tocar contratos M8. Carga opcional con timeout incluyendo body y sin afectar selección/M8 cuando falla. Validación web de geometría exacta y procedencia (rol/site_id/bbox), fracciones/estados, URL https permitida.
 
 Actualizar documentación vigente (README, ciencia/fuentes/operación) distinguiendo contexto disponible y score sin calibrar. Verificar tests/build/ZIP determinista/baseline. No commits/push/deploy. Entregar Owner Codex/review; Codex hace navegador y salida dev. No ampliar alcance por brechas históricas ajenas.
+
+## Cierre de Codex
+
+Entrega aceptada y publicada, con evidencia en `docs/CODEX_M9_REVIEW.md` y `docs/DEV_AI_VERIFICATION.md`. Ciencia y núcleo IA preservados; contexto descriptivo sin score geológico ni IA geológica. No iniciar otra implementación hasta una nueva tarea. Las instrucciones de fases y devoluciones anteriores quedan como historial del encargo.

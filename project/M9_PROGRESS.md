@@ -1,8 +1,8 @@
 # M9 — progreso de implementación y revisión
 
-## Checkpoint Codex — aceptación local
+## Checkpoint Codex — entrega completada
 
-Revisión de A/B y QA local terminadas; correcciones de legibilidad y advertencias históricas aplicadas por Codex. 316 Python, 246 web, build/typecheck, baseline49 intacto, ZIP determinista `eed86833…6520c`. Descarga real validada y móvil/teclado/offline comprobados. Ver `docs/CODEX_M9_REVIEW.md`. Publicación y prueba remota pendientes. Las secciones siguientes preservan la historia de entregas de Claude.
+Revisión de A/B y QA local terminadas; correcciones de legibilidad y advertencias históricas aplicadas por Codex. 316 Python, 246 web, build/typecheck, baseline49 intacto, ZIP determinista `eed86833…6520c`. Descarga real validada y móvil/teclado/offline comprobados. Ver `docs/CODEX_M9_REVIEW.md`. Publicado en dev (`34e76b9`, Actions 43658989969 correcto); geología/exportación remotas y las dos operaciones Anthropic verificadas, JSON recalculado idéntico. Las secciones siguientes preservan la historia de entregas de Claude.
 
 ## Fase B — IMPLEMENTADA, para revisión de Codex (2026-11-14)
 

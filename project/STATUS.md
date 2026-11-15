@@ -1,13 +1,13 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14, M8 publicado e IA verificada en dev (America/Santiago)
+**Última actualización:** 2026-11-14, M9 publicado e IA verificada en dev (America/Santiago)
 **Responsable del checkpoint:** Codex
-**Milestone activo:** M9-GEOLOGY-CONTEXT aceptado localmente por Codex. Publicación y verificación en dev en curso; M8 conservado.
+**Milestone activo:** M9-GEOLOGY-CONTEXT completado, aceptado por Codex y publicado en dev. Claude sin nueva asignación; M8 conservado.
 **Estado general:** planificador de ensayo/sector con motor determinista, snapshot científico v3 y Anthropic opcional funcionando en dev. Siete áreas con evidencia; faltan capas territoriales, contraste local y revisión experta de campo.
 
-## M9 — aceptación local de Codex
+## M9 — entrega actual aceptada y publicada
 
-Ficha y exportación geológica oficial en siete sectores; cobertura/ambigüedad y escala explícitas. Revisión de datos/código y navegador offline, 390 px/teclado, errores de carga y descarga real completadas. 316 Python y 246 web correctos; typecheck/build; baseline49 intacto. ZIP 31 entradas, SHA-256 `eed868335c5374d20b05415a8627be9ec3f035c1dc10668bbe08f21e03f6520c`. Ver `docs/CODEX_M9_REVIEW.md`. Falta comprobar publicación dev y regresión remota IA antes de cerrar M9. Sin cambio de score, ciencia ni IA geológica.
+Ficha y exportación geológica oficial en siete sectores; cobertura/ambigüedad y escala explícitas. Revisión de datos/código y navegador offline, 390 px/teclado, errores de carga y descarga real completadas. 316 Python y 246 web correctos; typecheck/build; baseline49 intacto. ZIP 31 entradas, SHA-256 `eed868335c5374d20b05415a8627be9ec3f035c1dc10668bbe08f21e03f6520c`. Ver `docs/CODEX_M9_REVIEW.md`. Código desplegado `34e76b9`; Actions 43658989969 correcto. Geología y exportación remotas verificadas; ambas operaciones reales Anthropic correctas y JSON recalculado idéntico. Capturas y exportaciones en submission; detalle en `docs/DEV_AI_VERIFICATION.md`. El checkpoint documental posterior no cambia el despliegue. Sin cambio de score, ciencia ni IA geológica.
 
 ## Encargo M9 autorizado — contexto geológico
 

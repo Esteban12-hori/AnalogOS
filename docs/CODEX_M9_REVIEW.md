@@ -1,6 +1,6 @@
 # Revisión Codex de M9
 
-Estado: aceptado localmente por Codex; publicación y comprobación remota en dev en curso.
+Estado: **aceptado y publicado en dev**, con geología y ambas operaciones de IA comprobadas desde navegador.
 
 ## Revisión A — 2026-11-14
 
@@ -44,3 +44,17 @@ Codex repitió los tres casos adversos de geometría/transacción y los dos de p
 - La prueba inicial de navegador usó por error una CSP de QA que bloqueaba `unsafe-eval`, requerido por Ajv existente. Se corrigió solo el servidor temporal de QA, manteniendo `connect-src self`; no se cambió CSP del producto. La apertura inicial también demoró en el controlador; no se atribuye al código de la app.
 
 La aceptación es de implementación y trazabilidad de cartografía regional. No valida el terreno, no calibra el criterio geológico ni habilita uso geológico en IA. Los hashes comprobados vinculan archivos de candidatos y peticiones; no constituyen una firma de autenticidad ni prueban por sí solos cada área calculada. El contraste espacial se realizó contra las fuentes y la auditoría.
+
+## Publicación y regresión remota — Codex, 2026-11-14 (America/Santiago)
+
+**M9 completado y publicado en dev.** Código `34e76b9734efab2428013a13c6d0defb8d85d8f4`, Actions correcto: https://github.com/Esteban12-hori/AnalogOS/actions/runs/43658989969. Deploy https://analogos-nmyfr42k8-pruebas-730d0f41.vercel.app, alias https://analogos-dev.vercel.app/. El checkpoint posterior agrega solo documentos/evidencia con `[skip ci]` y conserva ese código desplegado. Main no cambió.
+
+- La función realmente empaquetada pasó el control de arranque (módulos/snapshot/contratos, GET 405 y POST sin clave 503). Se mantuvieron protección Vercel y configuración de credenciales.
+- Geología en dev: Chile 99,4 %, Argentina 100 % y referencia Yungay 99,1 % observados; unidades y escala correctas. Exportación argentina descargada y validada, idéntica a la reconstruida desde el paquete: `submission/evidence/m9-dev-geology-export.json`.
+- Regresión IA real: brief sintético con pendiente mediana regional ≤ 2,3°, preferencia no vegetada ≥ 95 %, permisos pendientes. Anthropic propuso tres requisitos editables; confirmación explícita y evaluación priorizaron una de siete áreas. La explicación destacó motivos existentes sin alterar números ni exclusiones. Permisos y factibilidad quedaron pendientes.
+- JSON de IA descargado desde dev, contrato validado y evaluación recalculada idéntica; reconstrucción completa con `buildMissionExport` también idéntica. Evidencia: `submission/evidence/m9-dev-ai-export.json`.
+- Borrador: `claude-sonnet-5-5`, `2026-11-15T00:38:32.854Z`, request `req_011Ch3nDHnwnQR73oKU4vndZ`, tokens 2177/1010, `end_turn`.
+- Explicación: `claude-sonnet-5-5`, `2026-11-15T00:39:27.098Z`, request `req_011Ch3nHb48fJE7MMfz5V45L`, tokens 5792/460, `end_turn`.
+- Capturas: `submission/assets/analogos-m9-dev.jpg` y `analogos-m9-dev-ai.jpg`. La IA sigue usando exclusivamente el motor/evidencia M8; no consume el nuevo contexto geológico.
+
+Aceptado por Codex tras revisar la implementación de Claude y corregir la presentación final. Claude queda sin nueva asignación. No se afirma validación de campo, exactitud absoluta ni ausencia universal de defectos; las pruebas cubren el alcance M9 y sus regresiones observadas.

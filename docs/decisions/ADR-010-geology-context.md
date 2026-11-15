@@ -1,6 +1,6 @@
 # ADR-010 — Contexto geológico oficial por sector (paquete independiente)
 
-- Estado: **accepted localmente por Codex** tras revisión independiente de datos, código, pruebas y navegador. Ver `../CODEX_M9_REVIEW.md`; publicación dev en curso.
+- Estado: **accepted por Codex** tras revisión independiente de datos, código, pruebas y navegador, publicación dev y regresión remota de IA. Ver `../CODEX_M9_REVIEW.md`.
 - Fecha: 2026-11-14
 - Autorización: Dan aprobó el corte de `docs/GEOLOGY_FEASIBILITY.md`. Codex aprobó el plan de la fase A con las correcciones que se registran abajo como «aprobado por Codex».
 
