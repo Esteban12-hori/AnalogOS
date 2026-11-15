@@ -3,6 +3,25 @@
 // contracts/mission-ai.schema.json and are validated with Ajv when the response is received (validate.ts).
 import { METRIC_IDS, UNMEASURED_TOPICS } from './catalog'
 
+/**
+ * Language of the text the AI WRITES in a draft (activity, label, detail, open_questions and the server's own
+ * questions and warnings). Optional field of the `draft` request only (ADR-017): absent means 'en', so a client that
+ * does not send it gets exactly the behavior of the English-default server. Any other value is a bad request.
+ * It changes only the wording: output schemas, codes, literal figures, quote checks and validation are identical,
+ * and `source_quote` stays a literal fragment of the brief in its own language. `explain` and the geology channel only
+ * SELECT ids (they write no text), so they never take a language.
+ */
+export const AI_LANGUAGES = ['en', 'es'] as const
+export type AiLanguage = (typeof AI_LANGUAGES)[number]
+export const DEFAULT_AI_LANGUAGE: AiLanguage = 'en'
+export const isAiLanguage = (value: unknown): value is AiLanguage => typeof value === 'string' && (AI_LANGUAGES as readonly string[]).includes(value)
+
+/** Validated language of a draft request body: absent = default; anything else that is not 'en' | 'es' = null (reject). */
+export function draftLanguageOf(value: unknown): AiLanguage | null {
+  if (value === undefined) return DEFAULT_AI_LANGUAGE
+  return isAiLanguage(value) ? value : null
+}
+
 const topicIds = [...UNMEASURED_TOPICS.map((t) => t.id), 'other_unmeasured']
 
 export const DRAFT_SCHEMA = {

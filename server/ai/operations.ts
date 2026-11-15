@@ -1,3 +1,4 @@
+import { DEFAULT_AI_LANGUAGE, type AiLanguage } from '../../shared/mission/aiSchemas'
 import { METRICS, METRIC_IDS, SUPPORTED_PROFILE_ID, UNMEASURED_TOPICS, detectUnmeasuredMentions } from '../../shared/mission/catalog'
 import { evaluateMission, evaluationFingerprint } from '../../shared/mission/evaluate'
 import { buildVerificationCatalog, checkSelection, type ExplanationSelection } from '../../shared/mission/explanation'
@@ -8,8 +9,9 @@ import { validateDraftOutput, validateMissionRequest } from '../../shared/missio
 import { buildGeologyCatalog, checkGeologySelection, type GeologyRejection, type GeologySelectionResult } from '../../shared/geology/guidance'
 import { AiCallError, callStructured } from './anthropic'
 import type { AiConfig } from './config'
+import { DRAFT_TEXT } from './draftText'
 import type { ServerGeology } from './geology'
-import { DRAFT_SCHEMA, DRAFT_SYSTEM, EXPLAIN_GEOLOGY_SCHEMA, EXPLAIN_SCHEMA, EXPLAIN_SYSTEM, GEOLOGY_SYSTEM, explainFacts, geologyFacts, retryReminder } from './prompts'
+import { DRAFT_SCHEMA, EXPLAIN_GEOLOGY_SCHEMA, EXPLAIN_SCHEMA, EXPLAIN_SYSTEM, GEOLOGY_SYSTEM, draftSystem, explainFacts, geologyFacts, retryReminder } from './prompts'
 
 export interface AiContext {
   config: AiConfig
@@ -55,9 +57,12 @@ const allNumbersInQuote = (nums: number[], quote: string): boolean => {
  * - a topographic metric without «median/regional/full window» in the quote is kept as a point
  *   scale (not evaluable) with a question about the scale;
  * - proposed figures must appear literally in the quote; otherwise it remains as a clarification question.
+ * `language` (ADR-017) only selects the wording of the server's own questions, warnings and fallback labels
+ * (./draftText.ts); every check, figure, scale rule and limit is the same in both languages.
  */
-export function buildDraft(raw: unknown, brief: string): { draft: Omit<DraftProposal, 'warnings'>; warnings: string[] } {
+export function buildDraft(raw: unknown, brief: string, language: AiLanguage = DEFAULT_AI_LANGUAGE): { draft: Omit<DraftProposal, 'warnings'>; warnings: string[] } {
   if (validateDraftOutput(raw).length) throw new AiCallError('ai_invalid_output')
+  const text = DRAFT_TEXT[language]
   const r = raw as {
     activity: string; target_kind: 'mars_rover_terrain' | 'other_or_unclear'
     requirements: Array<Record<string, unknown>>; open_questions: string[]
@@ -77,38 +82,37 @@ export function buildDraft(raw: unknown, brief: string): { draft: Omit<DraftProp
     const base = { requirement_id: `ai-${n + 1}`, importance, origin: 'ai' as const, confirmed: false, source_quote: quote }
     const metric = String(it.metric_id)
     const pending = (why: string): void => {
-      questions.push(`${why}: “${quote}”`)
+      questions.push(text.quoted(why, quote))
     }
     if ((METRIC_IDS as string[]).includes(metric)) {
       const spec = METRICS[metric as keyof typeof METRICS]
       const nums = it.numbers as number[]
       const op = it.operator as MeasurableRequirement['operator'] | 'none'
-      if (op === 'none') { pending('Threshold still to be specified'); continue }
+      if (op === 'none') { pending(text.threshold); continue }
       if (op === 'in') {
         const wrong = (it.countries as string[]).some((c) => !COUNTRY_WORDS[c]?.test(quote))
-        if (metric !== 'country' || wrong || !(it.countries as string[]).length) { pending('Country still to be specified'); continue }
+        if (metric !== 'country' || wrong || !(it.countries as string[]).length) { pending(text.country); continue }
       } else if (!allNumbersInQuote(nums, quote)) {
-        pending('Figure still to be clarified (it does not appear in the quoted text)'); continue
+        pending(text.figure); continue
       }
       let scale: MeasurableRequirement['scale'] = it.scale === 'point' ? 'point' : 'window'
       if (TOPOGRAPHIC.includes(metric) && scale === 'window' && !EXPLICIT_WINDOW_SCALE.test(quote)) {
         scale = 'point'
-        questions.push(`Does “${spec.label}” refer to the regional median over the full window or to a point value? The text does not say; it was left at point scale (not assessable) until you specify it.`)
+        questions.push(text.scaleQuestion(text.metricLabel(spec.id)))
       }
       const value = op === 'in' ? (it.countries as string[]) : op === 'between' ? nums.slice(0, 2) : nums[0]
       const candidate: MeasurableRequirement = {
-        ...base, kind: 'measurable', label: clean(it.label, 120) || spec.label, metric_id: spec.id, operator: op as MeasurableRequirement['operator'],
+        ...base, kind: 'measurable', label: clean(it.label, 120) || text.metricLabel(spec.id), metric_id: spec.id, operator: op as MeasurableRequirement['operator'],
         value: value as MeasurableRequirement['value'], unit: String(it.unit), scale,
       }
       const probe = validateMissionRequest({
         schema_version: '1.0.0', brief: '', activity: '', target: { profile_id: SUPPORTED_PROFILE_ID, stated: '' },
         requirements: [candidate], open_questions: [], scope: { mode: 'catalog' }, confirmed: false,
       })
-      if (probe.ok) { requirements.push(candidate); n += 1 } else pending('Requirement still to be specified')
+      if (probe.ok) { requirements.push(candidate); n += 1 } else pending(text.requirement)
     } else if (UNMEASURED_TOPICS.some((t) => t.id === metric) || metric === 'other_unmeasured') {
-      const topic = UNMEASURED_TOPICS.find((t) => t.id === metric)
       const candidate: UnmeasuredRequirement = {
-        ...base, kind: 'unmeasured', label: clean(it.label, 120) || topic?.label || 'Unmeasured request', topic_id: metric, detail: clean(it.detail, 300),
+        ...base, kind: 'unmeasured', label: clean(it.label, 120) || text.topicLabel(metric) || text.unmeasuredFallback, topic_id: metric, detail: clean(it.detail, 300),
       }
       requirements.push(candidate)
       n += 1
@@ -116,22 +120,22 @@ export function buildDraft(raw: unknown, brief: string): { draft: Omit<DraftProp
       discarded += 1
     }
   }
-  if (discarded) warnings.push(`The AI proposed ${discarded} item(s) that could not be anchored in the text or do not match the catalog; they were discarded and are not part of the draft.`)
+  if (discarded) warnings.push(text.discarded(discarded))
   if (requirements.length > 20) {
-    questions.push(...requirements.splice(20).map((x) => `Still to be specified: “${x.source_quote ?? x.label}”`))
-    warnings.push('The maximum of 20 requirements was exceeded; the rest were kept as open questions.')
+    questions.push(...requirements.splice(20).map((x) => text.pendingSpecify(x.source_quote ?? x.label)))
+    warnings.push(text.tooManyRequirements)
   }
   // Deterministic safety net: unmeasured topics cited in the brief that the draft did not capture.
   const covered = new Set(requirements.filter((x): x is UnmeasuredRequirement => x.kind === 'unmeasured').map((x) => x.topic_id))
   if (requirements.some((x) => x.kind === 'measurable' && x.metric_id === 'median_slope_degree' && x.scale === 'point')) covered.add('max_point_slope')
   for (const m of detectUnmeasuredMentions(brief)) {
     if (!covered.has(m.topic_id)) {
-      questions.push(`The brief mentions “${m.matched_text}”: “${m.label}” is not measured in the v3 snapshot; if it matters, add it as a pending requirement.`)
+      questions.push(text.mention(m.matched_text, text.topicLabel(m.topic_id) ?? m.label))
     }
   }
   const all = [...new Set(questions)]
   const unique = all.slice(0, 20)
-  if (all.length > 20) warnings.push('There are more than 20 open questions; the first 20 are shown.')
+  if (all.length > 20) warnings.push(text.tooManyQuestions)
   return {
     draft: {
       activity: clean(r.activity, 200),
@@ -144,14 +148,14 @@ export function buildDraft(raw: unknown, brief: string): { draft: Omit<DraftProp
   }
 }
 
-export async function runDraft(ctx: AiContext, brief: string): Promise<DraftResult> {
+export async function runDraft(ctx: AiContext, brief: string, language: AiLanguage = DEFAULT_AI_LANGUAGE): Promise<DraftResult> {
   const { data, provenance } = await callStructured(
     ctx.config,
-    { system: DRAFT_SYSTEM, user: `<brief>\n${brief}\n</brief>`, schema: DRAFT_SCHEMA as unknown as Record<string, unknown>, maxTokens: 2000 },
+    { system: draftSystem(language), user: `<brief>\n${brief}\n</brief>`, schema: DRAFT_SCHEMA as unknown as Record<string, unknown>, maxTokens: 2000 },
     ctx.fetchImpl,
     ctx.now,
   )
-  const built = buildDraft(data, brief)
+  const built = buildDraft(data, brief, language)
   return { proposal: { ...built.draft, warnings: built.warnings }, provenance }
 }
 

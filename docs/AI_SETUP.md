@@ -28,15 +28,22 @@ Copy `.env.example` to `.env` (ignored by git) and fill in:
 ## Endpoint `POST /api/ai`
 
 - JSON body ≤ 24 KB; brief ≤ 3000 characters; `max_tokens` 2000; the timeout covers headers **and** reading the body.
-- Operations `draft` (`brief`) and `explain` (confirmed `request` + fingerprint + optional `geology_context_fingerprint`). `explain` recalculates the evaluation on the server from the validated `artifacts/science-v3`; it does not accept facts or geodata from the client.
+- Operations `draft` (`brief` + optional `language`) and `explain` (confirmed `request` + fingerprint + optional `geology_context_fingerprint`). `explain` recalculates the evaluation on the server from the validated `artifacts/science-v3`; it does not accept facts or geodata from the client.
 - The provider output is validated with a strict JSON Schema before being used; refusals, truncation, foreign IDs or invalid JSON are discarded without repair.
 - Errors use fixed messages: the provider body, the key or traces are never reflected. No brief logs.
 - Rate limit: 8 calls/min per client and 60/min globally, **in memory per instance (not distributed)**.
 - **Origin**: loopback `http` is accepted (not in `VERCEL_ENV=production`), the hostnames of `VERCEL_URL`/`VERCEL_BRANCH_URL`/`VERCEL_PROJECT_PRODUCTION_URL`, explicit origins and the same host as the request (alias). No wildcards. **The `Origin` check limits use from browsers; it is not authentication.** The `dev` deployment remains under the existing Vercel protection; it was not modified.
 
+## Draft language (`language`, ADR-017)
+
+- Optional field of the `draft` request only: `"en"` or `"es"`, validated in `shared/mission/aiSchemas.ts` (`draftLanguageOf`) and in `server/ai/handler.ts`. **Absent means `"en"`** and the server sends the provider exactly the pre-ADR-017 prompt and body (frozen SHA-256 in `apps/web/src/tests/aiLanguage.test.ts`). Any other value (`"ES"`, `"es-CL"`, `"fr"`, `null`, a number…) is `400 bad_request` and the provider is not called. `explain` does not accept the field (it only selects IDs; with geology too).
+- With `"es"` only the language rule of the system prompt changes (`draftSystem('es')` in `server/ai/prompts.ts`): the model writes `activity`, `label`, `detail` and `open_questions` in Spanish. The server's own questions, warnings and fallback labels use the pre-ADR-016 Spanish wording (`server/ai/draftText.ts`). Everything else is identical: delimited brief, catalog, output schema, `max_tokens`, `source_quote` as a literal fragment of the brief in its own language (never translated; checked by the server), figures that must appear in the quote, scale rule, 20-item limits. The model never produces figures, scores or ordering in either language.
+- The web client sends `language: "es"` **only when the interface is Spanish** (`draftRequestBody` in `apps/web/src/mission/aiClient.ts`); an English interface sends the same body as always, so an older server never sees the field. A Spanish draft rejected with `bad_request` (a server older than the field) shows a message suggesting to switch the interface to English. Client messages follow the interface language; error codes do not change.
+- A Spanish draft is user-reviewed content like anything typed in the composer: once confirmed, its labels and questions are exported verbatim (the export itself stays English 1.1.0, identical in both interface languages).
+
 ## What is sent to Anthropic
 
-- Draft: the text of the brief.
+- Draft: the text of the brief (and, from a Spanish interface, only the instruction to write the draft in Spanish).
 - Explanation (without geology): the names/details of the confirmed requirements and the already calculated results (statuses, ids). The full text of the brief is **not** sent.
 - Explanation **with geological guidance** (opt-in checkbox on the results screen): in addition, the **confirmed objective** (brief text, activity, objective and requirements) and the **official public geological mapping** of the evaluated, non-discarded sectors (name, code and original description of each unit, coverage fractions, scale and source) are sent. Typical input ≈ 25 000 tokens.
 - The button for each operation explains this next to itself; the manual workflow transmits nothing.

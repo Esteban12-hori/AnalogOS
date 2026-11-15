@@ -1,0 +1,160 @@
+/**
+ * Science catalog (area ai-science, docs/I18N.md §7): the geological context card (components/GeologyContext.tsx),
+ * the availability hints, the reasons why geology is not available and the team texts of domain/geologyCopy.ts.
+ * English verbatim (current product text); Spanish from git 273e5f8 at the same place (or the reviewed feature/i18n
+ * translation). Official names, unit names/descriptions and other artifact text are NOT here: they are shown through
+ * i18n/science (original in Spanish, English rendering/gloss in English).
+ */
+import { defineMessages } from '../translate'
+
+export const tScience = defineMessages({
+  en: {
+    'geology.heading': 'Geological context',
+    'geology.subheading': 'Regional mapping · does not measure the terrain',
+    'geology.loading': 'Loading geological context…',
+    'geology.unavailable': 'Geological context not available. {reason}',
+    'geology.independent': 'The ranking, the site sheet and the evaluation do not depend on it.',
+    'geology.scale': 'Scale {scale}',
+    'geology.bar.unambiguous': 'covered without ambiguity',
+    'geology.bar.ambiguous': 'covered with overlap between units',
+    'geology.bar.unusable': 'unusable area (upper bound)',
+    'geology.bar.unmapped': 'no coverage',
+    'geology.bar.aria': 'Area breakdown of {name}: {parts}.',
+    'geology.fig.covered': 'Covered by the layer',
+    'geology.fig.unmapped': 'No coverage',
+    'geology.fig.ambiguous': 'Overlap between different units',
+    'geology.fig.noDescription': 'With a unit lacking a description',
+    'geology.fig.unusable': 'Unusable area (upper bound)',
+    'geology.sourceLine': '{dataset} · Authority: {authority} · Distributor: {distributor}.',
+    'geology.note':
+      'The percentage is map coverage, not precision, confidence or suitability, and it was not confirmed in the field. “No coverage” means this layer has no polygon there, not that there is no rock. The geology in the score is still not calibrated: this context does not imply calibrated planetary compatibility and does not change similarity, confidence or feasibility.',
+    'geology.units.summary': 'Mapped units ({count})',
+    'geology.units.empty': 'This layer has no units inside the sector.',
+    'geology.units.noName': 'No name in the source',
+    'geology.units.share': '{share} of the sector',
+    'geology.units.unambiguous': ' ({share} without overlap)',
+    'geology.units.noDescription': 'No description in the source: it is not filled in or inferred.',
+    'geology.units.sheet': 'Sheet {sheet} · ',
+    'geology.units.features': 'source features: {ids}',
+    'geology.units.footnote':
+      'Unit percentages can add up to more than the coverage because they include overlaps. Unit names and descriptions are the official ones (Spanish); English glosses are editorial translations.',
+    'geology.provenance.summary': 'Source, scale and provenance',
+    'geology.provenance.authority': 'Authority',
+    'geology.provenance.distributor': 'Distributor',
+    'geology.provenance.layer': 'Layer',
+    'geology.provenance.scale': 'Scale',
+    'geology.provenance.scaleValue': '{scale} (map scale denominator; not a resolution in meters)',
+    'geology.provenance.crs': 'CRS',
+    'geology.provenance.license': 'License',
+    'geology.provenance.attribution': 'Attribution',
+    'geology.provenance.mapDate': 'Map date',
+    'geology.provenance.mapDateMissing': 'Not reported by the source.',
+    'geology.provenance.catalog': 'Catalog record',
+    'geology.provenance.catalogValue': '{date} (not the survey date)',
+    'geology.provenance.download': 'Download',
+    'geology.provenance.request': 'request ↗',
+    'geology.provenance.processing': 'Processing',
+    'geology.provenance.limits': 'Limits',
+    'geology.provenance.repaired': 'Repaired geometries',
+    'geology.provenance.repairedValue':
+      '{accepted} accepted after comparing two repair methods; {rejected} rejected. Provisional engineering thresholds, not a scientific standard.',
+    'geology.verify.summary': 'What to check in the field',
+    'geology.download.button': 'Download geological context (JSON source record)',
+    'geology.download.aria': 'Download the geological context of {name} as JSON ({file}), the source record',
+    'geology.download.failed': 'The geology export could not be generated.',
+
+    // Availability hints (English = shared/geology/context.ts AVAILABILITY_HINT, checked by test).
+    'availability.available.hint': 'This layer covers the whole sector, with no overlaps or missing descriptions. It is map coverage, not precision.',
+    'availability.partial.hint': 'Part of the sector has no coverage, units overlap or descriptions are missing. They are shown separately.',
+    'availability.no_coverage.hint': 'This layer does not cover the sector. It does not mean there is no rock, and it does not rule out the sector.',
+    'availability.unavailable.hint': 'Some source geometries could not be used; the affected part is an upper bound.',
+
+    // Why geology is not available: canonical English reasons kept in state (selectGeologySite, loadGeologyContext, App).
+    'reason.fixture': 'Synthetic fixtures have no geological context.',
+    'reason.notInPackage': 'The geology package does not include this sector with its exact geometry.',
+    'reason.notFound': 'The geology package for this version was not found.',
+    'reason.tooLarge': 'The geology package exceeds the allowed size.',
+    'reason.timeout': 'The geological context took too long to load.',
+    'reason.unverified': 'We could not verify the geology data for this version.',
+    'reason.moduleFailed': 'The geological context module could not be loaded.',
+
+    // Team texts of domain/geologyCopy.ts (English = the exported constants).
+    'copy.pendingWithContext':
+      'The official geological context is available with its coverage limits. Its compatibility with the objective still needs calibration and expert review; it stays outside the score.',
+    'copy.limitationWithContext':
+      'Regional geological mapping can be consulted in the “Geology” tab with its gaps and limits. Geological calibration and territorial evidence on protected areas, urban areas, ownership and access are still pending.',
+  },
+  es: {
+    'geology.heading': 'Contexto geológico',
+    'geology.subheading': 'Cartografía regional · no mide el terreno',
+    'geology.loading': 'Cargando contexto geológico…',
+    'geology.unavailable': 'Contexto geológico no disponible. {reason}',
+    'geology.independent': 'El ranking, la ficha y la evaluación no dependen de él.',
+    'geology.scale': 'Escala {scale}',
+    'geology.bar.unambiguous': 'cubierto sin ambigüedad',
+    'geology.bar.ambiguous': 'cubierto con solape entre unidades',
+    'geology.bar.unusable': 'zona no utilizable (cota superior)',
+    'geology.bar.unmapped': 'sin cobertura',
+    'geology.bar.aria': 'Reparto del área de {name}: {parts}.',
+    'geology.fig.covered': 'Cubierto por la capa',
+    'geology.fig.unmapped': 'Sin cobertura',
+    'geology.fig.ambiguous': 'Solape entre unidades distintas',
+    'geology.fig.noDescription': 'Con unidad sin descripción',
+    'geology.fig.unusable': 'Zona no utilizable (cota superior)',
+    'geology.sourceLine': '{dataset} · Autoridad: {authority} · Distribuye: {distributor}.',
+    'geology.note':
+      'El porcentaje es cobertura del mapa, no precisión, confianza ni aptitud, y no se confirmó en campo. «Sin cobertura» significa que esta capa no tiene polígono allí, no que no haya rocas. La geología del puntaje sigue sin calibrar: este contexto no implica compatibilidad planetaria calibrada ni cambia similitud, confianza ni factibilidad.',
+    'geology.units.summary': 'Unidades cartografiadas ({count})',
+    'geology.units.empty': 'Esta capa no tiene unidades dentro del sector.',
+    'geology.units.noName': 'Sin nombre en la fuente',
+    'geology.units.share': '{share} del sector',
+    'geology.units.unambiguous': ' ({share} sin solape)',
+    'geology.units.noDescription': 'Sin descripción en la fuente: no se completa ni se infiere.',
+    'geology.units.sheet': 'Hoja {sheet} · ',
+    'geology.units.features': 'entidades de origen: {ids}',
+    'geology.units.footnote':
+      'Los porcentajes de unidades pueden sumar más que la cobertura porque incluyen los solapes. Los nombres y descripciones de las unidades son los oficiales de la fuente.',
+    'geology.provenance.summary': 'Fuente, escala y procedencia',
+    'geology.provenance.authority': 'Autoridad',
+    'geology.provenance.distributor': 'Distribuye',
+    'geology.provenance.layer': 'Capa',
+    'geology.provenance.scale': 'Escala',
+    'geology.provenance.scaleValue': '{scale} (denominador cartográfico; no es resolución en metros)',
+    'geology.provenance.crs': 'CRS',
+    'geology.provenance.license': 'Licencia',
+    'geology.provenance.attribution': 'Atribución',
+    'geology.provenance.mapDate': 'Fecha del mapa',
+    'geology.provenance.mapDateMissing': 'No informada por la fuente.',
+    'geology.provenance.catalog': 'Registro del catálogo',
+    'geology.provenance.catalogValue': '{date} (no es la fecha del levantamiento)',
+    'geology.provenance.download': 'Descarga',
+    'geology.provenance.request': 'petición ↗',
+    'geology.provenance.processing': 'Procesamiento',
+    'geology.provenance.limits': 'Límites',
+    'geology.provenance.repaired': 'Geometrías reparadas',
+    'geology.provenance.repairedValue':
+      '{accepted} aceptada(s) tras contrastar dos métodos de reparación; {rejected} rechazada(s). Umbrales de ingeniería provisionales, no un estándar científico.',
+    'geology.verify.summary': 'Qué verificar en terreno',
+    'geology.download.button': 'Descargar contexto geológico (registro JSON de la fuente)',
+    'geology.download.aria': 'Descargar el contexto geológico de {name} en JSON ({file}), el registro de la fuente',
+    'geology.download.failed': 'No se pudo generar la exportación geológica.',
+
+    'availability.available.hint': 'Esta capa cubre todo el sector, sin solapes ni descripciones ausentes. Es cobertura del mapa, no precisión.',
+    'availability.partial.hint': 'Hay parte sin cobertura, solapes entre unidades o descripciones ausentes. Se muestran por separado.',
+    'availability.no_coverage.hint': 'Esta capa no cubre el sector. No significa que no haya rocas ni descarta el sector.',
+    'availability.unavailable.hint': 'Hay geometrías de la fuente que no se pudieron usar; la parte afectada es una cota superior.',
+
+    'reason.fixture': 'Los fixtures sintéticos no tienen contexto geológico.',
+    'reason.notInPackage': 'El paquete geológico no trae este sector con su geometría exacta.',
+    'reason.notFound': 'No se encontró el paquete geológico de esta versión.',
+    'reason.tooLarge': 'El paquete geológico excede el tamaño permitido.',
+    'reason.timeout': 'El contexto geológico tardó demasiado en cargar.',
+    'reason.unverified': 'No pudimos verificar los datos geológicos de esta versión.',
+    'reason.moduleFailed': 'No se pudo cargar el módulo del contexto geológico.',
+
+    'copy.pendingWithContext':
+      'El contexto geológico oficial está disponible con sus límites de cobertura. Falta calibrar su compatibilidad con el objetivo y revisarla con especialistas; permanece fuera del puntaje.',
+    'copy.limitationWithContext':
+      'La cartografía geológica regional se consulta en la pestaña «Geología» con sus huecos y límites. La calibración geológica y la evidencia territorial de áreas protegidas, urbano, propiedad y acceso siguen pendientes.',
+  },
+})
