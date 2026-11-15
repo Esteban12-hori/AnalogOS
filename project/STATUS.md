@@ -61,6 +61,11 @@
 
 # Estado actual
 
+
+## Corrección móvil (2026-11-15, Claude)
+
+- Lista vacía al deslizar hacia arriba la hoja de lugares: corregida en `dev` (CSS de `features/places`, con test). Pendiente que Danilo la promueva a `main`.
+
 ## Promoción a producción autorizada — 2026-11-15
 
 - **Owner:** Codex. **Estado: completado y verificado en producción.** Dan pidió actualizar el README y pasar toda la entrega revisada de dev a main; precisó publicar primero y después sustituir el screenshot con una captura de la nueva producción.

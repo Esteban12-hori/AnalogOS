@@ -1,5 +1,11 @@
 # Changelog de trabajo
 
+
+## 2026-11-15 Claude Code — hoja móvil: lista vacía al deslizar
+
+- En móvil, al deslizar hacia arriba la hoja de lugares (o con «Ver lista»), la lista medía 0 px de alto (`flex: 1 1 0` sin alto en el padre) y quedaba recortada: pantalla vacía. En la hoja, la lista ahora toma el alto de su contenido y el scroll lo hace la propia hoja. El dock de escritorio conserva su scroll interno (`features/places/places.css`, test de regresión en `places.test.ts`).
+- Verificado: `npm run verify` (328 Python, 801 web, typecheck:server, build); en navegador, el gesto y «Ver lista» a 390×844 y 360×780 muestran la lista completa, y el dock a 1440 sigue igual.
+
 ## 2026-11-15 Codex · M11 publicado y comprobado en producción [skip ci]
 
 - Código e5e9139 en dev y main, sin force; ambos despliegues correctos (43686593750 / 43686863876). Navegación e informe comprobados en dev antes de promover main.

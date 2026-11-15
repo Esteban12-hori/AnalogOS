@@ -255,3 +255,19 @@ describe('teclado (APG listbox) y contador', () => {
     expect(formatLatLon(75.3667, 13.3072)).toBe('75,37° N, 13,31° E')
   })
 })
+
+describe('vista lista en la hoja móvil', () => {
+  // Regresión: al deslizar la hoja hacia arriba la lista quedaba con alto 0 (flex 1 1 0 sin alto
+  // definido en el padre) y recortada por su propio scroll: pantalla vacía. En la hoja la lista
+  // debe tomar el alto de su contenido; el dock de escritorio conserva su scroll interno.
+  const css = readText('apps/web/src/features/places/places.css').replace(/\s+/g, ' ')
+  it('en la hoja, la pista de la lista no colapsa ni recorta', () => {
+    const rule = css.match(/\.places\[data-placement="sheet"\]\[data-view="list"\] \.places-track \{([^}]*)\}/)
+    expect(rule, 'falta la regla de la lista en la hoja').not.toBeNull()
+    expect(rule?.[1]).toMatch(/flex: 0 0 auto/)
+    expect(rule?.[1]).toMatch(/overflow-y: visible/)
+  })
+  it('fuera de la hoja la lista mantiene su scroll interno', () => {
+    expect(css).toMatch(/\.places\[data-view="list"\] \.places-track \{[^}]*overflow-y: auto/)
+  })
+})

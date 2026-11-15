@@ -155,6 +155,9 @@
 
 /* ---- Vista de lista («Ver lista»): todas a la vista, filas de 44 px -------------------------- */
 .places[data-view="list"] .places-track { display: block; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: none; }
+/* En la hoja móvil el contenedor no tiene alto definido: con flex 1 1 0 la lista medía 0 px (más el padding)
+   y quedaba recortada (pantalla vacía al deslizar hacia arriba). Ahí la lista toma su alto y scrollea la hoja. */
+.places[data-placement="sheet"][data-view="list"] .places-track { flex: 0 0 auto; overflow-y: visible; }
 .places[data-view="list"] .places-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px; }
 .places[data-view="list"] .places-group[data-kind="reference"] { margin-top: 8px; padding: 8px 0 0; border-top: 1px dashed var(--pending); border-left: 0; }
 .places[data-view="list"] .places-group-label { position: static; grid-column: 1 / -1; width: auto; height: auto; clip-path: none; color: var(--muted); font-family: var(--mono); font-size: var(--fs-min); letter-spacing: var(--caps-tracking); text-transform: uppercase; }
