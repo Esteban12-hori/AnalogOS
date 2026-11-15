@@ -47,4 +47,13 @@ Se probó Chrome y sus tamaños de viewport; no equivale a probar gestos/teclado
 
 ## Publicación
 
-Pendiente: publicar dev, comprobar la entrega remota, avanzar main sin force y verificar producción/IA real. No se considera terminado el objetivo de publicación hasta registrar esos resultados.
+**Completado y verificado.** Código `e5e91390b2eea261b1f8d46f3b17786b2bb295dc` publicado sin force en dev y luego main.
+
+- Dev: [Actions 43686593750](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43686593750), correcto. Recorrido publicado de siete sectores, CTA móvil visible de 44 px, Lectura con foco y un informe con siete tablas/geología/procedencia comprobados en `https://analogos-dev.vercel.app/`.
+- Producción: [Actions 43686863876](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43686863876), correcto, incluida comprobación de la función empaquetada. `https://analogos.vercel.app/` responde HTTP 200; GET /api/ai devuelve 405 method_not_allowed, como corresponde.
+- IA **real** en producción desde Chrome: elegir AR6 → Evaluar este sector → enviar brief sintético en el dock → proponer cuatro requisitos con Claude → revisar/confirmar explícitamente → evaluar **solo AR6** → CTA móvil → Lectura → explicación con geología. Resultado: 1 de 1 priorizado, 1 de 3 preferencias cumplida, 2 sin medición; la cartografía no las convierte en medidas.
+- Borrador: `claude-sonnet-5-5`, `req_011Ch4GRLhf2qaDPw9s9n74t`, `2026-11-15T06:48:27.845Z`, tokens 2221/1107, end_turn.
+- Explicación/geología: `claude-sonnet-5-5`, `req_011Ch4GYHwfPJwQELdTSRFD4`, `2026-11-15T06:49:57.535Z`, tokens 7174/332, end_turn. Tres referencias válidas de SEGEMAR: material superficial en dos unidades y contraste mapa-terreno en Galán.
+- Exportación descargada desde la aplicación: `submission/evidence/m11-production-geology-export.json`, SHA-256 `15b6f1a374b1738fdd0efed4ff77c46e428f53a6dd599365f7f9a93cc54adaaa`. Validada con `validateAnyMissionExport` y reconstruida idéntica con `buildMissionGeologyExport`, usando snapshot v3 y contexto geológico oficiales. Solicitud `dbb1d0867b4fb6d6d08d9f40ea9a0b2111d653485d0fb90e78ee74ad9bb8a159`; evaluación `e6c8fbf94658b7447a1c64b3ae998c4f89bd3ff1659004248845d7bedf2f0174`.
+- Captura real publicada: `submission/assets/m11-production-mobile.jpg`. Sin errores de consola en los recorridos local/dev/producción. Tamaño de prueba restablecido; márgenes/escala de impresión devueltos a las preferencias anteriores después de guardar la evidencia.
+- El checkpoint posterior `[skip ci]` añade únicamente evidencia y continuidad, sin alterar el código ni el ZIP desplegados. El desarrollo queda en dev; Claude sin nueva asignación.

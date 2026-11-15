@@ -25,7 +25,7 @@ Antes de modificar archivos, ejecuta `git status --short`, confirma la rama y pr
 
 ## Estado actual que no debes revertir
 
-- **M11-READING-PRINT aceptado por Codex tras QA de navegador y PDF.** Ver docs/CODEX_M11_REVIEW.md y el primer bloque de STATUS. Claude sin nueva asignación; Codex completa publicación dev/main bajo la ampliación autorizada de Dan.
+- **M11-READING-PRINT aceptado por Codex tras QA de navegador y PDF.** Ver docs/CODEX_M11_REVIEW.md y el primer bloque de STATUS. Claude sin nueva asignación. Publicado en dev/main (e5e9139) y comprobado en producción con IA real; Actions dev 43686593750 y producción 43686863876 correctos.
 
 - M8 aceptado y publicado en dev por Codex, con ambas operaciones de Anthropic verificadas realmente. Ver `docs/DEV_AI_VERIFICATION.md`; núcleo compartido en `shared/`, reexports en web. M9 aceptado y publicado por Codex: contexto geológico descriptivo, exportación y ZIP; ver `docs/CODEX_M9_REVIEW.md`. M10-GEOLOGY-AI completado, aceptado por Codex y publicado/verificado en dev (4708b42). NEXT_TASK accepted, sin nueva asignación. Preservar la entrega.
 - Rama de implementación: `dev`.

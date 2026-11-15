@@ -1,3 +1,16 @@
+# M11 completado en producción — Codex, 2026-11-15
+
+- **Milestone cerrado:** M11-READING-PRINT. Claude implementó; Codex revisó tres rondas, corrigió la agrupación de procedencia y aprobó con QA real de navegador/PDF.
+- **Código publicado:** `e5e91390b2eea261b1f8d46f3b17786b2bb295dc` en dev y main, sin force. Dev Actions `43686593750` y producción `43686863876` correctos. Sitios: https://analogos-dev.vercel.app/ y https://analogos.vercel.app/.
+- **IA real en producción:** cuatro requisitos propuestos sin confirmar; confirmación explícita; AR6 conservado y único sector evaluado; explicación y tres referencias geológicas SEGEMAR. Exportación descargada validada y reconstruida idéntica. Ver `docs/CODEX_M11_REVIEW.md`.
+- **UI y PDF:** CTA móvil junto al resumen, 44 px; tres anchos de pantalla, sin selección, referencia MDRS, cero priorizados y geometría sin cobertura; Atrás/Escape y foco. PDF nativo completo de 18 páginas, tablas legibles y geología; al editar, se imprime aviso en vez del informe anterior.
+- **Verificación:** 333 Python, 799 web, 3 opt-in omitidos, tipos/build correctos; 35 tests relacionados y build tras ajuste final. ZIP vigente CRC/checksum OK, SHA-256 `e2edb58317fc51e85ef5bc4adf9d46a09b7255531bd332341e96e0b9e6f81c30`.
+- Ciencia, contratos, servidor, datos y dependencias preservados. `outputs/` ajeno no se incluye. Checkpoint final solo evidencia/documentación `[skip ci]`; no cambia el código desplegado. Sin nueva asignación a Claude.
+- **Límites de QA que no se presentan como resueltos:** iOS físico y fallo de teselas GIBS por bloqueo de red. La prueba móvil se hizo con tamaños de Chrome; el respaldo local/SVG y el flujo manual se conservan.
+- **Próximos tres pasos:** 1) preparar la demo con el caso AR6 y las evidencias; 2) recoger validación en un teléfono real y probar pérdida de red de GIBS; 3) acordar el siguiente milestone antes de delegar trabajo nuevo.
+
+---
+
 # M11 aceptado; publicación en curso — Codex, 2026-11-15
 
 - **Milestone activo:** M11-READING-PRINT. Claude implementó; Codex revisó tres rondas y completó QA real móvil/escritorio/PDF. Código aceptado; todavía falta la publicación y reprueba remotas.

@@ -1,3 +1,15 @@
+# Actualización de producción M11 — 2026-11-15
+
+Código `e5e91390b2eea261b1f8d46f3b17786b2bb295dc`, promovido desde dev después de revisión de Codex a las tres entregas de Claude. [Actions producción 43686863876](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43686863876) y [dev 43686593750](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43686593750) correctos.
+
+Lectura móvil con acción visible de 44 px y navegación que conserva la misión. Impresión completa y paginada con geología y fuentes, sin informe obsoleto tras editar. PDF de siete sectores guardado y revisado (18 páginas con Letter y escala/márgenes predeterminados). 333 Python/799 web, 3 opt-in omitidos, tipos/build correctos; validación posterior del ajuste final documentada.
+
+En https://analogos.vercel.app/ se comprobaron nuevamente borrador y explicación geológica reales de Claude para AR6 desde la nueva Lectura móvil. JSON validado y reconstruido idéntico. Evidencia, procedencia, hashes y límites: [revisión M11](CODEX_M11_REVIEW.md). El checkpoint posterior [skip ci] registra solo evidencia/documentación; conserva el código y ZIP desplegados.
+
+---
+
+## Publicación anterior (antecedente)
+
 # Publicación de AnalogOS en producción — 2026-11-15
 
 **Estado: publicado y comprobado por Codex.** Dan autorizó actualizar el README y promover toda la versión revisada de dev a main, y precisó este orden: publicar primero y luego reemplazar el screenshot con una captura de la nueva producción.

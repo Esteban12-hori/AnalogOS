@@ -1,6 +1,6 @@
 # Prompt para que Codex retome el control
 
-**Checkpoint vigente 2026-11-15:** M11 implementado por Claude y aceptado por Codex tras tres rondas y QA real de Lectura móvil/PDF. Leer primero STATUS y docs/CODEX_M11_REVIEW.md. Dan autorizó revisar y publicar también main/producción; la publicación y reprueba remotas están en curso. Los pendientes móviles/impresión citados en los antecedentes de abajo ya se resolvieron. No iniciar otro milestone.
+**Checkpoint vigente 2026-11-15:** M11 implementado por Claude y aceptado por Codex tras tres rondas y QA real de Lectura móvil/PDF. Leer primero STATUS y docs/CODEX_M11_REVIEW.md. Publicado sin force en dev/main, código e5e91390b2eea261b1f8d46f3b17786b2bb295dc; Actions dev 43686593750 y producción 43686863876 correctos. IA real AR6 y exportación validadas en producción. El checkpoint posterior [skip ci] solo registra evidencia y continuidad. Desarrollo en dev; Claude sin nueva asignación. Los pendientes móviles/impresión citados en los antecedentes de abajo ya se resolvieron. No iniciar otro milestone.
 
 Cuando Claude haya terminado, pide a Codex:
 

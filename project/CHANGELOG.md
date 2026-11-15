@@ -1,5 +1,11 @@
 # Changelog de trabajo
 
+## 2026-11-15 Codex · M11 publicado y comprobado en producción [skip ci]
+
+- Código e5e9139 en dev y main, sin force; ambos despliegues correctos (43686593750 / 43686863876). Navegación e informe comprobados en dev antes de promover main.
+- En producción: AR6 conservado desde el dock, borrador Claude de cuatro requisitos, confirmación explícita, evaluación única y explicación/geología con tres referencias SEGEMAR. JSON descargado validado y reconstruido idéntico; captura móvil incorporada.
+- Continuidad actualizada, sin cambios al runtime o ZIP en este checkpoint. Desarrollo en dev, Claude sin nueva tarea. Detalles y límites de QA en docs/CODEX_M11_REVIEW.md.
+
 ## 2026-11-15 Codex · aceptación M11 y QA independiente
 
 - Revisadas tres entregas de Claude: CTA móvil visible de 44 px, navegación sin alterar la misión y PDF completo con geología. Codex agrupó procedencia y huellas para evitar separación entre páginas.

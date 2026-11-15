@@ -2,7 +2,7 @@
 
 - **Task ID:** M11-READING-PRINT
 - **Owner:** Codex
-- **Estado:** accepted — código revisado y aprobado por Codex; publicación dev/main y reprueba remota en curso. Evidencia: docs/CODEX_M11_REVIEW.md. Claude sin nueva asignación.
+- **Estado:** accepted — completado, publicado en dev/main y verificado en producción por Codex. Código e5e9139; Actions dev 43686593750 y producción 43686863876 correctos. IA real AR6 y exportación validadas. Evidencia: docs/CODEX_M11_REVIEW.md. Claude sin nueva asignación.
   - `verify`: 333 Python, 798 web y 3 omitidas; build correcto.
   - Entrega inicial de Claude por SSR/CSS; Codex completó después navegador y PDF nativo. Ver revisión M11.
   - **Ronda 2 (Claude):** «Ir a la Lectura» se movió de la exportación al resumen del resultado compacto, tras `pl-lead` y antes de chips y grupos. Acción única, mínimo 44 px. Web 799 pasan y 3 omitidas; build correcto. Python no se repitió.
