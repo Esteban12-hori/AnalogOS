@@ -2,7 +2,7 @@
 
 - **Task ID:** M10-GEOLOGY-AI
 - **Owner:** Codex
-- **Status:** accepted — revisión local de Codex completada; publicación dev en curso
+- **Status:** accepted — Codex revisó la ronda 3; publicación y verificación final en curso
 - **Branch:** dev
 - **Base commit:** bdbdab0603be6745993e1689f6dcec960d766c9e
 - **Dirección, revisión y aceptación:** Codex. Dan autorizó: «hagamos que la IA use estos datos geológicos para mejorar las recomendaciones. Dale la siguiente tarea a Claude y tú supervisa y revisa todo antes de subirlo a dev». Codex publicará dev después de aceptar. Claude no hace commit/push/deploy. Main intacto.
@@ -61,3 +61,17 @@ Reejecutar tests relevantes y luego verify una vez redirigida a log para conserv
 ## Aceptación local de Codex
 
 Revisión y correcciones cerradas; ver docs/CODEX_M10_REVIEW.md. Claude queda sin nueva asignación. Codex publica dev y comprueba la función y la IA remotas antes del cierre definitivo. No iniciar nuevos cambios.
+
+## Devolución remota de Codex — 2026-11-14
+
+M10 se publicó en 1ac15e3 (Actions 43664952053), función real validada. Dos consultas del mismo caso AR6 en dev dieron ai_invalid_output. Reproducción local exacta /tmp/analogos-m10-debug-live.mjs: M8 válido, geología rechazada por más de 3 referencias para un sector; la respuesta del proveedor en /tmp/analogos-m10-dev-repro-provider.json es solo sintética/pública. NO ampliar límites ni recortar silenciosamente la respuesta.
+
+Implementar recuperación acotada: solo para explicación con canal geológico y selección semánticamente inválida, una única segunda llamada con los mismos hechos/esquema y recordatorio preciso de los topes/IDs. Sin reenviar texto libre de proveedor; mensaje fijo o motivos tipados/controlados. Revalidar entero M8+geología; si vuelve a fallar, error existente y fallback intacto. No reintentar timeout/refusal/rate-limit/truncation ni M8 sin geología. Preservar plazo TOTAL configurado para la operación (la segunda llamada usa restante, no duplica 20s), procedencia de la respuesta finalmente aceptada y no registrar secretos/cuerpos de usuario. Documentar que el consumo de una segunda llamada no aparece agregado en provenance de la respuesta final; mejor añadir evidencia solo en tests, no cambiar contrato público M8.
+
+Se autoriza reforzar prompt con presupuesto efectivo min(12,3*sectores elegibles), incluyendo límite por sector. No usar maxItems: documentación oficial de Anthropic limita arrays y requiere postvalidación (https://platform.claude.com/docs/en/build-with-claude/structured-outputs).
+
+Tests proporcionales: primera respuesta 4 IDs válidos AR6 -> segunda3 válida; segunda inválida -> rechazo; ajenos/duplicados no se aceptan; sin cambio de evaluación; no retry M8/errores upstream; plazo restante; retorno de provenance segunda. Ejecutar los tests de IA/geología, typecheck/build y caso real sintético AR6, guardando evidencia sin datos privados. No reescribir ciencia/shared/mission/artefactos/contratos/UI. ZIP no cambia si solo servidor. Actualiza progreso y devuelve Owner Codex/status review. No commit/push/deploy/subagentes.
+
+## Aceptación ronda 3 por Codex
+
+Revisados diff, límite de un reintento, plazo compartido, procedencia final, postvalidación completa y pruebas. 316 Python/332 web correctos. Repros de integridad y exports históricos siguen validando correctamente; 33 archivos protegidos intactos. Codex publica esta corrección y verifica dev. Claude sin nueva asignación.

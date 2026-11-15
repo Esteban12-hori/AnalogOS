@@ -10,7 +10,7 @@ import { CANDIDATES_REL, GEOLOGY_REL, loadTrustedGeology, resetGeologyCache, typ
 import { RateLimiter } from '../../../../server/ai/guard'
 import { handleAiRequest, type AiDeps, type AiHttpRequest } from '../../../../server/ai/handler'
 import { buildGeologyCatalog, type GeologyCatalog } from '../../../../shared/geology/guidance'
-import { evaluateMission, fingerprint, type MissionRequest } from '../mission'
+import { canonicalJson, evaluateMission, evaluationFingerprint, fingerprint, type MissionRequest } from '../mission'
 
 const bundle = loadTrustedBundle()
 const real = loadTrustedGeology(bundle)
@@ -260,5 +260,138 @@ describe('explain con canal geológico (opt-in)', () => {
     const r = request({ scope: { mode: 'point', lon: -69.7, lat: -25.0, window_site_id: null } })
     const res = await handleAiRequest(post(explain(r, real.fingerprint)), deps({ fetchImpl: provider(() => ({ options: [], verification_ids: [], geology_ref_ids: [] })).fetchImpl, geology: readyGeology }))
     expect([200, 422]).toContain(res.status)
+  })
+})
+
+describe('recuperación acotada: una segunda llamada ante selección geológica semánticamente inválida', () => {
+  const r = request()
+  const cat = catalogOf(r)
+  const ar6 = cat.refs.filter((x) => x.site_id === 'ar-win-s2580-w06710')
+  const four = ar6.slice(0, 4).map((x) => x.ref_id)
+  const three = four.slice(0, 3)
+  const m8 = m8Selection(r)
+  /** Proveedor que responde en secuencia y registra cada llamada (cuerpo, max_tokens y plazo no se filtran). */
+  function sequence(outputs: unknown[], statuses: number[] = []) {
+    const calls: Array<{ prompt: string; schema: unknown }> = []
+    let i = 0
+    const fetchImpl = vi.fn(async (_u: string | URL | Request, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body))
+      calls.push({ prompt: body.messages[0].content, schema: body.output_config?.format?.schema })
+      const n = i++
+      const status = statuses[n] ?? 200
+      if (status !== 200) return new Response('{"error":"x SECRETO-DEL-PROVEEDOR"}', { status })
+      return new Response(JSON.stringify({
+        id: 'msg', type: 'message', role: 'assistant', model: 'claude-sonnet-5-5', stop_reason: 'end_turn',
+        content: [{ type: 'text', text: JSON.stringify(outputs[Math.min(n, outputs.length - 1)]) }], usage: { input_tokens: 10 + n, output_tokens: 5 },
+      }), { status: 200, headers: { 'request-id': `req_call${n + 1}` } })
+    }) as unknown as typeof fetch
+    return { fetchImpl, calls }
+  }
+  const run = (p: ReturnType<typeof sequence>, over: Partial<AiDeps> = {}) =>
+    handleAiRequest(post(explain(r, real.fingerprint)), { ...deps({ fetchImpl: p.fetchImpl, geology: readyGeology }), ...over })
+
+  it('caso AR6 real: 4 ids válidos del mismo sector -> segunda llamada con 3 válidos; procedencia de la segunda', async () => {
+    const p = sequence([{ ...m8, geology_ref_ids: four }, { ...m8, geology_ref_ids: three }])
+    const res = await run(p)
+    expect(res.status).toBe(200)
+    expect(p.fetchImpl).toHaveBeenCalledTimes(2)
+    const body = res.body as { geology: { selection: { ref_ids: string[] } }; provenance: { request_id: string; usage: { input_tokens: number } } }
+    expect(body.geology.selection.ref_ids).toEqual(three) // lo que la IA devolvió en la segunda, sin recortar nada
+    expect(body.provenance.request_id).toBe('req_call2')
+    expect(body.provenance.usage.input_tokens).toBe(11) // el consumo de la primera no se agrega
+    // mismos hechos y esquema; recordatorio fijo, sin eco del proveedor
+    expect(p.calls[1].prompt.startsWith(p.calls[0].prompt)).toBe(true)
+    expect(p.calls[1].schema).toEqual(p.calls[0].schema)
+    expect(p.calls[1].prompt).toContain('<reminder>')
+    expect(p.calls[1].prompt).toContain('máximo de 3 referencias para el sector ar-win-s2580-w06710')
+    expect(p.calls[1].prompt.slice(p.calls[0].prompt.length)).not.toContain(four[3]) // el recordatorio no repite ids del proveedor
+    expect(p.calls[0].prompt).not.toContain('<reminder>')
+  })
+  it('la segunda también inválida -> error existente tras exactamente 2 llamadas (sin tercera ni recorte)', async () => {
+    const p = sequence([{ ...m8, geology_ref_ids: four }])
+    const res = await run(p)
+    expect(res.body).toMatchObject({ ok: false, error: { code: 'ai_invalid_output' } })
+    expect(p.fetchImpl).toHaveBeenCalledTimes(2)
+    expect(JSON.stringify(res.body)).not.toContain(four[0])
+  })
+  it('ajenos, duplicados, más de 12 y selección M8 inválida NO se aceptan en la segunda; el recordatorio es el tipado', async () => {
+    const dup = [three[0], three[0]]
+    for (const [bad, text] of [[['ajeno|geo|site|contrastar_escala'], 'id que no está en geology.refs'], [dup, 'repitió un id'], [ar6.map((x) => x.ref_id).slice(0, 5), 'máximo de 3']] as const) {
+      const p = sequence([{ ...m8, geology_ref_ids: bad }])
+      const res = await run(p)
+      expect(res.body).toMatchObject({ error: { code: 'ai_invalid_output' } })
+      expect(p.calls[1].prompt).toContain(text)
+    }
+    const p = sequence([{ options: [{ site_id: 'inventado', key_requirement_ids: ['r1'], evidence_ids: [] }], verification_ids: [], geology_ref_ids: three }, { ...m8, geology_ref_ids: three }])
+    const ok = await run(p)
+    expect(ok.status).toBe(200) // M8 inválido en la primera, válido (M8+geología) en la segunda
+    expect(p.calls[1].prompt).toContain('ids de sector, requisito, evidencia o verificación')
+  })
+  it('sin cambio de evaluación ni de resultado determinista tras la recuperación', async () => {
+    const before = canonicalJson(evaluateMission(r, bundle))
+    const res = await run(sequence([{ ...m8, geology_ref_ids: four }, { ...m8, geology_ref_ids: three }]))
+    expect(res.status).toBe(200)
+    expect(canonicalJson(evaluateMission(r, bundle))).toBe(before)
+    expect((res.body as { evaluation_fingerprint: string }).evaluation_fingerprint).toBe(evaluationFingerprint(evaluateMission(r, bundle)))
+  })
+  it('no se reintenta ante errores upstream, límite de frecuencia, negativa, truncamiento ni salida no JSON; ni M8 sin geología', async () => {
+    for (const statuses of [[500], [429], [401]]) {
+      const p = sequence([{}], statuses)
+      const res = await run(p)
+      expect(res.status).not.toBe(200)
+      expect(p.fetchImpl).toHaveBeenCalledTimes(1)
+      expect(JSON.stringify(res.body)).not.toContain('SECRETO-DEL-PROVEEDOR')
+    }
+    for (const stop of ['refusal', 'max_tokens']) {
+      const f = vi.fn(async () => new Response(JSON.stringify({ id: 'm', type: 'message', role: 'assistant', model: 'x', stop_reason: stop, content: [{ type: 'text', text: '{}' }], usage: {} }), { status: 200 })) as unknown as typeof fetch
+      expect((await handleAiRequest(post(explain(r, real.fingerprint)), deps({ fetchImpl: f, geology: readyGeology }))).status).not.toBe(200)
+      expect(f).toHaveBeenCalledTimes(1)
+    }
+    const junk = vi.fn(async () => new Response(JSON.stringify({ id: 'm', type: 'message', role: 'assistant', model: 'x', stop_reason: 'end_turn', content: [{ type: 'text', text: 'no es json' }], usage: {} }), { status: 200 })) as unknown as typeof fetch
+    await handleAiRequest(post(explain(r, real.fingerprint)), deps({ fetchImpl: junk, geology: readyGeology }))
+    expect(junk).toHaveBeenCalledTimes(1)
+    // sin canal geológico: una sola llamada aunque la selección M8 sea inválida
+    const p = sequence([{ options: [{ site_id: 'inventado', key_requirement_ids: ['r1'], evidence_ids: [] }], verification_ids: [] }])
+    const res = await handleAiRequest(post(explain(r)), deps({ fetchImpl: p.fetchImpl, geology: readyGeology }))
+    expect(res.body).toMatchObject({ error: { code: 'ai_invalid_output' } })
+    expect(p.fetchImpl).toHaveBeenCalledTimes(1)
+  })
+  it('plazo TOTAL: la segunda llamada usa el tiempo restante; sin restante suficiente no se reintenta', async () => {
+    vi.useFakeTimers()
+    try {
+      const timeouts: number[] = []
+      const spy = vi.spyOn(globalThis, 'setTimeout')
+      const p = sequence([{ ...m8, geology_ref_ids: four }, { ...m8, geology_ref_ids: three }])
+      const slow = vi.fn(async (u: string | URL | Request, init?: RequestInit) => { vi.advanceTimersByTime(9000); return p.fetchImpl(u, init) }) as unknown as typeof fetch
+      const cfg = { ...deps({ fetchImpl: slow, geology: readyGeology }), config: readAiConfig({ ANTHROPIC_API_KEY: KEY, ANALOGOS_AI_TIMEOUT_MS: '20000' }) }
+      const res = await handleAiRequest(post(explain(r, real.fingerprint)), cfg)
+      for (const c of spy.mock.calls) if (typeof c[1] === 'number' && c[1] >= 1000) timeouts.push(c[1])
+      expect(res.status).toBe(200)
+      expect(timeouts[0]).toBe(20000)
+      expect(timeouts[1]).toBeLessThanOrEqual(11000) // 20 s − 9 s consumidos; no se duplica el plazo
+      expect(timeouts[1]).toBeGreaterThan(9000)
+      // plazo casi agotado tras la primera: sin reintento
+      vi.setSystemTime(Date.now())
+      const p2 = sequence([{ ...m8, geology_ref_ids: four }])
+      const eat = vi.fn(async (u: string | URL | Request, init?: RequestInit) => { vi.advanceTimersByTime(19000); return p2.fetchImpl(u, init) }) as unknown as typeof fetch
+      const res2 = await handleAiRequest(post(explain(r, real.fingerprint)), { ...cfg, fetchImpl: eat })
+      expect(res2.body).toMatchObject({ error: { code: 'ai_invalid_output' } })
+      expect(p2.fetchImpl).toHaveBeenCalledTimes(1)
+      spy.mockRestore()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+  it('el prompt incluye el presupuesto efectivo min(12, 3×sectores elegibles) y el límite por sector', async () => {
+    const p = sequence([{ ...m8, geology_ref_ids: [] }])
+    await run(p)
+    const facts = JSON.parse(p.calls[0].prompt.split('<geology>\n')[1].split('\n</geology>')[0]) as { budget: { per_site: number; total: number } }
+    const eligible = new Set(cat.refs.map((x) => x.site_id)).size
+    expect(facts.budget).toEqual({ per_site: 3, total: Math.min(12, 3 * eligible) })
+    const small = request({ requirements: [slope(2)] })
+    const q = sequence([{ options: [], verification_ids: [], geology_ref_ids: [] }])
+    await handleAiRequest(post(explain(small, real.fingerprint)), deps({ fetchImpl: q.fetchImpl, geology: readyGeology }))
+    const f2 = JSON.parse(q.calls[0].prompt.split('<geology>\n')[1].split('\n</geology>')[0]) as { budget: { total: number } }
+    expect(f2.budget.total).toBe(Math.min(12, 3 * new Set(catalogOf(small).refs.map((x) => x.site_id)).size))
   })
 })

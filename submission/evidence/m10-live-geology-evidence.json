@@ -35,21 +35,21 @@
           ]
         },
         {
+          "site_id": "cl-win-s2520-w06950",
+          "key_requirement_ids": [
+            "r1"
+          ],
+          "evidence_ids": [
+            "cl-win-s2520-w06950-nasadem"
+          ]
+        },
+        {
           "site_id": "ar-win-s2620-w06750",
           "key_requirement_ids": [
             "r1"
           ],
           "evidence_ids": [
             "ar-win-s2620-w06750-nasadem"
-          ]
-        },
-        {
-          "site_id": "ar-win-s2580-w06710",
-          "key_requirement_ids": [
-            "r1"
-          ],
-          "evidence_ids": [
-            "ar-win-s2580-w06710-nasadem"
           ]
         }
       ],
@@ -63,11 +63,11 @@
     "provenance": {
       "provider": "anthropic",
       "model": "claude-sonnet-5-5",
-      "request_id": "req_011Ch3rSGCXCzpqhztrctMGL",
-      "created_at": "2026-11-15T01:33:59.603Z",
+      "request_id": "req_011Ch3tTP4ns57mwgK9KU4ka",
+      "created_at": "2026-11-15T02:00:29.566Z",
       "usage": {
-        "input_tokens": 28894,
-        "output_tokens": 1698
+        "input_tokens": 28997,
+        "output_tokens": 1865
       },
       "stop_reason": "end_turn"
     },
@@ -109,6 +109,18 @@
         "text": "Medir en terreno granulometría, compactación y fricción del material superficial donde se cartografió «Depositos aluviales, subordinadamente coluviales o lacustres» (código Qa); el mapa no los informa y no deben inferirse de su nombre. Orientación editorial, no medición."
       },
       {
+        "site_id": "cl-win-s2480-w06950",
+        "ref_id": "cl-win-s2480-w06950|geo|unit-53b40f2af7f0|caracterizar_material_superficial",
+        "purpose": "caracterizar_material_superficial",
+        "unit": {
+          "code": "MP1c",
+          "name": "Secuencias sedimentarias clasticas de piedemonte, aluviales, coluviales o fluvia",
+          "fraction_including_overlap": 0.163859145365279,
+          "fraction_unambiguous": 0.159390720466387
+        },
+        "text": "Medir en terreno granulometría, compactación y fricción del material superficial donde se cartografió «Secuencias sedimentarias clasticas de piedemonte, aluviales, coluviales o fluvia» (código MP1c); el mapa no los informa y no deben inferirse de su nombre. Orientación editorial, no medición."
+      },
+      {
         "site_id": "cl-win-s2520-w06950",
         "ref_id": "cl-win-s2520-w06950|geo|unit-b29c62edcf56|caracterizar_material_superficial",
         "purpose": "caracterizar_material_superficial",
@@ -121,6 +133,18 @@
         "text": "Medir en terreno granulometría, compactación y fricción del material superficial donde se cartografió «Depositos aluviales, subordinadamente coluviales o lacustres» (código Qa); el mapa no los informa y no deben inferirse de su nombre. Orientación editorial, no medición."
       },
       {
+        "site_id": "cl-win-s2520-w06950",
+        "ref_id": "cl-win-s2520-w06950|geo|unit-3cf21da09f34|caracterizar_material_superficial",
+        "purpose": "caracterizar_material_superficial",
+        "unit": {
+          "code": "M1c",
+          "name": "Secuencias sedimentarias de abanicos aluviales, pedimento o fluviales",
+          "fraction_including_overlap": 0.236027475185675,
+          "fraction_unambiguous": 0.232793401886454
+        },
+        "text": "Medir en terreno granulometría, compactación y fricción del material superficial donde se cartografió «Secuencias sedimentarias de abanicos aluviales, pedimento o fluviales» (código M1c); el mapa no los informa y no deben inferirse de su nombre. Orientación editorial, no medición."
+      },
+      {
         "site_id": "cl-pampa-yungay-screening",
         "ref_id": "cl-pampa-yungay-screening|geo|unit-3cf21da09f34|caracterizar_material_superficial",
         "purpose": "caracterizar_material_superficial",
@@ -131,6 +155,18 @@
           "fraction_unambiguous": 0.261096417007288
         },
         "text": "Medir en terreno granulometría, compactación y fricción del material superficial donde se cartografió «Secuencias sedimentarias de abanicos aluviales, pedimento o fluviales» (código M1c); el mapa no los informa y no deben inferirse de su nombre. Orientación editorial, no medición."
+      },
+      {
+        "site_id": "cl-pampa-yungay-screening",
+        "ref_id": "cl-pampa-yungay-screening|geo|unit-b29c62edcf56|caracterizar_material_superficial",
+        "purpose": "caracterizar_material_superficial",
+        "unit": {
+          "code": "Qa",
+          "name": "Depositos aluviales, subordinadamente coluviales o lacustres",
+          "fraction_including_overlap": 0.120750838896203,
+          "fraction_unambiguous": 0.115832349457198
+        },
+        "text": "Medir en terreno granulometría, compactación y fricción del material superficial donde se cartografió «Depositos aluviales, subordinadamente coluviales o lacustres» (código Qa); el mapa no los informa y no deben inferirse de su nombre. Orientación editorial, no medición."
       },
       {
         "site_id": "ar-win-s2620-w06750",
@@ -150,6 +186,18 @@
         "purpose": "verificar_hueco_cartografico",
         "unit": null,
         "text": "Comprobar qué hay en la parte del sector sin polígono o no utilizable en esta capa (50,0 % del área). Ausencia de cobertura no es ausencia de geología. Orientación editorial, no medición."
+      },
+      {
+        "site_id": "ar-win-s2620-w06750",
+        "ref_id": "ar-win-s2620-w06750|geo|unit-41b055bba535|caracterizar_material_superficial",
+        "purpose": "caracterizar_material_superficial",
+        "unit": {
+          "code": "27692008",
+          "name": "Formación Patquía - De la Cuesta",
+          "fraction_including_overlap": 0.12740004415405,
+          "fraction_unambiguous": 0.12740004415405
+        },
+        "text": "Medir en terreno granulometría, compactación y fricción del material superficial donde se cartografió «Formación Patquía - De la Cuesta» (código 27692008); el mapa no los informa y no deben inferirse de su nombre. Orientación editorial, no medición."
       },
       {
         "site_id": "ar-win-s2580-w06710",
@@ -181,21 +229,12 @@
     "m8_selection": {
       "options": [
         {
-          "site_id": "ar-win-s2580-w06710",
+          "site_id": "cl-win-s2500-w06970",
           "key_requirement_ids": [
             "r1"
           ],
           "evidence_ids": [
-            "ar-win-s2580-w06710-nasadem"
-          ]
-        },
-        {
-          "site_id": "cl-pampa-yungay-screening",
-          "key_requirement_ids": [
-            "r1"
-          ],
-          "evidence_ids": [
-            "cl-pampa-yungay-screening-nasadem"
+            "cl-win-s2500-w06970-nasadem"
           ]
         },
         {
@@ -208,35 +247,46 @@
           ]
         },
         {
-          "site_id": "ar-win-s2620-w06750",
+          "site_id": "cl-win-s2520-w06950",
           "key_requirement_ids": [
             "r1"
           ],
           "evidence_ids": [
-            "ar-win-s2620-w06750-nasadem"
+            "cl-win-s2520-w06950-nasadem"
           ]
         }
       ],
       "verification_ids": [
-        "ar-win-s2580-w06710|fc|4",
-        "cl-pampa-yungay-screening|fc|4",
-        "cl-win-s2480-w06950|fc|4",
-        "ar-win-s2620-w06750|fc|4",
-        "ar-win-s2580-w06710|fc|1"
+        "cl-win-s2500-w06970|fc|4",
+        "cl-win-s2500-w06970|fc|1",
+        "cl-win-s2500-w06970|fc|0",
+        "cl-win-s2500-w06970|fc|3"
       ]
     },
     "provenance": {
       "provider": "anthropic",
       "model": "claude-sonnet-5-5",
-      "request_id": "req_011Ch3rT5D1Kw8W69qRKNZww",
-      "created_at": "2026-11-15T01:34:12.803Z",
+      "request_id": "req_011Ch3tUGsjn29Ef7LdT1Sdz",
+      "created_at": "2026-11-15T02:00:44.235Z",
       "usage": {
-        "input_tokens": 28890,
-        "output_tokens": 1884
+        "input_tokens": 28993,
+        "output_tokens": 2052
       },
       "stop_reason": "end_turn"
     },
     "geology_selection": [
+      {
+        "site_id": "cl-win-s2500-w06970",
+        "ref_id": "cl-win-s2500-w06970|geo|unit-3f35d773d682|diversidad_litologica_muestreo",
+        "purpose": "diversidad_litologica_muestreo",
+        "unit": {
+          "code": "PE3a",
+          "name": "Secuencias y complejos volcanicos continentales acidos",
+          "fraction_including_overlap": 0.2130592676551,
+          "fraction_unambiguous": 0.210155900503895
+        },
+        "text": "Reconocer en terreno «Secuencias y complejos volcanicos continentales acidos» (código PE3a) entre las 5 unidades cartografiadas para planificar muestreo o instrumentación. Orientación editorial, no medición."
+      },
       {
         "site_id": "cl-win-s2480-w06950",
         "ref_id": "cl-win-s2480-w06950|geo|unit-3ab44009bc35|diversidad_litologica_muestreo",
@@ -260,6 +310,30 @@
           "fraction_unambiguous": 0.007582470694843
         },
         "text": "Reconocer en terreno «Secuencias volcanicas continentales» (código Ks3i) entre las 6 unidades cartografiadas para planificar muestreo o instrumentación. Orientación editorial, no medición."
+      },
+      {
+        "site_id": "cl-win-s2520-w06950",
+        "ref_id": "cl-win-s2520-w06950|geo|unit-8509ec70ebff|diversidad_litologica_muestreo",
+        "purpose": "diversidad_litologica_muestreo",
+        "unit": {
+          "code": "PE3i",
+          "name": "Secuencias y complejos volcanicos continentales",
+          "fraction_including_overlap": 0.204034498290617,
+          "fraction_unambiguous": 0.202175438146655
+        },
+        "text": "Reconocer en terreno «Secuencias y complejos volcanicos continentales» (código PE3i) entre las 6 unidades cartografiadas para planificar muestreo o instrumentación. Orientación editorial, no medición."
+      },
+      {
+        "site_id": "cl-win-s2520-w06950",
+        "ref_id": "cl-win-s2520-w06950|geo|unit-53b40f2af7f0|diversidad_litologica_muestreo",
+        "purpose": "diversidad_litologica_muestreo",
+        "unit": {
+          "code": "MP1c",
+          "name": "Secuencias sedimentarias clasticas de piedemonte, aluviales, coluviales o fluvia",
+          "fraction_including_overlap": 0.096829909829704,
+          "fraction_unambiguous": 0.095965014763929
+        },
+        "text": "Reconocer en terreno «Secuencias sedimentarias clasticas de piedemonte, aluviales, coluviales o fluvia» (código MP1c) entre las 6 unidades cartografiadas para planificar muestreo o instrumentación. Orientación editorial, no medición."
       },
       {
         "site_id": "cl-pampa-yungay-screening",
@@ -286,18 +360,6 @@
         "text": "Reconocer en terreno «Secuencias y complejos volcanicos continentales» (código Kia3) entre las 6 unidades cartografiadas para planificar muestreo o instrumentación. Orientación editorial, no medición."
       },
       {
-        "site_id": "cl-pampa-yungay-screening",
-        "ref_id": "cl-pampa-yungay-screening|geo|unit-3cf21da09f34|diversidad_litologica_muestreo",
-        "purpose": "diversidad_litologica_muestreo",
-        "unit": {
-          "code": "M1c",
-          "name": "Secuencias sedimentarias de abanicos aluviales, pedimento o fluviales",
-          "fraction_including_overlap": 0.264698435208312,
-          "fraction_unambiguous": 0.261096417007288
-        },
-        "text": "Reconocer en terreno «Secuencias sedimentarias de abanicos aluviales, pedimento o fluviales» (código M1c) entre las 6 unidades cartografiadas para planificar muestreo o instrumentación. Orientación editorial, no medición."
-      },
-      {
         "site_id": "ar-win-s2620-w06750",
         "ref_id": "ar-win-s2620-w06750|geo|site|verificar_hueco_cartografico",
         "purpose": "verificar_hueco_cartografico",
@@ -306,15 +368,15 @@
       },
       {
         "site_id": "ar-win-s2620-w06750",
-        "ref_id": "ar-win-s2620-w06750|geo|unit-39434a498c3b|diversidad_litologica_muestreo",
+        "ref_id": "ar-win-s2620-w06750|geo|unit-41b055bba535|diversidad_litologica_muestreo",
         "purpose": "diversidad_litologica_muestreo",
         "unit": {
-          "code": "27692005",
-          "name": "Formación Falda Ciénaga",
-          "fraction_including_overlap": 0.028671931702152,
-          "fraction_unambiguous": 0.028671931702152
+          "code": "27692008",
+          "name": "Formación Patquía - De la Cuesta",
+          "fraction_including_overlap": 0.12740004415405,
+          "fraction_unambiguous": 0.12740004415405
         },
-        "text": "Reconocer en terreno «Formación Falda Ciénaga» (código 27692005) entre las 7 unidades cartografiadas para planificar muestreo o instrumentación. Orientación editorial, no medición."
+        "text": "Reconocer en terreno «Formación Patquía - De la Cuesta» (código 27692008) entre las 7 unidades cartografiadas para planificar muestreo o instrumentación. Orientación editorial, no medición."
       },
       {
         "site_id": "ar-win-s2580-w06710",
@@ -330,18 +392,6 @@
       },
       {
         "site_id": "ar-win-s2580-w06710",
-        "ref_id": "ar-win-s2580-w06710|geo|unit-185f6126b275|diversidad_litologica_muestreo",
-        "purpose": "diversidad_litologica_muestreo",
-        "unit": {
-          "code": "25663035",
-          "name": "Formación Tebequincho",
-          "fraction_including_overlap": 0.202883016810749,
-          "fraction_unambiguous": 0.202883016810749
-        },
-        "text": "Reconocer en terreno «Formación Tebequincho» (código 25663035) entre las 7 unidades cartografiadas para planificar muestreo o instrumentación. Orientación editorial, no medición."
-      },
-      {
-        "site_id": "ar-win-s2580-w06710",
         "ref_id": "ar-win-s2580-w06710|geo|unit-12a6eab4c2ac|diversidad_litologica_muestreo",
         "purpose": "diversidad_litologica_muestreo",
         "unit": {
@@ -351,6 +401,18 @@
           "fraction_unambiguous": 0.457979244327348
         },
         "text": "Reconocer en terreno «Complejo volcánico Galán (Piroclásticas intermedias)» (código 25663444) entre las 7 unidades cartografiadas para planificar muestreo o instrumentación. Orientación editorial, no medición."
+      },
+      {
+        "site_id": "ar-win-s2580-w06710",
+        "ref_id": "ar-win-s2580-w06710|geo|unit-3df8f3ff12d2|diversidad_litologica_muestreo",
+        "purpose": "diversidad_litologica_muestreo",
+        "unit": {
+          "code": "25663010",
+          "name": "Formación Falda Ciénaga",
+          "fraction_including_overlap": 0.036239268942105,
+          "fraction_unambiguous": 0.036239268942105
+        },
+        "text": "Reconocer en terreno «Formación Falda Ciénaga» (código 25663010) entre las 7 unidades cartografiadas para planificar muestreo o instrumentación. Orientación editorial, no medición."
       }
     ]
   }

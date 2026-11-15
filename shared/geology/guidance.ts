@@ -249,27 +249,29 @@ export function buildGeologyCatalog(evaluation: MissionEvaluation, contextOrSour
 }
 
 export interface GeologySelectionResult { ref_ids: string[] }
-export type GeologySelectionCheck = { ok: true; selection: GeologySelectionResult } | { ok: false; reason: string }
+/** Motivo tipado del rechazo (controlado: nunca contiene texto del proveedor); `site_id` solo si pertenece al catálogo. */
+export type GeologyRejection = 'shape' | 'total_limit' | 'site_limit' | 'foreign_ref' | 'duplicate'
+export type GeologySelectionCheck = { ok: true; selection: GeologySelectionResult } | { ok: false; reason: string; code: GeologyRejection; site_id?: string }
 
 /** Validación estricta: forma cerrada, pertenencia, unicidad y topes. Cualquier violación descarta todo, sin reparar. */
 export function checkGeologySelection(raw: unknown, catalog: GeologyCatalog): GeologySelectionCheck {
-  const bad = (reason: string): GeologySelectionCheck => ({ ok: false, reason })
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return bad('Selección geológica mal formada.')
+  const bad = (reason: string, code: GeologyRejection, site_id?: string): GeologySelectionCheck => ({ ok: false, reason, code, ...(site_id ? { site_id } : {}) })
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return bad('Selección geológica mal formada.', 'shape')
   const record = raw as Record<string, unknown>
-  if (Object.keys(record).some((k) => k !== 'ref_ids')) return bad('Selección geológica con campos no permitidos.')
+  if (Object.keys(record).some((k) => k !== 'ref_ids')) return bad('Selección geológica con campos no permitidos.', 'shape')
   const ids = record.ref_ids
-  if (!Array.isArray(ids) || !ids.every((x) => typeof x === 'string')) return bad('ref_ids debe ser una lista de textos.')
-  if (ids.length > MAX_REFS_TOTAL) return bad(`Más de ${MAX_REFS_TOTAL} referencias geológicas.`)
+  if (!Array.isArray(ids) || !ids.every((x) => typeof x === 'string')) return bad('ref_ids debe ser una lista de textos.', 'shape')
+  if (ids.length > MAX_REFS_TOTAL) return bad(`Más de ${MAX_REFS_TOTAL} referencias geológicas.`, 'total_limit')
   const known = new Map(catalog.refs.map((r) => [r.ref_id, r]))
   const seen = new Set<string>()
   const perSite = new Map<string, number>()
   for (const id of ids as string[]) {
     const ref = known.get(id)
-    if (!ref) return bad(`Referencia geológica ajena al catálogo: ${id.slice(0, 80)}.`)
-    if (seen.has(id)) return bad('Referencia geológica repetida.')
+    if (!ref) return bad(`Referencia geológica ajena al catálogo: ${id.slice(0, 80)}.`, 'foreign_ref')
+    if (seen.has(id)) return bad('Referencia geológica repetida.', 'duplicate')
     seen.add(id)
     const n = (perSite.get(ref.site_id) ?? 0) + 1
-    if (n > MAX_REFS_PER_SITE) return bad(`Más de ${MAX_REFS_PER_SITE} referencias para un sector.`)
+    if (n > MAX_REFS_PER_SITE) return bad(`Más de ${MAX_REFS_PER_SITE} referencias para un sector.`, 'site_limit', ref.site_id)
     perSite.set(ref.site_id, n)
   }
   return { ok: true, selection: { ref_ids: [...(ids as string[])] } }
@@ -329,4 +331,10 @@ export interface GeologyAiRecord {
   request_fingerprint: string
   evaluation_fingerprint: string
   selection: GeologySelectionResult
+}
+
+/** Presupuesto efectivo de referencias: min(12, 3 × sectores con referencias elegibles). */
+export function geologyBudget(catalog: GeologyCatalog): { per_site: number; total: number } {
+  const eligible = new Set(catalog.refs.map((r) => r.site_id)).size
+  return { per_site: MAX_REFS_PER_SITE, total: Math.min(MAX_REFS_TOTAL, MAX_REFS_PER_SITE * eligible) }
 }

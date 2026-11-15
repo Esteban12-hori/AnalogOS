@@ -1,5 +1,9 @@
 # Changelog de trabajo
 
+## 2026-11-14 Codex · fiabilidad de la orientación geológica
+
+- Dev mostró exceso de referencias del modelo en AR6. Claude corrigió por encargo y Codex revisó una recuperación de un único reintento, conservando límites, validación y plazo total. 316 Python/332 web correctos; tres consultas reales AR6 válidas. ZIP actualizado. Publicación final en curso.
+
 ## 2026-11-14 Codex · filePathMap en el control de Vercel
 
 - El segundo intento mostró que resolver enlaces no bastaba: Vercel declara FileFsRef fuera de .func mediante filePathMap. El control reconstruye solo esos archivos declarados antes de aislar y comprobar la función. Repro local antes/después correcto, casos negativos conservados. Dev aún conserva M9 hasta completar este control.
@@ -390,3 +394,8 @@
 - Wrapper: `subset_fingerprint` de los subconjuntos exactos, anclaje de geometría a candidatos con bundle, auditoría y reconstrucción del M8 embebido (`auditMissionExport`), constructor con `{ bundle }`. Los tres repros independientes ahora se rechazan. Contrato nuevo ampliado; contratos M8/M9 intactos.
 - Loader: raíz explícita aísla de verdad y caché con identidad del bundle; startup check ejecuta una copia fuera del checkout. UI: fuente oficial clicable/impresa, fracciones con y sin solape, avisos de envío condicionales, sin jerga M8, IA antes de las fichas.
 - Verify 316 Python / 325 web (+3 omitidas); ZIP SHA-256 `22b327cc…70bb` repetido idéntico; baseline y complemento intactos; evidencia real en `submission/evidence/m10-live-geology-evidence.json`. Sin commit/push/deploy.
+
+## 2026-11-14 Claude — M10 ronda 3: recuperación acotada (en revisión de Codex)
+
+- Tras el `ai_invalid_output` reproducido en dev (4 refs válidas en un sector, tope 3): una única segunda llamada con recordatorio fijo/tipado solo con canal geológico y selección semánticamente inválida; plazo total compartido; procedencia de la respuesta aceptada; sin reintento en errores upstream ni M8 sin geología; topes y validación sin cambios. Prompt con presupuesto efectivo `min(12, 3×sectores)`.
+- 316 Python, 332 web (+3 omitidas), typecheck/build; ZIP `f76a9055…b122` repetido idéntico (cambia por `shared/geology/guidance.ts`). Sin commit/push/deploy.

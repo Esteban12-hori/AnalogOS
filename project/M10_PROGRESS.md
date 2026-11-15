@@ -57,3 +57,16 @@ ANALOGOS_LIVE_AI=1 npm -w apps/web run test -- src/tests/aiLive.test.ts -t "orie
 ## Revisión visual final de Codex
 
 Corregido desborde de URL en móvil con overflow-wrap:anywhere; no cambia contratos/IA. ZIP final y evidencia en docs/CODEX_M10_REVIEW.md. Revisión local aceptada; publicación y comprobación remota a cargo de Codex.
+
+## Ronda 3 — recuperación acotada tras reproducción en dev (AR6, `ai_invalid_output`)
+
+- **Causa** (repro `/tmp/analogos-m10-debug-live.mjs`): M8 válido; la IA devolvió 6 ids válidos del mismo sector (tope 3) y la validación estricta descartó todo. Guardarraíles sin cambios: no se amplían topes ni se recorta.
+- **Cambio (solo servidor + tipado aditivo en `shared/geology/guidance.ts`)**: en `runExplain`, solo con canal geológico y selección semánticamente inválida (la llamada tuvo éxito), **una** segunda llamada con los mismos hechos y esquema más un `<reminder>` fijo por motivo tipado (`GeologyRejection`: forma, total, por sector —con el `site_id` solo si es del catálogo—, ajeno, repetido, o selección M8 inválida). El recordatorio no repite texto de la respuesta rechazada; los hechos originales y el objetivo confirmado se envían de nuevo. Se revalida M8+geología completos; si falla de nuevo, `ai_invalid_output` y fallback intactos.
+- **Sin reintento** ante timeout, negativa, límite de frecuencia, truncamiento, errores upstream/no JSON, ni M8 sin geología (sin canal: una sola llamada).
+- **Plazo total**: `startedAt` con `Date.now()`; la segunda llamada usa `timeoutMs = total − transcurrido` (`StructuredCall.timeoutMs` opcional) y no se intenta con < 2 s restantes.
+- **Procedencia**: la de la respuesta finalmente aceptada; el consumo de la primera llamada **no** se agrega (contrato público M8 sin cambios; solo evidencia en tests).
+- **Prompt**: `geology.budget = { per_site: 3, total: min(12, 3 × sectores con referencias) }` y texto que pide contar por sector. Sin `maxItems` (postvalidación, según la documentación de structured outputs).
+- **Pruebas** (`aiGeology.test.ts`, +7): 4 válidos AR6 → 3 válidos con procedencia/usage de la segunda y recordatorio sin eco; segunda inválida → rechazo tras exactamente 2 llamadas; ajenos/duplicados/>tope y M8 inválido; evaluación sin cambios; sin reintento en 500/429/401, refusal, max_tokens, no JSON ni sin canal; plazo restante (≤ 11 s tras 9 s consumidos; sin reintento con 1 s restante); presupuesto en el prompt.
+- **Verificación** (`/tmp/m10-verify2.log`): 316 Python, 332 web (+3 omitidas), typecheck/build OK; `git diff --check` limpio. Repro real AR6 ×3: las tres correctas (evidencia en `submission/evidence/m10-ar6-retry-live-evidence.json`; no distingue si hubo reintento).
+- **ZIP**: cambió de todos modos porque `shared/geology/guidance.ts` entra al bundle web (cambio aditivo): SHA-256 `f76a905564f69737e763724da8467aff45dff1177e269a188a60da35807eb122`, repetido idéntico. Codex decide si regenerar/publicar; no hay cambios de comportamiento en la UI.
+- Brecha: el reintento consume una segunda llamada (latencia/costo) solo cuando falla la validación; no medido en dev.

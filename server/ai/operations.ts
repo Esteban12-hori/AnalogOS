@@ -5,11 +5,11 @@ import type { AiProvenance, DraftProposal } from '../../shared/mission/exportRep
 import { fingerprint } from '../../shared/mission/fingerprint'
 import { MissionInputError, type EvidenceBundle, type Importance, type MeasurableRequirement, type Requirement, type UnmeasuredRequirement } from '../../shared/mission/types'
 import { validateDraftOutput, validateMissionRequest } from '../../shared/mission/validate'
-import { buildGeologyCatalog, checkGeologySelection, type GeologySelectionResult } from '../../shared/geology/guidance'
+import { buildGeologyCatalog, checkGeologySelection, type GeologyRejection, type GeologySelectionResult } from '../../shared/geology/guidance'
 import { AiCallError, callStructured } from './anthropic'
 import type { AiConfig } from './config'
 import type { ServerGeology } from './geology'
-import { DRAFT_SCHEMA, DRAFT_SYSTEM, EXPLAIN_GEOLOGY_SCHEMA, EXPLAIN_SCHEMA, EXPLAIN_SYSTEM, GEOLOGY_SYSTEM, explainFacts, geologyFacts } from './prompts'
+import { DRAFT_SCHEMA, DRAFT_SYSTEM, EXPLAIN_GEOLOGY_SCHEMA, EXPLAIN_SCHEMA, EXPLAIN_SYSTEM, GEOLOGY_SYSTEM, explainFacts, geologyFacts, retryReminder } from './prompts'
 
 export interface AiContext {
   config: AiConfig
@@ -156,6 +156,8 @@ export async function runDraft(ctx: AiContext, brief: string): Promise<DraftResu
 }
 
 export const GEOLOGY_MAX_TOKENS = 6000
+/** Plazo mínimo restante para intentar el único reintento semántico. */
+export const MIN_RETRY_MS = 2000
 
 export interface ExplainResult {
   request_fingerprint: string
@@ -200,29 +202,49 @@ export async function runExplain(ctx: AiContext, requestInput: unknown, clientFi
   const verifications = buildVerificationCatalog(evaluation).map((v) => ({ id: v.id, text: v.text }))
   const catalog = channel ? buildGeologyCatalog(evaluation, channel.context, channel.fingerprint) : null
   const facts = `<facts>\n${explainFacts(evaluation, verifications)}\n</facts>`
-  const { data, provenance } = await callStructured(
-    ctx.config,
-    {
-      system: catalog ? EXPLAIN_SYSTEM + GEOLOGY_SYSTEM : EXPLAIN_SYSTEM,
-      user: catalog ? `${facts}\n<geology>\n${geologyFacts(checked.request, catalog)}\n</geology>` : facts,
-      schema: (catalog ? EXPLAIN_GEOLOGY_SCHEMA : EXPLAIN_SCHEMA) as unknown as Record<string, unknown>,
-      // El canal geológico añade hasta 12 referencias de ids largos (y el modelo puede razonar antes): con 2000 tokens se truncaba en la prueba real.
-      maxTokens: catalog ? GEOLOGY_MAX_TOKENS : 2000,
-    },
-    ctx.fetchImpl,
-    ctx.now,
-  )
-  let m8: unknown = data
-  let geology: ExplainResult['geology']
-  if (catalog) {
-    // El campo geológico se separa antes de validar la selección M8 con su contrato intacto; cualquier fallo descarta todo.
-    const { geology_ref_ids: refIds, ...rest } = (data ?? {}) as Record<string, unknown>
-    const picked = checkGeologySelection({ ref_ids: refIds }, catalog)
-    if (!picked.ok) throw new AiCallError('ai_invalid_output')
-    m8 = rest
-    geology = { context_fingerprint: catalog.context_fingerprint, catalog_fingerprint: catalog.catalog_fingerprint, selection: picked.selection }
+  const baseUser = catalog ? `${facts}\n<geology>\n${geologyFacts(checked.request, catalog)}\n</geology>` : facts
+  const startedAt = Date.now()
+  const total = ctx.config.timeoutMs
+
+  type Attempt = { ok: true; selection: ExplanationSelection; geology?: ExplainResult['geology']; provenance: AiProvenance } | { ok: false; code: GeologyRejection | 'm8_selection'; siteId?: string }
+  const attempt = async (user: string, timeoutMs: number): Promise<Attempt> => {
+    const { data, provenance } = await callStructured(
+      ctx.config,
+      {
+        system: catalog ? EXPLAIN_SYSTEM + GEOLOGY_SYSTEM : EXPLAIN_SYSTEM,
+        user,
+        schema: (catalog ? EXPLAIN_GEOLOGY_SCHEMA : EXPLAIN_SCHEMA) as unknown as Record<string, unknown>,
+        // El canal geológico añade hasta 12 referencias de ids largos (y el modelo puede razonar antes): con 2000 tokens se truncaba en la prueba real.
+        maxTokens: catalog ? GEOLOGY_MAX_TOKENS : 2000,
+        timeoutMs,
+      },
+      ctx.fetchImpl,
+      ctx.now,
+    )
+    let m8: unknown = data
+    let geology: ExplainResult['geology']
+    if (catalog) {
+      // El campo geológico se separa antes de validar la selección M8 con su contrato intacto; cualquier fallo descarta todo.
+      const { geology_ref_ids: refIds, ...rest } = (data ?? {}) as Record<string, unknown>
+      const picked = checkGeologySelection({ ref_ids: refIds }, catalog)
+      if (!picked.ok) return { ok: false, code: picked.code, siteId: picked.site_id }
+      m8 = rest
+      geology = { context_fingerprint: catalog.context_fingerprint, catalog_fingerprint: catalog.catalog_fingerprint, selection: picked.selection }
+    }
+    const check = checkSelection(m8, evaluation)
+    if (!check.ok) return { ok: false, code: 'm8_selection' }
+    return { ok: true, selection: check.selection, geology, provenance }
   }
-  const check = checkSelection(m8, evaluation)
-  if (!check.ok) throw new AiCallError('ai_invalid_output')
-  return { request_fingerprint: reqFp, evaluation_fingerprint: evaluationFingerprint(evaluation), selection: check.selection, provenance, ...(geology ? { geology } : {}) }
+
+  let result = await attempt(baseUser, total)
+  // Recuperación acotada: SOLO con canal geológico y selección semánticamente inválida (la llamada tuvo éxito). Una única segunda
+  // llamada con los mismos hechos y esquema + recordatorio fijo, dentro del plazo TOTAL. Timeout, negativa, límite de frecuencia,
+  // truncamiento y errores upstream salen como antes (AiCallError) sin reintento; nunca se reintenta M8 sin geología ni se recorta.
+  // La procedencia devuelta es la de la respuesta finalmente aceptada; el consumo de la primera llamada no se agrega a ella.
+  if (!result.ok && catalog) {
+    const remaining = total - (Date.now() - startedAt)
+    if (remaining >= MIN_RETRY_MS) result = await attempt(`${baseUser}\n${retryReminder(result.code, result.siteId, catalog)}`, remaining)
+  }
+  if (!result.ok) throw new AiCallError('ai_invalid_output')
+  return { request_fingerprint: reqFp, evaluation_fingerprint: evaluationFingerprint(evaluation), selection: result.selection, provenance: result.provenance, ...(result.geology ? { geology: result.geology } : {}) }
 }

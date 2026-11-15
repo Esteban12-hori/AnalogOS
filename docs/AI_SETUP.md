@@ -50,6 +50,8 @@ Copiar `.env.example` a `.env` (ignorado por git) y completar:
 - Función Vercel: `vercel.json` incluye `artifacts/geology-context-v1/index.json` y `artifacts/science-v3/candidate-details.json` en `api/ai.ts`; `scripts/check-vercel-function.mjs` comprueba (en CI, sobre la función ya construida) que el paquete viaja y valida, y la ausencia/corrupción aisladas en una copia temporal.
 - Prueba real opcional: `npm run test:ai-live` incluye dos objetivos contrastantes (movilidad frente a muestreo); no asume estabilidad exacta del modelo.
 
+- **Recuperación acotada**: si la llamada tiene éxito pero la selección (M8 o geología) es semánticamente inválida, se hace una única segunda llamada con los mismos hechos/esquema y un recordatorio fijo por motivo tipado, dentro del plazo total configurado (la segunda usa el restante; sin restante ≥ 2 s no se intenta). No se reintenta ante timeout, negativa, límite de frecuencia, truncamiento ni errores upstream, ni M8 sin geología. La procedencia es la de la respuesta aceptada; el consumo de la primera no se agrega. El prompt fija `budget = min(12, 3 × sectores con referencias)`.
+
 ## Procedencia
 
 Cada llamada devuelve modelo, fecha, `request-id`, uso de tokens y `stop_reason`. El JSON exportado guarda borrador y explicación por separado (con geología, el wrapper `analogos-mission-geology-export` añade la selección geológica de la misma llamada), vinculados a su huella de entrada, con los cambios del usuario calculados (editados/quitados/añadidos). Si el usuario edita el brief después, el borrador deja de atribuirse a la IA.
