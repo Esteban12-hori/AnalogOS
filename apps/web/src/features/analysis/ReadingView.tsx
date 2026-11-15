@@ -207,7 +207,7 @@ function ResultLayer({ model }: { model: ReadingModel['result'] }) {
                 {option.whatWouldChange.length > 0 && (
                   <details className="analysis-details analysis-change">
                     <summary>Qué evidencia cambiaría la decisión · {option.whatWouldChange.length}</summary>
-                    <ul className="analysis-list">{option.whatWouldChange.map((item) => <li key={item}>{item}</li>)}</ul>
+                    <ul className="analysis-list">{option.whatWouldChange.map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul>
                   </details>
                 )}
               </li>
@@ -223,12 +223,12 @@ function ResultLayer({ model }: { model: ReadingModel['result'] }) {
       {model.openQuestions.length > 0 && (
         <details className="analysis-details">
           <summary>Preguntas abiertas · {model.openQuestions.length}</summary>
-          <ul className="analysis-list">{model.openQuestions.map((question) => <li key={question}>{question}</li>)}</ul>
+          <ul className="analysis-list">{model.openQuestions.map((question, index) => <li key={`${index}-${question}`}>{question}</li>)}</ul>
         </details>
       )}
       <details className="analysis-details">
         <summary>Límites</summary>
-        <ul className="analysis-list">{model.limits.map((limit) => <li key={limit}>{limit}</li>)}</ul>
+        <ul className="analysis-list">{model.limits.map((limit, index) => <li key={`${index}-${limit}`}>{limit}</li>)}</ul>
       </details>
     </Layer>
   )
@@ -270,7 +270,7 @@ function HighlightsLayer({ model }: { model: ReadingModel['highlights'] }) {
       {model.verifications.length > 0 && (
         <details className="analysis-details analysis-checks">
           <summary>Verificaciones {ai ? 'en el orden que sugiere la IA' : 'de campo'} · {model.verifications.length}</summary>
-          <ol className="analysis-list">{model.verifications.map((text) => <li key={text}>{text}</li>)}</ol>
+          <ol className="analysis-list">{model.verifications.map((item) => <li key={item.id}>{item.text}</li>)}</ol>
         </details>
       )}
     </Layer>

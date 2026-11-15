@@ -60,7 +60,7 @@ export interface ReadingModel {
     /** «claude-… · 2026-11-14 · req_…» solo con IA. */
     provenance: string | null
     options: readonly ReadingOption[]
-    verifications: readonly string[]
+    verifications: ReadonlyArray<{ id: string; text: string }>
   }
 }
 
@@ -156,7 +156,7 @@ export function explanationToReading(
           lines,
         }
       }),
-      verifications: view.verifications.map((item) => item.text),
+      verifications: view.verifications.map((item) => ({ id: item.id, text: item.text })),
     },
   }
 }

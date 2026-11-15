@@ -431,7 +431,8 @@ export function missionController(bundle: EvidenceBundle): MissionController {
     setTimer: (callback, ms) => window.setTimeout(callback, ms),
     clearTimer: (handle) => window.clearTimeout(handle as number),
   })
-  composerStore.setState({ ready: true, history: loadHistory() })
+  // Fuera del render: «Tu misión» puede crear la instancia al montarse y el dock lee este store.
+  queueMicrotask(() => composerStore.setState({ ready: true, history: loadHistory() }))
   return singleton
 }
 
