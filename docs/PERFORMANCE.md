@@ -105,4 +105,3 @@ Pendiente:
 - **LCP móvil.** Con Lantern sigue 0,4 s sobre la base. El candidato LCP es la línea de atribución que pinta React, con una demora de render de unos 4,9 s. La copia idéntica del HTML estático no queda como candidato.
 - **CLS en escritorio.** 0,0003, por la cabecera del carrusel, aun con el contador de ancho fijo.
 - **Vidrio.** Hay 3 superficies con blur en escritorio (panel izquierdo, riel y dock) y 1 en móvil (hoja). La barra superior ya no lleva blur.
-

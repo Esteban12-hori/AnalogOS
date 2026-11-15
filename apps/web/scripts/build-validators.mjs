@@ -68,7 +68,7 @@ export function generate(exportsToFiles) {
       "const __interop = (m) => (typeof m.default === 'function' ? m.default : m.default?.default ?? m)",
     )
     .join('\n')
-  return `/* eslint-disable */\n// GENERADO por scripts/build-validators.mjs desde contracts/*.schema.json. No editar a mano.\n${header}\n${esm}\n`
+  return `/* eslint-disable */\n// GENERADO por scripts/build-validators.mjs desde contracts/*.schema.json. No editar a mano.\n${header}\n${esm.trimEnd()}\n`
 }
 
 const check = process.argv.includes('--check')
