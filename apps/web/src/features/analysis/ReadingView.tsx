@@ -371,7 +371,7 @@ export default function ReadingView({ data, placement }: ReadingPanelProps) {
     if (!snapshot) return null
     const views = new Map<string, readonly MetricView[]>()
     for (const site of snapshot.candidates) {
-      views.set(site.site_id, buildMetricViews({ site, sites: snapshot.candidates, profile: snapshot.profile, weights: null, contributions: null, marsReference: snapshot.marsReference }))
+      views.set(site.site_id, buildMetricViews({ site, sites: snapshot.candidates, profile: snapshot.profile, weights: null, contributions: null, marsReference: snapshot.marsReference }, locale))
     }
     const sensitivity = snapshot.sensitivity ?? new Map()
     const rows = snapshot.candidates

@@ -1,5 +1,13 @@
 # Working changelog
 
+## 2026-11-15 Claude Code — EN | ES selector: three areas integrated (ADR-017, proposed)
+
+- Merged `es/ui-core`, `es/mission-ui` and `es/ai-science` into `feature/es-selector` (no conflicts). Spanish now covers Explore, place sheet and tabs, rail, metrics, leader lines, globe/2D map, composer, “Your mission”, planner, result, print report, Reading, geology card/guidance and AI messages; English output unchanged.
+- AI draft accepts an optional `language: 'en' | 'es'` (absent = `en`, prompts byte-identical; invalid = 400); the client sends it only from the Spanish interface. `source_quote` stays literal; explain/geology unchanged.
+- One-line integration fix: Reading passes `locale` explicitly to `buildMetricViews`. `docs/I18N.md` and ADR-017 updated (new helpers and catalogs, canonical mission messages, template text becomes user text, AI message known limit, cost 559.3 KB / gzip 159.2 KB).
+- `npm run verify` green (330 Python; 1020 web, 3 opt-in skipped). Browser walk at 1440×900 and 390×844 in EN and ES (selector and `?lang=es`), 123 checks, no errors; mission, geology-wrapper, per-site geology and site-record exports byte-identical in EN and ES. Package `/tmp/claude-rel/es.zip` (81 entries, SHA-256 `775687fd…4723b`); `submission/` untouched.
+
+
 
 ## 2026-11-15 Claude Code — EN | ES selector base (ADR-017, proposed)
 

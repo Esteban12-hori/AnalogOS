@@ -1,6 +1,6 @@
 # ADR-017 — EN | ES selector: Spanish as a presentation-only layer over English records
 
-- Status: **proposed** (base implemented on `feature/es-selector`; areas pending, see `docs/I18N.md` §7).
+- Status: **proposed** (base and the three areas — ui-core, mission-ui, ai-science — implemented and integrated on `feature/es-selector`; pending review before acceptance, see `docs/I18N.md`).
 - Date: 2026-11-15
 - Relation: compatible with and subordinate to ADR-016 (English by default, versioned records, display-only translation layer). It does not change any scientific rule, score, threshold, candidate, dataset, artifact, record version, contract or export format.
 
@@ -31,5 +31,7 @@ English remains the source language, the default language and the only language 
 - Fingerprints, exports, contracts, schemas and record versions are unaffected by the selector; the existing English tests keep passing with the default language.
 - A change to an English pack sentence, or a new template in a pack, must keep its Spanish twin in the frozen pack's wording style; `i18n/recordText.test.ts` fails if a 1.1.0 text no longer maps to the engine's 1.0.0 wording. Because 1.0.0 is frozen, a genuinely new English record sentence without a Spanish twin is shown in English in the Spanish interface until a display mapping is added (never translated on the fly).
 - Spanish AI drafts put Spanish labels and activity into the user's request; they are the user's confirmed content, exported verbatim like any user-entered text (the 1.1.0 `language` disclosure already states that user text keeps its wording).
-- The interface now carries two catalogs; the initial chunk grows by a few KB (measured in `docs/I18N.md` §10). Area catalogs travel in their own deferred chunks.
+- Text the interface creates from a template — “Use example”, default names of new requirements and the default target — is created in the interface language of that moment and from then on is the user's text, exported verbatim like a Spanish AI draft. With the same content, the export is identical in EN and ES.
+- Messages kept in mission state (planner issues, notices, controller and geometry errors, the deterministic “the brief mentions …” question) are stored in canonical English and translated only when shown. Known exception: the AI client builds its failure messages in the interface language at the moment the result arrives, so after switching language such a message keeps its original language until the next request (documented in `docs/I18N.md` §4.6).
+- The interface now carries two catalogs. With all areas integrated the initial chunk grows from 511.8 to 559.3 KB (gzip 145.0 → 159.2 KB) compared with the build without the selector (measured in `docs/I18N.md` §10), mostly the Spanish halves of the main-chunk catalogs; record packs and most area catalogs travel in deferred chunks. Loading the Spanish halves on demand is a possible later optimization.
 - A stale client/server pair is handled: an English client never sends `language`; a Spanish client against a server without the field gets the existing `bad_request` path and can retry in English.
