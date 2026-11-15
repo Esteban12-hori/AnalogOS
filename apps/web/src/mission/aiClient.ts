@@ -1,8 +1,13 @@
 // Client for the /api/ai endpoint: a single exit point, with a timeout, a validated response, and
 // friendly errors. It never leaves a promise hanging: every path ends in {ok:true} or {ok:false}.
+// Friendly messages follow the interface language when the result is produced (catalog i18n/messages/ai.ts); the
+// error code travels untranslated in `code`. The draft asks the AI to write in the interface language (ADR-017).
 import Ajv2020 from 'ajv/dist/2020'
+import { getLocale } from '../i18n/core'
+import { tAi } from '../i18n/messages/ai'
 import aiSchema from '../../../../contracts/mission-ai.schema.json'
 import requestSchema from '../../../../contracts/mission-request.schema.json'
+import type { AiLanguage } from './aiSchemas'
 import type { AiProvenance, DraftProposal } from './exportReport'
 import type { ExplanationSelection } from './explanation'
 import { validateSelectionShape } from './validate'
@@ -18,24 +23,17 @@ export const CLIENT_TIMEOUT_MS = 45_000
 
 export type AiClientResult<T> = { ok: true; value: T } | { ok: false; message: string; unavailable: boolean; code?: string }
 
-const FRIENDLY: Record<string, string> = {
-  ai_unavailable: 'AI assistance is not available right now or in this version.',
-  ai_timeout: 'The AI took too long to respond.',
-  ai_rate_limited: 'The AI provider rate-limited the requests; try again later.',
-  ai_refused: 'The AI could not process this content.',
-  ai_truncated: 'The AI response was incomplete and was discarded.',
-  ai_invalid_output: 'The AI response did not have the expected format and was discarded.',
-  ai_upstream_error: 'The AI service returned an error.',
-  rate_limited: 'Too many requests in a row; wait a minute.',
-  origin_not_allowed: 'This page is not authorized to use the AI.',
-  stale_request: 'The content changed; confirm again before asking for the explanation.',
-  invalid_request: 'The request is not valid; check the requirements.',
-  nothing_to_explain: 'There are no evaluated options to explain.',
-  geology_context_unavailable: 'The server has no valid geology context for this version, so no geological guidance was requested.',
-  geology_context_stale: 'The server geology context is a different version from the one this page shows, so no geological guidance was requested.',
-}
+/** Server error codes with their own friendly message (catalog key `error.<code>`). */
+const FRIENDLY_CODES = [
+  'ai_unavailable', 'ai_timeout', 'ai_rate_limited', 'ai_refused', 'ai_truncated', 'ai_invalid_output', 'ai_upstream_error',
+  'rate_limited', 'origin_not_allowed', 'stale_request', 'invalid_request', 'nothing_to_explain',
+  'geology_context_unavailable', 'geology_context_stale',
+] as const
+type FriendlyCode = (typeof FRIENDLY_CODES)[number]
+const isFriendly = (code: string): code is FriendlyCode => (FRIENDLY_CODES as readonly string[]).includes(code)
 const UNAVAILABLE = new Set(['ai_unavailable', 'ai_upstream_error', 'ai_timeout', 'origin_not_allowed'])
-const NO_IA = 'The AI could not be used. You can continue manually: nothing you already did was lost.'
+/** Message + the “continue manually” sentence, in the interface language at the moment the result is produced. */
+const withNoAi = (message: string): string => `${message} ${tAi('noAi')}`
 
 async function post(body: Record<string, unknown>, fetchImpl: typeof fetch, url: string, signal?: AbortSignal): Promise<AiClientResult<Record<string, unknown>>> {
   const controller = new AbortController()
@@ -52,25 +50,37 @@ async function post(body: Record<string, unknown>, fetchImpl: typeof fetch, url:
       json = await Promise.race([res.json(), new Promise<never>((_, reject) => controller.signal.addEventListener('abort', () => reject(new Error('abort'))))])
     } catch {
       // No JSON body: typical of the static ZIP (404/HTML) or of a network outage.
-      return { ok: false, unavailable: true, message: `The AI is not available in this version or offline. ${NO_IA}` }
+      return { ok: false, unavailable: true, message: withNoAi(tAi('offline')) }
     }
-    if (!json || typeof json !== 'object') return { ok: false, unavailable: true, message: NO_IA }
+    if (!json || typeof json !== 'object') return { ok: false, unavailable: true, message: tAi('noAi') }
     const obj = json as Record<string, unknown>
     if (obj.ok === true) return { ok: true, value: obj }
     const code = typeof (obj.error as { code?: unknown } | undefined)?.code === 'string' ? (obj.error as { code: string }).code : 'ai_upstream_error'
-    return { ok: false, code, unavailable: UNAVAILABLE.has(code) || !res.ok && !FRIENDLY[code], message: `${FRIENDLY[code] ?? 'The AI returned an error.'} ${NO_IA}` }
+    // A Spanish draft rejected as malformed: most likely a server that predates the optional `language` field (ADR-017).
+    const friendly = isFriendly(code) ? tAi(`error.${code}`) : code === 'bad_request' && body.language === 'es' ? tAi('error.languageRejected') : tAi('error.generic')
+    return { ok: false, code, unavailable: UNAVAILABLE.has(code) || !res.ok && !isFriendly(code), message: withNoAi(friendly) }
   } catch {
-    return { ok: false, unavailable: true, message: signal?.aborted ? 'Request canceled.' : `The AI did not respond in time or there is no connection. ${NO_IA}` }
+    return { ok: false, unavailable: true, message: signal?.aborted ? tAi('canceled') : withNoAi(tAi('noResponse')) }
   } finally {
     clearTimeout(timer)
     signal?.removeEventListener('abort', onAbort)
   }
 }
 
-const invalid = (): AiClientResult<never> => ({ ok: false, unavailable: false, message: `The AI response does not have the expected format and was discarded. ${NO_IA}` })
+const invalid = (): AiClientResult<never> => ({ ok: false, unavailable: false, message: withNoAi(tAi('invalidResponse')) })
 
-export async function requestDraft(args: { requestId: string; brief: string; url: string; fetchImpl?: typeof fetch; signal?: AbortSignal }): Promise<AiClientResult<{ proposal: DraftProposal; provenance: AiProvenance }>> {
-  const r = await post({ operation: 'draft', client_request_id: args.requestId, brief: args.brief }, args.fetchImpl ?? fetch, args.url, args.signal)
+/**
+ * Body of a draft request. The AI writes the draft in the interface language (ADR-017): `language` is sent ONLY when it
+ * is Spanish, so an English interface sends exactly the body it always sent (an older server never sees the field).
+ */
+export function draftRequestBody(requestId: string, brief: string, language: AiLanguage = getLocale()): Record<string, unknown> {
+  const body: Record<string, unknown> = { operation: 'draft', client_request_id: requestId, brief }
+  if (language === 'es') body.language = 'es'
+  return body
+}
+
+export async function requestDraft(args: { requestId: string; brief: string; url: string; language?: AiLanguage; fetchImpl?: typeof fetch; signal?: AbortSignal }): Promise<AiClientResult<{ proposal: DraftProposal; provenance: AiProvenance }>> {
+  const r = await post(draftRequestBody(args.requestId, args.brief, args.language), args.fetchImpl ?? fetch, args.url, args.signal)
   if (!r.ok) return r
   const v = r.value
   if (v.operation !== 'draft' || v.client_request_id !== args.requestId || !proposalOk(v.draft) || !provenanceOk(v.provenance)) return invalid()

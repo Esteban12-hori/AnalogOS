@@ -1,4 +1,5 @@
 // Framework-agnostic handler (testable without network or Vercel). POST /api/ai, same-origin.
+import { DEFAULT_AI_LANGUAGE, draftLanguageOf, type AiLanguage } from '../../shared/mission/aiSchemas'
 import { MAX_BRIEF_CHARS } from '../../shared/mission/catalog'
 import type { EvidenceBundle } from '../../shared/mission/types'
 import { AiCallError, type AiErrorCode } from './anthropic'
@@ -116,8 +117,13 @@ export async function handleAiRequest(req: AiHttpRequest, deps: AiDeps): Promise
   if (!clientId) return fail('bad_request', null)
 
   let op: 'draft' | 'explain'
-  if (body.operation === 'draft' && hasOnly(body, ['operation', 'client_request_id', 'brief'])) {
+  // Draft language (ADR-017): optional; absent = 'en' (unchanged behavior). Only 'en' | 'es'; any other value is a 400.
+  let language: AiLanguage = DEFAULT_AI_LANGUAGE
+  if (body.operation === 'draft' && hasOnly(body, ['operation', 'client_request_id', 'brief', 'language'])) {
     if (typeof body.brief !== 'string' || !body.brief.trim() || body.brief.length > MAX_BRIEF_CHARS) return fail('bad_request', clientId)
+    const requested = draftLanguageOf(body.language)
+    if (requested === null) return fail('bad_request', clientId)
+    language = requested
     op = 'draft'
   } else if (body.operation === 'explain' && hasOnly(body, ['operation', 'client_request_id', 'request', 'request_fingerprint', 'geology_context_fingerprint'])) {
     if (typeof body.request_fingerprint !== 'string' || !/^[0-9a-f]{64}$/.test(body.request_fingerprint)) return fail('bad_request', clientId)
@@ -146,7 +152,7 @@ export async function handleAiRequest(req: AiHttpRequest, deps: AiDeps): Promise
   const ctx = { config: deps.config, fetchImpl: deps.fetchImpl, now: deps.now, bundle: deps.bundle, geology }
   try {
     if (op === 'draft') {
-      const r = await runDraft(ctx, body.brief as string)
+      const r = await runDraft(ctx, body.brief as string, language)
       return { status: 200, headers: BASE_HEADERS, body: { ok: true, operation: 'draft', client_request_id: clientId, draft: r.proposal, provenance: r.provenance } }
     }
     const r = await runExplain(ctx, body.request, body.request_fingerprint as string, geologyFp)
