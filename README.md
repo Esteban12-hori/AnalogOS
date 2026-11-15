@@ -1,4 +1,9 @@
-# AnalogOS
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/analogos-logo-dark.webp">
+    <img src="docs/brand/analogos-logo-light.webp" alt="AnalogOS" width="420">
+  </picture>
+</h1>
 
 **English** · [Español](README.es.md)
 

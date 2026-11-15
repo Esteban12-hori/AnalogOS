@@ -100,6 +100,11 @@
 
 
 
+
+## Official logo (2026-11-15, Claude)
+
+- Official AnalogOS logo in the top bar, the static shell, the favicon and the README. No change to data, engine, AI or exports.
+
 ## Similarity color scale (2026-11-15, Claude)
 
 - Red/yellow/blue/green according to the similarity %, with a legend “not suitability”. In local `dev` together with the mobile list fix; pending push and for Danilo to promote it to `main`.

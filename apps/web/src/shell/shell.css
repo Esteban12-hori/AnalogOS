@@ -62,7 +62,8 @@ body { min-height: 0; }
 }
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .brand-text { display: grid; min-width: 0; }
-.brand-text strong { overflow: hidden; font-size: var(--fs-body); letter-spacing: -.02em; text-overflow: ellipsis; white-space: nowrap; }
+/* «AnalogOS» con la palabra del logo adaptada a fondo oscuro; el nombre sigue en el h1 sr-only. */
+.brand-text strong { display: block; width: 154px; height: 16px; overflow: hidden; background: url('../assets/brand/logo-wordmark-dark.webp') no-repeat left center / contain; color: transparent; font-size: 0; }
 .brand-text small { color: var(--muted); font-size: var(--fs-min); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
 .topbar-status { justify-self: end; min-width: 0; overflow: hidden; }
 .status-chip { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; color: var(--muted); font-family: var(--mono); font-size: var(--fs-min); white-space: nowrap; }
@@ -264,7 +265,7 @@ body { min-height: 0; }
   .topbar { grid-template-columns: auto minmax(0, 1fr); }
   .topbar .mode-tabs { justify-self: end; }
   .mode-tabs [role="tab"], .mode-tabs .mode-static { min-width: 0; padding: 0 12px; }
-  .brand-text strong { font-size: var(--fs-13); }
+  .brand-text strong { width: 126px; height: 13px; }
 }
 @media (max-width: 420px) {
   .brand-text { display: none; }

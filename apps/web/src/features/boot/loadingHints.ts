@@ -16,6 +16,7 @@ import type { HtmlTagDescriptor, Plugin } from 'vite'
 import { staticShellHtml } from '../../content/shell'
 import { dataAttributionText } from '../../shell/attribution'
 import { INTRO_SESSION_KEY } from './bootModel'
+import { FAVICON_DATA_URI } from './favicon'
 
 /**
  * Compacts a plain JS module to inline it in a <script>: strips comments, indentation and
@@ -88,7 +89,7 @@ export function loadingHints(): Plugin {
       order: 'post',
       handler(html, ctx) {
         const tags: HtmlTagDescriptor[] = [
-          { tag: 'link', attrs: { rel: 'icon', href: 'data:,' }, injectTo: 'head' },
+          { tag: 'link', attrs: { rel: 'icon', type: 'image/png', href: FAVICON_DATA_URI }, injectTo: 'head' },
           ...data.map((href): HtmlTagDescriptor => ({
             tag: 'link',
             attrs: {

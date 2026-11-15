@@ -1,5 +1,13 @@
 # Working changelog
 
+
+## 2026-11-15 Claude Code — official AnalogOS logo
+
+- Top bar uses the official logo: the emblem (planet, ring and star) and the wordmark recolored for the dark UI ("Analog" light metallic, "OS" orange). Applied through CSS (`.brand-mark`, `.brand-text strong`), so the React top bar and the static pre-load shell match. Below 420 px only the emblem shows.
+- Favicon: 32 px emblem as an inline PNG data URI (no extra request, release packager unchanged).
+- README (EN/ES) shows the logo, light or dark per GitHub theme. Sources in `docs/brand/` (original untouched).
+- Verified: `npm run verify` (330 Python, 899 web, typecheck:server, build), release package includes both logo assets; browser at 1440, 390 and 360 px and with JS blocked (static shell), no overflow or page errors.
+
 ## 2026-11-15 Codex — English release completed in production
 
 - Final code fab8ed9 promoted through dev/main without force. Final Actions 43723813882 (dev) and 43724021553 (production) succeeded; packaged function startup passed.
