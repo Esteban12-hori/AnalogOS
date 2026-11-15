@@ -6,7 +6,7 @@ import { missionStore } from '../../state/mission'
 import { uiStore } from '../../state/ui'
 import { Composer } from './Composer'
 import { composerStore, initialComposerState } from './composerStore'
-import { MissionComposer } from './MissionComposer'
+import { MissionComposer, showPresetChips } from './MissionComposer'
 import { MissionPanel } from './MissionPanel'
 import { MOBILITY, draft, interpretation, realSnapshot } from './testSupport'
 
@@ -169,5 +169,15 @@ describe('«Tu misión» (SSR)', () => {
     const html = renderToStaticMarkup(<MissionPanel data={ready} placement="sheet" />)
     expect(html).toContain('aria-pressed="false">Editar</button>')
     expect(html).toContain('Perfil predefinido')
+  })
+})
+
+describe('sugerencias «Refinar»', () => {
+  it('se ofrecen antes de resultados y no tapan las tarjetas cuando hay resultados', () => {
+    expect(showPresetChips('idle', false)).toBe(true)
+    expect(showPresetChips('error', false)).toBe(true)
+    expect(showPresetChips('interpreting', true)).toBe(false)
+    expect(showPresetChips('analysis', false)).toBe(false)
+    expect(showPresetChips('done', false)).toBe(false)
   })
 })

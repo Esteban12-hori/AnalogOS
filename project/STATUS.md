@@ -108,6 +108,11 @@ Cuatro revisiones sobre 1161db6 (honestidad científica, accesibilidad, rendimie
 2. Diferidos de misión y Lectura: cargar `deferred` al abrir la Lectura y separar `MissionPanel` del arranque de la pestaña. Medir LCP móvil con trazas reales (no Lantern).
 3. Incremento 11: VoiceOver y TalkBack, lktron real contra el mock, regenerar el pregenerado si se unifica la precisión de Jezero y empaquetar `submission/` cuando el equipo lo apruebe.
 
+### Corrección posterior a la revisión (Claude, verificación propia)
+
+- En Misión, la fila de sugerencias «Refinar» tapaba las tarjetas de lugares recién ordenadas, porque el foco sigue en el campo tras enviar (1280×800 y 390×844). Ahora solo aparece antes de los resultados; el selector «Tu perfil» cubre el cambio de perfil (`showPresetChips`, con test).
+- Pendientes de pulido (low): en móvil se trunca la cabecera del carrusel y la línea Tesla cruza la franja de la leyenda.
+
 ## Rediseño Explorar / Misión — integración de los incrementos 3–10 (2026-11-14, Claude, rama `feature/mision-redesign`)
 
 Los 8 constructores trabajaron en paralelo según `docs/BUILD_CONTRACTS.md`. El integrador fusionó sus ramas con `--no-ff`, en este orden: engine, places, globe, metrics, leaders, boot, composer y analysis. No hubo conflictos de texto: cada rama tocó solo su carpeta. Después de cada fusión se corrió `npm run test`.

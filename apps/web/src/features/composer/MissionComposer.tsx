@@ -10,7 +10,7 @@ import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState, type K
 import { createPortal } from 'react-dom'
 import { GLYPH, useViewportLayout } from '../../shell/public'
 import { useMission } from '../../state/mission'
-import { useUi } from '../../state/ui'
+import { useUi, type MissionPhase } from '../../state/ui'
 import { LKTRON_ENABLED } from '../analysis'
 import { OrbitLoader } from '../boot'
 import { getStageProjection } from '../globe'
@@ -52,6 +52,15 @@ export function GlobeOrbit({ active, label }: { active: boolean; label: string }
     setHost(active && getStageProjection()?.mode !== 'flat' ? document.querySelector<HTMLElement>('[data-slot="stage.overlay"]') : null)
   }, [active])
   return host ? createPortal(<OrbitLoader active label={label} placement="globe" />, host) : null
+}
+
+/**
+ * Las sugerencias «Refinar» flotan sobre el dock al enfocar el composer. Con resultados en
+ * pantalla taparían las tarjetas recién ordenadas (el foco sigue en el campo tras enviar), y
+ * el selector «Tu perfil» ya permite cambiar de perfil: solo se ofrecen antes de resultados.
+ */
+export function showPresetChips(phase: MissionPhase, waiting: boolean): boolean {
+  return !waiting && phase !== 'analysis' && phase !== 'done'
 }
 
 export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' | 'placement'>) {
@@ -200,7 +209,7 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
 
   return (
     <div className="composer" data-placement={placement}>
-      {!waiting && (
+      {showPresetChips(phase, waiting) && (
         <Suspense fallback={null}>
           <PresetChips snapshot={snapshot} activeProfileId={profile?.id ?? null} />
         </Suspense>
