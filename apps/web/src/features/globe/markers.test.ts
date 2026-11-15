@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { CandidateSite, Position, ReferenceAnalog } from '../../domain/contracts'
 import { latLngToVec3 } from '../../domain/globe'
-import type { MissionScoring } from '../engine'
+import type { MissionEvaluation, OptionEvaluation } from '../../mission/types'
 import {
   assignLabels,
   buildMarkerModels,
@@ -16,6 +16,8 @@ import {
   HIDDEN_BELOW,
   horizonFacing,
   markerAriaLabel,
+  markerBadgeText,
+  markerLabelText,
   markerVisibility,
   NEAR_SELECTION_PX,
   pinOccluded,
@@ -49,6 +51,18 @@ const FIXTURE_CANDIDATES: CandidateSite[] = [
   site('cl-sin-datos', 'Sector sin datos — sector de screening', null, box(-70.6, -26)),
   site('cl-domeyko', 'Cordón de Domeyko — sector interior', 71.6, box(-68.95, -23.4)),
 ]
+
+// FIXTURE v3: un candidato argentino y la referencia conocida (REF), con país y rol del contrato v3.
+const V3_CANDIDATES: CandidateSite[] = [
+  { ...site('cl-win-a', 'Interior de Antofagasta · A', 94.9, box(-69.8, -25.1)), country: 'CL', role: 'candidate' } as CandidateSite,
+  { ...site('ar-win-b', 'Puna de Catamarca y Salta · B', 63.9, box(-67.6, -26.3)), country: 'AR', role: 'candidate' } as CandidateSite,
+  { ...site('cl-pampa-yungay-screening', 'Pampa Yungay — sector de screening', 75.67, box(-70.05, -24.18)), country: 'CL', role: 'reference', status: 'reference' } as CandidateSite,
+]
+
+/** FIXTURE: evaluación sintética con la forma de MissionEvaluation (no es un resultado científico). */
+function fixtureEvaluation(options: Array<Pick<OptionEvaluation, 'site_id' | 'status' | 'rank'>>): MissionEvaluation {
+  return { options: options.map((option) => ({ ...option, name: option.site_id, role: 'candidate', requirement_results: [], critical_failed: [], critical_unknown: [], preferences: { met: 0, unmet: 0, unknown: 0, total: 0 } })) } as unknown as MissionEvaluation
+}
 
 function analog(id: string, name: string, country: string, location: ReferenceAnalog['location']): ReferenceAnalog {
   return { id, name, country, status: 'por_calcular', location, sources: [{ title: 'FIXTURE', url: 'https://example.org/fixture' }] }
@@ -96,7 +110,7 @@ describe('smoothstep y visibilidad continua', () => {
 })
 
 describe('buildMarkerModels', () => {
-  const models = buildMarkerModels({ candidates: FIXTURE_CANDIDATES, analogs: FIXTURE_ANALOGS, scoring: null })
+  const models = buildMarkerModels({ candidates: FIXTURE_CANDIDATES, analogs: FIXTURE_ANALOGS, evaluation: null })
   const byId = new Map(models.map((model) => [model.id, model]))
 
   it('ordena ● por puesto, ○ al final de los sectores y ◆ en orden alfabético', () => {
@@ -131,26 +145,38 @@ describe('buildMarkerModels', () => {
     expect(byId.get('utah-mdrs')?.contains).toBeNull()
   })
 
-  it('con perfil de misión usa los puestos y % del motor', () => {
-    const scoring = {
-      profileId: 'mission:fixture',
-      engineVersion: 'fixture',
-      sites: [
-        { siteId: 'cl-maria-elena', similarity: 80.04, rank: 1, status: 'scored', coverage: 1, confidence: null, contributions: {}, limitingCriterionId: null },
-        { siteId: 'cl-domeyko', similarity: 60, rank: 2, status: 'scored', coverage: 1, confidence: null, contributions: {}, limitingCriterionId: null },
-        { siteId: 'cl-yungay', similarity: null, rank: null, status: 'por_calcular', coverage: 0, confidence: null, contributions: {}, limitingCriterionId: null },
-        { siteId: 'cl-sin-datos', similarity: null, rank: null, status: 'insufficient_data', coverage: 0.4, confidence: null, contributions: {}, limitingCriterionId: null },
-      ],
-    } as unknown as MissionScoring
-    const mission = buildMarkerModels({ candidates: FIXTURE_CANDIDATES, analogs: [], scoring })
-    expect(mission.map((model) => [model.id, model.kind, model.rank, model.score, model.scoreSource])).toEqual([
-      ['cl-maria-elena', 'evaluated', 1, 80.04, 'mission'],
-      ['cl-domeyko', 'evaluated', 2, 60, 'mission'],
-      ['cl-yungay', 'evaluated', null, null, null],
-      ['cl-sin-datos', 'insufficient', null, null, null],
+  it('v3: candidatos con su puesto global y país; la REF lleva «REF», nunca un número', () => {
+    const v3 = buildMarkerModels({ candidates: V3_CANDIDATES, analogs: [], evaluation: null })
+    expect(v3.map((model) => [model.id, model.rank, model.role, model.group])).toEqual([
+      ['cl-win-a', 1, 'candidate', 'Chile'],
+      ['ar-win-b', 2, 'candidate', 'Argentina'],
+      ['cl-pampa-yungay-screening', null, 'reference', 'Chile'],
     ])
-    expect(markerAriaLabel(mission[0]!)).toBe('Pampa María Elena, puesto 1, similitud 80,0 % con tu perfil')
-    expect(markerAriaLabel(mission[2]!)).toBe('Pampa Yungay, por calcular con tu perfil')
+    expect(markerBadgeText(v3[2]!)).toBe('REF')
+    expect(markerLabelText(v3[2]!)).toContain('REF')
+    expect(markerLabelText(v3[2]!)).not.toMatch(/#\d/)
+    expect(markerAriaLabel(v3[2]!)).toContain('referencia conocida, fuera del ranking')
+    expect(markerAriaLabel(v3[1]!)).toContain('Argentina')
+  })
+
+  it('Misión: el marcador codifica el estado de la evaluación y su puesto, nunca un %', () => {
+    const evaluation = fixtureEvaluation([
+      { site_id: 'ar-win-b', status: 'priorizado_para_reconocimiento', rank: 1 },
+      { site_id: 'cl-win-a', status: 'no_cumple_requisitos', rank: null },
+      { site_id: 'cl-pampa-yungay-screening', status: 'evidencia_insuficiente', rank: null },
+    ])
+    const mission = buildMarkerModels({ candidates: V3_CANDIDATES, analogs: [], evaluation })
+    expect(mission.map((model) => [model.id, model.kind, model.rank, model.score, model.missionStatus])).toEqual([
+      ['ar-win-b', 'evaluated', 1, null, 'priorizado_para_reconocimiento'],
+      ['cl-win-a', 'evaluated', null, null, 'no_cumple_requisitos'],
+      ['cl-pampa-yungay-screening', 'insufficient', null, null, 'evidencia_insuficiente'],
+    ])
+    for (const model of mission) expect(markerLabelText(model)).not.toMatch(/\d+,\d\s*%/)
+    expect(markerAriaLabel(mission[0]!)).toBe('Puna de Catamarca y Salta · B, puesto 1, priorizado para reconocimiento, Argentina')
+    expect(markerBadgeText(mission[2]!)).toBe('REF')
+    // Un sitio que la evaluación no incluyó queda «fuera del alcance».
+    const scoped = buildMarkerModels({ candidates: V3_CANDIDATES, analogs: [], evaluation: fixtureEvaluation([{ site_id: 'ar-win-b', status: 'priorizado_para_reconocimiento', rank: 1 }]) })
+    expect(scoped.filter((model) => model.missionStatus === 'fuera_de_alcance').map((model) => model.id).sort()).toEqual(['cl-pampa-yungay-screening', 'cl-win-a'])
   })
 })
 

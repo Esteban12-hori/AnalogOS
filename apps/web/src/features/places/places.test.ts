@@ -1,11 +1,13 @@
-// Incremento 3 · funciones puras de features/places: catálogo ◆, geometría (§1 #16), orden
-// estable con nulos al final, ◆ sin % ni ranking, teclado APG y contador del carrusel.
+// Funciones puras de features/places: catálogo ◆, geometría (§1 #16), orden del carrusel con el
+// snapshot v3 (candidatos en su puesto global, REF aparte y nunca con puesto, filtro por país que
+// conserva el puesto) y, en Misión, grupos por estado de la evaluación del equipo; teclado APG.
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { CandidateSite, PolygonGeometry, ReferenceAnalog } from '../../domain/contracts'
 import { parseReferenceAnalogs } from '../../domain/referenceAnalogContract'
-import type { MissionScoring } from '../engine'
+import { emptyScope } from '../../mission'
+import { evaluateExample, v3Snapshot } from '../../tests/v3Support'
 import { geometryInsideBbox, pointInGeometry, pointInPolygon } from './geometry'
 import {
   buildPlaceModel,
@@ -141,34 +143,48 @@ describe('regla §1 #16: la geometría decide insignia o ◆ propio', () => {
   })
 })
 
-describe('orden del carrusel', () => {
-  it('Explorar: orden del snapshot (rankCandidates) con #n de 3 y los ◆ en orden alfabético', () => {
-    const model = buildPlaceModel({ candidates, classification: classifyReferenceAnalogs(analogs, candidates) })
+describe('orden del carrusel (snapshot v3)', () => {
+  const v3 = v3Snapshot.candidates
+  const classification = classifyReferenceAnalogs(analogs, v3)
+
+  it('Explorar: 6 candidatos con su puesto global, la REF aparte sin puesto y los ◆ alfabéticos', () => {
+    const model = buildPlaceModel({ candidates: v3, classification })
     expect(model.source).toBe('snapshot')
-    expect(model.evaluated.map((place) => [place.id, place.rank])).toEqual([[YUNGAY, 1], [DOMEYKO, 2], [MARIA_ELENA, 3]])
-    expect(model.rankedCount).toBe(3)
-    expect(model.coincidentCount).toBe(1)
-    expect(model.references.map((place) => place.id)).toEqual([
-      'devon-island',
-      'iceland-holuhraun',
-      'mdrs-utah',
-      'pilbara',
-      'rio-tinto',
-      'svalbard-amase',
-      'mcmurdo-dry-valleys',
-    ])
-    expect(placeOrder(model).map((place) => place.kind)).toEqual([...Array(3).fill('evaluated'), ...Array(7).fill('reference')])
+    const ranked = model.groups.find((group) => group.role === 'candidate')?.places ?? []
+    expect(ranked.map((place) => place.rank)).toEqual([1, 2, 3, 4, 5, 6])
+    expect(ranked.every((place) => place.role === 'candidate')).toBe(true)
+    const reference = model.groups.find((group) => group.role === 'reference')?.places ?? []
+    expect(reference.map((place) => [place.id, place.rank, place.role])).toEqual([[YUNGAY, null, 'reference']])
+    expect(model.rankedCount).toBe(6)
+    expect(model.countries).toEqual(['CL', 'AR'])
+    // El ◆ «Atacama · Yungay» coincide con el polígono de la REF: insignia, no tarjeta propia.
+    expect(reference[0]?.coincident.map((analog) => analog.id)).toEqual(['atacama-yungay'])
+    expect(model.references.map((place) => place.id)).not.toContain('atacama-yungay')
+    expect(placeOrder(model).map((place) => place.kind)).toEqual([...Array(7).fill('evaluated'), ...Array(7).fill('reference')])
+  })
+
+  it('filtrar por país conserva el puesto global (nunca renumera) y la REF sigue aparte', () => {
+    const all = buildPlaceModel({ candidates: v3 })
+    const argentina = buildPlaceModel({ candidates: v3, country: 'AR' })
+    const ranks = new Map(all.evaluated.map((place) => [place.id, place.rank]))
+    const shown = argentina.groups.find((group) => group.role === 'candidate')?.places ?? []
+    expect(shown.length).toBe(3)
+    expect(shown.every((place) => place.country === 'AR' && place.id.startsWith('ar-'))).toBe(true)
+    for (const place of shown) expect(place.rank).toBe(ranks.get(place.id))
+    expect(shown.map((place) => place.rank)).not.toEqual([1, 2, 3])
+    expect(argentina.rankedCount).toBe(6)
+    expect(argentina.groups.some((group) => group.role === 'reference')).toBe(true)
   })
 
   it('los ◆ no tienen similitud, confianza ni ranking', () => {
-    for (const place of buildPlaceModel({ candidates, classification: classifyReferenceAnalogs(analogs, candidates) }).references) {
+    for (const place of buildPlaceModel({ candidates: v3, classification }).references) {
       expect(place).not.toHaveProperty('similarity')
       expect(place).not.toHaveProperty('confidence')
       expect(place).not.toHaveProperty('rank')
     }
   })
 
-  it('orden estable: nulos al final, empates por site_id, sin depender del orden de entrada', () => {
+  it('orden estable entre candidatos: nulos al final, empates por site_id, sin depender del orden de entrada', () => {
     const input = [candidate('cl-c', null), candidate('cl-b', 50), candidate('cl-0', 80), candidate('cl-a', 50)]
     const expected = [['cl-0', 1, 'scored'], ['cl-a', 2, 'scored'], ['cl-b', 3, 'scored'], ['cl-c', null, 'insufficient_data']]
     const view = (list: CandidateSite[]) => buildPlaceModel({ candidates: list }).evaluated.map((place) => [place.id, place.rank, place.status])
@@ -176,24 +192,29 @@ describe('orden del carrusel', () => {
     expect(view([...input].reverse())).toEqual(expected)
   })
 
-  it('Misión: el orden y el % son del motor; lo que el motor no puntúa queda «por calcular»', () => {
-    // FIXTURE: resultado sintético del motor, solo para probar el orden (no es un resultado científico).
-    const scoring: MissionScoring = {
-      profileId: 'mission:FIXTURE',
-      engineVersion: '0.0.0-fixture',
-      sites: [
-        { siteId: MARIA_ELENA, similarity: 80, rank: 1, status: 'scored', coverage: 1, confidence: null, contributions: {}, limitingCriterionId: null },
-        { siteId: YUNGAY, similarity: null, rank: null, status: 'insufficient_data', coverage: 0.5, confidence: null, contributions: {}, limitingCriterionId: null },
-      ],
-    }
-    const model = buildPlaceModel({ candidates, classification: classifyReferenceAnalogs(analogs, candidates), scoring })
+  it('Misión: grupos por estado de la evaluación del equipo, puesto solo para priorizados y similitud v3 sin recalcular', () => {
+    const { evaluation } = evaluateExample()
+    const model = buildPlaceModel({ candidates: v3, classification, evaluation })
     expect(model.source).toBe('mission')
-    expect(model.evaluated.map((place) => [place.id, place.similarity, place.rank, place.status, place.confidence])).toEqual([
-      [MARIA_ELENA, 80, 1, 'scored', null],
-      [DOMEYKO, null, null, 'por_calcular', null],
-      [YUNGAY, null, null, 'insufficient_data', null],
-    ])
-    expect(model.rankedCount).toBe(1)
+    const order = ['priorizado_para_reconocimiento', 'no_cumple_requisitos', 'evidencia_insuficiente', 'objetivo_no_soportado', 'fuera_de_alcance']
+    const statuses = model.groups.map((group) => group.status)
+    expect(statuses).toEqual(order.filter((status) => statuses.includes(status as never)))
+    for (const place of model.evaluated) {
+      const option = evaluation.options.find((item) => item.site_id === place.id)
+      expect(place.mission?.status).toBe(option?.status ?? 'fuera_de_alcance')
+      expect(place.rank).toBe(option?.status === 'priorizado_para_reconocimiento' ? option.rank : null)
+      expect(place.similarity).toBe(place.candidate.similarity)
+    }
+    const prioritized = model.groups.find((group) => group.status === 'priorizado_para_reconocimiento')?.places ?? []
+    expect(prioritized.map((place) => place.rank)).toEqual(prioritized.map((_, index) => index + 1))
+  })
+
+  it('Misión con un sector: los demás sitios quedan «fuera del alcance»', () => {
+    const { evaluation } = evaluateExample({ ...emptyScope('ar-win-s2580-w06710'), mode: 'sector' })
+    const model = buildPlaceModel({ candidates: v3, evaluation })
+    const outside = model.groups.find((group) => group.status === 'fuera_de_alcance')?.places ?? []
+    expect(outside.length).toBe(v3.length - 1)
+    expect(outside.every((place) => place.rank === null && place.mission?.option === null)).toBe(true)
   })
 })
 

@@ -8,6 +8,7 @@ import type {
 } from '../domain/contracts'
 import { assertSnapshotContracts } from '../domain/snapshotContracts'
 import { parseMarsReference, type MarsReference } from '../domain/marsReference'
+import { parseSensitivity, type SensitivityResult } from '../domain/sensitivity'
 import { parseSurfaceSeries, type SurfaceSeriesBySite } from '../domain/surfaceSeries'
 
 export const SNAPSHOT_PATH: string = import.meta.env.VITE_SNAPSHOT_PATH ?? 'science-v3'
@@ -25,6 +26,8 @@ export interface DemoSnapshot {
   surfaceSeries: SurfaceSeriesBySite
   /** Medianas MOLA de Jezero; null si el snapshot no las trae. */
   marsReference: MarsReference | null
+  /** Sensibilidad del orden por sitio (analysis-summary.json); ausente o vacía si no la trae. */
+  sensitivity?: ReadonlyMap<string, SensitivityResult>
 }
 
 async function fetchJson(path: string): Promise<unknown> {
@@ -69,5 +72,6 @@ export async function loadDemoSnapshot(): Promise<DemoSnapshot> {
     precedents: IS_DISCOVERY_SNAPSHOT ? (precedentData as PrecedentCatalog) : null,
     surfaceSeries: parseSurfaceSeries(summaryData),
     marsReference: parseMarsReference(summaryData),
+    sensitivity: parseSensitivity(summaryData),
   }
 }

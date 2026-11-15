@@ -6,6 +6,7 @@ import {
   bootLines,
   bootReducer,
   chipText,
+  snapshotAnnouncement,
   FOLD_MS,
   initialBootState,
   INITIAL_MILESTONES,
@@ -142,6 +143,14 @@ describe('bitácora: solo hitos reales', () => {
 })
 
 describe('chip de estado', () => {
+  it('v3: «Snapshot v3 · 6 candidatos · 1 REF · 7 ◆ por calcular» y el anuncio con la referencia conocida', () => {
+    const v3 = { status: 'ready' as const, version: 'science-screening-v3', evaluated: 6, references: 1, pendingAnalogs: 7 }
+    expect(chipText(v3)).toBe('Snapshot v3 · 6 candidatos · 1 REF · 7 ◆ por calcular')
+    expect(chipText({ ...v3, pendingAnalogs: null })).toBe('Snapshot v3 · 6 candidatos · 1 REF')
+    expect(snapshotAnnouncement('science-screening-v3', 6, 1)).toBe('Snapshot científico v3 validado: 6 candidatos y 1 referencia conocida.')
+    expect(snapshotAnnouncement('science-screening-v2', 3, 0)).toBe('Snapshot científico v2 validado: 3 lugares evaluados.')
+  })
+
   it('«Snapshot v2 · 3 evaluados · 8 por calcular» solo con el catálogo de ◆ publicado', () => {
     const ready = { status: 'ready' as const, version: 'science-screening-v2', evaluated: 3 }
     expect(chipText({ ...ready, pendingAnalogs: 8 })).toBe('Snapshot v2 · 3 evaluados · 8 por calcular')

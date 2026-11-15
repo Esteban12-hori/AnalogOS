@@ -10,22 +10,14 @@ const CONTRACT: Record<string, readonly string[]> = {
   'metrics/buildMetricViews': ['buildMetricViews', 'limitingView', 'METRIC_LABELS'],
   leaders: ['LeaderLayer', 'LeaderToggle'],
   'leaders/layoutLeaders': ['layoutLeaders', 'LEADER_GEOMETRY'],
-  'leaders/principal': ['pickPrincipalMetrics'],
+  'leaders/principal': ['pickPrincipalMetrics', 'pickMissionMetrics'],
   boot: ['BootLayer', 'OrbitLoader', 'StatusChip', 'getBootMilestones', 'reportBootMilestone', 'useBootMilestones'],
-  engine: [
-    'ENGINE_VERSION',
-    'MISSION_PRESETS',
-    'PHASE_THRESHOLDS',
-    'aggregate',
-    'levelsToWeights',
-    'matchMissionDemo',
-    'nextMissionPhase',
-    'profileFromLevels',
-    'scoreMission',
-    'sensitivity',
-  ],
-  composer: ['Composer', 'MissionCard', 'focusComposer'],
-  analysis: ['LKTRON_ENABLED', 'ReadingPanel', 'ReadingPill', 'interpretWithLktron'],
+  // El motor propio (features/engine) se retiró: la evaluación es la del equipo (ADR-009, ADR-011).
+  composer: ['Composer', 'MissionCard', 'focusComposer', 'registerMissionSnapshot', 'withController', 'MissionPrintHost'],
+  // Sin lktron (ADR-012, sustituido): la Lectura usa la IA del equipo vía el controlador de misión.
+  analysis: ['ReadingPanel', 'ReadingPill'],
+  // Controlador de misión (chunk diferido): planificador del equipo compartido (ADR-013).
+  'composer/missionController': ['createMissionController', 'missionController', 'phaseFor', 'explanationFor'],
 }
 
 const loaders: Record<string, () => Promise<Record<string, unknown>>> = {
@@ -37,9 +29,9 @@ const loaders: Record<string, () => Promise<Record<string, unknown>>> = {
   'leaders/layoutLeaders': () => import('../features/leaders/layoutLeaders'),
   'leaders/principal': () => import('../features/leaders/principal'),
   boot: () => import('../features/boot'),
-  engine: () => import('../features/engine'),
   composer: () => import('../features/composer'),
   analysis: () => import('../features/analysis'),
+  'composer/missionController': () => import('../features/composer/missionController'),
 }
 
 describe('contrato de las features', () => {
@@ -53,28 +45,24 @@ describe('contrato de las features', () => {
     })
   }
 
-  it('el motor nunca inventa cifras: sin perfil usable cada sector queda «por calcular»', async () => {
-    const engine = await import('../features/engine')
-    // La paridad con pipelines/scoring.py vive en features/engine/parity.test.ts; aquí solo se
-    // fija la regla honesta del contrato: perfil vacío + perfil base inutilizable → sin números.
-    expect(engine.ENGINE_VERSION.endsWith('-stub')).toBe(false)
-    const scoring = engine.scoreMission({
-      profile: {
-        id: 'mission:00000000',
-        origin: 'mission',
-        label: 'prueba',
-        status: 'needs_calibration',
-        levels: { slope: 3, terrain_roughness: 3, local_relief: 2, bare_ground_fraction: 2, aridity_context: 1, surface_temperature_variability: 0, geologic_relevance: 0 },
-        weights: { slope: 0, terrain_roughness: 0, local_relief: 0, bare_ground_fraction: 0, aridity_context: 0, surface_temperature_variability: 0, geologic_relevance: 0 },
-        baseProfileId: 'mars-rover-screening-v2',
-        baseProfileVersion: 'x',
-      },
-      candidates: [{ site_id: 'cl-b' }, { site_id: 'cl-a' }] as never,
-      base: {} as never,
-    })
-    expect(scoring.sites.map((site) => [site.siteId, site.similarity, site.status])).toEqual([
-      ['cl-a', null, 'por_calcular'],
-      ['cl-b', null, 'por_calcular'],
-    ])
+  it('ninguna feature importa el motor propio ni el cliente lktron retirados', async () => {
+    const { readFileSync, readdirSync, statSync } = await import('node:fs')
+    const { join, resolve } = await import('node:path')
+    const root = resolve(__dirname, '..')
+    const files: string[] = []
+    const walk = (dir: string) => {
+      for (const name of readdirSync(dir)) {
+        const path = join(dir, name)
+        if (statSync(path).isDirectory()) walk(path)
+        else if (/\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name)) files.push(path)
+      }
+    }
+    walk(root)
+    for (const file of files) {
+      const text = readFileSync(file, 'utf8')
+      // Importaciones e identificadores; los comentarios pueden citar lo retirado para explicarlo.
+      expect(text, file).not.toMatch(/^import[^\n]*(features\/engine|\.\.\/engine'|lktron|ndjson|aiContracts|interpretationContract)/m)
+      expect(text, file).not.toMatch(/\b(LKTRON_ENABLED|interpretWithLktron|MissionScoring|scoreMission|matchMissionDemo|VITE_LKTRON)\b/)
+    }
   })
 })

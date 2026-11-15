@@ -15,13 +15,13 @@ import { now, useStageOrbit, type OrbitRequest } from './milestones'
 
 /**
  * La órbita solo acompaña a la vista global. Sin canal por cuadro (el globo aún no publica) se
- * asume la vista global. Con canal: modo globo, Atacama (punto de vista inicial) cerca del centro
+ * asume la vista global. Con canal: modo globo, el piloto Chile–Argentina (punto de vista inicial) cerca del centro
  * y una escala parecida a la de la vista global (40° de arco ≈ r·sen 40°; al acercarse crece).
  */
 export function globalViewOnScreen(projection: Pick<StageProjection, 'mode' | 'project'> | null, center: { x: number; y: number }, radius: number): boolean {
   if (!projection) return true
-  const home = projection.project(-69.5, -24)
-  const east = projection.project(-29.5, -24)
+  const home = projection.project(-68.6, -25)
+  const east = projection.project(-28.6, -25)
   if (projection.mode !== 'globe' || !home || !east || home.visible < 0.5 || east.visible < 0.5) return false
   const arc = Math.hypot(east.x - home.x, east.y - home.y)
   return Math.hypot(home.x - center.x, home.y - center.y) <= radius * 0.6 && arc > radius * 0.4 && arc < radius * 0.9

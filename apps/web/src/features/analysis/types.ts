@@ -1,67 +1,15 @@
 /**
- * Tipos del modelo de lectura (features/analysis). Solo tipos: los importan el chunk principal
- * (store, píldora, fragmentos) y el código diferido (paquete, validación, vista) sin arrastrar
- * código.
+ * Tipos de la Lectura (features/analysis). Solo tipos: los importan el chunk principal y el
+ * código diferido sin arrastrar código. La Lectura tiene tres capas separadas (ADR-013):
+ * resultado (MissionEvaluation), motivos destacados (ExplanationView del equipo) y hechos del
+ * snapshot (esta capa de hechos).
  */
-import type { AiAnalysisEvent, EvidencePacket, UnsupportedRequest } from '../../domain/aiContracts'
-import type { CriterionId } from '../../domain/contracts'
+import type { CountryCode, CriterionId } from '../../domain/contracts'
 
-export type ReadingContext = 'base' | 'mission'
-
-/** Un hecho del paquete ya resuelto: id citable + texto que formateó el motor. */
+/** Un hecho ya resuelto: id estable + texto que formateó el snapshot (es-CL). */
 export interface FactRef {
   id: string
   text: string
-}
-
-/** Tramo de texto validado: texto de la IA o ficha con la cifra del motor. */
-export type ResolvedSegment =
-  | { kind: 'text'; text: string }
-  | { kind: 'fact'; id: string; text: string; criterionId: CriterionId | null; siteId: string | null }
-
-export type ReadingBlockType = Exclude<AiAnalysisEvent['type'], 'meta' | 'stage' | 'done' | 'error'>
-
-/** Un evento ai-analysis/1 que pasó TODAS las validaciones de §5.5, listo para dibujar. */
-export interface ReadingBlock {
-  key: string
-  type: ReadingBlockType
-  /** Orden de llegada (escalonado de entrada, cola de 6 como máximo). */
-  order: number
-  siteId: string | null
-  siteIds: readonly string[]
-  criterionId: CriterionId | null
-  factKind: string | null
-  /** `check:<sitio>:<n>` de field_priority o de uncertainty.resolves_check. */
-  checkRef: string | null
-  analogId: string | null
-  segments: readonly ResolvedSegment[]
-}
-
-export type DiscardReason =
-  | 'schema'
-  | 'unknown_ref'
-  | 'undeclared_ref'
-  | 'digits'
-  | 'number_word'
-  | 'vocabulary'
-  | 'rank'
-  | 'rank_fact'
-  | 'unmeasured'
-  | 'unsafe_text'
-  | 'malformed_marker'
-  | 'fact_kind'
-  | 'own_criterion'
-  | 'unknown_site'
-  | 'unknown_check'
-  | 'unknown_analog'
-  | 'duplicate'
-  | 'cap'
-  | 'out_of_order'
-
-export interface DiscardNote {
-  reason: DiscardReason
-  /** Motivo neutro para el aviso («citaba un dato que no existe»). */
-  message: string
 }
 
 export interface DirectionFact {
@@ -85,6 +33,10 @@ export interface CriterionFact {
 export interface SiteFacts {
   siteId: string
   name: string
+  /** Referencia conocida (REF): nunca tiene puesto ni entra en «mejor de N». */
+  reference: boolean
+  country: CountryCode | null
+  /** «#2 de 6» o «REF · referencia conocida, fuera del ranking». */
   rank: FactRef | null
   similarity: FactRef | null
   /** true = datos insuficientes para el perfil (el % no existe). */
@@ -109,7 +61,7 @@ export interface ComparisonFacts {
 }
 
 export interface RobustnessFacts {
-  /** ready = escenarios calculados; insufficient = menos de 2 lugares con %; por_calcular = sin motor. */
+  /** ready = escenarios del pipeline; insufficient = menos de 2 candidatos con %; por_calcular = sin sensibilidad. */
   status: 'ready' | 'insufficient' | 'por_calcular'
   perturbation: FactRef | null
   scenarios: FactRef | null
@@ -122,50 +74,10 @@ export interface RobustnessFacts {
 }
 
 export interface FactsLayer {
-  /** En el orden del ranking (#1 primero; sin % al final). */
+  /** Candidatos de la búsqueda en su orden global. */
   sites: readonly SiteFacts[]
+  /** Referencias conocidas (REF), aparte. */
+  references: readonly SiteFacts[]
   comparison: ComparisonFacts
   robustness: RobustnessFacts
-  unsupported: readonly UnsupportedRequest[]
-  missionSummary: string | null
-}
-
-export type AiStatus = 'idle' | 'waiting' | 'streaming' | 'done' | 'stale' | 'error' | 'facts_only'
-
-export interface AiLayer {
-  source: 'lktron' | 'pregenerated' | 'none'
-  status: AiStatus
-  stage: 'selecting_facts' | 'writing' | null
-  model: string | null
-  blocks: readonly ReadingBlock[]
-  discards: readonly DiscardNote[]
-  /** Texto neutro para «solo hechos», «Desactualizado» o el error. */
-  message: string | null
-}
-
-export interface ReadingProfile {
-  id: string
-  label: string
-  origin: 'snapshot' | 'preset' | 'mission'
-  status: 'needs_calibration' | 'validated'
-}
-
-export interface Reading {
-  /** `base` o `mission:<perfil>:<revisión>`: con otra clave la lectura está desactualizada. */
-  key: string
-  context: ReadingContext
-  revision: number
-  profile: ReadingProfile
-  packet: EvidencePacket
-  /** false si el paquete no pasó evidence-packet/1: la IA no se usa, los hechos sí. */
-  packetValid: boolean
-  facts: FactsLayer
-  ai: AiLayer
-}
-
-export interface ReadingSlot {
-  status: 'idle' | 'building' | 'ready' | 'error'
-  /** Última lectura completa (se conserva durante una reconstrucción, a --o-busy). */
-  reading: Reading | null
-  error: string | null
 }

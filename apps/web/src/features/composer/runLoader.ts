@@ -1,16 +1,26 @@
 /**
- * Carga diferida del orquestador de misión (motor + contratos). Chunk principal: solo este
- * enlace. Si el chunk no carga (sin red y sin caché), la misión pasa a error neutro.
+ * Carga diferida del controlador de misión (chunk de misión: planificador, evaluación, Ajv en
+ * runtime, cliente de IA y exportación del equipo; docs/INTEGRATION_PLAN.md §3.8). El chunk
+ * principal solo lleva este enlace. El bundle es el snapshot validado tal cual lo cargó la app.
  */
-import { missionStore } from '../../state/mission'
-import { uiActions } from '../../state/ui'
-import type { MissionController } from './missionRun'
+import type { DemoSnapshot } from '../../data/loadDemoSnapshot'
+import type { EvidenceBundle } from '../../mission/types'
+import type { MissionController } from './missionController'
+import { composerStore } from './composerStore'
 
+let bundle: EvidenceBundle | null = null
 let pending: Promise<MissionController> | null = null
 
+/** El armazón registra el snapshot validado en cuanto llega (sin copiarlo ni transformarlo). */
+export function registerMissionSnapshot(snapshot: DemoSnapshot | null): void {
+  if (snapshot && !bundle) bundle = { candidates: snapshot.candidates, manifest: snapshot.manifest, profile: snapshot.profile }
+}
+
 export function loadController(): Promise<MissionController> {
-  pending ??= import('./missionRun')
-    .then((module) => module.missionController())
+  const current = bundle
+  if (!current) return Promise.reject(new Error('El snapshot aún no está validado.'))
+  pending ??= import('./missionController')
+    .then((module) => module.missionController(current))
     .catch((error: unknown) => {
       pending = null
       throw error
@@ -18,11 +28,11 @@ export function loadController(): Promise<MissionController> {
   return pending
 }
 
+/** Ejecuta `fn` con el controlador; si el chunk no carga (sin red y sin caché), avisa sin romper. */
 export function withController(fn: (controller: MissionController) => unknown): void {
   loadController()
     .then(fn)
     .catch(() => {
-      missionStore.setState({ error: { code: 'unavailable', message: 'No se pudo cargar el motor de misión. Recarga la página para reintentar.' } })
-      uiActions.setMissionPhase('error')
+      composerStore.setState({ notice: 'No se pudo cargar el planificador. Recargue la página para reintentar.' })
     })
 }

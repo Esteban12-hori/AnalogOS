@@ -7,6 +7,8 @@
  */
 import type { CandidateSite, DataManifest } from '../../domain/contracts'
 import { criterionLabels, formatArea, formatWhole } from '../../domain/formatting'
+import { REQUIREMENT_MARK } from '../../domain/missionView'
+import type { RequirementResult } from '../../mission/types'
 import type { MetricView } from '../metrics'
 
 export type LeaderReference =
@@ -30,10 +32,20 @@ export interface LeaderLabelModel {
   limiting: boolean
   /** «cumple la regla · no significa igual a Marte» / «satura». */
   note: string | null
+  /**
+   * Requisito de la prueba sobre este criterio (Misión): ✓/✕/○ y la condición tal como la escribió
+   * el motor del equipo (`required`, misma redacción que el JSON exportado). null sin requisito.
+   */
+  requirement: { mark: string; status: RequirementResult['status']; text: string } | null
 }
 
 export const NO_MARS_TEXT = 'Marte: sin medición comparable'
 export const RULE_SATURATES_TEXT = 'cumple la regla · no significa igual a Marte'
+
+/** Etiqueta con el requisito de la prueba sobre ese criterio (Misión). */
+export function leaderLabelModelFor(view: MetricView, requirements: readonly RequirementResult[]): LeaderLabelModel {
+  return { ...leaderLabelModel(view), requirement: requirementText(requirements) }
+}
 
 export function leaderLabelModel(view: MetricView): LeaderLabelModel {
   const raw = view.similarity
@@ -55,7 +67,16 @@ export function leaderLabelModel(view: MetricView): LeaderLabelModel {
     pending,
     limiting: view.isLimiting,
     note: view.saturates ? (view.rule ? RULE_SATURATES_TEXT : 'satura') : null,
+    requirement: null,
   }
+}
+
+/** El requisito más exigente del criterio (imprescindible primero): ✓/✕/○ y su condición. */
+export function requirementText(requirements: readonly RequirementResult[]): LeaderLabelModel['requirement'] {
+  const first = [...requirements].sort((a, b) => Number(b.importance === 'critical') - Number(a.importance === 'critical'))[0]
+  if (!first) return null
+  const condition = first.required.includes(': ') ? first.required.slice(first.required.indexOf(': ') + 2) : first.required
+  return { mark: REQUIREMENT_MARK[first.status], status: first.status, text: `${condition}${requirements.length > 1 ? ` (+${requirements.length - 1})` : ''}` }
 }
 
 export interface LeaderHeaderModel {
@@ -65,7 +86,7 @@ export interface LeaderHeaderModel {
   scale: string | null
   /** Hay al menos un ■ Jezero entre las etiquetas. */
   vsMars: boolean
-  /** Los pesos son los de tu misión (motor determinista), no los del snapshot. */
+  /** Las líneas muestran los requisitos de tu prueba (los pesos siguen siendo los del snapshot). */
   mission: boolean
 }
 
@@ -105,7 +126,7 @@ export function headerText(model: LeaderHeaderModel): string {
     model.area,
     model.scale ? `medianas ${model.scale}` : 'medianas',
     model.vsMars ? 'vs ■ Jezero (MOLA)' : null,
-    model.mission ? 'según tu perfil' : null,
+    model.mission ? 'con tus requisitos' : null,
   ]
     .filter((part): part is string => part !== null)
     .join(' · ')

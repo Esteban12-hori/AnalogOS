@@ -10,13 +10,15 @@ import { useMemo } from 'react'
 import type { CandidateSite } from '../../domain/contracts'
 import { useViewportLayout, type AppData } from '../../shell/public'
 import { useMission } from '../../state/mission'
-import { isMissionBusy, useUi } from '../../state/ui'
+import { useUi } from '../../state/ui'
 // Directo del módulo (no del índice de metrics): así viaja en este chunk diferido y no en el
 // principal (§6.1), sin arrastrar el resto de la feature.
 import { buildMetricViews } from '../metrics/buildMetricViews'
-import { leaderHeader, leaderLabelModel } from './labelModel'
+import { leaderHeader, leaderLabelModelFor } from './labelModel'
 import { LeaderStage } from './LeaderStage'
-import { pickPrincipalMetrics } from './principal'
+import { pickMissionMetrics, pickPrincipalMetrics } from './principal'
+// La capa de requisitos sale del mismo reparto que usa el riel (función pura, sin estado).
+import { requirementLayer } from '../metrics/metricContext'
 import type { LeaderStageBridge } from './projector'
 
 export interface LeaderCanvasProps {
@@ -31,35 +33,31 @@ export default function LeaderCanvas({ data, site, bridge }: LeaderCanvasProps) 
   const previewId = useUi((state) => state.previewCriterionId)
   const insets = useUi((state) => state.stageInsets)
   const obstacles = useUi((state) => state.obstacles)
-  const busy = useUi((state) => isMissionBusy(state.missionPhase))
-  const profile = useMission((state) => state.profile)
-  const scoring = useMission((state) => state.scoring)
+  const evaluation = useMission((state) => state.evaluation)
+  const evaluatedRequest = useMission((state) => state.evaluatedRequest)
+  const stale = useMission((state) => state.stale)
   const revision = useMission((state) => state.revision)
   const { width, height, tramo, compact, sideSheet } = useViewportLayout()
   const snapshot = data.snapshot
 
-  // Pesos de tu misión solo cuando el motor ya puntuó ese mismo perfil; si no, los del snapshot.
-  const missionActive = mode === 'mision' && profile !== null && scoring !== null && scoring.profileId === profile.id
+  // Pesos y contribuciones SIEMPRE del snapshot; en Misión, los requisitos de la evaluación vigente.
+  const option = mode === 'mision' ? evaluation?.options.find((item) => item.site_id === site.site_id) ?? null : null
+  const missionActive = mode === 'mision' && evaluation !== null
+  const outOfScope = missionActive && option === null
   const views = useMemo(() => {
     if (!snapshot) return []
-    const contributions = missionActive ? scoring?.sites.find((scored) => scored.siteId === site.site_id)?.contributions ?? null : null
-    return buildMetricViews({
-      site,
-      sites: snapshot.candidates,
-      profile: snapshot.profile,
-      weights: missionActive && profile ? profile.weights : null,
-      contributions,
-      marsReference: snapshot.marsReference,
-    })
-  }, [snapshot, site, missionActive, profile, scoring])
-  const principal = useMemo(() => pickPrincipalMetrics(views, 4), [views])
-  const labels = useMemo(() => principal.map(leaderLabelModel), [principal])
+    return buildMetricViews({ site, sites: snapshot.candidates, profile: snapshot.profile, weights: null, contributions: null, marsReference: snapshot.marsReference })
+  }, [snapshot, site])
+  const requirements = useMemo(() => requirementLayer(option, evaluatedRequest).byCriterion, [option, evaluatedRequest])
+  const principal = useMemo(() => (missionActive ? pickMissionMetrics(views, requirements, 4) : pickPrincipalMetrics(views, 4)), [views, requirements, missionActive])
+  const labels = useMemo(() => principal.map((view) => leaderLabelModelFor(view, requirements.get(view.criterionId) ?? [])), [principal, requirements])
   const header = useMemo(
     () => leaderHeader({ site, manifest: snapshot?.manifest ?? null, principal, missionActive }),
     [site, snapshot, principal, missionActive],
   )
 
-  if (labels.length === 0) return null
+  // Sin líneas para un sitio fuera del alcance de la evaluación (no hay requisitos que mostrar).
+  if (labels.length === 0 || outOfScope) return null
   return (
     <LeaderStage
       siteId={site.site_id}
@@ -74,7 +72,7 @@ export default function LeaderCanvas({ data, site, bridge }: LeaderCanvasProps) 
       insets={insets}
       obstacles={obstacles}
       activeId={previewId ?? activeId}
-      busy={busy}
+      busy={missionActive && stale}
       drawKey={`${site.site_id}:${missionActive ? `m${revision}` : 'base'}`}
       bridge={bridge}
     />

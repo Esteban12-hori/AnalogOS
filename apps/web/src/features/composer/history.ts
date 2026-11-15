@@ -1,31 +1,32 @@
 /**
- * Historial de misiones del visitante (recientes ⟲ y «Historial» de Tu misión). Es una
- * comodidad local: vive en localStorage de este navegador, nunca se envía a ningún servicio y
- * la UI funciona igual si el almacenamiento falla o está bloqueado (todo va en try/catch).
- * Guarda niveles, no cifras: al restaurar, el motor vuelve a calcular el %.
+ * Historial de pruebas del visitante (recientes ⟲, «Historial» y Deshacer de «Tu misión»).
+ * Es una comodidad local: vive en localStorage de este navegador, nunca se envía a ningún
+ * servicio y la UI funciona igual si el almacenamiento falla o está bloqueado (try/catch).
+ *
+ * Formato v2 (ADR-013, docs/INTEGRATION_PLAN.md §3.7): se guardan el brief, el recorrido, el
+ * alcance y SOLO los requisitos escritos o editados por el usuario. Nunca se guardan propuestas
+ * intactas de la IA, su procedencia ni resultados: al restaurar, el usuario vuelve a confirmar y
+ * la evaluación determinista se recalcula. La clave v1 (niveles por criterio) se ignora.
  */
-import type { CriterionLevel } from '../../domain/aiContracts'
-import type { CriterionId } from '../../domain/contracts'
-import { CRITERION_IDS } from '../../domain/criteria'
-import type { MissionSource } from '../../state/mission'
-
-export type Levels = Readonly<Record<CriterionId, CriterionLevel>>
+import type { EditableRequirement, JourneyId, ScopeInput } from '../../mission/plannerState'
+import type { MetricId } from '../../mission/types'
 
 export interface HistoryEntry {
   id: string
   /** ms epoch. */
   at: number
-  /** Texto enviado; null en perfiles predefinidos. */
-  text: string | null
-  source: MissionSource
+  journey: JourneyId
+  brief: string
+  scope: ScopeInput
+  /** Requisitos con origin 'user' (los de la IA sin editar no se guardan). */
+  requirements: EditableRequirement[]
+  /** Resumen para la lista («3 requisitos · catálogo»). */
   label: string
-  levels: Levels
-  /** Id del predefinido, si lo era (para restaurarlo con su id). */
-  presetId: string | null
 }
 
-export const HISTORY_KEY = 'analogos.composer.history.v1'
+export const HISTORY_KEY = 'analogos.composer.history.v2'
 export const HISTORY_MAX = 8
+const MAX_BRIEF = 3000
 
 type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 
@@ -37,44 +38,118 @@ function defaultStorage(): StorageLike | null {
   }
 }
 
-function isLevel(value: unknown): value is CriterionLevel {
-  return value === 0 || value === 1 || value === 2 || value === 3
+const METRIC_IDS: readonly MetricId[] = ['median_slope_degree', 'terrain_roughness_meter', 'local_relief_meter', 'nonvegetated_fraction', 'polygon_area_km2', 'country']
+const OPERATORS = ['<=', '>=', 'between', 'in'] as const
+const SCOPE_MODES = ['catalog', 'sector', 'point', 'bbox'] as const
+
+const isString = (value: unknown, max = 400): value is string => typeof value === 'string' && value.length <= max
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value)
+
+function parseScope(raw: unknown): ScopeInput | null {
+  if (!isRecord(raw) || !SCOPE_MODES.includes(raw.mode as (typeof SCOPE_MODES)[number])) return null
+  const text = (key: string) => (isString(raw[key], 40) ? (raw[key] as string) : '')
+  return {
+    mode: raw.mode as ScopeInput['mode'],
+    siteId: isString(raw.siteId, 80) ? raw.siteId : '',
+    lon: text('lon'),
+    lat: text('lat'),
+    west: text('west'),
+    south: text('south'),
+    east: text('east'),
+    north: text('north'),
+    windowSiteId: isString(raw.windowSiteId, 80) ? raw.windowSiteId : null,
+  }
 }
 
-const SOURCES: readonly MissionSource[] = ['lktron', 'demo', 'preset']
+function parseRequirement(raw: unknown): EditableRequirement | null {
+  if (!isRecord(raw) || raw.origin !== 'user') return null
+  if (!isString(raw.requirement_id, 40) || !isString(raw.label, 200)) return null
+  if (raw.importance !== 'critical' && raw.importance !== 'preference') return null
+  const importance: 'critical' | 'preference' = raw.importance
+  const quote = raw.source_quote === null || isString(raw.source_quote, 600) ? (raw.source_quote as string | null) : null
+  const base = { requirement_id: raw.requirement_id, label: raw.label, importance, origin: 'user' as const, source_quote: quote }
+  if (raw.kind === 'unmeasured') {
+    if (!isString(raw.topic_id, 60) || !isString(raw.detail, 400)) return null
+    return { ...base, kind: 'unmeasured', topic_id: raw.topic_id, detail: raw.detail }
+  }
+  if (raw.kind !== 'measurable' || !METRIC_IDS.includes(raw.metric_id as MetricId)) return null
+  if (!OPERATORS.includes(raw.operator as (typeof OPERATORS)[number])) return null
+  const values = raw.valueText
+  if (!Array.isArray(values) || values.length !== 2 || !values.every((value) => isString(value, 40))) return null
+  const countries = Array.isArray(raw.countries) ? raw.countries.filter((value): value is string => isString(value, 4)) : []
+  if (!isString(raw.unit, 20) || (raw.scale !== 'window' && raw.scale !== 'point')) return null
+  return {
+    ...base,
+    kind: 'measurable',
+    metric_id: raw.metric_id as MetricId,
+    operator: raw.operator as (typeof OPERATORS)[number],
+    valueText: [values[0] as string, values[1] as string],
+    countries,
+    unit: raw.unit,
+    scale: raw.scale,
+  }
+}
 
 /** Valida en el límite: lo guardado puede venir de otra versión o estar alterado. */
 export function parseHistory(raw: unknown): HistoryEntry[] {
   if (!Array.isArray(raw)) return []
   const out: HistoryEntry[] = []
   for (const item of raw) {
-    if (typeof item !== 'object' || item === null) continue
-    const entry = item as Record<string, unknown>
-    const levels = entry.levels as Record<string, unknown> | undefined
-    if (typeof levels !== 'object' || levels === null) continue
-    if (!CRITERION_IDS.every((id) => isLevel(levels[id]))) continue
-    if (typeof entry.id !== 'string' || typeof entry.at !== 'number' || !Number.isFinite(entry.at)) continue
-    if (!(entry.text === null || (typeof entry.text === 'string' && entry.text.length <= 600))) continue
-    if (typeof entry.label !== 'string' || entry.label.length > 80) continue
-    if (!SOURCES.includes(entry.source as MissionSource)) continue
-    const presetId = typeof entry.presetId === 'string' ? entry.presetId : null
-    const clean = {} as Record<CriterionId, CriterionLevel>
-    for (const id of CRITERION_IDS) clean[id] = levels[id] as CriterionLevel
-    out.push({ id: entry.id, at: entry.at, text: entry.text as string | null, source: entry.source as MissionSource, label: entry.label, levels: clean, presetId })
+    if (!isRecord(item)) continue
+    if (!isString(item.id, 80) || typeof item.at !== 'number' || !Number.isFinite(item.at)) continue
+    if (item.journey !== 'test' && item.journey !== 'sector') continue
+    if (!isString(item.brief, MAX_BRIEF) || !isString(item.label, 120)) continue
+    const scope = parseScope(item.scope)
+    if (!scope || !Array.isArray(item.requirements)) continue
+    const requirements = item.requirements.map(parseRequirement)
+    if (requirements.some((requirement) => requirement === null)) continue
+    out.push({ id: item.id, at: item.at, journey: item.journey, brief: item.brief, scope, requirements: requirements as EditableRequirement[], label: item.label })
     if (out.length >= HISTORY_MAX) break
   }
   return out
 }
 
-export function levelsSignature(levels: Levels): string {
-  return CRITERION_IDS.map((id) => levels[id]).join('')
+/** Solo lo que el usuario escribió o editó: las propuestas intactas de la IA no se guardan. */
+export function userRequirements(requirements: readonly EditableRequirement[]): EditableRequirement[] {
+  return requirements.filter((requirement) => requirement.origin === 'user')
 }
 
-/** Más nueva primero; la misma misión (texto + niveles) no se repite: sube al principio. */
+function scopeLabel(scope: ScopeInput): string {
+  if (scope.mode === 'catalog') return 'las siete áreas'
+  if (scope.mode === 'sector') return 'un sector'
+  return scope.mode === 'point' ? 'un punto' : 'un rectángulo'
+}
+
+export function entryLabel(requirements: readonly EditableRequirement[], scope: ScopeInput): string {
+  const count = requirements.length
+  return `${count} ${count === 1 ? 'requisito' : 'requisitos'} · ${scopeLabel(scope)}`
+}
+
+export function entryFrom(
+  state: { journey: JourneyId | null; brief: string; scope: ScopeInput; requirements: readonly EditableRequirement[] },
+  at: number,
+): HistoryEntry {
+  const requirements = userRequirements(state.requirements)
+  return {
+    id: `${at.toString(36)}-${requirements.length}`,
+    at,
+    journey: state.journey ?? 'test',
+    brief: state.brief,
+    scope: state.scope,
+    requirements,
+    label: entryLabel(requirements, state.scope),
+  }
+}
+
+/** Huella de lo que se restauraría: dos entradas iguales no se repiten en la lista. */
+export function entrySignature(entry: Pick<HistoryEntry, 'journey' | 'brief' | 'scope' | 'requirements'>): string {
+  return JSON.stringify([entry.journey, entry.brief, entry.scope, entry.requirements])
+}
+
+/** Más nueva primero; la misma prueba no se repite: sube al principio. */
 export function addHistory(list: readonly HistoryEntry[], entry: HistoryEntry, max = HISTORY_MAX): HistoryEntry[] {
-  const key = `${entry.text ?? ''}|${levelsSignature(entry.levels)}`
-  const rest = list.filter((item) => `${item.text ?? ''}|${levelsSignature(item.levels)}` !== key)
-  return [entry, ...rest].slice(0, max)
+  const key = entrySignature(entry)
+  return [entry, ...list.filter((item) => entrySignature(item) !== key)].slice(0, max)
 }
 
 /** Textos recientes únicos para el menú ⟲. */
@@ -82,9 +157,10 @@ export function recentTexts(list: readonly HistoryEntry[], max = 5): string[] {
   const seen = new Set<string>()
   const out: string[] = []
   for (const entry of list) {
-    if (!entry.text || seen.has(entry.text)) continue
-    seen.add(entry.text)
-    out.push(entry.text)
+    const text = entry.brief.trim()
+    if (!text || seen.has(text)) continue
+    seen.add(text)
+    out.push(text)
     if (out.length >= max) break
   }
   return out

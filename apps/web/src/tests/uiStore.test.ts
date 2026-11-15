@@ -99,8 +99,15 @@ describe('store ui (UX_REDESIGN §2.1)', () => {
 })
 
 describe('store mission', () => {
-  it('arranca vacío: sin texto, perfil ni puntajes', () => {
+  it('arranca vacío: sin planificador, solicitud, evaluación ni explicación', () => {
     expect(missionStore.getState()).toEqual(INITIAL_MISSION_STATE)
-    expect(INITIAL_MISSION_STATE.scoring).toBeNull()
+    expect(INITIAL_MISSION_STATE).toMatchObject({ planner: null, request: null, evaluation: null, explanation: null, stale: false, revision: 0 })
+  })
+
+  it('la fase «review» (editar requisitos) no cuenta como espera; borrador y explicación de IA sí', () => {
+    expect(isMissionBusy('review')).toBe(false)
+    expect(isMissionBusy('interpreting')).toBe(true)
+    expect(isMissionBusy('analysis')).toBe(true)
+    expect(isMissionBusy('idle')).toBe(false)
   })
 })

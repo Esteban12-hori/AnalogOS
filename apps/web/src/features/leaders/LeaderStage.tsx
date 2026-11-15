@@ -191,7 +191,7 @@ export function LeaderStage(props: LeaderStageProps) {
               {header.vsMars && (
                 <> · vs <span className="leaders-mars-glyph">{GLYPH.jezero}</span> Jezero (MOLA)</>
               )}
-              {header.mission && <> · según tu perfil</>}
+              {header.mission && <> · con tus requisitos</>}
             </div>
           </div>
 
@@ -251,6 +251,11 @@ function LeaderCard({ label }: { label: LeaderLabelModel }) {
           </>
         )}
       </div>
+      {label.requirement && (
+        <div className="leaders-req" data-status={label.requirement.status}>
+          <b aria-hidden="true">{label.requirement.mark}</b> {label.requirement.text}
+        </div>
+      )}
       {label.note && <div className="leaders-note">{label.note}</div>}
     </div>
   )

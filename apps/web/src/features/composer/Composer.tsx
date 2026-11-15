@@ -1,20 +1,20 @@
 /**
- * Composer de misión (incremento 9, docs/UX_REDESIGN.md §3.2 y §2.3 C/D).
+ * Composer de misión (docs/UX_REDESIGN.md §3.2 y §2.3 C/D, sobre el planificador del equipo, ADR-013).
  *
- * - Explorar: píldora «✦ Describe el trabajo…» (la misma caja que pinta el HTML estático).
+ * - Explorar: píldora «✦ Describe la prueba…» (la misma caja que pinta el HTML estático).
  * - Misión: el formulario (`MissionComposer`).
  * - S1: botón «✦ Refinar» que pide volver a la bandeja.
- * - Teclas: «/» abre el composer desde fuera de un campo de texto; Esc cancela la espera.
+ * - Teclas: «/» abre el composer desde fuera de un campo de texto; Esc cancela la espera de la IA.
  *
- * El chunk principal lleva solo la vista: orquestador, motor, contratos, tarjeta «Tu misión»,
- * recientes y chips viajan en el chunk de misión, que se precarga al entrar a Misión.
+ * El chunk principal lleva solo la vista: controlador, planificador, validadores, cliente de IA,
+ * «Tu misión», recientes y sugerencias viajan en el chunk de misión.
  */
 import { useEffect } from 'react'
 import { GLYPH } from '../../shell/public'
 import { uiActions, useUi } from '../../state/ui'
 import { useComposer } from './composerStore'
 import { focusComposer } from './focus'
-import { isWaitingPhase, phaseLabel } from './labels'
+import { isWaitingPhase } from './labels'
 import { GlobeOrbit, MissionComposer, PROMPT } from './MissionComposer'
 import { anyPopoverOpen } from './popover'
 import { withController } from './runLoader'
@@ -43,9 +43,8 @@ function slashAllowed(target: EventTarget | null): boolean {
 export function Composer({ data, placement, onRequestTray }: ComposerProps) {
   const mode = useUi((state) => state.mode)
   const phase = useUi((state) => state.missionPhase)
-  const run = useComposer((state) => state.run)
   const wait = useComposer((state) => state.wait)
-  const waiting = run !== null && isWaitingPhase(phase)
+  const waiting = isWaitingPhase(phase)
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -54,7 +53,7 @@ export function Composer({ data, placement, onRequestTray }: ComposerProps) {
         // Un popover abierto se cierra primero; la misión solo se cancela si se está esperando.
         if (!waiting || anyPopoverOpen()) return
         event.preventDefault()
-        withController((mission) => mission.cancel())
+        withController((mission) => mission.cancelDraft())
       } else if (event.key === '/' && !isEditable(event.target) && slashAllowed(event.target)) {
         event.preventDefault()
         if (placement === 'sheet-head') onRequestTray?.()
@@ -69,9 +68,9 @@ export function Composer({ data, placement, onRequestTray }: ComposerProps) {
     return (
       <>
         <button type="button" className="composer-refine" aria-busy={waiting || undefined} onClick={() => onRequestTray?.()}>
-          <span aria-hidden="true">{GLYPH.ai}</span> {waiting ? 'Interpretando…' : 'Refinar'}
+          <span aria-hidden="true">{GLYPH.ai}</span> {waiting ? 'Proponiendo…' : 'Refinar'}
         </button>
-        <GlobeOrbit active={waiting && wait !== 'quiet'} label={phaseLabel(phase, run?.interpreter ?? null)} />
+        <GlobeOrbit active={waiting && wait !== 'quiet'} label="Proponiendo requisitos…" />
       </>
     )
   }

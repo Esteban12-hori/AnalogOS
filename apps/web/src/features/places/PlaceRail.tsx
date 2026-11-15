@@ -1,21 +1,25 @@
 /**
- * PlaceRail (incremento 3, docs/UX_REDESIGN.md §3.5): carrusel de lugares con scroll-snap nativo.
+ * PlaceRail (docs/UX_REDESIGN.md §3.5; ADR-008 y ADR-013): carrusel de lugares con scroll-snap nativo.
  *
  * - Un listbox horizontal (APG) con roving tabindex: flechas, Inicio/Fin, búsqueda por letras;
  *   Enter/Espacio o clic seleccionan. El foco y el puntero publican `hoverSiteId` para el globo.
- * - Dos grupos: «Sectores evaluados» (orden estable de rankCandidates, nulos al final) y
- *   «◆ Emblemáticos · por calcular» (alfabético, sin %, sin ranking).
+ * - Explorar: «Candidatos de la búsqueda» en su puesto global (filtro por país que lo conserva),
+ *   «Referencia conocida» (REF, sin puesto) y «◆ Emblemáticos · por calcular».
+ * - Misión con evaluación: grupos por estado de la evaluación del equipo; diagnóstico exportable
+ *   cuando el alcance no tiene evidencia.
  * - Globo → carrusel: cualquier selección nueva lleva su tarjeta a la vista.
  * - Hoja móvil: un barrido táctil (pointerType touch) deja la tarjeta centrada en vista previa.
- * - Espera de la IA: resultados previos a --o-busy con aria-busy, sin inert ni esqueleto animado.
+ * - Edición tras evaluar: resultados previos a --o-busy con aria-busy, sin inert, hasta reevaluar.
  */
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import type { ReferenceAnalog } from '../../domain/contracts'
+import { countryLabels, type CountryFilter } from '../../domain/discovery'
+import { RULES_VERSION } from '../../mission/catalog'
 import { GLYPH, useReducedMotion, type AppData } from '../../shell/public'
 import { useMission } from '../../state/mission'
-import { isMissionBusy, uiActions, useUi } from '../../state/ui'
+import { uiActions, useUi } from '../../state/ui'
 import type { PlaceRailProps } from './index'
-import { EvaluatedOption, ReferenceOption } from './PlaceOption'
+import { DiagnosisNote, EvaluatedOption, ReferenceOption } from './PlaceOption'
 import { buildPlaceModel, nextOptionIndex, placeLabelOf, placeOrder, rangeLabel, typeaheadIndex, visibleRange, type Place } from './placeModel'
 import { preloadReferenceCard } from './ReferenceCard'
 import { classifyReferences, useReferenceAnalogs } from './referenceAnalogs'
@@ -66,22 +70,24 @@ export function PlaceRail(props: PlaceRailProps) {
   )
 }
 
-function PlaceCarousel({ snapshot, placement, listView: listProp = false, onListViewChange }: PlaceRailProps & { snapshot: Snapshot }) {
+function PlaceCarousel({ snapshot, placement, listView: listProp = false, onListViewChange, promise }: PlaceRailProps & { snapshot: Snapshot }) {
   const listboxId = useId()
   const reduced = useReducedMotion()
   const mission = useUi((state) => state.mode) === 'mision'
   const selection = useUi((state) => state.selection)
-  const busy = useUi((state) => isMissionBusy(state.missionPhase))
-  const scoring = useMission((state) => state.scoring)
-  const profile = useMission((state) => state.profile)
+  const evaluation = useMission((state) => state.evaluation)
+  const stale = useMission((state) => state.stale)
   const catalog = useReferenceAnalogs()
   const [localList, setLocalList] = useState(false)
+  const [country, setCountry] = useState<CountryFilter>('all')
   const listView = listProp || localList
   const analogs = catalog.status === 'ready' ? catalog.analogs : NO_ANALOGS
   const classification = useMemo(() => classifyReferences(analogs, snapshot.candidates), [analogs, snapshot.candidates])
+  const missionEvaluation = mission ? evaluation : null
+  const busy = missionEvaluation !== null && stale
   const model = useMemo(
-    () => buildPlaceModel({ candidates: snapshot.candidates, classification, scoring: mission ? scoring : null }),
-    [snapshot.candidates, classification, mission, scoring],
+    () => buildPlaceModel({ candidates: snapshot.candidates, classification, evaluation: missionEvaluation, country }),
+    [snapshot.candidates, classification, missionEvaluation, country],
   )
   const options = useMemo(() => placeOrder(model), [model])
   const selectedId = selection?.siteId ?? null
@@ -269,18 +275,18 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
 
   const canList = placement === 'dock' || onListViewChange !== undefined
   const toggleList = () => (onListViewChange ? onListViewChange(!listView) : setLocalList(!localList))
-  const fromMission = model.source === 'mission' && scoring !== null
+  const fromMission = model.source === 'mission' && missionEvaluation !== null
+  const prioritized = missionEvaluation?.options.filter((option) => option.status === 'priorizado_para_reconocimiento').length ?? 0
   // El modo se oculta en contenedores angostos (la hoja ya tiene las pestañas encima); el rótulo
-  // del motor nunca se oculta: dice de dónde sale el %.
+  // de las reglas nunca se oculta: dice de dónde salen los estados.
   const title = fromMission
-    ? `Tu misión · % del motor determinista v${scoring.engineVersion}`
+    ? `Tu misión · ${prioritized} ${prioritized === 1 ? 'priorizado' : 'priorizados'}`
     : <>Lugares<span className="places-suffix"> · {mission ? 'Misión' : 'Explorar'}</span></>
   const note = fromMission
-    ? `${profile?.label ?? 'Tu perfil'} · no es el snapshot`
+    ? `${busy ? 'Editó la prueba: confirme y evalúe de nuevo · ' : ''}Estados del cálculo determinista (${RULES_VERSION}) · similitud v3 sin recalcular · factibilidad territorial pendiente`
     : mission
-      ? busy ? '% del perfil base · se reemplaza cuando el motor termine' : '% del perfil base (snapshot)'
-      : null
-  const profileTag = fromMission ? profile?.label ?? 'tu perfil' : 'perfil base'
+      ? 'Sin evaluar: defina y confirme los requisitos en «Tu misión». Similitud v3 del snapshot.'
+      : promise ?? null
   // Cuenta lo que se ve: ◆ con tarjeta; los que coinciden con un sector van como insignia.
   const matched = new Set([...classification.badges.values()].flat().map((analog) => analog.id)).size
   const catalogNote =
@@ -312,7 +318,8 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
         tabIndex={index === active ? 0 : -1}
         className="places-card"
         data-kind={option.kind}
-        data-status={option.kind === 'evaluated' ? option.status : 'por_calcular'}
+        data-role={option.kind === 'evaluated' ? option.role : undefined}
+        data-status={option.kind === 'evaluated' ? option.mission?.status ?? option.status : 'por_calcular'}
         style={{ '--i': Math.min(index, 6) } as CSSProperties}
         onClick={() => choose(option)}
         onFocus={(event) => {
@@ -328,23 +335,33 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
         onPointerLeave={() => uiActions.setHover(null)}
       >
         {option.kind === 'evaluated'
-          ? <EvaluatedOption place={option} rankedCount={model.rankedCount} profileTag={profileTag} mission={fromMission} selected={selected} />
+          ? <EvaluatedOption place={option} rankedCount={model.rankedCount} selected={selected} />
           : <ReferenceOption place={option} selected={selected} />}
       </div>
     )
   }
 
   const evaluatedCount = model.evaluated.length
+  const candidateGroup = model.groups.find((group) => group.role === 'candidate')
+  const filters: Array<[CountryFilter, string]> = [['all', 'Todos'], ...model.countries.map((code) => [code, countryLabels[code]] as [CountryFilter, string])]
+  let offset = 0
   return (
     <div className="places" data-placement={placement} data-view={listView ? 'list' : 'carousel'} data-busy={busy ? '' : undefined} aria-busy={busy || undefined}>
       <div className="places-head">
         <p className="places-title">
           <span>{title}</span>
-          <small><span aria-hidden="true">{GLYPH.evaluated}</span> {evaluatedCount} evaluados</small>
+          <small><span aria-hidden="true">{GLYPH.evaluated}</span> {model.rankedCount} candidatos · 1 REF</small>
           <small title={catalog.status === 'unavailable' ? catalog.reason : undefined}><span aria-hidden="true">{GLYPH.reference}</span> {catalogNote}</small>
-          <small className="places-profile">% · {profileTag}</small>
+          <small className="places-profile">{fromMission ? 'estado · reglas del equipo' : 'similitud v3'}</small>
         </p>
         <div className="places-tools">
+          {!fromMission && model.countries.length > 1 && (
+            <div className="country-filter places-filter" role="group" aria-label="Filtrar candidatos por país">
+              {filters.map(([value, label]) => (
+                <button type="button" key={value} aria-pressed={country === value} onClick={() => setCountry(value)}>{label}</button>
+              ))}
+            </div>
+          )}
           <span className="places-count">{listView ? `${options.length} lugares` : rangeLabel(range, options.length)}</span>
           {canList && (
             <button type="button" className="places-tool" aria-controls={listboxId} onClick={toggleList}>
@@ -359,7 +376,8 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
           )}
         </div>
       </div>
-      {note && <p className="places-note">{note}</p>}
+      {note && <p className="places-note" title={note}>{note}</p>}
+      {fromMission && missionEvaluation.outcome !== 'evaluated' && <DiagnosisNote evaluation={missionEvaluation} />}
       <div
         ref={track}
         id={listboxId}
@@ -370,10 +388,31 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
         onKeyDown={onKeyDown}
         onPointerDown={(event) => { touch.current = event.pointerType === 'touch' }}
       >
-        <div role="group" aria-labelledby={`${listboxId}-g1`} className="places-group">
-          <span id={`${listboxId}-g1`} role="presentation" className="places-group-label">Sectores evaluados</span>
-          {model.evaluated.map((option, index) => renderOption(option, index))}
-        </div>
+        {candidateGroup && candidateGroup.places.length === 0 && (
+          <p className="places-empty" role="status">
+            La búsqueda no dejó candidatos {country === 'all' ? 'elegibles' : `en ${countryLabels[country]}`}. No se completa la lista con sitios elegidos a mano.
+          </p>
+        )}
+        {model.groups.map((group, groupIndex) => {
+          const start = offset
+          offset += group.places.length
+          if (group.places.length === 0) return null
+          return (
+            <div
+              key={group.key}
+              role="group"
+              aria-labelledby={`${listboxId}-g${groupIndex}`}
+              className="places-group"
+              data-role={group.role ?? undefined}
+              data-status={group.status ?? undefined}
+            >
+              <span id={`${listboxId}-g${groupIndex}`} role="presentation" className="places-group-label">
+                {group.role === 'reference' ? `Referencia conocida: ${group.places.map((item) => placeLabelOf(item)).join(', ')}` : group.label}
+              </span>
+              {group.places.map((option, index) => renderOption(option, start + index))}
+            </div>
+          )
+        })}
         {model.references.length > 0 && (
           <div role="group" aria-labelledby={`${listboxId}-g2`} className="places-group" data-kind="reference">
             <span id={`${listboxId}-g2`} role="presentation" className="places-group-label">

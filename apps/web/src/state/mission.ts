@@ -1,42 +1,50 @@
 /**
- * Store `mission`: resultado vigente del modo Misión, compartido entre features.
- * Archivo del integrador. ESCRIBE solo `features/composer` (orquesta interpretar → perfil →
- * motor); LEEN places, metrics, leaders, globe y analysis. La fase visible vive en
- * `ui.missionPhase`, no aquí.
+ * Store `mission`: el planificador del equipo (ADR-009) compartido por toda la interfaz (ADR-013).
+ * Archivo del integrador. ESCRIBE solo el controlador de misión (features/composer/missionController,
+ * chunk diferido), que usa `plannerReducer`, `evaluateMission`, el cliente de IA y la exportación
+ * del equipo sin cambios; LEEN el composer, «Tu misión», places, globe, metrics, leaders y analysis.
+ *
+ * Solo tipos de `mission/*`: este archivo vive en el chunk principal y no arrastra Ajv.
+ * La fase visible vive en `ui.missionPhase`, no aquí.
  */
-import type { MissionInterpretation } from '../domain/aiContracts'
-import type { MissionProfileDraft, MissionScoring } from '../features/engine/types'
+import type { ExplanationView } from '../mission/explanation'
+import type { PlannerState } from '../mission/plannerState'
+import type { MissionEvaluation, MissionRequest } from '../mission/types'
 import { createStore, useStore } from './store'
 
-export type MissionSource = 'lktron' | 'demo' | 'preset'
-
-export interface MissionError {
-  code: 'timeout' | 'invalid' | 'unavailable' | 'insufficient' | 'cancelled' | 'unknown'
-  /** Texto neutro para la UI (error = neutro + ✕ + texto). */
-  message: string
-}
+/** Procedencia de los requisitos vigentes (nunca de las cifras, que son del cálculo determinista). */
+export type MissionSource = 'anthropic' | 'manual' | 'example'
 
 export interface MissionState {
-  /** Último texto enviado; null si nunca se envió. */
-  text: string | null
+  /** Estado del reductor del equipo, tal cual; null hasta que carga el chunk de misión. */
+  planner: PlannerState | null
+  /** Solicitud construida (buildRequest) cuando es válida; null si faltan datos. */
+  request: MissionRequest | null
+  /**
+   * Última evaluación aceptada (planner.result). Si el usuario edita brief, requisitos o alcance,
+   * el reductor la invalida: aquí se conserva como referencia visual con `stale: true` (resultados
+   * a --o-busy hasta reevaluar); la exportación y la IA solo usan la evaluación vigente.
+   */
+  evaluation: MissionEvaluation | null
+  /** true = `evaluation` ya no corresponde a lo que el usuario está editando. */
+  stale: boolean
+  /** Solicitud con la que se calculó `evaluation` (para repartir sus requisitos por criterio). */
+  evaluatedRequest: MissionRequest | null
+  /** Motivos destacados: plantilla determinista o selección de la IA validada (§5.2). */
+  explanation: ExplanationView | null
   source: MissionSource | null
-  /** Interpretación validada contra mission-interpretation/1 (null con perfiles predefinidos). */
-  interpretation: MissionInterpretation | null
-  profile: MissionProfileDraft | null
-  /** % del motor determinista; null hasta que el motor termina. */
-  scoring: MissionScoring | null
-  error: MissionError | null
-  /** Aumenta con cada resultado nuevo: punto en la pestaña Misión y coreografía D. */
+  /** Aumenta con cada evaluación aceptada: punto en la pestaña Misión y un solo anuncio. */
   revision: number
 }
 
 export const INITIAL_MISSION_STATE: MissionState = {
-  text: null,
+  planner: null,
+  request: null,
+  evaluation: null,
+  stale: false,
+  evaluatedRequest: null,
+  explanation: null,
   source: null,
-  interpretation: null,
-  profile: null,
-  scoring: null,
-  error: null,
   revision: 0,
 }
 
@@ -44,4 +52,16 @@ export const missionStore = createStore<MissionState>(INITIAL_MISSION_STATE)
 
 export function useMission<T>(selector: (state: MissionState) => T): T {
   return useStore(missionStore, selector)
+}
+
+/**
+ * Procedencia de los requisitos (función pura): «anthropic» si alguno sigue siendo la propuesta
+ * intacta de la IA; «example» si todos son los del ejemplo editable; «manual» en otro caso.
+ */
+export function missionSource(planner: Pick<PlannerState, 'requirements'> | null): MissionSource | null {
+  const requirements = planner?.requirements ?? []
+  if (requirements.length === 0) return null
+  if (requirements.some((requirement) => requirement.origin === 'ai')) return 'anthropic'
+  if (requirements.every((requirement) => /^ex\d+$/.test(requirement.requirement_id))) return 'example'
+  return 'manual'
 }

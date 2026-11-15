@@ -28,9 +28,9 @@ import {
   similarityText,
   topographicWhy,
   vsMarsText,
-  weightChangeGlyph,
   weightText,
 } from './metricText'
+import { RequirementRow } from './MetricRail'
 import { MetricVisual, Ring } from './MetricViz'
 import './metrics.css'
 
@@ -160,10 +160,15 @@ function MetricBody({ view, context, site, data, detail }: BodyProps) {
   })
   const source = sourceLine(view.datasetId, data.snapshot?.manifest ?? null)
   const why = topographicWhy(view)
-  const glyph = weightChangeGlyph(view)
+  const requirements = context.mission?.byCriterion.get(view.criterionId) ?? []
 
   return (
     <div className="metrics-body">
+      {requirements.length > 0 && (
+        <ul className="metrics-reqs" aria-label={`Requisitos de tu misión sobre ${view.label}`}>
+          {requirements.map((result) => <RequirementRow key={result.requirement_id} result={result} />)}
+        </ul>
+      )}
       {pending ? (
         <div className="metrics-pending-box">
           <strong>{pendingText(view)}</strong>
@@ -179,7 +184,7 @@ function MetricBody({ view, context, site, data, detail }: BodyProps) {
 
       {view.isLimiting && view.contribution !== null && (
         <p className="metrics-callout is-limiting">
-          <b>Limitante</b> · es el criterio que más baja el % de este lugar con {context.kind === 'mission' ? 'tu perfil' : 'el perfil base'} (aporte {contributionText(view.contribution)}).
+          <b>Limitante</b> · es el criterio que más baja la similitud v3 de este lugar con el perfil base (aporte {contributionText(view.contribution)}).
         </p>
       )}
 
@@ -209,7 +214,6 @@ function MetricBody({ view, context, site, data, detail }: BodyProps) {
           <dt>Peso</dt>
           <dd>
             {excluded ? 'excluido (0 %)' : <FadeNumber value={view.weight}>{weightText(view.weight)}</FadeNumber>}
-            {context.kind === 'mission' && <small> · base {weightText(view.baseWeight)}{glyph && <span aria-label={glyph === GLYPH.weightUp ? 'sube' : 'baja'}> {glyph}</span>}</small>}
           </dd>
         </div>
         {!pending && (
@@ -251,8 +255,8 @@ function Header({ context, site, data, headingId }: { context: MetricContext; si
     <header className="metrics-head">
       <h3 id={headingId}>Métricas vs Jezero</h3>
       <p>
-        Todo el sector · <span aria-hidden="true">{GLYPH.sector}</span> {formatArea(site.area_km2)} · medianas
-        {context.kind === 'mission' ? ' · según tu perfil' : ' · perfil base'}
+        Todo el sector · <span aria-hidden="true">{GLYPH.sector}</span> {formatArea(site.area_km2)} · medianas · perfil base
+        {context.kind === 'mission' ? ' · con tus requisitos (✓ ✕ ○)' : ''}
       </p>
       <ul className="metrics-legend" aria-label="Leyenda">
         <li><span aria-hidden="true" className="is-site">{GLYPH.evaluated}</span> Sector</li>

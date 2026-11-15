@@ -77,10 +77,10 @@ describe('encabezado de honestidad', () => {
     expect(headerText(header)).toBe('Todo el sector · ≈ 450 km² · medianas ~460–480 m · vs ■ Jezero (MOLA)')
   })
 
-  it('con perfil de misión agrega «según tu perfil»; sin ■ en las etiquetas no nombra a Jezero', () => {
+  it('en Misión agrega «con tus requisitos»; sin ■ en las etiquetas no nombra a Jezero', () => {
     const principal = pickPrincipalMetrics(views).filter((view) => view.marsValue === null)
     const header = leaderHeader({ site: yungay, manifest: scienceManifest, principal, missionActive: true })
-    expect(headerText(header)).toBe('Todo el sector · ≈ 450 km² · medianas · según tu perfil')
+    expect(headerText(header)).toBe('Todo el sector · ≈ 450 km² · medianas · con tus requisitos')
   })
 
   it('la escala sale del manifiesto o no se muestra (sin cifras inventadas)', () => {

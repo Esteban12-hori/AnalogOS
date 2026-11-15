@@ -1,9 +1,0 @@
-{
-  "type": "insight",
-  "id": "i2",
-  "site_id": "cl-pampa-yungay-screening",
-  "criterion_id": "slope",
-  "fact_kind": "direction_vs_mars",
-  "text": "Similitud cercana al cien %.",
-  "refs": []
-}

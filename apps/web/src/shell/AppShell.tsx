@@ -9,7 +9,7 @@
  * integrador: los constructores no lo editan.
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Composer, focusComposer, MissionCard } from '../features/composer'
+import { Composer, focusComposer, MissionCard, MissionPrintHost, registerMissionSnapshot, withController } from '../features/composer'
 import { BootLayer, reportBootMilestone, StatusChip } from '../features/boot'
 import { MapStage, type StageMilestone } from '../features/globe'
 import { LeaderLayer, LeaderToggle } from '../features/leaders'
@@ -18,6 +18,7 @@ import { PlaceRail, ReferenceCard } from '../features/places'
 import { ReadingPanel, ReadingPill } from '../features/analysis'
 import { useMission } from '../state/mission'
 import { searchWithMode, uiActions, uiStore, useUi } from '../state/ui'
+import { SHELL_TEXT } from '../content/shell'
 import { isFixtureSnapshot, type AppData } from './appData'
 import { dataAttributionText } from './attribution'
 import { FullDetail } from './detail/FullDetail'
@@ -96,6 +97,16 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
   const root = useRef<HTMLDivElement>(null)
   const snapshot = data.snapshot
   const site = selection?.kind === 'evaluated' ? snapshot?.candidates.find((item) => item.site_id === selection.siteId) ?? null : null
+
+  // ---- Planificador compartido: el snapshot validado, sin transformar (ADR-013) ------------
+  useEffect(() => registerMissionSnapshot(data.status === 'ready' ? data.snapshot : null), [data.status, data.snapshot])
+  // Al entrar a Misión se carga el chunk del planificador y se abre «Definir una prueba» (sin IA).
+  useEffect(() => {
+    if (mode !== 'mision' || data.status !== 'ready') return
+    withController((mission) => {
+      if (mission.getState().journey === null) mission.dispatch({ type: 'set_journey', journey: 'test' })
+    })
+  }, [mode, data.status])
 
   // ---- Modo: ?modo= con replaceState y punto de resultados nuevos -------------------------
   useEffect(() => {
@@ -269,12 +280,12 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
     >
       {/* La barra superior va primero en el DOM (orden de tabulación = orden visual); es fija. */}
       <header className="topbar" data-obstacle="">
-        <h1 className="sr-only">AnalogOS Chile</h1>
+        <h1 className="sr-only">{SHELL_TEXT.brand} · {SHELL_TEXT.brandTagline}</h1>
         <div className="brand" aria-hidden="true">
           <span className="brand-mark" aria-hidden="true" />
           <span className="brand-text">
-            <strong>AnalogOS Chile</strong>
-            <small>Earth analog decision system</small>
+            <strong>{SHELL_TEXT.brand}</strong>
+            <small>{SHELL_TEXT.brandTagline}</small>
           </span>
         </div>
         <ModeTabs mode={mode} unseen={revision > seenRevision} />
@@ -293,6 +304,8 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
           <MapStage
             candidates={snapshot.candidates}
             outline={snapshot.outline}
+            search={snapshot.search}
+            precedents={snapshot.precedents}
             selectedId={selection?.kind === 'evaluated' ? selection.siteId : null}
             onSelect={selectSite}
             insets={settledInsets}
@@ -321,7 +334,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
 
       {tramo === 'wide' && mode === 'mision' && (
         <aside className="left-panel" aria-label="Tu misión y lectura" data-obstacle="">
-          <div data-slot="left.mission"><MissionCard data={data} placement="panel" /></div>
+          <div data-slot="left.mission"><MissionCard data={data} placement="panel" promise={promise} /></div>
           <div data-slot="left.reading"><ReadingPanel data={data} placement="panel" /></div>
         </aside>
       )}
@@ -340,7 +353,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
       <main className="app-main">
       {!narrow && (
         <section id={MODE_PANEL_ID} role="tabpanel" aria-labelledby={tabId('mode', mode)} className="dock" data-obstacle="">
-          <div className="dock-places" data-slot="dock.places"><PlaceRail data={data} placement="dock" /></div>
+          <div className="dock-places" data-slot="dock.places"><PlaceRail data={data} placement="dock" promise={promise} /></div>
           <div className="dock-composer" data-slot="dock.composer"><Composer data={data} placement="dock" /></div>
         </section>
       )}
@@ -356,12 +369,13 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
           keyboardOpen={keyboardInset > 0}
           head={sheetHead({ detent, data, siteName: site ? placeLabel(site.name) : null, hasSelection: selection !== null, onDetent: changeDetent })}
         >
-          {sheetBody({ detent, data, site, selection, onShowOnMap: showOnMap, onListView: openList })}
+          {sheetBody({ detent, data, site, selection, onShowOnMap: showOnMap, onListView: openList, promise })}
         </Sheet>
       )}
       </main>
 
       <LiveRegion />
+      <MissionPrintHost data={data} />
     </div>
   )
 }
@@ -416,6 +430,7 @@ function sheetHead({ detent, data, siteName, hasSelection, onDetent }: SheetPart
 }
 
 interface SheetBodyArgs {
+  promise?: string
   detent: DetentId
   data: AppData
   site: NonNullable<AppData['snapshot']>['candidates'][number] | null
@@ -424,11 +439,11 @@ interface SheetBodyArgs {
   onListView: (open: boolean) => void
 }
 
-function sheetBody({ detent, data, site, selection, onShowOnMap, onListView }: SheetBodyArgs): ReactNode {
+function sheetBody({ detent, data, site, selection, onShowOnMap, onListView, promise }: SheetBodyArgs): ReactNode {
   if (detent === 'S0') {
     return (
       <div className="sheet-tray">
-        <div className="sheet-tray-places" data-slot="sheet.tray.places"><PlaceRail data={data} placement="sheet" onListViewChange={onListView} /></div>
+        <div className="sheet-tray-places" data-slot="sheet.tray.places"><PlaceRail data={data} placement="sheet" onListViewChange={onListView} promise={promise} /></div>
         <div className="sheet-tray-composer" data-slot="sheet.tray.composer"><Composer data={data} placement="sheet" /></div>
       </div>
     )

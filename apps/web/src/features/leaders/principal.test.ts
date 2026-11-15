@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { CriterionId } from '../../domain/contracts'
 import type { MetricView } from '../metrics'
-import { pickPrincipalMetrics } from './principal'
+import { leaderLabelModel, leaderLabelModelFor } from './labelModel'
+import { pickMissionMetrics, pickPrincipalMetrics } from './principal'
 import { scienceSite, snapshotViews } from './testSupport'
 
 const yungay = scienceSite('cl-pampa-yungay-screening')
@@ -61,5 +62,34 @@ describe('pickPrincipalMetrics', () => {
     const before = ids(views)
     pickPrincipalMetrics(views)
     expect(ids(views)).toEqual(before)
+  })
+})
+
+describe('pickMissionMetrics (Misión, ADR-013)', () => {
+  // FIXTURE: resultados de requisitos con la forma de RequirementResult (no son resultados científicos).
+  const result = (id: string, importance: 'critical' | 'preference', status: 'cumple' | 'no_cumple' | 'no_evaluable' = 'cumple') => ({
+    requirement_id: id, label: id, importance, kind: 'measurable' as const, status, required: `${id}: ≤ 3°`, observed_value: 2, observed_unit: 'degree',
+    reason: 'FIXTURE', evidence_ids: [], scale_note: null, period: null, conversion: null,
+  })
+
+  it('primero los criterios con requisito (imprescindibles antes que preferencias), luego el peso base', () => {
+    const views = snapshotViews(yungay)
+    const requirements = new Map([
+      ['aridity_context', [result('a', 'preference')]],
+      ['local_relief', [result('b', 'critical')]],
+    ])
+    expect(ids(pickMissionMetrics(views, requirements, 4))).toEqual(['local_relief', 'aridity_context', 'slope', 'terrain_roughness'])
+  })
+
+  it('sin requisitos es igual que el peso base', () => {
+    const views = snapshotViews(yungay)
+    expect(ids(pickMissionMetrics(views, new Map(), 4))).toEqual(ids(pickPrincipalMetrics(views, 4)))
+  })
+
+  it('la etiqueta lleva ✓/✕/○ y la condición que escribió el motor del equipo', () => {
+    const view = snapshotViews(yungay).find((item) => item.criterionId === 'slope')!
+    expect(leaderLabelModel(view).requirement).toBeNull()
+    expect(leaderLabelModelFor(view, [result('ex1', 'critical', 'no_cumple')]).requirement).toEqual({ mark: '✕', status: 'no_cumple', text: '≤ 3°' })
+    expect(leaderLabelModelFor(view, [result('p', 'preference'), result('c', 'critical')]).requirement?.text).toBe('≤ 3° (+1)')
   })
 })

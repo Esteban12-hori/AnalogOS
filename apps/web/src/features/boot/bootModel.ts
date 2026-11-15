@@ -149,19 +149,39 @@ export const INITIAL_MILESTONES: Milestones = Object.freeze({ snapshot: 'pending
 export interface ChipInput {
   status: 'loading' | 'ready' | 'error'
   version: string | null
+  /** Candidatos de la búsqueda (con puesto); en snapshots históricos, todos los evaluados. */
   evaluated: number
+  /** Referencias conocidas (REF, sin puesto); 0 en snapshots históricos. */
+  references?: number
   /** ◆ del catálogo publicado (null = catálogo no disponible: no se menciona). */
   pendingAnalogs: number | null
 }
 
-/** «Snapshot v2 · 3 evaluados · 8 por calcular». Sin catálogo de ◆, no se menciona. */
-export function chipText({ status, version, evaluated, pendingAnalogs }: ChipInput): string {
+/**
+ * «Snapshot v3 · 6 candidatos · 1 REF · 7 ◆ por calcular» (con referencias, ADR-008) o
+ * «Snapshot v2 · 3 evaluados · 8 por calcular» (históricos). Sin catálogo de ◆, no se menciona.
+ */
+export function chipText({ status, version, evaluated, references = 0, pendingAnalogs }: ChipInput): string {
   if (status === 'loading') return 'Cargando snapshot validado…'
   if (status === 'error') return 'Snapshot no disponible'
   const label = snapshotLabel(version)
-  const parts = [`Snapshot${label ? ` ${label}` : ''}`, `${evaluated} ${evaluated === 1 ? 'evaluado' : 'evaluados'}`]
-  if (pendingAnalogs !== null && pendingAnalogs > 0) parts.push(`${pendingAnalogs} por calcular`)
+  const parts = [`Snapshot${label ? ` ${label}` : ''}`]
+  if (references > 0) {
+    parts.push(`${evaluated} ${evaluated === 1 ? 'candidato' : 'candidatos'}`, `${references} REF`)
+    if (pendingAnalogs !== null && pendingAnalogs > 0) parts.push(`${pendingAnalogs} ◆ por calcular`)
+  } else {
+    parts.push(`${evaluated} ${evaluated === 1 ? 'evaluado' : 'evaluados'}`)
+    if (pendingAnalogs !== null && pendingAnalogs > 0) parts.push(`${pendingAnalogs} por calcular`)
+  }
   return parts.join(' · ')
+}
+
+/** Anuncio único al validarse el snapshot: «6 candidatos y 1 referencia conocida». */
+export function snapshotAnnouncement(version: string, evaluated: number, references: number): string {
+  const counted = references > 0
+    ? `${evaluated} ${evaluated === 1 ? 'candidato' : 'candidatos'} y ${references} ${references === 1 ? 'referencia conocida' : 'referencias conocidas'}`
+    : `${evaluated} ${evaluated === 1 ? 'lugar evaluado' : 'lugares evaluados'}`
+  return `Snapshot científico ${snapshotLabel(version)} validado: ${counted}.`
 }
 
 // ---- Geometría de la órbita -------------------------------------------------------------

@@ -7,7 +7,9 @@ import type { CandidateSite, DataManifest, MissionProfile } from '../../domain/c
 import type { DemoSnapshot } from '../../data/loadDemoSnapshot'
 import { parseMarsReference } from '../../domain/marsReference'
 import type { AppData } from '../../shell/public'
+import { missionStore } from '../../state/mission'
 import { uiStore } from '../../state/ui'
+import { evaluateExample, readyData, v3Snapshot } from '../../tests/v3Support'
 import { fadeOffset } from './FadeNumber'
 import { MetricRail } from './MetricRail'
 import MetricDetails, { defaultCriterion, metricAriaLabel, nextIndex, sourceLine } from './MetricDetails'
@@ -33,7 +35,7 @@ const yungay = site('cl-pampa-yungay-screening')
 const domeyko = site('cl-domeyko-interior-screening')
 
 function context(of: CandidateSite) {
-  return resolveMetricContext({ site: of, candidates, profile: snapshot.profile, marsReference: snapshot.marsReference, mode: 'explorar', missionProfile: null, scoring: null })
+  return resolveMetricContext({ site: of, candidates, profile: snapshot.profile, marsReference: snapshot.marsReference, mode: 'explorar', evaluation: null, request: null })
 }
 function details(of: CandidateSite, variant: 'rail' | 'full' | 'sheet'): string {
   return renderToStaticMarkup(<MetricDetails data={data} site={of} variant={variant} context={context(of)} onShowOnMap={() => undefined} />)
@@ -47,7 +49,10 @@ function chunk(html: string, criterion: string): string {
   return html.slice(start, following === -1 ? undefined : html.lastIndexOf('<', following))
 }
 
-afterEach(() => uiStore.reset())
+afterEach(() => {
+  uiStore.reset()
+  missionStore.reset()
+})
 
 describe('MetricRail (chunk principal)', () => {
   it('pinta al instante similitud, confianza, estabilidad y factibilidad por separado', () => {
@@ -73,9 +78,36 @@ describe('MetricRail (chunk principal)', () => {
     expect(html).toContain('75,7')
   })
 
-  it('durante la espera de la IA en Misión, las cifras quedan aria-busy (sin inert)', () => {
-    uiStore.setState({ mode: 'mision', missionPhase: 'interpreting' })
-    const html = renderToStaticMarkup(<MetricRail data={data} site={yungay} variant="rail" />)
+  it('v3: país, rol y «Factibilidad territorial: pendiente»; la REF sin puesto', () => {
+    const ref = v3Snapshot.candidates.find((candidate) => candidate.role === 'reference')!
+    const html = renderToStaticMarkup(<MetricRail data={readyData} site={ref} variant="rail" />)
+    expect(html).toContain('REF · Referencia conocida')
+    expect(html).toContain('Chile')
+    expect(html).toContain('Factibilidad territorial: pendiente')
+    expect(html).not.toMatch(/#\d de 6/)
+    const first = renderToStaticMarkup(<MetricRail data={readyData} site={v3Snapshot.candidates[0]!} variant="rail" />)
+    expect(first).toContain('#1 de 6')
+    expect(first).toContain('Candidato de la búsqueda')
+  })
+
+  it('Misión con evaluación: estado, requisitos sin medición y la versión de las reglas; nunca un % de misión', () => {
+    const { evaluation, request } = evaluateExample()
+    missionStore.setState({ evaluation, evaluatedRequest: request, revision: 1 })
+    uiStore.setState({ mode: 'mision', missionPhase: 'done' })
+    const site = v3Snapshot.candidates[0]!
+    const html = renderToStaticMarkup(<MetricRail data={readyData} site={site} variant="rail" />)
+    expect(html).toContain('Priorizado para reconocimiento')
+    expect(html).toContain('Tracción')
+    expect(html).toContain('mission-rules-1.0.0')
+    expect(html).toContain('sin recalcular')
+    expect(html).not.toMatch(/motor determinista v|tu perfil/)
+  })
+
+  it('tras editar la prueba, la capa de Misión queda aria-busy (sin inert) hasta reevaluar', () => {
+    const { evaluation, request } = evaluateExample()
+    missionStore.setState({ evaluation, evaluatedRequest: request, stale: true, revision: 1 })
+    uiStore.setState({ mode: 'mision', missionPhase: 'review' })
+    const html = renderToStaticMarkup(<MetricRail data={readyData} site={v3Snapshot.candidates[0]!} variant="rail" />)
     expect(html).toContain('data-busy=""')
     expect(html).toContain('aria-busy="true"')
     expect(html).not.toContain('inert')

@@ -1,37 +1,34 @@
 /**
- * Formulario del composer en Misión: textarea de 1 a 4 líneas, pastilla del perfil activo
- * («Tu misión»: panel ≥1440, popover <1440), recientes ⟲, chips «Refinar», Enviar/Detener y una
- * línea de estado con la fase REAL. La espera (§2.3 C) muestra la órbita de `boot` y la luz del
- * borde, en fase y 2 vueltas como máximo. El orquestador (motor + contratos), los recientes, los
- * chips y la tarjeta se cargan en diferido; este formulario va en el chunk principal porque un
- * formulario diferido hace que el empaquetador parta React y el armazón en chunks comunes.
+ * Formulario del composer en Misión (ADR-013): una capa del rediseño sobre el planificador del
+ * equipo. Textarea de 1 a 4 líneas, pastilla «Tu misión» (panel ≥1440, popover <1440), recientes ⟲,
+ * sugerencias, Enviar/Cancelar y una línea de estado con la fase REAL.
+ *
+ * «Enviar» NUNCA llama a la IA: abre «Tu misión» en el paso de requisitos con el brief cargado.
+ * La IA solo se usa si el usuario pulsa «Proponer requisitos con IA» allí; mientras propone, el
+ * dock muestra la órbita con contador a los 3 s, aviso de lentitud a los 10 s y «Cancelar».
+ * Este formulario va en el chunk principal; el controlador, los extras y la tarjeta, en diferido.
  */
 import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { GLYPH, useViewportLayout } from '../../shell/public'
 import { useMission } from '../../state/mission'
 import { useUi, type MissionPhase } from '../../state/ui'
-import { LKTRON_ENABLED } from '../analysis'
 import { OrbitLoader } from '../boot'
 import { getStageProjection } from '../globe'
 import { useComposer } from './composerStore'
 import { COMPOSER_FOCUS_EVENT, takeFocusRequest } from './focus'
-import { DEMO_TAG, elapsedSeconds, isWaitingPhase, phaseLabel } from './labels'
+import { elapsedSeconds, isWaitingPhase, phaseLabel } from './labels'
+import { resultLineText } from './model'
 import { LazyMissionPanel, MISSION_PANEL_ID } from './panel'
-import { hidePopover, placeAbove } from './popover'
+import { hidePopover, isPopoverOpen, placeAbove } from './popover'
 import { loadController, withController } from './runLoader'
 import type { ComposerProps } from './index'
-import type { MissionSnapshotData } from './missionRun'
 import './composer-form.css'
 
-export const PROMPT = 'Describe el trabajo que quieres probar para Marte…'
+export const PROMPT = 'Describe la prueba que quieres hacer para Marte…'
+export const MAX_BRIEF = 3000
 const RecentsMenu = lazy(() => import('./ComposerExtras').then((module) => ({ default: module.RecentsMenu })))
-const PresetChips = lazy(() => import('./ComposerExtras').then((module) => ({ default: module.PresetChips })))
-
-function snapshotOf(data: ComposerProps['data']): MissionSnapshotData | null {
-  const snapshot = data.snapshot
-  return data.status === 'ready' && snapshot ? { candidates: snapshot.candidates, profile: snapshot.profile } : null
-}
+const SuggestionChips = lazy(() => import('./ComposerExtras').then((module) => ({ default: module.SuggestionChips })))
 
 /** Segundos de espera, una vez por segundo y solo mientras se muestran (nunca por cuadro). */
 function useElapsed(startedAt: number | null, visible: boolean): number {
@@ -55,24 +52,25 @@ export function GlobeOrbit({ active, label }: { active: boolean; label: string }
 }
 
 /**
- * Las sugerencias «Refinar» flotan sobre el dock al enfocar el composer. Con resultados en
- * pantalla taparían las tarjetas recién ordenadas (el foco sigue en el campo tras enviar), y
- * el selector «Tu perfil» ya permite cambiar de perfil: solo se ofrecen antes de resultados.
+ * Las sugerencias flotan sobre el dock al enfocar el composer. Con resultados en pantalla
+ * taparían las tarjetas recién ordenadas: solo se ofrecen antes de evaluar.
  */
-export function showPresetChips(phase: MissionPhase, waiting: boolean): boolean {
+export function showSuggestions(phase: MissionPhase, waiting: boolean): boolean {
   return !waiting && phase !== 'analysis' && phase !== 'done'
 }
 
+/** Último pedido de apertura de «Tu misión» ya atendido (sobrevive al remontaje del composer). */
+let consumedOpenRequest = 0
+
 export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' | 'placement'>) {
   const phase = useUi((state) => state.missionPhase)
-  const run = useComposer((state) => state.run)
   const wait = useComposer((state) => state.wait)
-  const result = useComposer((state) => state.result)
-  const lastText = useComposer((state) => state.lastText)
-  const profile = useMission((state) => state.profile)
-  const source = useMission((state) => state.source)
-  const error = useMission((state) => state.error)
-  const revision = useMission((state) => state.revision)
+  const startedAt = useComposer((state) => state.draftStartedAt)
+  const notice = useComposer((state) => state.notice)
+  const openRequest = useComposer((state) => state.openRequest)
+  const planner = useMission((state) => state.planner)
+  const evaluation = useMission((state) => state.evaluation)
+  const stale = useMission((state) => state.stale)
   const { tramo } = useViewportLayout()
   const panelInLayout = tramo === 'wide'
   const [text, setText] = useState('')
@@ -80,43 +78,51 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
   const field = useRef<HTMLTextAreaElement>(null)
   const missionPopover = useRef<HTMLDivElement>(null)
   const profileButton = useRef<HTMLButtonElement>(null)
-  const submitted = useRef<string | null>(null)
   const uid = useId().replace(/[^\w-]/g, '')
+  const snapshot = data.status === 'ready' ? data.snapshot : null
 
-  // Envío en curso antes de que arranque la corrida (el chunk de misión aún carga): el botón
-  // pasa a Detener al instante y Detener anula el envío pendiente.
-  const [sending, setSending] = useState<number | null>(null)
-  const sendSeq = useRef(0)
-  useEffect(() => {
-    if (phase === 'error') setSending(null)
-  }, [phase])
-  const waiting = (run !== null && isWaitingPhase(phase)) || sending !== null
+  const waiting = isWaitingPhase(phase)
   const moving = waiting && wait !== null && wait !== 'quiet'
-  const label = phaseLabel(run === null && sending !== null ? 'interpreting' : phase, run?.interpreter ?? (LKTRON_ENABLED ? 'lktron' : 'demo'))
-  const snapshot = snapshotOf(data)
-  const elapsed = useElapsed(run?.startedAt ?? null, waiting && (wait === 'counter' || wait === 'slow'))
+  const elapsed = useElapsed(startedAt, waiting && (wait === 'counter' || wait === 'slow'))
+  const requirementCount = planner?.requirements.length ?? 0
+  const draftMessage = planner && (planner.draft.status === 'error' || planner.draft.status === 'unavailable') ? planner.draft.message : null
+
+  /** Abre «Tu misión»: foco al panel izquierdo (≥1440) o popover sobre la pastilla (<1440). */
+  const openMission = useCallback(() => {
+    if (panelInLayout) {
+      const panel = document.getElementById(MISSION_PANEL_ID)
+      panel?.scrollIntoView({ block: 'nearest' })
+      panel?.focus()
+      return
+    }
+    const popover = missionPopover.current
+    if (popover && !isPopoverOpen(popover)) {
+      try {
+        popover.showPopover()
+      } catch {
+        // Popover no soportado: la pestaña «Tu misión» de la ficha sigue disponible.
+      }
+    }
+  }, [panelInLayout])
+
+  // Pedidos del controlador (Enviar, «Evaluar este sector», restaurar): se abre «Tu misión».
+  useEffect(() => {
+    if (openRequest === consumedOpenRequest) return
+    consumedOpenRequest = openRequest
+    window.setTimeout(openMission, 0)
+  }, [openRequest, openMission])
 
   const submit = useCallback(() => {
-    if (!snapshot || !text.trim()) return
-    submitted.current = text
-    sendSeq.current += 1
-    const id = sendSeq.current
-    setSending(id)
-    withController(async (mission) => {
-      try {
-        if (sendSeq.current === id) await mission.submit(text, snapshot)
-      } finally {
-        if (sendSeq.current === id) setSending(null)
-      }
+    const value = text.trim()
+    if (!snapshot || !value) return
+    withController((mission) => {
+      mission.submitBrief(text)
+      setText('')
     })
   }, [snapshot, text])
-  const cancel = () => {
-    sendSeq.current += 1
-    setSending(null)
-    withController((mission) => mission.cancel())
-  }
+  const cancel = () => withController((mission) => mission.cancelDraft())
 
-  // Foco pedido con «/» o «✦ Refinar» (también si llegó antes de montarse) y precarga del motor.
+  // Foco pedido con «/» o «✦ Refinar» (también si llegó antes de montarse) y precarga del planificador.
   useEffect(() => {
     if (takeFocusRequest()) field.current?.focus()
     const onFocusRequest = () => {
@@ -124,20 +130,18 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
       field.current?.focus()
     }
     window.addEventListener(COMPOSER_FOCUS_EVENT, onFocusRequest)
-    void loadController().catch(() => undefined)
+    if (snapshot) void loadController().catch(() => undefined)
     return () => window.removeEventListener(COMPOSER_FOCUS_EVENT, onFocusRequest)
-  }, [])
+  }, [snapshot])
 
-  // Llegan resultados: «Tu misión» (popover) se cierra sola y el campo queda listo para refinar.
+  // Al llegar una evaluación nueva el popover se cierra solo: los resultados quedan a la vista.
+  const revision = useMission((state) => state.revision)
   const seenRevision = useRef(revision)
   useEffect(() => {
     if (revision === seenRevision.current) return
     seenRevision.current = revision
-    hidePopover(missionPopover.current)
-    const sent = submitted.current
-    if (sent !== null) setText((current) => (current === sent ? '' : current))
-    submitted.current = null
-  }, [revision])
+    if (!panelInLayout) hidePopover(missionPopover.current)
+  }, [revision, panelInLayout])
 
   const onKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Escape') {
@@ -150,8 +154,7 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
     }
   }
 
-  const active = profile ? Object.values(profile.levels).filter((level) => level > 0).length : 0
-  const profileText = profile ? `${profile.origin === 'preset' ? profile.label : 'Tu perfil'} · ${active}` : 'Perfil base'
+  const profileText = requirementCount > 0 ? `Tu misión · ${requirementCount} ${requirementCount === 1 ? 'requisito' : 'requisitos'}` : 'Tu misión'
   const statusId = `composer-status-${placement}`
   const missionId = `composer-mission-${uid}`
 
@@ -159,59 +162,51 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
   if (!snapshot) {
     status = (
       <span className="composer-status-text">
-        {data.status === 'error' ? <><span aria-hidden="true">{GLYPH.fail} </span>Sin snapshot: la misión no puede calcularse.</> : 'Esperando el snapshot validado…'}
+        {data.status === 'error' ? <><span aria-hidden="true">{GLYPH.fail} </span>Sin snapshot: la misión no puede evaluarse.</> : 'Esperando el snapshot validado…'}
       </span>
     )
   } else if (waiting && wait === 'slow') {
     status = (
       <>
-        <span className="composer-status-text">Está tardando más de lo normal · {elapsed} s</span>
+        <span className="composer-status-text">La IA está tardando más de lo normal · {elapsed} s</span>
         <button type="button" className="composer-link" onClick={cancel}>Cancelar</button>
-        <button type="button" className="composer-link" onClick={() => withController((mission) => mission.useBaseProfile(snapshot))}>Usar perfil base</button>
       </>
     )
   } else if (waiting) {
     status = (
       <>
-        {moving ? <OrbitLoader active label={label} placement="inline" /> : <span className="composer-status-text">{label}</span>}
+        {moving ? <OrbitLoader active label="Proponiendo requisitos…" placement="inline" /> : <span className="composer-status-text">Proponiendo requisitos…</span>}
         {wait === 'counter' && <span className="composer-status-count">· {elapsed} s</span>}
+        <button type="button" className="composer-link" onClick={cancel}>Cancelar</button>
       </>
     )
-  } else if ((phase === 'error' || phase === 'cancelled') && error) {
-    status = (
-      <>
-        <span className="composer-status-text" data-tone={phase}>
-          {phase === 'error' && <span aria-hidden="true">{GLYPH.fail} </span>}
-          {error.message}
-        </span>
-        {phase === 'error' && lastText && error.code !== 'insufficient' && error.code !== 'unavailable' && (
-          <button type="button" className="composer-link" onClick={() => withController((mission) => mission.retry(snapshot))}>Reintentar</button>
-        )}
-      </>
-    )
-  } else if ((phase === 'analysis' || phase === 'done') && result?.revision === revision) {
+  } else if (evaluation && snapshot && !stale) {
     status = (
       <span className="composer-status-text" data-tone="ok">
-        {/* El rótulo DEMO va primero: el texto se trunca con elipsis y el rótulo nunca debe perderse. */}
-        {source === 'demo' && <span className="composer-tag">{DEMO_TAG}</span>}
         <span aria-hidden="true">{GLYPH.ok} </span>
-        {result.text}
-        {phase === 'analysis' && <span className="composer-status-count"> · {label}</span>}
+        {resultLineText(evaluation, snapshot.candidates)}
+      </span>
+    )
+  } else if (draftMessage || notice) {
+    status = <span className="composer-status-text" data-tone="cancelled">{draftMessage ?? notice}</span>
+  } else if (stale) {
+    status = <span className="composer-status-text">Editó la prueba: confirme y evalúe de nuevo en «Tu misión».</span>
+  } else if (phase === 'review') {
+    status = (
+      <span className="composer-status-text">
+        {phaseLabel('review')}
+        {requirementCount > 0 ? ` · ${requirementCount} ${requirementCount === 1 ? 'requisito' : 'requisitos'}` : ''}
       </span>
     )
   } else {
-    status = LKTRON_ENABLED ? (
-      <span className="composer-status-text">La IA solo propone niveles por criterio; el % lo calcula el motor determinista.</span>
-    ) : (
-      <span className="composer-status-text"><span className="composer-tag">{DEMO_TAG}</span>Interpretación por palabras clave; el % lo calcula el motor determinista.</span>
-    )
+    status = <span className="composer-status-text">Enviar abre «Tu misión»: usted define y confirma los requisitos; la IA es opcional.</span>
   }
 
   return (
     <div className="composer" data-placement={placement}>
-      {showPresetChips(phase, waiting) && (
+      {showSuggestions(phase, waiting) && snapshot && (
         <Suspense fallback={null}>
-          <PresetChips snapshot={snapshot} activeProfileId={profile?.id ?? null} />
+          <SuggestionChips />
         </Suspense>
       )}
 
@@ -225,7 +220,7 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
         }}
       >
         {moving && (
-          <span className="composer-light" aria-hidden="true" key={run?.id}>
+          <span className="composer-light" aria-hidden="true" key={startedAt ?? 0}>
             <span className="composer-light-beam" />
           </span>
         )}
@@ -234,30 +229,27 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
           ref={profileButton}
           type="button"
           className="composer-profile"
-          aria-label={`Tu misión: ${profileText}`}
+          aria-label={profileText}
           aria-expanded={panelInLayout ? undefined : missionOpen}
           aria-controls={panelInLayout ? MISSION_PANEL_ID : missionId}
           popoverTarget={panelInLayout ? undefined : missionId}
           onClick={() => {
-            if (!panelInLayout) return
-            const panel = document.getElementById(MISSION_PANEL_ID)
-            panel?.scrollIntoView({ block: 'nearest' })
-            panel?.focus()
+            if (panelInLayout) openMission()
           }}
         >
-          <span className="composer-profile-text" data-short={profile ? `Perfil · ${active}` : 'Base'}>
+          <span className="composer-profile-text" data-short={requirementCount > 0 ? `Misión · ${requirementCount}` : 'Misión'}>
             <span>{profileText}</span>
           </span>
           <span aria-hidden="true" className="composer-caret">▾</span>
         </button>
-        <label className="sr-only" htmlFor={`composer-${placement}`}>Tu misión</label>
+        <label className="sr-only" htmlFor={`composer-${placement}`}>Describa su prueba</label>
         <textarea
           id={`composer-${placement}`}
           ref={field}
           rows={1}
-          maxLength={600}
+          maxLength={MAX_BRIEF}
           value={text}
-          placeholder={profile ? 'Refina tu misión…' : tramo === 'narrow' ? 'Describe tu misión…' : PROMPT}
+          placeholder={tramo === 'narrow' ? 'Describe tu prueba…' : PROMPT}
           aria-describedby={statusId}
           aria-keyshortcuts="/"
           onChange={(event) => setText(event.target.value)}
@@ -273,7 +265,7 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
           />
         </Suspense>
         <button type="submit" className="composer-send" data-stop={waiting ? '' : undefined} disabled={!waiting && (!snapshot || !text.trim())}>
-          <span aria-hidden="true">{waiting ? '■' : '↑'}</span> <span className="composer-send-text">{waiting ? 'Detener' : 'Enviar'}</span>
+          <span aria-hidden="true">{waiting ? '■' : '↑'}</span> <span className="composer-send-text">{waiting ? 'Cancelar' : 'Enviar'}</span>
         </button>
       </form>
 
@@ -288,7 +280,7 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
           aria-label="Tu misión"
           className="composer-popover composer-mission-popover"
           onBeforeToggle={(event) => {
-            if (event.newState === 'open') placeAbove(missionPopover.current, profileButton.current, 380)
+            if (event.newState === 'open') placeAbove(missionPopover.current, profileButton.current, 460)
           }}
           onToggle={(event) => setMissionOpen(event.newState === 'open')}
         >
@@ -300,7 +292,7 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
         </div>
       )}
 
-      <GlobeOrbit active={moving} label={label} />
+      <GlobeOrbit active={moving} label="Proponiendo requisitos…" />
     </div>
   )
 }

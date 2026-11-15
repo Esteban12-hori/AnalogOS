@@ -25,7 +25,8 @@ export function StatusChip({ data }: StatusChipProps) {
       {chipText({
         status,
         version: data.snapshot?.manifest.snapshot_version ?? null,
-        evaluated: data.snapshot?.candidates.length ?? 0,
+        evaluated: candidates ? candidates.filter((site) => site.role !== 'reference').length : 0,
+        references: candidates ? candidates.filter((site) => site.role === 'reference').length : 0,
         pendingAnalogs: pending,
       })}
     </span>

@@ -1,31 +1,34 @@
 /**
- * Qué perfil está activo para el riel y con qué cifras del lugar (función pura + hook).
+ * Perfil y cifras del lugar para el riel (función pura + hook), ADR-008/009/013.
  *
- *  - Explorar, o Misión sin resultados del motor → perfil base del snapshot: pesos y
- *    contribuciones del pipeline; similitud, confianza y estabilidad del snapshot.
- *  - Misión con resultados (scoring del mismo perfil que state/mission.profile) → pesos del
- *    perfil de misión, contribuciones y estabilidad del motor TS (`sensitivity` con el perfil de
- *    misión, la misma cifra que muestra la Lectura). Lo que el motor no entrega (null) queda
- *    «por calcular con tu perfil»: nunca se toma del perfil base para mezclarlo con un % de misión.
- *  - La factibilidad no depende del perfil: siempre es la del snapshot.
+ *  - Pesos, contribuciones, similitud, confianza, estabilidad y factibilidad son SIEMPRE las del
+ *    snapshot (perfil base del pipeline). Misión no recalcula ni repondera: no existe un % de misión.
+ *  - En Misión con evaluación se superpone una capa de requisitos: lo exigido, lo observado y
+ *    ✓/✕/○ por criterio (vía `METRICS[metric_id].source.criterion_id`), más las filas del sitio
+ *    (área, país) y los pedidos no medidos («pendiente · no medido»). Todo sale de
+ *    `MissionEvaluation` del equipo; aquí solo se reparte por criterio.
+ *  - La REF (referencia conocida) nunca tiene puesto en Explorar.
  */
 import { useMemo } from 'react'
-import type { CandidateSite, CriterionId, MissionProfile } from '../../domain/contracts'
+import type { CandidateSite, CountryCode, CriterionId, MissionProfile } from '../../domain/contracts'
+import { isCriterionId } from '../../domain/criteria'
+import { rankMap, splitByRole } from '../../domain/discovery'
 import type { MarsReference } from '../../domain/marsReference'
-import { rankCandidates, validWeight } from '../../domain/scoring'
-import type { MissionProfileDraft, MissionScoring, ScoredSite } from '../engine'
+import { missionOrder, missionSiteViews, type SiteMissionStatus } from '../../domain/missionView'
+import { validWeight } from '../../domain/scoring'
+import { METRICS, RULES_VERSION } from '../../mission/catalog'
+import type { MissionEvaluation, MissionRequest, OptionEvaluation, RequirementResult } from '../../mission/types'
 import type { AppData } from '../../shell/public'
 import { useMission } from '../../state/mission'
 import { useUi, type UiMode } from '../../state/ui'
 import type { BuildMetricViewsInput } from './index'
 
 export interface SiteFigures {
-  /** 0–100; null = datos insuficientes o por calcular (ver `similarityState`). */
+  /** 0–100 del snapshot; null = datos insuficientes. */
   similarity: number | null
   similarityState: 'scored' | 'insufficient' | 'pending'
-  /** 0–100; null = por calcular con tu perfil. */
   confidence: number | null
-  /** 0–100; null = sin calcular (base) o por calcular con tu perfil (misión). */
+  /** 0–100; null = sin calcular. */
   stability: number | null
   feasibility: CandidateSite['feasibility']
   /** Fracción del peso del perfil con datos válidos (0–1); null si no se conoce. */
@@ -35,20 +38,41 @@ export interface SiteFigures {
   criterionCount: number
 }
 
+/** Capa de requisitos de Misión sobre el riel (solo lectura de la evaluación del equipo). */
+export interface MissionLayer {
+  status: SiteMissionStatus
+  /** Puesto de la evaluación (solo priorizados). */
+  rank: number | null
+  option: OptionEvaluation | null
+  /** Resultados de requisitos medibles por criterio del snapshot. */
+  byCriterion: ReadonlyMap<CriterionId, readonly RequirementResult[]>
+  /** Requisitos sobre atributos del sitio (área, país): no son criterios del score. */
+  siteRows: readonly RequirementResult[]
+  /** Pedidos que el snapshot no mide: «pendiente · no medido». */
+  unmeasured: readonly RequirementResult[]
+  rulesVersion: string
+  /** La evaluación ya no corresponde a lo que se está editando (resultados a --o-busy). */
+  stale: boolean
+}
+
 export interface MetricContext {
   kind: 'base' | 'mission'
-  /** «perfil base v2.0.1-preliminary» o el rótulo del perfil de misión. */
+  /** «perfil base v3.0.0-…»: siempre el del snapshot. */
   profileLabel: string
-  /** Versión del motor que rotula los % de misión; null con el perfil base. */
-  engineVersion: string | null
-  /** Estado del perfil activo (un perfil de misión siempre es needs_calibration). */
+  /** Versión de las reglas de la evaluación de Misión; null en Explorar. */
+  rulesVersion: string | null
   profileStatus: string
   input: BuildMetricViewsInput
   figures: SiteFigures
-  /** site_ids en el orden vigente (rankCandidates o el del motor). */
+  /** site_ids en el orden vigente (candidatos y luego REF; en Misión, el de la evaluación). */
   order: readonly string[]
-  /** Posición 1..n del lugar; null si no tiene orden (datos insuficientes o por calcular). */
+  /** Explorar: puesto global (REF: null). Misión: puesto de la evaluación (solo priorizados). */
   rank: number | null
+  /** Candidatos con puesto en Explorar (el «de 6»; nunca cuenta la REF). */
+  rankedCount: number
+  role: 'candidate' | 'reference'
+  country: CountryCode | null
+  mission: MissionLayer | null
   /** minimum_valid_weight del perfil base (0–1). */
   minimumValidWeight: number
 }
@@ -59,91 +83,107 @@ export interface ResolveMetricContextArgs {
   profile: MissionProfile
   marsReference: MarsReference | null
   mode: UiMode
-  missionProfile: MissionProfileDraft | null
-  scoring: MissionScoring | null
+  evaluation: MissionEvaluation | null
+  request: MissionRequest | null
+  stale?: boolean
 }
 
-function baseOrder(candidates: readonly CandidateSite[]): string[] {
-  return rankCandidates(candidates).map((candidate) => candidate.site_id)
+/** Reparte los resultados de requisitos de una opción entre criterios, sitio y no medidos. */
+export function requirementLayer(option: OptionEvaluation | null, request: MissionRequest | null): Pick<MissionLayer, 'byCriterion' | 'siteRows' | 'unmeasured'> {
+  const byCriterion = new Map<CriterionId, RequirementResult[]>()
+  const siteRows: RequirementResult[] = []
+  const unmeasured: RequirementResult[] = []
+  const metricOf = new Map((request?.requirements ?? []).flatMap((requirement) => (requirement.kind === 'measurable' ? [[requirement.requirement_id, requirement.metric_id] as const] : [])))
+  for (const result of option?.requirement_results ?? []) {
+    if (result.kind === 'unmeasured') {
+      unmeasured.push(result)
+      continue
+    }
+    const metric = metricOf.get(result.requirement_id)
+    const source = metric ? METRICS[metric].source : null
+    if (source?.kind === 'criterion' && isCriterionId(source.criterion_id)) {
+      const list = byCriterion.get(source.criterion_id) ?? []
+      list.push(result)
+      byCriterion.set(source.criterion_id, list)
+    } else {
+      siteRows.push(result)
+    }
+  }
+  // Imprescindibles primero dentro de cada criterio (mismo orden que las líneas Tesla).
+  for (const list of byCriterion.values()) list.sort((a, b) => Number(b.importance === 'critical') - Number(a.importance === 'critical'))
+  return { byCriterion, siteRows, unmeasured }
 }
 
-/** Función pura: perfil activo, entrada de buildMetricViews y cifras del lugar. */
+/** Función pura: perfil (siempre el del snapshot), entrada de buildMetricViews, cifras y capa de Misión. */
 export function resolveMetricContext(args: ResolveMetricContextArgs): MetricContext {
-  const { site, candidates, profile, marsReference, mode, missionProfile, scoring } = args
+  const { site, candidates, profile, marsReference, mode, evaluation, request, stale = false } = args
   const sites = candidates.some((candidate) => candidate.site_id === site.site_id) ? candidates : [...candidates, site]
   const breakdown = site.score_breakdown
   const validCount = breakdown.filter((item) => item.status === 'valid').length
-  const common = {
+  const totalWeight = profile.criteria.reduce((sum, criterion) => sum + criterion.weight, 0)
+  const role = site.role === 'reference' ? 'reference' : 'candidate'
+  const { ranked, references } = splitByRole(sites)
+  const ranks = rankMap(ranked)
+  const figures: SiteFigures = {
+    similarity: site.similarity,
+    similarityState: site.similarity === null ? 'insufficient' : 'scored',
+    confidence: site.confidence,
+    stability: site.stability,
     feasibility: site.feasibility,
+    coverage: totalWeight > 0 ? validWeight(breakdown) / totalWeight : null,
     validCount,
     criterionCount: breakdown.length,
   }
+  const base = {
+    profileLabel: `perfil base v${profile.version}`,
+    profileStatus: profile.status,
+    input: { site, sites, profile, weights: null, contributions: null, marsReference },
+    figures,
+    rankedCount: ranked.length,
+    role,
+    country: site.country ?? null,
+    minimumValidWeight: profile.aggregation.minimum_valid_weight,
+  } as const
 
-  const mission = mode === 'mision' && missionProfile !== null && scoring !== null && scoring.profileId === missionProfile.id
-  if (mission) {
-    const scored: ScoredSite | null = scoring.sites.find((item) => item.siteId === site.site_id) ?? null
-    const weights: Partial<Record<CriterionId, number>> = { ...missionProfile.weights }
-    const order = scoring.sites.map((item) => item.siteId)
+  if (mode === 'mision' && evaluation) {
+    const ids = sites.map((candidate) => candidate.site_id)
+    const view = missionSiteViews(evaluation, ids).get(site.site_id)
     return {
+      ...base,
       kind: 'mission',
-      profileLabel: missionProfile.label,
-      engineVersion: scoring.engineVersion,
-      profileStatus: missionProfile.status,
-      // Contribuciones SIEMPRE del motor (vacías si aún no las hay): las del snapshot se
-      // calcularon con otros pesos y darían un limitante falso.
-      input: { site, sites, profile, weights, contributions: scored?.contributions ?? {}, marsReference },
-      figures: {
-        ...common,
-        similarity: scored?.similarity ?? null,
-        similarityState: scored === null || scored.status === 'por_calcular' ? 'pending' : scored.similarity === null ? 'insufficient' : 'scored',
-        confidence: scored?.confidence ?? null,
-        stability: scored?.stability ?? null,
-        coverage: scored ? scored.coverage : null,
+      rulesVersion: evaluation.rules_version || RULES_VERSION,
+      order: missionOrder(evaluation, ids),
+      rank: view?.rank ?? null,
+      mission: {
+        status: view?.status ?? 'fuera_de_alcance',
+        rank: view?.rank ?? null,
+        option: view?.option ?? null,
+        ...requirementLayer(view?.option ?? null, request),
+        rulesVersion: evaluation.rules_version || RULES_VERSION,
+        stale,
       },
-      order,
-      rank: scored?.rank ?? null,
-      minimumValidWeight: profile.aggregation.minimum_valid_weight,
     }
   }
 
-  const order = baseOrder(sites)
-  const totalWeight = profile.criteria.reduce((sum, criterion) => sum + criterion.weight, 0)
   return {
+    ...base,
     kind: 'base',
-    profileLabel: `perfil base v${profile.version}`,
-    engineVersion: null,
-    profileStatus: profile.status,
-    input: { site, sites, profile, weights: null, contributions: null, marsReference },
-    figures: {
-      ...common,
-      similarity: site.similarity,
-      similarityState: site.similarity === null ? 'insufficient' : 'scored',
-      confidence: site.confidence,
-      stability: site.stability,
-      coverage: totalWeight > 0 ? validWeight(breakdown) / totalWeight : null,
-    },
-    order,
-    rank: site.similarity === null ? null : order.indexOf(site.site_id) + 1,
-    minimumValidWeight: profile.aggregation.minimum_valid_weight,
+    rulesVersion: null,
+    order: [...ranked, ...references].map((candidate) => candidate.site_id),
+    rank: role === 'reference' ? null : ranks.get(site.site_id) ?? null,
+    mission: null,
   }
 }
 
-/** Contexto del lugar con el perfil activo (se recalcula solo si cambia algo que lo afecta). */
+/** Contexto del lugar (se recalcula solo si cambia algo que lo afecta). */
 export function useMetricContext(data: AppData, site: CandidateSite | null): MetricContext | null {
   const mode = useUi((state) => state.mode)
-  const missionProfile = useMission((state) => state.profile)
-  const scoring = useMission((state) => state.scoring)
+  const evaluation = useMission((state) => state.evaluation)
+  const request = useMission((state) => state.evaluatedRequest)
+  const stale = useMission((state) => state.stale)
   const snapshot = data.snapshot
   return useMemo(() => {
     if (!site || !snapshot) return null
-    return resolveMetricContext({
-      site,
-      candidates: snapshot.candidates,
-      profile: snapshot.profile,
-      marsReference: snapshot.marsReference,
-      mode,
-      missionProfile,
-      scoring,
-    })
-  }, [site, snapshot, mode, missionProfile, scoring])
+    return resolveMetricContext({ site, candidates: snapshot.candidates, profile: snapshot.profile, marsReference: snapshot.marsReference, mode, evaluation, request, stale })
+  }, [site, snapshot, mode, evaluation, request, stale])
 }

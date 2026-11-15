@@ -200,3 +200,9 @@
   }
   .leaders-bar > span { transition: none; }
 }
+
+/* Requisito de la prueba sobre el criterio (Misión, ADR-013): ✓ cumple · ✕ no cumple · ○ no evaluable. */
+.leaders-req { margin-top: 2px; color: var(--muted); font-size: var(--fs-min); line-height: 1.3; }
+.leaders-req b { color: var(--earth-bright); }
+.leaders-req[data-status="no_cumple"] b { color: var(--text); }
+.leaders-req[data-status="no_evaluable"] b { color: var(--pending); }

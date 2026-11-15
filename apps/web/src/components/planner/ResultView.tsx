@@ -172,9 +172,39 @@ interface Props {
   onExport: () => void
   exportError: string | null
   onEdit: () => void
+  /**
+   * Variante de «Tu misión» en la interfaz integrada (ADR-013): titular, bloqueos, regla de orden,
+   * pendientes, límites y exportación. El detalle por criterio vive en el riel, los motivos y el
+   * botón de IA en la Lectura, y el informe imprimible lo monta una sola vez el controlador de
+   * misión. Sin esta prop, la vista es la del equipo.
+   */
+  compact?: boolean
 }
 
-export function ResultView({ evaluation: ev, request, state, candidates, onExplain, onExport, exportError, onEdit }: Props) {
+/** Resumen compacto de una opción: estado, puesto y lo que la bloquea (sin tablas). */
+function CompactOption({ o }: { o: OptionEvaluation }) {
+  const blockers = o.requirement_results.filter((r) => r.importance === 'critical' && r.status !== 'cumple')
+  return (
+    <li className={`pl-copt ${o.status}`}>
+      <span className="pl-copt-head">
+        {o.rank !== null && <b className="pl-rank" aria-label={`Puesto ${o.rank}`}>{o.rank}</b>}
+        <strong>{shortCandidateName(o.name)}</strong>
+        {o.role === 'reference' && <b className="pl-tag ref">REF</b>}
+        <small>{country(o.country)}</small>
+      </span>
+      {o.status !== 'objetivo_no_soportado' && o.preferences.total > 0 && (
+        <small className="pl-copt-prefs">Preferencias: {o.preferences.met} de {o.preferences.total}{o.preferences.unknown > 0 ? ` · ${o.preferences.unknown} sin dato` : ''}</small>
+      )}
+      {blockers.length > 0 && (
+        <ul className="pl-blockers" aria-label="Qué lo impide">
+          {blockers.map((b) => <li key={b.requirement_id}><b className={`pl-res ${b.status}`}>{REQ_STATUS[b.status]}</b> {b.label}: {b.reason}</li>)}
+        </ul>
+      )}
+    </li>
+  )
+}
+
+export function ResultView({ evaluation: ev, request, state, candidates, onExplain, onExport, exportError, onEdit, compact = false }: Props) {
   const byId = new Map(candidates.map((c) => [c.site_id, c]))
   const map = new Map(ev.evidence.map((e) => [e.evidence_id, e]))
   const group = (s: OptionStatus) => ev.options.filter((o) => o.status === s)
@@ -199,7 +229,7 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
           <span className="pl-tag">Factibilidad territorial pendiente</span>
         </p>
 
-        <GeometryFigure candidates={candidates} resolution={ev.resolution} />
+        {!compact && <GeometryFigure candidates={candidates} resolution={ev.resolution} />}
         <details className="pl-more"><summary>Geometría pedida y medida</summary>
           <GeometryText ev={ev} byId={byId} />
         </details>
@@ -219,7 +249,12 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
             {(['priorizado_para_reconocimiento', 'no_cumple_requisitos', 'evidencia_insuficiente', 'objetivo_no_soportado'] as OptionStatus[]).map((s) => {
               const list = group(s)
               if (!list.length) return null
-              return (
+              return compact ? (
+                <section key={s} className="pl-group">
+                  <h4>{STATUS[s]} <small>({list.length})</small></h4>
+                  <ul className="pl-clist">{list.map((o) => <CompactOption key={o.site_id} o={o} />)}</ul>
+                </section>
+              ) : (
                 <section key={s} className="pl-group">
                   <h3>{STATUS[s]} <small>({list.length})</small></h3>
                   {list.map((o) => <OptionCard key={o.site_id} o={o} site={byId.get(o.site_id)} map={map} />)}
@@ -233,7 +268,7 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
         {ev.pending_requirements.length > 0 && <p className="pl-notice">Hay {ev.pending_requirements.length} requisito(s) sin medición en esta evaluación: se conservaron como pendientes y nunca cuentan como cumplidos.</p>}
         {ev.open_questions.length > 0 && <details className="pl-more"><summary>Preguntas abiertas ({ev.open_questions.length})</summary><ul>{ev.open_questions.map((q) => <li key={q}>{q}</li>)}</ul></details>}
 
-        {ev.outcome === 'evaluated' && <AiPanel state={state} evaluation={ev} onExplain={onExplain} />}
+        {ev.outcome === 'evaluated' && !compact && <AiPanel state={state} evaluation={ev} onExplain={onExplain} />}
 
         <section className="pl-export" aria-label="Exportar">
           <button type="button" onClick={onExport}>Descargar JSON</button>
@@ -252,9 +287,24 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
         </details>
       </div>
 
-      <PrintReport ev={ev} request={request} state={state} byId={byId} map={map} headline={headline} />
+      {!compact && <PrintReport ev={ev} request={request} state={state} byId={byId} map={map} headline={headline} />}
     </div>
   )
+}
+
+/** Titular del resultado (mismo texto en pantalla e informe). */
+export function resultHeadline(ev: MissionEvaluation): string {
+  const prior = ev.options.filter((o) => o.status === 'priorizado_para_reconocimiento')
+  return ev.outcome === 'evaluated'
+    ? (prior.length ? `${prior.length} de ${ev.options.length} áreas quedan priorizadas para reconocimiento` : 'Ninguna área queda priorizada con estos requisitos')
+    : OUTCOME_COPY[ev.outcome]
+}
+
+/** Informe imprimible para montar fuera de ResultView (interfaz integrada: uno solo por página). */
+export function MissionPrintReport({ evaluation: ev, request, state, candidates }: { evaluation: MissionEvaluation; request: MissionRequest; state: PlannerState; candidates: CandidateSite[] }) {
+  const byId = new Map(candidates.map((c) => [c.site_id, c]))
+  const map = new Map(ev.evidence.map((e) => [e.evidence_id, e]))
+  return <PrintReport ev={ev} request={request} state={state} byId={byId} map={map} headline={resultHeadline(ev)} />
 }
 
 /** Informe imprimible: contenido completo y sin elementos interactivos (solo visible con @media print). */

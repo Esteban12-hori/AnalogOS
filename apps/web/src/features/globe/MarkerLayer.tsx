@@ -14,6 +14,7 @@ import {
   clusterStack,
   markerAriaLabel,
   markerGlyph,
+  markerBadgeText,
   markerScoreText,
   markerStatusText,
   type MarkerCluster,
@@ -21,6 +22,7 @@ import {
   type MarkerKind,
   type MarkerModel,
 } from './markers'
+import { GLYPH } from '../../shell/public'
 import './markers.css'
 
 export type PinRef = (element: HTMLDivElement | null) => void
@@ -39,9 +41,18 @@ export interface MarkerPinProps {
 export function MarkerPin({ model, selected, hover, labeled, onActivate, rootRef, style }: MarkerPinProps) {
   const score = markerScoreText(model)
   const status = markerStatusText(model)
+  const badge = markerBadgeText(model)
   const className = `globe-pin is-${model.kind}${selected ? ' is-selected' : ''}${hover ? ' is-hover' : ''}`
   return (
-    <div ref={rootRef} className={className} data-pin={model.id} data-label={labeled ? '' : undefined} style={style}>
+    <div
+      ref={rootRef}
+      className={className}
+      data-pin={model.id}
+      data-label={labeled ? '' : undefined}
+      data-role={model.role}
+      data-status={model.missionStatus ?? undefined}
+      style={style}
+    >
       <div className="globe-pin-body">
         <span className="globe-pin-halo" aria-hidden="true" />
         <span className="globe-pin-ring" aria-hidden="true" />
@@ -52,9 +63,9 @@ export function MarkerPin({ model, selected, hover, labeled, onActivate, rootRef
           aria-label={markerAriaLabel(model)}
           onClick={() => onActivate(model)}
         >
-          <span className="globe-pin-glyph" aria-hidden="true">{markerGlyph(model.kind)}</span>
+          <span className="globe-pin-glyph" aria-hidden="true">{model.missionStatus === 'no_cumple_requisitos' ? GLYPH.fail : markerGlyph(model.kind)}</span>
           <span className="globe-pin-label" aria-hidden="true">
-            {model.rank !== null && <b className="globe-pin-rank">#{model.rank}</b>}
+            {badge && <b className="globe-pin-rank">{badge}</b>}
             <span className="globe-pin-name">{model.name}</span>
             {score && <span className="globe-pin-score">{score}</span>}
             {status && <span className="globe-pin-status">{status}</span>}
@@ -139,7 +150,7 @@ export function ClusterChip({ clusterKey, counts, group, members, open, hover, o
                     <button type="button" className={`globe-cluster-item is-${model.kind}`} aria-label={markerAriaLabel(model)} onClick={() => onActivate(model)}>
                       <span className="globe-pin-glyph" aria-hidden="true">{markerGlyph(model.kind)}</span>
                       <span aria-hidden="true">
-                        {model.rank !== null && <b className="globe-pin-rank">#{model.rank}</b>} {model.name}
+                        {markerBadgeText(model) && <b className="globe-pin-rank">{markerBadgeText(model)}</b>} {model.name}
                         {detail && <em> · {detail}</em>}
                       </span>
                     </button>

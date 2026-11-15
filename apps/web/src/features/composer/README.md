@@ -1,52 +1,28 @@
-# features/composer · incremento 9
+# features/composer · composer y «Tu misión»
 
-Composer de misión, tarjeta «Tu misión» (niveles, Deshacer, historial) y la parte del composer
-en la coreografía de resultados. Especificación: `docs/UX_REDESIGN.md` §3.2, §2.3 C/D y §5.1;
-contrato del paralelo: `docs/BUILD_CONTRACTS.md` §2.7.
+Capa del rediseño sobre el planificador del equipo (ADR-009 y ADR-013). Un único controlador
+(`missionController.ts`, chunk diferido) usa sin cambios `plannerReducer`, `buildRequest`,
+`evaluateMission`, `composeExplanation`, `buildMissionExport` y el cliente de IA (`mission/aiClient.ts`)
+sobre un store externo, y publica en `state/mission.ts` (único escritor) y `ui.missionPhase`.
 
-## Qué hace
+Flujo:
 
-1. **Interpreta** el texto: `analysis.interpretWithLktron` si `LKTRON_ENABLED`; si no (o si lktron
-   no está disponible o devuelve algo inválido), `engine.matchMissionDemo`, rotulado «DEMO · sin IA».
-2. **Valida** (fase `profile`): `checkMissionInterpretation` (Ajv precompilado) más las reglas que el
-   esquema no expresa (ids del perfil base sin repetir, ausentes = 0 «no mencionado», sin criterios de
-   terreno → error neutro). Arma el perfil con `engine.profileFromLevels` (needs_calibration).
-3. **Puntúa** (fase `scoring`): `engine.scoreMission`. El orden y el % son del motor.
-4. **Publica** en T0: `missionStore` (`revision + 1`), el #1 en vista previa
-   (`uiActions.select(id, 'evaluated', true)`), fase `analysis` y **un solo** `announce()`:
-   «3 lugares ordenados para tu misión. Primero: ‹nombre›, ‹%› de similitud».
+1. **Enviar** (dock): abre «Tu misión» en el recorrido «Definir una prueba» con el brief cargado.
+   Nunca llama a la IA.
+2. **Requisitos**: a mano, «Usar ejemplo» o «✦ Proponer requisitos con IA» (botón explícito, con el
+   aviso de envío del equipo). El borrador llega sin confirmar.
+3. **Confirmar y evaluar** con los botones del equipo. La evaluación es síncrona y determinista.
+4. **Resultado** en el carrusel, el globo, el riel, las líneas y la Lectura; en «Tu misión», el
+   `ResultView` compacto con «Descargar JSON», «Imprimir informe» y «Volver a editar».
 
-Es el único escritor de `state/mission.ts`. `analysis` cierra la fase con `done`.
+Editar tras evaluar invalida el resultado (reductor del equipo) y aborta en red la petición en
+curso; los resultados anteriores quedan a `--o-busy` hasta reevaluar.
 
-## Espera (§2.3 C)
+| Archivo | Chunk | Qué hace |
+|---|---|---|
+| `index.ts`, `Composer.tsx`, `MissionComposer.tsx`, `MissionCard.tsx`, `printHost.tsx` | principal | Vista del dock y enlaces diferidos |
+| `composerStore.ts`, `labels.ts`, `model.ts`, `focus.ts`, `popover.ts`, `runLoader.ts` | principal | Estado privado, rótulos y umbrales de espera (3 s, 10 s), línea de resultado |
+| `missionController.ts`, `MissionPanel.tsx`, `ComposerExtras.tsx`, `PrintContent.tsx`, `history.ts` | diferido | Controlador, «Tu misión» (PlannerView del equipo), sugerencias, informe, historial v2 |
 
-Enviar → Detener al instante (también mientras carga el chunk de misión). Desde 300 ms: órbita de
-`boot` (`OrbitLoader`, alrededor del globo si la vista global está en pantalla, por portal en
-`stage.overlay`) y luz del borde del composer, en fase, 2 vueltas de 2,4 s y luego fija. 3 s:
-contador. 10 s: «Está tardando más de lo normal» con Cancelar y Usar perfil base. 20 s: tiempo
-agotado con Reintentar. Esc, Detener o un envío nuevo cancelan o reemplazan la corrida
-(`AbortController`). Los temporizadores usan `engine.PHASE_THRESHOLDS`; nunca hay estado por cuadro.
-
-## «Tu misión»
-
-Panel izquierdo ≥1440 (`left.mission`), popover del composer <1440 y pestaña de S2
-(`full.mission`). Muestra el texto con los resaltados DEMO, el resumen de la IA (✦ + regla de hielo),
-los 7 criterios con nivel y peso (nivel ÷ suma) frente al perfil base, la cobertura del motor, lo
-pedido sin datos y los supuestos. Editar niveles (radios nativos) recalcula sin IA; Deshacer
-restaura el estado anterior; los perfiles predefinidos del motor aparecen como chips «Refinar» y en
-la tarjeta. El historial vive en `localStorage` de este navegador (comodidad local, en try/catch) y
-guarda niveles, no cifras: al restaurar, el motor vuelve a calcular.
-
-## Peso
-
-Chunk principal: `Composer`, `MissionComposer`, `MissionCard` (enlace diferido), store privado y
-rótulos. Chunk de misión: `missionRun` (motor, contratos), `MissionPanel`, `ComposerExtras`.
-Un formulario diferido hacía que rolldown partiera React y el armazón en chunks comunes (más
-peticiones y más bytes al arrancar), por eso el formulario va en el chunk principal. Desde la
-integración, `vite.config.ts` agrupa todo lo estático en un único chunk inicial (`$initial`), así
-que ese reparto ya no ocurre; diferir el formulario volvería a ser una opción para ahorrar peso.
-
-## Pruebas
-
-`model.test.ts`, `history.test.ts`, `missionRun.test.ts` (dobles del motor y de lktron con reloj
-falso, más un caso con el motor real de `features/engine`) y `Composer.test.tsx` (SSR).
+Historial (`analogos.composer.history.v2`): brief, alcance y requisitos del usuario. Nunca se
+guardan propuestas intactas de la IA, su procedencia ni resultados.

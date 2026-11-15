@@ -2,19 +2,22 @@
  * Capa de marcadores ●◆○ del escenario (incremento 4, docs/UX_REDESIGN.md §3.1). Funciones puras
  * compartidas por el globo (proyección en useFrame) y el mapa 2D (agrupación nativa de MapLibre):
  *
- *  - modelo de cada marcador a partir del snapshot, del motor de misión y del catálogo de ◆;
+ *  - modelo de cada marcador a partir del snapshot v3 (candidatos con puesto global; la REF sin
+ *    número), de la evaluación de Misión del equipo (estado y puesto, nunca un %) y del catálogo de ◆;
  *  - visibilidad continua según la orientación: smoothstep(.05, .25) sobre el horizonte;
  *  - agrupación en pantalla a menos de 36 px, con conteos por tipo (nunca promedios);
  *  - presupuesto de rótulos;
  *  - textos y etiquetas accesibles.
  *
- * Toda cifra viene del snapshot o del motor determinista; un ◆ nunca lleva %, puesto ni ranking.
+ * Toda cifra viene del snapshot; en Misión el marcador codifica estado o rol, nunca aptitud.
+ * Un ◆ nunca lleva %, puesto ni ranking.
  */
 import type { CandidateSite, Position, ReferenceAnalog } from '../../domain/contracts'
+import { countryLabels, rankMap, splitByRole } from '../../domain/discovery'
 import { formatScore, shortCandidateName } from '../../domain/formatting'
 import { geometryCenter, outerRings, type Vec3 } from '../../domain/globe'
-import { rankCandidates } from '../../domain/scoring'
-import type { MissionScoring } from '../engine'
+import { MISSION_STATUS_LABEL, MISSION_STATUS_ORDER, missionSiteViews, type SiteMissionStatus } from '../../domain/missionView'
+import type { MissionEvaluation } from '../../mission/types'
 import { GLYPH } from '../../shell/public'
 import { analogCenter, approximateZoneRing, geometryInsideBbox, pointInGeometry } from './geometry'
 
@@ -34,12 +37,16 @@ export interface MarkerModel {
   center: Position
   /** Nombre corto para el rótulo. */
   name: string
-  /** Puesto 1..n; solo ● con %. */
+  /** Explorar: puesto global entre candidatos. Misión: puesto de la evaluación (priorizados). */
   rank: number | null
-  /** % 0–100 del snapshot (perfil base) o del motor (perfil de misión); null si no hay. */
+  /** Similitud 0–100 del snapshot (solo Explorar); null si no hay o en Misión (sin %). */
   score: number | null
-  scoreSource: 'snapshot' | 'mission' | null
-  /** País compartido para rotular un grupo («Chile»); '' si no consta. */
+  scoreSource: 'snapshot' | null
+  /** Candidato de la búsqueda, referencia conocida (rótulo «REF», nunca número) o ◆. */
+  role: 'candidate' | 'reference' | 'analog'
+  /** Estado en la evaluación de Misión; null en Explorar o sin evaluación. */
+  missionStatus: SiteMissionStatus | null
+  /** País para rotular un grupo («Chile», «Argentina»); '' si no consta. */
   group: string
   /** Contorno: polígono del sector o zona aproximada del ◆ (siempre discontinua). */
   outline: Position[] | null
@@ -54,8 +61,8 @@ export interface MarkerModel {
 export interface MarkerInput {
   candidates: readonly CandidateSite[]
   analogs: readonly ReferenceAnalog[]
-  /** Con perfil de misión: puestos y % del motor. null = perfil base del snapshot. */
-  scoring: MissionScoring | null
+  /** Evaluación de Misión (estados y puestos del equipo); null = Explorar (snapshot). */
+  evaluation: MissionEvaluation | null
 }
 
 /** Nombre corto («Pampa Yungay», sin «— sector de screening» ni el rótulo de fixture). */
@@ -63,40 +70,39 @@ export function placeName(name: string): string {
   return shortCandidateName(name).split(' — ')[0] ?? name
 }
 
-/** País del sector evaluado: el snapshot es de Chile (ids «cl-»); si no, no se afirma. */
+/** País del sector según el snapshot (`country`); si no consta, no se afirma. */
 function candidateGroup(candidate: CandidateSite): string {
-  return candidate.site_id.startsWith('cl-') ? 'Chile' : ''
+  return candidate.country ? countryLabels[candidate.country] : ''
 }
 
 const collator = new Intl.Collator('es-CL')
 
 /** Marcadores del escenario en orden estable de prioridad. */
-export function buildMarkerModels({ candidates, analogs, scoring }: MarkerInput): MarkerModel[] {
-  const scored = scoring ? new Map(scoring.sites.map((site) => [site.siteId, site])) : null
-  const snapshotRanks = new Map(
-    rankCandidates(candidates).flatMap((candidate, index) => (candidate.similarity === null ? [] : [[candidate.site_id, index + 1] as const])),
-  )
+export function buildMarkerModels({ candidates, analogs, evaluation }: MarkerInput): MarkerModel[] {
+  // Puesto global de la búsqueda (el mismo que el carrusel, Comparar y el mapa SVG del equipo).
+  const ranks = rankMap(splitByRole(candidates).ranked)
+  const views = missionSiteViews(evaluation, candidates.map((candidate) => candidate.site_id))
 
   const sectors: Array<MarkerModel & { tier: number }> = []
   for (const candidate of candidates) {
     const center = geometryCenter(candidate.geometry)
     if (!center) continue
+    const role = candidate.role === 'reference' ? 'reference' : 'candidate'
+    const view = views.get(candidate.site_id) ?? null
     let kind: MarkerKind
     let rank: number | null
-    let score: number | null
-    let scoreSource: MarkerModel['scoreSource']
-    if (scored) {
-      const site = scored.get(candidate.site_id)
-      score = site?.similarity ?? null
-      rank = score === null ? null : (site?.rank ?? null)
-      kind = site?.status === 'insufficient_data' ? 'insufficient' : 'evaluated'
-      scoreSource = score === null ? null : 'mission'
+    let tier: number
+    if (view) {
+      kind = view.status === 'evidencia_insuficiente' ? 'insufficient' : 'evaluated'
+      rank = view.rank
+      tier = MISSION_STATUS_ORDER.indexOf(view.status)
     } else {
-      score = candidate.similarity
-      rank = snapshotRanks.get(candidate.site_id) ?? null
-      kind = score === null ? 'insufficient' : 'evaluated'
-      scoreSource = score === null ? null : 'snapshot'
+      kind = candidate.similarity === null ? 'insufficient' : 'evaluated'
+      // Sin % no hay puesto (○); la REF nunca lo tiene.
+      rank = role === 'reference' || kind === 'insufficient' ? null : ranks.get(candidate.site_id) ?? null
+      tier = kind === 'insufficient' ? 2 : rank === null ? 1 : 0
     }
+    const score = view ? null : candidate.similarity
     sectors.push({
       id: candidate.site_id,
       kind,
@@ -105,13 +111,15 @@ export function buildMarkerModels({ candidates, analogs, scoring }: MarkerInput)
       name: placeName(candidate.name),
       rank,
       score,
-      scoreSource,
+      scoreSource: score === null ? null : 'snapshot',
+      role,
+      missionStatus: view?.status ?? null,
       group: candidateGroup(candidate),
       outline: outerRings(candidate.geometry)[0] ?? null,
       coincides: [],
       contains: null,
       order: 0,
-      tier: kind === 'insufficient' ? 2 : rank === null ? 1 : 0,
+      tier,
     })
   }
 
@@ -138,6 +146,8 @@ export function buildMarkerModels({ candidates, analogs, scoring }: MarkerInput)
       rank: null,
       score: null,
       scoreSource: null,
+      role: 'analog',
+      missionStatus: null,
       group: analog.country,
       outline: approximateZoneRing(analog),
       coincides: [],
@@ -399,13 +409,20 @@ export function markerGlyph(kind: MarkerKind): string {
   return kind === 'reference' ? GLYPH.reference : kind === 'insufficient' ? GLYPH.insufficient : GLYPH.evaluated
 }
 
-/** «75,7 %» con 1 decimal fijo; null si el marcador no tiene %. */
+/** «75,7 %» con 1 decimal fijo (similitud v3 del snapshot); null si el marcador no tiene %. */
 export function markerScoreText(model: Pick<MarkerModel, 'score'>): string | null {
   return model.score === null ? null : `${formatScore(model.score)} %`
 }
 
-/** Estado sin cifra: «datos insuficientes» (○) o «por calcular» (◆ y ● sin % del motor). */
-export function markerStatusText(model: Pick<MarkerModel, 'kind' | 'score'>): string | null {
+/** Distintivo del rótulo: «#2» para un puesto, «REF» para la referencia conocida, null si no hay. */
+export function markerBadgeText(model: Pick<MarkerModel, 'rank' | 'role'>): string | null {
+  if (model.rank !== null) return `#${model.rank}${model.role === 'reference' ? ' · REF' : ''}`
+  return model.role === 'reference' ? 'REF' : null
+}
+
+/** Estado sin cifra: el de la evaluación de Misión, «datos insuficientes» (○) o «por calcular» (◆). */
+export function markerStatusText(model: Pick<MarkerModel, 'kind' | 'score'> & Partial<Pick<MarkerModel, 'missionStatus'>>): string | null {
+  if (model.missionStatus) return MISSION_STATUS_LABEL[model.missionStatus].toLocaleLowerCase('es')
   if (model.kind === 'insufficient') return 'datos insuficientes'
   if (model.kind === 'reference' || model.score === null) return 'por calcular'
   return null
@@ -418,7 +435,7 @@ function plural(count: number, one: string, many: string): string {
 /** Texto visible del rótulo (para estimar su ancho). */
 export function markerLabelText(model: MarkerModel): string {
   return [
-    model.rank !== null ? `#${model.rank}` : '',
+    markerBadgeText(model) ?? '',
     model.name,
     markerScoreText(model) ?? '',
     markerStatusText(model) ?? '',
@@ -433,13 +450,16 @@ export function markerAriaLabel(model: MarkerModel): string {
   if (model.kind === 'reference') {
     parts.push(`${model.group ? `${model.group}, ` : ''}análogo emblemático por calcular, zona aproximada`)
     if (model.contains) parts.push(`contiene ${plural(model.contains, 'sector evaluado', 'sectores evaluados')}`)
+  } else if (model.missionStatus) {
+    if (model.role === 'reference') parts.push('referencia conocida')
+    parts.push(`${model.rank !== null ? `puesto ${model.rank}, ` : ''}${MISSION_STATUS_LABEL[model.missionStatus].toLocaleLowerCase('es')}`)
   } else if (model.kind === 'insufficient') {
     parts.push('datos insuficientes')
-  } else if (model.score !== null) {
-    parts.push(`${model.rank !== null ? `puesto ${model.rank}, ` : ''}similitud ${markerScoreText(model)}${model.scoreSource === 'mission' ? ' con tu perfil' : ''}`)
   } else {
-    parts.push('por calcular con tu perfil')
+    if (model.role === 'reference') parts.push('referencia conocida, fuera del ranking')
+    if (model.score !== null) parts.push(`${model.rank !== null ? `puesto ${model.rank}, ` : ''}similitud ${markerScoreText(model)}`)
   }
+  if (model.group && model.kind !== 'reference') parts.push(model.group)
   if (model.coincides.length) parts.push(`coincide con ${model.coincides.join(' y ')}`)
   return parts.join(', ')
 }

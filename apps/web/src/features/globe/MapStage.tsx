@@ -31,7 +31,7 @@ const CandidateGlobe = lazy(() => globeModule)
 const CandidateFlatMap = lazy(loadFlat)
 
 /** Centro con que se monta el mapa 2D invisible antes de usarlo (Atacama central). */
-const PREWARM_CENTER = { lon: -69.5, lat: -24 }
+const PREWARM_CENTER = { lon: -68.6, lat: -25 }
 /** Paso de los botones + / − (niveles de zoom): el mismo del teclado. */
 const ZOOM_STEP = 0.5
 const NO_ANALOGS: readonly ReferenceAnalog[] = []
@@ -221,13 +221,13 @@ export function MapStage({
   const intro = useUi((state) => state.introPhase)
   const uiMode = useUi((state) => state.mode)
   const cameraTouched = useUi((state) => state.cameraTouchedAt !== null)
-  const scoring = useMission((state) => state.scoring)
+  const evaluation = useMission((state) => state.evaluation)
   const revision = useMission((state) => state.revision)
   const analogsState = useReferenceAnalogs()
   const analogs = analogsState.status === 'ready' ? analogsState.analogs : NO_ANALOGS
-  // En Misión, puestos y % los pone el motor; en Explorar, el snapshot (perfil base).
-  const missionScoring = uiMode === 'mision' ? scoring : null
-  const markerInput = useMemo<MarkerInput>(() => ({ candidates, analogs, scoring: missionScoring }), [candidates, analogs, missionScoring])
+  // En Misión, estados y puestos de la evaluación del equipo; en Explorar, puesto global del snapshot.
+  const missionEvaluation = uiMode === 'mision' ? evaluation : null
+  const markerInput = useMemo<MarkerInput>(() => ({ candidates, analogs, evaluation: missionEvaluation }), [candidates, analogs, missionEvaluation])
 
   const referenceId = storeSelection?.kind === 'reference' ? storeSelection.siteId : null
   const selection = useMemo<StageSelection | null>(
@@ -499,9 +499,21 @@ export function MapStage({
 
       <div className="stage-dock" role="group" aria-label="Leyenda y fuente del mapa" data-obstacle="">
         <div className="stage-legend">
-          <span><b aria-hidden="true">{GLYPH.evaluated}</b> {fixtureMode ? 'fixture con score' : 'evaluado'}</span>
-          <span><b className="is-reference" aria-hidden="true">{GLYPH.reference}</b> referencia por calcular</span>
-          <span><b className="is-insufficient" aria-hidden="true">{GLYPH.insufficient}</b> datos insuficientes</span>
+          {missionEvaluation ? (
+            <>
+              <span><b aria-hidden="true">{GLYPH.evaluated}</b> #n priorizado</span>
+              <span><b className="is-insufficient" aria-hidden="true">{GLYPH.insufficient}</b> evidencia insuficiente</span>
+              <span><b className="is-fail" aria-hidden="true">{GLYPH.fail}</b> no cumple</span>
+              <span><b className="is-reference" aria-hidden="true">{GLYPH.reference}</b> por calcular</span>
+            </>
+          ) : (
+            <>
+              <span><b aria-hidden="true">{GLYPH.evaluated}</b> {fixtureMode ? 'fixture con score' : 'candidato #n · REF referencia'}</span>
+              <span><b className="is-reference" aria-hidden="true">{GLYPH.reference}</b> análogo por calcular</span>
+              <span><b className="is-insufficient" aria-hidden="true">{GLYPH.insufficient}</b> datos insuficientes</span>
+            </>
+          )}
+          <span className="legend-outline">Contorno referencial, no límite oficial</span>
         </div>
         <div className="stage-source">
           <small>{mode === 'globe' ? 'Globo' : 'Mapa 2D'}</small>

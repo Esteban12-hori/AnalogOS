@@ -12,6 +12,8 @@ function model(partial: Partial<MarkerModel> & Pick<MarkerModel, 'id' | 'kind'>)
     rank: null,
     score: null,
     scoreSource: null,
+    role: partial.kind === 'reference' ? 'analog' : 'candidate',
+    missionStatus: null,
     group: 'Chile',
     outline: null,
     coincides: [],
@@ -27,10 +29,24 @@ const devon = model({ id: 'devon', kind: 'reference', name: 'Devon Island', grou
 const noop = () => undefined
 
 describe('MarkerPin', () => {
+  it('la referencia conocida lleva «REF» y nunca un número; en Misión, el estado y su atenuado', () => {
+    const ref = model({ id: 'cl-pampa-yungay-screening', kind: 'evaluated', name: 'Pampa Yungay', role: 'reference', score: 75.67, scoreSource: 'snapshot' })
+    const html = renderToStaticMarkup(<MarkerPin model={ref} selected={false} hover={false} onActivate={noop} />)
+    expect(html).toContain('<b class="globe-pin-rank">REF</b>')
+    expect(html).toContain('data-role="reference"')
+    expect(html).toContain('referencia conocida, fuera del ranking')
+    const failed = model({ id: 'cl-a', kind: 'evaluated', name: 'A', missionStatus: 'no_cumple_requisitos' })
+    const failedHtml = renderToStaticMarkup(<MarkerPin model={failed} selected={false} hover={false} onActivate={noop} />)
+    expect(failedHtml).toContain('data-status="no_cumple_requisitos"')
+    expect(failedHtml).toContain('✕')
+    expect(failedHtml).toContain('no cumple requisitos')
+    expect(failedHtml).not.toMatch(/\d+,\d\s*%/)
+  })
+
   it('● es un botón con puesto, % de 1 decimal fijo e insignia «coincide con»', () => {
     const html = renderToStaticMarkup(<MarkerPin model={yungay} selected={false} hover={false} onActivate={noop} />)
     expect(html).toContain('<button type="button" class="globe-pin-button" aria-pressed="false"')
-    expect(html).toContain('aria-label="Pampa Yungay, puesto 1, similitud 75,7 %, coincide con Atacama (Yungay)"')
+    expect(html).toContain('aria-label="Pampa Yungay, puesto 1, similitud 75,7 %, Chile, coincide con Atacama (Yungay)"')
     expect(html).toContain('>●<')
     expect(html).toContain('<b class="globe-pin-rank">#1</b>')
     expect(html).toContain('75,7 %')

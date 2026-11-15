@@ -344,3 +344,54 @@ body { min-height: 0; }
 .left-panel { display: flex; flex-direction: column; overflow: hidden; }
 .left-panel > [data-slot="left.mission"] { flex: 0 1 auto; min-height: 0; max-height: 45%; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 .left-panel > [data-slot="left.reading"] { flex: 1 1 0; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+
+/* Informe imprimible de la misión (ADR-013): uno por página, montado en la raíz mientras haya una
+   evaluación vigente. En pantalla no se ve; al imprimir es lo único visible. */
+.mission-print { display: none; }
+@media print {
+  html, body { background: #fff !important; color: #000 !important; }
+  .app > :not(.mission-print) { display: none !important; }
+  .app > .mission-print { display: block !important; position: static; }
+  .mission-print .pl-print-only { display: block !important; color: #000; font-size: 11pt; line-height: 1.4; }
+  .mission-print .pl-print-only * { color: #000 !important; background: transparent !important; border-color: #888 !important; }
+  .mission-print h1 { font-size: 18pt; }
+  .mission-print h2 { font-size: 14pt; margin-top: 16pt; }
+  .mission-print h3 { font-size: 12pt; }
+  .mission-print table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  .mission-print th, .mission-print td { padding: 2pt 4pt; border: 1px solid #888; text-align: left; vertical-align: top; }
+  .mission-print .pl-pre { white-space: pre-wrap; }
+  .mission-print .pl-print-opt { break-inside: avoid-page; }
+  .mission-print svg { max-width: 340px; }
+}
+
+/* Acciones del lugar (ADR-013): «Evaluar este sector» y «Exportar ficha (JSON)». */
+.rail-subactions { display: flex; justify-content: flex-end; gap: 6px; margin: 0 0 8px; }
+.detail-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.detail-role { margin: 0; color: var(--muted); font-size: var(--fs-12); }
+.detail-ref { color: var(--ice); font-weight: 650; }
+.detail-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.detail-action { min-height: 32px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255, 255, 255, .04); color: var(--text); cursor: pointer; font-size: var(--fs-12); font-weight: 600; }
+.detail-action:hover { border-color: var(--sel-line); }
+.detail-action:focus-visible, .rail-subactions .rail-action:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+.origin-tab { display: grid; gap: 12px; }
+.origin-badge { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--muted); font-size: var(--fs-12); }
+.origin-badge b { display: inline-grid; min-width: 28px; height: 22px; place-items: center; padding: 0 6px; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--text); font-family: var(--mono); font-size: var(--fs-min); }
+.origin-section { display: grid; gap: 8px; }
+.origin-section .subheading-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.origin-section h3 { margin: 0; font-size: var(--fs-13); }
+.origin-section .subheading-row span { color: var(--muted); font-size: var(--fs-min); }
+.origin-warnings { color: var(--muted); font-size: var(--fs-12); }
+.origin-warnings ul { margin: 6px 0 0; padding-left: 18px; line-height: 1.45; }
+.method-search { display: grid; gap: 10px; margin-top: 16px; }
+.method-search h3 { margin: 0; }
+.method-search p { margin: 0; color: var(--muted); font-size: var(--fs-12); line-height: 1.5; }
+.method-figures { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px 14px; margin: 0; }
+.method-figures dt { color: var(--muted-2); font-size: var(--fs-min); letter-spacing: .04em; text-transform: uppercase; }
+.method-figures dd { margin: 2px 0 0; color: var(--text); font-size: var(--fs-12); }
+.region-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.region-list strong { display: block; font-size: var(--fs-12); }
+.region-list span { color: var(--muted); font-family: var(--mono); font-size: var(--fs-min); }
+.method-map { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #081310; }
+.method-map .map-panel, .method-map svg { display: block; width: 100%; height: auto; }
+.method-links { display: flex; flex-wrap: wrap; gap: 12px; }
+.method-links a { color: var(--sand); }

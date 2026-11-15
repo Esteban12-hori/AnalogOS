@@ -1,5 +1,6 @@
 /** Selección de las métricas principales para las líneas Tesla (docs/UX_REDESIGN.md §3.4). Pura. */
 import { CRITERION_IDS } from '../../domain/criteria'
+import type { RequirementResult } from '../../mission/types'
 import type { MetricView } from '../metrics'
 
 /** Pesos a menos de esto se consideran empatados (p. ej. 3/11 calculado por dos caminos). */
@@ -30,4 +31,25 @@ export function pickPrincipalMetrics(views: readonly MetricView[], count = 4): M
       return a.criterionId < b.criterionId ? -1 : a.criterionId > b.criterionId ? 1 : 0
     })
     .slice(0, limit)
+}
+
+/**
+ * Misión con evaluación (ADR-013): primero los criterios con requisito de la prueba
+ * (imprescindibles antes que preferencias) y, si sobra lugar, los de mayor peso base. Sin
+ * requisitos, igual que `pickPrincipalMetrics`. Nunca ordena por resultado.
+ */
+export function pickMissionMetrics(
+  views: readonly MetricView[],
+  requirements: ReadonlyMap<string, readonly RequirementResult[]>,
+  count = 4,
+): MetricView[] {
+  const limit = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0
+  if (limit === 0) return []
+  const critical = (view: MetricView) => (requirements.get(view.criterionId) ?? []).some((result) => result.importance === 'critical')
+  const withRequirement = views
+    .filter((view) => (requirements.get(view.criterionId)?.length ?? 0) > 0)
+    .sort((a, b) => Number(critical(b)) - Number(critical(a)) || canonicalIndex(a.criterionId) - canonicalIndex(b.criterionId))
+  const chosen = withRequirement.slice(0, limit)
+  const rest = pickPrincipalMetrics(views.filter((view) => !chosen.includes(view)), limit - chosen.length)
+  return [...chosen, ...rest]
 }

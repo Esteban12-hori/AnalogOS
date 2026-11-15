@@ -1,55 +1,22 @@
 /**
- * Robustez del orden (docs/UX_REDESIGN.md §3.7 y §5.6): brecha #1–#2, escenarios que cambian el
- * orden y criterio más sensible. Toda cifra sale de `sensitivity` del motor (port de
- * pipelines/scoring.py, ±20 % por peso, renormalizado); aquí solo se comparan órdenes.
+ * Robustez del orden (docs/UX_REDESIGN.md §3.7 y §5.6): escenarios que cambian el orden y
+ * criterio más sensible. Toda cifra sale de `sites[].sensitivity` de analysis-summary.json,
+ * que escribe el pipeline (pipelines/scoring.py, ±20 % por peso, renormalizado); aquí solo se
+ * leen esas cifras y se comparan órdenes. Sin motor propio (ADR-011, sustituido por ADR-009).
  * Funciones puras: sin stores ni red.
  */
-import type { CandidateSite, CriterionId, MissionProfile } from '../../domain/contracts'
+import type { CriterionId } from '../../domain/contracts'
 import { CRITERION_IDS, isCriterionId } from '../../domain/criteria'
-import type { AggregateCriterion, AggregateInput, SensitivityResult } from '../engine'
+import type { SensitivityResult } from '../../domain/sensitivity'
 
-/** Perturbación que usa el pipeline (scoring.py) y el motor TS por defecto. */
+/** Perturbación que usa el pipeline (scoring.py). */
 export const PERTURBATION = 0.2
 
-export interface SensitivityInputs {
-  criteria: AggregateCriterion[]
-  inputs: Record<string, AggregateInput>
-  epsilon: number
-  minimumValidWeight: number
-}
-
-/**
- * Insumos de `sensitivity` para un sector, con la MISMA regla que `scoreMission` del motor
- * (`buildMissionInputs`): peso del perfil activo y, con un perfil de misión, Excluir (peso 0)
- * entra como `excluded`. `weights` null = perfil base del snapshot (pesos y estados tal cual).
- */
-export function sensitivityInputs(
-  base: MissionProfile,
-  weights: Readonly<Partial<Record<CriterionId, number>>> | null,
-  candidate: CandidateSite,
-): SensitivityInputs {
-  const weightOf = (id: string, fallback: number): number => (weights === null ? fallback : isCriterionId(id) ? (weights[id] ?? 0) : 0)
-  const criteria = base.criteria.map((criterion) => ({ id: criterion.id, weight: weightOf(criterion.id, criterion.weight), unit: criterion.unit }))
-  const inputs: Record<string, AggregateInput> = {}
-  for (const item of candidate.score_breakdown) {
-    const excluded = weights !== null && weightOf(item.criterion_id, 0) === 0
-    inputs[item.criterion_id] = {
-      similarity: item.normalized_similarity,
-      quality: item.quality,
-      status: excluded ? 'excluded' : item.status,
-    }
-  }
-  return {
-    criteria,
-    inputs,
-    epsilon: base.aggregation.epsilon,
-    minimumValidWeight: base.aggregation.minimum_valid_weight,
-  }
-}
+export type { SensitivityResult, SensitivityScenario } from '../../domain/sensitivity'
 
 export interface SiteSensitivity {
   siteId: string
-  /** Similitud del lugar con el perfil activo (snapshot o motor); null = datos insuficientes. */
+  /** Similitud del lugar en el snapshot; null = datos insuficientes. */
   baseScore: number | null
   result: SensitivityResult | null
 }

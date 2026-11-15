@@ -34,7 +34,7 @@ const loading: AppData = { status: 'loading', snapshot: null, visual: { status: 
 
 afterEach(() => uiStore.reset())
 
-describe('layout del escenario fijo (ADR-008)', () => {
+describe('layout del escenario fijo (ADR-010)', () => {
   it('tres tramos y variantes compactas', () => {
     expect(stageTramo(1440)).toBe('wide')
     expect(stageTramo(1439)).toBe('medium')
@@ -152,9 +152,31 @@ describe('armazón: slots montados', () => {
     const full = renderToStaticMarkup(
       <FullDetail data={ready} site={candidates[0] as CandidateSite} placement="rail" onShowOnMap={() => undefined} />,
     )
-    for (const label of ['Métricas', 'Lectura IA', 'Señal', 'Comparar', 'Método', 'Fuentes']) expect(full).toContain(label)
+    for (const label of ['Métricas', 'Lectura', 'Origen', 'Señal', 'Comparar', 'Método', 'Fuentes']) expect(full).toContain(label)
+    expect(full).not.toContain('Lectura IA')
+    expect(full).toContain('Exportar ficha (JSON)')
+    expect(full).toContain('Evaluar este sector')
+    expect(rail).toContain('Evaluar este sector')
     expect(detailTabs('sheet', 'mision')).toContain('mision')
     expect(detailTabs('rail', 'mision')).not.toContain('mision')
+    expect(detailTabs('rail', 'explorar')).toContain('origen')
+  })
+
+  it('v3: la ficha rotula la referencia conocida (REF) y el país; Método explica cómo se buscaron', async () => {
+    const { readyData, v3Snapshot } = await import('./v3Support')
+    const ref = v3Snapshot.candidates.find((site) => site.role === 'reference') as CandidateSite
+    const full = renderToStaticMarkup(<FullDetail data={readyData} site={ref} placement="rail" onShowOnMap={() => undefined} />)
+    expect(full).toContain('REF · Referencia conocida')
+    expect(full).toContain('Chile')
+    const { MethodTab } = await import('../shell/detail/MethodTab')
+    const method = renderToStaticMarkup(<MethodTab data={readyData} />)
+    expect(method).toContain('Cómo se buscaron')
+    expect(method).toContain('50 evaluadas de 50 intentadas')
+    expect(method).toContain('excluidas del ranking')
+    expect(method).toContain('hasta 3 por país')
+    expect(method.match(/class="window /g)).toHaveLength(50)
+    expect(method).toContain('search-results.json')
+    expect(method).toContain('analysis-summary.json')
   })
 
   it('el riel cerrado queda inert y sin contenido', () => {
@@ -186,7 +208,8 @@ describe('atribución, aviso y orden del armazón (CLAUDE.md: atribución siempr
     const html = renderToStaticMarkup(<AppShell data={loading} />)
     expect(html.indexOf('class="topbar"')).toBeLessThan(html.indexOf('class="stage"'))
     expect(html).toContain('<main class="app-main">')
-    expect(html).toMatch(/<h1 class="sr-only">AnalogOS Chile<\/h1>/)
+    expect(html).toMatch(/<h1 class="sr-only">AnalogOS · Piloto Chile–Argentina<\/h1>/)
+    expect(html).not.toContain('AnalogOS Chile')
   })
 
   it('el aviso científico tiene texto accesible en todos los tramos (la versión corta no es aria-hidden)', () => {

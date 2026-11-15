@@ -30,3 +30,31 @@ describe('validadores precompilados (Ajv standalone)', () => {
     expect(() => execFileSync('node', [resolve(__dirname, '../../scripts/build-validators.mjs'), '--check'])).not.toThrow()
   })
 })
+
+describe('validadores precompilados del snapshot v3 (búsqueda y antecedentes, chunk diferido)', () => {
+  const v3 = (file: string) => read(`artifacts/science-v3/${file}`)
+  const search = v3('search-results.json') as Record<string, unknown>
+  const precedents = v3('precedents.json') as Record<string, unknown>
+
+  it('aceptan v3 y siguen aceptando v2, v1 y demo con los mismos mensajes que shared/domain', async () => {
+    const { assertDiscoveryContracts } = await import('../domain/discoveryContracts')
+    expect(() => assertSnapshotContracts(v3('candidate-details.json'), v3('manifest.json'), v3('mission-profile.json'))).not.toThrow()
+    expect(() => assertDiscoveryContracts(search, precedents)).not.toThrow()
+    for (const snapshot of ['demo', 'science-v1', 'science-v2']) {
+      expect(() => assertSnapshotContracts(read(`artifacts/${snapshot}/candidate-details.json`), read(`artifacts/${snapshot}/manifest.json`), read(`artifacts/${snapshot}/mission-profile.json`))).not.toThrow()
+    }
+    expect(() => assertDiscoveryContracts({ ...search, windows: 'nada' }, precedents)).toThrow(/^Resultados de búsqueda inválidos/)
+    expect(() => assertDiscoveryContracts(search, { ...precedents, precedents: [{}] })).toThrow(/^Catálogo de antecedentes inválido/)
+  })
+
+  it('dan el mismo veredicto que la validación Ajv en runtime del equipo (shared/domain/contracts)', async () => {
+    const shared: typeof import('../../../../shared/domain/contracts') = await import('../../../../shared/domain/contracts')
+    const local: typeof import('../domain/discoveryContracts') = await import('../domain/discoveryContracts')
+    const cases: unknown[] = [search, { ...search, scope_note: 3 }, { ...search, extra: true }]
+    for (const item of cases) {
+      const a = (() => { try { shared.assertDiscoveryContracts(item, precedents); return 'ok' } catch (error) { return (error as Error).message.split(':')[0] } })()
+      const b = (() => { try { local.assertDiscoveryContracts(item, precedents); return 'ok' } catch (error) { return (error as Error).message.split(':')[0] } })()
+      expect(b).toBe(a)
+    }
+  })
+})

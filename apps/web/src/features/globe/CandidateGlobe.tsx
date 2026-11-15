@@ -49,8 +49,8 @@ import './CandidateGlobe.css'
 const RADIUS = 2
 const MIN_DISTANCE = RADIUS * 1.06
 const MAX_DISTANCE = RADIUS * 7
-/** Atacama central: punto de vista inicial y de «Vista global». */
-const HOME: Position = [-69.5, -24]
+/** Centro del piloto Chile–Argentina (Antofagasta y la Puna): punto de vista inicial y de «Vista global». */
+const HOME: Position = [-68.6, -25]
 const ATMOSPHERE_COLOR = '#3FB4EC'
 const ATMOSPHERE_REST = 0.6
 const FOOTPRINT_COLOR = '#3FB4EC'

@@ -1,13 +1,15 @@
 /**
  * Riel derecho (≥1100): el lugar seleccionado. Ancho clamp(340, 26vw, 380) px; «Ver ficha
- * completa» lo amplía a 520 px con pestañas. Entre 1100 y 1439 px lleva «Métricas | Lectura IA»
- * (la Lectura vive en el panel izquierdo desde 1440).
+ * completa» lo amplía a 520 px con pestañas. Entre 1100 y 1439 px lleva «Métricas | Lectura»
+ * (la Lectura vive en el panel izquierdo desde 1440). «Evaluar este sector» abre el recorrido
+ * «sector» del planificador del equipo (ADR-013).
  */
 import { useState } from 'react'
 import { ReadingPanel } from '../features/analysis'
 import { MetricRail } from '../features/metrics'
 import { ReferenceCard } from '../features/places'
 import { uiActions, type UiSelection } from '../state/ui'
+import { evaluateSector } from './actions'
 import type { AppData } from './appData'
 import { FullDetail } from './detail/FullDetail'
 import { GLYPH } from './glyphs'
@@ -59,6 +61,11 @@ export function RightRail({ data, tramo, selection, full, onFullChange, onShowOn
             </button>
           </header>
           <div className="rail-body">
+            {site && !full && (
+              <div className="rail-subactions">
+                <button type="button" className="rail-action" onClick={() => evaluateSector(site.site_id)}>Evaluar este sector</button>
+              </div>
+            )}
             {selection?.kind === 'reference' && <div data-slot="rail.reference"><ReferenceCard data={data} analogId={selection.siteId} /></div>}
             {site && full && <FullDetail data={data} site={site} placement="rail" onShowOnMap={onShowOnMap} />}
             {site && !full && tramo === 'wide' && <div data-slot="rail.metrics"><MetricRail data={data} site={site} variant="rail" onShowOnMap={onShowOnMap} /></div>}
@@ -68,7 +75,7 @@ export function RightRail({ data, tramo, selection, full, onFullChange, onShowOn
                   idPrefix="rail"
                   label="Contenido del riel"
                   className="detail-tabs"
-                  items={[{ id: 'metricas', label: 'Métricas' }, { id: 'lectura', label: 'Lectura IA' }]}
+                  items={[{ id: 'metricas', label: 'Métricas' }, { id: 'lectura', label: 'Lectura' }]}
                   active={tab}
                   onChange={setTab}
                 />

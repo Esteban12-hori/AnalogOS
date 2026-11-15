@@ -66,7 +66,7 @@ describe('lonLatFromDirection', () => {
   })
 })
 
-describe('márgenes {top, right, bottom, left} (ADR-008)', () => {
+describe('márgenes {top, right, bottom, left} (ADR-010)', () => {
   it('un número es el margen derecho (compatibilidad con rightInset)', () => {
     expect(normalizeInsets(520)).toEqual({ top: 0, right: 520, bottom: 0, left: 0 })
     expect(normalizeInsets({ bottom: 280 })).toEqual({ top: 0, right: 0, bottom: 280, left: 0 })

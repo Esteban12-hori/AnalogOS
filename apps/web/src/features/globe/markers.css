@@ -215,3 +215,15 @@
 @media (max-width: 1099px) {
   .globe-pin-label, .globe-cluster-text { font-size: var(--fs-caps, 11px); }
 }
+
+/* Piloto v3 y Misión integrada (ADR-008, ADR-013): la REF lleva rótulo, nunca número; en Misión el
+   marcador codifica el estado de la evaluación (nunca un %). */
+.globe-pin[data-role="reference"] .globe-pin-glyph { border-style: dashed; }
+.globe-pin[data-role="reference"] .globe-pin-rank { color: var(--ice, #9CC2FF); letter-spacing: .04em; }
+.globe-pin[data-status="no_cumple_requisitos"] .globe-pin-body,
+.globe-pin[data-status="objetivo_no_soportado"] .globe-pin-body { opacity: var(--o-dim, .55); }
+.globe-pin[data-status="no_cumple_requisitos"] .globe-pin-glyph { color: var(--muted, #94AABA); }
+.globe-pin[data-status="fuera_de_alcance"] .globe-pin-body { opacity: var(--o-dim, .55); }
+.globe-pin[data-status="fuera_de_alcance"] .globe-pin-glyph,
+.globe-pin[data-status="fuera_de_alcance"] .globe-pin-label { border-style: dashed; border-color: rgba(111, 136, 154, .6); color: var(--muted, #94AABA); }
+.globe-pin.is-selected[data-status] .globe-pin-body { opacity: 1; }

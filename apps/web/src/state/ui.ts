@@ -25,7 +25,13 @@ export interface StageInsets {
   left: number
 }
 
-export type MissionPhase = 'idle' | 'interpreting' | 'profile' | 'scoring' | 'analysis' | 'done' | 'error' | 'cancelled'
+/**
+ * Fase visible de Misión, derivada del planificador del equipo (ADR-013):
+ * idle (sin prueba) · interpreting (borrador de IA en curso; solo el composer espera) ·
+ * review (describir, alcance o confirmar; nada espera) · scoring (evaluación síncrona, transitoria) ·
+ * analysis (explicación de IA en curso; solo la Lectura espera) · done · error · cancelled.
+ */
+export type MissionPhase = 'idle' | 'interpreting' | 'review' | 'scoring' | 'analysis' | 'done' | 'error' | 'cancelled'
 export type IntroPhase = 'pending' | 'play' | 'done'
 
 export type UiState = {
@@ -97,9 +103,12 @@ function sameRects(a: readonly DOMRectReadOnly[], b: readonly DOMRectReadOnly[])
   })
 }
 
-const PHASES_BUSY: readonly MissionPhase[] = ['interpreting', 'profile', 'scoring', 'analysis']
+const PHASES_BUSY: readonly MissionPhase[] = ['interpreting', 'scoring', 'analysis']
 
-/** ¿Hay una misión en curso? (resultados previos a --o-busy con aria-busy, sin inert). */
+/**
+ * ¿Hay una espera en curso? Cada superficie decide qué le afecta: el composer espera en
+ * `interpreting`, la Lectura en `analysis`; `review` (editar requisitos) nunca cuenta como espera.
+ */
 export function isMissionBusy(phase: MissionPhase): boolean {
   return PHASES_BUSY.includes(phase)
 }

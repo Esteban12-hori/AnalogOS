@@ -5,7 +5,8 @@
  *
  * INTERFAZ ESTABLE: tipos y firmas de este archivo (docs/BUILD_CONTRACTS.md §2.1).
  * Añadido en el incremento 3 (solo exports nuevos; nada cambió de firma):
- * - `buildPlaceModel` y sus tipos: orden de lugares (● por similitud, ◆ alfabéticos).
+ * - `buildPlaceModel` y sus tipos: orden de lugares (candidatos en su puesto global, REF aparte,
+ *   ◆ alfabéticos; en Misión, grupos por estado de la evaluación del equipo).
  * - `classifyReferences(analogs, candidates)`: regla §1 #16 (punto-en-polígono → insignia
  *   «coincide con» o ◆ propio), reutilizable por el globo. Usa el clasificador geométrico que
  *   `loadReferenceAnalogs` trae en un chunk diferido; antes de cargar devuelve «sin ◆».
@@ -27,6 +28,8 @@ export interface PlaceRailProps {
    * dock «Ver lista» alterna la vista dentro del propio dock y en la hoja el botón no aparece.
    */
   onListViewChange?: (open: boolean) => void
+  /** Promesa del producto (App.tsx): nota del estado inicial de Explorar. */
+  promise?: string
 }
 
 export interface ReferenceCardProps {
@@ -44,4 +47,4 @@ export { PlaceRail } from './PlaceRail'
 export { ReferenceCard } from './ReferenceCard'
 export { classifyReferences, loadReferenceAnalogs, useReferenceAnalogs } from './referenceAnalogs'
 export { buildPlaceModel } from './placeModel'
-export type { EvaluatedPlace, Place, PlaceModel, PlaceModelInput, ReferenceClassification, ReferencePlace } from './placeModel'
+export type { EvaluatedPlace, Place, PlaceGroup, PlaceModel, PlaceModelInput, ReferenceClassification, ReferencePlace } from './placeModel'

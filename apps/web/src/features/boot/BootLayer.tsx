@@ -30,6 +30,7 @@ import {
   phaseTimer,
   resolveIntroMode,
   revealDelay,
+  snapshotAnnouncement,
   snapshotLabel,
   stageVisible,
   type IntroMode,
@@ -75,7 +76,8 @@ export function BootLayer({ data }: BootLayerProps) {
   const [elapsed, setElapsed] = useState<number | null>(null)
   const [waitOrbit, setWaitOrbit] = useState(false)
   const version = data.snapshot?.manifest.snapshot_version ?? null
-  const evaluated = data.snapshot?.candidates.length ?? 0
+  const evaluated = data.snapshot?.candidates.filter((site) => site.role !== 'reference').length ?? 0
+  const references = data.snapshot?.candidates.filter((site) => site.role === 'reference').length ?? 0
   const visible = stageVisible(milestones, stageTramo(width) !== 'narrow', posterHidden)
   const intro = introPhaseFor({ phase, mode }, milestones.globe)
 
@@ -138,8 +140,8 @@ export function BootLayer({ data }: BootLayerProps) {
   useEffect(() => {
     if (announced.current || milestones.snapshot !== 'ok' || !version) return
     announced.current = true
-    announce(`Snapshot científico ${snapshotLabel(version)} validado: ${evaluated} ${evaluated === 1 ? 'lugar evaluado' : 'lugares evaluados'}.`)
-  }, [milestones.snapshot, version, evaluated])
+    announce(snapshotAnnouncement(version, evaluated, references))
+  }, [milestones.snapshot, version, evaluated, references])
 
   useEffect(() => {
     if (orbitRequested) setWaitOrbit(true)

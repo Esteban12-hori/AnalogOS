@@ -60,3 +60,20 @@
 @media (max-width: 1099px) {
   .metrics { font-size: var(--fs-13); }
 }
+
+/* Piloto v3 y capa de requisitos de Misión (ADR-008, ADR-013). */
+.metrics-role { margin: 0; color: var(--muted); font-size: var(--fs-min); line-height: 1.4; }
+.metrics-ref { color: var(--ice); font-weight: 600; letter-spacing: .02em; }
+.metrics-mission { display: grid; gap: 4px; margin: 2px 0 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; }
+.metrics-mission[data-stale] { opacity: var(--o-busy); }
+.metrics-mission-status { margin: 0; color: var(--text); font-size: var(--fs-13); font-weight: 600; }
+.metrics-mission-status small { color: var(--muted); font-weight: 400; }
+.metrics-mission-status[data-status="no_cumple_requisitos"], .metrics-mission-status[data-status="fuera_de_alcance"] { color: var(--muted); }
+.metrics-reqs { display: grid; gap: 4px; margin: 4px 0 0; padding: 0; list-style: none; }
+.metrics-req { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 6px; font-size: var(--fs-12); line-height: 1.35; }
+.metrics-req-mark { color: var(--earth-bright); font-weight: 700; text-align: center; }
+.metrics-req[data-status="no_cumple"] .metrics-req-mark { color: var(--text); }
+.metrics-req[data-status="no_evaluable"] .metrics-req-mark { color: var(--pending); }
+.metrics-req-body { display: grid; gap: 1px; min-width: 0; }
+.metrics-req-body small { color: var(--muted); font-weight: 400; }
+.metrics-req-line, .metrics-req-reason { color: var(--muted); font-size: var(--fs-min); overflow-wrap: anywhere; }

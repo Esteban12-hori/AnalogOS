@@ -3,7 +3,7 @@
  * Solo tokens de shell/tokens.css; sin backdrop-filter; solo se animan transform y opacity
  * (y stroke-dashoffset del anillo). Ninguna cifra se anima: aparece ya con su valor final.
  */
-.places { container: places / inline-size; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 6px; height: 100%; min-width: 0; min-height: 0; }
+.places { container: places / inline-size; display: flex; flex-direction: column; gap: 6px; height: 100%; min-width: 0; min-height: 0; }
 .places-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
 .places-title { display: flex; align-items: baseline; gap: 10px; min-width: 0; margin: 0; overflow: hidden; color: var(--muted); font-family: var(--mono); font-size: var(--fs-caps); letter-spacing: var(--caps-tracking); text-transform: uppercase; white-space: nowrap; }
 .places-title > span { overflow: hidden; color: var(--text); text-overflow: ellipsis; }
@@ -22,7 +22,7 @@
 .places-skeleton i { flex: none; width: 232px; height: 104px; border: 1px dashed var(--line-strong); border-radius: 14px; }
 
 /* ---- Pista: scroll-snap nativo, sin barra ------------------------------------------------- */
-.places-track { position: relative; display: flex; gap: 10px; min-height: 0; padding: 2px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; transition: opacity var(--dur-2) var(--ease-standard); }
+.places-track { position: relative; display: flex; flex: 1 1 0; gap: 10px; min-height: 0; padding: 2px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; transition: opacity var(--dur-2) var(--ease-standard); }
 .places-track::-webkit-scrollbar { display: none; }
 .places[data-busy] .places-track { opacity: var(--o-busy); }
 .places-group { display: flex; flex: none; gap: 10px; }
@@ -131,3 +131,27 @@
   .places-ring svg { width: 32px; height: 32px; }
   .places-ring b { height: 32px; font-size: var(--fs-12); }
 }
+
+/* ---- Piloto v3 y Misión integrada (ADR-008, ADR-013) ------------------------------------- */
+.places-filter { min-width: 0; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+.places-filter button { flex: none; }
+.places-empty { flex: none; align-self: center; width: 240px; margin: 0; padding: 10px 12px; border: 1px dashed var(--line-strong); border-radius: 14px; color: var(--muted); font-size: var(--fs-12); line-height: 1.4; white-space: normal; }
+.places-group[data-role="reference"] { padding-left: 10px; border-left: 1px dashed var(--line-strong); }
+.places-card[data-role="reference"] { border-style: dashed; }
+.places-card[data-role="reference"] .places-kicker > span:first-child { color: var(--ice); }
+.places-badge[data-tone="fail"] { color: var(--text); }
+.places-group[data-status="no_cumple_requisitos"] .places-card,
+.places-group[data-status="objetivo_no_soportado"] .places-card { opacity: var(--o-dim); }
+.places-group[data-status="no_cumple_requisitos"] .places-card[aria-selected="true"],
+.places-group[data-status="objetivo_no_soportado"] .places-card[aria-selected="true"] { opacity: 1; }
+.places-group[data-status="fuera_de_alcance"] { padding-left: 10px; border-left: 1px dashed var(--pending); }
+.places-group[data-status="fuera_de_alcance"] .places-card { border-style: dashed; border-color: var(--pending); opacity: var(--o-dim); }
+.places-group[data-status="fuera_de_alcance"] .places-card[aria-selected="true"] { opacity: 1; }
+.places-card[data-status="no_cumple_requisitos"] .places-kicker > span:first-child { color: var(--muted); }
+.places-diagnosis { display: grid; gap: 2px; margin: 0; padding: 6px 10px; border: 1px dashed var(--pending); border-radius: 10px; color: var(--muted); font-size: var(--fs-min); line-height: 1.4; }
+.places-diagnosis strong { color: var(--text); font-size: var(--fs-12); font-weight: 600; }
+.places[data-view="list"] .places-group[data-role="reference"],
+.places[data-view="list"] .places-group[data-status] { margin-top: 8px; padding: 8px 0 0; border-top: 1px dashed var(--line-strong); border-left: 0; }
+.places-note { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.places-filter button { min-height: 26px; padding: 0 9px; font-size: var(--fs-min); }
+@container places (max-width: 560px) { .places-title small { display: none; } }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { MISSION_PRESETS, profileFromPreset, scoreMission, sensitivity, type SensitivityResult } from '../engine'
-import { sensitivityInputs, summarizeRobustness, type SiteSensitivity } from './robustness'
-import { loadScienceSnapshot, YUNGAY } from './testSupport'
+import { parseSensitivity } from '../../domain/sensitivity'
+import { readJson, YUNGAY } from '../../tests/v3Support'
+import { summarizeRobustness, type SensitivityResult, type SiteSensitivity } from './robustness'
 
 /** FIXTURE: escenarios con puntajes dados (no salen del motor). */
 function result(rows: Array<[string, 'minus' | 'plus', number | null]>, base: number): SensitivityResult {
@@ -68,41 +68,24 @@ describe('summarizeRobustness', () => {
   })
 })
 
-describe('sensitivityInputs (misma regla que scoreMission)', () => {
-  const snapshot = loadScienceSnapshot()
-  const yungay = snapshot.candidates.find((site) => site.site_id === YUNGAY)
-  if (!yungay) throw new Error('falta Yungay en el snapshot')
+// La sensibilidad la escribe el pipeline (analysis-summary.json); la web solo la lee y compara
+// órdenes. Sin motor propio (ADR-011, sustituido): ningún recálculo en el navegador.
+describe('parseSensitivity (analysis-summary.json del pipeline)', () => {
+  const summary = readJson('artifacts/science-v3/analysis-summary.json')
+  const parsed = parseSensitivity(summary)
 
-  it('perfil base: pesos y estados del snapshot', () => {
-    const inputs = sensitivityInputs(snapshot.profile, null, yungay)
-    expect(inputs.criteria.map((criterion) => criterion.weight)).toEqual(snapshot.profile.criteria.map((criterion) => criterion.weight))
-    expect(inputs.inputs.geologic_relevance?.status).toBe('needs_calibration')
-    expect(inputs.inputs.slope).toEqual({ similarity: 0.694107, quality: 0.93, status: 'valid' })
-    expect(inputs.epsilon).toBe(0.01)
-    expect(inputs.minimumValidWeight).toBe(0.7)
+  it('lee los siete sitios v3 con su estabilidad y sus 14 escenarios (7 criterios × ±)', () => {
+    expect(parsed.size).toBe(7)
+    const yungay = parsed.get(YUNGAY)
+    expect(yungay?.scenarios).toHaveLength(14)
+    expect(yungay?.stability).toBe((summary as { sites: Array<{ site_id: string; sensitivity: { stability: number } }> }).sites.find((site) => site.site_id === YUNGAY)?.sensitivity.stability)
+    for (const result of parsed.values()) for (const scenario of result.scenarios) expect(['minus', 'plus']).toContain(scenario.direction)
   })
 
-  it('perfil de misión: Excluir (peso 0) entra como excluded', () => {
-    const inputs = sensitivityInputs(snapshot.profile, { slope: 0.5, terrain_roughness: 0.5 }, yungay)
-    expect(inputs.criteria.find((criterion) => criterion.id === 'local_relief')?.weight).toBe(0)
-    expect(inputs.inputs.local_relief?.status).toBe('excluded')
-    expect(inputs.inputs.slope?.status).toBe('valid')
-  })
-})
-
-// Una sola cifra de estabilidad: la que el motor entrega en el scoring (riel, ficha, Comparar)
-// es la misma que la Lectura calcula aquí con sensitivityInputs.
-describe('estabilidad de misión: scoring del motor = Lectura', () => {
-  const snapshot = loadScienceSnapshot()
-  it.each(MISSION_PRESETS.map((preset) => [preset.id, preset] as const))('%s', (_id, preset) => {
-    const profile = profileFromPreset(preset, { id: snapshot.profile.id, version: snapshot.profile.version })
-    const scoring = scoreMission({ profile, candidates: snapshot.candidates, base: snapshot.profile })
-    for (const site of scoring.sites) {
-      const candidate = snapshot.candidates.find((item) => item.site_id === site.siteId)
-      if (!candidate) throw new Error(`falta ${site.siteId}`)
-      const inputs = sensitivityInputs(snapshot.profile, profile.weights, candidate)
-      const expected = sensitivity(inputs.criteria, inputs.inputs, inputs.epsilon, inputs.minimumValidWeight).stability
-      expect(site.stability).toBe(site.similarity === null ? null : expected)
-    }
+  it('lo que no tiene la forma esperada se ignora; nunca se inventa', () => {
+    expect(parseSensitivity(null).size).toBe(0)
+    expect(parseSensitivity({ sites: [{ site_id: 'cl-a' }, { sensitivity: { scenarios: [] } }] }).size).toBe(0)
+    const odd = parseSensitivity({ sites: [{ site_id: 'cl-a', sensitivity: { stability: 'x', scenarios: [{ criterion_id: 'slope', direction: 'up', score: 1 }, { criterion_id: 'slope', direction: 'plus', score: null }] } }] })
+    expect(odd.get('cl-a')).toEqual({ stability: null, maxScoreDelta: null, scenarios: [{ criterionId: 'slope', direction: 'plus', score: null, delta: null }] })
   })
 })

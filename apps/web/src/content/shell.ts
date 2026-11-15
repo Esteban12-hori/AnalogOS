@@ -9,12 +9,12 @@
 import { bootLines, INITIAL_MILESTONES, LINE_GLYPH } from '../features/boot/bootModel'
 
 export const SHELL_TEXT = {
-  brand: 'AnalogOS Chile',
-  brandTagline: 'Earth analog decision system',
+  brand: 'AnalogOS',
+  brandTagline: 'Piloto Chile–Argentina',
   statusLoading: 'Cargando snapshot validado…',
   scienceNote: 'SCREENING CIENTÍFICO PRELIMINAR · DATOS REALES · NO ES AUTORIZACIÓN DE TERRENO',
   scienceNoteShort: 'PRELIMINAR · NO AUTORIZA TERRENO',
-  composerPrompt: 'Describe el trabajo que quieres probar para Marte…',
+  composerPrompt: 'Describe la prueba que quieres hacer para Marte…',
 } as const
 
 const escape = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
