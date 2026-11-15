@@ -2,6 +2,15 @@
 
 ## Integración Explorar/Misión — Codex, 2026-11-15
 
+**Cierre final publicado:** código `9c183fb8cc5d8adbc717f931efd64bf877ddb0b0`, [Actions 43681551867 correcto](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43681551867), incluyendo arranque aislado de la función empaquetada y alias fijo. Desde una pestaña nueva de dev se repitió AR6 → Evaluar este sector → Enviar: conserva recorrido y geometría. Se repitieron las dos llamadas reales de Anthropic, sin respuestas simuladas.
+
+- Borrador final: `req_011Ch4ApuLtToXEojFVFZVG5`, `2026-11-15T05:35:08.907Z`, `claude-sonnet-5-5`, 2229/1637 tokens, `end_turn`. Seis requisitos sin confirmar; confirmación explícita y una sola ventana AR6 priorizada.
+- Explicación/geología final: `req_011Ch4Auogxy1aMjkFPPkkB5`, `2026-11-15T05:36:08.544Z`, mismo modelo, 7521/354 tokens, `end_turn`. Tres referencias válidas: caracterizar material superficial de Galán y depósitos aluviales/coluviales, más reconocer diversidad litológica de Galán. La selección puede variar; las unidades y textos se resuelven contra el catálogo cerrado y el resultado determinista permanece igual.
+- `submission/evidence/integration-final-dev-geology-export.json`: validación sin incidencias y reconstrucción idéntica con snapshot/contexto oficiales. SHA-256 `e1d5ffcf461af972a2422423b8da6ec2eeeb953e992360fee3caed07cbaaa653`. Captura `submission/assets/analogos-integration-final-dev.png`.
+- El checkpoint posterior solo incorpora documentación y evidencia con `[skip ci]`; no altera el código desplegado ni requiere regenerar el ZIP.
+
+### Prueba inicial sobre la integración de Gus
+
 Sobre `dd625b4` desplegado ([Actions 43678787020](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43678787020)), se probaron realmente **las dos operaciones de Anthropic desde la nueva interfaz**, con geología activada en la explicación. Brief sintético, seis requisitos propuestos sin confirmar, confirmación humana explícita de prueba, una ventana AR6 evaluada y tres referencias geológicas SEGEMAR seleccionadas. Ningún cambio de números, estados ni orden por la IA.
 
 - Borrador: `req_011Ch49r2xSqLrAHSpZDFz6w`, `2026-11-15T05:22:19.635Z`, `claude-sonnet-5-5`, tokens 2229/1842.

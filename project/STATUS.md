@@ -1,9 +1,12 @@
 # Estado actual
 
 **Última actualización:** 2026-11-15, aceptación de la integración Explorar/Misión (America/Santiago).
-**Responsable:** Codex. **Rama:** `dev`. **Estado:** integración aceptada; corrección de conservación del sector lista para publicación.
+**Responsable:** Codex. **Rama:** `dev`. **Estado:** integración aceptada, corrección publicada y comprobada con IA real.
 
 ## Checkpoint vigente — cierre del handoff de Gus
+
+- **Entrega final:** código `9c183fb8cc5d8adbc717f931efd64bf877ddb0b0`, [Actions 43681551867 correcto](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43681551867), incluida función empaquetada, deploy y alias `https://analogos-dev.vercel.app/`. Checkpoint posterior de documentación/evidencia con `[skip ci]` conserva ese código desplegado.
+- **Reprueba tras publicar:** AR6 → «Evaluar este sector» → dock → Enviar conserva el sector. Anthropic real vuelve a proponer seis requisitos sin confirmar; confirmación y evaluación incluyen solo AR6. Explicación/geología reales, tres referencias válidas. `submission/evidence/integration-final-dev-geology-export.json` validado y reconstruido idéntico; captura `submission/assets/analogos-integration-final-dev.png`. Modelo `claude-sonnet-5-5`; procedencia completa en DEV_AI_VERIFICATION.
 
 - Integración `dd625b4` ya fusionada y publicada; [Actions 43678787020 correcto](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43678787020). Los bloqueos de fusión/push descritos más abajo son históricos.
 - **IA real comprobada en dev:** borrador de seis requisitos, confirmación explícita, evaluación AR6, explicación Anthropic y tres referencias geológicas de SEGEMAR. JSON descargado validado y reconstruido idéntico con los datos oficiales: `submission/evidence/integration-dev-geology-export.json`.

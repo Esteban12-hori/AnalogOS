@@ -6,7 +6,7 @@ Fecha: 2026-11-15 (America/Santiago). Base revisada: `dd625b4626bb39a0f920eca816
 
 **Integración aceptada para el piloto, con los pendientes acotados de abajo.** ADR-013 y ADR-014 aceptados. Se conserva Yungay como alternativa conocida en Misión y fuera del ranking de descubrimiento. No hay cambios de fórmulas, datos ni comportamiento del servidor de IA.
 
-La integración base se publicó correctamente en [Actions 43678787020](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43678787020). El cierre de publicación de la corrección se registra en STATUS y DEV_AI_VERIFICATION.
+La integración base se publicó correctamente en [Actions 43678787020](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43678787020). La corrección está publicada en **`9c183fb8cc5d8adbc717f931efd64bf877ddb0b0`**, [Actions 43681551867 correcto](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43681551867), función y alias incluidos. Se repitió el recorrido completo desde una pestaña nueva de dev: sector preservado, borrador real, confirmación, evaluación, explicación y geología reales. Evidencia final validada/reconstruida: `submission/evidence/integration-final-dev-geology-export.json`; procedencia en DEV_AI_VERIFICATION. El checkpoint posterior de documentos/evidencia usa `[skip ci]`.
 
 ## IA real desde la interfaz integrada
 

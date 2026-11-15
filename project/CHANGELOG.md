@@ -1,5 +1,10 @@
 # Changelog de trabajo
 
+## 2026-11-15 Codex · cierre remoto de la integración [skip ci]
+
+- `9c183fb` publicado; Actions `43681551867` correcto, incluida función empaquetada y alias dev. Reprueba desde pestaña nueva: Enviar conserva AR6; borrador Anthropic y explicación/geología reales, seis requisitos confirmables y un único sector evaluado.
+- Exportación final validada y reconstruida idéntica, tres referencias geológicas válidas; captura y procedencia incorporadas. STATUS/NEXT_TASK/RESUME_CODEX actualizados, sin nueva asignación a Claude. Este checkpoint solo documenta el código ya desplegado; ZIP y datos sin cambios.
+
 ## 2026-11-15 Codex · aceptación del rediseño integrado y conservación del sector
 
 - Revisión de `dev` `dd625b4` y prueba real desde la interfaz: borrador Anthropic, confirmación, evaluación AR6, explicación y orientación geológica SEGEMAR. Exportación descargada, validada y reconstruida idéntica; evidencia y captura incorporadas.

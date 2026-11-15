@@ -1,10 +1,11 @@
 # Revisión de la integración publicada — Codex (2026-11-15)
 
-- **Owner:** Codex. **Estado:** accepted; corrección verificada, publicación en curso. **Rama/base:** `dev`, `dd625b4`.
+- **Owner:** Codex. **Estado:** accepted; completado, publicado y comprobado con IA real. **Rama/base:** `dev`, `dd625b4`. **Entrega:** `9c183fb`, Actions `43681551867` correcto.
 - Dan entregó el handoff de Gus para continuar la integración ya fusionada y desplegada. Verificar IA real (borrador, explicación y geología AR6), decidir el tratamiento de Yungay en Misión, revisar ADR-013/014 y corregir la referencia de CLAUDE.md.
 - Corregir regresiones encontradas en este recorrido, verificar y publicar en dev bajo la autorización vigente. No modificar el núcleo científico ni main. Sin nueva asignación a Claude.
 - Hallazgo reproducido y corregido: «Evaluar este sector» → texto en el dock → «Enviar» conserva ahora recorrido y geometría elegidos. Prueba de regresión y recorrido local correctos.
 - Resultado: IA real AR6 comprobada, ADR-013/014 aceptados, Yungay conservado como alternativa conocida en Misión y separado del descubrimiento. Ver `docs/CODEX_INTEGRATION_REVIEW.md`; no hay nueva asignación a Claude.
+- Reprueba final tras publicación: el sector se conserva; borrador y explicación/geología reales correctos; exportación final validada/reconstruida. Evidencia: `submission/evidence/integration-final-dev-geology-export.json`.
 - Los bloques siguientes son antecedentes; el push pendiente allí descrito ya se completó en `dd625b4` (Actions 43678787020).
 
 ---
