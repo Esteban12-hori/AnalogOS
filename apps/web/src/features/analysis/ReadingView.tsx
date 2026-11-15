@@ -101,12 +101,22 @@ function renderFact(segment: Extract<ResolvedSegment, { kind: 'fact' }>) {
   return <FactChip id={segment.id} text={segment.text} />
 }
 
+/** Quién redactó los bloques visibles: lo anuncia cada bloque a los lectores de pantalla (§2.4). */
+const AiSourceContext = createContext<AiLayer['source']>('none')
+
+/** Rótulo accesible de un bloque redactado (el ✦ es aria-hidden: no basta para distinguirlo). */
+export function aiBlockPrefix(source: AiLayer['source']): string {
+  return source === 'lktron' ? 'Texto de IA:' : 'Texto pregenerado, no científico:'
+}
+
 /** Un bloque validado de la IA, con su entrada escalonada (cola de 6 como máximo). */
 function AiBlock({ block, children, as = 'p' }: { block: ReadingBlock; children?: ReactNode; as?: 'p' | 'li' | 'div' }) {
   const Tag = as
+  const source = useContext(AiSourceContext)
   const style = { '--i': Math.min(block.order, 6) } as CSSProperties
   return (
     <Tag className="analysis-block" data-type={block.type} style={style}>
+      <span className="sr-only">{aiBlockPrefix(source)} </span>
       {children}
       <TokenText segments={block.segments} renderFact={renderFact} />
     </Tag>
@@ -206,6 +216,7 @@ function ReadingTabs({ prefix, active, onChange }: { prefix: string; active: Tab
 }
 
 function SiteTab({ site, blocks }: { site: SiteFacts; blocks: readonly ReadingBlock[] }) {
+  const testsLabel = useContext(AiSourceContext) === 'lktron' ? 'IA' : 'texto pregenerado, no científico'
   const summary = blocks.find((block) => block.type === 'summary' && block.siteId === site.siteId)
   const insights = blocks.filter((block) => block.type === 'insight' && block.siteId === site.siteId)
   const limitingInsights = insights.filter((block) => block.factKind === 'limiting_factor')
@@ -253,7 +264,10 @@ function SiteTab({ site, blocks }: { site: SiteFacts; blocks: readonly ReadingBl
             {site.limiting.mars && <><span aria-hidden="true">{GLYPH.jezero}</span><span className="sr-only">Jezero</span> <Fact fact={site.limiting.mars} /> </>}
             {site.limiting.sim && <>· similitud <Fact fact={site.limiting.sim} /></>}
           </p>
-          {limitingInsights.map((block) => <AiBlock key={block.key} block={block} />)}
+          {/* Redacción junto a una cifra del motor: lleva ✦ y rótulo, nunca parece cálculo de la IA. */}
+          {limitingInsights.map((block) => (
+            <AiBlock key={block.key} block={block}><span className="analysis-ai-mark" aria-hidden="true">{GLYPH.ai} </span></AiBlock>
+          ))}
         </section>
       )}
 
@@ -277,7 +291,7 @@ function SiteTab({ site, blocks }: { site: SiteFacts; blocks: readonly ReadingBl
 
       {tests.length > 0 && (
         <section className="analysis-section">
-          <h3><span aria-hidden="true">{GLYPH.ai} </span>Prueba sugerida (IA)</h3>
+          <h3><span aria-hidden="true">{GLYPH.ai} </span>Prueba sugerida · {testsLabel}</h3>
           {tests.map((block) => <AiBlock key={block.key} block={block} />)}
         </section>
       )}
@@ -522,6 +536,7 @@ function ReadingBody({ reading, placement, busy, stale, phase, selectedSiteId }:
 
   return (
     <NamesContext.Provider value={names}>
+    <AiSourceContext.Provider value={visibleSource(ai)}>
       <section className="analysis" data-placement={placement} aria-labelledby={`${prefix}-title`} aria-busy={busy || writing} data-busy={busy ? '' : undefined}>
         <header className="analysis-head">
           <h2 id={`${prefix}-title`}>Lectura de la comparativa</h2>
@@ -582,6 +597,7 @@ function ReadingBody({ reading, placement, busy, stale, phase, selectedSiteId }:
           <span className="analysis-hash" title="Huella FNV-1a 64 del paquete de evidencia">{reading.packet.packet_hash}</span>
         </footer>
       </section>
+    </AiSourceContext.Provider>
     </NamesContext.Provider>
   )
 }

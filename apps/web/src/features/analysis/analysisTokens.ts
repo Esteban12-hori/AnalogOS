@@ -8,6 +8,9 @@
  *  - números escritos («dos», «veinte», «doscientos», «el doble», «la mitad», «tercio», «veces»…);
  *  - vocabulario de veredicto («seguro», «aprobado», «garantiza», «ideal», «apto», «puntaje»,
  *    «score», «el mejor»…);
+ *  - afirmaciones de orden («primero», «segunda», «última», «encabeza», «lidera», «ranking»,
+ *    «preferible», «recomendable», «adecuado», «confiable»…): el orden lo fija el motor y solo
+ *    se cita con `{{site:…:rank}}` (§0.8, §5.5);
  *  - criterios que no se miden (hielo, mineral, radiación, regolito, química);
  *  - caracteres invisibles o de control (zero-width, bidi) y letras de otros alfabetos
  *    (homóglifos cirílicos o griegos que esquivarían el filtro).
@@ -25,6 +28,7 @@ export type TextIssueCode =
   | 'numeric_symbol'
   | 'number_word'
   | 'vocabulary'
+  | 'rank'
   | 'unmeasured'
   | 'malformed_marker'
   | 'unknown_ref'
@@ -62,9 +66,11 @@ const NUMBER_WORD = new RegExp(
       'billon(?:es)?', 'decenas?', 'docenas?', 'centenas?', 'centenar(?:es)?',
       'mitad(?:es)?', 'doble[a-z]*', 'duplic[a-z]*', 'triple[a-z]*', 'triplic[a-z]*', 'cuadrupl[a-z]*',
       'quintupl[a-z]*', 'tercios?', 'veces', 'porcentajes?', 'porcentual[a-z]*',
+      // Cuantificadores: «una vez y media», «medio grado», «un par de grados», «un cuarto».
+      'medi[oa]s?', 'par(?:es)?', 'cuart[oa]s?',
       'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'eleven',
       'twelve', 'twenty', 'thirty', 'forty', 'fifty', 'hundreds?', 'thousands?', 'millions?', 'half',
-      'twice', 'thrice', 'double', 'percent', 'percentage',
+      'twice', 'thrice', 'double', 'percent', 'percentage', 'quarters?', 'pairs?',
     ].join('|') +
     ')$',
 )
@@ -77,6 +83,21 @@ const VOCABULARY = new RegExp(
       'ideal(?:es|mente)?', 'apt[oa]s?', 'puntajes?', 'puntua[n]?', 'puntuar', 'puntuacion(?:es)?',
       'scores?', 'scoring', 'optim[oa]s?', 'perfect[oa]s?', 'idone[oa]s?', 'certific[a-z]*',
       'safe', 'approved', 'guarantee[sd]?', 'optimal', 'best',
+    ].join('|') +
+    ')$',
+)
+
+/**
+ * Orden y preferencia entre lugares: el motor fija todo orden y toda postura (§0.8, §5.5). La IA
+ * cita el puesto con `{{site:…:rank}}`; nunca lo escribe con palabras.
+ */
+const RANK = new RegExp(
+  '^(?:' +
+    [
+      'primer[oa]?s?', 'segund[oa]s?', 'tercer[oa]?s?', 'quint[oa]s?', 'sext[oa]s?', 'ultim[oa]s?', 'penultim[oa]s?',
+      'encabez[a-z]*', 'lider[a-z]*', 'rankings?', 'preferibles?', 'recomendables?', 'adecuad[oa]s?',
+      'confiables?', 'aventaj[a-z]*', 'ganador[a-z]*', 'first', 'second', 'third', 'last', 'top', 'leads?', 'ranked',
+      'preferable', 'recommended',
     ].join('|') +
     ')$',
 )
@@ -126,6 +147,7 @@ export function scanPlainText(text: string, options: ScanOptions = {}): TextIssu
     if (NUMBER_WORD.test(word)) return { code: 'number_word', detail: word }
     if (options.vocabulary !== false) {
       if (VOCABULARY.test(word)) return { code: 'vocabulary', detail: word }
+      if (RANK.test(word)) return { code: 'rank', detail: word }
       if (MEJOR.test(word) && index > 0 && SUPERLATIVE.test(list[index - 1] ?? '')) {
         return { code: 'vocabulary', detail: `${list[index - 1]} ${word}` }
       }

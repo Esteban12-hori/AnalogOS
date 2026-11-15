@@ -38,7 +38,7 @@
 /* Línea de estado: fase real, contador, avisos y acciones de la espera (altura fija: CLS 0). */
 .composer-status-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .composer-status-text[data-tone="error"], .composer-status-text[data-tone="ok"] { color: var(--text); }
-.composer-status-text[data-tone="ok"] > span:first-child { color: var(--earth-bright); }
+.composer-status-text[data-tone="ok"] > span[aria-hidden="true"] { color: var(--earth-bright); }
 .composer-status-count { color: var(--muted); font-variant-numeric: tabular-nums; }
 .composer-status .orbit-stub { display: inline-flex; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .composer-tag { display: inline-block; margin: 0 6px; padding: 0 6px; border: 1px solid var(--ai-rule); border-radius: 999px; color: var(--ice); font-family: var(--mono); font-size: var(--fs-min); letter-spacing: .02em; line-height: 14px; }

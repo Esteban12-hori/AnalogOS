@@ -4,15 +4,12 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { ErrorObject } from 'ajv'
 import { describe, expect, it } from 'vitest'
-import { parseReferenceAnalogs } from '../domain/contracts'
+import { parseReferenceAnalogs } from '../domain/referenceAnalogContract'
 import { checkAiAnalysisEvent, checkEvidencePacket, checkMissionInterpretation } from '../domain/aiContracts'
-import { validateReferenceAnalogs } from '../domain/validators.generated.js'
+import { validateReferenceAnalogs } from '../domain/validators.analogs.generated.js'
 import type { StandaloneValidator } from '../domain/validators.generated'
-import {
-  validateAiAnalysisEvent,
-  validateEvidencePacket,
-  validateMissionInterpretation,
-} from '../domain/validators.mission.generated.js'
+import { validateMissionInterpretation } from '../domain/validators.interpretation.generated.js'
+import { validateAiAnalysisEvent, validateEvidencePacket } from '../domain/validators.mission.generated.js'
 
 const fixtures = resolve(__dirname, '../../../../tests/fixtures/contracts')
 type Expectation = { valid: true } | { valid: false; path: string; keyword: string }

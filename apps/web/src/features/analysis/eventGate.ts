@@ -6,7 +6,10 @@
  *  3. cada `{{id}}` existe en `facts` y está en `refs`; cada `ref` existe;
  *  4. sin dígitos, %, números escritos ni vocabulario de veredicto fuera de los marcadores;
  *  5. el `fact_kind` de un `insight` coincide con una entrada de `fact_kinds` y el texto cita su
- *     propio criterio;
+ *     propio criterio; sin léxico de orden («primero», «encabeza», «ranking»…): el orden lo
+ *     fija el motor (§0.8);
+ *  5b. un `summary` o `tradeoff` que compara («más», «mejor», «supera»…) cita un hecho de orden
+ *     (`site:…:rank`, `rank:…`) o un criterio en el que el motor estableció `best_of_n`;
  *  6. lugares, verificaciones y análogos existen; topes por tipo.
  * Lo que no pasa se descarta con un motivo neutro; nunca se muestra texto sin validar.
  * Puro: sin red ni stores.
@@ -24,6 +27,8 @@ export const DISCARD_MESSAGE: Readonly<Record<DiscardReason, string>> = {
   digits: 'escribía cifras fuera de los datos del motor',
   number_word: 'escribía un número con palabras',
   vocabulary: 'usaba un veredicto que solo puede fijar el motor',
+  rank: 'afirmaba un orden que solo puede fijar el motor',
+  rank_fact: 'comparaba lugares sin citar el orden ni un hecho del motor',
   unmeasured: 'mencionaba algo que este snapshot no mide',
   unsafe_text: 'traía caracteres no admitidos',
   malformed_marker: 'tenía un marcador mal formado',
@@ -58,6 +63,7 @@ const ISSUE_REASON: Readonly<Record<TextIssueCode, DiscardReason>> = {
   numeric_symbol: 'digits',
   number_word: 'number_word',
   vocabulary: 'vocabulary',
+  rank: 'rank',
   unmeasured: 'unmeasured',
   malformed_marker: 'malformed_marker',
   unknown_ref: 'unknown_ref',
@@ -115,6 +121,13 @@ function mentionsCriterion(text: string, criterionId: CriterionId): boolean {
   return (normalizeWord(text).match(/\p{L}+/gu) ?? []).some((word) => pattern.test(word))
 }
 
+/** Léxico comparativo: el texto pone un lugar por delante de otro o de Jezero. */
+const COMPARATIVE = /^(?:mas|menos|mejor(?:es)?|peor(?:es)?|mayor(?:es)?|menor(?:es)?|supera[n]?|superior(?:es)?|delante|detras)$/
+
+function compares(text: string): boolean {
+  return (normalizeWord(text).match(/\p{L}+/gu) ?? []).some((word) => COMPARATIVE.test(word))
+}
+
 function citesCriterion(ids: readonly string[], criterionId: CriterionId): boolean {
   return ids.some((id) => parseFactId(id).criterionId === criterionId)
 }
@@ -135,6 +148,20 @@ export function createEventGate(options: GateOptions): EventGate {
     counts.set(key, next)
     return true
   }
+  /**
+   * Un resumen o contrapeso que compara lugares debe apoyarse en el orden del motor: cita un
+   * puesto (`site:…:rank`, `rank:…`) o un hecho de un criterio donde el motor fijó `best_of_n`.
+   */
+  const groundsComparison = (markers: readonly string[]): boolean =>
+    markers.some((id) => {
+      if (id.startsWith('rank:') || /^site:[^:]+:rank$/.test(id)) return true
+      const { siteId, criterionId } = parseFactId(id)
+      return (
+        siteId !== null &&
+        criterionId !== null &&
+        packet.fact_kinds.some((fact) => fact.kind === 'best_of_n' && fact.site_id === siteId && fact.criterion_id === criterionId)
+      )
+    })
   const refExists = (ref: string): boolean =>
     Object.prototype.hasOwnProperty.call(packet.facts, ref) || Object.prototype.hasOwnProperty.call(checks, ref)
 
@@ -200,6 +227,7 @@ export function createEventGate(options: GateOptions): EventGate {
           if (seen.has(key)) return discard('duplicate')
           const resolved = text(event.text, event.refs)
           if (!resolved.ok) return discard(resolved.reason)
+          if (compares(event.text) && !groundsComparison(resolved.markers)) return discard('rank_fact')
           seen.add(key)
           return block({ key, type: 'summary', siteId: event.site_id, segments: resolved.segments })
         }
@@ -234,6 +262,7 @@ export function createEventGate(options: GateOptions): EventGate {
           if (!event.site_ids.every((siteId) => sites.has(siteId))) return discard('unknown_site')
           const resolved = text(event.text, event.refs)
           if (!resolved.ok) return discard(resolved.reason)
+          if (compares(event.text) && !groundsComparison(resolved.markers)) return discard('rank_fact')
           if (!bump('tradeoff', CAPS.tradeoff)) return discard('cap')
           return block({ key: `tradeoff:${order}`, type: 'tradeoff', siteId: null, siteIds: [...event.site_ids], segments: resolved.segments })
         }

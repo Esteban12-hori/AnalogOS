@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest'
 import type { CandidateSite, MissionProfile } from '../../domain/contracts'
 import { parseMarsReference } from '../../domain/marsReference'
 import type { MissionProfileDraft, MissionScoring } from '../engine'
+import { confidenceRiseNote } from './summaryText'
 import { resolveMetricContext, type ResolveMetricContextArgs } from './metricContext'
 import { coverageText, siteSimilarityText, weightChangeGlyph, vsMarsText } from './metricText'
 import { buildMetricViews } from './buildMetricViews'
@@ -75,6 +76,20 @@ describe('resolveMetricContext', () => {
     const views = buildMetricViews(context.input)
     expect(views.find((view) => view.isLimiting)?.criterionId).toBe('terrain_roughness')
     expect(views.find((view) => view.criterionId === 'surface_temperature_variability')?.weight).toBe(0)
+  })
+
+  it('Misión: la estabilidad es la del motor con tu perfil (la misma de la Lectura)', () => {
+    const withStability = { ...scoring, sites: scoring.sites.map((item) => ({ ...item, stability: 98.66 })) }
+    expect(resolveMetricContext(args({ mode: 'mision', missionProfile, scoring: withStability })).figures.stability).toBe(98.66)
+  })
+
+  it('Misión: si la confianza sube porque un criterio sin dato quedó fuera, se dice', () => {
+    const geo = { ...missionProfile, weights: { ...missionProfile.weights, geologic_relevance: 0 } }
+    const high = { ...scoring, profileId: geo.id, sites: scoring.sites.map((item) => ({ ...item, confidence: 99 })) }
+    const context = resolveMetricContext(args({ mode: 'mision', missionProfile: geo, scoring: high }))
+    const note = confidenceRiseNote(context)
+    expect(note).toMatch(/^Sube frente al perfil base \(77,5\) porque Geología \(sin dato\) quedó fuera de tu perfil: no es más evidencia\.$/)
+    expect(confidenceRiseNote(resolveMetricContext(args()))).toBeNull()
   })
 
   it('Misión con scoring de otro perfil (desfasado): perfil base', () => {

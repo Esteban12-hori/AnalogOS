@@ -43,7 +43,7 @@ Este documento reparte los incrementos 3 a 10 de `docs/UX_REDESIGN.md` §7.1 ent
    - No hay `setState` por cuadro: la manipulación directa va por ref o por variable CSS.
 8. **Anuncios.** No crees regiones `aria-live` propias. Usa `announce(texto)` o `announce(texto, 'alert')` de `shell/public`. Única excepción: el carrusel de métricas en móvil, según el patrón APG.
 9. **Peso** (§6.1). Lo que no cabe en el chunk principal se carga con `lazy()` o `import()`.
-   - `validators.mission.generated.js` y `domain/aiContracts.ts` pesan: impórtalos solo desde código diferido (motor, composer en envío y análisis).
+   - Un módulo de validadores por chunk: `validators.generated.js` (snapshot, principal), `validators.analogs.generated.js` (catálogo ◆, vía `domain/referenceAnalogContract.ts`), `validators.interpretation.generated.js` (misión, vía `domain/interpretationContract.ts`) y `validators.mission.generated.js` (paquete y análisis, vía `domain/aiContracts.ts`). Los tres últimos solo desde código diferido.
    - Presupuesto total del chunk principal: **+≤12 KB gz** de JS y **+≤5 KB gz** de CSS frente a `857b05f`. El armazón ya consumió +2,6 KB de JS y +1 KB de CSS.
 10. **Datos.** Toda cifra viene del snapshot (`data.snapshot`) o del motor (`features/engine`).
     - Fixtures solo en `tests/fixtures/` y marcados `FIXTURE`.

@@ -36,7 +36,9 @@ export type LevelsResult =
  * Niveles de una interpretación ya validada por esquema (§5.2): ids sin repetir y del perfil
  * base; los ausentes valen 0 («no mencionado»). Sin criterios de terreno → «insufficient».
  */
-export function interpretationLevels(interpretation: Pick<MissionInterpretation, 'criteria' | 'status'>): LevelsResult {
+export function interpretationLevels(
+  interpretation: Pick<MissionInterpretation, 'criteria' | 'status'> & { unsupported?: MissionInterpretation['unsupported'] },
+): LevelsResult {
   const levels = Object.fromEntries(CRITERION_IDS.map((id) => [id, 0])) as Record<CriterionId, CriterionLevel>
   const mentioned: CriterionId[] = []
   for (const criterion of interpretation.criteria) {
@@ -50,11 +52,14 @@ export function interpretationLevels(interpretation: Pick<MissionInterpretation,
     levels[criterion.id] = criterion.level
   }
   if (interpretation.status === 'no_terrain_criteria' || !CRITERION_IDS.some((id) => levels[id] > 0)) {
+    // Lo pedido que no se mide se dice igual: la limitación no queda invisible.
+    const asked = [...new Set((interpretation.unsupported ?? []).map((item) => item.phrase.trim()).filter((phrase) => phrase.length > 0))]
+    const prefix = asked.length > 0 ? `Pediste, sin datos aún: ${asked.join(' · ')} — no se miden en este snapshot. ` : ''
     return {
       ok: false,
       error: {
         code: 'insufficient',
-        message: 'No reconocimos criterios de terreno en el texto. Prueba con pendiente, rugosidad, relieve, suelo expuesto o aridez, o elige un perfil predefinido.',
+        message: `${prefix}No reconocimos criterios de terreno en el texto. Prueba con pendiente, rugosidad, relieve, suelo expuesto o aridez, o elige un perfil predefinido.`,
       },
     }
   }

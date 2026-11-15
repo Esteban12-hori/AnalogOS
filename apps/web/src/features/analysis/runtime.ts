@@ -11,12 +11,12 @@ import { rankCandidates } from '../../domain/scoring'
 import type { DemoSnapshot } from '../../data/loadDemoSnapshot'
 import type { MissionState } from '../../state/mission'
 import { sensitivity } from '../engine'
-import { buildMetricViews, type MetricView } from '../metrics'
+import type { MetricView } from '../metrics'
+import { buildMetricViews } from '../metrics/buildMetricViews'
 import { loadReferenceAnalogs } from '../places'
 import { createEventGate, type GateOutcome } from './eventGate'
 import { buildEvidencePacket, type EvidenceProfile } from './evidencePacket'
 import { LKTRON_URL } from './lktron'
-import { analyze } from './lktronClient'
 import { loadPregenerated, pickPregenerated } from './pregenerated'
 import { missionReadingKey } from './readingStore'
 import { PERTURBATION, sensitivityInputs, summarizeRobustness, type RobustnessSummary, type SiteSensitivity } from './robustness'
@@ -215,6 +215,8 @@ export async function streamLktron(reading: Reading, options: StreamOptions): Pr
   const gate = createEventGate({ packet: reading.packet, expectedEngine: 'lktron', analogIds, checkSchema: checkAiAnalysisEvent })
   let current = withAi(reading, { ...IDLE_AI, source: 'lktron', status: 'waiting' })
   options.publish(current)
+  // Cliente lktron diferido: con el flag apagado (sin VITE_LKTRON_URL) nunca se descarga.
+  const { analyze } = await import('./lktronClient')
   const result = await analyze(reading.packet, {
     baseUrl: options.baseUrl,
     signal: options.signal,

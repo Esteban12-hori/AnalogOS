@@ -28,7 +28,7 @@ const summary: ReadingBlock = {
   factKind: null,
   checkRef: null,
   analogId: null,
-  segments: [{ kind: 'text', text: 'Encabeza el orden con ' }, { kind: 'fact', id: sim, text: '75,7 %', criterionId: null, siteId: YUNGAY }, { kind: 'text', text: '.' }],
+  segments: [{ kind: 'text', text: 'Tiene una similitud de ' }, { kind: 'fact', id: sim, text: '75,7 %', criterionId: null, siteId: YUNGAY }, { kind: 'text', text: '.' }],
 }
 
 function withAi(patch: Partial<Reading['ai']>): Reading {
@@ -64,8 +64,10 @@ describe('ReadingView', () => {
     const html = renderToStaticMarkup(<ReadingView data={ready} placement="full" />)
     expect(html).toContain('Análisis pregenerado · no científico')
     expect(html).toContain('Redacción: texto pregenerado, no científico')
+    // Cada bloque redactado se anuncia como tal (el ✦ es aria-hidden).
+    expect(html).toContain('<span class="sr-only">Texto pregenerado, no científico: </span>')
     expect(html).toContain(`data-fact="${sim}"`)
-    expect(html).toContain('Encabeza el orden con')
+    expect(html).toContain('Tiene una similitud de')
   })
 
   it('la IA en vivo lleva «interpreta, no puntúa» y avisa lo descartado', () => {
@@ -73,6 +75,7 @@ describe('ReadingView', () => {
     readingStore.setSlot('base', { status: 'ready', reading, error: null })
     const html = renderToStaticMarkup(<ReadingView data={ready} placement="rail" />)
     expect(html).toContain('Interpretación de IA · interpreta, no puntúa')
+    expect(html).toContain('<span class="sr-only">Texto de IA: </span>')
     expect(html).toContain('1 frase descartada: citaba un dato que no existe')
   })
 
@@ -81,7 +84,7 @@ describe('ReadingView', () => {
     readingStore.setSlot('base', { status: 'ready', reading: stale, error: null })
     const html = renderToStaticMarkup(<ReadingView data={ready} placement="panel" />)
     expect(html).toContain('<strong>Desactualizado</strong> · el análisis recibido corresponde a otros datos')
-    expect(html).not.toContain('Encabeza el orden con')
+    expect(html).not.toContain('Tiene una similitud de')
     // Sin texto de la IA a la vista, el rótulo no dice «IA».
     expect(html).toContain('Solo hechos del motor · sin IA')
     expect(html).not.toContain('Interpretación de IA')

@@ -112,6 +112,41 @@ describe('vocabulario de veredicto', () => {
   })
 })
 
+// El motor fija todo orden y toda postura (§0.8, §5.5): la IA cita {{site:…:rank}}, no lo escribe.
+describe('afirmaciones de orden y preferencia', () => {
+  it.each([
+    ['primera', 'Pampa Yungay queda primera y Cordón de Domeyko segunda'],
+    ['encabeza', 'Domeyko encabeza el ranking de la comparativa'],
+    ['última', 'Pampa María Elena queda última'],
+    ['lidera', 'Domeyko lidera la comparativa'],
+    ['ranking', 'sube en el ranking'],
+    ['preferible', 'Domeyko es preferible y recomendable'],
+    ['adecuado', 'Este sector es el más adecuado y confiable'],
+    ['confiable', 'un sector confiable'],
+  ])('rechaza «%s»', (_label, text) => {
+    expect(code(text)).toBe('rank')
+  })
+
+  it('no confunde «superficie», «primavera» ni «adecuación» con un orden', () => {
+    expect(code('la superficie expuesta en primavera')).toBeNull()
+  })
+})
+
+describe('cuantificadores escritos', () => {
+  it.each([
+    ['media', 'La rugosidad es una vez y media la de Jezero'],
+    ['medio', 'Supera a Jezero por medio grado'],
+    ['par', 'La pendiente es un par de grados mayor'],
+    ['cuarto', 'un cuarto más de relieve'],
+  ])('rechaza «%s»', (_label, text) => {
+    expect(code(text)).toBe('number_word')
+  })
+
+  it('no confunde «mediana» ni «para» con un número', () => {
+    expect(code('la pendiente mediana sirve para probar laderas')).toBeNull()
+  })
+})
+
 describe('criterios que este snapshot no mide', () => {
   it.each(['hielo', 'minerales', 'mineralogía', 'radiación', 'regolito', 'química', 'químicos'])('rechaza «%s» fuera de unsupported', (word) => {
     expect(code(`la ${word} del sector`)).toBe('unmeasured')

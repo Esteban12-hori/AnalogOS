@@ -11,7 +11,7 @@ export const criterionLabels: Record<string, string> = {
   local_relief: 'Relieve local',
   bare_ground_fraction: 'Suelo expuesto',
   aridity_context: 'Aridez',
-  surface_temperature_variability: 'Variabilidad térmica',
+  surface_temperature_variability: 'Rango térmico',
   geologic_relevance: 'Geología',
 }
 

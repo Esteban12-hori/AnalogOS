@@ -115,7 +115,8 @@ export const uiActions = {
     uiStore.setState({ selection: { siteId, kind, preview } })
   },
   clearSelection(): void {
-    uiStore.setState({ selection: null, activeCriterionId: null, previewCriterionId: null })
+    // El hover también se limpia: en táctil la tarjeta que lo publicó pudo desmontarse sin blur.
+    uiStore.setState({ selection: null, activeCriterionId: null, previewCriterionId: null, hoverSiteId: null })
   },
   setHover(siteId: string | null): void {
     uiStore.setState({ hoverSiteId: siteId })

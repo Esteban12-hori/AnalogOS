@@ -109,3 +109,25 @@
   .places-ring-value { animation: none; }
   @keyframes places-fade { from { opacity: 0; } }
 }
+
+/* ---- Tarjeta compacta cuando la pista no da el alto (Misión con la línea de estado, 1280×800,
+        bandeja S0): nunca se corta a media fila; confianza y factibilidad siguen visibles (§4.2).
+        Solo en el dock y la bandeja, donde la pista tiene alto definido. ------------------------ */
+/* Sin la nota del perfil (Explorar) la pista sigue en la fila elástica: con contención de tamaño
+   una fila «auto» la dejaría en 0 px. */
+.places:not(:has(> .places-note)) { grid-template-rows: auto minmax(0, 1fr); }
+.dock-places .places-track, .sheet-tray-places .places-track { container: places-track / size; }
+@container places-track (max-height: 111px) {
+  /* Con la insignia (◆ «Coincide con…») cede la fila del área. */
+  .places-card:has(.places-badge) .places-meta { display: none; }
+}
+@container places-track (max-height: 99px) {
+  .places-card { grid-template-rows: auto auto auto; gap: 1px 8px; padding: 5px 10px; line-height: 1.2; }
+  .places-meta { display: none; }
+  /* La insignia sale de la vista pero no del árbol accesible. */
+  .places-badge { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .places-foot { grid-column: 1; grid-row: 3; }
+  .places-ring { grid-row: 1 / span 3; align-self: center; width: 52px; }
+  .places-ring svg { width: 32px; height: 32px; }
+  .places-ring b { height: 32px; font-size: var(--fs-12); }
+}

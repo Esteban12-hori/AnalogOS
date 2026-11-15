@@ -152,7 +152,8 @@ export function MissionPanel({ data, placement }: MissionPanelProps) {
         <h2 id={titleId} className="composer-card-title">Tu misión</h2>
         {source && (
           <span className="composer-card-source" data-source={source}>
-            {source !== 'preset' && <span aria-hidden="true">{GLYPH.ai} </span>}
+            {/* ✦ es solo de la IA (§2.4): ni DEMO ni un perfil predefinido lo llevan. */}
+            {source === 'lktron' && <span aria-hidden="true">{GLYPH.ai} </span>}
             {SOURCE_LABEL[source]}
           </span>
         )}
@@ -199,7 +200,7 @@ export function MissionPanel({ data, placement }: MissionPanelProps) {
           )}
           {interpretation && (
             <p className="composer-ai">
-              <span className="composer-ai-label"><span aria-hidden="true">{GLYPH.ai}</span> {interpretation.engine === 'demo' ? DEMO_TAG : 'Interpretación de IA'}</span>
+              <span className="composer-ai-label">{interpretation.engine === 'demo' ? DEMO_TAG : <><span aria-hidden="true">{GLYPH.ai}</span> Interpretación de IA</>}</span>
               {interpretation.mission_summary}
             </p>
           )}
@@ -277,27 +278,41 @@ export function MissionPanel({ data, placement }: MissionPanelProps) {
         </>
       )}
 
-      {presets && presets.length > 0 && (
-        <div className="composer-card-block">
-          <h3>Perfiles predefinidos</h3>
-          <ul className="composer-presets">
-            {presets.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className="composer-preset"
-                  aria-pressed={profile?.id === item.id}
-                  onClick={act((controller, snap) => controller.applyPreset(item.id, snap, { keepSelection }))}
-                >
-                  <b>{item.label}</b>
-                  <small>{item.description}</small>
-                </button>
-              </li>
-            ))}
-          </ul>
-          <p className="composer-card-note">Todos son needs_calibration: proponen niveles por criterio, sin validación experta.</p>
-        </div>
-      )}
+      {presets && presets.length > 0 && (() => {
+        const list = (
+          <>
+            <ul className="composer-presets">
+              {presets.map((item) => (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    className="composer-preset"
+                    aria-pressed={profile?.id === item.id}
+                    onClick={act((controller, snap) => controller.applyPreset(item.id, snap, { keepSelection }))}
+                  >
+                    <b>{item.label}</b>
+                    <small>{item.description}</small>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <p className="composer-card-note">Todos son needs_calibration: proponen niveles por criterio, sin validación experta.</p>
+          </>
+        )
+        // Con resultados, los perfiles se pliegan: la Lectura (veredicto y limitante) queda a la
+        // vista en el panel izquierdo sin desplazar (§4.2).
+        return profile ? (
+          <details className="composer-details composer-card-block">
+            <summary>Perfiles predefinidos · {presets.length}</summary>
+            {list}
+          </details>
+        ) : (
+          <div className="composer-card-block">
+            <h3>Perfiles predefinidos</h3>
+            {list}
+          </div>
+        )
+      })()}
 
       {history.length > 0 && (
         <details className="composer-details">

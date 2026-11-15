@@ -70,3 +70,39 @@ Las métricas observadas (sin simular) del mismo análisis móvil: LCP de 482 ms
 Advertencias de método:
 - Un servidor local que comprime en cada petición sesga mucho los resultados. Hay que precomprimir, como una CDN.
 - Hay que verificar que la app cargue en cada build: un `index.html` cacheado dio una vez un «100» falso con la app rota.
+
+## Rediseño Explorar / Misión: presupuesto §6.1 tras la revisión (2026-11-14)
+
+Lighthouse 12.6.0 en Chrome for Testing con Metal. Mediana de 3 corridas intercaladas contra `857b05f` (antes del rediseño), con el mismo servidor estático brotli (`/tmp/claude-lh/FIXT-*.json`).
+
+| Perfil | Versión | Puntaje | FCP | LCP | TBT | Speed Index | CLS |
+|---|---|---|---|---|---|---|---|
+| Móvil (4G lenta, CPU ×4) | `857b05f` | 75 | 2,0 s | 5,0 s | 180 ms | 2,9 s | 0,100 |
+| Móvil | rediseño | 74 | 2,1 s | 5,4 s | 204 ms | 2,9 s | 0 |
+| Escritorio | `857b05f` | 99 | 0,3 s | 0,8 s | 39 ms | 0,7 s | 0,047 |
+| Escritorio | rediseño | 98 | 0,5 s | 1,1 s | 0 ms | 0,7 s | 0,0003 |
+
+Peso del build (`vite build`, gzip):
+
+| Chunk | `857b05f` | 1161db6 | Ahora | Presupuesto |
+|---|---|---|---|---|
+| JS inicial (`index-*.js`) | 100,0 KB | 118,1 KB | 111,9 KB | +≤12 sobre `857b05f` (cumple: +11,9) |
+| CSS inicial | — | — | 15,3 KB | +≤5 sobre `857b05f` |
+| Motor (`engine`) | — | 15,6 KB | 8,5 KB | misión ≤8 en total (no cumple: con missionRun 5,0 y MissionPanel 3,2 suma ≈17) |
+| Lectura (`deferred`) | — | 13,7 KB + lktronClient 3,2 | 14,2 KB (lktronClient solo con el flag) | ≤10 (no cumple) |
+| Líneas (`LeaderCanvas`) | — | 5,1 KB | 6,7 KB + `buildMetricViews` 2,0 compartido | ≤4 (no cumple) |
+| Marcadores (`MarkerLayer`) | — | 5,7 KB | 5,7 KB | ≤4 (no cumple) |
+
+Qué bajó el JS inicial:
+
+- `buildMetricViews`, `layoutLeaders` y `pickPrincipalMetrics` ya no se reexportan desde los índices de features. Rolldown dejaba en el chunk principal todo módulo reexportado que también usara un chunk diferido.
+- El validador del catálogo ◆ viaja con el catálogo (`analogCatalog`).
+- Método y Fuentes se cargan al abrir su pestaña.
+- El chunk de misión carga solo el validador de la interpretación. Paquete de evidencia y análisis van con la Lectura, y `lktronClient` se descarga solo si `VITE_LKTRON_URL` existe.
+
+Pendiente:
+
+- **LCP móvil.** Con Lantern sigue 0,4 s sobre la base. El candidato LCP es la línea de atribución que pinta React, con una demora de render de unos 4,9 s. La copia idéntica del HTML estático no queda como candidato.
+- **CLS en escritorio.** 0,0003, por la cabecera del carrusel, aun con el contador de ancho fijo.
+- **Vidrio.** Hay 3 superficies con blur en escritorio (panel izquierdo, riel y dock) y 1 en móvil (hoja). La barra superior ya no lleva blur.
+

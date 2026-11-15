@@ -61,6 +61,10 @@ describe('composer · niveles desde la interpretación (§5.2)', () => {
 
   it('sin criterios de terreno (o todo en Excluir) es «insufficient», no un % inventado', () => {
     expect(interpretationLevels(interpretation({ status: 'no_terrain_criteria', criteria: [] }))).toMatchObject({ ok: false, error: { code: 'insufficient' } })
+    // Lo pedido que no se mide se lista igual (no queda invisible).
+    const asked = interpretationLevels({ status: 'no_terrain_criteria', criteria: [], unsupported: [{ phrase: 'hielo', reason: 'not_measured' }, { phrase: 'minerales', reason: 'not_measured' }] })
+    expect(asked).toMatchObject({ ok: false, error: { code: 'insufficient' } })
+    expect(asked.ok ? '' : asked.error.message).toMatch(/^Pediste, sin datos aún: hielo · minerales — no se miden en este snapshot\. No reconocimos/)
     expect(interpretationLevels(interpretation({ criteria: [{ id: 'slope', level: 0, rationale: 'Excluido.' }] }))).toMatchObject({
       ok: false,
       error: { code: 'insufficient' },

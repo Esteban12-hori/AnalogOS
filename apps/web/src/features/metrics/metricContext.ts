@@ -4,9 +4,9 @@
  *  - Explorar, o Misión sin resultados del motor → perfil base del snapshot: pesos y
  *    contribuciones del pipeline; similitud, confianza y estabilidad del snapshot.
  *  - Misión con resultados (scoring del mismo perfil que state/mission.profile) → pesos del
- *    perfil de misión y contribuciones del motor TS. Lo que el motor no entrega (estabilidad,
- *    y la confianza si viene null) queda «por calcular con tu perfil»: nunca se toma del perfil
- *    base para mezclarlo con un % de misión.
+ *    perfil de misión, contribuciones y estabilidad del motor TS (`sensitivity` con el perfil de
+ *    misión, la misma cifra que muestra la Lectura). Lo que el motor no entrega (null) queda
+ *    «por calcular con tu perfil»: nunca se toma del perfil base para mezclarlo con un % de misión.
  *  - La factibilidad no depende del perfil: siempre es la del snapshot.
  */
 import { useMemo } from 'react'
@@ -97,7 +97,7 @@ export function resolveMetricContext(args: ResolveMetricContextArgs): MetricCont
         similarity: scored?.similarity ?? null,
         similarityState: scored === null || scored.status === 'por_calcular' ? 'pending' : scored.similarity === null ? 'insufficient' : 'scored',
         confidence: scored?.confidence ?? null,
-        stability: null,
+        stability: scored?.stability ?? null,
         coverage: scored ? scored.coverage : null,
       },
       order,

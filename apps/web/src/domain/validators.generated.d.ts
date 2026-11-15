@@ -9,5 +9,3 @@ export interface StandaloneValidator {
 export const validateCandidate: StandaloneValidator
 export const validateManifest: StandaloneValidator
 export const validateProfile: StandaloneValidator
-/** contracts/reference-analog.schema.json (catálogo de ◆ por calcular). */
-export const validateReferenceAnalogs: StandaloneValidator

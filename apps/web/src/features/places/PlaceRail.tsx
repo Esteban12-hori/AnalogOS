@@ -39,6 +39,14 @@ function reveal(scroller: HTMLElement, el: HTMLElement, horizontal: boolean, cen
   scroller.scrollTo({ [horizontal ? 'left' : 'top']: target, behavior: smooth ? 'smooth' : 'auto' })
 }
 
+function focusVisible(element: Element): boolean {
+  try {
+    return element.matches(':focus-visible')
+  } catch {
+    return true
+  }
+}
+
 export function PlaceRail(props: PlaceRailProps) {
   const { data, placement } = props
   if (data.status === 'ready' && data.snapshot) return <PlaceCarousel {...props} snapshot={data.snapshot} />
@@ -174,13 +182,30 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
     if (scroller && el) reveal(scroller, el, !listView, center, !reduced)
   }, [selectedId, listView, center, reduced])
 
+  // Al desmontarse (S0 → S1 en la hoja) la tarjeta enfocada no emite blur: el hover que publicó
+  // quedaría pegado en el globo (pin fuera de su grupo).
+  useEffect(() => () => uiActions.setHover(null), [])
+
   // ---- FLIP al reordenar (resultados de la misión): solo transform, 400 ms ------------------
   const orderKey = options.map((option) => option.id).join('|')
   const positions = useRef({ list: listView, at: new Map<string, number>() })
   useLayoutEffect(() => {
-    const at = new Map<string, number>()
-    els.current.forEach((el, key) => at.set(key, listView ? el.offsetTop : el.offsetLeft))
-    if (!reduced && positions.current.list === listView) {
+    const read = () => {
+      const at = new Map<string, number>()
+      els.current.forEach((el, key) => at.set(key, listView ? el.offsetTop : el.offsetLeft))
+      return at
+    }
+    // Primer montaje (sin posiciones previas) o sin animación: no hay nada que animar, así que no
+    // se fuerza un layout síncrono en el arranque; se mide en el primer cuadro.
+    if (positions.current.at.size === 0 || reduced) {
+      const frame = requestAnimationFrame(() => {
+        positions.current = { list: listView, at: read() }
+        measure()
+      })
+      return () => cancelAnimationFrame(frame)
+    }
+    const at = read()
+    if (positions.current.list === listView) {
       els.current.forEach((el, key) => {
         const before = positions.current.at.get(key)
         const after = at.get(key)
@@ -256,7 +281,12 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
       ? busy ? '% del perfil base · se reemplaza cuando el motor termine' : '% del perfil base (snapshot)'
       : null
   const profileTag = fromMission ? profile?.label ?? 'tu perfil' : 'perfil base'
-  const catalogNote = catalog.status === 'ready' ? `${analogs.length} por calcular` : catalog.status === 'loading' ? 'cargando…' : 'sin catálogo'
+  // Cuenta lo que se ve: ◆ con tarjeta; los que coinciden con un sector van como insignia.
+  const matched = new Set([...classification.badges.values()].flat().map((analog) => analog.id)).size
+  const catalogNote =
+    catalog.status === 'ready'
+      ? `${model.references.length} por calcular${matched > 0 ? ` · ${matched} coincide con un sector` : ''}`
+      : catalog.status === 'loading' ? 'cargando…' : 'sin catálogo'
 
   if (options.length === 0) {
     return (
@@ -285,9 +315,16 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
         data-status={option.kind === 'evaluated' ? option.status : 'por_calcular'}
         style={{ '--i': Math.min(index, 6) } as CSSProperties}
         onClick={() => choose(option)}
-        onFocus={() => hover(option)}
+        onFocus={(event) => {
+          // Solo el foco de teclado previsualiza en el globo: el foco que devuelve el armazón tras
+          // un toque no debe dejar un hover pegado (pin fuera de su grupo).
+          if (focusVisible(event.currentTarget)) hover(option)
+        }}
         onBlur={() => uiActions.setHover(null)}
-        onPointerEnter={() => hover(option)}
+        onPointerEnter={(event) => {
+          // En táctil no hay «hover»: un toque publicaría un hover que nadie limpia.
+          if (event.pointerType !== 'touch') hover(option)
+        }}
         onPointerLeave={() => uiActions.setHover(null)}
       >
         {option.kind === 'evaluated'

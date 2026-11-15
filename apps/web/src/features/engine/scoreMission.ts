@@ -5,7 +5,7 @@
  */
 import { CRITERION_IDS, isCriterionId, type CandidateSite, type CriterionId, type MissionProfile } from '../../domain/contracts'
 import { rankCandidates } from '../../domain/scoring'
-import { aggregate } from './aggregate'
+import { aggregate, sensitivity } from './aggregate'
 import { pyRound, pySum } from './pyMath'
 import type {
   AggregateCriterion,
@@ -105,6 +105,7 @@ function porCalcular(
     status: 'por_calcular',
     coverage: 0,
     confidence: null,
+    stability: null,
     contributions: {},
     limitingCriterionId: null,
   }))
@@ -134,6 +135,9 @@ export function scoreMission({ profile, candidates, base }: ScoreMissionInput): 
   const copies = candidates.map((candidate) => {
     const { criteria, inputs, epsilon } = buildMissionInputs({ profile, candidate, base })
     const result = aggregate(criteria, inputs, epsilon, minimumValidWeight)
+    // Estabilidad con el MISMO perfil y la misma regla que la Lectura (robustness.ts): ±20 % por
+    // peso, renormalizado. Así riel, ficha y Lectura muestran una sola cifra del motor.
+    const stability = result.similarity === null ? null : sensitivity(criteria, inputs, epsilon, minimumValidWeight).stability
     const contributions: Partial<Record<CriterionId, number | null>> = {}
     for (const criterion of criteria) {
       if (isCriterionId(criterion.id)) contributions[criterion.id] = result.contributions[criterion.id] ?? null
@@ -145,6 +149,7 @@ export function scoreMission({ profile, candidates, base }: ScoreMissionInput): 
       status: result.similarity === null ? 'insufficient_data' : 'scored',
       coverage: pyRound(Math.min(1, result.validWeight / totalWeight), 6),
       confidence: result.confidence,
+      stability,
       contributions,
       limitingCriterionId: limitingCriterion(result.contributions, order),
     })

@@ -19,6 +19,7 @@ import { ReadingPanel, ReadingPill } from '../features/analysis'
 import { useMission } from '../state/mission'
 import { searchWithMode, uiActions, uiStore, useUi } from '../state/ui'
 import { isFixtureSnapshot, type AppData } from './appData'
+import { dataAttributionText } from './attribution'
 import { FullDetail } from './detail/FullDetail'
 import { GLYPH } from './glyphs'
 import { placeLabel } from './placeLabel'
@@ -39,6 +40,30 @@ const SETTLE_REDUCED_MS = 170
 
 function isEditable(target: EventTarget | null): boolean {
   return target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
+}
+
+/** ¿El evento viene de un popover abierto (Tu misión, recientes)? Ese Esc lo cierra el popover. */
+function insidePopover(target: EventTarget | null): boolean {
+  if (target instanceof Element && target.closest('[popover]')) return true
+  try {
+    return document.querySelector(':popover-open') !== null
+  } catch {
+    return false
+  }
+}
+
+const cssEscape = (value: string): string => (typeof CSS !== 'undefined' && typeof CSS.escape === 'function' ? CSS.escape(value) : value)
+
+/** Primer elemento que existe y puede recibir el foco, en orden de preferencia. */
+function focusFirst(scope: ParentNode, selectors: readonly string[]): boolean {
+  for (const selector of selectors) {
+    const el = scope.querySelector<HTMLElement>(selector)
+    if (el && el.isConnected && !el.closest('[inert]')) {
+      el.focus({ preventScroll: true })
+      if (document.activeElement === el) return true
+    }
+  }
+  return false
 }
 
 function usePageHidden(): boolean {
@@ -125,6 +150,9 @@ export function AppShell({ data }: { data: AppData }) {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || event.defaultPrevented || isEditable(event.target)) return
+      // Un diálogo popover (Tu misión, recientes) se cierra con su propio Esc nativo: no se
+      // cancela ni se borra la selección por debajo (APG, patrón de diálogo).
+      if (insidePopover(event.target)) return
       if (narrow && detent === 'S2') changeDetent('S1')
       else if (!narrow && railFull) setRailFull(false)
       else if (uiStore.getState().selection) uiActions.clearSelection()
@@ -134,6 +162,47 @@ export function AppShell({ data }: { data: AppData }) {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [narrow, detent, railFull, changeDetent])
+
+  // ---- Foco: ninguna transición de la hoja o del riel lo deja caer en <body> (WCAG 2.4.3) ----
+  // Se recuerda el último elemento enfocado dentro de la app; si una transición lo desmonta, el
+  // foco pasa al control equivalente del estado nuevo (título de la hoja, pestaña de la ficha,
+  // «Ficha», «Ver ficha completa», la opción del carrusel del lugar cerrado o el conmutador).
+  const lastFocused = useRef<HTMLElement | null>(null)
+  const lastSite = useRef<string | null>(null)
+  useEffect(() => {
+    const onFocusIn = (event: FocusEvent) => {
+      if (event.target instanceof HTMLElement && root.current?.contains(event.target)) lastFocused.current = event.target
+    }
+    document.addEventListener('focusin', onFocusIn)
+    return () => document.removeEventListener('focusin', onFocusIn)
+  }, [])
+  const transition = useRef({ detent, selectedKey, railFull })
+  useLayoutEffect(() => {
+    const previous = transition.current
+    transition.current = { detent, selectedKey, railFull }
+    const lost = lastFocused.current
+    const app = root.current
+    if (selection) lastSite.current = selection.siteId
+    if (!app || !lost || lost.isConnected) return
+    const active = document.activeElement
+    if (active && active !== document.body && app.contains(active)) return
+    const closedSite = previous.selectedKey !== '' && selectedKey === '' ? lastSite.current : null
+    const option = closedSite ? `[role="option"][id$="-${cssEscape(closedSite)}"]` : null
+    const targets: string[] = []
+    if (closedSite) {
+      targets.push(...(option ? [option] : []), '[role="option"][tabindex="0"]', '.places-tool')
+    } else if (narrow) {
+      if (detent === 'S2') targets.push('.full-detail [role="tab"][aria-selected="true"]', '.sheet-title')
+      else if (detent === 'S1' && previous.detent === 'S2') targets.push('.sheet-more', '.sheet-title')
+      else if (detent === 'S1') targets.push(selection ? '.sheet-title' : '.sheet [data-slot="sheet.list"] .places-tool', '.sheet-title')
+      else targets.push('.sheet-tray .places-tool', '[role="option"][tabindex="0"]')
+    } else {
+      if (railFull) targets.push('.rail .full-detail [role="tab"][aria-selected="true"]')
+      targets.push('.rail .rail-action', '.rail .rail-head h2')
+    }
+    targets.push('.sheet-title', `#${cssEscape(tabId('mode', mode))}`)
+    focusFirst(app, targets)
+  }, [detent, selectedKey, railFull, narrow, selection, mode])
 
   // ---- Márgenes del escenario: se publican cuando el layout se asienta ----------------------
   const railOpen = !narrow && selection !== null
@@ -185,6 +254,7 @@ export function AppShell({ data }: { data: AppData }) {
   const heights = sheetDetentHeights(width, height)
   const stageInert = narrow && !sideSheet && detent === 'S2'
   const cssVars = useMemo(() => layoutCssVars(width, height), [width, height])
+  const credit = useMemo(() => dataAttributionText(snapshot?.manifest), [snapshot])
 
   return (
     <div
@@ -197,6 +267,27 @@ export function AppShell({ data }: { data: AppData }) {
       data-detent={narrow ? detent : undefined}
       style={cssVars}
     >
+      {/* La barra superior va primero en el DOM (orden de tabulación = orden visual); es fija. */}
+      <header className="topbar" data-obstacle="">
+        <h1 className="sr-only">AnalogOS Chile</h1>
+        <div className="brand" aria-hidden="true">
+          <span className="brand-mark" aria-hidden="true" />
+          <span className="brand-text">
+            <strong>AnalogOS Chile</strong>
+            <small>Earth analog decision system</small>
+          </span>
+        </div>
+        <ModeTabs mode={mode} unseen={revision > seenRevision} />
+        <div className="topbar-status" data-slot="topbar.status"><StatusChip data={data} /></div>
+        <p className={`science-note${fixture ? ' is-fixture' : ''}`} role="note">
+          <span aria-hidden="true" />
+          <span className="note-long">{(fixture ? FIXTURE_NOTE : SCIENCE_NOTE)[0]}</span>
+          {/* La versión larga sale del árbol con display:none en pantallas angostas; la corta la
+              reemplaza para todos (también lectores de pantalla). */}
+          <span className="note-short">{(fixture ? FIXTURE_NOTE : SCIENCE_NOTE)[1]}</span>
+        </p>
+      </header>
+
       <div className="stage" data-slot="stage" inert={stageInert}>
         {snapshot ? (
           <MapStage
@@ -211,6 +302,7 @@ export function AppShell({ data }: { data: AppData }) {
             paused={stageInert || pageHidden}
             onMilestone={onMilestone}
             hudSlot={<LeaderToggle />}
+            creditSlot={credit ? <p className="stage-data-credit">{credit}</p> : null}
           />
         ) : (
           <div className="map-stage" aria-hidden="true" />
@@ -222,22 +314,6 @@ export function AppShell({ data }: { data: AppData }) {
         <BootLayer data={data} />
       </div>
 
-      <header className="topbar" data-obstacle="">
-        <div className="brand">
-          <span className="brand-mark" aria-hidden="true" />
-          <span className="brand-text">
-            <strong>AnalogOS Chile</strong>
-            <small>Earth analog decision system</small>
-          </span>
-        </div>
-        <ModeTabs mode={mode} unseen={revision > seenRevision} />
-        <div className="topbar-status" data-slot="topbar.status"><StatusChip data={data} /></div>
-        <p className={`science-note${fixture ? ' is-fixture' : ''}`} role="note">
-          <span aria-hidden="true" />
-          <span className="note-long">{(fixture ? FIXTURE_NOTE : SCIENCE_NOTE)[0]}</span>
-          <span className="note-short" aria-hidden="true">{(fixture ? FIXTURE_NOTE : SCIENCE_NOTE)[1]}</span>
-        </p>
-      </header>
 
       {!narrow && mode === 'explorar' && (
         <div className="reading-pill-slot" data-slot="pill.reading" data-obstacle=""><ReadingPill data={data} /></div>
@@ -261,6 +337,7 @@ export function AppShell({ data }: { data: AppData }) {
         />
       )}
 
+      <main className="app-main">
       {!narrow && (
         <section id={MODE_PANEL_ID} role="tabpanel" aria-labelledby={tabId('mode', mode)} className="dock" data-obstacle="">
           <div className="dock-places" data-slot="dock.places"><PlaceRail data={data} placement="dock" /></div>
@@ -282,6 +359,7 @@ export function AppShell({ data }: { data: AppData }) {
           {sheetBody({ detent, data, site, selection, onShowOnMap: showOnMap, onListView: openList })}
         </Sheet>
       )}
+      </main>
 
       <LiveRegion />
     </div>
@@ -303,7 +381,7 @@ function sheetHead({ detent, data, siteName, hasSelection, onDetent }: SheetPart
       {detent === 'S2' && (
         <button type="button" className="sheet-back" onClick={() => onDetent('S1')}>← Volver</button>
       )}
-      <h2 className="sheet-title">
+      <h2 className="sheet-title" tabIndex={-1}>
         {siteName ? <><span aria-hidden="true">{GLYPH.evaluated}</span> {siteName}</> : hasSelection ? 'Referencia mundial' : 'Lugares'}
       </h2>
       {detent === 'S1' && siteName && (

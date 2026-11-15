@@ -7,7 +7,6 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { useUi } from '../../state/ui'
 import { getStageAnchor, getStageProjection, subscribeStageFrame } from '../globe'
-import { buildMetricViews } from '../metrics'
 import type { LeaderLayerProps } from './index'
 import { useLeadersEnabled } from './preference'
 import type { LeaderStageBridge } from './projector'
@@ -52,7 +51,7 @@ export function LeaderLayer({ data }: LeaderLayerProps) {
   if (!enabled || !site) return null
   return (
     <Suspense fallback={null}>
-      <LeaderCanvas data={data} site={site} buildViews={buildMetricViews} bridge={STAGE_BRIDGE} />
+      <LeaderCanvas data={data} site={site} bridge={STAGE_BRIDGE} />
     </Suspense>
   )
 }

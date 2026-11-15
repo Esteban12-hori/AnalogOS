@@ -11,7 +11,9 @@ import type { CandidateSite } from '../../domain/contracts'
 import { useViewportLayout, type AppData } from '../../shell/public'
 import { useMission } from '../../state/mission'
 import { isMissionBusy, useUi } from '../../state/ui'
-import type { buildMetricViews } from '../metrics'
+// Directo del módulo (no del índice de metrics): así viaja en este chunk diferido y no en el
+// principal (§6.1), sin arrastrar el resto de la feature.
+import { buildMetricViews } from '../metrics/buildMetricViews'
 import { leaderHeader, leaderLabelModel } from './labelModel'
 import { LeaderStage } from './LeaderStage'
 import { pickPrincipalMetrics } from './principal'
@@ -20,12 +22,10 @@ import type { LeaderStageBridge } from './projector'
 export interface LeaderCanvasProps {
   data: AppData
   site: CandidateSite
-  /** `buildMetricViews` de features/metrics. */
-  buildViews: typeof buildMetricViews
   bridge: LeaderStageBridge
 }
 
-export default function LeaderCanvas({ data, site, buildViews, bridge }: LeaderCanvasProps) {
+export default function LeaderCanvas({ data, site, bridge }: LeaderCanvasProps) {
   const mode = useUi((state) => state.mode)
   const activeId = useUi((state) => state.activeCriterionId)
   const previewId = useUi((state) => state.previewCriterionId)
@@ -43,7 +43,7 @@ export default function LeaderCanvas({ data, site, buildViews, bridge }: LeaderC
   const views = useMemo(() => {
     if (!snapshot) return []
     const contributions = missionActive ? scoring?.sites.find((scored) => scored.siteId === site.site_id)?.contributions ?? null : null
-    return buildViews({
+    return buildMetricViews({
       site,
       sites: snapshot.candidates,
       profile: snapshot.profile,
@@ -51,7 +51,7 @@ export default function LeaderCanvas({ data, site, buildViews, bridge }: LeaderC
       contributions,
       marsReference: snapshot.marsReference,
     })
-  }, [buildViews, snapshot, site, missionActive, profile, scoring])
+  }, [snapshot, site, missionActive, profile, scoring])
   const principal = useMemo(() => pickPrincipalMetrics(views, 4), [views])
   const labels = useMemo(() => principal.map(leaderLabelModel), [principal])
   const header = useMemo(

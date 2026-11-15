@@ -92,12 +92,14 @@ export function topographicWhy(view: Pick<MetricView, 'criterionId' | 'vsMars'>)
 
 /** Estado de una métrica que no tiene dato válido o que el perfil activo excluye. */
 export function pendingText(view: Pick<MetricView, 'status' | 'weight' | 'baseWeight'>): string | null {
-  if (view.weight <= 0 && view.baseWeight > 0) return 'excluido (0 %)'
+  // Lo que no tiene dato se dice primero: excluirlo del perfil no debe ocultar que no existe.
+  const outOfProfile = view.weight <= 0 && view.baseWeight > 0
+  if (view.status === 'needs_calibration') return outOfProfile ? 'por calcular · fuera de tu perfil' : 'por calcular'
+  if (view.status === 'missing') return outOfProfile ? 'sin dato · fuera de tu perfil' : 'sin dato'
+  if (outOfProfile) return 'excluido (0 %)'
   switch (view.status) {
     case 'valid':
       return view.weight <= 0 ? 'fuera del score' : null
-    case 'needs_calibration':
-      return 'por calcular'
     case 'excluded':
       return 'excluido'
     default:

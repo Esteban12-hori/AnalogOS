@@ -3,7 +3,8 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { parseReferenceAnalogs, type CandidateSite, type PolygonGeometry, type ReferenceAnalog } from '../../domain/contracts'
+import type { CandidateSite, PolygonGeometry, ReferenceAnalog } from '../../domain/contracts'
+import { parseReferenceAnalogs } from '../../domain/referenceAnalogContract'
 import type { MissionScoring } from '../engine'
 import { geometryInsideBbox, pointInGeometry, pointInPolygon } from './geometry'
 import {
@@ -15,7 +16,8 @@ import {
   visibleRange,
 } from './placeModel'
 import { classifyReferenceAnalogs } from './classify'
-import { classifyReferences, loadReferenceAnalogs, referenceAnalogsFrom } from './referenceAnalogs'
+import { referenceAnalogsFrom } from './analogCatalog'
+import { classifyReferences, loadReferenceAnalogs } from './referenceAnalogs'
 import { formatLatLon } from './ReferenceCardView'
 
 const root = resolve(__dirname, '../../../../..')

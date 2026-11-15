@@ -17,13 +17,13 @@ interface Metric {
   key: 'bsi' | 'ndvi'
   title: string
   description: string
-  /** Tono del brillo: azul y naranja de la paleta oscurecidos, porque la rampa los aclara. */
+  /** Tono del brillo: azules de la paleta oscurecidos, porque la rampa los aclara (nunca naranja: es Marte). */
   accent: string
 }
 
 const METRICS: Metric[] = [
   { key: 'bsi', title: 'BSI · suelo expuesto', description: 'Índice de suelo desnudo. Más alto, más superficie mineral expuesta.', accent: '#02679A' },
-  { key: 'ndvi', title: 'NDVI · vegetación', description: 'Índice de vegetación. Cerca de 0 indica superficie sin cobertura vegetal.', accent: '#B8492B' },
+  { key: 'ndvi', title: 'NDVI · vegetación', description: 'Índice de vegetación. Cerca de 0 indica superficie sin cobertura vegetal.', accent: '#3E7F9E' },
 ]
 
 /** Los extremos repiten el primer y último mes solo como entrada/salida visual de la curva. */
@@ -88,7 +88,7 @@ export function SurfaceSignals({ candidates, selectedId, series }: SurfaceSignal
           ))}
         </div>
       ) : (
-        <div className="signals-empty" role="status">
+        <div className="signals-empty">
           <strong>Sin serie mensual para este sector</strong>
           <span>Este snapshot no incluye observaciones Sentinel-2 por mes (por ejemplo, el fixture demo). No se interpolan valores.</span>
         </div>

@@ -62,7 +62,8 @@ export function TabList<T extends string>({ idPrefix, label, items, active, onCh
           role="tab"
           id={tabId(idPrefix, item.id)}
           aria-selected={item.id === active}
-          aria-controls={controls ?? panelId(idPrefix, item.id)}
+          // Solo se renderiza el panel activo: las pestañas inactivas no apuntan a un id inexistente.
+          aria-controls={controls ?? (item.id === active ? panelId(idPrefix, item.id) : undefined)}
           aria-label={item.ariaLabel}
           tabIndex={item.id === active ? 0 : -1}
           onClick={() => onChange(item.id)}

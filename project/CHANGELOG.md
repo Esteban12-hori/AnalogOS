@@ -1,5 +1,59 @@
 # Changelog de trabajo
 
+## 2026-11-14 Claude Code · rediseño Explorar / Misión: correcciones de la revisión (rama feature/mision-redesign)
+
+- **Cifras de una sola fuente:**
+  - Comparar usa el perfil activo, con orden y cifras del motor en Misión y rótulo de perfil.
+  - `scoreMission` entrega `stability`, la misma de la Lectura.
+  - Geología sin dato se muestra «por calcular · fuera de tu perfil».
+  - Un criterio excluido no «satura».
+  - Nota cuando la confianza sube solo porque un criterio sin dato quedó fuera.
+- **Filtro de la IA:**
+  - Rechaza el léxico de orden (`rank`) y los cuantificadores «medio/media», «par» y «cuarto».
+  - Un `summary` o `tradeoff` que compara debe citar el puesto o un `best_of_n` (`rank_fact`).
+- **Rótulos:**
+  - ✦ en la frase bajo LIMITANTE.
+  - Prefijo sr-only «Texto de IA:» o «Texto pregenerado, no científico:».
+  - ✦ solo con lktron.
+  - «DEMO · sin IA» primero en la línea de estado.
+  - «Prueba sugerida» según la fuente.
+  - «Rango térmico» en todas partes.
+- **Atribución de datos siempre visible**, generada desde `manifest.datasets` (`shell/attribution.ts`), en la franja del escenario y en el HTML estático.
+- **Señal:** cifra final sin odómetro; NDVI en azul con ↑/↓.
+- **Accesibilidad:**
+  - Gestión de foco en hoja y riel.
+  - Esc en un popover ya no borra la selección.
+  - Barra superior primera en el DOM, `<main>`, `h1` y aviso accesible bajo 860 px.
+  - Pines tapados o casi en el horizonte, fuera del orden de foco.
+  - Foco de dos tonos sobre imágenes.
+  - Topbar sin blur y vidrio .86.
+  - Pulgar #0274AD.
+  - `prefers-reduced-transparency`.
+  - Bucles acotados.
+  - Objetivos táctiles de 44 px.
+  - Texto mínimo de 10 px.
+  - Anuncios sin duplicar.
+  - «/» acotado.
+- **Diseño:**
+  - Tarjetas compactas por container query.
+  - Panel izquierdo en dos regiones de scroll, con los presets plegados tras los resultados.
+  - Hoja lateral a todo el alto.
+  - Hover táctil sin quedar pegado.
+  - El chip y el carrusel cuentan los ◆ dibujados.
+  - Error sin criterios de terreno que lista lo no medido.
+- **Rendimiento:**
+  - JS inicial 119,1 → 111,9 KB gz (+11,9 sobre 857b05f).
+  - Validadores separados por chunk.
+  - `engine` 15,6 → 8,5 KB gz.
+  - `lktronClient` diferido.
+  - Método y Fuentes diferidos.
+  - FLIP sin layout síncrono al montar.
+- **Verificación:**
+  - 856 tests; build verde; pytest 170/1 skip.
+  - Smoke 34/34 y hallazgos 35/35 en el navegador, sin errores de consola.
+  - Lighthouse intercalado (ver `docs/PERFORMANCE.md`).
+  - ZIP en `/tmp/claude-rel/final.zip`.
+
 ## 2026-11-14 Claude Code · rediseño Explorar / Misión: integración de los incrementos 3–10 (rama feature/mision-redesign)
 
 - **Fusiones** con `--no-ff`, sin conflictos de texto, en este orden:

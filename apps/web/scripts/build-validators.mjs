@@ -2,11 +2,12 @@
 // La web valida igual que antes en el límite del sistema, pero sin cargar el
 // compilador de Ajv ni compilar esquemas en el navegador (menos bytes y CPU).
 //
-// Genera dos módulos:
-// - validators.generated.js: snapshot (candidato, manifiesto, perfil) y catálogo de
-//   análogos de referencia. Va en el chunk principal.
-// - validators.mission.generated.js: interpretación de misión, paquete de evidencia y
-//   eventos de análisis IA (UX_REDESIGN §5). Solo lo importan chunks diferidos.
+// Genera un módulo por chunk que lo usa (docs/UX_REDESIGN.md §6.1: cada chunk paga solo lo suyo):
+// - validators.generated.js: snapshot (candidato, manifiesto, perfil). Va en el chunk principal.
+// - validators.analogs.generated.js: catálogo de análogos de referencia (se carga con el catálogo).
+// - validators.interpretation.generated.js: interpretación de misión (chunk de misión).
+// - validators.mission.generated.js: paquete de evidencia y eventos de análisis IA (UX_REDESIGN
+//   §5). Solo lo importa el chunk diferido de la Lectura.
 //
 // Uso: node scripts/build-validators.mjs [--check]   (--check falla si algún archivo está desfasado)
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -27,10 +28,14 @@ const OUTPUTS = {
     validateCandidate: 'candidate-site.schema.json',
     validateManifest: 'data-manifest.schema.json',
     validateProfile: 'mission-profile.schema.json',
+  },
+  'validators.analogs.generated.js': {
     validateReferenceAnalogs: 'reference-analog.schema.json',
   },
-  'validators.mission.generated.js': {
+  'validators.interpretation.generated.js': {
     validateMissionInterpretation: 'mission-interpretation.schema.json',
+  },
+  'validators.mission.generated.js': {
     validateEvidencePacket: 'evidence-packet.schema.json',
     validateAiAnalysisEvent: 'ai-analysis.schema.json',
   },

@@ -14,6 +14,7 @@
 import { readFileSync } from 'node:fs'
 import type { HtmlTagDescriptor, Plugin } from 'vite'
 import { staticShellHtml } from '../../content/shell'
+import { dataAttributionText } from '../../shell/attribution'
 import { INTRO_SESSION_KEY } from './bootModel'
 
 /**
@@ -32,6 +33,17 @@ export function inlineModule(source: string): string {
 }
 
 const readModule = (path: string) => inlineModule(readFileSync(new URL(path, import.meta.url), 'utf8'))
+
+/** Atribución del snapshot que se publica (mismo manifiesto que carga la app); null si no se lee. */
+function snapshotCredit(): string | null {
+  try {
+    const snapshot = process.env.VITE_SNAPSHOT_PATH ?? 'science-v2'
+    const manifest: unknown = JSON.parse(readFileSync(new URL(`../../../../../artifacts/${snapshot}/manifest.json`, import.meta.url), 'utf8'))
+    return dataAttributionText(manifest as Parameters<typeof dataAttributionText>[0])
+  } catch {
+    return null
+  }
+}
 
 /**
  * Script en línea del arranque. Misma fórmula que domain/mapZoom.ts y BootLayer: lo verifica
@@ -100,7 +112,7 @@ export function loadingHints(): Plugin {
         // del JavaScript; React lo reemplaza al montar con el mismo marcado.
         const out = html
           .replace('</title>', `</title>\n    ${head}`)
-          .replace('<div id="root"></div>', `<div id="root">${staticShellHtml({ posterUrl })}</div>`)
+          .replace('<div id="root"></div>', `<div id="root">${staticShellHtml({ posterUrl, credit: snapshotCredit() ?? undefined })}</div>`)
         return { html: out, tags }
       },
     },

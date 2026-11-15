@@ -185,7 +185,7 @@ const LABELS: Readonly<Record<CriterionId, string>> = {
   local_relief: 'relieve local',
   bare_ground_fraction: 'suelo expuesto',
   aridity_context: 'aridez',
-  surface_temperature_variability: 'variabilidad térmica',
+  surface_temperature_variability: 'rango térmico',
   geologic_relevance: 'geología',
 }
 

@@ -75,6 +75,11 @@ export interface ScoredSite {
   coverage: number
   /** Confianza recalculada si ADR-009 lo cubre; null = «por calcular con tu perfil». */
   confidence: number | null
+  /**
+   * Estabilidad 0–100 del motor con este perfil (`sensitivity`, ±20 % por peso); null = datos
+   * insuficientes o por calcular. Opcional para quien construye un ScoredSite a mano (tests).
+   */
+  stability?: number | null
   contributions: Readonly<Partial<Record<CriterionId, number | null>>>
   /** Criterio con la contribución más negativa (limitante); null si no aplica. */
   limitingCriterionId: CriterionId | null

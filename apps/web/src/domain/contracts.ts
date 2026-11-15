@@ -1,7 +1,7 @@
 import type { ErrorObject } from 'ajv'
 // Validadores precompilados desde contracts/*.schema.json (scripts/build-validators.mjs):
 // misma validación en el límite del sistema, sin el compilador de Ajv en el navegador.
-import { validateCandidate, validateManifest, validateProfile, validateReferenceAnalogs } from './validators.generated.js'
+import { validateCandidate, validateManifest, validateProfile } from './validators.generated.js'
 
 export type Position = [number, number]
 
@@ -184,14 +184,6 @@ export interface ReferenceAnalog {
 export interface ReferenceAnalogCatalog {
   schema: 'reference-analogs/1'
   analogs: ReferenceAnalog[]
-}
-
-/** Valida config/reference_analogs.json en el límite del sistema; lanza con un resumen legible. */
-export function parseReferenceAnalogs(data: unknown): ReferenceAnalog[] {
-  if (!validateReferenceAnalogs(data)) {
-    throw new Error(`Catálogo de análogos inválido: ${errorSummary(validateReferenceAnalogs.errors)}`)
-  }
-  return (data as ReferenceAnalogCatalog).analogs
 }
 
 export function errorSummary(errors: ErrorObject[] | null | undefined): string {

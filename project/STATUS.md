@@ -1,10 +1,112 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14 20:40 America/Santiago (rediseño Explorar / Misión, integración de los incrementos 3–10, cerrada)
+**Última actualización:** 2026-11-14 21:30 America/Santiago (rediseño Explorar / Misión: correcciones de la revisión de honestidad, accesibilidad, rendimiento y recorrido visual)
 **Responsable del checkpoint:** Codex
 **Milestone activo:** M6 — empaquetado y entrega
 **Estado general:** producto funcional y presentable con snapshot científico v2 autenticado. NASADEM corrige el mosaico de borde y Sentinel-2 completa superficie no vegetada. Faltan acciones humanas/externas: video, URLs públicas, integrantes, capas territoriales y revisión experta.
 
+
+## Rediseño Explorar / Misión — correcciones de la revisión (2026-11-14, Claude, rama `feature/mision-redesign`)
+
+Cuatro revisiones sobre 1161db6 (honestidad científica, accesibilidad, rendimiento §6.1 y recorrido visual §4) dejaron 7 hallazgos high, 27 medium y 18 low. Se corrigieron todos los high y los medium salvo los anotados abajo, más los low triviales. Cada corrección tiene un test o una verificación en el navegador.
+
+### Qué funciona (lo corregido)
+
+- **Honestidad de las cifras.**
+  - Comparar (ficha) usa el perfil activo: en Misión, orden, similitud, confianza y estabilidad del motor, con el rótulo «tu misión: … · motor v1.0.0». Con el perfil base, «perfil base v2.0.1-preliminary» (`components/CandidateComparison.tsx`, `comparisonModel`).
+  - Una sola estabilidad: `scoreMission` entrega `stability` con `sensitivity` (±20 %, la misma regla que la Lectura). El riel, la ficha y la Lectura muestran 99,1 para Yungay; un test compara las cifras en los 3 presets.
+  - Filtro de la IA: el léxico de orden («primera», «encabeza», «lidera», «ranking», «preferible», «recomendable», «adecuado», «confiable»…) se rechaza con el motivo `rank`; los cuantificadores «medio/media», «par» y «cuarto» se rechazan como números escritos. Un `summary` o `tradeoff` que compara («más», «mejor», «supera»…) debe citar `site:…:rank`, `rank:…` o un hecho de un criterio `best_of_n` (motivo `rank_fact`). El análisis pregenerado pasa sin descartes y su huella no cambió.
+  - Geología sin dato se muestra «por calcular · fuera de tu perfil», no «excluido». Un criterio con peso 0 no «satura» y su anillo dice «excl».
+  - Si la confianza de misión sube porque un criterio sin dato quedó fuera, el riel lo dice: «Sube frente al perfil base (77,5) porque Geología (sin dato) quedó fuera de tu perfil: no es más evidencia».
+  - Rótulos: la frase bajo LIMITANTE lleva ✦; cada bloque redactado se anuncia a lectores de pantalla («Texto de IA:» o «Texto pregenerado, no científico:»). «Prueba sugerida» se rotula según la fuente. ✦ solo para lktron (DEMO y presets no lo llevan). El rótulo «DEMO · sin IA» va primero en la línea de estado y ya no se trunca a 390 px.
+  - La pestaña Señal muestra la cifra final, sin odómetro. NDVI usa un azul y la dirección se marca con ↑/↓.
+  - Atribución siempre visible: «Datos: NASADEM · Copernicus Sentinel-2 · MOLA (PDS) · NASA POWER · Natural Earth», generada desde `manifest.datasets` (`shell/attribution.ts`). Va en la franja del escenario a todos los tamaños y también en el HTML estático.
+  - «◆ 7 por calcular · 1 coincide con un sector»: el chip y el carrusel cuentan los ◆ que se dibujan.
+  - Sin criterios de terreno, el error lista lo pedido que no se mide («Pediste, sin datos aún: hielo · minerales — no se miden en este snapshot»).
+- **Accesibilidad.**
+  - Foco: ninguna transición de la hoja ni del riel lo deja en `<body>`. Va al título de la hoja, a la pestaña de la ficha, a «Ficha», a «Ver ficha completa», a la opción del carrusel del lugar cerrado o al conmutador lista/carrusel.
+  - Esc dentro de un popover (Tu misión, recientes) lo cierra y no borra la selección.
+  - La barra superior va antes del escenario en el DOM (Tab 1 = pestaña Explorar). Se agregaron `<main>`, un `h1` sr-only y `role="group"` en la franja del HUD.
+  - El aviso científico tiene texto accesible bajo 860 px.
+  - Los pines tapados por un panel o con visibilidad < 0,25 salen del orden de foco (`pinUnfocusable`). Un pin atenuado recupera la opacidad al enfocarse. Los elementos del escenario tienen foco de dos tonos (anillo y halo oscuro).
+  - Contraste: barra superior sin blur con tinte .9, vidrio .86 y pulgar del modo #0274AD (blanco 5,1:1). `prefers-reduced-transparency` da tinte sólido sin blur.
+  - Sin bucles de más de 4,8 s: el spinner da 2 vueltas, el pulso del 2D sin WebGL se da una vez y en azul, y las manchas de la pantalla de error no se repiten. Se quitaron las regiones `role=status` duplicadas.
+  - Objetivos táctiles de 44 px con puntero grueso: área invisible centrada, la manija crece hacia arriba y el conmutador y las flechas miden 44 px de verdad.
+  - Texto de 7–9 px de la ficha subido a `--fs-min`.
+  - Menores: el carrusel de métricas no anuncia dos veces; `aria-controls` apunta solo al panel que existe; `.metrics-track` no es enfocable; «/» solo actúa con el foco en la página o el escenario; el anillo de foco de «Ver lista» no se recorta; el contador del carrusel tiene ancho fijo.
+- **Diseño (§4).**
+  - Tarjetas compactas cuando la pista no da el alto (container query): confianza y factibilidad siempre a la vista a 1280×800, 1440 y 390 en Misión.
+  - Panel izquierdo con dos regiones de scroll: la Lectura empieza a 471 px a 1440×900. Los perfiles predefinidos se pliegan cuando hay resultados.
+  - Hoja lateral (844×390): la bandeja usa el alto de la hoja y el rótulo del pin cede ante la línea.
+  - El hover táctil ya no queda pegado: solo el foco de teclado lo publica, se limpia al desmontar y `clearSelection` lo borra.
+- **Rendimiento (§6.1).**
+  - JS inicial: 119,1 → 111,9 KB gz (base 857b05f: 100,0; +11,9 ≤ +12). Para eso `buildMetricViews`, `layoutLeaders` y `pickPrincipalMetrics` salieron de los índices (se importan directo desde los chunks diferidos), y Método y Fuentes se cargan al abrir su pestaña.
+  - Validadores: un módulo por chunk. El snapshot va en el principal; el catálogo ◆ en `analogCatalog`; la interpretación en el de misión; paquete y análisis en el de Lectura.
+  - El chunk `engine` baja de 15,6 a 8,5 KB gz. `lktronClient` se descarga solo si se usa.
+  - PlaceRail ya no fuerza un layout síncrono en el arranque: el FLIP mide en el primer cuadro.
+
+### Cómo ejecutarlo
+
+- `npm run test` y `npm run build` desde la raíz.
+- `/tmp/claude-venv314/bin/python -m pytest -q`.
+- Recorrido: `node /tmp/claude-srv/serve.mjs apps/web/dist 4398` y luego `node /tmp/claude-pw/integ-4398.mjs` (smoke) y `node /tmp/claude-pw/fixes-4398.mjs` (hallazgos).
+
+### Pruebas
+
+- `npm run test`: 57 archivos y 856 tests en verde. Nuevos: `tests/comparison.test.ts`, la estabilidad de misión en los 3 presets, el léxico de orden y los cuantificadores, `rank_fact`, `pinUnfocusable`, `confidenceRiseNote`, atribución y aviso del armazón, transparencia reducida, bucles y contraste del pulgar.
+- `npm run build`: verde (validate 9/9, validadores `--check`, tsc estricto, vite y prune).
+- pytest: 170 passed, 1 skipped (NASADEM opcional).
+- Navegador (Chrome for Testing con Metal, :4398), sin errores de consola:
+  - smoke de integración: 34/34 a 1440 y 390 táctil;
+  - hallazgos: 35/35 a 1440, 1280×800, 390×844 táctil y 844×390 táctil (foco, popover, atribución, estabilidad, Comparar, Señal, tarjetas, objetivos táctiles).
+- Lighthouse 12.6.0, mediana de 3 corridas intercaladas contra 857b05f (mismo servidor brotli):
+  - móvil: puntaje 74 contra 75; LCP 5,4 contra 5,0 s; TBT 204 contra 180 ms; CLS 0 contra 0,10;
+  - escritorio: puntaje 98 contra 99; LCP 1,1 contra 0,8 s; TBT 0 contra 39 ms; CLS 0,0003 contra 0,047.
+- ZIP de entrega en `/tmp/claude-rel/final.zip` (59 archivos, sha256 en `/tmp/claude-rel/FINAL.txt`). `submission/` no se tocó.
+
+### Archivos cambiados
+
+- **Armazón:** `shell/AppShell.tsx` (foco, Esc, orden, main/h1, atribución), `shell/attribution.ts` (nuevo), `shell/shell.css`, `shell/tokens.css`, `shell/Tabs.tsx`, `shell/detail/FullDetail.tsx`, `content/shell.ts`, `features/boot/loadingHints.ts`, `state/ui.ts`.
+- **Cifras:** `features/engine/{scoreMission,types,demoMatcher}.ts`, `features/metrics/{metricContext,metricText,summaryText,buildMetricViews,MetricRail,MetricDetails,MetricViz,index}.ts(x)`, `components/CandidateComparison.tsx`, `domain/formatting.ts`.
+- **IA:** `features/analysis/{analysisTokens,eventGate,types,ReadingView,runtime}.ts(x)`.
+- **Composer:** `MissionComposer.tsx`, `MissionPanel.tsx`, `Composer.tsx`, `model.ts`, `missionRun.ts`, `composer-form.css`.
+- **Globo y lugares:** `features/globe/{CandidateGlobe,MapStage,markers}.ts(x)`, `features/places/{PlaceRail,referenceAnalogs,analogCatalog,index}.ts(x)`, `places.css`, `features/boot/StatusChip.tsx`, `features/leaders/{LeaderLayer,LeaderCanvas,index}.ts(x)`.
+- **Contratos:** `scripts/build-validators.mjs`, `domain/validators.*.generated.*`, `domain/{contracts,aiContracts,interpretationContract,referenceAnalogContract}.ts`.
+- **Legado:** `components/{SignalCard,SurfaceSignals,VisualContext}.tsx`, `styles.css`, `liquid/liquid-glass.css`.
+- **Documentación:** `docs/BUILD_CONTRACTS.md`, `docs/PERFORMANCE.md`, `project/CHANGELOG.md`.
+
+### Decisiones nuevas
+
+- `ScoredSite.stability` (opcional) es parte de la salida del motor TS. No cambia ningún esquema JSON.
+- Interfaz de features: `buildMetricViews`, `layoutLeaders` y `pickPrincipalMetrics` ya no se reexportan desde los índices; se importan desde su módulo. `featureContracts.test.ts` y `BUILD_CONTRACTS.md` quedan actualizados.
+- La regla «el motor fija el orden» queda en el filtro: la IA no escribe léxico de orden y cita `{{site:…:rank}}`.
+- «Variabilidad térmica» pasa a «Rango térmico» en todas las superficies.
+
+### Bloqueos y pendientes reales
+
+- **Lighthouse móvil, LCP 5,4 s contra 5,0 s (Lantern).** El LCP es la línea de atribución que pinta React con el JS principal, con una demora de render de unos 4,9 s. Hay una copia idéntica en el HTML estático, pero Chrome igual toma la de React como candidato. Pendiente: confirmar por qué la copia estática no cuenta, o adelantar el render del armazón.
+- **Diferidos sobre su presupuesto:**
+  - Misión: MissionPanel 3,2 + missionRun 5,0 + motor 8,5 ≈ 17 KB, contra ≤8.
+  - Lectura: deferred 14,2 KB, contra ≤10.
+  - Líneas: LeaderCanvas 6,7 + buildMetricViews compartido 2,0, contra ≤4.
+  - Marcadores: 5,7 KB, contra ≤4.
+  - El chunk `deferred` se sigue pidiendo al entrar en Misión ≥1440, porque el panel izquierdo muestra la Lectura de hechos de inmediato.
+- **Low no corregidos (no triviales):**
+  - Precisión desigual de Jezero («11 m»): cambiarla altera la huella del paquete y obliga a regenerar el pregenerado.
+  - La línea móvil corta por la franja del HUD de 2 filas.
+  - El rótulo atenuado bajo 0,6 sigue visible.
+  - Textos truncados del riel y del dock.
+  - La bitácora sobre el disco a 1440.
+  - El chunk MarkerLayer.
+  - `reference_analogs.json` pesa 3,2 KB (límite 3).
+- **Sin probar:** lktron real, VoiceOver y TalkBack.
+- **Aprobaciones:** ADR-008, ADR-009 (equipo científico) y ADR-010 siguen propuestos. El vocabulario DEMO y los presets están pendientes de revisión de producto. Las cifras de los ◆ siguen «por calcular» hasta que haya datos.
+
+### Próximos 3 pasos
+
+1. Aprobación humana de ADR-008, ADR-009 y ADR-010, y revisión del vocabulario DEMO y los presets.
+2. Diferidos de misión y Lectura: cargar `deferred` al abrir la Lectura y separar `MissionPanel` del arranque de la pestaña. Medir LCP móvil con trazas reales (no Lantern).
+3. Incremento 11: VoiceOver y TalkBack, lktron real contra el mock, regenerar el pregenerado si se unifica la precisión de Jezero y empaquetar `submission/` cuando el equipo lo apruebe.
 
 ## Rediseño Explorar / Misión — integración de los incrementos 3–10 (2026-11-14, Claude, rama `feature/mision-redesign`)
 

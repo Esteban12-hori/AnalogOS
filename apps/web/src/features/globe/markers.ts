@@ -191,6 +191,31 @@ export const CLUSTER_RADIUS_PX = 36
 /** Bajo esta visibilidad el marcador está oculto (detrás del globo): ni se agrupa ni se enfoca. */
 export const HIDDEN_BELOW = 0.02
 export const CLUSTER_MIN_VISIBLE = HIDDEN_BELOW
+/**
+ * Bajo esta visibilidad (casi en el horizonte) el marcador se ve pero no recibe el foco: su anillo
+ * y su rótulo quedarían bajo 3:1. Sigue al alcance desde el carrusel y la lista (WCAG 2.4.11).
+ */
+export const FOCUS_MIN_VISIBLE = 0.25
+
+export interface ScreenRect {
+  left: number
+  top: number
+  right: number
+  bottom: number
+}
+
+/**
+ * ¿El ancla del marcador queda bajo la UI (barra, dock, riel, hoja, franja del HUD)? Entonces no
+ * debe recibir el foco del teclado: quedaría oculto tras el panel (WCAG 2.4.11). Función pura.
+ */
+export function pinOccluded(x: number, y: number, obstacles: readonly ScreenRect[]): boolean {
+  return obstacles.some((rect) => x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom)
+}
+
+/** Un marcador o grupo sale del orden de foco si está oculto, casi en el horizonte o tapado. */
+export function pinUnfocusable(x: number, y: number, visible: number, obstacles: readonly ScreenRect[]): boolean {
+  return visible < FOCUS_MIN_VISIBLE || pinOccluded(x, y, obstacles)
+}
 
 export interface ScreenMarker {
   id: string

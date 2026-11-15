@@ -56,7 +56,9 @@ body { min-height: 0; }
   column-gap: 12px;
   padding: 0 20px;
   border-bottom: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(2, 7, 10, .9), rgba(2, 7, 10, .72));
+  background: var(--topbar-tint);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .brand-text { display: grid; min-width: 0; }
@@ -94,7 +96,7 @@ body { min-height: 0; }
 .mode-tabs [role="tab"], .mode-tabs .mode-static { position: relative; z-index: 1; display: grid; place-items: center; min-width: 96px; min-height: 36px; padding: 0 16px; border: 0; border-radius: 999px; background: none; color: var(--muted); cursor: pointer; font-size: var(--fs-13); font-weight: 650; transition: color var(--dur-2) var(--ease-standard); }
 .mode-tabs [role="tab"][aria-selected="true"], .mode-tabs .mode-static[data-selected] { color: #fff; }
 .mode-tabs [role="tab"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
-.mode-thumb { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 3px); border-radius: 999px; background: var(--blue); box-shadow: inset 0 1px 1px rgba(255, 255, 255, .35); transition: transform var(--dur-2) var(--ease-standard); }
+.mode-thumb { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 3px); border-radius: 999px; background: var(--mode-thumb); box-shadow: inset 0 1px 1px rgba(255, 255, 255, .35); transition: transform var(--dur-2) var(--ease-standard); }
 .mode-thumb[data-mode="mision"] { transform: translateX(100%); }
 .mode-dot { display: inline-block; width: 6px; height: 6px; margin-left: 6px; border-radius: 50%; background: var(--ice); vertical-align: middle; }
 
@@ -281,3 +283,64 @@ body { min-height: 0; }
    Tesla también queda a la derecha, sus etiquetas lo taparían: mientras se ven las líneas, el pin
    seleccionado queda solo con su anillo (nombre y % siguen en el riel o la hoja). */
 .app:has(.leaders-layer[data-mode="lines"][data-side="right"]) .globe-pin.is-selected .globe-pin-label { opacity: 0; }
+/* Hoja lateral (horizontal): la única línea sale hacia la derecha a la altura del anillo y
+   cruzaría el rótulo del pin; como en escritorio, el rótulo cede (el nombre está en la hoja). */
+.app:has(.sheet[data-side]):has(.leaders-mobile .leaders-path[d]:not([d=""])) .globe-pin.is-selected .globe-pin-label { opacity: 0; }
+
+/* ---- Landmarks: <main> no altera el layout (todo es position: fixed) --------------------- */
+.app-main { display: contents; }
+
+/* ---- Atribución de los datos que producen los % (siempre visible, §4.3) ------------------ */
+.stage-data-credit { flex-basis: 100%; margin: 0; color: var(--muted); font-size: var(--fs-min); line-height: 1.35; }
+
+/* ---- Foco sobre imágenes del escenario: anillo + halo oscuro (≥3:1 con cualquier fondo) --- */
+.globe-pin-button:focus-visible,
+.globe-cluster-chip:focus-visible,
+.globe-cluster-item:focus-visible,
+.stage-controls button:focus-visible,
+.stage-dock button:focus-visible,
+.stage-center-chip:focus-visible { outline: var(--focus-ring); outline-offset: 2px; box-shadow: var(--focus-halo); }
+/* Un pin atenuado cerca del horizonte recupera la opacidad completa al recibir el foco. */
+.globe-pin:focus-within { opacity: 1 !important; }
+
+/* ---- El anillo de foco no se recorta dentro de contenedores con overflow (§1.20) ---------- */
+.places-tool:focus-visible { outline-offset: -2px; }
+/* El contador cambia de ancho sin mover las flechas ni «Ver lista» (CLS 0). */
+.places-count { min-width: 9ch; text-align: right; }
+
+/* ---- Objetivos táctiles ≥44 px con puntero grueso: área invisible centrada, sin cambiar el
+        dibujo ni las alturas que reserva stageGeometry.js ----------------------------------- */
+@media (pointer: coarse) {
+  /* Conmutador y flechas del carrusel: alto real de 44 px (la cabecera va pegada al borde con
+     overflow: un área invisible quedaría recortada o bajo las tarjetas). */
+  .places-tool { min-width: 44px; min-height: 44px; }
+  .places-arrow { width: 44px; }
+  .sheet-handle, .rail-close, .sheet-close, .sheet-back, .sheet-more, .rail-action,
+  .composer-refine, .composer-send, .composer-icon, .composer-profile, .composer-btn, .composer-link,
+  .composer-preset, .composer-history-item, .composer-level, .leaders-toggle, .stage-controls button,
+  .mode-tabs [role="tab"], .detail-tabs [role="tab"], .globe-pin-button, .globe-cluster-chip { position: relative; }
+  .sheet-handle::after, .rail-close::after, .sheet-close::after, .sheet-back::after,
+  .sheet-more::after, .rail-action::after, .composer-refine::after, .composer-send::after, .composer-icon::after,
+  .composer-profile::after, .composer-btn::after, .composer-link::after, .composer-preset::after,
+  .composer-history-item::after, .composer-level::after, .leaders-toggle::after, .stage-controls button::after,
+  .mode-tabs [role="tab"]::after, .detail-tabs [role="tab"]::after, .globe-pin-button::after, .globe-cluster-chip::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+  /* La manija crece hacia arriba (fuera de la hoja): no tapa el conmutador de la bandeja. */
+  .sheet-handle::after { top: auto; bottom: 0; transform: translateX(-50%); }
+}
+
+/* Hoja lateral (horizontal bajo): la bandeja usa el alto de la hoja, no el de la S0 inferior. */
+.sheet[data-side] .sheet-tray { height: 100%; }
+
+/* Panel izquierdo (≥1440, Misión): dos regiones con scroll propio. «Tu misión» ocupa como máximo
+   ~45 % y la Lectura el resto: el veredicto y el limitante quedan a la vista sin desplazar (§4.2). */
+.left-panel { display: flex; flex-direction: column; overflow: hidden; }
+.left-panel > [data-slot="left.mission"] { flex: 0 1 auto; min-height: 0; max-height: 45%; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.left-panel > [data-slot="left.reading"] { flex: 1 1 0; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }

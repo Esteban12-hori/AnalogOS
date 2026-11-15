@@ -37,7 +37,7 @@ export function VisualContextView({ candidateName, selection, baseUrl, imageFail
     return (
       <section className="details-section visual-context" aria-labelledby="visual-context-heading">
         {heading}
-        <p className="visual-unavailable" role="status">{message} El ranking y la ficha no dependen de ella.</p>
+        <p className="visual-unavailable">{message} El ranking y la ficha no dependen de ella.</p>
       </section>
     )
   }

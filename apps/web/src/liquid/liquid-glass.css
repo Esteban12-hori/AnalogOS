@@ -26,9 +26,9 @@
 .lg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 .lg-backdrop { position: fixed; inset: 0; z-index: -2; overflow: hidden; pointer-events: none; }
 .lg-blob { position: absolute; border-radius: 50%; will-change: transform; }
-.lg-blob-blue { width: 62vmax; height: 62vmax; left: -18vmax; top: -24vmax; background: radial-gradient(circle, rgba(2, 151, 222, .34), rgba(2, 151, 222, 0) 65%); animation: lgDriftA 38s ease-in-out infinite alternate; }
-.lg-blob-orange { width: 48vmax; height: 48vmax; right: -16vmax; top: 30vh; background: radial-gradient(circle, rgba(252, 115, 77, .2), rgba(252, 115, 77, 0) 65%); animation: lgDriftB 46s ease-in-out infinite alternate; }
-.lg-blob-deep { width: 70vmax; height: 70vmax; left: 20vw; bottom: -40vmax; background: radial-gradient(circle, rgba(3, 92, 140, .3), rgba(3, 92, 140, 0) 65%); animation: lgDriftC 52s ease-in-out infinite alternate; }
+.lg-blob-blue { width: 62vmax; height: 62vmax; left: -18vmax; top: -24vmax; background: radial-gradient(circle, rgba(2, 151, 222, .34), rgba(2, 151, 222, 0) 65%); animation: lgDriftA 38s ease-in-out 1 both; }
+.lg-blob-orange { width: 48vmax; height: 48vmax; right: -16vmax; top: 30vh; background: radial-gradient(circle, rgba(252, 115, 77, .2), rgba(252, 115, 77, 0) 65%); animation: lgDriftB 46s ease-in-out 1 both; }
+.lg-blob-deep { width: 70vmax; height: 70vmax; left: 20vw; bottom: -40vmax; background: radial-gradient(circle, rgba(3, 92, 140, .3), rgba(3, 92, 140, 0) 65%); animation: lgDriftC 52s ease-in-out 1 both; }
 @keyframes lgDriftA { to { transform: translate(14vw, 18vh) scale(1.12); } }
 @keyframes lgDriftB { to { transform: translate(-18vw, -14vh) scale(.9); } }
 @keyframes lgDriftC { to { transform: translate(-12vw, -10vh) scale(1.08); } }
@@ -150,13 +150,7 @@
   transition-duration: .08s;
 }
 
-/* Vidrio también en el banner de estado y el topbar */
-.topbar {
-  background: var(--lg-sheen), rgba(2, 7, 10, .4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.8);
-  backdrop-filter: blur(20px) saturate(1.8);
-  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, .05), 0 10px 30px -20px rgba(0, 0, 0, .8);
-}
+/* La barra superior es tinte sólido SIN blur (§2.4, §6.1): la define shell/shell.css. */
 
 /* El fondo detrás del vidrio es la escena, no un bloque sólido */
 body { background: var(--navy); }

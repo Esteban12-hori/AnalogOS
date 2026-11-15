@@ -183,9 +183,10 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
   } else if ((phase === 'analysis' || phase === 'done') && result?.revision === revision) {
     status = (
       <span className="composer-status-text" data-tone="ok">
+        {/* El rótulo DEMO va primero: el texto se trunca con elipsis y el rótulo nunca debe perderse. */}
+        {source === 'demo' && <span className="composer-tag">{DEMO_TAG}</span>}
         <span aria-hidden="true">{GLYPH.ok} </span>
         {result.text}
-        {source === 'demo' && <span className="composer-tag">{DEMO_TAG}</span>}
         {phase === 'analysis' && <span className="composer-status-count"> · {label}</span>}
       </span>
     )

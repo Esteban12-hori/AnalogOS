@@ -9,7 +9,7 @@
  * - `classifyReferences(analogs, candidates)`: regla §1 #16 (punto-en-polígono → insignia
  *   «coincide con» o ◆ propio), reutilizable por el globo. Usa el clasificador geométrico que
  *   `loadReferenceAnalogs` trae en un chunk diferido; antes de cargar devuelve «sin ◆».
- * - `referenceAnalogsFrom`: valida un catálogo ya leído (útil en tests y herramientas).
+ * - `referenceAnalogsFrom` (en ./analogCatalog, diferido): valida un catálogo ya leído (tests y herramientas).
  * La geometría (classify.ts, geometry.ts) no se reexporta aquí a propósito: así no entra al
  * chunk principal.
  */
@@ -42,6 +42,6 @@ export type ReferenceAnalogsState =
 
 export { PlaceRail } from './PlaceRail'
 export { ReferenceCard } from './ReferenceCard'
-export { classifyReferences, loadReferenceAnalogs, referenceAnalogsFrom, useReferenceAnalogs } from './referenceAnalogs'
+export { classifyReferences, loadReferenceAnalogs, useReferenceAnalogs } from './referenceAnalogs'
 export { buildPlaceModel } from './placeModel'
 export type { EvaluatedPlace, Place, PlaceModel, PlaceModelInput, ReferenceClassification, ReferencePlace } from './placeModel'

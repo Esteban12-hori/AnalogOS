@@ -10,6 +10,7 @@ import type { AppData } from '../shell/appData'
 import { AppShell } from '../shell/AppShell'
 import { detailTabs, FullDetail } from '../shell/detail/FullDetail'
 import { baseStageInsets, railWidth, sheetDetentHeights, stageInsetsFor, STAGE_GEOMETRY, stageTramo, viewportLayout } from '../shell/layout'
+import { dataAttribution, dataAttributionText } from '../shell/attribution'
 import { RightRail } from '../shell/RightRail'
 import { keyboardInsetFrom, KEYBOARD_MIN_PX } from '../shell/sheet/useKeyboardInset'
 import { nextTabIndex } from '../shell/Tabs'
@@ -160,5 +161,35 @@ describe('armazón: slots montados', () => {
     )
     expect(rail).toContain('inert=""')
     expect(rail).not.toContain('rail-head')
+  })
+})
+
+describe('atribución, aviso y orden del armazón (CLAUDE.md: atribución siempre visible)', () => {
+  it('la atribución sale del manifiesto: las fuentes que producen los %, sin métricas propias ni inventarios', () => {
+    expect(dataAttribution(snapshot.manifest)).toEqual(['NASADEM', 'Copernicus Sentinel-2', 'MOLA (PDS)', 'NASA POWER', 'Natural Earth'])
+    expect(dataAttributionText({ datasets: [] })).toBeNull()
+  })
+
+  it('Explorar sin selección: la línea de datos va en la franja del escenario (siempre montada)', () => {
+    // MapStage necesita window (no se renderiza en Node): se verifica el cableado en el código.
+    const shell = readFileSync(resolve(__dirname, '../shell/AppShell.tsx'), 'utf8')
+    const stage = readFileSync(resolve(__dirname, '../features/globe/MapStage.tsx'), 'utf8')
+    expect(shell).toMatch(/creditSlot=\{credit \? <p className="stage-data-credit">\{credit\}<\/p> : null\}/)
+    // El armazón estático pinta la misma línea antes de React (mismo marcado y tamaño).
+    expect(staticShellHtml({ credit: 'Datos: NASADEM' })).toContain('<div class="stage-dock" data-static=""><p class="stage-data-credit">Datos: NASADEM</p></div>')
+    expect(stage).toMatch(/\{hudSlot\}\s*\{creditSlot\}\s*<\/div>/)
+  })
+
+  it('la barra superior va antes que el escenario en el DOM (orden de foco = orden visual) y hay main y h1', () => {
+    const html = renderToStaticMarkup(<AppShell data={loading} />)
+    expect(html.indexOf('class="topbar"')).toBeLessThan(html.indexOf('class="stage"'))
+    expect(html).toContain('<main class="app-main">')
+    expect(html).toMatch(/<h1 class="sr-only">AnalogOS Chile<\/h1>/)
+  })
+
+  it('el aviso científico tiene texto accesible en todos los tramos (la versión corta no es aria-hidden)', () => {
+    const html = renderToStaticMarkup(<AppShell data={loading} />)
+    expect(html).toContain('<span class="note-short">PRELIMINAR · NO AUTORIZA TERRENO</span>')
+    expect(html).not.toMatch(/note-short" aria-hidden/)
   })
 })

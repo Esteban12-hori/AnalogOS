@@ -71,6 +71,8 @@ export interface MapStageProps {
   onMilestone?: (milestone: StageMilestone, status: 'ok' | 'error') => void
   /** Controles extra en la franja de leyenda (p. ej. el interruptor «Líneas»). */
   hudSlot?: ReactNode
+  /** Atribución de los datos que producen los % (siempre visible, al pie de la franja). */
+  creditSlot?: ReactNode
   /**
    * Selección de un análogo ◆ desde el escenario. Opcional: por defecto escribe
    * `ui.selection` con `kind: 'reference'`.
@@ -135,8 +137,8 @@ class StageErrorBoundary extends Component<{ onError: () => void; children: Reac
 
 function StageLoading({ text }: { text: string }) {
   return (
-    <div className="globe-loading globe-loading-page" role="status">
-      <span className="loader" />
+    <div className="globe-loading globe-loading-page">
+      <span className="loader" aria-hidden="true" />
       {text}
     </div>
   )
@@ -178,6 +180,7 @@ export function MapStage({
   paused = false,
   onMilestone,
   hudSlot,
+  creditSlot,
   onSelectReference = selectReference,
 }: MapStageProps) {
   const [webgl] = useState(supportsWebGL)
@@ -477,7 +480,7 @@ export function MapStage({
         <button type="button" aria-label="Vista global" title="Vista global (Inicio)" onClick={goHome}>⌂</button>
       </div>
 
-      <div className="stage-dock" aria-label="Leyenda y fuente del mapa" data-obstacle="">
+      <div className="stage-dock" role="group" aria-label="Leyenda y fuente del mapa" data-obstacle="">
         <div className="stage-legend">
           <span><b aria-hidden="true">{GLYPH.evaluated}</b> {fixtureMode ? 'fixture con score' : 'evaluado'}</span>
           <span><b className="is-reference" aria-hidden="true">{GLYPH.reference}</b> referencia por calcular</span>
@@ -503,6 +506,7 @@ export function MapStage({
           <em className="legend-credit">Imágenes = contexto, no entran al score</em>
         </div>
         {hudSlot}
+        {creditSlot}
       </div>
     </div>
   )

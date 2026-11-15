@@ -30,6 +30,16 @@ function openMission(): void {
   focusComposer()
 }
 
+/**
+ * «/» es un atajo de un solo carácter (WCAG 2.1.4): solo actúa con el foco en la página o en el
+ * escenario, nunca sobre pestañas, listas o botones (control por voz, lectores de pantalla).
+ */
+function slashAllowed(target: EventTarget | null): boolean {
+  if (typeof document === 'undefined') return false
+  if (target === null || target === window || target === document || target === document.body || target === document.documentElement) return true
+  return target instanceof Element && target.closest('.stage') !== null
+}
+
 export function Composer({ data, placement, onRequestTray }: ComposerProps) {
   const mode = useUi((state) => state.mode)
   const phase = useUi((state) => state.missionPhase)
@@ -45,7 +55,7 @@ export function Composer({ data, placement, onRequestTray }: ComposerProps) {
         if (!waiting || anyPopoverOpen()) return
         event.preventDefault()
         withController((mission) => mission.cancel())
-      } else if (event.key === '/' && !isEditable(event.target)) {
+      } else if (event.key === '/' && !isEditable(event.target) && slashAllowed(event.target)) {
         event.preventDefault()
         if (placement === 'sheet-head') onRequestTray?.()
         else openMission()

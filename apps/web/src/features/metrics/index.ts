@@ -76,13 +76,7 @@ export interface BuildMetricViewsInput {
 }
 
 export { MetricRail } from './MetricRail'
-export {
-  buildMetricViews,
-  limitingView,
-  BOUNDED_RULES,
-  MARS_COMPARABLE,
-  METRIC_LABELS,
-  METRIC_MEASURES,
-} from './buildMetricViews'
+// El modelo puro (`buildMetricViews`, `limitingView`, constantes del catálogo) y `useMetricViews`
+// se importan DIRECTO de './buildMetricViews' y './useMetricViews' desde código diferido: si este
+// índice los reexportara, viajarían en el chunk principal (§6.1).
 export { resolveMetricContext, type MetricContext, type SiteFigures } from './metricContext'
-export { useMetricViews } from './useMetricViews'

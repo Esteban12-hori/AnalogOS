@@ -22,6 +22,11 @@ const escape = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;
 export interface StaticShellOptions {
   /** URL del póster del globo (solo ≥1100 px, vía <source media>). Sin ella no hay póster. */
   posterUrl?: string
+  /**
+   * Atribución de datos del snapshot («Datos: NASADEM · …», shell/attribution.ts), calculada en el
+   * build desde su manifiesto: se pinta con el HTML, igual que la línea del escenario de React.
+   */
+  credit?: string
 }
 
 /**
@@ -50,14 +55,14 @@ export function staticShellHtml(options: StaticShellOptions = {}): string {
   const pill = `<span class="composer-pill"><span aria-hidden="true">✦</span><span class="composer-pill-text">${escape(t.composerPrompt)}</span><kbd aria-hidden="true">/</kbd></span>`
   return (
     '<div class="app" data-static="" data-mode="explorar">' +
-    '<div class="stage"><div class="map-stage" aria-hidden="true"></div></div>' +
+    `<div class="stage"><div class="map-stage">${options.credit ? `<div class="stage-dock" data-static=""><p class="stage-data-credit">${escape(options.credit)}</p></div>` : ''}</div></div>` +
     `<div class="stage-overlay" data-slot="stage.overlay">${staticBootHtml(options)}</div>` +
     '<header class="topbar">' +
     `<div class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><strong>${escape(t.brand)}</strong><small>${escape(t.brandTagline)}</small></span></div>` +
     '<div class="mode-tabs" aria-hidden="true"><span class="mode-thumb" data-mode="explorar"></span>' +
     '<span class="mode-static" data-selected="">Explorar</span><span class="mode-static">Misión</span></div>' +
     `<div class="topbar-status"><span class="status-chip" data-state="loading"><span class="status-dot"></span>${escape(t.statusLoading)}</span></div>` +
-    `<p class="science-note" role="note"><span aria-hidden="true"></span><span class="note-long">${escape(t.scienceNote)}</span><span class="note-short" aria-hidden="true">${escape(t.scienceNoteShort)}</span></p>` +
+    `<p class="science-note" role="note"><span aria-hidden="true"></span><span class="note-long">${escape(t.scienceNote)}</span><span class="note-short">${escape(t.scienceNoteShort)}</span></p>` +
     '</header>' +
     `<section class="dock"><div class="dock-places">${loading}</div><div class="dock-composer">${pill}</div></section>` +
     '<section class="sheet" data-detent="S0"><div class="sheet-grip"><span class="sheet-handle"><span></span></span></div>' +

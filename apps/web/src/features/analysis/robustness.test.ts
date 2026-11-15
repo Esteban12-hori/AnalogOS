@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { SensitivityResult } from '../engine'
+import { MISSION_PRESETS, profileFromPreset, scoreMission, sensitivity, type SensitivityResult } from '../engine'
 import { sensitivityInputs, summarizeRobustness, type SiteSensitivity } from './robustness'
 import { loadScienceSnapshot, YUNGAY } from './testSupport'
 
@@ -87,5 +87,22 @@ describe('sensitivityInputs (misma regla que scoreMission)', () => {
     expect(inputs.criteria.find((criterion) => criterion.id === 'local_relief')?.weight).toBe(0)
     expect(inputs.inputs.local_relief?.status).toBe('excluded')
     expect(inputs.inputs.slope?.status).toBe('valid')
+  })
+})
+
+// Una sola cifra de estabilidad: la que el motor entrega en el scoring (riel, ficha, Comparar)
+// es la misma que la Lectura calcula aquí con sensitivityInputs.
+describe('estabilidad de misión: scoring del motor = Lectura', () => {
+  const snapshot = loadScienceSnapshot()
+  it.each(MISSION_PRESETS.map((preset) => [preset.id, preset] as const))('%s', (_id, preset) => {
+    const profile = profileFromPreset(preset, { id: snapshot.profile.id, version: snapshot.profile.version })
+    const scoring = scoreMission({ profile, candidates: snapshot.candidates, base: snapshot.profile })
+    for (const site of scoring.sites) {
+      const candidate = snapshot.candidates.find((item) => item.site_id === site.siteId)
+      if (!candidate) throw new Error(`falta ${site.siteId}`)
+      const inputs = sensitivityInputs(snapshot.profile, profile.weights, candidate)
+      const expected = sensitivity(inputs.criteria, inputs.inputs, inputs.epsilon, inputs.minimumValidWeight).stability
+      expect(site.stability).toBe(site.similarity === null ? null : expected)
+    }
   })
 })

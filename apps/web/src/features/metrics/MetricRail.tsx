@@ -16,7 +16,7 @@ import { isMissionBusy, uiActions, useUi } from '../../state/ui'
 import { FadeNumber } from './FadeNumber'
 import type { MetricRailProps } from './index'
 import { useMetricContext, type MetricContext } from './metricContext'
-import { coverageText, siteShortName, siteSimilarityText } from './summaryText'
+import { confidenceRiseNote, coverageText, siteShortName, siteSimilarityText } from './summaryText'
 import './metric-rail.css'
 
 const loadDetails = () => import('./MetricDetails')
@@ -109,6 +109,7 @@ function Summary({ context, site }: { context: MetricContext; site: CandidateSit
           <dd>{feasibilityLabels[figures.feasibility]}</dd>
         </div>
       </dl>
+      {confidenceRiseNote(context) && <p className="metrics-coverage">{confidenceRiseNote(context)}</p>}
       <p className="metrics-coverage">
         {coverageText(figures)} · <span aria-hidden="true">{GLYPH.sector}</span> {formatArea(site.area_km2)}
       </p>

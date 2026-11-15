@@ -8,15 +8,16 @@ import { MissionCard } from '../../features/composer'
 import { MetricRail } from '../../features/metrics'
 import { ReadingPanel } from '../../features/analysis'
 import type { CandidateSite } from '../../domain/contracts'
+import { useMission } from '../../state/mission'
 import { uiActions, useUi } from '../../state/ui'
 import type { AppData } from '../appData'
 import { panelId, TabList, type TabItem } from '../Tabs'
-import { MethodTab } from './MethodTab'
-import { SourcesTab } from './SourcesTab'
 
 // Contenido pesado o poco visitado: su código se descarga al abrir la pestaña.
 const SurfaceSignals = lazy(() => import('../../components/SurfaceSignals').then((m) => ({ default: m.SurfaceSignals })))
 const CandidateComparison = lazy(() => import('../../components/CandidateComparison').then((m) => ({ default: m.CandidateComparison })))
+const MethodTab = lazy(() => import('./MethodTab').then((m) => ({ default: m.MethodTab })))
+const SourcesTab = lazy(() => import('./SourcesTab').then((m) => ({ default: m.SourcesTab })))
 
 export type DetailTab = 'metricas' | 'lectura' | 'mision' | 'senal' | 'comparar' | 'metodo' | 'fuentes'
 
@@ -56,6 +57,13 @@ export function FullDetail({ data, site, placement, onShowOnMap }: FullDetailPro
   const snapshot = data.snapshot
   const prefix = `detail-${placement}`
   const items: TabItem<DetailTab>[] = tabs.map((id) => ({ id, label: LABELS[id] }))
+  // Comparar usa el MISMO perfil que la cabecera y el riel: en Misión, orden y cifras del motor.
+  const missionProfile = useMission((state) => state.profile)
+  const scoring = useMission((state) => state.scoring)
+  const mission =
+    mode === 'mision' && missionProfile !== null && scoring !== null && scoring.profileId === missionProfile.id
+      ? { label: missionProfile.label, engineVersion: scoring.engineVersion, sites: scoring.sites }
+      : null
 
   return (
     <div className="full-detail" data-placement={placement}>
@@ -71,11 +79,25 @@ export function FullDetail({ data, site, placement, onShowOnMap }: FullDetailPro
         )}
         {tab === 'comparar' && snapshot && (
           <Suspense fallback={<Pending />}>
-            <CandidateComparison candidates={snapshot.candidates} selectedId={site.site_id} onSelect={(id) => uiActions.select(id)} />
+            <CandidateComparison
+              candidates={snapshot.candidates}
+              selectedId={site.site_id}
+              onSelect={(id) => uiActions.select(id)}
+              baseLabel={`perfil base v${snapshot.profile.version}`}
+              mission={mission}
+            />
           </Suspense>
         )}
-        {tab === 'metodo' && <MethodTab />}
-        {tab === 'fuentes' && snapshot && <SourcesTab site={site} manifest={snapshot.manifest} visual={data.visual} onShowOnMap={onShowOnMap} />}
+        {tab === 'metodo' && (
+          <Suspense fallback={<Pending />}>
+            <MethodTab />
+          </Suspense>
+        )}
+        {tab === 'fuentes' && snapshot && (
+          <Suspense fallback={<Pending />}>
+            <SourcesTab site={site} manifest={snapshot.manifest} visual={data.visual} onShowOnMap={onShowOnMap} />
+          </Suspense>
+        )}
       </div>
     </div>
   )

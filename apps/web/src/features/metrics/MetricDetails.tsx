@@ -372,7 +372,7 @@ function RailAccordion({ views, context, site, data, onShowOnMap }: VariantProps
                   onFocus={() => preview(view.criterionId)}
                   onBlur={() => preview(null)}
                 >
-                  <Ring value={view.similarity} size="sm" />
+                  <Ring value={view.similarity} size="sm" excluded={view.weight <= 0} />
                   <span className="metrics-row-label">
                     {view.label}
                     <Badges view={view} />
@@ -427,7 +427,7 @@ function FullCards({ views, context, site, data, onShowOnMap }: VariantProps) {
                 </h4>
                 {view.measure && <p>{view.measure}</p>}
               </div>
-              <Ring value={view.similarity} />
+              <Ring value={view.similarity} excluded={view.weight <= 0} />
             </header>
             <MetricBody view={view} context={context} site={site} data={data} detail="full" />
           </article>
@@ -471,7 +471,8 @@ function SheetCarousel({ views, context, site, data, onShowOnMap }: VariantProps
     if (!view) return
     fromSwipe.current = source === 'swipe'
     uiActions.setActiveCriterion(view.criterionId)
-    setLive(`${view.label}, ${target + 1} de ${views.length}`)
+    // Con las pestañas el cambio de foco ya lo anuncia: la región viva solo habla por botón o gesto.
+    if (source !== 'tab') setLive(`${view.label}, ${target + 1} de ${views.length}`)
   }
 
   // La pista sigue a la métrica activa (pestaña, botón, líneas o Lectura), salvo si la movió el dedo.
@@ -554,7 +555,7 @@ function SheetCarousel({ views, context, site, data, onShowOnMap }: VariantProps
               }}
               onClick={() => go(at, 'tab')}
             >
-              <Ring value={view.similarity} size="sm" />
+              <Ring value={view.similarity} size="sm" excluded={view.weight <= 0} />
               <span aria-hidden="true">{METRIC_SHORT[view.criterionId] ?? view.label.slice(0, 3)}</span>
             </button>
           )
@@ -563,7 +564,7 @@ function SheetCarousel({ views, context, site, data, onShowOnMap }: VariantProps
       <p className="metrics-caption">
         Todo el sector · <span aria-hidden="true">{GLYPH.sector}</span> {formatArea(site.area_km2)} · medianas · <span aria-hidden="true">{GLYPH.evaluated}</span> sector <span aria-hidden="true">{GLYPH.jezero}</span> Jezero <span aria-hidden="true">{GLYPH.rule}</span> regla
       </p>
-      <div className="metrics-track" ref={track}>
+      <div className="metrics-track" ref={track} tabIndex={-1}>
         {views.map((view, at) => {
           const selected = at === index
           return (
@@ -588,7 +589,7 @@ function SheetCarousel({ views, context, site, data, onShowOnMap }: VariantProps
                 <Badges view={view} />
               </header>
               <div className="metrics-slide-main">
-                <Ring value={view.similarity} />
+                <Ring value={view.similarity} excluded={view.weight <= 0} />
                 <MetricBody view={view} context={context} site={site} data={data} detail="sheet" />
               </div>
             </article>

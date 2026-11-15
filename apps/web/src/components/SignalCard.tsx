@@ -375,316 +375,38 @@ class Field {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Odómetro: los dígitos ruedan en columnas emparejadas por valor posicional.
+// Cifra final (docs/UX_REDESIGN.md §0.7 y §2.2.3): ninguna cifra se anima ni pasa por valores
+// intermedios. El texto aparece con su valor final; al cambiar, un fundido con 4 px de
+// desplazamiento (como FadeNumber). Solo la curva se anima.
 // ---------------------------------------------------------------------------------------------
 
-interface Col {
-  el: HTMLSpanElement
-  stack: HTMLSpanElement | null
-  cells: HTMLSpanElement[]
-  ch: string
-  digit: number
-  p: number
-  v: number
-  w: number
-  mode: number
-  t: number
-  base: number
-  slotW: number
-  next: string | null
-  kNext: string | null | undefined
-  kOff: number
-  lo: number
-  fade: number
-  grow: number
-  lift: number
-  a0: number
-  g0: number
-  l0: number
-  key: string
-}
-
-const ROLL_IO = 0.42
-const rowAlpha = (d: number) => 1 - smooth(0.4, 0.64, Math.abs(d))
-const isDigit = (c: string | undefined): c is string => c !== undefined && c >= '0' && c <= '9'
-
-/** Clave por carácter según su posición decimal; "," es la coma decimal (es-CL). */
-function placeKeys(chars: string[]): string[] {
-  const keys: string[] = new Array<string>(chars.length)
-  let run = 0
-  for (let i = 0; i < chars.length;) {
-    if (!isDigit(chars[i])) { keys[i] = `${run}:${chars[i]}`; i++; continue }
-    let j = i
-    while (j < chars.length && (isDigit(chars[j]) || ((chars[j] === '.' || chars[j] === ',') && isDigit(chars[j + 1])))) j++
-    const commas: number[] = []
-    for (let k = i; k < j; k++) if (chars[k] === ',') commas.push(k)
-    const point = commas.length === 1 ? commas[0] : j
-    let place = 0
-    for (let k = Math.min(point, j) - 1; k >= i; k--) {
-      keys[k] = isDigit(chars[k]) ? `${run}i${place++}` : `${run}g${place}`
-    }
-    let frac = 0
-    for (let k = point; k < j; k++) keys[k] = k === point ? `${run},` : isDigit(chars[k]) ? `${run}f${++frac}` : `${run}h${frac}`
-    run++
-    i = j
-  }
-  return keys
-}
-
-class Roller {
-  root: HTMLElement
-  cols: Col[] = []
-  text = ''
-  font = ''
-  size = 0
-  track = 0
-  widths: Record<string, number> = {}
-  kerns: Record<string, number> = {}
-  measure: CanvasRenderingContext2D | null = null
+class FinalFigure {
+  private text: string | null = null
+  private readonly root: HTMLElement
 
   constructor(root: HTMLElement) {
     this.root = root
   }
 
-  private adv(text: string) {
-    if (this.widths[text] === undefined) {
-      this.measure ??= document.createElement('canvas').getContext('2d')
-      const m = this.measure
-      if (m) {
-        m.font = this.font
-        this.widths[text] = m.measureText(text).width
-      } else this.widths[text] = this.size * 0.6 * text.length
-    }
-    return this.widths[text]
-  }
-
-  private slot(ch: string, next: string | null) {
-    let w = this.adv(ch) + this.track
-    if (next !== null) {
-      const key = ch + next
-      this.kerns[key] ??= this.adv(key) - this.adv(ch) - this.adv(next)
-      w += this.kerns[key]
-    }
-    return w
-  }
-
-  private rollW(lo: number, fr: number, next: string | null) {
-    const a = this.slot(String(lo % 10), next)
-    return fr > 0 ? a + (this.slot(String((lo + 1) % 10), next) - a) * fr : a
-  }
-
-  setFont(font: string, size: number, track: number) {
-    if (font === this.font && size === this.size && track === this.track) return
-    this.font = font
-    this.size = size
-    this.track = track
-    this.widths = {}
-    this.kerns = {}
-    this.layout(true)
-  }
-
-  private layout(snap: boolean) {
-    const kept = this.cols.filter((c) => c.mode !== -1)
-    kept.forEach((c, i) => { c.next = i + 1 < kept.length ? kept[i + 1].ch : null })
-    for (const c of this.cols) {
-      if (c.mode === -1) c.next = null
-      c.base = this.slot(c.ch, c.next)
-      if (snap) {
-        c.slotW = c.base
-        c.kNext = c.next
-        c.kOff = 0
-        c.w = c.slotW * (c.mode === 1 ? 0 : 1)
-        c.el.style.width = `${c.w}px`
-      }
-    }
-  }
-
-  private makeCol(ch: string): Col {
-    const el = document.createElement('span')
-    Object.assign(el.style, { display: 'inline-block', position: 'relative', height: '1em', lineHeight: '1em', verticalAlign: 'top', whiteSpace: 'pre' })
-    el.setAttribute('aria-hidden', 'true')
-    let stack: HTMLSpanElement | null = null
-    const cells: HTMLSpanElement[] = []
-    if (isDigit(ch)) {
-      const win = document.createElement('span')
-      const mask = 'linear-gradient(180deg, transparent 0%, #000 24%, #000 81%, transparent 98%)'
-      Object.assign(win.style, { position: 'absolute', left: '-0.3em', right: '-0.3em', top: '-0.2em', height: '1.35em', lineHeight: '1em', overflow: 'hidden', display: 'block', maskImage: mask, maskRepeat: 'no-repeat' })
-      win.style.setProperty('-webkit-mask-image', mask)
-      el.appendChild(win)
-      stack = document.createElement('span')
-      Object.assign(stack.style, { position: 'absolute', left: '0.3em', top: '0.2em', display: 'block', lineHeight: '1em', willChange: 'transform' })
-      for (let k = 0; k <= 10; k++) {
-        const cell = document.createElement('span')
-        Object.assign(cell.style, { display: 'block', height: '1em', lineHeight: '1em', opacity: '0' })
-        cell.textContent = String(k % 10)
-        cells.push(cell)
-        stack.appendChild(cell)
-      }
-      win.appendChild(stack)
-    } else {
-      el.textContent = ch
-    }
-    return {
-      el, stack, cells, ch, digit: isDigit(ch) ? +ch : -1, p: isDigit(ch) ? +ch : -1, v: 0, w: 0, mode: 0, t: 1, base: 0, slotW: 0,
-      next: null, kNext: undefined, kOff: 0, lo: -1, fade: 1, grow: 1, lift: 0, a0: 1, g0: 1, l0: 0, key: ch,
-    }
+  /** El tamaño lo fija el contenedor; aquí solo el tracking escalado. */
+  setFont(_font: string, _size: number, track: number) {
+    const spacing = `${track.toFixed(3)}px`
+    if (this.root.style.letterSpacing !== spacing) this.root.style.letterSpacing = spacing
   }
 
   set(text: string, instant: boolean) {
     if (text === this.text) return
+    const first = this.text === null
     this.text = text
-    const chars = Array.from(text)
-    const keys = placeKeys(chars)
-    if (instant || !this.cols.some((c) => c.mode !== -1)) {
-      this.root.textContent = ''
-      this.cols = chars.map((ch, i) => {
-        const c = this.makeCol(ch)
-        c.key = keys[i]
-        this.root.appendChild(c.el)
-        return c
-      })
-      this.layout(true)
-      return
-    }
-    const live = this.cols.filter((c) => c.mode !== -1)
-    const n = live.length, m = chars.length
-    const L: number[][] = []
-    for (let i = 0; i <= n; i++) L.push(new Array<number>(m + 1).fill(0))
-    for (let i = n - 1; i >= 0; i--) for (let k = m - 1; k >= 0; k--) {
-      L[i][k] = live[i].key === keys[k] ? L[i + 1][k + 1] + 1 : Math.max(L[i + 1][k], L[i][k + 1])
-    }
-    const pairOf = new Map<number, Col>()
-    const kept = new Set<Col>()
-    for (let i = 0, k = 0; i < n && k < m;) {
-      if (live[i].key === keys[k]) { pairOf.set(k, live[i]); kept.add(live[i]); i++; k++ }
-      else if (L[i + 1][k] >= L[i][k + 1]) i++
-      else k++
-    }
-    for (const c of live) {
-      if (kept.has(c)) continue
-      c.a0 = c.fade; c.g0 = c.grow; c.l0 = c.lift; c.mode = -1; c.t = 0
-    }
-    const entering: Col[] = []
-    let anchor: HTMLElement | null = null
-    for (let k = m - 1; k >= 0; k--) {
-      const ch = chars[k]
-      const old = pairOf.get(k)
-      if (old) {
-        old.ch = ch
-        if (old.digit >= 0) old.digit = +ch
-        anchor = old.el
-        continue
-      }
-      const c = this.makeCol(ch)
-      c.key = keys[k]
-      c.mode = 1
-      c.t = 0
-      c.fade = 0
-      c.grow = 0
-      c.el.style.width = '0px'
-      c.el.style.opacity = '0'
-      this.root.insertBefore(c.el, anchor)
-      anchor = c.el
-      entering.push(c)
-    }
-    const byEl = new Map<Element, Col>()
-    for (const c of [...this.cols, ...entering]) byEl.set(c.el, c)
-    this.cols = Array.from(this.root.children).map((e) => byEl.get(e)).filter((c): c is Col => c !== undefined)
-    this.layout(false)
-    for (const c of entering) { c.slotW = c.base; c.kNext = c.next }
+    this.root.textContent = text
+    if (first || instant || typeof this.root.animate !== 'function') return
+    this.root.animate([{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 200, easing: 'cubic-bezier(.2, 0, 0, 1)' })
   }
 
-  step(dt: number, intro: number, instant: boolean) {
-    const kept = this.cols.filter((c) => c.mode !== -1)
-    const digits = kept.filter((c) => c.digit >= 0).length
-    let di = 0
-    const done: Col[] = []
-    const settle = instant ? 1 : 1 - Math.exp(-dt * 9)
-    for (const c of this.cols) {
-      if (c.mode !== 0) {
-        c.t = instant ? 1 : Math.min(1, c.t + dt / ROLL_IO)
-        if (c.mode === 1) {
-          const u = easeOut(clamp01((c.t - 0.4) / 0.6))
-          c.grow = easeInOut(clamp01(c.t / 0.55))
-          c.fade = u
-          c.lift = 0.3 * (1 - u)
-          if (c.t >= 1) { c.mode = 0; c.grow = 1; c.fade = 1; c.lift = 0 }
-        } else {
-          const u = easeOut(clamp01(c.t / 0.45))
-          c.fade = c.a0 * (1 - u)
-          c.grow = c.g0 * (1 - easeInOut(clamp01((c.t - 0.3) / 0.7)))
-          c.lift = c.l0 + (-0.3 - c.l0) * u
-          if (c.t >= 1) done.push(c)
-        }
-        c.el.style.transform = `translate3d(0, ${c.lift.toFixed(4)}em, 0)`
-      } else if (c.el.style.transform) c.el.style.transform = ''
-      let alpha: number
-      let full: number
-      if (c.digit < 0) {
-        c.slotW += (c.base - c.slotW) * settle
-        if (Math.abs(c.slotW - c.base) < 0.01) c.slotW = c.base
-        full = c.slotW
-        alpha = clamp01(intro * 1.6 - 0.1)
-        const indent = (full * c.grow - full) / 2
-        const ind = Math.abs(indent) < 0.01 ? '' : `${indent.toFixed(2)}px`
-        if (c.el.style.textIndent !== ind) c.el.style.textIndent = ind
-      } else {
-        if (c.mode !== -1) {
-          const goal = c.digit + Math.round((c.p - c.digit) / 10) * 10
-          if (instant) { c.p = goal; c.v = 0 }
-          else {
-            const k = 160, damp = 2 * Math.sqrt(k)
-            const steps = Math.max(1, Math.ceil(dt / 0.0175))
-            const h = dt / steps
-            for (let q = 0; q < steps; q++) {
-              c.v += (-(c.p - goal) * k - c.v * damp) * h
-              c.p += c.v * h
-            }
-            if (Math.abs(c.p - goal) < 1e-4 && Math.abs(c.v) < 1e-3) { c.p = goal; c.v = 0 }
-          }
-        }
-        const stag = digits > 1 ? (Math.min(di, digits - 1) / (digits - 1)) * 0.22 : 0
-        const localIntro = clamp01((intro - stag) / (1 - 0.22))
-        const shown = c.p - (1 - easeOutQuart(localIntro)) * 12
-        let pm = ((shown % 10) + 10) % 10
-        if (pm > 9.99995) pm = 0
-        let lo = Math.floor(pm)
-        let fr = pm - lo
-        if (fr > 0.99995) { lo = (lo + 1) % 10; fr = 0; pm = lo }
-        const raw = this.rollW(lo, fr, c.next)
-        if (c.next !== c.kNext) {
-          if (c.kNext !== undefined && !instant) c.kOff += this.rollW(lo, fr, c.kNext) - raw
-          c.kNext = c.next
-        }
-        c.kOff = instant ? 0 : c.kOff * (1 - settle)
-        if (Math.abs(c.kOff) < 0.01) c.kOff = 0
-        full = raw + c.kOff
-        const colW = full * c.grow
-        if (c.stack) {
-          c.stack.style.transform = `translate3d(0, ${(-pm).toFixed(4)}em, 0)`
-          if (c.lo !== lo) {
-            if (c.lo >= 0) { c.cells[c.lo].style.opacity = '0'; c.cells[c.lo + 1].style.opacity = '0' }
-            c.lo = lo
-          }
-          for (let k = lo; k <= lo + 1; k++) {
-            const x = (colW - this.slot(String(k % 10), c.next)) / 2
-            const a = rowAlpha(k - pm)
-            const cell = c.cells[k]
-            cell.style.opacity = a > 0.002 ? a.toFixed(3) : '0'
-            cell.style.transform = Math.abs(x) < 0.01 ? '' : `translate3d(${x.toFixed(2)}px, 0, 0)`
-          }
-        }
-        alpha = clamp01(localIntro * 2.2)
-        if (c.mode !== -1) di++
-      }
-      const w = full * c.grow
-      if (Math.abs(w - c.w) > 0.01) { c.w = w; c.el.style.width = `${w}px` }
-      c.el.style.opacity = String(alpha * c.fade)
-    }
-    if (done.length) {
-      for (const c of done) c.el.remove()
-      this.cols = this.cols.filter((c) => !done.includes(c))
-    }
+  /** Entrada: solo opacidad del bloque; la cifra ya es la final desde el primer cuadro. */
+  step(_dt: number, intro: number, _instant: boolean) {
+    const opacity = String(clamp01(intro * 2.2))
+    if (this.root.style.opacity !== opacity) this.root.style.opacity = opacity
   }
 }
 
@@ -715,7 +437,7 @@ function fmtDelta(d: number | null) {
   if (d === null) return 'inicio'
   const r = Math.round(d * 10) / 10
   if (r === 0) return '0,0 %'
-  return `${r < 0 ? '−' : '+'}${Math.abs(r).toFixed(1).replace('.', ',')} %`
+  return `${r < 0 ? '↓ −' : '↑ +'}${Math.abs(r).toFixed(1).replace('.', ',')} %`
 }
 
 export function SignalCard({
@@ -729,7 +451,9 @@ export function SignalCard({
   cardColor = '#050E15',
   textColor = '#F2F8FC',
   lineColor = '#FFFFFF',
-  downColor = '#FC734D',
+  // El naranja es Marte como dato y el rojo/naranja no se usan para alertas (§2.4): ambas
+  // direcciones van en hielo; la dirección la dicen ↑/↓ en el texto.
+  downColor = '#CFE9F7',
   upColor = '#5CC8F5',
   revealed = true,
   ariaLabel,
@@ -759,7 +483,7 @@ export function SignalCard({
   const cardRgb = parseHex(cardColor, [5, 14, 21])
   const textRgb = parseHex(textColor, [242, 248, 252])
   const lineRgb = parseHex(lineColor, [255, 255, 255])
-  const downRgb = parseHex(downColor, [252, 115, 77])
+  const downRgb = parseHex(downColor, [207, 233, 247])
   const upRgb = parseHex(upColor, [92, 200, 245])
 
   const delta = deltaOf(series, shown, curve.lo)
@@ -812,8 +536,8 @@ export function SignalCard({
     const ctx = mainCv.getContext('2d')
     if (!fctx || !ctx) return
     const field = new Field()
-    const fig = new Roller(figEl)
-    const chipRoll = new Roller(chipTxt)
+    const fig = new FinalFigure(figEl)
+    const chipRoll = new FinalFigure(chipTxt)
     const st = {
       idx: live.current.selected,
       vel: 0,

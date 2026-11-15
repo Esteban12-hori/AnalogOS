@@ -30,6 +30,7 @@ import {
   labelBudget,
   markerLabelText,
   markerVisibility,
+  pinUnfocusable,
   placeNearSelection,
   ringRadius,
   RING_MIN_PX,
@@ -38,6 +39,7 @@ import {
   type ScreenMarker,
 } from './markers'
 import { publishStageFrame, type StageAnchor, type StageProjection } from './stageBridge'
+import { uiStore } from '../../state/ui'
 import './CandidateGlobe.css'
 
 // ============================================================================
@@ -630,12 +632,18 @@ function MarkerProjector({ runtime, models, selection, hoverId, narrow, active }
     const selectedScreen = screen[selectedIndex]
     const selectedRing = selectedScreen ? { x: selectedScreen.x, y: selectedScreen.y, radius: radii[selectedIndex] ?? RING_MIN_PX } : null
 
+    // Paneles que tapan el escenario (barra, dock, riel, hoja, HUD): lo que queda debajo no se enfoca.
+    const obstacles = uiStore.getState().obstacles
     for (const cluster of result.clusters) {
       const placed = placeNearSelection(cluster, selectedRing)
       const frame = { x: placed.x, y: placed.y, opacity: cluster.visible, compact: placed.compact }
       runtime.lastCluster.set(cluster.key, frame)
       const element = runtime.clusters.get(cluster.key)
-      if (element) applyPinFrame(element, frame)
+      if (element) {
+        applyPinFrame(element, frame)
+        const inert = pinUnfocusable(placed.x, placed.y, cluster.visible, obstacles)
+        if (element.inert !== inert) element.inert = inert
+      }
     }
     const nextSignature = clusterSignature(result)
     if (nextSignature !== signature.current) {
@@ -663,7 +671,8 @@ function MarkerProjector({ runtime, models, selection, hoverId, narrow, active }
         setDataFlag(element, 'hidden', hidden)
         setDataFlag(element, 'clustered', clustered)
         setDataFlag(element, 'label', labels.has(marker.id))
-        const inert = hidden || clustered
+        // Oculto, agrupado, casi en el horizonte o tapado por un panel: fuera del orden de foco.
+        const inert = hidden || clustered || pinUnfocusable(marker.x, marker.y, marker.visible, obstacles)
         if (element.inert !== inert) element.inert = inert
         const ring = `${radius.toFixed(1)}px`
         if (element.style.getPropertyValue('--ring-r') !== ring) element.style.setProperty('--ring-r', ring)
@@ -904,8 +913,8 @@ export default function CandidateGlobe({
         <GlobeMarkerOverlay runtime={runtime} models={models} selectedId={selection?.id ?? null} hoverId={hoverId} intro={effectiveIntro} onActivate={onActivate} />
       )}
       {!ready && (
-        <div className="globe-loading globe-loading-page" role="status">
-          <span className="loader" />
+        <div className="globe-loading globe-loading-page">
+          <span className="loader" aria-hidden="true" />
           Cargando texturas locales…
         </div>
       )}

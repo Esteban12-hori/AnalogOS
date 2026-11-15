@@ -28,16 +28,20 @@ const PROFILE = [0, .55, -.35, .8, -.6, .25, -.9, .45, .1, -.5, .95, -.2, .4, -.
 const W = 260
 const H = 84
 
-/** Anillo de similitud 0–100 (decorativo: la cifra va también en texto). */
-export function Ring({ value, size = 'md' }: { value: number | null; size?: 'sm' | 'md' }) {
-  const fraction = value === null ? 0 : Math.max(0, Math.min(1, value / 100))
+/**
+ * Anillo de similitud 0–100 (decorativo: la cifra va también en texto). Un criterio que el perfil
+ * activo excluye (peso 0) no muestra su similitud como si contara: anillo discontinuo y «excl».
+ */
+export function Ring({ value, size = 'md', excluded = false }: { value: number | null; size?: 'sm' | 'md'; excluded?: boolean }) {
+  const shown = excluded ? null : value
+  const fraction = shown === null ? 0 : Math.max(0, Math.min(1, shown / 100))
   return (
-    <span className={`metrics-ring metrics-ring-${size}${value === null ? ' is-empty' : ''}`} aria-hidden="true">
+    <span className={`metrics-ring metrics-ring-${size}${shown === null ? ' is-empty' : ''}${excluded ? ' is-excluded' : ''}`} aria-hidden="true">
       <svg viewBox="0 0 44 44">
         <circle className="metrics-ring-track" cx="22" cy="22" r="18" pathLength={1} />
-        {value !== null && <circle className="metrics-ring-fill" cx="22" cy="22" r="18" pathLength={1} style={{ strokeDashoffset: 1 - fraction }} />}
+        {shown !== null && <circle className="metrics-ring-fill" cx="22" cy="22" r="18" pathLength={1} style={{ strokeDashoffset: 1 - fraction }} />}
       </svg>
-      <span>{value === null ? '—' : formatWhole(value)}</span>
+      <span>{excluded ? 'excl' : shown === null ? '—' : formatWhole(shown)}</span>
     </span>
   )
 }

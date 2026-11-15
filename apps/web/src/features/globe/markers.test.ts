@@ -18,6 +18,8 @@ import {
   markerAriaLabel,
   markerVisibility,
   NEAR_SELECTION_PX,
+  pinOccluded,
+  pinUnfocusable,
   placeNearSelection,
   ringRadius,
   RING_MIN_PX,
@@ -252,5 +254,20 @@ describe('grupo junto al lugar seleccionado', () => {
   it('lejos o sin selección no se mueve', () => {
     expect(placeNearSelection({ x: 500 + NEAR_SELECTION_PX, y: 300 }, selected)).toEqual({ x: 544, y: 300, compact: false })
     expect(placeNearSelection({ x: 505, y: 296 }, null)).toEqual({ x: 505, y: 296, compact: false })
+  })
+})
+
+describe('foco: un marcador tapado o casi en el horizonte no se enfoca (WCAG 2.4.11)', () => {
+  const sheet = { left: 0, top: 389, right: 390, bottom: 844 }
+  const hud = { left: 8, top: 560, right: 784, bottom: 600 }
+  it('el ancla bajo la hoja o la franja del HUD queda fuera del orden de foco', () => {
+    expect(pinOccluded(153, 400, [sheet])).toBe(true)
+    expect(pinOccluded(466, 575, [hud])).toBe(true)
+    expect(pinOccluded(195, 245, [sheet, hud])).toBe(false)
+  })
+  it('visibilidad < 0,25: fuera del orden de foco aunque esté en el área libre', () => {
+    expect(pinUnfocusable(195, 245, 0.11, [])).toBe(true)
+    expect(pinUnfocusable(195, 245, 0.6, [])).toBe(false)
+    expect(pinUnfocusable(195, 400, 0.9, [sheet])).toBe(true)
   })
 })

@@ -84,7 +84,7 @@
 .metrics-figure { display: grid; gap: 4px; width: 100%; max-width: 340px; margin: 0; }
 .metrics-viz { display: block; width: 100%; height: auto; overflow: visible; }
 .metrics-viz-note { color: var(--muted-2); font-size: var(--fs-min); text-align: right; }
-.metrics-svg-note { fill: var(--muted); font-family: var(--mono); font-size: 9px; }
+.metrics-svg-note { fill: var(--muted); font-family: var(--mono); font-size: var(--fs-min, 10px); }
 .metrics-ground { stroke: rgba(190, 225, 245, .25); stroke-width: 1; }
 .metrics-line { fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; animation: metricsDraw var(--dur-6) var(--ease-emph) both; }
 .metrics-site-stroke { stroke: var(--earth-bright); }

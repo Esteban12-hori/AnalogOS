@@ -11,6 +11,7 @@ import type { Reading } from './types'
 const snapshot = loadScienceSnapshot()
 const base = buildReading({ snapshot, context: 'base', mission: null })
 const sim = `site:${YUNGAY}:similarity`
+const rank = `site:${YUNGAY}:rank`
 const check = `check:${YUNGAY}:2`
 
 afterEach(() => resetPregeneratedCache())
@@ -21,7 +22,7 @@ function meta(hash = base.packet.packet_hash, engine = 'lktron') {
 
 const GOOD = [
   { type: 'stage', stage: 'writing' },
-  { type: 'summary', site_id: YUNGAY, text: `Pampa Yungay encabeza el orden con {{${sim}}} de similitud.`, refs: [sim] },
+  { type: 'summary', site_id: YUNGAY, text: `Pampa Yungay tiene {{${sim}}} de similitud, puesto {{${rank}}} del motor.`, refs: [sim, rank] },
   { type: 'test_suggestion', site_id: YUNGAY, text: 'Probar la percepción de obstáculos en laderas.', refs: [] },
   { type: 'field_priority', site_id: YUNGAY, check_ref: check, why: 'La escala de rueda no se ve desde el satélite.', refs: [] },
 ]

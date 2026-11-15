@@ -251,3 +251,4 @@ describe('buildMetricViews · valores y estados', () => {
     expect(JSON.stringify(candidates)).toBe(before)
   })
 })
+

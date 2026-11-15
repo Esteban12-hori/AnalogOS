@@ -58,15 +58,24 @@
   --fs-place: 23px;
   --caps-tracking: .08em;
 
-  /* Vidrio: ≤3 superficies con blur en escritorio (panel izquierdo, riel, dock), 1 en móvil (hoja) */
+  /* Vidrio: ≤3 superficies con blur en escritorio (panel izquierdo, riel, dock), 1 en móvil (hoja).
+     Tinte .86: con el mapa 2D claro detrás, --muted en texto de 10–12 px sigue ≥4,5:1. */
   --glass-blur: blur(18px) saturate(1.35);
-  --glass-tint: rgba(4, 12, 18, .74);
+  --glass-tint: rgba(4, 12, 18, .86);
   --glass-edge: rgba(190, 225, 245, .12);
   --surface-solid: rgba(2, 7, 10, .9);
 
   /* Foco: se mantiene el token real del sitio */
   --focus-ring: 2px solid var(--blue-bright, #3FB4EC);
   --focus-offset: 3px;
+  /* Halo oscuro bajo el anillo de foco sobre imágenes (globo, mapa 2D): borde ≥3:1 con cualquier fondo */
+  --focus-halo: 0 0 0 5px rgba(2, 7, 10, .9);
+
+  /* Pulgar de la pestaña de modo activa: blanco 13 px sobre #0274AD = 5,1:1 (WCAG 1.4.3) */
+  --mode-thumb: #0274AD;
+
+  /* Barra superior: tinte sólido sin blur */
+  --topbar-tint: rgba(2, 7, 10, .9);
 }
 
 @media (max-width: 1099px) {
@@ -77,8 +86,11 @@
   }
 }
 
-/* Gama baja: tinte sólido sin blur. */
+/* Gama baja y transparencia reducida (preferencia del sistema): tinte sólido sin blur. */
 :root[data-lowfx] { --glass-blur: none; --glass-tint: rgba(4, 12, 18, .96); }
+@media (prefers-reduced-transparency: reduce) {
+  :root { --glass-blur: none; --glass-tint: rgba(4, 12, 18, .96); --topbar-tint: rgba(2, 7, 10, .96); --marker-bg: rgba(2, 7, 10, .96); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   :root {

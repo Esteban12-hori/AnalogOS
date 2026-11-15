@@ -44,6 +44,8 @@ export type DiscardReason =
   | 'digits'
   | 'number_word'
   | 'vocabulary'
+  | 'rank'
+  | 'rank_fact'
   | 'unmeasured'
   | 'unsafe_text'
   | 'malformed_marker'

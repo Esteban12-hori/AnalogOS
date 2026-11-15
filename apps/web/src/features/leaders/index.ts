@@ -71,9 +71,8 @@ export interface LeaderLayout {
 
 export { LeaderLayer } from './LeaderLayer'
 export { LeaderToggle } from './LeaderToggle'
-export { layoutLeaders, LEADER_GEOMETRY } from './layoutLeaders'
-// Trazos y línea móvil viven en el chunk diferido: aquí solo sus tipos.
+// `layoutLeaders`, `LEADER_GEOMETRY` y `pickPrincipalMetrics` viven en el chunk diferido de las
+// líneas: se importan directo de './layoutLeaders' y './principal' (§6.1). Aquí solo tipos.
 export type { LeaderPath, MobileLeader, MobileLeaderInput } from './leaderPaths'
-export { pickPrincipalMetrics } from './principal'
 export { getLeadersEnabled, setLeadersEnabled, useLeadersEnabled } from './preference'
 export type { MetricView }

@@ -201,7 +201,8 @@ export function buildMetricViews(input: BuildMetricViewsInput): MetricView[] {
       vsMars: vsMarsFor(item?.raw_value, valid, marsValue),
       isLimiting: false,
       contribution: isFiniteNumber(contribution) ? contribution : null,
-      saturates: rule !== null && valid && item !== null && item.normalized_similarity !== null && item.normalized_similarity >= 1 - SATURATION_EPS,
+      // Un criterio fuera del perfil (peso 0) no «satura»: no cuenta para el %.
+      saturates: weight > 0 && rule !== null && valid && item !== null && item.normalized_similarity !== null && item.normalized_similarity >= 1 - SATURATION_EPS,
       sharedRegionalWith: sharedRegional(id, item, site.site_id, sites),
       quality: item?.quality ?? 0,
       datasetId: item?.dataset_id ?? 'none',

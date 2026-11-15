@@ -12,7 +12,9 @@
  * perfil predefinido reemplazan la corrida anterior. La espera (§2.3 C) avanza con temporizadores
  * en los umbrales del motor, nunca por cuadro. Todo depende de `RunDeps` para probarse con dobles.
  */
-import { checkMissionInterpretation, type ContractCheck, type MissionInterpretRequest, type MissionInterpretation } from '../../domain/aiContracts'
+import type { ContractCheck, MissionInterpretRequest, MissionInterpretation } from '../../domain/aiContracts'
+// Solo el validador de la interpretación: los del paquete y del análisis van con la Lectura (§6.1).
+import { checkMissionInterpretation } from '../../domain/interpretationContract'
 import type { CandidateSite, MissionProfile } from '../../domain/contracts'
 import { rankCandidates } from '../../domain/scoring'
 import { announce, type AnnouncementKind } from '../../shell/public'

@@ -5,8 +5,12 @@ import { describe, expect, it } from 'vitest'
 const CONTRACT: Record<string, readonly string[]> = {
   places: ['PlaceRail', 'ReferenceCard', 'loadReferenceAnalogs', 'useReferenceAnalogs'],
   globe: ['MapStage', 'contextLayers', 'getStageAnchor', 'getStageProjection', 'publishStageFrame', 'subscribeStageFrame'],
-  metrics: ['MetricRail', 'buildMetricViews'],
-  leaders: ['LeaderLayer', 'LeaderToggle', 'layoutLeaders', 'pickPrincipalMetrics'],
+  metrics: ['MetricRail'],
+  // Modelo puro: módulo propio, fuera del índice para que no pese en el chunk principal (§6.1).
+  'metrics/buildMetricViews': ['buildMetricViews', 'limitingView', 'METRIC_LABELS'],
+  leaders: ['LeaderLayer', 'LeaderToggle'],
+  'leaders/layoutLeaders': ['layoutLeaders', 'LEADER_GEOMETRY'],
+  'leaders/principal': ['pickPrincipalMetrics'],
   boot: ['BootLayer', 'OrbitLoader', 'StatusChip', 'getBootMilestones', 'reportBootMilestone', 'useBootMilestones'],
   engine: [
     'ENGINE_VERSION',
@@ -28,7 +32,10 @@ const loaders: Record<string, () => Promise<Record<string, unknown>>> = {
   places: () => import('../features/places'),
   globe: () => import('../features/globe'),
   metrics: () => import('../features/metrics'),
+  'metrics/buildMetricViews': () => import('../features/metrics/buildMetricViews'),
   leaders: () => import('../features/leaders'),
+  'leaders/layoutLeaders': () => import('../features/leaders/layoutLeaders'),
+  'leaders/principal': () => import('../features/leaders/principal'),
   boot: () => import('../features/boot'),
   engine: () => import('../features/engine'),
   composer: () => import('../features/composer'),

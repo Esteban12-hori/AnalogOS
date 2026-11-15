@@ -89,6 +89,9 @@ describe('texto con marcadores', () => {
     ['dice «el mejor»', { text: 'Pampa Yungay es el mejor análogo.', refs: [] }, 'vocabulary'],
     ['habla de lo que no se mide', { text: 'Tiene minerales parecidos a Marte.', refs: [] }, 'unmeasured'],
     ['esconde un homóglifo', { text: 'Es idеal.', refs: [] }, 'unsafe_text'],
+    ['afirma un orden', { text: 'Cordón de Domeyko encabeza la comparativa y queda en primer lugar; Pampa Yungay queda última.', refs: [] }, 'rank'],
+    ['escribe «una vez y media» o «un par de grados»', { text: 'La rugosidad es una vez y media la de Jezero y la pendiente un par de grados mayor.', refs: [] }, 'number_word'],
+    ['compara lugares sin citar el orden ni un hecho del motor', { text: 'Pampa Yungay es más exigente que Cordón de Domeyko.', refs: [] }, 'rank_fact'],
   ])('descarta un resumen que %s', (_label, body, reason) => {
     expect(reasonOf(open().accept({ type: 'summary', site_id: YUNGAY, ...body }))).toBe(reason)
   })
@@ -166,9 +169,19 @@ describe('lugares, verificaciones, análogos y topes', () => {
     expect(open(new Set(['devon-island'])).accept(note).kind).toBe('block')
   })
 
+  it('un tradeoff de preferencia se descarta; uno que compara cita un hecho best_of_n o el puesto', () => {
+    const prefers = { type: 'tradeoff', site_ids: [DOMEYKO, YUNGAY], text: 'Domeyko es preferible a Yungay: más adecuado y confiable.', refs: [] }
+    expect(reasonOf(open().accept(prefers))).toBe('rank')
+    const bare = { type: 'tradeoff', site_ids: [DOMEYKO, YUNGAY], text: 'Pampa Yungay reproduce mejor la pendiente que Cordón de Domeyko.', refs: [] }
+    expect(reasonOf(open().accept(bare))).toBe('rank_fact')
+    const rank = `site:${YUNGAY}:rank`
+    const grounded = { type: 'tradeoff', site_ids: [DOMEYKO, YUNGAY], text: 'Pampa Yungay, puesto {{' + rank + '}}, es más exigente en laderas.', refs: [rank] }
+    expect(open().accept(grounded).kind).toBe('block')
+  })
+
   it('tope de 4 tradeoff', () => {
     const gate = open()
-    const tradeoff = { type: 'tradeoff', site_ids: [YUNGAY, DOMEYKO], text: 'Un sector es más exigente y el otro más parecido.', refs: [] }
+    const tradeoff = { type: 'tradeoff', site_ids: [YUNGAY, DOMEYKO], text: 'Un sector exige laderas y el otro se parece en relieve.', refs: [] }
     for (let index = 0; index < 4; index += 1) expect(gate.accept(tradeoff).kind).toBe('block')
     expect(reasonOf(gate.accept(tradeoff))).toBe('cap')
   })

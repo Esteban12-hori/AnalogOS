@@ -9,11 +9,10 @@
  */
 import type { CriterionId } from './contracts'
 import { errorSummary } from './contracts'
-import {
-  validateAiAnalysisEvent,
-  validateEvidencePacket,
-  validateMissionInterpretation,
-} from './validators.mission.generated.js'
+import { validateAiAnalysisEvent, validateEvidencePacket } from './validators.mission.generated.js'
+import type { StandaloneValidator } from './validators.generated'
+
+export { checkMissionInterpretation } from './interpretationContract'
 
 export type CriterionLevel = 0 | 1 | 2 | 3
 export type UnsupportedReason = 'not_measured' | 'out_of_scope' | 'ambiguous'
@@ -116,13 +115,9 @@ export type AiAnalysisEvent =
 
 export type ContractCheck<T> = { ok: true; value: T } | { ok: false; error: string }
 
-function check<T>(validator: typeof validateMissionInterpretation, data: unknown, label: string): ContractCheck<T> {
+function check<T>(validator: StandaloneValidator, data: unknown, label: string): ContractCheck<T> {
   if (validator(data)) return { ok: true, value: data as T }
   return { ok: false, error: `${label}: ${errorSummary(validator.errors)}` }
-}
-
-export function checkMissionInterpretation(data: unknown): ContractCheck<MissionInterpretation> {
-  return check<MissionInterpretation>(validateMissionInterpretation, data, 'mission-interpretation/1')
 }
 
 export function checkEvidencePacket(data: unknown): ContractCheck<EvidencePacket> {
