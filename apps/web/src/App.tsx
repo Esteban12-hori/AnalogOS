@@ -264,7 +264,7 @@ function App() {
         />
       </main>
 
-      <PlannerPanel snapshot={snapshot} intent={intent} />
+      <PlannerPanel snapshot={snapshot} intent={intent} geology={geology} />
 
       <section id="discovery" className="discovery-section" aria-label="Búsqueda regional y referencia">
       {summary && snapshot.search && (

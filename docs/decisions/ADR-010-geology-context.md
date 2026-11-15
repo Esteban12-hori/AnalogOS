@@ -28,7 +28,7 @@ Chile 1–3 y Yungay: `partial` (99,07–99,39 % cubierto, 0,56–1,18 % ambiguo
 - Fecha del levantamiento desconocida (`map_date: null`); la fecha de actualización del catálogo CKAN no es geológica y va en `catalog_modified_at`.
 - No se rellenan huecos con 1:1M ni 1:2,5M. Las preguntas de verificación son orientación editorial, no mediciones.
 - Aristas rectas en el plano equivalente; áreas no geodésicas exactas. Umbrales provisionales; ninguna validación científica de campo.
-- La IA de M8 no consume geología todavía.
+- La IA de M8 no consumía geología al aceptar M9. *Superado por M10 (ADR-011): la explicación puede consumirla solo con opt-in; el paquete y su contrato no cambian.*
 
 ## Fase B — producto, exportación y paquete portable
 
@@ -43,4 +43,4 @@ Chile 1–3 y Yungay: `partial` (99,07–99,39 % cubierto, 0,56–1,18 % ambiguo
 - La web no verifica SHA-256 (candidatos ni `request_id`): lo hacen el pipeline y el empaquetador. Estos hashes verifican el vínculo con los bytes de candidatos y la petición; no son una firma de autenticidad ni sustituyen recalcular las áreas desde las fuentes. Alteraciones internamente coherentes de otros valores requieren ese contraste adicional.
 - Un paquete geológico presente pero inválido hace fallar el empaquetado (no se relaja); en el navegador solo muestra «no disponible».
 - Revisión local de navegador, móvil de 390 px, teclado, descarga real validada y ZIP offline completada por Codex; evidencia y límites en `../CODEX_M9_REVIEW.md`.
-- La IA de M8 no consume geología; no hay validación de campo; umbrales provisionales.
+- Sin validación de campo; umbrales provisionales. (La IA de M8 no consumía geología en M9; ver ADR-011 para M10.)

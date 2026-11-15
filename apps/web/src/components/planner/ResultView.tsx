@@ -5,6 +5,8 @@ import {
   type OptionEvaluation, type OptionStatus, type PlannerState, type RequirementResult,
 } from '../../mission'
 import { GeometryFigure } from './GeometryFigure'
+import { GeologyGuidance, PrintGeology, guidanceView } from './GeologyGuidance'
+import type { GeologyUi } from './usePlanner'
 
 const STATUS: Record<OptionStatus, string> = {
   priorizado_para_reconocimiento: 'Priorizado para reconocimiento',
@@ -115,21 +117,37 @@ function OptionCard({ o, site, map }: { o: OptionEvaluation; site: CandidateSite
   )
 }
 
-function AiPanel({ state, evaluation, onExplain }: { state: PlannerState; evaluation: MissionEvaluation; onExplain: () => void }) {
+function AiPanel({ state, evaluation, onExplain, geo }: { state: PlannerState; evaluation: MissionEvaluation; onExplain: (withGeology?: boolean) => void; geo: GeologyUi }) {
   const e = state.explain
   const view = e.record ? composeExplanation(evaluation, e.record.selection, 'anthropic') : null
   return (
     <section className="pl-ai" aria-labelledby="pl-ai-title">
       <h3 id="pl-ai-title">Interpretación con IA <span className="pl-tag ai">Opcional</span></h3>
       <p className="pl-hint">
-        Al pulsar el botón se envían a Anthropic los requisitos confirmados y los resultados ya calculados (no el texto completo del brief).
-        La IA solo destaca motivos de hechos ya calculados: no cambia estados, valores ni exclusiones, y los bloqueos se muestran siempre.
+        {geo.available && geo.useGeology
+          ? 'Al pulsar el botón se envían a Anthropic los requisitos confirmados, los resultados ya calculados, el objetivo confirmado (texto del brief, actividad y requisitos) y la cartografía geológica pública oficial de los sectores evaluados.'
+          : 'Al pulsar el botón se envían a Anthropic los requisitos confirmados y los resultados ya calculados (no el texto completo del brief ni cartografía geológica).'}
+        {' '}La IA solo destaca motivos de hechos ya calculados: no cambia estados, valores ni exclusiones, y los bloqueos se muestran siempre.
       </p>
-      <button type="button" disabled={e.status === 'pending'} onClick={onExplain} aria-busy={e.status === 'pending'}>
+      {geo.available ? (
+        <label className="pl-geo-opt">
+          <input type="checkbox" checked={geo.useGeology} onChange={(ev) => geo.setUseGeology(ev.target.checked)} />
+          <span>Incluir orientación geológica de la prueba (la IA solo elige entre comprobaciones calculadas por la app).</span>
+        </label>
+      ) : (
+        <p className="pl-hint">Orientación geológica con IA no disponible: {geo.unavailableReason ?? 'falta el contexto geológico oficial.'} La explicación de requisitos funciona igual sin geología.</p>
+      )}
+      <button type="button" disabled={e.status === 'pending'} onClick={() => onExplain()} aria-busy={e.status === 'pending'}>
         {e.status === 'pending' ? 'Consultando a la IA…' : view ? 'Pedir otra selección a la IA' : 'Destacar motivos con IA'}
       </button>
       <div aria-live="polite" className="pl-ai-status">
         {(e.status === 'error' || e.status === 'unavailable') && <p className="pl-notice">{e.message} El resultado calculado no cambió.</p>}
+        {e.status === 'error' && e.geologyFailed && (
+          <p className="pl-notice">
+            La orientación geológica no se pudo pedir. Puede reintentar la explicación sin geología (se enviarán solo los requisitos y resultados calculados, sin el texto del brief ni cartografía).{' '}
+            <button type="button" className="pl-ghost" onClick={() => onExplain(false)}>Reintentar sin geología</button>
+          </p>
+        )}
       </div>
       {view && e.record && (
         <div className="pl-ai-view">
@@ -163,18 +181,21 @@ function GeometryText({ ev, byId }: { ev: MissionEvaluation; byId: Map<string, C
   )
 }
 
+const NO_GEO: GeologyUi = { available: false, unavailableReason: null, useGeology: false, setUseGeology: () => undefined, catalog: null, onExportGeology: () => undefined, exportError: null }
+
 interface Props {
   evaluation: MissionEvaluation
   request: MissionRequest
   state: PlannerState
   candidates: CandidateSite[]
-  onExplain: () => void
+  onExplain: (withGeology?: boolean) => void
+  geo?: GeologyUi
   onExport: () => void
   exportError: string | null
   onEdit: () => void
 }
 
-export function ResultView({ evaluation: ev, request, state, candidates, onExplain, onExport, exportError, onEdit }: Props) {
+export function ResultView({ evaluation: ev, request, state, candidates, onExplain, geo = NO_GEO, onExport, exportError, onEdit }: Props) {
   const byId = new Map(candidates.map((c) => [c.site_id, c]))
   const map = new Map(ev.evidence.map((e) => [e.evidence_id, e]))
   const group = (s: OptionStatus) => ev.options.filter((o) => o.status === s)
@@ -183,6 +204,7 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
     ? (prior.length ? `${prior.length} de ${ev.options.length} áreas quedan priorizadas para reconocimiento` : 'Ninguna área queda priorizada con estos requisitos')
     : OUTCOME_COPY[ev.outcome]
   const top = prior[0]
+  const gview = guidanceView(geo.catalog, state)
 
   return (
     <div className="pl-result">
@@ -233,7 +255,8 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
         {ev.pending_requirements.length > 0 && <p className="pl-notice">Hay {ev.pending_requirements.length} requisito(s) sin medición en esta evaluación: se conservaron como pendientes y nunca cuentan como cumplidos.</p>}
         {ev.open_questions.length > 0 && <details className="pl-more"><summary>Preguntas abiertas ({ev.open_questions.length})</summary><ul>{ev.open_questions.map((q) => <li key={q}>{q}</li>)}</ul></details>}
 
-        {ev.outcome === 'evaluated' && <AiPanel state={state} evaluation={ev} onExplain={onExplain} />}
+        {ev.outcome === 'evaluated' && <AiPanel state={state} evaluation={ev} onExplain={onExplain} geo={geo} />}
+        {ev.outcome === 'evaluated' && gview && <GeologyGuidance view={gview} onExport={geo.onExportGeology} exportError={geo.exportError} />}
 
         <section className="pl-export" aria-label="Exportar">
           <button type="button" onClick={onExport}>Descargar JSON</button>
@@ -252,13 +275,13 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
         </details>
       </div>
 
-      <PrintReport ev={ev} request={request} state={state} byId={byId} map={map} headline={headline} />
+      <PrintReport ev={ev} request={request} state={state} byId={byId} map={map} headline={headline} gview={gview} />
     </div>
   )
 }
 
 /** Informe imprimible: contenido completo y sin elementos interactivos (solo visible con @media print). */
-function PrintReport({ ev, request, state, byId, map, headline }: { ev: MissionEvaluation; request: MissionRequest; state: PlannerState; byId: Map<string, CandidateSite>; map: Map<string, EvidenceRef>; headline: string }) {
+function PrintReport({ ev, request, state, byId, map, headline, gview }: { ev: MissionEvaluation; request: MissionRequest; state: PlannerState; byId: Map<string, CandidateSite>; map: Map<string, EvidenceRef>; headline: string; gview: ReturnType<typeof guidanceView> }) {
   const draft = state.draft.record
   const expl = state.explain.record
   return (
@@ -287,6 +310,7 @@ function PrintReport({ ev, request, state, byId, map, headline }: { ev: MissionE
           {o.field_checks.length > 0 && <><b>Verificaciones de campo</b><ul>{o.field_checks.map((t) => <li key={t}>{t}</li>)}</ul></>}
         </section>
       ))}
+      {gview && <PrintGeology view={gview} />}
       {ev.data_request && <><h2>Solicitud de datos</h2><p>{ev.data_request.note}</p><ul>{ev.data_request.planned_sources.map((s) => <li key={s.dataset_id}>{s.product} · {s.provider} · {s.landing_url}</li>)}</ul></>}
       <h2>Regla de orden</h2><p>{ev.ordering_rule}</p>
       <h2>Límites</h2><ul>{ev.limits.map((l) => <li key={l}>{l}</li>)}</ul>

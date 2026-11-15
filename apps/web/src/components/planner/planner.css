@@ -183,3 +183,18 @@
 .pl-sumline { display: block; color: var(--muted); margin-top: 6px; font-size: 12px; line-height: 1.4; }
 .pl-geotext p { margin: 6px 0; }
 .pl-geotext ul { margin: 4px 0 8px; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+/* M10 — orientación geológica de la prueba */
+.pl-geo { margin: 20px 0; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line-strong); }
+.pl-geo h3 { margin: 0 0 6px; }
+.pl-geo a { overflow-wrap: anywhere; }
+.pl-geo-site { margin: 12px 0; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255, 255, 255, .03); }
+.pl-geo-site h4 { margin: 0 0 4px; font-size: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.pl-geo-meta { margin: 4px 0 8px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.pl-geo-items { margin: 6px 0; padding-left: 18px; display: grid; gap: 8px; font-size: 13px; line-height: 1.45; }
+.pl-geo-items li > b { display: block; color: var(--ice); }
+.pl-geo-items li > span { display: block; }
+.pl-geo-src { color: var(--muted); font-size: 12px; }
+.pl-geo-limits { margin: 8px 0; padding-left: 18px; color: #FFD6C9; font-size: 13px; line-height: 1.5; }
+.pl-geo-opt { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; margin: 8px 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
+.pl-geo-opt input { width: 20px; height: 20px; margin-top: 2px; }

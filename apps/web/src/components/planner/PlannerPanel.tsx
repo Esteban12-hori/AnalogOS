@@ -4,6 +4,7 @@ import { shortCandidateName } from '../../domain/formatting'
 import { MAX_BRIEF_CHARS, exampleState, type EvidenceBundle, type JourneyId } from '../../mission'
 import { ConfirmSummary } from './ConfirmSummary'
 import { RequirementEditor } from './RequirementEditor'
+import type { GeologyContextState } from '../../domain/geologyContext'
 import { ResultView } from './ResultView'
 import { ScopePicker } from './ScopePicker'
 import { usePlanner } from './usePlanner'
@@ -22,9 +23,9 @@ const ORDER: Record<JourneyId, StepId[]> = {
   sector: ['scope', 'describe', 'confirm', 'result'],
 }
 
-export function PlannerPanel({ snapshot, intent }: { snapshot: DemoSnapshot; intent: PlannerIntent | null }) {
+export function PlannerPanel({ snapshot, intent, geology }: { snapshot: DemoSnapshot; intent: PlannerIntent | null; geology?: GeologyContextState }) {
   const bundle = useMemo<EvidenceBundle>(() => ({ candidates: snapshot.candidates, manifest: snapshot.manifest, profile: snapshot.profile }), [snapshot])
-  const { state, dispatch, built, evaluate, evaluationError, runDraft, runExplain, exportJson, exportError } = usePlanner(bundle)
+  const { state, dispatch, built, evaluate, evaluationError, runDraft, runExplain, geologyUi, exportJson, exportError } = usePlanner(bundle, geology)
   const [step, setStep] = useState<StepId>('describe')
   const [announce, setAnnounce] = useState('')
   const headingRef = useRef<HTMLHeadingElement>(null)
@@ -211,7 +212,7 @@ export function PlannerPanel({ snapshot, intent }: { snapshot: DemoSnapshot; int
 
             {step === 'result' && state.result && built.request && (
               <ResultView evaluation={state.result} request={built.request} state={state} candidates={snapshot.candidates}
-                onExplain={runExplain} onExport={exportJson} exportError={exportError} onEdit={() => dispatch({ type: 'unconfirm' })} />
+                onExplain={runExplain} geo={geologyUi} onExport={exportJson} exportError={exportError} onEdit={() => dispatch({ type: 'unconfirm' })} />
             )}
           </div>
 

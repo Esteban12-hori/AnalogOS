@@ -5,15 +5,19 @@ import type { AiProvenance, DraftProposal } from '../../shared/mission/exportRep
 import { fingerprint } from '../../shared/mission/fingerprint'
 import { MissionInputError, type EvidenceBundle, type Importance, type MeasurableRequirement, type Requirement, type UnmeasuredRequirement } from '../../shared/mission/types'
 import { validateDraftOutput, validateMissionRequest } from '../../shared/mission/validate'
+import { buildGeologyCatalog, checkGeologySelection, type GeologySelectionResult } from '../../shared/geology/guidance'
 import { AiCallError, callStructured } from './anthropic'
 import type { AiConfig } from './config'
-import { DRAFT_SCHEMA, DRAFT_SYSTEM, EXPLAIN_SCHEMA, EXPLAIN_SYSTEM, explainFacts } from './prompts'
+import type { ServerGeology } from './geology'
+import { DRAFT_SCHEMA, DRAFT_SYSTEM, EXPLAIN_GEOLOGY_SCHEMA, EXPLAIN_SCHEMA, EXPLAIN_SYSTEM, GEOLOGY_SYSTEM, explainFacts, geologyFacts } from './prompts'
 
 export interface AiContext {
   config: AiConfig
   fetchImpl: typeof fetch
   now: () => number
   bundle: EvidenceBundle
+  /** Paquete geológico confiable del servidor; ausente = canal geológico no disponible. */
+  geology?: ServerGeology
 }
 
 // eslint-disable-next-line no-control-regex
@@ -151,21 +155,36 @@ export async function runDraft(ctx: AiContext, brief: string): Promise<DraftResu
   return { proposal: { ...built.draft, warnings: built.warnings }, provenance }
 }
 
+export const GEOLOGY_MAX_TOKENS = 6000
+
 export interface ExplainResult {
   request_fingerprint: string
   evaluation_fingerprint: string
   selection: ExplanationSelection
   provenance: AiProvenance
+  /** Solo si el cliente activó el canal geológico; separado de la selección M8. */
+  geology?: { context_fingerprint: string; catalog_fingerprint: string; selection: GeologySelectionResult }
 }
 
 export class ExplainInputError extends Error {
-  constructor(readonly code: 'invalid_request' | 'stale_request' | 'nothing_to_explain', readonly issues: string[] = []) {
+  constructor(readonly code: 'invalid_request' | 'stale_request' | 'nothing_to_explain' | 'geology_context_unavailable' | 'geology_context_stale', readonly issues: string[] = []) {
     super(code)
   }
 }
 
+/**
+ * Comprobación previa del canal geológico (antes de la clave y del proveedor). El cliente declara el contexto que
+ * cree tener; si el servidor no tiene uno válido o tiene otro, error específico: nunca se degrada en silencio.
+ */
+export function checkGeologyChannel(state: ServerGeology | undefined, clientContextFingerprint: string): Extract<ServerGeology, { status: 'ready' }> {
+  if (!state || state.status !== 'ready') throw new ExplainInputError('geology_context_unavailable')
+  if (state.fingerprint !== clientContextFingerprint) throw new ExplainInputError('geology_context_stale')
+  return state
+}
+
 /** Los hechos se recalculan aquí desde artefactos confiables; el cliente solo aporta la solicitud. */
-export async function runExplain(ctx: AiContext, requestInput: unknown, clientFingerprint: string): Promise<ExplainResult> {
+export async function runExplain(ctx: AiContext, requestInput: unknown, clientFingerprint: string, geologyFingerprint?: string): Promise<ExplainResult> {
+  const channel = geologyFingerprint === undefined ? null : checkGeologyChannel(ctx.geology, geologyFingerprint)
   const checked = validateMissionRequest(requestInput, { requireConfirmed: true })
   if (!checked.ok) throw new ExplainInputError('invalid_request', checked.issues.slice(0, 5))
   const reqFp = fingerprint(checked.request)
@@ -179,13 +198,31 @@ export async function runExplain(ctx: AiContext, requestInput: unknown, clientFi
   }
   if (!evaluation.options.length) throw new ExplainInputError('nothing_to_explain')
   const verifications = buildVerificationCatalog(evaluation).map((v) => ({ id: v.id, text: v.text }))
+  const catalog = channel ? buildGeologyCatalog(evaluation, channel.context, channel.fingerprint) : null
+  const facts = `<facts>\n${explainFacts(evaluation, verifications)}\n</facts>`
   const { data, provenance } = await callStructured(
     ctx.config,
-    { system: EXPLAIN_SYSTEM, user: `<facts>\n${explainFacts(evaluation, verifications)}\n</facts>`, schema: EXPLAIN_SCHEMA as unknown as Record<string, unknown>, maxTokens: 2000 },
+    {
+      system: catalog ? EXPLAIN_SYSTEM + GEOLOGY_SYSTEM : EXPLAIN_SYSTEM,
+      user: catalog ? `${facts}\n<geology>\n${geologyFacts(checked.request, catalog)}\n</geology>` : facts,
+      schema: (catalog ? EXPLAIN_GEOLOGY_SCHEMA : EXPLAIN_SCHEMA) as unknown as Record<string, unknown>,
+      // El canal geológico añade hasta 12 referencias de ids largos (y el modelo puede razonar antes): con 2000 tokens se truncaba en la prueba real.
+      maxTokens: catalog ? GEOLOGY_MAX_TOKENS : 2000,
+    },
     ctx.fetchImpl,
     ctx.now,
   )
-  const check = checkSelection(data, evaluation)
+  let m8: unknown = data
+  let geology: ExplainResult['geology']
+  if (catalog) {
+    // El campo geológico se separa antes de validar la selección M8 con su contrato intacto; cualquier fallo descarta todo.
+    const { geology_ref_ids: refIds, ...rest } = (data ?? {}) as Record<string, unknown>
+    const picked = checkGeologySelection({ ref_ids: refIds }, catalog)
+    if (!picked.ok) throw new AiCallError('ai_invalid_output')
+    m8 = rest
+    geology = { context_fingerprint: catalog.context_fingerprint, catalog_fingerprint: catalog.catalog_fingerprint, selection: picked.selection }
+  }
+  const check = checkSelection(m8, evaluation)
   if (!check.ok) throw new AiCallError('ai_invalid_output')
-  return { request_fingerprint: reqFp, evaluation_fingerprint: evaluationFingerprint(evaluation), selection: check.selection, provenance }
+  return { request_fingerprint: reqFp, evaluation_fingerprint: evaluationFingerprint(evaluation), selection: check.selection, provenance, ...(geology ? { geology } : {}) }
 }

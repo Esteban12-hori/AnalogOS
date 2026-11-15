@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { readAiConfig, type EnvLike } from './config'
 import { loadTrustedBundle } from './facts'
+import { loadTrustedGeology } from './geology'
 import { MAX_BODY_BYTES, handleAiRequest } from './handler'
 import { RateLimiter } from './guard'
 
@@ -40,7 +41,7 @@ export async function nodeAiHandler(req: VercelLikeRequest, res: ServerResponse,
       ? { status: 413, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }, body: { ok: false, error: { code: 'payload_too_large', message: 'La solicitud supera el tamaño permitido.' }, client_request_id: null } }
       : await handleAiRequest(
           { method: req.method ?? '', headers: req.headers, body, clientKey: clientKey(req) },
-          { config: readAiConfig(env), fetchImpl: fetch, now: Date.now, limiter, bundle: loadTrustedBundle() },
+          { config: readAiConfig(env), fetchImpl: fetch, now: Date.now, limiter, bundle: loadTrustedBundle(), geology: () => loadTrustedGeology(loadTrustedBundle()) },
         )
   res.statusCode = response.status
   for (const [k, v] of Object.entries(response.headers)) res.setHeader(k, v)

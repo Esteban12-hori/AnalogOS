@@ -69,14 +69,16 @@ python -m pipelines.fetch_visual_context --snapshot v3 --refresh  # consulta de 
 
 Qué mirar, qué se observó y qué falta está en `docs/VISUAL_REVIEW.md`; la decisión, en `docs/decisions/ADR-005-offline-visual-context.md`.
 
-### Contexto geológico oficial (M9)
+### Contexto geológico oficial (M9) y orientación de pruebas (M10)
 
-La ficha de cada sector trae «Contexto geológico»: qué unidades cartografió SERNAGEOMIN (vía MMA, 1:1.000.000) o SEGEMAR/SIGAM (1:250.000), qué parte del sector no tiene cobertura, cuánto se solapa entre unidades distintas, con escala y fuente visibles, un detalle expandible de unidades originales, preguntas de verificación y una exportación JSON propia. Es cartografía regional: **cobertura del mapa no es precisión, confianza ni aptitud**, y no cambia similitud, confianza, restricciones, IA ni la recomendación de M8. La geología del puntaje sigue sin calibrar; este contexto no implica compatibilidad planetaria calibrada.
+La ficha de cada sector trae «Contexto geológico»: qué unidades cartografió SERNAGEOMIN (vía MMA, 1:1.000.000) o SEGEMAR/SIGAM (1:250.000), qué parte del sector no tiene cobertura, cuánto se solapa entre unidades distintas, con escala y fuente visibles, un detalle expandible de unidades originales, preguntas de verificación y una exportación JSON propia. Es cartografía regional: **cobertura del mapa no es precisión, confianza ni aptitud**, y no cambia similitud, confianza, restricciones ni el resultado determinista de requisitos. La geología del puntaje sigue sin calibrar; este contexto no implica compatibilidad planetaria calibrada.
 
 ```bash
 python -m pipelines.build_geology_context --offline   # reconstruye desde data/raw/geology-context-v1/ (sin red ni credenciales)
 python -m pipelines.build_geology_context --refresh   # descarga pública nueva (CKAN, ZIP de Chile, un WFS por sector argentino)
 ```
+
+El planificador puede usar estas unidades oficiales en la interpretación con IA: al activar la casilla geológica y pulsar la consulta, Anthropic recibe el objetivo confirmado y los datos públicos. Selecciona comprobaciones pertinentes para la prueba (p. ej., caracterizar materiales o reconocer diversidad litológica), con fuentes y límites visibles. No infiere propiedades no medidas ni modifica la evaluación. Sin IA se conserva orientación general; sin contexto válido funciona la explicación de requisitos. «Descargar JSON con orientación geológica» añade evidencia y procedencia en un formato nuevo que conserva el informe anterior dentro. Ver ADR-011 y `docs/AI_SETUP.md`.
 
 La web solo lee `geology-context-v1/index.json` del build (con timeout, límite de tamaño y validación completa); si falta o es inválido, muestra «no disponible» y todo lo demás funciona. Operación, fuentes, licencias y límites: `docs/GEOLOGY_CONTEXT.md`; decisión: `docs/decisions/ADR-010-geology-context.md`.
 

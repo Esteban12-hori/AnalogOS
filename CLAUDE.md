@@ -25,7 +25,7 @@ Antes de modificar archivos, ejecuta `git status --short`, confirma la rama y pr
 
 ## Estado actual que no debes revertir
 
-- M8 aceptado y publicado en dev por Codex, con ambas operaciones de Anthropic verificadas realmente. Ver `docs/DEV_AI_VERIFICATION.md`; núcleo compartido en `shared/`, reexports en web. M9 aceptado y publicado por Codex: contexto geológico descriptivo, exportación y ZIP; ver `docs/CODEX_M9_REVIEW.md`. NEXT_TASK accepted; sin nueva asignación. Preservar M8/M9.
+- M8 aceptado y publicado en dev por Codex, con ambas operaciones de Anthropic verificadas realmente. Ver `docs/DEV_AI_VERIFICATION.md`; núcleo compartido en `shared/`, reexports en web. M9 aceptado y publicado por Codex: contexto geológico descriptivo, exportación y ZIP; ver `docs/CODEX_M9_REVIEW.md`. M10-GEOLOGY-AI aceptado localmente por Codex; publicación dev en curso. NEXT_TASK accepted, sin nueva asignación. Preservar la entrega.
 - Rama de implementación: `dev`.
 - Snapshot activo: `artifacts/science-v3/`; v2 se conserva como histórico, byte a byte.
 - Perfil: `mars-rover-screening-v3`, versión `3.0.0-preliminary`; fórmulas y pesos v2.

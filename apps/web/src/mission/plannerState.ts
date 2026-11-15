@@ -2,6 +2,7 @@
 // invalidación (editar algo borra resultados y cancela IA pendiente) y la protección contra
 // respuestas tardías (solo se acepta la respuesta del requestId vigente cuyo contexto no cambió).
 import { MAX_BRIEF_CHARS, METRICS, SUPPORTED_PROFILE_ID, UNMEASURED_TOPICS, detectUnmeasuredMentions } from './catalog'
+import { checkGeologySelection, type GeologyAiRecord, type GeologyCatalog } from '../../../../shared/geology/guidance'
 import { checkSelection } from './explanation'
 import type { AiDraftRecord, AiExplanationRecord, AiProvenance, DraftProposal } from './exportReport'
 import { fingerprint } from './fingerprint'
@@ -61,13 +62,24 @@ export interface PlannerState {
   confirmed: boolean
   result: MissionEvaluation | null
   draft: { status: AiCallStatus; requestId: string | null; briefFp: string | null; message: string | null; warnings: string[]; record: AiDraftRecord | null }
-  explain: { status: AiCallStatus; requestId: string | null; requestFp: string | null; evaluationFp: string | null; message: string | null; record: AiExplanationRecord | null }
+  explain: {
+    status: AiCallStatus; requestId: string | null; requestFp: string | null; evaluationFp: string | null; message: string | null; record: AiExplanationRecord | null
+    /** Canal geológico opt-in (M10): registro y catálogo propios, de la misma llamada que `record`. El registro M8 no cambia. */
+    geologyRecord: GeologyAiRecord | null
+    geologyCatalog: GeologyCatalog | null
+    pendingCatalog: GeologyCatalog | null
+    /** El último intento falló solo por el canal geológico: la UI ofrece reintentar sin geología (explícito). */
+    geologyFailed: boolean
+  }
   counter: number
   draftCalls: number
 }
 
 const IDLE_DRAFT: PlannerState['draft'] = { status: 'idle', requestId: null, briefFp: null, message: null, warnings: [], record: null }
-const IDLE_EXPLAIN: PlannerState['explain'] = { status: 'idle', requestId: null, requestFp: null, evaluationFp: null, message: null, record: null }
+const IDLE_EXPLAIN: PlannerState['explain'] = {
+  status: 'idle', requestId: null, requestFp: null, evaluationFp: null, message: null, record: null,
+  geologyRecord: null, geologyCatalog: null, pendingCatalog: null, geologyFailed: false,
+}
 
 export const emptyScope = (siteId = ''): ScopeInput => ({ mode: 'catalog', siteId, lon: '', lat: '', west: '', south: '', east: '', north: '', windowSiteId: null })
 
@@ -208,9 +220,10 @@ export type PlannerAction =
   | { type: 'draft_start'; requestId: string }
   | { type: 'draft_ok'; requestId: string; proposal: DraftProposal; provenance: AiProvenance }
   | { type: 'draft_fail'; requestId: string; message: string; unavailable: boolean }
-  | { type: 'explain_start'; requestId: string }
-  | { type: 'explain_ok'; requestId: string; requestFp: string; evaluationFp: string; selection: AiExplanationRecord['selection']; provenance: AiProvenance }
-  | { type: 'explain_fail'; requestId: string; message: string; unavailable: boolean }
+  | { type: 'explain_start'; requestId: string; geologyCatalog?: GeologyCatalog }
+  | { type: 'explain_ok'; requestId: string; requestFp: string; evaluationFp: string; selection: AiExplanationRecord['selection']; provenance: AiProvenance; geology?: { contextFp: string; catalogFp: string; selection: { ref_ids: string[] } } }
+  | { type: 'explain_fail'; requestId: string; message: string; unavailable: boolean; geologyFailure?: boolean }
+  | { type: 'geology_context_changed' }
   | { type: 'reset' }
 
 /** Cualquier cambio de entrada: borra confirmación y resultado, y cancela IA pendiente (respuestas tardías se ignoran). */
@@ -317,23 +330,46 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
     }
     case 'explain_start': {
       if (!state.result) return state
-      return { ...state, explain: { ...state.explain, status: 'pending', message: null, requestId: action.requestId, requestFp: state.result.request_fingerprint, evaluationFp: evaluationFingerprint(state.result) } }
+      return { ...state, explain: { ...state.explain, status: 'pending', message: null, geologyFailed: false, pendingCatalog: action.geologyCatalog ?? null, requestId: action.requestId, requestFp: state.result.request_fingerprint, evaluationFp: evaluationFingerprint(state.result) } }
     }
     case 'explain_fail': {
       if (state.explain.status !== 'pending' || state.explain.requestId !== action.requestId) return state
-      return { ...state, explain: { ...state.explain, status: action.unavailable ? 'unavailable' : 'error', requestId: null, message: action.message } }
+      return { ...state, explain: { ...state.explain, status: action.unavailable && !action.geologyFailure ? 'unavailable' : 'error', requestId: null, pendingCatalog: null, geologyFailed: !!action.geologyFailure, message: action.message } }
     }
     case 'explain_ok': {
       const e = state.explain
       if (e.status !== 'pending' || e.requestId !== action.requestId || !state.result) return state // otra solicitud o ya cancelada: se ignora
       // Es la respuesta de la solicitud vigente: si no corresponde al cálculo, termina en error (nunca queda «pendiente»).
-      const discard = (): PlannerState => ({ ...state, explain: { ...state.explain, status: 'error', requestId: null, message: 'La respuesta de la IA no corresponde al cálculo vigente y se descartó.' } })
+      const discard = (): PlannerState => ({ ...state, explain: { ...state.explain, status: 'error', requestId: null, pendingCatalog: null, message: 'La respuesta de la IA no corresponde al cálculo vigente y se descartó.' } })
       if (action.requestFp !== e.requestFp || action.evaluationFp !== e.evaluationFp) return discard()
       if (state.result.request_fingerprint !== e.requestFp || evaluationFingerprint(state.result) !== e.evaluationFp) return discard()
       const checked = checkSelection(action.selection, state.result)
       if (!checked.ok) return discard()
-      return { ...state, explain: { ...IDLE_EXPLAIN, status: 'done', record: { provenance: action.provenance, selection: checked.selection, request_fingerprint: e.requestFp!, evaluation_fingerprint: e.evaluationFp! } } }
+      // Canal geológico: la respuesta debe corresponder EXACTAMENTE al catálogo (contexto, solicitud, evaluación y referencias) enviado.
+      let geologyRecord: GeologyAiRecord | null = null
+      const catalog = e.pendingCatalog
+      if (catalog) {
+        const g = action.geology
+        if (!g || g.contextFp !== catalog.context_fingerprint || g.catalogFp !== catalog.catalog_fingerprint
+          || catalog.request_fingerprint !== e.requestFp || catalog.evaluation_fingerprint !== e.evaluationFp) return discard()
+        const picked = checkGeologySelection(g.selection, catalog)
+        if (!picked.ok) return discard()
+        geologyRecord = {
+          context_fingerprint: catalog.context_fingerprint, catalog_fingerprint: catalog.catalog_fingerprint,
+          request_fingerprint: catalog.request_fingerprint, evaluation_fingerprint: catalog.evaluation_fingerprint, selection: picked.selection,
+        }
+      } else if (action.geology) return discard()
+      return {
+        ...state,
+        explain: {
+          ...IDLE_EXPLAIN, status: 'done', geologyRecord, geologyCatalog: geologyRecord ? catalog : null,
+          record: { provenance: action.provenance, selection: checked.selection, request_fingerprint: e.requestFp!, evaluation_fingerprint: e.evaluationFp! },
+        },
+      }
     }
+    case 'geology_context_changed':
+      // El contexto geológico cargado ya no es el de la selección: se descarta (y la petición pendiente se cancela por requestId).
+      return state.explain.geologyCatalog || state.explain.pendingCatalog ? { ...state, explain: IDLE_EXPLAIN } : state
     case 'reset':
       return initialPlannerState()
   }

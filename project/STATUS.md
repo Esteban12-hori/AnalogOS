@@ -1,9 +1,13 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14, M9 publicado e IA verificada en dev (America/Santiago)
+**Última actualización:** 2026-11-14, M10 aceptado localmente; publicación dev en curso (America/Santiago)
 **Responsable del checkpoint:** Codex
-**Milestone activo:** M9-GEOLOGY-CONTEXT completado, aceptado por Codex y publicado en dev. Claude sin nueva asignación; M8 conservado.
+**Milestone activo:** M10-GEOLOGY-AI aceptado localmente por Codex tras revisión de Claude; publicación y comprobación remota en curso.
 **Estado general:** planificador de ensayo/sector con motor determinista, snapshot científico v3 y Anthropic opcional funcionando en dev. Siete áreas con evidencia; faltan capas territoriales, contraste local y revisión experta de campo.
+
+## M10 — orientación geológica con IA, aceptada localmente
+
+Catálogo de unidades y comprobaciones para la prueba, fuentes clicables, límites visibles, evidencia y exportación auditable. Revisión de integridad, regresión M8/M9 y navegador local/offline/móvil/teclado completadas. 316 Python y 325 web correctos; IA real contrastante y descarga local recalculada idéntica. Ciencia y geología originales intactas. ZIP SHA-256 `26bfbd68b3c7162db1c22ce3d640f6c8626f510107dd0587e6f6d3bfb09f06d1`. ADR-011 aceptado. Ver `docs/CODEX_M10_REVIEW.md`. Codex publica y verifica dev; Claude sin nueva asignación.
 
 ## M9 — entrega actual aceptada y publicada
 

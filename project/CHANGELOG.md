@@ -1,5 +1,16 @@
 # Changelog de trabajo
 
+## 2026-11-14 Codex · M10 aceptado localmente
+
+- Revisada implementación de Claude; cerrados tres fallos reproducidos de integridad del informe. Fuentes clicables, porcentajes con/sin solape y aviso de envío coherente. Codex corrigió desborde móvil de URL.
+- 316 Python, 325 web, typecheck/build correctos; IA real con objetivos contrastantes y desde navegador. Informe descargado reconstruido idéntico; regresión histórica M8/M9 correcta; ZIP offline/móvil/teclado y fallos de carga revisados. 33 archivos únicos protegidos intactos, sin credenciales en entregables.
+- Dev autorizado por Dan: publicación y comprobación remota en curso. Main conservado; Claude sin nueva tarea.
+
+## 2026-11-14 Codex · M10 asignado a Claude
+
+- Dan autoriza incorporar evidencia geológica a la orientación de IA y publicar dev tras revisión. Encargo con checkpoint de plan, fuentes/IDs verificables, fallback y exportación compatible. Evaluación científica y artefactos preservados.
+- Baseline M10 guardado; verify inicial correcto (316 Python, 246 web, typecheck/build). Codex supervisa y acepta; Claude implementa sin publicar.
+
 ## 2026-11-14 Codex · M9 publicado y verificado en dev
 
 - Código `34e76b9`, Actions 43658989969 correcto; alias dev actualizado y función empaquetada verificada. Main conservado.
@@ -357,3 +368,17 @@
 - M7 archivado en project/tasks/M7_GLOBAL_DISCOVERY.md. NEXT_TASK asigna M8 a Claude con checkpoint de plan, criterios verificables y devolución a Codex.
 - ADR-009 autoriza capa determinista de requisitos sobre v3, Yungay como alternativa conocida, geometrías con cobertura explícita y API mínima opcional de IA. Sin nuevos datos ni perfiles; no se traslada evidencia agregada a polígonos distintos.
 - Base 4d197e1 verificada: 177 Python, 69 web, build; 38 hashes de ciencia/config/contratos en /tmp/analogos-m8-baseline-hashes.json. Publicación anterior verificada en Actions y navegador autenticado.
+
+## 2026-11-14 Claude — M10-GEOLOGY-AI (en revisión de Codex)
+
+- La explicación con IA puede usar el contexto geológico oficial M9 (opt-in): catálogo cerrado de pares unidad+propósito calculado en servidor, selección por IA (≤3 por sector, ≤12), orientación determinista sin IA, límites siempre visibles. Sin cambios de score, ranking, estados, pesos ni artefactos. ADR-011 propuesto.
+- Validador M9 movido a `shared/geology/` (web reexporta). Servidor carga el paquete con SHA-256 de bytes de candidatos; errores 409 específicos antes del proveedor; `vercel.json` `includeFiles` acotado y `check-vercel-function.mjs` ejercita carga, ausencia y corrupción.
+- Exportación: wrapper `analogos-mission-geology-export` v1 (embebe M8 1.0 intacto) con validador que recalcula catálogo/selección/guía; M8 1.0 y M9 sin cambios.
+- Pruebas: 316 Python, 314 web (+3 omitidas), typecheck/build; ZIP 31 entradas SHA-256 `b2153f69c07be2edc1980c86d7d3eab6b8839b3556c0b244b6b618f8988a1b44` repetido idéntico; baseline de 24 archivos intacto. IA real con dos objetivos contrastantes OK tras corregir un truncamiento (`max_tokens` 6000 con canal).
+- Comandos: `source .venv/bin/activate && npm run verify`; `npm run release:package`; `ANALOGOS_LIVE_AI=1 npm -w apps/web run test -- src/tests/aiLive.test.ts -t "orientación geológica" --silent=false`. Brechas: sin `vercel build` real ni QA de navegador. Sin commit/push/deploy.
+
+## 2026-11-14 Claude — M10 ronda 2 (correcciones de revisión; en revisión de Codex)
+
+- Wrapper: `subset_fingerprint` de los subconjuntos exactos, anclaje de geometría a candidatos con bundle, auditoría y reconstrucción del M8 embebido (`auditMissionExport`), constructor con `{ bundle }`. Los tres repros independientes ahora se rechazan. Contrato nuevo ampliado; contratos M8/M9 intactos.
+- Loader: raíz explícita aísla de verdad y caché con identidad del bundle; startup check ejecuta una copia fuera del checkout. UI: fuente oficial clicable/impresa, fracciones con y sin solape, avisos de envío condicionales, sin jerga M8, IA antes de las fichas.
+- Verify 316 Python / 325 web (+3 omitidas); ZIP SHA-256 `22b327cc…70bb` repetido idéntico; baseline y complemento intactos; evidencia real en `submission/evidence/m10-live-geology-evidence.json`. Sin commit/push/deploy.
