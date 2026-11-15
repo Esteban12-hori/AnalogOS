@@ -3,10 +3,10 @@
 // geológico oficial viaja con la función y se valida de verdad (no basta con que el endpoint arranque).
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { dirname, join, resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const sourceDir = resolve(process.argv[2] ?? '.vercel/output/functions/api/ai.func')
@@ -52,6 +52,24 @@ async function load(dir) {
 }
 
 try {
+  // FileFsRef no siempre se escribe dentro de .func: Vercel lo declara como
+  // destino del bundle -> archivo relativo al directorio de build en filePathMap.
+  // Solo materializamos entradas declaradas; no rellenamos ausencias desde el checkout.
+  const sourceConfig = JSON.parse(readFileSync(join(sourceDir, '.vc-config.json'), 'utf8'))
+  const refs = sourceConfig.filePathMap ?? {}
+  assert.ok(refs && typeof refs === 'object' && !Array.isArray(refs), 'filePathMap inválido')
+  const repoRoot = realpathSync(originalCwd)
+  for (const [bundlePath, sourcePath] of Object.entries(refs)) {
+    assert.equal(typeof sourcePath, 'string', 'Origen de filePathMap inválido')
+    const destination = resolve(functionDir, bundlePath)
+    assert.ok(destination.startsWith(functionDir + sep), 'Destino de filePathMap fuera de la función')
+    const source = realpathSync(resolve(originalCwd, sourcePath))
+    assert.ok(source.startsWith(repoRoot + sep), 'Origen de filePathMap fuera del proyecto')
+    assert.ok(!source.split(sep).some((part) => part === '.git' || /^\.env(?:\.|$)/.test(part)), 'Archivo privado inesperado en filePathMap')
+    mkdirSync(dirname(destination), { recursive: true })
+    cpSync(source, destination, { dereference: true })
+  }
+  console.log(`Función aislada: ${Object.keys(refs).length} archivos declarados en filePathMap materializados.`)
   const call = await load(functionDir)
   const method = await call('GET')
   assert.equal(method.statusCode, 405)

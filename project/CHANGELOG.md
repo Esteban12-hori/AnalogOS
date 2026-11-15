@@ -1,5 +1,9 @@
 # Changelog de trabajo
 
+## 2026-11-14 Codex · filePathMap en el control de Vercel
+
+- El segundo intento mostró que resolver enlaces no bastaba: Vercel declara FileFsRef fuera de .func mediante filePathMap. El control reconstruye solo esos archivos declarados antes de aislar y comprobar la función. Repro local antes/después correcto, casos negativos conservados. Dev aún conserva M9 hasta completar este control.
+
 ## 2026-11-14 Codex · corrección del control de empaquetado M10
 
 - El primer control real de Vercel detuvo la publicación por enlaces de JSON rotos al copiar la función a /tmp. Reproducido fuera del repositorio; la copia ahora materializa los archivos enlazados y conserva el aislamiento y los casos negativos. No cambia aplicación, IA, datos ni ZIP. Reintento dev tras validar la misma fixture antes/después.
