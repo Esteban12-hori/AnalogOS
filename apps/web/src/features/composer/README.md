@@ -29,3 +29,11 @@ previous results remain at `--o-busy` until re-evaluated.
 
 History (`analogos.composer.history.v2`): the user's brief, scope and requirements. Unmodified
 AI proposals, their provenance and results are never saved.
+
+Language (ADR-017, `docs/I18N.md`): the composer and “Your mission” follow the EN | ES selector. Main-chunk text
+comes from `i18n/messages/composer.ts`; “Your mission” around the planner (provenance, history, suggestions) and the
+planner itself from `i18n/messages/planner.ts`. Notices, errors and draft/explain messages are stored in canonical
+English (`mission/messages.ts`) and shown with `displayMissionMessage` (`mission/messageDisplay.ts`); the history keeps
+its English label and the list recomputes it in the interface language. Downloads, filenames and fingerprints never
+depend on the language. “Use example” and new requirement names follow the interface language at the moment they are
+created: from then on they are the user's text, kept as written.

@@ -8,6 +8,8 @@
  * their provenance, and results are never saved: on restore, the user confirms again and
  * the deterministic evaluation is recalculated. The v1 key (levels per criterion) is ignored.
  */
+import { formatDate, getLocale, type Locale } from '../../i18n/core'
+import { tPlanner } from '../../i18n/messages/planner'
 import type { EditableRequirement, JourneyId, ScopeInput } from '../../mission/plannerState'
 import type { MetricId } from '../../mission/types'
 
@@ -20,7 +22,10 @@ export interface HistoryEntry {
   scope: ScopeInput
   /** Requirements with origin 'user' (unedited AI ones are not saved). */
   requirements: EditableRequirement[]
-  /** Summary for the list ("3 requirements · catalog"). */
+  /**
+   * Summary for the list ("3 requirements · the seven areas"), stored in English. The interface recomputes it in its
+   * language from `requirements` and `scope` (`entryLabel`); the stored value is only validated.
+   */
   label: string
 }
 
@@ -114,15 +119,10 @@ export function userRequirements(requirements: readonly EditableRequirement[]): 
   return requirements.filter((requirement) => requirement.origin === 'user')
 }
 
-function scopeLabel(scope: ScopeInput): string {
-  if (scope.mode === 'catalog') return 'the seven areas'
-  if (scope.mode === 'sector') return 'a sector'
-  return scope.mode === 'point' ? 'a point' : 'a rectangle'
-}
-
-export function entryLabel(requirements: readonly EditableRequirement[], scope: ScopeInput): string {
-  const count = requirements.length
-  return `${count} ${count === 1 ? 'requirement' : 'requirements'} · ${scopeLabel(scope)}`
+/** “3 requirements · the seven areas” in a language (the history saves it in English). */
+export function entryLabel(requirements: readonly EditableRequirement[], scope: ScopeInput, locale: Locale = 'en'): string {
+  const t = tPlanner.in(locale)
+  return t('history.entry', { count: requirements.length, scope: t(`history.scope.${scope.mode}`) })
 }
 
 export function entryFrom(
@@ -184,13 +184,10 @@ export function saveHistory(list: readonly HistoryEntry[], storage: StorageLike 
   }
 }
 
-const time = new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit' })
-const dayTime = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
-
-/** “2:32 PM” if it is from today; “Nov 13, 2:32 PM” otherwise. */
-export function formatWhen(at: number, now: number = Date.now()): string {
+/** “2:32 PM” if it is from today; “Nov 13, 2:32 PM” otherwise (es: “14:32”, “13 nov, 14:32”). */
+export function formatWhen(at: number, now: number = Date.now(), locale: Locale = getLocale()): string {
   const date = new Date(at)
   const today = new Date(now)
   const sameDay = date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth() && date.getDate() === today.getDate()
-  return (sameDay ? time : dayTime).format(date)
+  return formatDate(date, sameDay ? { hour: '2-digit', minute: '2-digit' } : { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }, locale)
 }

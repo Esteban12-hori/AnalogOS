@@ -39,6 +39,7 @@ import {
   type PlannerState,
 } from '../../mission'
 import { GEOLOGY_ERROR_CODES, requestDraft, requestExplanation } from '../../mission/aiClient'
+import { canonicalMessage, displayMissionMessage } from '../../mission/messages'
 import type { AiExplanationRecord } from '../../mission/exportReport'
 import { buildGeologyCatalog, deterministicGeologyRefs, type GeologyCatalog } from '../../../../../shared/geology/guidance'
 import { GeologyExportError, buildMissionGeologyExport } from '../../../../../shared/geology/exportWrapper'
@@ -55,8 +56,10 @@ import { registeredMissionGeology, subscribeMissionGeology } from './runLoader'
 import { QUIET_MS, PHASE_THRESHOLDS, waitStage } from './labels'
 import { resultAnnouncement } from './model'
 
-export const CANCELLED_DRAFT = 'Request canceled: the requirements did not change and the manual flow is still available.'
-export const CANCELLED_EXPLAIN = 'Request canceled: the deterministic template is kept.'
+// Messages kept in the planner and composer state are canonical English (ADR-017): the interface shows them with
+// displayMissionMessage. Announcements are spoken once, so they use the interface language at that moment.
+export const CANCELLED_DRAFT = canonicalMessage('msg.cancelledDraft')
+export const CANCELLED_EXPLAIN = canonicalMessage('msg.cancelledExplain')
 
 export interface ControllerDeps {
   bundle: EvidenceBundle
@@ -195,7 +198,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
       deps.setTimer(() => {
         if (deps.composer.getState().draftStartedAt !== at) return
         deps.composer.setState({ wait: waitStage(ms) })
-        if (ms === PHASE_THRESHOLDS.slowMs) deps.announce('The AI is taking longer than usual. You can cancel and continue manually.')
+        if (ms === PHASE_THRESHOLDS.slowMs) deps.announce(displayMissionMessage(canonicalMessage('msg.slowAnnouncement')))
       }, ms),
     )
   }
@@ -301,7 +304,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
         if (state.result === evaluation) rememberEvaluated()
         return state.result === evaluation
       } catch (error) {
-        deps.composer.setState({ evaluationError: error instanceof MissionInputError ? error.issues.join(' · ') : 'The request could not be evaluated.' })
+        deps.composer.setState({ evaluationError: error instanceof MissionInputError ? error.issues.join(' · ') : canonicalMessage('msg.evaluateFailed') })
         deps.ui.setMissionPhase(phaseFor(state))
         return false
       }
@@ -353,7 +356,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
       cancelled.add(id)
       controllers.get(id)?.abort()
       deps.composer.setState({ notice: CANCELLED_DRAFT })
-      deps.announce(CANCELLED_DRAFT)
+      deps.announce(displayMissionMessage(CANCELLED_DRAFT))
     },
 
     cancelExplain() {
@@ -361,7 +364,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
       if (!id) return
       cancelled.add(id)
       controllers.get(id)?.abort()
-      deps.announce(CANCELLED_EXPLAIN)
+      deps.announce(displayMissionMessage(CANCELLED_EXPLAIN))
     },
 
     exportJson() {
@@ -372,7 +375,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
         deps.download(`analogos-recommendation-${evaluationFingerprint(state.result).slice(0, 8)}.json`, `${JSON.stringify(doc, null, 2)}\n`)
         deps.composer.setState({ exportError: null })
       } catch (error) {
-        deps.composer.setState({ exportError: error instanceof MissionExportError ? error.message : 'The export could not be generated.' })
+        deps.composer.setState({ exportError: error instanceof MissionExportError ? error.message : canonicalMessage('msg.exportFailed') })
       }
     },
 
@@ -390,7 +393,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
         deps.download(`analogos-recommendation-geology-${evaluationFingerprint(state.result).slice(0, 8)}.json`, `${JSON.stringify(doc, null, 2)}\n`)
         deps.composer.setState({ geologyExportError: null })
       } catch (error) {
-        deps.composer.setState({ geologyExportError: error instanceof MissionExportError || error instanceof GeologyExportError ? error.message : 'The export with geology could not be generated.' })
+        deps.composer.setState({ geologyExportError: error instanceof MissionExportError || error instanceof GeologyExportError ? error.message : canonicalMessage('msg.exportGeologyFailed') })
       }
     },
 
@@ -450,7 +453,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
       const entry = deps.composer.getState().history.find((item) => item.id === entryId)
       if (!entry) return
       applyEntry(entry)
-      deps.composer.setState({ notice: 'Test restored: review and confirm to evaluate again.' })
+      deps.composer.setState({ notice: canonicalMessage('msg.restored') })
       controller.requestStep('confirm')
     },
 
@@ -458,7 +461,7 @@ export function createMissionController(deps: ControllerDeps): MissionController
       const [, previous, ...rest] = deps.composer.getState().undo
       if (!previous) return false
       applyEntry(previous)
-      deps.composer.setState({ undo: [previous, ...rest], notice: 'Undone: the previous test was restored; confirm to evaluate again.' })
+      deps.composer.setState({ undo: [previous, ...rest], notice: canonicalMessage('msg.undone') })
       controller.requestStep('confirm')
       return true
     },

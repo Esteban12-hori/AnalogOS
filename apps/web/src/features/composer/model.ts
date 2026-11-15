@@ -4,19 +4,15 @@
  * similarity is that of the v3 snapshot, without recalculation.
  */
 import type { CandidateSite } from '../../domain/contracts'
-import { formatScore, shortCandidateName } from '../../domain/formatting'
 import { prioritizedCount } from '../../domain/missionView'
+import { formatScore, getLocale, type Locale } from '../../i18n/core'
+import { tComposer } from '../../i18n/messages/composer'
+import { siteName } from '../../mission/siteName'
 import type { MissionEvaluation } from '../../mission/types'
 
-/** Short name of the place ("Pampa Yungay", without "— screening sector"). */
-export function placeName(name: string): string {
-  return shortCandidateName(name).split(' — ')[0]?.trim() || name
-}
-
-const OUTCOME_TEXT: Readonly<Record<Exclude<MissionEvaluation['outcome'], 'evaluated'>, string>> = {
-  needs_window_selection: 'There is evidence for a window, not for the point: it still needs to be chosen',
-  insufficient_coverage: 'Insufficient evidence for this geometry: exportable diagnostic',
-  unsupported_target: 'Unsupported objective: the request is kept without calculation',
+/** Short name of the place ("Pampa Yungay", without "— screening sector"), in the interface language. */
+export function placeName(name: string, locale: Locale = getLocale()): string {
+  return siteName(name, locale).split(' — ')[0]?.trim() || name
 }
 
 /**
@@ -24,26 +20,27 @@ const OUTCOME_TEXT: Readonly<Record<Exclude<MissionEvaluation['outcome'], 'evalu
  * 82,4 (not recalculated)", "No prioritized option" or the scope diagnosis. The REF does not
  * count in "N of M candidates"; if it ended up prioritized, it is named separately.
  */
-export function resultLineText(evaluation: MissionEvaluation, candidates: readonly CandidateSite[]): string {
-  if (evaluation.outcome !== 'evaluated') return OUTCOME_TEXT[evaluation.outcome]
+export function resultLineText(evaluation: MissionEvaluation, candidates: readonly CandidateSite[], locale: Locale = getLocale()): string {
+  const t = tComposer.in(locale)
+  if (evaluation.outcome !== 'evaluated') return t(`outcome.${evaluation.outcome}`)
   const prioritized = evaluation.options.filter((option) => option.status === 'priorizado_para_reconocimiento')
-  if (evaluation.none_prioritized || prioritized.length === 0) return `No option prioritized out of ${evaluation.options.length}`
+  if (evaluation.none_prioritized || prioritized.length === 0) return t('line.none', { total: evaluation.options.length })
   const first = prioritized.find((option) => option.rank === 1) ?? prioritized[0]!
   const candidate = candidates.find((item) => item.site_id === first.site_id)
-  const name = placeName(candidate?.name ?? first.name)
+  const name = placeName(candidate?.name ?? first.name, locale)
   const similarity = first.snapshot_scores.similarity
   const count = prioritizedCount(evaluation)
   return [
-    count.of > 0 ? `${count.candidates} of ${count.of} ${count.of === 1 ? 'candidate prioritized' : 'candidates prioritized'}` : '',
-    count.reference ? (count.of > 0 ? 'REF also prioritized' : 'REF prioritized') : '',
+    count.of > 0 ? t('line.prioritized', { prioritized: count.candidates, count: count.of }) : '',
+    count.reference ? (count.of > 0 ? t('line.refAlso') : t('line.ref')) : '',
     `#1 ${name}${first.role === 'reference' ? ' (REF)' : ''}`,
-    similarity === null ? 'no v3 similarity' : `v3 similarity ${formatScore(similarity)} (not recalculated)`,
+    similarity === null ? t('line.noSimilarity') : t('line.similarity', { score: formatScore(similarity, locale) }),
   ].filter(Boolean).join(' · ')
 }
 
-/** Single announcement per evaluation (same text as the line, with context). */
-export function resultAnnouncement(evaluation: MissionEvaluation, candidates: readonly CandidateSite[]): string {
-  return `Evaluation ready. ${resultLineText(evaluation, candidates)}. Territorial feasibility pending.`
+/** Single announcement per evaluation (same text as the line, with context), in the interface language. */
+export function resultAnnouncement(evaluation: MissionEvaluation, candidates: readonly CandidateSite[], locale: Locale = getLocale()): string {
+  return tComposer.in(locale)('line.announcement', { line: resultLineText(evaluation, candidates, locale) })
 }
 
 export interface TextSegment {

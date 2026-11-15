@@ -7,6 +7,8 @@
  * threshold) and "Evaluate a sector…". They never propose figures.
  */
 import { useRef } from 'react'
+import { useT } from '../../i18n'
+import { tPlanner } from '../../i18n/messages/planner'
 import type { MetricId } from '../../mission/types'
 import { useComposer } from './composerStore'
 import { recentTexts } from './history'
@@ -24,11 +26,12 @@ export function RecentsMenu({ id, onPick }: RecentsMenuProps) {
   const history = useComposer((state) => state.history)
   const button = useRef<HTMLButtonElement>(null)
   const popover = useRef<HTMLDivElement>(null)
+  const t = useT(tPlanner)
   const recents = recentTexts(history)
   if (recents.length === 0) return null
   return (
     <>
-      <button ref={button} type="button" className="composer-icon" aria-label="Recent tests" title="Recent tests" popoverTarget={id}>
+      <button ref={button} type="button" className="composer-icon" aria-label={t('recents')} title={t('recents')} popoverTarget={id}>
         <span aria-hidden="true">⟲</span>
       </button>
       <div
@@ -36,13 +39,13 @@ export function RecentsMenu({ id, onPick }: RecentsMenuProps) {
         id={id}
         popover="auto"
         role="dialog"
-        aria-label="Recent tests"
+        aria-label={t('recents')}
         className="composer-popover composer-recent"
         onBeforeToggle={(event) => {
           if (event.newState === 'open') placeAbove(popover.current, button.current, 360)
         }}
       >
-        <p className="composer-popover-title">Recent tests</p>
+        <p className="composer-popover-title">{t('recents')}</p>
         <ul>
           {recents.map((text) => (
             <li key={text}>
@@ -63,37 +66,36 @@ export function RecentsMenu({ id, onPick }: RecentsMenuProps) {
   )
 }
 
-/** Requirements that can be added with one click (the user types the value). */
-export const METRIC_SUGGESTIONS: ReadonlyArray<{ metric: MetricId; label: string }> = [
-  { metric: 'median_slope_degree', label: 'slope' },
-  { metric: 'terrain_roughness_meter', label: 'roughness' },
-  { metric: 'local_relief_meter', label: 'relief' },
-  { metric: 'nonvegetated_fraction', label: 'bare ground' },
-  { metric: 'polygon_area_km2', label: 'area' },
-  { metric: 'country', label: 'country' },
-]
+/** Requirements that can be added with one click (the user types the value); chip labels in English. */
+export const METRIC_SUGGESTIONS: ReadonlyArray<{ metric: MetricId; label: string }> = (
+  ['median_slope_degree', 'terrain_roughness_meter', 'local_relief_meter', 'nonvegetated_fraction', 'polygon_area_km2', 'country'] as const
+).map((metric) => ({ metric, label: tPlanner.in('en')(`chips.${metric}`) }))
 
 /** Suggestions: they appear when the composer is focused, above it (the dock does not grow). */
 export function SuggestionChips() {
+  const t = useT(tPlanner)
   return (
-    <div className="composer-chips" role="group" aria-label="Start a test">
+    <div className="composer-chips" role="group" aria-label={t('chips.group')}>
       <button type="button" className="composer-chip" onClick={() => withController((mission) => mission.loadExample())}>
-        Use example
+        {t('chips.example')}
       </button>
-      <span className="composer-chips-label" aria-hidden="true">Add requirement</span>
-      {METRIC_SUGGESTIONS.map((item) => (
-        <button
-          key={item.metric}
-          type="button"
-          className="composer-chip"
-          aria-label={`Add requirement: ${item.label}`}
-          onClick={() => withController((mission) => mission.addMetricRequirement(item.metric))}
-        >
-          + {item.label}
-        </button>
-      ))}
+      <span className="composer-chips-label" aria-hidden="true">{t('chips.add')}</span>
+      {METRIC_SUGGESTIONS.map((item) => {
+        const label = t(`chips.${item.metric}`)
+        return (
+          <button
+            key={item.metric}
+            type="button"
+            className="composer-chip"
+            aria-label={t('chips.addAria', { label })}
+            onClick={() => withController((mission) => mission.addMetricRequirement(item.metric))}
+          >
+            + {label}
+          </button>
+        )
+      })}
       <button type="button" className="composer-chip" onClick={() => withController((mission) => mission.startSector())}>
-        Evaluate a sector…
+        {t('chips.sector')}
       </button>
     </div>
   )

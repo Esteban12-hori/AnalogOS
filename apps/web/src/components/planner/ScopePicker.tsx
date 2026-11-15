@@ -1,7 +1,12 @@
 import { useMemo } from 'react'
 import type { CandidateSite } from '../../domain/contracts'
-import { resolveScope, RELATION_LABEL, validateBbox, validatePoint, type JourneyId, type PlannerAction, type ScopeInput, type ScopeMode, buildScope } from '../../mission'
-import { shortCandidateName } from '../../domain/formatting'
+import { formatInteger, formatNumber, useLocale, useT, withPercent } from '../../i18n'
+import { tMission } from '../../i18n/messages/mission'
+import { tPlanner } from '../../i18n/messages/planner'
+import { resolveScope, relationLabel, validateBbox, validatePoint, type JourneyId, type PlannerAction, type ScopeInput, type ScopeMode, buildScope } from '../../mission'
+import { displayMissionMessage } from '../../mission/messages'
+import { siteName } from '../../mission/siteName'
+import { displayRecordText } from '../../i18n/recordText'
 import { GeometryFigure } from './GeometryFigure'
 
 interface Props {
@@ -11,16 +16,17 @@ interface Props {
   dispatch: (a: PlannerAction) => void
 }
 
-const RELATION = RELATION_LABEL
-const pct = (x: number | null) => (x === null ? '' : `${Math.round(x * 100)}%`)
-
 export function ScopePicker({ journey, scope, candidates, dispatch }: Props) {
+  const locale = useLocale()
+  const t = useT(tPlanner)
+  const tm = useT(tMission)
+  const pct = (x: number | null) => (x === null ? '' : withPercent(String(Math.round(x * 100)), locale))
   const set = (patch: Partial<ScopeInput>) => dispatch({ type: 'set_scope', scope: { ...scope, ...patch } })
   const modes: Array<{ id: ScopeMode; label: string; hint: string }> = [
-    ...(journey === 'test' ? [{ id: 'catalog' as const, label: 'Compare the seven areas', hint: 'Every window with evidence, each with its own measurements.' }] : []),
-    { id: 'sector', label: 'One of the seven areas', hint: 'Choose a window with evidence.' },
-    { id: 'point', label: 'A point (lon/lat)', hint: 'There is only evidence for the window that contains it, not for the exact point.' },
-    { id: 'bbox', label: 'A rectangle (bbox)', hint: 'It only inherits evidence if it matches a full window.' },
+    ...(journey === 'test' ? [{ id: 'catalog' as const, label: t('scope.catalog'), hint: t('scope.catalogHint') }] : []),
+    { id: 'sector', label: t('scope.sector'), hint: t('scope.sectorHint') },
+    { id: 'point', label: t('scope.point'), hint: t('scope.pointHint') },
+    { id: 'bbox', label: t('scope.bbox'), hint: t('scope.bboxHint') },
   ]
   const built = useMemo(() => buildScope(scope), [scope])
   const semantic = useMemo(() => {
@@ -45,7 +51,7 @@ export function ScopePicker({ journey, scope, candidates, dispatch }: Props) {
   return (
     <div className="pl-scope">
       <fieldset className="pl-modes">
-        <legend>Which geometry do you want to evaluate?</legend>
+        <legend>{t('scope.legend')}</legend>
         {modes.map((m) => (
           <label key={m.id} className={`pl-radio${scope.mode === m.id ? ' on' : ''}`}>
             <input type="radio" name="scope-mode" checked={scope.mode === m.id} onChange={() => set({ mode: m.id, windowSiteId: null })} />
@@ -56,13 +62,13 @@ export function ScopePicker({ journey, scope, candidates, dispatch }: Props) {
 
       {scope.mode === 'sector' && (
         <fieldset className="pl-sectors">
-          <legend>The seven areas with evidence (~20 km windows)</legend>
+          <legend>{t('scope.sectorsLegend')}</legend>
           {ordered.map((c) => (
             <label key={c.site_id} className={`pl-sector${scope.siteId === c.site_id ? ' on' : ''}`}>
               <input type="radio" name="scope-sector" checked={scope.siteId === c.site_id} onChange={() => set({ siteId: c.site_id })} />
               <span>
-                <strong>{shortCandidateName(c.name)}</strong>
-                <small>{c.country === 'AR' ? 'Argentina' : 'Chile'} · {c.area_km2.toLocaleString('en-US', { maximumFractionDigits: 0 })} km²</small>
+                <strong>{siteName(c.name, locale)}</strong>
+                <small>{tm(c.country === 'AR' ? 'country.AR' : 'country.CL')} · {formatInteger(c.area_km2, locale)} km²</small>
               </span>
               <b className={`pl-tag ${c.role === 'reference' ? 'ref' : ''}`}>{c.role === 'reference' ? 'REF' : c.country}</b>
             </label>
@@ -72,22 +78,22 @@ export function ScopePicker({ journey, scope, candidates, dispatch }: Props) {
 
       {scope.mode === 'point' && (
         <div className="pl-coords">
-          {field('lon', 'Longitude (°, west negative)', '-69.7')}
-          {field('lat', 'Latitude (°, south negative)', '-25.0')}
-          <p className="pl-hint">Decimal degrees, WGS84. You can use a point or a comma.</p>
+          {field('lon', t('scope.lon'), t('scope.lonPlaceholder'))}
+          {field('lat', t('scope.lat'), t('scope.latPlaceholder'))}
+          <p className="pl-hint">{t('scope.pointNote')}</p>
         </div>
       )}
       {scope.mode === 'bbox' && (
         <div className="pl-coords four">
-          {field('west', 'West (min. lon)', '-69.8')}
-          {field('south', 'South (min. lat)', '-25.1')}
-          {field('east', 'East (max. lon)', '-69.6')}
-          {field('north', 'North (max. lat)', '-24.9')}
-          <p className="pl-hint">Between 0.001° and 10° per side; west less than east, south less than north.</p>
+          {field('west', t('scope.west'), t('scope.westPlaceholder'))}
+          {field('south', t('scope.south'), t('scope.southPlaceholder'))}
+          {field('east', t('scope.east'), t('scope.eastPlaceholder'))}
+          {field('north', t('scope.north'), t('scope.northPlaceholder'))}
+          <p className="pl-hint">{t('scope.bboxNote')}</p>
         </div>
       )}
       {showProblems && problems.length > 0 && (
-        <ul className="pl-problems" role="alert">{problems.map((p) => <li key={p}>{p}</li>)}</ul>
+        <ul className="pl-problems" role="alert">{problems.map((p) => <li key={p}>{displayMissionMessage(p, locale)}</li>)}</ul>
       )}
 
       {resolution && (
@@ -95,28 +101,24 @@ export function ScopePicker({ journey, scope, candidates, dispatch }: Props) {
           <GeometryFigure candidates={candidates} resolution={resolution} highlightIds={scope.mode === 'sector' ? [scope.siteId] : []} />
           <div>
             <h4>
-              {resolution.state === 'covered' && 'There is evidence for this geometry'}
-              {resolution.state === 'window_selected' && 'Window chosen: it evaluates the full window, not your geometry'}
-              {resolution.state === 'needs_window_selection' && 'There is evidence for a window, not for the point'}
-              {resolution.state === 'partial_coverage' && 'Partial coverage: no evidence of its own for this geometry'}
-              {resolution.state === 'no_coverage' && 'No evidence for this geometry'}
+              {t(`scope.state.${resolution.state}`)}
             </h4>
-            {resolution.requested.approx_area_km2 !== null && resolution.mode === 'bbox' && <p className="pl-hint">Requested area ≈ {resolution.requested.approx_area_km2.toLocaleString('en-US')} km².</p>}
-            <ul className="pl-notes">{resolution.notes.map((n) => <li key={n}>{n}</li>)}</ul>
+            {resolution.requested.approx_area_km2 !== null && resolution.mode === 'bbox' && <p className="pl-hint">{t('scope.requestedArea', { area: formatNumber(resolution.requested.approx_area_km2, {}, locale) })}</p>}
+            <ul className="pl-notes">{resolution.notes.map((n) => <li key={n}>{displayRecordText(n, locale)}</li>)}</ul>
             {resolution.matches.length > 0 && scope.mode !== 'sector' && (
               <ul className="pl-matches">
                 {resolution.matches.map((m) => (
                   <li key={m.site_id}>
-                    <span><strong>{shortCandidateName(m.name)}</strong> · {RELATION[m.relation]}{m.request_covered_fraction !== null && ` · covers ${pct(m.request_covered_fraction)} of the request`}</span>
+                    <span><strong>{siteName(m.name, locale)}</strong> · {relationLabel(m.relation, locale)}{m.request_covered_fraction !== null && t('scope.covers', { percent: pct(m.request_covered_fraction) })}</span>
                     {resolution.state !== 'covered' && (scope.windowSiteId === m.site_id
-                      ? <button type="button" className="pl-ghost" onClick={() => set({ windowSiteId: null })}>Remove chosen window</button>
-                      : <button type="button" onClick={() => set({ windowSiteId: m.site_id })}>Evaluate the full window</button>)}
+                      ? <button type="button" className="pl-ghost" onClick={() => set({ windowSiteId: null })}>{t('scope.removeWindow')}</button>
+                      : <button type="button" onClick={() => set({ windowSiteId: m.site_id })}>{t('scope.useWindow')}</button>)}
                   </li>
                 ))}
               </ul>
             )}
             {(resolution.state === 'no_coverage' || resolution.state === 'partial_coverage' || resolution.state === 'needs_window_selection') && !scope.windowSiteId && (
-              <p className="pl-hint">You can continue: an insufficient-evidence report will be generated, with the request ready to export. This version does not download new data.</p>
+              <p className="pl-hint">{t('scope.continueHint')}</p>
             )}
           </div>
         </div>

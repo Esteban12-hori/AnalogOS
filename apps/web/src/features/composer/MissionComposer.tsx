@@ -10,6 +10,10 @@
  */
 import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { useLocale, useT } from '../../i18n'
+import { tComposer } from '../../i18n/messages/composer'
+import { tShell } from '../../i18n/messages/shell'
+import { displayMissionMessage } from '../../mission/messageDisplay'
 import { GLYPH, useViewportLayout } from '../../shell/public'
 import { useMission } from '../../state/mission'
 import { useUi, type MissionPhase } from '../../state/ui'
@@ -25,7 +29,8 @@ import { loadController, withController } from './runLoader'
 import type { ComposerProps } from './index'
 import './composer-form.css'
 
-export const PROMPT = 'Describe the Mars test you want to run…'
+/** English composer prompt (the same text as the static shell; the interface shows `tShell('composerPrompt')`). */
+export const PROMPT = tShell.in('en')('composerPrompt')
 export const MAX_BRIEF = 3000
 const RecentsMenu = lazy(() => import('./ComposerExtras').then((module) => ({ default: module.RecentsMenu })))
 const SuggestionChips = lazy(() => import('./ComposerExtras').then((module) => ({ default: module.SuggestionChips })))
@@ -60,8 +65,8 @@ export function showSuggestions(phase: MissionPhase, waiting: boolean, missionPo
   return !waiting && !missionPopoverOpen && phase !== 'analysis' && phase !== 'done'
 }
 
-/** Status line after "Submit": the text is already in "Your mission" (Submit never calls the AI). */
-export const SENT_TEXT = 'Text loaded in “Your mission”: review the requirements, confirm and evaluate.'
+/** Status line after "Submit": the text is already in "Your mission" (Submit never calls the AI). English. */
+export const SENT_TEXT = tComposer.in('en')('status.sent')
 
 /** Last request to open "Your mission" that has already been handled (survives the composer remounting). */
 let consumedOpenRequest = 0
@@ -77,6 +82,9 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
   const stale = useMission((state) => state.stale)
   const { tramo } = useViewportLayout()
   const panelInLayout = tramo === 'wide'
+  const locale = useLocale()
+  const t = useT(tComposer)
+  const tS = useT(tShell)
   const [text, setText] = useState('')
   const [missionOpen, setMissionOpen] = useState(false)
   // Last text submitted: as long as it is still the planner's brief, the status line says so.
@@ -165,7 +173,7 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
     }
   }
 
-  const profileText = requirementCount > 0 ? `Your mission · ${requirementCount} ${requirementCount === 1 ? 'requirement' : 'requirements'}` : 'Your mission'
+  const profileText = requirementCount > 0 ? t('profile.count', { count: requirementCount }) : t('profile.title')
   const statusId = `composer-status-${placement}`
   const missionId = `composer-mission-${uid}`
 
@@ -173,48 +181,48 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
   if (!snapshot) {
     status = (
       <span className="composer-status-text">
-        {data.status === 'error' ? <><span aria-hidden="true">{GLYPH.fail} </span>No snapshot: the mission cannot be evaluated.</> : 'Waiting for the validated snapshot…'}
+        {data.status === 'error' ? <><span aria-hidden="true">{GLYPH.fail} </span>{t('status.noSnapshot')}</> : t('status.waitingSnapshot')}
       </span>
     )
   } else if (waiting && wait === 'slow') {
     status = (
       <>
-        <span className="composer-status-text">The AI is taking longer than usual · {elapsed} s</span>
-        <button type="button" className="composer-link" onClick={cancel}>Cancel</button>
+        <span className="composer-status-text">{t('status.slow', { seconds: elapsed })}</span>
+        <button type="button" className="composer-link" onClick={cancel}>{t('form.cancel')}</button>
       </>
     )
   } else if (waiting) {
     status = (
       <>
-        {moving ? <OrbitLoader active label="Proposing requirements…" placement="inline" /> : <span className="composer-status-text">Proposing requirements…</span>}
+        {moving ? <OrbitLoader active label={t('proposingRequirements')} placement="inline" /> : <span className="composer-status-text">{t('proposingRequirements')}</span>}
         {wait === 'counter' && <span className="composer-status-count">· {elapsed} s</span>}
-        <button type="button" className="composer-link" onClick={cancel}>Cancel</button>
+        <button type="button" className="composer-link" onClick={cancel}>{t('form.cancel')}</button>
       </>
     )
   } else if (evaluation && snapshot && !stale) {
     status = (
       <span className="composer-status-text" data-tone="ok">
         <span aria-hidden="true">{GLYPH.ok} </span>
-        {resultLineText(evaluation, snapshot.candidates)}
+        {resultLineText(evaluation, snapshot.candidates, locale)}
       </span>
     )
   } else if (draftMessage) {
-    status = <span className="composer-status-text" data-tone="cancelled">{draftMessage}</span>
+    status = <span className="composer-status-text" data-tone="cancelled">{displayMissionMessage(draftMessage, locale)}</span>
   } else if (sentBrief !== null && planner?.brief === sentBrief) {
-    status = <span className="composer-status-text">{SENT_TEXT}</span>
+    status = <span className="composer-status-text">{t('status.sent')}</span>
   } else if (notice) {
-    status = <span className="composer-status-text" data-tone="cancelled">{notice}</span>
+    status = <span className="composer-status-text" data-tone="cancelled">{displayMissionMessage(notice, locale)}</span>
   } else if (stale) {
-    status = <span className="composer-status-text">You edited the test: confirm and evaluate again in “Your mission”.</span>
+    status = <span className="composer-status-text">{t('status.stale')}</span>
   } else if (phase === 'review') {
     status = (
       <span className="composer-status-text">
-        {phaseLabel('review')}
-        {requirementCount > 0 ? ` · ${requirementCount} ${requirementCount === 1 ? 'requirement' : 'requirements'}` : ''}
+        {phaseLabel('review', locale)}
+        {requirementCount > 0 ? t('status.requirementCount', { count: requirementCount }) : ''}
       </span>
     )
   } else {
-    status = <span className="composer-status-text">Send opens “Your mission”: you define and confirm the requirements; the AI is optional.</span>
+    status = <span className="composer-status-text">{t('status.idle')}</span>
   }
 
   return (
@@ -251,19 +259,19 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
             if (panelInLayout) openMission()
           }}
         >
-          <span className="composer-profile-text" data-short={requirementCount > 0 ? `Mission · ${requirementCount}` : 'Mission'}>
+          <span className="composer-profile-text" data-short={requirementCount > 0 ? t('profile.shortCount', { count: requirementCount }) : t('profile.short')}>
             <span>{profileText}</span>
           </span>
           <span aria-hidden="true" className="composer-caret">▾</span>
         </button>
-        <label className="sr-only" htmlFor={`composer-${placement}`}>Describe your test</label>
+        <label className="sr-only" htmlFor={`composer-${placement}`}>{t('form.fieldLabel')}</label>
         <textarea
           id={`composer-${placement}`}
           ref={field}
           rows={1}
           maxLength={MAX_BRIEF}
           value={text}
-          placeholder={tramo === 'narrow' ? 'Describe your test…' : PROMPT}
+          placeholder={tramo === 'narrow' ? t('form.promptShort') : tS('composerPrompt')}
           aria-describedby={statusId}
           aria-keyshortcuts="/"
           onChange={(event) => setText(event.target.value)}
@@ -279,7 +287,7 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
           />
         </Suspense>
         <button type="submit" className="composer-send" data-stop={waiting ? '' : undefined} disabled={!waiting && (!snapshot || !text.trim())}>
-          <span aria-hidden="true">{waiting ? '■' : '↑'}</span> <span className="composer-send-text">{waiting ? 'Cancel' : 'Send'}</span>
+          <span aria-hidden="true">{waiting ? '■' : '↑'}</span> <span className="composer-send-text">{waiting ? t('form.cancel') : t('form.send')}</span>
         </button>
       </form>
 
@@ -291,7 +299,7 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
           id={missionId}
           popover="auto"
           role="dialog"
-          aria-label="Your mission"
+          aria-label={t('profile.title')}
           className="composer-popover composer-mission-popover"
           onBeforeToggle={(event) => {
             if (event.newState === 'open') placeAbove(missionPopover.current, profileButton.current, 460)
@@ -299,14 +307,14 @@ export function MissionComposer({ data, placement }: Pick<ComposerProps, 'data' 
           onToggle={(event) => setMissionOpen(event.newState === 'open')}
         >
           {missionOpen && (
-            <Suspense fallback={<p className="composer-card-note">Your mission · loading…</p>}>
+            <Suspense fallback={<p className="composer-card-note">{t('popover.loading')}</p>}>
               <LazyMissionPanel data={data} placement="popover" />
             </Suspense>
           )}
         </div>
       )}
 
-      <GlobeOrbit active={moving} label="Proposing requirements…" />
+      <GlobeOrbit active={moving} label={t('proposingRequirements')} />
     </div>
   )
 }

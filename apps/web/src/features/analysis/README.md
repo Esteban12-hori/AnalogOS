@@ -19,3 +19,9 @@ Explore does not use AI: it shows a deterministic reading. There are no automati
 | `explanationToReading.ts` | Deferred | Pure adapters: `explanationToReading`, `readingKey`, `snippetFor`, `evidenceHref` |
 
 Removed during integration with dev: the lktron channel (NDJSON, `{{id}}` tokens, event gate, and package FNV fingerprint) and pre-generated prose (ADR-012, superseded by ADR-009 §7–9).
+
+Language (ADR-017, `docs/I18N.md`): labels come from `i18n/messages/reading.ts` (the pill and skeleton, which live in
+the main chunk, from `composer.ts`). `explanationToReading` and `buildFactsLayer` take the interface language: record
+text (required, reasons, ordering rule, limits, notes, verification instructions) is shown with `displayRecordText`,
+site names and field checks (source evidence) with `scienceText`, and values with the pack of the language. Figures,
+order and the AI selection never depend on it.

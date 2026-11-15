@@ -6,6 +6,8 @@
  * its way) the browser's print output shows a clear notice, never an empty page or an outdated report.
  */
 import { lazy, Suspense } from 'react'
+import { useT } from '../../i18n'
+import { tComposer } from '../../i18n/messages/composer'
 import type { AppData } from '../../shell/public'
 import { useMission } from '../../state/mission'
 
@@ -13,11 +15,12 @@ const PrintContent = lazy(() => import('./PrintContent'))
 
 export type PrintNoticeReason = 'loading_data' | 'no_result' | 'stale' | 'preparing'
 
+/** English notices (the print view shows them in the interface language: `print.<reason>`). */
 export const PRINT_NOTICE: Readonly<Record<PrintNoticeReason, string>> = {
-  loading_data: 'There is no report to print: the validated data are still loading.',
-  no_result: 'There is no current report. Define the test in “Your mission”, confirm the requirements and evaluate; then use “Print report”.',
-  stale: 'You edited the test: the previous report no longer matches what you are writing. Confirm and evaluate again in “Your mission” to print the current report.',
-  preparing: 'The current report is being prepared. Close this print view and use “Print report” when the button is available.',
+  loading_data: tComposer.in('en')('print.loading_data'),
+  no_result: tComposer.in('en')('print.no_result'),
+  stale: tComposer.in('en')('print.stale'),
+  preparing: tComposer.in('en')('print.preparing'),
 }
 
 /** Pure: why there is no report to print (null = there is a current evaluation and the data is ready). */
@@ -28,10 +31,11 @@ export function printNoticeReason(dataReady: boolean, hasResult: boolean, stale:
 }
 
 export function PrintNotice({ reason }: { reason: PrintNoticeReason }) {
+  const t = useT(tComposer)
   return (
     <article className="pl-print-only mission-print-notice">
-      <h1>AnalogOS · Recommendation report for a test</h1>
-      <p>{PRINT_NOTICE[reason]}</p>
+      <h1>{t('print.title')}</h1>
+      <p>{t(`print.${reason}`)}</p>
     </article>
   )
 }

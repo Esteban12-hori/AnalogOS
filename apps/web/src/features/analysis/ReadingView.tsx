@@ -14,7 +14,10 @@
  * labeled "Deterministic reading". There are never automatic calls to the AI.
  */
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react'
-import { MISSION_STATUS_LABEL } from '../../domain/missionView'
+import { useLocale, useT } from '../../i18n'
+import { tMission } from '../../i18n/messages/mission'
+import { tReading } from '../../i18n/messages/reading'
+import { displayMissionMessage } from '../../mission/messages'
 import { GLYPH } from '../../shell/public'
 import { useMission } from '../../state/mission'
 import { uiActions, useUi } from '../../state/ui'
@@ -23,18 +26,7 @@ import { setUseGeology, useComposer } from '../composer/composerStore'
 import { withController } from '../composer/runLoader'
 import { buildMetricViews } from '../metrics/buildMetricViews'
 import type { MetricView } from '../metrics'
-import {
-  AI_SEND_NOTICE,
-  AI_SEND_NOTICE_GEOLOGY,
-  explanationToReading,
-  GEOLOGY_OPT_LABEL,
-  GEOLOGY_RETRY_LABEL,
-  GEOLOGY_RETRY_NOTICE,
-  GEOLOGY_WHERE,
-  geologyUnavailableNotice,
-  STALE_AI_MESSAGE,
-  type ReadingModel,
-} from './explanationToReading'
+import { explanationToReading, geologyUnavailableNotice, type ReadingModel } from './explanationToReading'
 import { buildFactsLayer } from './facts'
 import type { ReadingPanelProps } from './index'
 import { summarizeRobustness } from './robustness'
@@ -42,7 +34,8 @@ import type { FactRef, FactsLayer, SiteFacts } from './types'
 import './analysis.css'
 
 function Fact({ fact }: { fact: FactRef | null | undefined }) {
-  if (!fact) return <span className="analysis-pending">no data</span>
+  const t = useT(tReading)
+  if (!fact) return <span className="analysis-pending">{t('facts.noData')}</span>
   return <b className="analysis-chip" data-fact={fact.id}>{fact.text}</b>
 }
 
@@ -65,13 +58,14 @@ function Layer({ title, label, ai = false, children }: { title: string; label: s
 // ---------------------------------------------------------------------------------------------
 
 function SiteFactsBlock({ site }: { site: SiteFacts }) {
+  const t = useT(tReading)
   return (
     <>
       <p className="analysis-site-line">
         <span aria-hidden="true">{site.insufficient ? GLYPH.insufficient : GLYPH.evaluated}</span> <strong>{site.name}</strong>
         {site.rank && <> · <Fact fact={site.rank} /></>}
-        {' · '}v3 similarity <Fact fact={site.similarity} />
-        <span className="analysis-muted"> · confidence <Fact fact={site.confidence} /> · stability <Fact fact={site.stability} /></span>
+        {' · '}{t('facts.similarityV3')} <Fact fact={site.similarity} />
+        <span className="analysis-muted"> · {t('facts.confidence')} <Fact fact={site.confidence} /> · {t('facts.stability')} <Fact fact={site.stability} /></span>
       </p>
       {site.directions.length > 0 && (
         <ul className="analysis-list">
@@ -93,27 +87,28 @@ function SiteFactsBlock({ site }: { site: SiteFacts }) {
       )}
       {site.limiting && (
         <p className="analysis-limit">
-          <b>Limiting factor · {site.limiting.label}</b>
+          <b>{t('facts.limiting', { label: site.limiting.label })}</b>
           <span className="analysis-muted">
-            {' '}the criterion that takes the most away from v3 similarity (pipeline contribution)
-            {site.limiting.sim && <> · similarity <Fact fact={site.limiting.sim} /></>}
+            {' '}{t('facts.limitingNote')}
+            {site.limiting.sim && <> · {t('facts.similarity')} <Fact fact={site.limiting.sim} /></>}
           </span>
         </p>
       )}
       {site.saturates.length > 0 && (
         <p className="analysis-rule">
-          <span aria-hidden="true">{GLYPH.rule}</span> Meets the profile rule · does not mean equal to Mars:{' '}
+          <span aria-hidden="true">{GLYPH.rule}</span> {t('facts.saturates')}{' '}
           {site.saturates.map((item, index) => <span key={item.criterionId}>{index > 0 && ', '}{item.label}</span>)}
         </p>
       )}
       {site.missing.length > 0 && (
-        <p className="analysis-pending-line">No data, outside the score: {site.missing.map((item) => `${item.label} (${item.status})`).join(', ')}</p>
+        <p className="analysis-pending-line">{t('facts.missing', { items: site.missing.map((item) => `${item.label} (${item.status})`).join(', ') })}</p>
       )}
     </>
   )
 }
 
 function FactsSection({ facts, focusId, label }: { facts: FactsLayer; focusId: string | null; label: string }) {
+  const t = useT(tReading)
   const all = [...facts.sites, ...facts.references]
   const [chosen, setChosen] = useState<string | null>(null)
   useEffect(() => setChosen(null), [focusId])
@@ -121,9 +116,9 @@ function FactsSection({ facts, focusId, label }: { facts: FactsLayer; focusId: s
   const names = (id: string) => all.find((site) => site.siteId === id)?.name ?? id
   const { comparison, robustness } = facts
   return (
-    <Layer title="Snapshot facts" label={label}>
+    <Layer title={t('facts.title')} label={label}>
       {all.length > 1 && (
-        <div className="analysis-sites" role="group" aria-label="Place for the facts">
+        <div className="analysis-sites" role="group" aria-label={t('facts.sitesGroup')}>
           {all.map((site) => (
             <button key={site.siteId} type="button" aria-pressed={site.siteId === current?.siteId} onClick={() => setChosen(site.siteId)}>
               <span aria-hidden="true">{site.reference ? 'REF' : site.insufficient ? GLYPH.insufficient : GLYPH.evaluated}</span> {site.name}
@@ -131,17 +126,17 @@ function FactsSection({ facts, focusId, label }: { facts: FactsLayer; focusId: s
           ))}
         </div>
       )}
-      {current ? <SiteFactsBlock site={current} /> : <p className="analysis-pending-line">There are no evaluated places in this snapshot.</p>}
+      {current ? <SiteFactsBlock site={current} /> : <p className="analysis-pending-line">{t('facts.noSites')}</p>}
       {(comparison.noDiscrimination.length > 0 || comparison.shared.length > 0) && (
         <details className="analysis-details">
-          <summary>What does not distinguish between candidates</summary>
+          <summary>{t('facts.noDiscriminationTitle')}</summary>
           <ul className="analysis-list">
             {comparison.noDiscrimination.map((item) => (
-              <li key={`nd-${item.criterionId}`}>{item.label}: same similarity shown for all{item.sims[0] && <> (<Fact fact={item.sims[0]} />)</>}</li>
+              <li key={`nd-${item.criterionId}`}>{t('facts.noDiscrimination', { label: item.label })}{item.sims[0] && <> (<Fact fact={item.sims[0]} />)</>}</li>
             ))}
             {comparison.shared.map((item) => (
               <li key={`sh-${item.criterionId}-${item.siteIds.join()}`}>
-                {item.label}: same regional value{item.raw && <> (<Fact fact={item.raw} />)</>} in {item.siteIds.map(names).join(' and ')}
+                {t('facts.shared', { label: item.label })}{item.raw && <> (<Fact fact={item.raw} />)</>}{t('facts.sharedIn', { places: item.siteIds.map(names).join(` ${t('facts.and')} `) })}
               </li>
             ))}
           </ul>
@@ -149,15 +144,15 @@ function FactsSection({ facts, focusId, label }: { facts: FactsLayer; focusId: s
       )}
       {comparison.bestOfN.length > 0 && (
         <details className="analysis-details">
-          <summary>Best of {facts.sites.length} candidates by criterion</summary>
+          <summary>{t('facts.bestOfTitle', { count: facts.sites.length })}</summary>
           <ul className="analysis-list">
             {comparison.bestOfN.map((item) => <li key={`best-${item.criterionId}`}>{item.label}: {names(item.siteId)} <Fact fact={item.sim} /></li>)}
           </ul>
-          <p className="analysis-muted">The known reference (REF) does not compete: it stays out of the ranking.</p>
+          <p className="analysis-muted">{t('facts.referenceOut')}</p>
         </details>
       )}
       <details className="analysis-details">
-        <summary>What would change the order of the candidates?</summary>
+        <summary>{t('facts.orderTitle')}</summary>
         <ul className="analysis-bars">
           {robustness.sites.map((site) => (
             <li key={site.siteId}>
@@ -165,20 +160,20 @@ function FactsSection({ facts, focusId, label }: { facts: FactsLayer; focusId: s
               <span className="analysis-bar" aria-hidden="true">
                 <span style={{ transform: `scaleX(${site.stability === null ? 0 : Math.max(0, Math.min(1, site.stability / 100))})` }} />
               </span>
-              <span className="analysis-bar-value">{site.text === null ? 'no data' : `stability ${site.text}`}</span>
+              <span className="analysis-bar-value">{site.text === null ? t('facts.noData') : t('facts.barStability', { value: site.text })}</span>
             </li>
           ))}
         </ul>
         {robustness.status === 'ready' ? (
           <ul className="analysis-list">
-            <li>With <Fact fact={robustness.perturbation} /> (<Fact fact={robustness.scenarios} />): <Fact fact={robustness.flips} />; <Fact fact={robustness.topFlips} />.</li>
-            {robustness.mostSensitive && <li>Most sensitive criterion: <Fact fact={robustness.mostSensitive} /></li>}
-            {comparison.gaps[0] && <li>Gap between the first and second candidate: <Fact fact={comparison.gaps[0]} /></li>}
+            <li>{t('facts.with')} <Fact fact={robustness.perturbation} /> (<Fact fact={robustness.scenarios} />): <Fact fact={robustness.flips} />; <Fact fact={robustness.topFlips} />.</li>
+            {robustness.mostSensitive && <li>{t('facts.mostSensitive')} <Fact fact={robustness.mostSensitive} /></li>}
+            {comparison.gaps[0] && <li>{t('facts.gap')} <Fact fact={comparison.gaps[0]} /></li>}
           </ul>
         ) : (
           <p className="analysis-pending-line">{robustness.reason}</p>
         )}
-        <p className="analysis-muted">Pipeline scenarios (analysis-summary.json): ±20% per weight, not recalculated in the web app.</p>
+        <p className="analysis-muted">{t('facts.pipelineNote')}</p>
       </details>
       {current && <Checks site={current} />}
     </Layer>
@@ -186,10 +181,11 @@ function FactsSection({ facts, focusId, label }: { facts: FactsLayer; focusId: s
 }
 
 function Checks({ site }: { site: SiteFacts }) {
+  const t = useT(tReading)
   if (site.checks.length === 0) return null
   return (
     <details className="analysis-details analysis-checks">
-      <summary>What to check in the field · {site.name}</summary>
+      <summary>{t('facts.checksTitle', { name: site.name })}</summary>
       <ol className="analysis-list">{site.checks.map((check) => <li key={check.ref}>{check.text}</li>)}</ol>
     </details>
   )
@@ -200,11 +196,12 @@ function Checks({ site }: { site: SiteFacts }) {
 // ---------------------------------------------------------------------------------------------
 
 function ResultLayer({ model }: { model: ReadingModel['result'] }) {
+  const t = useT(tReading)
   return (
-    <Layer title="Result" label={model.label}>
+    <Layer title={t('result.title')} label={model.label}>
       {model.dataRequest && <p className="analysis-notice">{model.dataRequest}</p>}
       {model.nonePrioritized && model.outcome === 'evaluated' && (
-        <p className="analysis-notice">No sector meets every must-have with sufficient evidence. This is a valid result.</p>
+        <p className="analysis-notice">{t('result.nonePrioritized')}</p>
       )}
       {model.groups.map((group) => (
         <div key={group.status} className="analysis-group" data-status={group.status}>
@@ -218,7 +215,7 @@ function ResultLayer({ model }: { model: ReadingModel['result'] }) {
                 {option.blockers.length > 0 && <span className="analysis-muted"> — {option.blockers.join(' · ')}</span>}
                 {option.whatWouldChange.length > 0 && (
                   <details className="analysis-details analysis-change">
-                    <summary>What evidence would change the decision · {option.whatWouldChange.length}</summary>
+                    <summary>{t('result.whatWouldChange', { count: option.whatWouldChange.length })}</summary>
                     <ul className="analysis-list">{option.whatWouldChange.map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul>
                   </details>
                 )}
@@ -228,18 +225,18 @@ function ResultLayer({ model }: { model: ReadingModel['result'] }) {
         </div>
       ))}
       <details className="analysis-details">
-        <summary>Ordering rule</summary>
+        <summary>{t('result.orderingRule')}</summary>
         <p className="analysis-muted">{model.orderingRule}</p>
       </details>
-      {model.pending.length > 0 && <p className="analysis-pending-line">{model.pending.length} unmeasured requirement(s): they are kept as pending and never count as met.</p>}
+      {model.pending.length > 0 && <p className="analysis-pending-line">{t('result.pending', { count: model.pending.length })}</p>}
       {model.openQuestions.length > 0 && (
         <details className="analysis-details">
-          <summary>Open questions · {model.openQuestions.length}</summary>
+          <summary>{t('result.openQuestions', { count: model.openQuestions.length })}</summary>
           <ul className="analysis-list">{model.openQuestions.map((question, index) => <li key={`${index}-${question}`}>{question}</li>)}</ul>
         </details>
       )}
       <details className="analysis-details">
-        <summary>Limits</summary>
+        <summary>{t('result.limits')}</summary>
         <ul className="analysis-list">{model.limits.map((limit, index) => <li key={`${index}-${limit}`}>{limit}</li>)}</ul>
       </details>
     </Layer>
@@ -247,9 +244,10 @@ function ResultLayer({ model }: { model: ReadingModel['result'] }) {
 }
 
 function HighlightsLayer({ model }: { model: ReadingModel['highlights'] }) {
+  const t = useT(tReading)
   const ai = model.source === 'anthropic'
   return (
-    <Layer title="Highlighted reasons" label={model.label} ai={ai}>
+    <Layer title={t('highlights.title')} label={model.label} ai={ai}>
       {ai && model.provenance && <p className="analysis-meta">{model.provenance}</p>}
       <p className="analysis-muted">{model.notice}</p>
       {/* The note comes from the evaluation (explanationToReading.emptyNote), not from what the AI chose. */}
@@ -264,7 +262,7 @@ function HighlightsLayer({ model }: { model: ReadingModel['highlights'] }) {
                 <span className="analysis-muted"> — {line.reason}</span>
                 {line.evidence.length > 0 && (
                   <span className="analysis-muted">
-                    {' '}· evidence:{' '}
+                    {' '}· {t('highlights.evidence')}{' '}
                     {line.evidence.map((item, index) => (
                       <span key={item.id}>
                         {index > 0 && ', '}
@@ -279,18 +277,18 @@ function HighlightsLayer({ model }: { model: ReadingModel['highlights'] }) {
         </div>
       ))}
       {model.omitted.length > 0 && (
-        <ul className="analysis-list analysis-omitted" aria-label={ai ? 'Places without reasons highlighted by the AI' : 'Places without highlighted reasons'}>
+        <ul className="analysis-list analysis-omitted" aria-label={ai ? t('highlights.omittedAiAria') : t('highlights.omittedAria')}>
           {model.omitted.map((option) => (
             <li key={option.siteId}>
               {option.rank !== null ? `#${option.rank} · ` : ''}{option.name}{option.role === 'reference' ? ' · REF' : ''} · {option.statusLabel}
-              <span className="analysis-muted"> — no highlighted reasons{ai ? ' from the AI' : ''}</span>
+              <span className="analysis-muted"> — {ai ? t('highlights.omittedAi') : t('highlights.omitted')}</span>
             </li>
           ))}
         </ul>
       )}
       {model.verifications.length > 0 && (
         <details className="analysis-details analysis-checks">
-          <summary>{ai ? 'Checks in the order the AI suggests' : 'Field checks'} · {model.verifications.length}</summary>
+          <summary>{ai ? t('highlights.checksAi') : t('highlights.checks')} · {model.verifications.length}</summary>
           <ol className="analysis-list">{model.verifications.map((item) => <li key={item.id}>{item.text}</li>)}</ol>
         </details>
       )}
@@ -310,40 +308,43 @@ function AiControls() {
   const geology = useComposer((state) => state.geology)
   const useGeology = useComposer((state) => state.useGeology)
   const optId = useId()
+  const locale = useLocale()
+  const t = useT(tReading)
   if (outcome !== 'evaluated' || !explain) return null
   const pending = explain.status === 'pending'
   const withGeology = geology.available && useGeology
   return (
     <div className="analysis-ai">
-      <p className="analysis-muted">{withGeology ? AI_SEND_NOTICE_GEOLOGY : AI_SEND_NOTICE} The AI only highlights reasons already calculated: it does not change statuses, values or exclusions.</p>
+      <p className="analysis-muted">{withGeology ? t('ai.sendNoticeGeology') : t('ai.sendNotice')} {t('ai.onlyHighlights')}</p>
       {geology.available ? (
         <label className="analysis-geo-opt" htmlFor={optId}>
           <input id={optId} type="checkbox" checked={useGeology} disabled={pending} onChange={(event) => setUseGeology(event.target.checked)} />
-          <span>{GEOLOGY_OPT_LABEL}</span>
+          <span>{t('ai.geologyOption')}</span>
         </label>
       ) : (
-        <p className="analysis-muted">{geologyUnavailableNotice(geology.unavailableReason)}</p>
+        <p className="analysis-muted">{geologyUnavailableNotice(geology.unavailableReason, locale)}</p>
       )}
       {pending ? (
         <p className="analysis-writing">
-          <OrbitLoader active={phase === 'analysis'} label="Highlighting reasons…" placement="inline" />{' '}
-          <button type="button" className="analysis-link" onClick={() => withController((mission) => mission.cancelExplain())}>Cancel</button>
+          <OrbitLoader active={phase === 'analysis'} label={t('ai.highlighting')} placement="inline" />{' '}
+          <button type="button" className="analysis-link" onClick={() => withController((mission) => mission.cancelExplain())}>{t('ai.cancel')}</button>
         </p>
       ) : (
         <button type="button" className="analysis-ai-button" onClick={() => withController((mission) => mission.runExplain())}>
-          <span aria-hidden="true">{GLYPH.ai} </span>{explain.status === 'done' ? 'Ask the AI for another selection' : 'Highlight reasons with AI'}
+          <span aria-hidden="true">{GLYPH.ai} </span>{explain.status === 'done' ? t('ai.highlightAgain') : t('ai.highlight')}
         </button>
       )}
-      {withGeology && <p className="analysis-muted">{GEOLOGY_WHERE}</p>}
+      {withGeology && <p className="analysis-muted">{t('ai.geologyWhere')}</p>}
       <div aria-live="polite">
-        {explain.status === 'unavailable' && <p className="analysis-notice">{explain.message} The deterministic template is still the Reading.</p>}
+        {explain.status === 'unavailable' && <p className="analysis-notice">{t('ai.unavailableSuffix', { message: explain.message === null ? '' : displayMissionMessage(explain.message, locale) })}</p>}
         {explain.status === 'error' && (
-          <p className="analysis-notice">{explain.message?.includes('does not belong to the current calculation') ? STALE_AI_MESSAGE : `${explain.message ?? ''} The deterministic template is kept.`}</p>
+          // The check runs on the canonical (English) message kept in the planner state, whatever the language shown.
+          <p className="analysis-notice">{explain.message?.includes('does not belong to the current calculation') ? t('ai.stale') : t('ai.errorSuffix', { message: explain.message === null ? '' : displayMissionMessage(explain.message, locale) })}</p>
         )}
         {explain.status === 'error' && explain.geologyFailed && (
           <p className="analysis-notice">
-            {GEOLOGY_RETRY_NOTICE}{' '}
-            <button type="button" className="analysis-link" onClick={() => withController((mission) => mission.runExplain(false))}>{GEOLOGY_RETRY_LABEL}</button>
+            {t('ai.geologyRetryNotice')}{' '}
+            <button type="button" className="analysis-link" onClick={() => withController((mission) => mission.runExplain(false))}>{t('ai.geologyRetry')}</button>
           </p>
         )}
       </div>
@@ -363,6 +364,8 @@ export default function ReadingView({ data, placement }: ReadingPanelProps) {
   const provenance = useMission((state) => state.explanationProvenance)
   const snapshot = data.snapshot
   const mission = mode === 'mision' && evaluation !== null && explanation !== null
+  const locale = useLocale()
+  const t = useT(tReading)
 
   const facts = useMemo(() => {
     if (!snapshot) return null
@@ -376,44 +379,45 @@ export default function ReadingView({ data, placement }: ReadingPanelProps) {
       .map((site) => ({ siteId: site.site_id, baseScore: site.similarity, result: sensitivity.get(site.site_id) ?? null }))
     const robustness = sensitivity.size > 0 ? summarizeRobustness(rows) : null
     const scope = mission ? evaluation.options.map((option) => option.site_id) : null
-    return buildFactsLayer({ base: snapshot.profile, candidates: snapshot.candidates, views, robustness, onlySiteIds: scope })
-  }, [snapshot, mission, evaluation])
+    return buildFactsLayer({ base: snapshot.profile, candidates: snapshot.candidates, views, robustness, onlySiteIds: scope, locale })
+    // `locale`: the metric views and the facts are formatted in the interface language.
+  }, [snapshot, mission, evaluation, locale])
 
-  const model = useMemo(() => (mission ? explanationToReading(explanation, evaluation, revision, provenance) : null), [mission, explanation, evaluation, revision, provenance])
+  const model = useMemo(() => (mission ? explanationToReading(explanation, evaluation, revision, provenance, locale) : null), [mission, explanation, evaluation, revision, provenance, locale])
 
   if (!snapshot || !facts) {
-    return <p className="analysis-pending-line" aria-busy="true">Waiting for the validated snapshot…</p>
+    return <p className="analysis-pending-line" aria-busy="true">{t('view.waitingSnapshot')}</p>
   }
   const focusId = selection?.kind === 'evaluated' ? selection.siteId : null
   return (
     <section className="analysis" data-placement={placement} aria-labelledby={`${prefix}-title`} data-busy={mission && stale ? '' : undefined} aria-busy={mission && stale}>
       <header className="analysis-head">
         {/* tabIndex -1: focus target of "Go to the Reading" (M11). */}
-        <h2 id={`${prefix}-title`} tabIndex={-1}>{model ? 'Reading of your mission' : 'Deterministic reading'}</h2>
+        <h2 id={`${prefix}-title`} tabIndex={-1}>{model ? t('view.titleMission') : t('view.titleDeterministic')}</h2>
       </header>
       {model ? (
         <>
-          {stale && <p className="analysis-notice">You edited the test: this Reading belongs to the previous evaluation until you confirm and evaluate again.</p>}
+          {stale && <p className="analysis-notice">{t('view.stale')}</p>}
           <ResultLayer model={model.result} />
           <AiControls />
           <HighlightsLayer model={model.highlights} />
-          <FactsSection facts={facts} focusId={focusId} label="Snapshot facts · evaluated sites · no AI" />
+          <FactsSection facts={facts} focusId={focusId} label={t('view.factsMission')} />
         </>
       ) : (
         <>
           <p className="analysis-meta">
-            Snapshot facts {snapshot.manifest.snapshot_version} · base profile {snapshot.profile.version}
-            {snapshot.profile.status === 'needs_calibration' && <span className="analysis-muted"> · not calibrated (needs_calibration)</span>}
+            {t('view.snapshotMeta', { snapshot: snapshot.manifest.snapshot_version, profile: snapshot.profile.version })}
+            {snapshot.profile.status === 'needs_calibration' && <span className="analysis-muted">{t('view.uncalibrated')}</span>}
           </p>
           {mode === 'mision' && (
-            <p className="analysis-notice">No evaluation yet: define and confirm the requirements in “Your mission”. The AI is only used if you ask for it, after evaluating.</p>
+            <p className="analysis-notice">{t('view.noEvaluation')}</p>
           )}
-          <FactsSection facts={facts} focusId={focusId} label="Deterministic reading · no AI" />
+          <FactsSection facts={facts} focusId={focusId} label={t('view.factsExplore')} />
         </>
       )}
       <footer className="analysis-foot">
         <p className="analysis-foot-note">
-          Similarity, confidence and feasibility are kept separate. {model ? `“${MISSION_STATUS_LABEL.priorizado_para_reconocimiento}”` : 'More similarity'} does not mean approved: territorial feasibility is pending.
+          {t('view.footer', { subject: model ? t('view.footerMission', { status: tMission.in(locale)('status.priorizado_para_reconocimiento') }) : t('view.footerExplore') })}
         </p>
       </footer>
     </section>

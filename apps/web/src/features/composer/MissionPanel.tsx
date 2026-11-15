@@ -12,33 +12,32 @@
  */
 import { useMemo, useSyncExternalStore } from 'react'
 import { PlannerView } from '../../components/planner/PlannerView'
+import { getLocale, useLocale, useT, type Locale } from '../../i18n'
+import { tComposer } from '../../i18n/messages/composer'
+import { tPlanner } from '../../i18n/messages/planner'
+import { displayMissionMessage } from '../../mission/messages'
 import type { EvidenceBundle } from '../../mission/types'
 import { GLYPH } from '../../shell/public'
 import { useMission, type MissionSource } from '../../state/mission'
 import { uiActions } from '../../state/ui'
 import { useComposer, type ComposerState } from './composerStore'
-import { formatWhen } from './history'
+import { entryLabel, formatWhen } from './history'
 import { missionController, type MissionController } from './missionController'
 import { MISSION_PANEL_ID, type MissionPanelProps } from './panel'
 import { usePrintReady } from './printState'
 import './mission.css'
 
-const SOURCE_LABEL: Readonly<Record<MissionSource, string>> = {
-  anthropic: 'Requirements proposed with AI · unconfirmed until you confirm',
-  example: 'Editable example · not a recommendation',
-  manual: 'Requirements written by you',
-}
-
 /** Provenance label: with the AI's proposal, it says whether you have already confirmed it. */
-export function sourceLabel(source: MissionSource, confirmed: boolean): string {
-  return source === 'anthropic' && confirmed ? 'Requirements proposed with AI · confirmed by you' : SOURCE_LABEL[source]
+export function sourceLabel(source: MissionSource, confirmed: boolean, locale: Locale = getLocale()): string {
+  const t = tPlanner.in(locale)
+  return source === 'anthropic' && confirmed ? t('source.anthropicConfirmed') : t(`source.${source}`)
 }
 
 /**
  * "Clear all" in the integrated interface: here there IS a local history (the evaluated tests),
- * unlike the team's panel, which stores nothing in the browser.
+ * unlike the team's panel, which stores nothing in the browser. English; the interface shows `card.resetHint`.
  */
-export const RESET_HINT = 'Clears the current test. Tests already evaluated stay in this browser’s history: delete them in “History” › “Clear history”.'
+export const RESET_HINT = tPlanner.in('en')('panel.resetHint')
 
 /** Shared planner with the same shape as the team's `usePlanner`. */
 function useSharedPlanner(controller: MissionController) {
@@ -56,31 +55,33 @@ function useSharedPlanner(controller: MissionController) {
 function HistoryBlock({ controller }: { controller: MissionController }) {
   const history = useComposer((state) => state.history)
   const undo = useComposer((state) => state.undo)
+  const locale = useLocale()
+  const t = useT(tPlanner)
   if (history.length === 0 && undo.length < 2) return null
   return (
     <div className="mission-extras">
       {undo.length >= 2 && (
         <button type="button" className="composer-btn" onClick={() => controller.undo()}>
-          Undo · back to the previous test
+          {t('history.undo')}
         </button>
       )}
       {history.length > 0 && (
         <details className="composer-details">
-          <summary>History · {history.length}</summary>
+          <summary>{t('history.summary', { count: history.length })}</summary>
           <ul className="composer-history">
             {history.map((entry) => (
               <li key={entry.id}>
                 <button type="button" className="composer-history-item" onClick={() => controller.restore(entry.id)}>
-                  <span>{entry.brief.trim() || 'Test without text'}</span>
-                  <small>{entry.label} · {formatWhen(entry.at)}</small>
+                  <span>{entry.brief.trim() || t('history.untitled')}</span>
+                  <small>{entryLabel(entry.requirements, entry.scope, locale)} · {formatWhen(entry.at, Date.now(), locale)}</small>
                 </button>
               </li>
             ))}
           </ul>
           <button type="button" className="composer-btn composer-btn-quiet" onClick={() => controller.clearHistory()}>
-            Clear history
+            {t('history.clear')}
           </button>
-          <p className="composer-card-note">Only in this browser. The text, scope and requirements you wrote are saved; when restored, they are confirmed and evaluated again.</p>
+          <p className="composer-card-note">{t('history.note')}</p>
         </details>
       )}
     </div>
@@ -92,6 +93,8 @@ export function MissionPanel({ data, placement, promise }: MissionPanelProps) {
   const source = useMission((state) => state.source)
   const notice = useComposer((state) => state.notice)
   const stepRequest = useComposer((state) => state.stepRequest)
+  const t = useT(tComposer)
+  const tp = useT(tPlanner)
   const titleId = `composer-${placement}-title`
   const bundle = useMemo<EvidenceBundle | null>(
     () => (snapshot ? { candidates: snapshot.candidates, manifest: snapshot.manifest, profile: snapshot.profile } : null),
@@ -101,9 +104,9 @@ export function MissionPanel({ data, placement, promise }: MissionPanelProps) {
   if (!snapshot || !bundle) {
     return (
       <section className="composer-card" data-placement={placement} aria-labelledby={titleId}>
-        <h2 id={titleId} className="composer-card-title">Your mission</h2>
+        <h2 id={titleId} className="composer-card-title">{t('profile.title')}</h2>
         <p className="composer-card-note">
-          {data.status === 'error' ? <><span aria-hidden="true">{GLYPH.fail}</span> No validated snapshot: the mission cannot be evaluated.</> : 'Waiting for the validated snapshot…'}
+          {data.status === 'error' ? <><span aria-hidden="true">{GLYPH.fail}</span> {tp('panel.noSnapshot')}</> : t('status.waitingSnapshot')}
         </p>
       </section>
     )
@@ -132,6 +135,9 @@ function MissionPanelBody({
 }) {
   const api = useSharedPlanner(controller)
   const printReady = usePrintReady()
+  const locale = useLocale()
+  const t = useT(tComposer)
+  const tp = useT(tPlanner)
   const snapshot = data.snapshot!
   return (
     <section
@@ -142,23 +148,23 @@ function MissionPanelBody({
       tabIndex={placement === 'panel' ? -1 : undefined}
     >
       <header className="composer-card-head">
-        <h2 id={titleId} className="composer-card-title">Your mission</h2>
+        <h2 id={titleId} className="composer-card-title">{t('profile.title')}</h2>
         {source && (
           <span className="composer-card-source" data-source={source}>
             {source === 'anthropic' && <span aria-hidden="true">{GLYPH.ai} </span>}
-            {sourceLabel(source, api.state.confirmed)}
+            {sourceLabel(source, api.state.confirmed, locale)}
           </span>
         )}
       </header>
       {promise && api.state.journey === null && <p className="composer-card-lead">{promise}</p>}
-      {notice && <p className="composer-card-note" role="status">{notice}</p>}
+      {notice && <p className="composer-card-note" role="status">{displayMissionMessage(notice, locale)}</p>}
       <PlannerView
         snapshot={snapshot}
         api={api}
         intent={null}
         compact
         stepRequest={stepRequest}
-        resetHint={RESET_HINT}
+        resetHint={tp('panel.resetHint')}
         footer={<HistoryBlock controller={controller} />}
         onOpenReading={openReading}
         printReady={printReady}

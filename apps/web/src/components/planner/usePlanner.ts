@@ -7,6 +7,8 @@ import { buildGeologyCatalog, deterministicGeologyRefs, type GeologyCatalog } fr
 import { GeologyExportError, buildMissionGeologyExport } from '../../../../../shared/geology/exportWrapper'
 import type { GeologyContextState } from '../../domain/geologyContext'
 import { GEOLOGY_ERROR_CODES, requestDraft, requestExplanation } from '../../mission/aiClient'
+import { canonicalMessage } from '../../mission/messages'
+import { composerNotice } from '../../mission/messageDisplay'
 
 const newRequestId = (): string => `req-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`
 
@@ -40,7 +42,8 @@ export interface PlannerApi {
   exportError: string | null
 }
 
-export function usePlanner(bundle: EvidenceBundle, geology: GeologyContextState = { status: 'unavailable', reason: 'No geology context.' }): PlannerApi {
+// Errors and reasons are canonical English (ADR-017); the views show them with displayMissionMessage.
+export function usePlanner(bundle: EvidenceBundle, geology: GeologyContextState = { status: 'unavailable', reason: canonicalMessage('msg.noGeology') }): PlannerApi {
   const [state, dispatch] = useReducer(plannerReducer, undefined, initialPlannerState)
   const latest = useRef(state)
   latest.current = state
@@ -81,7 +84,7 @@ export function usePlanner(bundle: EvidenceBundle, geology: GeologyContextState 
       setEvaluationError(null)
       return true
     } catch (error) {
-      setEvaluationError(error instanceof MissionInputError ? error.issues.join(' · ') : 'The request could not be evaluated.')
+      setEvaluationError(error instanceof MissionInputError ? error.issues.join(' · ') : canonicalMessage('msg.evaluateFailed'))
       return false
     }
   }, [bundle])
@@ -133,7 +136,7 @@ export function usePlanner(bundle: EvidenceBundle, geology: GeologyContextState 
       URL.revokeObjectURL(url)
       setExportError(null)
     } catch (error) {
-      setExportError(error instanceof MissionExportError ? error.message : 'The export could not be generated.')
+      setExportError(error instanceof MissionExportError ? error.message : canonicalMessage('msg.exportFailed'))
     }
   }, [bundle])
 
@@ -161,12 +164,12 @@ export function usePlanner(bundle: EvidenceBundle, geology: GeologyContextState 
       URL.revokeObjectURL(url)
       setGeologyExportError(null)
     } catch (error) {
-      setGeologyExportError(error instanceof MissionExportError || error instanceof GeologyExportError ? error.message : 'The export with geology could not be generated.')
+      setGeologyExportError(error instanceof MissionExportError || error instanceof GeologyExportError ? error.message : canonicalMessage('msg.exportGeologyFailed'))
     }
   }, [bundle, context, contextFp])
 
   const geologyUi: GeologyUi = {
-    available: !!context, unavailableReason: geology.status === 'unavailable' ? geology.reason : geology.status === 'loading' ? 'The geology context is still loading.' : null,
+    available: !!context, unavailableReason: geology.status === 'unavailable' ? geology.reason : geology.status === 'loading' ? composerNotice('notice.geologyLoading') : null,
     useGeology, setUseGeology, catalog, onExportGeology: exportGeologyJson, exportError: geologyExportError,
   }
 
