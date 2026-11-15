@@ -19,10 +19,22 @@ import { GLYPH } from '../../shell/public'
 import { useMission } from '../../state/mission'
 import { uiActions, useUi } from '../../state/ui'
 import { OrbitLoader } from '../boot'
+import { setUseGeology, useComposer } from '../composer/composerStore'
 import { withController } from '../composer/runLoader'
 import { buildMetricViews } from '../metrics/buildMetricViews'
 import type { MetricView } from '../metrics'
-import { AI_SEND_NOTICE, explanationToReading, STALE_AI_MESSAGE, type ReadingModel } from './explanationToReading'
+import {
+  AI_SEND_NOTICE,
+  AI_SEND_NOTICE_GEOLOGY,
+  explanationToReading,
+  GEOLOGY_OPT_LABEL,
+  GEOLOGY_RETRY_LABEL,
+  GEOLOGY_RETRY_NOTICE,
+  GEOLOGY_WHERE,
+  geologyUnavailableNotice,
+  STALE_AI_MESSAGE,
+  type ReadingModel,
+} from './explanationToReading'
 import { buildFactsLayer } from './facts'
 import type { ReadingPanelProps } from './index'
 import { summarizeRobustness } from './robustness'
@@ -286,15 +298,32 @@ function HighlightsLayer({ model }: { model: ReadingModel['highlights'] }) {
   )
 }
 
-/** «✦ Destacar motivos con IA»: solo con `outcome === 'evaluated'`, con el aviso literal de envío. */
+/**
+ * «✦ Destacar motivos con IA»: solo con `outcome === 'evaluated'`, con el aviso literal de envío. Con el
+ * contexto geológico oficial, la casilla del canal geológico del equipo (M10) decide si la misma llamada
+ * pide también la orientación geológica; el aviso cambia con ella (uno solo, condicional).
+ */
 function AiControls() {
   const explain = useMission((state) => state.planner?.explain ?? null)
   const outcome = useMission((state) => state.planner?.result?.outcome ?? null)
   const phase = useUi((state) => state.missionPhase)
+  const geology = useComposer((state) => state.geology)
+  const useGeology = useComposer((state) => state.useGeology)
+  const optId = useId()
   if (outcome !== 'evaluated' || !explain) return null
   const pending = explain.status === 'pending'
+  const withGeology = geology.available && useGeology
   return (
     <div className="analysis-ai">
+      <p className="analysis-muted">{withGeology ? AI_SEND_NOTICE_GEOLOGY : AI_SEND_NOTICE} La IA solo destaca motivos ya calculados: no cambia estados, valores ni exclusiones.</p>
+      {geology.available ? (
+        <label className="analysis-geo-opt" htmlFor={optId}>
+          <input id={optId} type="checkbox" checked={useGeology} disabled={pending} onChange={(event) => setUseGeology(event.target.checked)} />
+          <span>{GEOLOGY_OPT_LABEL}</span>
+        </label>
+      ) : (
+        <p className="analysis-muted">{geologyUnavailableNotice(geology.unavailableReason)}</p>
+      )}
       {pending ? (
         <p className="analysis-writing">
           <OrbitLoader active={phase === 'analysis'} label="Destacando motivos…" placement="inline" />{' '}
@@ -305,11 +334,17 @@ function AiControls() {
           <span aria-hidden="true">{GLYPH.ai} </span>{explain.status === 'done' ? 'Pedir otra selección a la IA' : 'Destacar motivos con IA'}
         </button>
       )}
-      <p className="analysis-muted">{AI_SEND_NOTICE} La IA solo destaca motivos ya calculados: no cambia estados, valores ni exclusiones.</p>
+      {withGeology && <p className="analysis-muted">{GEOLOGY_WHERE}</p>}
       <div aria-live="polite">
         {explain.status === 'unavailable' && <p className="analysis-notice">{explain.message} La plantilla determinista sigue siendo la Lectura.</p>}
         {explain.status === 'error' && (
           <p className="analysis-notice">{explain.message?.includes('no corresponde') ? STALE_AI_MESSAGE : `${explain.message ?? ''} Se mantiene la plantilla determinista.`}</p>
+        )}
+        {explain.status === 'error' && explain.geologyFailed && (
+          <p className="analysis-notice">
+            {GEOLOGY_RETRY_NOTICE}{' '}
+            <button type="button" className="analysis-link" onClick={() => withController((mission) => mission.runExplain(false))}>{GEOLOGY_RETRY_LABEL}</button>
+          </p>
         )}
       </div>
     </div>

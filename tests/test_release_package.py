@@ -436,3 +436,138 @@ def test_index_may_reference_a_webp_poster_that_exists(dist: Path, tmp_path: Pat
     zip_path, _, _ = run(dist, tmp_path / "out")
     with zipfile.ZipFile(zip_path) as archive:
         assert "assets/globe-poster-abc.webp" in archive.namelist()
+
+
+# --- Paquete geológico opcional (M9, fase B) ------------------------------------------------------------------------
+
+import copy
+import shutil
+
+REPO = Path(__file__).resolve().parents[1]
+REAL_CANDIDATES = REPO / "artifacts" / "science-v3" / "candidate-details.json"
+REAL_GEOLOGY = REPO / "artifacts" / "geology-context-v1" / "index.json"
+needs_geology = pytest.mark.skipif(not REAL_GEOLOGY.exists(), reason="paquete geológico real no generado")
+
+
+@pytest.fixture
+def real_dist(dist: Path) -> Path:
+    """dist con los siete sitios REALES (bytes de candidate-details.json) y datos auxiliares sintéticos."""
+    real_sites = json.loads(REAL_CANDIDATES.read_text("utf-8"))
+    snapshot = real_sites[0]["data_snapshot_version"]
+    shutil.rmtree(dist / release.VISUAL_DIR)
+    (dist / release.VISUAL_DIR).mkdir()
+    (dist / release.CANDIDATES).write_bytes(REAL_CANDIDATES.read_bytes())
+    (dist / release.MANIFEST).write_text(json.dumps({"snapshot_version": snapshot}), encoding="utf-8")
+    images = tuple(f"{release.VISUAL_DIR}/{site['site_id']}.png" for site in real_sites)
+    for name in images:
+        (dist / name).write_bytes(f"FIXTURE DE TEST {name}".encode())
+    write_visual_index(dist, images, snapshot)
+    return dist
+
+
+def add_geology(dist: Path, index: dict | None = None) -> Path:
+    target = dist / release.GEOLOGY_DIR
+    target.mkdir(exist_ok=True)
+    if index is None:
+        shutil.copy(REAL_GEOLOGY, target / "index.json")
+    else:
+        (target / "index.json").write_text(json.dumps(index), encoding="utf-8")
+    return target
+
+
+def test_build_without_geology_still_packages_exactly_as_before(dist: Path, tmp_path: Path):
+    zip_path, _, _ = run(dist, tmp_path / "out")
+    with zipfile.ZipFile(zip_path) as bundle:
+        assert bundle.namelist() == EXPECTED and not any(name.startswith("geology") for name in bundle.namelist())
+
+
+@needs_geology
+def test_valid_geology_package_enters_the_zip_deterministically(real_dist: Path, tmp_path: Path):
+    add_geology(real_dist)
+    first_zip, _, first = run(real_dist, tmp_path / "a")
+    second_zip, _, second = run(real_dist, tmp_path / "b")
+    assert first == second and first_zip.read_bytes() == second_zip.read_bytes()
+    with zipfile.ZipFile(first_zip) as bundle:
+        assert release.GEOLOGY_INDEX in bundle.namelist()
+        assert bundle.read(release.GEOLOGY_INDEX) == REAL_GEOLOGY.read_bytes()
+        assert bundle.namelist() == sorted(bundle.namelist())
+        assert not any("data/raw" in name or "research" in name or "acquisition" in name for name in bundle.namelist())
+
+
+@needs_geology
+def test_invalid_geology_package_stops_packaging_and_keeps_previous_delivery(real_dist: Path, tmp_path: Path):
+    out = tmp_path / "out"
+    good_zip, good_sum, _ = run(real_dist, out)  # entrega previa válida (sin geología)
+    previous = (good_zip.read_bytes(), good_sum.read_bytes())
+    real = json.loads(REAL_GEOLOGY.read_text("utf-8"))
+    broken_cases = {}
+    for name, mutate in {
+        "fracciones": lambda d: d["sites"][0]["area_fractions"].update(unmapped=0.3),
+        "geometría 1e-9": lambda d: d["sites"][0]["geometry"]["coordinates"][0][0].__setitem__(0, d["sites"][0]["geometry"]["coordinates"][0][0][0] + 1e-9),
+        "otro hash de candidatos": lambda d: d.update(candidates_sha256="0" * 64),
+        "AR cita otro sector": lambda d: d["sites"][3].update(request_ids=d["sites"][5]["request_ids"]),
+        "host ajeno": lambda d: d["sources"][0]["requests"][0].update(url="https://example.com/x"),
+        "estado inflado": lambda d: d["sites"][0].update(availability="available"),
+    }.items():
+        broken = copy.deepcopy(real)
+        mutate(broken)
+        broken_cases[name] = broken
+    for name, broken in broken_cases.items():
+        add_geology(real_dist, broken)
+        with pytest.raises(release.ReleaseError, match="no es válido"):
+            run(real_dist, out)
+        assert (good_zip.read_bytes(), good_sum.read_bytes()) == previous, name
+
+
+@needs_geology
+def test_geology_package_must_match_the_candidates_bytes_of_this_build(real_dist: Path, tmp_path: Path):
+    add_geology(real_dist)
+    candidates = json.loads((real_dist / release.CANDIDATES).read_text("utf-8"))
+    candidates[0]["area_km2"] += 1  # mismos sitios y geometrías, otros bytes
+    (real_dist / release.CANDIDATES).write_text(json.dumps(candidates), encoding="utf-8")
+    with pytest.raises(release.ReleaseError, match="candidates_sha256"):
+        run(real_dist, tmp_path / "out")
+
+
+@needs_geology
+@pytest.mark.parametrize("extra", ["acquisition.json", "ckan-package_show.json", "notes.txt", "otro.json"])
+def test_geology_folder_admits_only_the_index(real_dist: Path, tmp_path: Path, extra: str):
+    add_geology(real_dist)
+    (real_dist / release.GEOLOGY_DIR / extra).write_text("{}")
+    with pytest.raises(release.ReleaseError, match="Archivo inesperado"):
+        run(real_dist, tmp_path / "out")
+
+
+def test_geology_folder_without_index_or_with_symlink_is_rejected(real_dist: Path, tmp_path: Path):
+    (real_dist / release.GEOLOGY_DIR).mkdir()
+    with pytest.raises(release.ReleaseError, match="index.json"):
+        run(real_dist, tmp_path / "a")
+    (real_dist / release.GEOLOGY_DIR).rmdir()
+    (tmp_path / "elsewhere").mkdir()
+    (tmp_path / "elsewhere" / "index.json").write_text("{}")
+    (real_dist / release.GEOLOGY_DIR).symlink_to(tmp_path / "elsewhere")
+    with pytest.raises(release.ReleaseError, match="simbólico"):
+        run(real_dist, tmp_path / "b")
+
+
+@needs_geology
+def test_geology_index_that_is_not_json_is_rejected(real_dist: Path, tmp_path: Path):
+    target = add_geology(real_dist)
+    (target / "index.json").write_text("{no es json")
+    with pytest.raises(release.ReleaseError, match="JSON"):
+        run(real_dist, tmp_path / "out")
+
+
+def test_packager_loads_geology_validator_lazily_without_geoprocessing_dependencies():
+    code = (
+        "import importlib.util, sys;"
+        f"spec = importlib.util.spec_from_file_location('package_release', {str(SCRIPT)!r});"
+        "m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m);"
+        "print('pipelines.geology_contract' in sys.modules);"  # aún no: solo se importa si hay paquete
+        "import pipelines.geology_contract;"
+        "print(sorted(x for x in ('shapely', 'pyproj', 'numpy', 'requests') if x in sys.modules))"
+    )
+    import subprocess
+    import sys
+    result = subprocess.run([sys.executable, "-c", code], cwd=REPO, capture_output=True, text=True, check=True)
+    assert result.stdout.split("\n")[:2] == ["False", "[]"]

@@ -1,126 +1,90 @@
 # Decisión directa del usuario — integración del rediseño con dev (2026-11-14)
 
-- **Pedido:** el usuario pidió directamente a Claude Code «fusiona en dev y haz push» y decidió integrar: la interfaz es la del rediseño (`feature/mision-redesign`, ADR-010) y por dentro se usan el planificador determinista, la IA de Anthropic y los datos v3 del equipo (ADR-008, ADR-009). Registrado en ADR-013 y `docs/INTEGRATION_PLAN.md`.
-- **Alcance ejecutado en `feature/mision-redesign`:** fusión sin squash de `origin/dev` (`92392f1`), adaptación de las features, retiro del motor propio y del canal lktron, renumeración de ADR (010–013) y documentación. Sin cambios en `shared/`, `server/`, `api/`, artefactos científicos, contratos M8 ni CI.
-- **Pendiente:** el push a `dev` es un paso aparte autorizado por el usuario; la aceptación de ADR-010 y ADR-013 corresponde al equipo humano. El encargo M8 de Codex de abajo sigue aceptado y no se modifica.
+- **Pedido:** el usuario pidió directamente a Claude Code «fusiona en dev y haz push» y decidió integrar: la interfaz es la del rediseño (`feature/mision-redesign`, ADR-010, hoy ADR-014) y por dentro se usan el planificador determinista, la IA de Anthropic y los datos v3 del equipo (ADR-008, ADR-009). Registrado en ADR-013 y `docs/INTEGRATION_PLAN.md`.
+- **Alcance ejecutado en `feature/mision-redesign`:** fusión sin squash de `origin/dev` (`92392f1`), adaptación de las features, retiro del motor propio y del canal lktron, renumeración de ADR (entonces 010–013; hoy 012–015) y documentación. Sin cambios en `shared/`, `server/`, `api/`, artefactos científicos, contratos M8 ni CI.
+- **Pendiente:** el push a `dev` es un paso aparte autorizado por el usuario; la aceptación de ADR-014 (antes ADR-010) y ADR-013 corresponde al equipo humano. El encargo M10 de Codex de abajo sigue aceptado y no se modifica.
+- **Fusión de M9/M10 (2026-11-15):** `origin/dev` `d2252b6` fusionado sin squash en `feature/mision-redesign`. La UI de M9/M10 se portó a la interfaz integrada: pestaña «Geología» de la ficha, orientación geológica en «Tu misión», y casilla y reintento en la Lectura. Todo lo del equipo queda intacto. Los ADR propios 010/011 pasan a 014/015. Detalle en `docs/INTEGRATION_PLAN.md` §11 y `project/STATUS.md`.
 
 ---
 
-# Encargo vigente — definir una prueba o evaluar un sector
+# M10 — Recomendación de prueba con evidencia geológica e IA
 
-## Estado
-
-- **Task ID:** M8-MISSION-RECOMMENDATION
+- **Task ID:** M10-GEOLOGY-AI
 - **Owner:** Codex
-- **Status:** accepted
-- **Entrega:** publicada en dev y ambas operaciones de Anthropic verificadas por Codex; ver `docs/DEV_AI_VERIFICATION.md`. Código desplegado `9060970`; Claude espera una nueva asignación.
+- **Status:** accepted — completado, publicado y verificado en dev por Codex
 - **Branch:** dev
-- **Base commit:** 4d197e17893dc4eef2dc5c9771c79813c909b657
-- **Dirección, supervisión y aceptación:** Codex. Dan autorizó esta implementación el 2026-11-14 y eligió Anthropic para la IA.
-- M7 aceptado, archivado en project/tasks/M7_GLOBAL_DISCOVERY.md. La versión integrada tiene globo, MapLibre, liquid glass, series y ciencia v3: conservar el trabajo del equipo.
-- La implementación de Claude no autorizaba publicación. Tras la aceptación, Dan autorizó a Codex el 2026-11-14: «súbelo a dev y verifica que la IA funcione ahí también». Esto habilita commit/push, configuración de Anthropic para dev y verificación remota; no promoción a main.
+- **Base commit:** bdbdab0603be6745993e1689f6dcec960d766c9e
+- **Dirección, revisión y aceptación:** Codex. Dan autorizó: «hagamos que la IA use estos datos geológicos para mejorar las recomendaciones. Dale la siguiente tarea a Claude y tú supervisa y revisa todo antes de subirlo a dev». Codex publicará dev después de aceptar. Claude no hace commit/push/deploy. Main intacto.
+
+## Checkpoint inicial obligatorio
+
+Leer AGENTS, CLAUDE, STATUS, último CHANGELOG, ADR-009/010, GEOLOGY_CONTEXT, núcleo M8 IA/exportación/UI y M9. Confirmar rama/HEAD y cambios de asignación de Codex. **Solo lectura:** devolver plan concreto de archivos, contrato de selección geológica, validación y fingerprint, carga opcional servidor/Vercel, migración compatible de exportación y pruebas. Esperar aprobación de Codex antes de editar. Sin subagentes. Trabajar por un corte vertical acotado.
 
 ## Resultado de producto
 
-Usuario: responsable de campaña de robótica planetaria en laboratorio, universidad o empresa. Decisión: «Para este ensayo, ¿qué sector merece reconocimiento, por qué, qué lo descarta y qué falta medir?».
+Tras definir y confirmar una prueba o elegir uno de los sectores evaluados, la explicación de IA usa las unidades geológicas oficiales de M9 para destacar evidencia relevante para ese ensayo y orientar reconocimiento/validaciones de campo. La pantalla muestra qué unidad/documento respalda cada sugerencia, qué limitaciones hay y qué falta verificar. La IA debe recibir realmente el objetivo confirmado y contexto geológico, y su selección debe cambiar razonablemente entre objetivos diferentes. No basta adjuntar el JSON ni crear un bloque genérico igual para todo.
 
-Entregar dos recorridos completos, con datos reales y asistencia opcional Anthropic:
+Mantener separado el resultado determinista de requisitos y la orientación geológica. No cambiar rankings, score, confianza, pesos, criterios medidos ni perfiles: cartografía regional no prueba tracción, mecánica de suelos, equivalencia marciana, seguridad ni permisos. Cobertura no es aptitud/precisión; ausencia no significa inexistencia de geología. Un sector descartado no se rehabilita por su geología. Yungay sigue REF. Geología de ventana completa no se hereda a un punto/subpolígono u otra geometría.
 
-1. **Definir una prueba:** describir objetivo, revisar requisitos estructurados editables, confirmarlos, comparar opciones y exportar recomendación reproducible.
-2. **Evaluar un sector:** elegir una de las siete áreas con evidencia o introducir coordenadas/bbox; comprobar qué geometría tiene datos, aplicar la prueba y entregar evaluación o informe explícito de evidencia insuficiente.
+## Alcance autorizado
 
-Primer perfil científico soportado: rover marciano/Jezero. Fuera de cobertura debe completarse el diagnóstico y solicitud de datos; no fabricar una recomendación positiva ni anunciar búsqueda global en vivo.
+1. Reutilizar artefacto geológico real M9 sin modificarlo. Factores: unidades originales, descripción y código, fracciones sin doble conteo, huecos/ambigüedad/descripción ausente, autoridad, escala, fecha mapa desconocida, fuente y límites. Se permite refactor mínimo de validador/tipos puros M9 a shared/geology con reexport web; servidor NO importa apps/web (evitar ERR_REQUIRE_ESM M8). Validación única estricta, no copia debilitada.
+2. Servidor carga paquete oficial validado, ligándolo a candidatos/snapshot exactos. Nunca confiar en geodatos o IDs libres enviados por cliente. Carga opcional ausente/inválida conserva M8; tratar presencia/versión divergente con error controlado de contexto obsoleto. Proponer y verificar inclusión real del archivo en función Vercel, arranque empaquetado y ausencia opcional; cambios acotados vercel.json/script de startup autorizados si necesarios. No cambiar secretos, autenticación, proveedores ni workflow sin necesidad demostrada.
+3. Extender explicación de Anthropic con esquema cerrado de referencias válidas por sector, unidad/fuente y propósito de comprobación. Preferir selección de hechos y preguntas editoriales citadas; no permitir prosa factual libre que invente litología. La IA puede priorizar orientaciones según brief; las inferencias/preguntas deben estar rotuladas como tales, no mediciones. Incluir unidades genuinas y contexto suficiente, no solo IDs. Datos y brief tratados como datos, no instrucciones. Validar pertenencia, unicidad, límites, correspondencia con selección/scope y estado. No ofrecer compatibilidad geológica calibrada ni introducir requisitos medidos ficticios.
+4. Vincular respuesta a fingerprint de request/evaluation y paquete geológico exacto. Rechazar selección de otra versión, otro sector/unidad/fuente, respuestas tardías tras editar/cambiar scope o cambiar contexto. Preservar cancelación y estados M8. Opcional sin datos/IA: contexto factual y preguntas deterministas con etiqueta honesta, flujo manual intacto. IA no inventa unidades en sector sin cobertura ni asegura detalles dentro de huecos/solapamientos.
+5. UI integrada en planificador/resultados, español claro, contraste/tamaño >=12px en contenido nuevo, móvil390px/teclado. Resumen útil de orientación geológica para la prueba; detalle/fuentes expandibles si voluminosos. Límites esenciales/gaps siempre visibles aunque IA los omita. Actualizar texto de qué se envía al proveedor (ahora también objetivo y geología pública). Explicar fuente, escala y relación con prueba sin confundir ranking/aptitud.
+6. Exportación reproducible autodescriptiva con evidencia geológica efectivamente usada, fuentes, limitaciones, selección IA, identidad de contexto y provenance. Proponer evolución explícita/versionada o wrapper compatible: exports M8 1.0 existentes deben seguir validando y reconstruyéndose; no añadir campos silenciosos al contrato viejo. Verificar reconstrucción y rechazo de manipulación/stale. Exportación M9 propia continúa. Paquete estático portable funciona sin servidor, no claves en bundle.
+7. Sin nueva infraestructura/dependencia salvo necesidad justificada en checkpoint, sin nuevos países/datos/mapas/score. No regenerar ciencia/geología/visuales. Baseline protegido /tmp/analogos-m10-baseline-hashes.json (no alterarlo para pasar). M9 historial en project/tasks/M9_GEOLOGY_CONTEXT.md. Se autorizan modificaciones al núcleo IA/shared/contratos/UI necesarias para M10; evaluación/geometry/catalog protegidos.
 
-## Primer checkpoint obligatorio
+## Aceptación
 
-Leer AGENTS, CLAUDE, STATUS, ADR-001 a 009, PRODUCT_AND_SCIENCE, DATA_AND_SCORING y contratos. Confirmar rama, HEAD y cambios ajenos. Codex verificó base: 177 Python, 69 web y build; hashes en /tmp/analogos-m8-baseline-hashes.json.
+- Tests significativos: evidencia real CL/AR (parcial/0/100), unidad ajena, paquete antiguo/ausente/inválido, fingerprint/edición/respuesta tardía, scope de geometría, prompt injection como dato, no promoción de descartados ni score; selección relacionada con objetivo y citas exactas; fallback sin IA; exports antiguos y nuevos/tamper. Dos pruebas reales opt-in con objetivos contrastantes, sin asumir estabilidad exacta del LLM.
+- source .venv/bin/activate && npm run verify; release:package repetido idéntico; git diff --check; baseline íntegro; función empaquetada compatible. Codex hará revisión independiente, IA real y navegador escritorio/móvil/offline/descarga, después dev.
+- ADR-011 proposed, documentación operación/IA/ciencia/export, project/M10_PROGRESS.md, STATUS/CHANGELOG y comandos reproducibles. No exagerar cobertura ni validación científica.
+- Al entregar: Owner Codex / Status review; informar resultados y brechas reales, no autoaceptar ni publicar. Preservar asignación y documentos de Codex.
 
-**Antes de editar implementación, entregar a Codex un plan compacto: archivos, requisitos/estados, resolución espacial, endpoint y pruebas. Esperar su devolución.** Se permite inspeccionar y preparar el plan/ADR. Sin subagentes ni sesiones paralelas. Mientras Claude implementa, Codex revisa sin editar su alcance.
+## Revisión de checkpoint y autorización de implementación — Codex
 
-## 1. Experiencia
+Plan revisado. Autorizo implementar tras leer los archivos concretos abajo y confirmar git status/HEAD; Bash disponible en esta llamada. Corregir estos puntos del plan:
 
-- Entrada principal «Definir una prueba» / «Evaluar un sector», explicación del problema y ejemplo. Conservar explorador, búsqueda v3, comparación y método.
-- Flujo progresivo accesible en escritorio, móvil y teclado, integrado en diseño existente. No forzar recorrer fichas largas para comenzar.
-- Brief máximo 3000 caracteres, actividad, destino/referencia, requisitos. Un solo perfil realmente soportado, sin perfiles ficticios para llenar selectores.
-- Requisitos medibles disponibles: mediana de pendiente regional (grados), rugosidad mediana (m), relieve (m), fracción no vegetada (% o 0–1 con conversión explícita), área del polígono completo (~km²), países. Cada uno: operador/rango, unidad, imprescindible o preferencia. Mostrar pocos al inicio y más detalle opcional.
-- Máxima pendiente puntual del rover, tamaño de roca, tracción, suelo suelto, carretera, coste, permisos, fecha operativa, lluvia local y cobertura móvil no están medidos. Conservar estos pedidos como no evaluables; no reinterpretarlos silenciosamente como una métrica disponible.
-- Requisito guarda origen usuario/IA, escala y confirmación. Mostrar lo no estructurado del brief como preguntas/pendientes. Usuario confirma/edita antes de evaluar; ninguna restricción oculta o descartada en silencio.
-- Cambiar brief/requisitos/sector invalida resultados previos. Cancelar/ignorar respuestas tardías mediante fingerprint o request ID. No mezclar dos solicitudes.
-- Mantener texto al volver. Sin almacenar briefs en logs/backend. Persistencia local solo si se explica y permite borrar.
+- **Los sectores parciales SÍ tienen unidades conocidas**: no eliminar sus referencias por tener huecos. Mostrar unidades del área cubierta con límites del hueco/solapamiento siempre visibles, sin localizar unidades en el hueco. Si se elige una ventana para un punto/bbox, solo contexto de ventana completa explícitamente rotulado; nunca evidencia atribuida a la geometría pequeña. Sin ventana elegida no emitir unidades.
+- **Propósitos útiles para la prueba**: además de resolver huecos/ambigüedad, incluir preguntas editoriales acotadas de caracterización de material superficial para movilidad (granulometría/compactación/fricción a medir, nunca inferidas), reconocimiento de diversidad litológica para muestreo/instrumentación y comprobación de correspondencia mapa-terreno. La IA debe elegir pares unidad+propósito válidos según objetivo; no basta priorizar huecos idénticos. No clasificar materiales automáticamente por keywords ni introducir nuevas métricas. Propósitos sobre huecos solo se admiten si hay huecos, etc. Hasta3 referencias por sector y12 global, sin obligación de llenar cupo; si necesita más debe justificar. Ningún texto factual libre.
+- Identidad: usar SHA256 del JSON canónico COMPLETO del contexto validado con shared/mission/fingerprint.ts (ya implementado); nombrarlo context_fingerprint, no presentarlo como hash de bytes. Comprobar además el candidates_sha256 de bytes originales en servidor. Identidad vinculada a request/evaluation existentes; no inventar policy_version ausente.
+- **Compatibilidad recomendada**: mantener selección/record/schema/export M8 1.0 intactos, añadir canal geológico opt-in al explain (campo opcional de fingerprint del cliente y resultado geológico separado). UI guarda registro geológico aparte pero de la misma llamada/provenance. Sin opt-in conserva M8. Nuevo wrapper con kind/version propios y mission M8 1.0 embebido + contexto/evidencia/selección geológica y provenance. Constructor/validador de wrapper aparte, aceptación de formatos explícita. No reescribir validadores/exportadores M8 innecesariamente. El wrapper debe ser auditable sin artefactos externos (incluir contexto validado completo o subconjunto validable con identidad de paquete declarada y sin pretender poder verificar hash del resto omitido).
+- Carga opcional: ausente o inválido da estado no disponible para geología, no rompe M8. Si cliente cree tener contexto válido y servidor tiene otro/no tiene, error específico antes de llamar al proveedor y opción de reintentar M8 sin geología, explícita (no ocultar degradación). Cliente ausente puede usar M8 aunque servidor sí tenga datos.
+- includeFiles acotado autorizado; prueba función empaquetada sin claves/red debe EJERCITAR que la geología está incluida y validada, además del GET405/POST503 existente. No basta que el endpoint arranque y nunca lea archivo por no tener clave. Probar ausencia de forma aislada sin dañar bundle/repo.
 
-## 2. Motor verificable
+Rutas confirmadas: docs/decisions/ADR-009-mission-guided-recommendation.md; project/CHANGELOG.md; server/ai/{operations,prompts,facts,handler,nodeAdapter,anthropic,config}.ts; shared/mission/{types,aiSchemas,explanation,exportReport,validate,fingerprint}.ts; apps/web/src/mission/{aiClient,plannerState}.ts; apps/web/src/components/planner/{usePlanner,PlannerPanel,ResultView}.tsx/ts; apps/web/src/App.tsx; apps/web/src/domain/geologyContext.ts; apps/web/src/data/loadGeologyContext.ts; scripts/check-vercel-function.mjs; vercel.json; contracts/mission-{ai,export,request}.schema.json.
 
-- Módulo puro y contratos aditivos de solicitud/evaluación. Ciencia v2/v3 byte a byte intacta; sin modificar pesos, tolerancias, quality ni perfiles científicos.
-- La IA no elige pesos/score/veredicto. Requisitos del usuario son condiciones de su ensayo, no estándares NASA.
-- Requisitos críticos primero: incumplimiento observado => incompatible; faltante/escala inadecuada => evidencia insuficiente. Un score alto no compensa bloqueos ni desconocidos.
-- Entre opciones con críticos evaluables cumplidos, ordenar por preferencias satisfechas y luego similitud v3, desempate estable por ID. Documentar orden. Sin nuevo porcentaje de aptitud. Preferencias desconocidas conservan comparabilidad parcial, no equivalen a cero ni prueban dominancia.
-- Estados: priorizado para reconocimiento, no cumple requisitos, evidencia insuficiente, objetivo no soportado. Factibilidad territorial independiente y pendiente. Es válido no recomendar ninguno.
-- Por opción: requisito, valor/unidad, cumple/no cumple/no evaluable, razón, fuente/evidence_id y escala/periodo; similitud/confianza originales rotuladas. Incluir límites, verificaciones de campo y qué evidencia cambiaría la decisión.
-- Área es extensión del polígono, no hectáreas libres. SCL no prueba tracción/mineralogía. POWER contextual no aprueba lluvia local ni pronósticos.
-- Yungay evaluable como alternativa conocida, rol referencia visible. No modificar ranking M7 ni aplicar su exclusión de antecedentes al problema de seleccionar campaña.
-- Exportación JSON validada con solicitud confirmada, reglas/versiones, snapshot/perfil, geometría pedida vs medida, evaluación, evidencias, límites y provenance IA cuando exista. Informe legible imprimible (CSS print basta).
-
-## 3. Geometría y cobertura
-
-- Seleccionar siete sectores desde lista/mapa/ficha con país y polígono visibles. Coordenadas y bbox como alternativa accesible; dibujo de rectángulo opcional sin librería nueva si no es necesaria.
-- Validar rangos, orden lon/lat, finitud, bbox y tamaño. Punto dentro de área: «hay evidencia de esta ventana, no del punto exacto», y selección explícita de esa ventana antes de evaluarla. Resolver múltiples coincidencias.
-- Subpolígono o cobertura parcial NO heredan métricas agregadas del polígono completo. Informar cobertura/evidencia faltante; ofrecer evaluar la ventana completa solo por acción explícita.
-- Fuera de piloto: sin evidencia suficiente y solicitud exportable con bbox/requisitos/fuentes previstas. Sin vecino más cercano, fake loading ni consultas satelitales simuladas. No adquisiciones nuevas en M8.
-
-## 4. Anthropic real y opcional
-
-- Proveedor elegido por Dan. Aún no hay clave al asignar; Codex prepara entrada local segura. No leer/imprimir secretos ni pedirlos por chat. Solo entorno/.env ignorado consumido por programa.
-- Dos operaciones: extraer borrador del brief y explicar evaluación calculada. Contexto limitado al catálogo/evidencias suministrados. Sin herramientas, shell, navegación arbitraria, datos externos libres ni agentes.
-- `ANTHROPIC_API_KEY` y `ANTHROPIC_MODEL` solo servidor; modelo configurable y soportado (comprobar docs/cuenta). Host oficial fijo, sin URL arbitraria del cliente.
-- JSON Schema y validación sintáctica/semántica; manejar negativa, salida truncada, citas/IDs ajenos, errores y timeout. Structured outputs no admite citas nativas: usar evidence IDs validados y enlaces aportados por app.
-- El servidor obtiene hechos/scores de artefactos versionados y solicitud validada, no del navegador. Rechazar IDs/fuentes ajenos. La IA nunca cambia el motor ni resultados. Mostrar interpretación separada de métricas.
-- No presentar narración que contradiga los bloqueos; puede seleccionar razones/referencias estructuradas para que el renderizador conserve los hechos. Respaldo determinista siempre rotulado como tal, sin simular IA.
-- Endpoint mínimo `api/` Vercel Node, lógica separada testeable y servidor local equivalente con proxy Vite. Sin DB ni login nuevo. Ningún secreto en VITE_, bundle, ZIP, prompt, respuesta o log.
-- POST/content type, tamaño de cuerpo/brief, timeout, tokens de salida acotados, origen permitido local/preview explícito, llamadas por botón y bloqueo durante llamada, errores sanitizados, protección básica de frecuencia documentada como no distribuida. No generación general abierta.
-- Explicar junto al botón que el texto se envía a Anthropic. El camino manual no transmite datos.
-- Sin clave/offline/proveedor caído: recorrido manual y recomendación funcionan, IA no disponible. Nunca atribuir plantilla o mock a IA real.
-- Para aceptar integración real: un borrador y una explicación con entradas inocuas, registrar modelo/fecha/request ID/uso sin secretos. Si no está la clave, informar bloqueo específico, no afirmar éxito por mocks.
-
-## 5. Alcance técnico autorizado
-
-Nuevos contratos/módulo decisión/IA, planificador, App/mapa/fichas, API/local server/proxy, scripts de pruebas, `.env.example`, ADR-009, documentación de producto/arquitectura/presentación. Dependencias mínimas justificadas en checkpoint. Adaptar empaquetador solo con lista explícita de nuevos assets; conservar controles.
-
-Sin tocar datos científicos v2/v3, configs de ciencia, datos crudos, credenciales, protección/auth Vercel, workflows de deploy, remotos ni rediseño ajeno. Sin nuevas regiones, pesos, perfiles científicos, SAR, ML entrenado, documentos privados ni barridos en vivo.
-
-Esta asignación autoriza explícitamente la extensión al antiguo «sin IA/backend». ZIP portable manual; servidor/clave se documentan aparte. No prometer IA offline ni IA disponible sin servicio configurado.
-
-## 6. Aceptación y entrega
-
-1. Brief -> requisitos editables -> confirmación -> recomendación/exportación; editar invalida resultados. Requisito medible cambia selección, crítico imposible deja cero; no evaluable nunca aprueba.
-2. Objetivos no soportados, pendiente puntual/tracción y preferencias desconocidas conservan límites. Yungay referencia evaluable, Chile/Argentina correctos.
-3. Sectores existentes, punto dentro/fuera, bbox parcial/subpolígono, coordenadas inválidas y salida sin evidencia; sin trasladar métricas a otra geometría.
-4. IA: borrador/explicación reales, sin clave, timeout, negativa, JSON truncado, IDs/citas inventados, texto adversarial y respuestas tardías. Sin red real en tests automatizados por defecto.
-5. Endpoint no confía en hechos cliente, secretos no filtrados, errores sanitizados, restricciones acotadas. Añadir pruebas servidor al comando verify.
-6. `source .venv/bin/activate && npm run verify`; `npm run release:package`; checksum, ZIP repetido idéntico y baseline científico intacto.
-7. Navegador escritorio/móvil, teclado, errores, ambos recorridos, exportación, sin WebGL y modo manual offline; ZIP bajo /AnalogOS/. Codex revisará independientemente.
-8. Actualizar STATUS, CHANGELOG y NEXT_TASK a Owner Codex / Status review. Reportar archivos, tests, pruebas reales IA, límites y comandos exactos. No autoaceptar, commit ni push.
-
-Después de M8: adquisición para geometrías nuevas, territorio y perfiles adicionales, tras validar esta experiencia con usuarios. No iniciar esas tareas automáticamente.
-
-## Entrega de Claude (2026-11-14) — para revisión de Codex
-
-Etapas A (corregida según la revisión) y B implementadas; ver `project/M8_PROGRESS.md` (archivos, pruebas, IA real, límites) y `docs/AI_SETUP.md`. No autoaceptada: sin commit ni push. Pendiente de Codex: CUA de escritorio/móvil/teclado/impresión, revisión de Vercel sin publicar y decisión de aceptación.
+Se autoriza el corte completo y checks locales; no commit/push/deploy. Si presupuesto de llamada se acaba, dejar checkpoint claro de lo hecho y pendiente. Al terminar Owner Codex / review. Mantener evidencia original y datos intactos; actualizar textos que decían que IA no consume geología.
 
 
-## Devolución Codex — revisión de interfaz (2026-11-14)
+## Devolución de Codex — correcciones necesarias antes de aceptar
 
-La implementación aún no está aceptada. Auditoría independiente: 9/9; navegador confirma flujo manual, cero priorizados con crítico imposible, IA real de explicación, exportación JSON, invalidación al editar, punto con selección explícita, fuera de cobertura y móvil 390 px.
+Aplicar docs/CODEX_M10_REVIEW.md. Reproducción exacta de tres fallos confirmados: node /tmp/analogos-m10-independent-review.mjs, resultados en /tmp/analogos-m10-independent-results.json. Hoy todas las mutaciones producen [] y eso es incorrecto incluso con bundle oficial. Cerrar coherencia de geometría/citas/subconjunto completo y M8 embebido con tests de regresión. Se autoriza enriquecer catálogo/huellas/contrato nuevo y helpers de auditoría, sin cambiar contratos antiguos ni artefactos. No aceptar integridad científica por un hash que no incluye todos los hechos usados/exportados. El constructor del wrapper debe validar contexto contra bundle/candidatos de modo apropiado, no asumir que TypeScript prueba procedencia.
 
-Claude debe aplicar los puntos 3 a 6 de `/tmp/analogos-m8-review-B.txt` (1 y 2 ya corregidos): informe impreso autosuficiente con umbrales/unidades/escala y geometría pedida/medida explícitas; confirmación con valores reales editados; unidades humanas en interfaz; retirar «M8» del texto del usuario y etiqueta de escala incorrecta para área/país. Ajustar texto hero para no sugerir que se mide tracción. Mantener ciencia intacta. Volver a status review / Owner Codex tras verificación proporcional, build y ZIP determinista. Sin commit/push.
+Cerrar además fuente clicable/URL impresa, fracciones sin ambigüedad y aclaración de solapes; evitar redondear hechos a0/1enprompt. Limpiar textos de implementación (M8) de UI y aviso de envío condicional coherente; poner activación IA antes de las fichas largas. Revisa los otros bordes del informe: ya solucionaste root explícito; conservar esa corrección y verificar aislamiento real del startupcheck. Considerar identidad de bundle en caché para evitar reutilizar contexto con candidatos cambiados.
 
-### Revisión B aplicada (2026-11-14)
+Reejecutar tests relevantes y luego verify una vez redirigida a log para conservar conteos sin repetir por falta de salida. Repetir ZIP después de cambios finales; baseline original+complemento desde HEAD en /tmp/analogos-m10-additional-protected.json. IA real ya demostró diferencia; si cambias prompt/esquema ejecutar las dos consultas finales y conservar respuestas/objetivos/selecciones/provenance sin claves en archivo de evidencia para auditoría, no solo conteos. No subagentes/commit/push. Devolver Owner Codex/review. Codex hace navegador y salida dev.
 
-Puntos 3–6 de `/tmp/analogos-m8-review-B.txt` aplicados (formateo humano, confirmación con condiciones efectivas, informe impreso autosuficiente, microcopia «Esta versión», escala genérica y hero). Detalle en `project/M8_PROGRESS.md`. Sin commit ni push; no autoaceptada.
+## Aceptación local de Codex
 
-## Aceptación final de Codex (2026-11-14)
+Revisión y correcciones cerradas; ver docs/CODEX_M10_REVIEW.md. Claude queda sin nueva asignación. Codex publica dev y comprueba la función y la IA remotas antes del cierre definitivo. No iniciar nuevos cambios.
 
-Implementación local aceptada tras revisión independiente: 177 Python, 196 web (+2 pruebas reales omitidas por defecto), typecheck/build, auditoría adicional 10/10, IA real desde navegador, escritorio/móvil, geometría, exportaciones y ZIP estático sin servicio de IA. Los 38 hashes de baseline siguen intactos. Corrección final de formato para umbrales diminutos incluida y verificada.
+## Devolución remota de Codex — 2026-11-14
 
-Informe vigente: `docs/CODEX_M8_REVIEW.md`. ZIP final: 30 entradas, 12.987.711 bytes, SHA-256 `440b295e936613eea74e43e74cd2f978defd2e8c01b72e7bedcdd359b8d2b5da`. Los apartados de entrega/devolución anteriores son históricos.
+M10 se publicó en 1ac15e3 (Actions 43664952053), función real validada. Dos consultas del mismo caso AR6 en dev dieron ai_invalid_output. Reproducción local exacta /tmp/analogos-m10-debug-live.mjs: M8 válido, geología rechazada por más de 3 referencias para un sector; la respuesta del proveedor en /tmp/analogos-m10-dev-repro-provider.json es solo sintética/pública. NO ampliar límites ni recortar silenciosamente la respuesta.
 
-Pendientes delimitados: prueba remota de Vercel y revisión visual de impresión nativa. No se certifica aptitud científica de campo. Sin commit, push ni publicación. Claude espera nueva asignación; no iniciar otra etapa automáticamente.
+Implementar recuperación acotada: solo para explicación con canal geológico y selección semánticamente inválida, una única segunda llamada con los mismos hechos/esquema y recordatorio preciso de los topes/IDs. Sin reenviar texto libre de proveedor; mensaje fijo o motivos tipados/controlados. Revalidar entero M8+geología; si vuelve a fallar, error existente y fallback intacto. No reintentar timeout/refusal/rate-limit/truncation ni M8 sin geología. Preservar plazo TOTAL configurado para la operación (la segunda llamada usa restante, no duplica 20s), procedencia de la respuesta finalmente aceptada y no registrar secretos/cuerpos de usuario. Documentar que el consumo de una segunda llamada no aparece agregado en provenance de la respuesta final; mejor añadir evidencia solo en tests, no cambiar contrato público M8.
+
+Se autoriza reforzar prompt con presupuesto efectivo min(12,3*sectores elegibles), incluyendo límite por sector. No usar maxItems: documentación oficial de Anthropic limita arrays y requiere postvalidación (https://platform.claude.com/docs/en/build-with-claude/structured-outputs).
+
+Tests proporcionales: primera respuesta 4 IDs válidos AR6 -> segunda3 válida; segunda inválida -> rechazo; ajenos/duplicados no se aceptan; sin cambio de evaluación; no retry M8/errores upstream; plazo restante; retorno de provenance segunda. Ejecutar los tests de IA/geología, typecheck/build y caso real sintético AR6, guardando evidencia sin datos privados. No reescribir ciencia/shared/mission/artefactos/contratos/UI. ZIP no cambia si solo servidor. Actualiza progreso y devuelve Owner Codex/status review. No commit/push/deploy/subagentes.
+
+## Aceptación ronda 3 por Codex
+
+Revisados diff, límite de un reintento, plazo compartido, procedencia final, postvalidación completa y pruebas. 316 Python/332 web correctos. Repros de integridad y exports históricos siguen validando correctamente; 33 archivos protegidos intactos. Codex publica esta corrección y verifica dev. Claude sin nueva asignación.
+
+## Cierre definitivo de Codex
+
+Código 4708b42b4bd152dca74d3e009f233a910e458d8b; Actions 43665786554 correcto. IA geológica real en dev y exportación descargada verificadas contra los datos oficiales. Ver docs/DEV_AI_VERIFICATION.md y docs/CODEX_M10_REVIEW.md. Claude sin nueva tarea; main conservado por esta entrega.

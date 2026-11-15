@@ -60,7 +60,7 @@ const RESET_HINT = 'El texto vive solo en esta página; nada se guarda en el nav
 let focusedRequestNonce = 0
 
 export function PlannerView({ snapshot, api, intent, compact = false, stepRequest = null, resetHint = RESET_HINT, footer }: PlannerViewProps) {
-  const { state, dispatch, built, evaluate, evaluationError, runDraft, runExplain, exportJson, exportError } = api
+  const { state, dispatch, built, evaluate, evaluationError, runDraft, runExplain, geologyUi, exportJson, exportError } = api
   const [step, setStep] = useState<StepId>(() => initialStep(state))
   const titleId = `${useId().replace(/[^\w-]/g, '')}-planner-title`
   const [announce, setAnnounce] = useState('')
@@ -279,7 +279,7 @@ export function PlannerView({ snapshot, api, intent, compact = false, stepReques
 
             {step === 'result' && state.result && built.request && (
               <ResultView evaluation={state.result} request={built.request} state={state} candidates={snapshot.candidates}
-                onExplain={runExplain} onExport={exportJson} exportError={exportError} onEdit={() => dispatch({ type: 'unconfirm' })} compact={compact} />
+                onExplain={runExplain} geo={geologyUi} onExport={exportJson} exportError={exportError} onEdit={() => dispatch({ type: 'unconfirm' })} compact={compact} />
             )}
           </div>
 

@@ -17,7 +17,19 @@ export const RESULT_LABEL = (rulesVersion: string) => `Cálculo determinista · 
 export const TEMPLATE_LABEL = 'Plantilla determinista sin IA'
 /** Sin ✦: la Lectura lo antepone (aria-hidden) en la capa de IA; así no se repite. */
 export const AI_LABEL = 'Motivos destacados con IA (Anthropic) · las cifras salen del cálculo determinista'
-export const AI_SEND_NOTICE = 'Al pulsar el botón se envían a Anthropic los requisitos confirmados y los resultados ya calculados (no el texto completo del brief).'
+/**
+ * Avisos literales de `ResultView` › `AiPanel` del equipo (M10): uno solo, condicional a la casilla del
+ * canal geológico (`plannerGeology.test` y `ReadingView.test` comprueban que coinciden).
+ */
+export const AI_SEND_NOTICE = 'Al pulsar el botón se envían a Anthropic los requisitos confirmados y los resultados ya calculados (no el texto completo del brief ni cartografía geológica).'
+export const AI_SEND_NOTICE_GEOLOGY = 'Al pulsar el botón se envían a Anthropic los requisitos confirmados, los resultados ya calculados, el objetivo confirmado (texto del brief, actividad y requisitos) y la cartografía geológica pública oficial de los sectores evaluados.'
+export const GEOLOGY_OPT_LABEL = 'Incluir orientación geológica de la prueba (la IA solo elige entre comprobaciones calculadas por la app).'
+export const geologyUnavailableNotice = (reason: string | null): string =>
+  `Orientación geológica con IA no disponible: ${reason ?? 'falta el contexto geológico oficial.'} La explicación de requisitos funciona igual sin geología.`
+export const GEOLOGY_RETRY_NOTICE = 'La orientación geológica no se pudo pedir. Puede reintentar la explicación sin geología (se enviarán solo los requisitos y resultados calculados, sin el texto del brief ni cartografía).'
+export const GEOLOGY_RETRY_LABEL = 'Reintentar sin geología'
+/** Dónde queda la orientación geológica en la interfaz integrada (la Lectura solo tiene el botón). */
+export const GEOLOGY_WHERE = 'La orientación geológica de la prueba (general o elegida por la IA) se ve en «Tu misión», bajo el resultado.'
 export const STALE_AI_MESSAGE = 'La respuesta no corresponde al cálculo vigente: se mantiene la plantilla determinista.'
 
 export interface ReadingLine {

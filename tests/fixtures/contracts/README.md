@@ -1,7 +1,7 @@
 # Fixtures de contrato (FIXTURE · no científico)
 
 Casos válidos e inválidos para el contrato propio del rediseño Explorar / Misión que sigue vigente
-tras la integración con dev (ADR-010, ADR-013):
+tras la integración con dev (ADR-014, ADR-013):
 
 | Carpeta | Contrato |
 |---|---|

@@ -7,6 +7,7 @@
  * Solo tipos de `mission/*`: este archivo vive en el chunk principal y no arrastra Ajv.
  * La fase visible vive en `ui.missionPhase`, no aquí.
  */
+import type { GeologyCatalog } from '../../../../shared/geology/guidance'
 import type { ExplanationView } from '../mission/explanation'
 import type { AiProvenance } from '../mission/exportReport'
 import type { PlannerState } from '../mission/plannerState'
@@ -42,6 +43,11 @@ export interface MissionState {
   source: MissionSource | null
   /** Aumenta con cada evaluación aceptada: punto en la pestaña Misión y un solo anuncio. */
   revision: number
+  /**
+   * Catálogo geológico cerrado de la evaluación VIGENTE (M10, `buildGeologyCatalog` del equipo); null
+   * sin contexto geológico válido o sin resultado vigente. Lo usa el informe imprimible.
+   */
+  geologyCatalog: GeologyCatalog | null
 }
 
 export const INITIAL_MISSION_STATE: MissionState = {
@@ -54,6 +60,7 @@ export const INITIAL_MISSION_STATE: MissionState = {
   explanationProvenance: null,
   source: null,
   revision: 0,
+  geologyCatalog: null,
 }
 
 export const missionStore = createStore<MissionState>(INITIAL_MISSION_STATE)

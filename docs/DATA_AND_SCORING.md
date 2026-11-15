@@ -9,7 +9,7 @@
 | Validación de disponibilidad | NASA HLS S30 v2.0 / CMR | inventario independiente; no entra al score v2/v3 |
 | Clima regional | NASA POWER | aridez y contexto; no precisión local |
 | Temperatura superficial | MODIS LST | opcional si el periodo y calidad son defendibles |
-| Geología | SERNAGEOMIN (Chile) / SEGEMAR (Argentina) | pendiente de integración y calibración; no puntúa |
+| Geología | SERNAGEOMIN vía MMA (Chile, 1:1.000.000) / SEGEMAR-SIGAM (Argentina, 1:250.000) | **contexto descriptivo** por sector (ficha y exportación, `docs/GEOLOGY_CONTEXT.md`); el criterio del score sigue sin calibrar y no puntúa |
 | Restricciones | IDE Chile / IDERA (Argentina) | cruce oficial pendiente; no se infiere permiso ni ausencia de restricciones |
 | Marte | NASA PDS MOLA | firma planetaria topográfica |
 

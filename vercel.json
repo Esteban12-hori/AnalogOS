@@ -4,6 +4,11 @@
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "outputDirectory": "apps/web/dist",
+  "functions": {
+    "api/ai.ts": {
+      "includeFiles": "artifacts/{geology-context-v1/index.json,science-v3/candidate-details.json}"
+    }
+  },
   "headers": [
     {
       "source": "/assets/(.*)",

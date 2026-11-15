@@ -1,4 +1,36 @@
-# IA verificada en dev — 2026-11-14
+# IA verificada en dev — M10, con antecedentes M9/M8
+
+## M10 — publicación y comprobación remota final (Codex, 2026-11-14 America/Santiago)
+
+**Completado, revisado y publicado en dev.** Implementación de Claude bajo encargo; revisión, devoluciones, correcciones y aceptación de Codex. Código `4708b42b4bd152dca74d3e009f233a910e458d8b`; [Actions correcto](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43665786554); [dev](https://analogos-dev.vercel.app/); deployment https://analogos-5plfynboc-pruebas-730d0f41.vercel.app. El checkpoint documental posterior usa `[skip ci]` y conserva este código desplegado. Esta entrega no modificó main, secretos ni protección Vercel.
+
+- La función Vercel real pasó el control aislado: dos entradas filePathMap materializadas; snapshot/contratos/geología cargan y validan; casos de ausencia/corrupción correctos antes de publicar.
+- Prueba real desde Chrome en dev, sector AR6 (`ar-win-s2580-w06710`), brief sintético de movilidad/reconocimiento geológico, pendiente regional ≤9° y preferencia no vegetada ≥95 %. El único sector evaluado quedó priorizado; tracción y factibilidad territorial pendientes. Son umbrales de demostración, no recomendaciones operativas.
+- Anthropic eligió tres referencias válidas: caracterizar material superficial en Complejo volcánico Galán y depósitos aluviales/coluviales, más comprobar correspondencia mapa–terreno del primero. Fuente SEGEMAR 1:250.000, cobertura 100 %, límites y enlace oficial visibles. Ningún cambio de evaluación, valores ni ranking.
+- Exportación descargada: `submission/evidence/m10-dev-geology-export.json`. Validada con `validateAnyMissionExport` y reconstruida idéntica con `buildMissionGeologyExport`, snapshot y contexto oficiales. Captura: `submission/assets/analogos-m10-dev.jpg`.
+- Procedencia: modelo `claude-sonnet-5-5`, `2026-11-15T02:02:57.957Z`, request `req_011Ch3teqxMdwPrJqPCngjWE`, tokens 6795/719, `end_turn`. Esta evidencia prueba la respuesta aceptada; no registra si se requirió el reintento interno ni agrega su consumo.
+- Verificación final: **316 Python, 332 web**, typecheck/build correctos. Dos objetivos reales finales contrastantes: movilidad y muestreo, 12 referencias válidas cada uno, propósitos distintos (`submission/evidence/m10-live-geology-evidence.json`). Tres consultas AR6 locales correctas; regresión M8/M9 y repros de integridad correctos; 33 archivos protegidos intactos.
+- ZIP vigente: **31 entradas, 13.255.407 bytes**, SHA-256 `f76a905564f69737e763724da8467aff45dff1177e269a188a60da35807eb122`, repetido idéntico. QA local offline/subcarpeta/ausencia de geología/móvil 390px/teclado documentado en `docs/CODEX_M10_REVIEW.md`; las últimas modificaciones solo añaden recuperación del servidor y motivos tipados de rechazo compartidos, sin cambiar el recorrido ni los datos.
+
+Antes de esta publicación, el modelo excedió el tope de tres referencias por sector en AR6. Se mantuvo el rechazo y se agregó una única segunda llamada con recordatorio controlado, mismos hechos y validación completa, dentro del plazo total. Si vuelve a fallar, la app conserva el resultado manual. No se amplían topes ni se recorta la salida. Los fallos iniciales de empaquetado quedaron resueltos antes de actualizar el alias.
+
+Límites: siete sectores del piloto; orientación de reconocimiento, sin validación geológica de campo, score litológico, tracción medida ni autorización de acceso. En M10 se probó remotamente la explicación con geología; la prueba remota de generación de borrador permanece como antecedente M9, no se atribuye una nueva ejecución a M10. La inspección de impresión nativa sigue pendiente. Claude queda sin nueva asignación.
+
+## Antecedente M9 — publicación y regresión remota
+
+**M9 completado y publicado en dev.** Código `34e76b9734efab2428013a13c6d0defb8d85d8f4`, Actions correcto: https://github.com/Esteban12-hori/AnalogOS/actions/runs/43658989969. Deploy https://analogos-nmyfr42k8-pruebas-730d0f41.vercel.app, alias https://analogos-dev.vercel.app/. El checkpoint posterior agrega solo documentos/evidencia con `[skip ci]` y conserva ese código desplegado. Main no cambió.
+
+- La función realmente empaquetada pasó el control de arranque (módulos/snapshot/contratos, GET 405 y POST sin clave 503). Se mantuvieron protección Vercel y configuración de credenciales.
+- Geología en dev: Chile 99,4 %, Argentina 100 % y referencia Yungay 99,1 % observados; unidades y escala correctas. Exportación argentina descargada y validada, idéntica a la reconstruida desde el paquete: `submission/evidence/m9-dev-geology-export.json`.
+- Regresión IA real: brief sintético con pendiente mediana regional ≤ 2,3°, preferencia no vegetada ≥ 95 %, permisos pendientes. Anthropic propuso tres requisitos editables; confirmación explícita y evaluación priorizaron una de siete áreas. La explicación destacó motivos existentes sin alterar números ni exclusiones. Permisos y factibilidad quedaron pendientes.
+- JSON de IA descargado desde dev, contrato validado y evaluación recalculada idéntica; reconstrucción completa con `buildMissionExport` también idéntica. Evidencia: `submission/evidence/m9-dev-ai-export.json`.
+- Borrador: `claude-sonnet-5-5`, `2026-11-15T00:38:32.854Z`, request `req_011Ch3nDHnwnQR73oKU4vndZ`, tokens 2177/1010, `end_turn`.
+- Explicación: `claude-sonnet-5-5`, `2026-11-15T00:39:27.098Z`, request `req_011Ch3nHb48fJE7MMfz5V45L`, tokens 5792/460, `end_turn`.
+- Capturas: `submission/assets/analogos-m9-dev.jpg` y `analogos-m9-dev-ai.jpg`. La IA sigue usando exclusivamente el motor/evidencia M8; no consume el nuevo contexto geológico.
+
+Aceptado por Codex tras revisar la implementación de Claude y corregir la presentación final. Claude queda sin nueva asignación. No se afirma validación de campo, exactitud absoluta ni ausencia universal de defectos; las pruebas cubren el alcance M9 y sus regresiones observadas.
+
+## Antecedente M8 — 2026-11-14
 
 **Resultado: publicado y comprobado.** Dan autorizó subir M8 a dev y probar allí la IA. Codex realizó la entrega, corrigió el fallo detectado en la primera publicación y verificó ambas operaciones desde Chrome con la sesión autorizada de Vercel.
 

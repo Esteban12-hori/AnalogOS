@@ -1,5 +1,5 @@
 /**
- * Armazón del escenario fijo (ADR-010, docs/UX_REDESIGN.md §2.1 y §3.8).
+ * Armazón del escenario fijo (ADR-014, docs/UX_REDESIGN.md §2.1 y §3.8).
  *
  *   centro = dónde (escenario + líneas) · derecha = el lugar (riel) ·
  *   izquierda = tu misión y por qué (≥1440, Misión) · abajo = elegir y escribir (dock).
@@ -9,7 +9,7 @@
  * integrador: los constructores no lo editan.
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Composer, focusComposer, MissionCard, MissionPrintHost, registerMissionSnapshot, useMissionOpenRequest, withController } from '../features/composer'
+import { Composer, focusComposer, MissionCard, MissionPrintHost, registerMissionGeology, registerMissionSnapshot, useMissionOpenRequest, withController } from '../features/composer'
 import { BootLayer, reportBootMilestone, StatusChip } from '../features/boot'
 import { MapStage, type StageMilestone } from '../features/globe'
 import { LeaderLayer, LeaderToggle } from '../features/leaders'
@@ -19,7 +19,7 @@ import { ReadingPanel, ReadingPill } from '../features/analysis'
 import { useMission } from '../state/mission'
 import { searchWithMode, uiActions, uiStore, useUi } from '../state/ui'
 import { SHELL_TEXT } from '../content/shell'
-import { isFixtureSnapshot, type AppData } from './appData'
+import { geologyStateOf, isFixtureSnapshot, type AppData } from './appData'
 import { dataAttributionText } from './attribution'
 import { FullDetail } from './detail/FullDetail'
 import { GLYPH } from './glyphs'
@@ -103,6 +103,9 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
 
   // ---- Planificador compartido: el snapshot validado, sin transformar (ADR-013) ------------
   useEffect(() => registerMissionSnapshot(data.status === 'ready' ? data.snapshot : null), [data.status, data.snapshot])
+  // Contexto geológico oficial (M10): el mismo objeto validado que ve la ficha llega al planificador.
+  const geologyState = geologyStateOf(data)
+  useEffect(() => registerMissionGeology(geologyState), [geologyState])
   // Al entrar a Misión se carga el chunk del planificador y se abre «Definir una prueba» (sin IA).
   useEffect(() => {
     if (mode !== 'mision' || data.status !== 'ready') return

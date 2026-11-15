@@ -1,5 +1,13 @@
 # Changelog de trabajo
 
+## 2026-11-15 Claude Code · fusión de M9/M10 en la interfaz integrada (rama feature/mision-redesign)
+
+- `git merge origin/dev` (`d2252b6`, 7 commits de M9/M10), sin squash ni `--force`. Todo lo del equipo queda intacto: `shared/`, `server/`, `api/`, `vercel.json`, workflows, `check-vercel-function`, contratos, artefactos geológicos, pipelines, evidencias y tests. Conflictos resueltos en `App.tsx`, `PlannerPanel`, `ResultView`, `styles.css`, `discovery.test`, `package_release.py`, `test_release_package.py` (se conservan las dos ramas), docs y ZIP. `CandidateDetails` y `ScoreBreakdown` siguen retirados y sus cambios se portaron.
+- Interfaz: pestaña «Geología» en la ficha con el `GeologyContext` del equipo y su exportación por sector. Textos geológicos en Métricas y Fuentes. La orientación geológica (`GeologyGuidance`) está en «Tu misión» y en el informe imprimible. La casilla geológica, el aviso condicional y «Reintentar sin geología» están en la Lectura. El controlador de misión porta el canal geológico de `usePlanner`: `setGeology`, catálogo cerrado, huella opt-in y exportación M10. El contexto se carga en un chunk diferido.
+- ADR propios renumerados: escenario fijo 010→**014** y recálculo 011→**015**. ADR-010 y ADR-011 son del equipo.
+- `npm run verify`: 328 Python (5 omitidas), 779 web (3 omitidas), `typecheck:server` y build correctos. Chrome en 1440×900 y 390×844, sobre el build y sobre el ZIP bajo `/AnalogOS/`: 56 + 56 comprobaciones correctas y 24 más sin red externa, con 0 errores de la app. La IA se probó sin clave y simulada con el manejador real del servidor.
+- ZIP regenerado: 73 entradas, 14.789.257 bytes, SHA-256 `30b2b1191489898b91e85aaf26f93104da62bc733d854ae0352e517bf2517c9c`. Es determinista y coincide con dist. Sin push.
+
 ## 2026-11-15 Claude Code · revisión de la integración: hallazgos corregidos (rama feature/mision-redesign)
 
 Tres revisiones independientes de `e568d9d` (honestidad científica e IA, recorrido visual en 1440/1280/390, no regresión del trabajo del equipo). Se corrigieron los 2 hallazgos altos, los 11 medios y 9 de los 12 bajos; cada uno con prueba o medición en el navegador. Quedan sin corregir 3 bajos (ver STATUS). Sin cambios en `shared/`, `server/`, `api/`, `apps/web/src/mission/`, artefactos científicos, CI ni dependencias.
@@ -149,6 +157,77 @@ Entradas originales. Usan la numeración de ADR anterior a la integración: ADR-
   - 141 tests web, 165 Python (1 omitido) y build en verde.
   - Navegador a 1440×900, 1280×800 y 390×844 sin errores de consola.
   - Chunk principal +2,6 KB gz de JS y +1,0 KB gz de CSS.
+
+## 2026-11-14 Codex · M10 publicado y verificado en dev
+
+- Código `4708b42b4bd152dca74d3e009f233a910e458d8b`, Actions 43665786554 correcto, función real aislada validada. IA remota AR6 correcta: tres referencias SEGEMAR, tracción pendiente; informe descargado validado y reconstruido idéntico.
+- 316 Python/332 web, typecheck/build correctos; contraste final movilidad/muestreo con 12 referencias cada uno y propósitos diferentes; regresión histórica e integridad correctas. ZIP `f76a905564f69737e763724da8467aff45dff1177e269a188a60da35807eb122`.
+- Evidencia y captura en submission; cierre en DEV_AI_VERIFICATION y CODEX_M10_REVIEW. Checkpoint documental `[skip ci]`, mismo código desplegado. Claude sin nueva tarea; no se modificó main.
+
+## 2026-11-14 Codex · fiabilidad de la orientación geológica
+
+- Dev mostró exceso de referencias del modelo en AR6. Claude corrigió por encargo y Codex revisó una recuperación de un único reintento, conservando límites, validación y plazo total. 316 Python/332 web correctos; tres consultas reales AR6 válidas. ZIP actualizado. Publicación final en curso.
+
+## 2026-11-14 Codex · filePathMap en el control de Vercel
+
+- El segundo intento mostró que resolver enlaces no bastaba: Vercel declara FileFsRef fuera de .func mediante filePathMap. El control reconstruye solo esos archivos declarados antes de aislar y comprobar la función. Repro local antes/después correcto, casos negativos conservados. Dev aún conserva M9 hasta completar este control.
+
+## 2026-11-14 Codex · corrección del control de empaquetado M10
+
+- El primer control real de Vercel detuvo la publicación por enlaces de JSON rotos al copiar la función a /tmp. Reproducido fuera del repositorio; la copia ahora materializa los archivos enlazados y conserva el aislamiento y los casos negativos. No cambia aplicación, IA, datos ni ZIP. Reintento dev tras validar la misma fixture antes/después.
+
+## 2026-11-14 Codex · M10 aceptado localmente
+
+- Revisada implementación de Claude; cerrados tres fallos reproducidos de integridad del informe. Fuentes clicables, porcentajes con/sin solape y aviso de envío coherente. Codex corrigió desborde móvil de URL.
+- 316 Python, 325 web, typecheck/build correctos; IA real con objetivos contrastantes y desde navegador. Informe descargado reconstruido idéntico; regresión histórica M8/M9 correcta; ZIP offline/móvil/teclado y fallos de carga revisados. 33 archivos únicos protegidos intactos, sin credenciales en entregables.
+- Dev autorizado por Dan: publicación y comprobación remota en curso. Main conservado; Claude sin nueva tarea.
+
+## 2026-11-14 Codex · M10 asignado a Claude
+
+- Dan autoriza incorporar evidencia geológica a la orientación de IA y publicar dev tras revisión. Encargo con checkpoint de plan, fuentes/IDs verificables, fallback y exportación compatible. Evaluación científica y artefactos preservados.
+- Baseline M10 guardado; verify inicial correcto (316 Python, 246 web, typecheck/build). Codex supervisa y acepta; Claude implementa sin publicar.
+
+## 2026-11-14 Codex · M9 publicado y verificado en dev
+
+- Código `34e76b9`, Actions 43658989969 correcto; alias dev actualizado y función empaquetada verificada. Main conservado.
+- Contexto geológico remoto y exportación argentina validados; referencia Yungay conservada. Borrador y explicación reales de Anthropic correctos; JSON descargado validado y recalculado idéntico.
+- Evidencia en `submission/evidence/m9-dev-*.json`, capturas en `submission/assets/analogos-m9-dev*.jpg` e informes en `docs/CODEX_M9_REVIEW.md` / `docs/DEV_AI_VERIFICATION.md`. Este checkpoint documental usa `[skip ci]` y no cambia el código desplegado. M9 accepted; Claude sin nueva tarea.
+
+## 2026-11-14 Codex · M9 aceptado localmente y listo para dev
+
+- Revisión independiente de A/B, cierres adversos y procedencia. Ficha oficial, exportación propia y paquete portable; ciencia y núcleo M8 intactos. Ajustes de legibilidad (12 px mínimo), errores de carga comprensibles y advertencias históricas actualizadas solo en presentación.
+- 316 Python, 246 web (+2 opt-in omitidos), typecheck/build, baseline49 intacto. ZIP determinista de 31 entradas, SHA-256 `eed86833…6520c`. Navegador offline en subcarpeta, móvil/teclado, carga ausente/inválida y descarga real validada.
+- Publicación dev y verificación remota en curso; no promoción a main. Informe en `docs/CODEX_M9_REVIEW.md`.
+
+## 2026-11-14 Claude Code · M9 fase B (ficha, exportación, empaquetador) — entrega para revisión
+
+- Dos bordes de A cerrados con regresiones: `publish` declara `PackageStateError` si no puede restaurar el respaldo del mismo par; los anillos GeoJSON deben cerrar exactamente.
+- Política pura separada en `pipelines/geology_policy.py`; validador único `geology_contract` (sin Shapely/pyproj/requests) con exportación `geology-export` autocontenida. Web: validación espejo, carga con timeout que cubre el cuerpo, ficha compacta/expandible con redondeo honesto y descarga de JSON. Empaquetador con paquete geológico opcional y validado.
+- 316 Python, 245 web, build y ZIP repetido idéntico (31 entradas, SHA-256 `579a4fed…74be`); baseline intacto. Sin commit, push ni deploy; QA de navegador y publicación a cargo de Codex.
+
+## 2026-11-14 Claude Code · M9 fase A corregida tras la revisión de Codex
+
+- Cinco hallazgos cerrados con regresiones: límite de cambio de área total en reparaciones (original no positivo ⇒ rechazo con máscara), validación estructural de cada vértice antes de Shapely y antes de instalar caché, transacción caché+paquete con rollback (`prepare_raw` + `publish`), procedencia exacta por sector (rol, `site_id`, bbox de la URL sin redondeo) y chilena ligada a la descarga de la capa.
+- Caché con nombre/symlink comprobados antes de abrir; licencia leída de CKAN (rechazo si no es cc-zero); narrativa de formatos solo de lo observado; SIGAM corregido; método alineado con la superposición en EPSG:6933. Prueba de texto del código sustituida por una funcional.
+- Paquete real recalculado desde la caché sin red (SHA-256 `fe2552dd…856c`, rebuild idéntico). 297 Python, 196 web, typecheck y build correctos; baseline intacto. Fase B pendiente; `release:package` sigue fallando hasta B. Sin commit ni push.
+
+## 2026-11-14 Claude Code · M9 fase A (datos, contrato, pruebas) — entrega para revisión
+
+- Adquisición pública acotada (CKAN + ZIP Chile inspeccionado por contenido + un WFS 1.0.0 por sector argentino), caché raw ignorada con petición exacta/SHA-256/`acquired_at`, validación de truncamiento, CRS, rangos y bbox por entidad. Sin credenciales.
+- Recorte/partición en plano EPSG:6933 con ambigüedad, huecos y descripción ausente separados; reparación `make_valid` vs `buffer(0)` con límites 0,1 %/0,05 % y máscara conservadora en rechazo; estados conservadores. Contrato `geology-context` + semántica (geometría exacta, cierre de áreas, estado recalculado).
+- Paquete real de siete sectores; rebuild offline idéntico. 248 Python, 196 web, typecheck y build correctos; baseline intacto. `release:package` falla hasta la fase B (lista del empaquetador). ADR-010 propuesto. Sin commit ni push; fase B pendiente.
+
+## 2026-11-14 Codex — M9 autorizado y asignado a Claude
+
+- Dan aprobó implementar y sacar el contexto geológico recomendado. Encargo M9 en NEXT_TASK, revisión de datos y producto entre fases, M8 archivado y baseline protegido.
+- Dos fuentes oficiales, siete sectores, cobertura/ambigüedad explícitas, ficha/exportación y paquete offline. Ciencia, rankings e IA actual conservados. Codex verifica antes de dev.
+
+## 2026-11-14 Codex — evaluación de valor y esfuerzo de geología oficial
+
+- Auditadas las siete geometrías v3 contra datos públicos reales: SERNAGEOMIN vía MMA y WFS SEGEMAR. Chile ≈99 % de cobertura a 1:1M; Argentina 50/0/100 % a 1:250K. Probadas alternativas 1M/2,5M sin confundir su detalle ni rellenar silenciosamente huecos.
+- Detectados formatos intercambiados en el catálogo chileno, geometrías inválidas y solapamientos; contraste SHP/GeoJSON de 306 geometrías próximas sin discrepancias. Consultas argentinas individuales y regional coinciden al recortar.
+- Informe `docs/GEOLOGY_FEASIBILITY.md`, cálculo offline y evidencia con hashes en `docs/research/geology/`. Recomendación: primer corte descriptivo, 20–32 h estimadas; ranking/calibración geológica pendientes. No se asignó implementación a Claude ni se publicó.
+- Caché pública local de 20.873.381 bytes en `data/raw/geology-feasibility-20261114/` ignorada; dependencias de investigación aisladas en `/tmp`. Sin cambios de app, IA ni ciencia. `npm run verify`: 177 Python, 196 web, typecheck/build correctos; 2 opt-in omitidos.
 
 ## 2026-11-14 Codex — dev e IA real verificados
 
@@ -465,3 +544,22 @@ Entradas originales. Usan la numeración de ADR anterior a la integración: ADR-
 - M7 archivado en project/tasks/M7_GLOBAL_DISCOVERY.md. NEXT_TASK asigna M8 a Claude con checkpoint de plan, criterios verificables y devolución a Codex.
 - ADR-009 autoriza capa determinista de requisitos sobre v3, Yungay como alternativa conocida, geometrías con cobertura explícita y API mínima opcional de IA. Sin nuevos datos ni perfiles; no se traslada evidencia agregada a polígonos distintos.
 - Base 4d197e1 verificada: 177 Python, 69 web, build; 38 hashes de ciencia/config/contratos en /tmp/analogos-m8-baseline-hashes.json. Publicación anterior verificada en Actions y navegador autenticado.
+
+## 2026-11-14 Claude — M10-GEOLOGY-AI (en revisión de Codex)
+
+- La explicación con IA puede usar el contexto geológico oficial M9 (opt-in): catálogo cerrado de pares unidad+propósito calculado en servidor, selección por IA (≤3 por sector, ≤12), orientación determinista sin IA, límites siempre visibles. Sin cambios de score, ranking, estados, pesos ni artefactos. ADR-011 propuesto.
+- Validador M9 movido a `shared/geology/` (web reexporta). Servidor carga el paquete con SHA-256 de bytes de candidatos; errores 409 específicos antes del proveedor; `vercel.json` `includeFiles` acotado y `check-vercel-function.mjs` ejercita carga, ausencia y corrupción.
+- Exportación: wrapper `analogos-mission-geology-export` v1 (embebe M8 1.0 intacto) con validador que recalcula catálogo/selección/guía; M8 1.0 y M9 sin cambios.
+- Pruebas: 316 Python, 314 web (+3 omitidas), typecheck/build; ZIP 31 entradas SHA-256 `b2153f69c07be2edc1980c86d7d3eab6b8839b3556c0b244b6b618f8988a1b44` repetido idéntico; baseline de 24 archivos intacto. IA real con dos objetivos contrastantes OK tras corregir un truncamiento (`max_tokens` 6000 con canal).
+- Comandos: `source .venv/bin/activate && npm run verify`; `npm run release:package`; `ANALOGOS_LIVE_AI=1 npm -w apps/web run test -- src/tests/aiLive.test.ts -t "orientación geológica" --silent=false`. Brechas: sin `vercel build` real ni QA de navegador. Sin commit/push/deploy.
+
+## 2026-11-14 Claude — M10 ronda 2 (correcciones de revisión; en revisión de Codex)
+
+- Wrapper: `subset_fingerprint` de los subconjuntos exactos, anclaje de geometría a candidatos con bundle, auditoría y reconstrucción del M8 embebido (`auditMissionExport`), constructor con `{ bundle }`. Los tres repros independientes ahora se rechazan. Contrato nuevo ampliado; contratos M8/M9 intactos.
+- Loader: raíz explícita aísla de verdad y caché con identidad del bundle; startup check ejecuta una copia fuera del checkout. UI: fuente oficial clicable/impresa, fracciones con y sin solape, avisos de envío condicionales, sin jerga M8, IA antes de las fichas.
+- Verify 316 Python / 325 web (+3 omitidas); ZIP SHA-256 `22b327cc…70bb` repetido idéntico; baseline y complemento intactos; evidencia real en `submission/evidence/m10-live-geology-evidence.json`. Sin commit/push/deploy.
+
+## 2026-11-14 Claude — M10 ronda 3: recuperación acotada (en revisión de Codex)
+
+- Tras el `ai_invalid_output` reproducido en dev (4 refs válidas en un sector, tope 3): una única segunda llamada con recordatorio fijo/tipado solo con canal geológico y selección semánticamente inválida; plazo total compartido; procedencia de la respuesta aceptada; sin reintento en errores upstream ni M8 sin geología; topes y validación sin cambios. Prompt con presupuesto efectivo `min(12, 3×sectores)`.
+- 316 Python, 332 web (+3 omitidas), typecheck/build; ZIP `f76a9055…b122` repetido idéntico (cambia por `shared/geology/guidance.ts`). Sin commit/push/deploy.

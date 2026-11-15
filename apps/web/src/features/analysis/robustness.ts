@@ -2,7 +2,7 @@
  * Robustez del orden (docs/UX_REDESIGN.md §3.7 y §5.6): escenarios que cambian el orden y
  * criterio más sensible. Toda cifra sale de `sites[].sensitivity` de analysis-summary.json,
  * que escribe el pipeline (pipelines/scoring.py, ±20 % por peso, renormalizado); aquí solo se
- * leen esas cifras y se comparan órdenes. Sin motor propio (ADR-011, sustituido por ADR-009).
+ * leen esas cifras y se comparan órdenes. Sin motor propio (ADR-015, sustituido por ADR-009).
  * Funciones puras: sin stores ni red.
  */
 import type { CriterionId } from '../../domain/contracts'

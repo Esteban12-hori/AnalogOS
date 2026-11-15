@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { loadDemoSnapshot } from './data/loadDemoSnapshot'
 import { loadVisualContext, type VisualContextState } from './data/loadVisualContext'
+import type { AppGeology } from './data/loadAppGeology'
 import { LiquidBackdrop } from './liquid/LiquidGlass'
 import type { AppData } from './shell/appData'
 import { AppShell } from './shell/AppShell'
@@ -22,6 +23,7 @@ const PRODUCT_PROMISE =
 function App() {
   const [state, setState] = useState<SnapshotState>({ status: 'loading', snapshot: null, error: null })
   const [visual, setVisual] = useState<VisualContextState>({ status: 'loading' })
+  const [geology, setGeology] = useState<AppGeology | undefined>(undefined)
 
   // El contexto visual es opcional: se carga aparte y nunca bloquea ni rompe el snapshot.
   useEffect(() => {
@@ -33,6 +35,30 @@ function App() {
       active = false
     }
   }, [])
+
+  // El contexto geológico oficial (M9) es opcional: se valida contra los candidatos ya cargados y
+  // nunca bloquea la ficha ni la misión. Su validador (Ajv en runtime) va en un chunk diferido, que se
+  // pide en un momento ocioso para no competir con el arranque del globo.
+  const candidatesForGeology = state.status === 'ready' && state.snapshot ? state.snapshot.candidates : null
+  useEffect(() => {
+    if (!candidatesForGeology) return
+    let active = true
+    const start = () => {
+      void import('./data/loadAppGeology')
+        .then((module) => module.loadAppGeology(candidatesForGeology))
+        .catch((): AppGeology => ({ state: { status: 'unavailable', reason: 'No se pudo cargar el módulo del contexto geológico.' }, readySites: new Set() }))
+        .then((next) => {
+          if (active) setGeology(next)
+        })
+    }
+    const idle = typeof window.requestIdleCallback === 'function'
+    const handle = idle ? window.requestIdleCallback(start, { timeout: 1500 }) : window.setTimeout(start, 300)
+    return () => {
+      active = false
+      if (idle) window.cancelIdleCallback(handle)
+      else window.clearTimeout(handle)
+    }
+  }, [candidatesForGeology])
 
   useEffect(() => {
     let active = true
@@ -62,7 +88,7 @@ function App() {
     )
   }
 
-  return <AppShell data={{ ...state, visual }} promise={PRODUCT_PROMISE} />
+  return <AppShell data={{ ...state, visual, geology }} promise={PRODUCT_PROMISE} />
 }
 
 export default App

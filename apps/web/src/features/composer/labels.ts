@@ -2,7 +2,7 @@
  * Rótulos y umbrales de espera del composer (funciones puras del chunk principal). Las cifras de
  * aquí (segundos de espera) son del cliente, no resultados.
  *
- * Los umbrales visuales vienen del motor propio retirado (ADR-011, sustituido): contador a los
+ * Los umbrales visuales vienen del motor propio retirado (ADR-015, sustituido): contador a los
  * 3 s y aviso de lentitud a los 10 s. Ya no hay tiempo límite propio: el corte lo hace el cliente
  * de IA del equipo a los 45 s (CLIENT_TIMEOUT_MS) o el usuario con «Cancelar» (AbortSignal).
  */

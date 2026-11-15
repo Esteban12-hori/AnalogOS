@@ -1,0 +1,1629 @@
+{
+  "kind": "analogos-mission-geology-export",
+  "schema_version": 1,
+  "status": "preliminary_geological_guidance",
+  "export_info": {
+    "description": "Recomendación de AnalogOS con orientación geológica para la prueba. Contiene, sin cambios, la exportación de recomendación M8 1.0 (resultado determinista) y, aparte, la orientación geológica efectivamente usada con sus fuentes y límites.",
+    "how_to_read": [
+      "mission_export es la exportación M8 1.0 íntegra: el resultado determinista de requisitos no cambia por la geología.",
+      "geology_guidance es una capa separada: cartografía regional oficial (no medición de campo) y orientación editorial para reconocimiento y validación; no prueba tracción, mecánica de suelos, equivalencia marciana, seguridad ni permisos, y un sector descartado no se rehabilita por su geología.",
+      "mode = ai: la IA solo eligió referencias (unidad + propósito) de un catálogo calculado a partir de la cartografía; no escribió hechos. mode = deterministic: orientación general sin IA que no depende del objetivo.",
+      "context_identity declara la identidad del paquete geológico completo (no verificable desde este archivo) y la huella exacta de los subconjuntos incluidos (subset_fingerprint, recalculable). geology_exports son subconjuntos validables por sector; con el snapshot confiable también se contrasta su geometría. El catálogo y la guía se recalculan al validar."
+    ],
+    "embedded_mission_export_version": "1.0.0"
+  },
+  "mission_export": {
+    "export_version": "1.0.0",
+    "request": {
+      "schema_version": "1.0.0",
+      "brief": "Prueba sintética de verificación: ensayo de movilidad de rover y reconocimiento geológico en la Puna argentina. Necesito pendiente mediana regional no mayor de 9 grados; prefiero al menos 95 % de superficie no vegetada. Quiero identificar materiales superficiales y contrastar las unidades del mapa en terreno; la tracción requiere medición.",
+      "activity": "Ensayo de navegación autónoma de rover",
+      "target": {
+        "profile_id": "mars-rover-screening-v3",
+        "stated": "Rover marciano (referencia Jezero)"
+      },
+      "requirements": [
+        {
+          "requirement_id": "ex1",
+          "label": "Mediana de pendiente regional",
+          "importance": "critical",
+          "origin": "user",
+          "confirmed": true,
+          "source_quote": "pendiente mediana regional no mayor de 3 grados",
+          "kind": "measurable",
+          "metric_id": "median_slope_degree",
+          "operator": "<=",
+          "value": 9,
+          "unit": "degree",
+          "scale": "window"
+        },
+        {
+          "requirement_id": "ex2",
+          "label": "Fracción no vegetada",
+          "importance": "preference",
+          "origin": "user",
+          "confirmed": true,
+          "source_quote": "al menos 95 % de superficie no vegetada",
+          "kind": "measurable",
+          "metric_id": "nonvegetated_fraction",
+          "operator": ">=",
+          "value": 95,
+          "unit": "percent",
+          "scale": "window"
+        },
+        {
+          "requirement_id": "ex3",
+          "label": "Tracción",
+          "importance": "preference",
+          "origin": "user",
+          "confirmed": true,
+          "source_quote": "la tracción",
+          "kind": "unmeasured",
+          "topic_id": "traction",
+          "detail": "No medido por este sistema."
+        }
+      ],
+      "open_questions": [],
+      "scope": {
+        "mode": "sector",
+        "site_id": "ar-win-s2580-w06710"
+      },
+      "confirmed": true
+    },
+    "evaluation_fingerprint": "d27d8d0e491fbff34f33dae9a2435870f0c874ea221083949783e3ee90f4032f",
+    "rules": {
+      "rules_version": "mission-rules-1.0.0",
+      "ordering_rule": "Primero se aplican los requisitos imprescindibles: un incumplimiento observado excluye la opción y un valor ausente o a escala inadecuada la deja con evidencia insuficiente. Entre las opciones con todos los imprescindibles cumplidos se ordena por (1) preferencias satisfechas, descendente; (2) similitud v3, descendente; (3) identificador del sector, ascendente. Las preferencias desconocidas no cuentan como cumplidas ni como incumplidas; se informan aparte y la comparación se rotula parcial. No existe un porcentaje de aptitud nuevo.",
+      "status_definitions": {
+        "priorizado_para_reconocimiento": "Cumple todos los requisitos imprescindibles evaluables; merece reconocimiento. No es aprobación ni autorización.",
+        "no_cumple_requisitos": "Incumple al menos un requisito imprescindible con valor observado.",
+        "evidencia_insuficiente": "Falta evidencia o escala adecuada para algún requisito imprescindible; no se aprueba.",
+        "objetivo_no_soportado": "El objetivo no corresponde al único perfil soportado (rover marciano, Jezero, v3)."
+      }
+    },
+    "snapshot": {
+      "snapshot_version": "science-screening-v3",
+      "profile_id": "mars-rover-screening-v3",
+      "profile_version": "3.0.0-preliminary",
+      "pipeline_version": "0.2.0",
+      "source_datasets": [
+        "copernicus-sentinel2-l2a-surface-2025-v3-search",
+        "derived-mola-nasadem-sentinel2-v3"
+      ]
+    },
+    "evaluation": {
+      "evaluation_version": "1.0.0",
+      "rules_version": "mission-rules-1.0.0",
+      "snapshot_version": "science-screening-v3",
+      "profile": {
+        "id": "mars-rover-screening-v3",
+        "version": "3.0.0-preliminary",
+        "name": "Screening multifuente para movilidad de rover — piloto Chile–Argentina",
+        "status": "needs_calibration"
+      },
+      "request_fingerprint": "935fcd88caf3f644b7a53fb8fa892ab9d280e8de655b7c3133ba100c3ada3cdf",
+      "outcome": "evaluated",
+      "resolution": {
+        "mode": "sector",
+        "state": "covered",
+        "requested": {
+          "bbox": [
+            -67.19999999999999,
+            -25.900000000000002,
+            -67,
+            -25.7
+          ],
+          "point": null,
+          "approx_area_km2": 445.274
+        },
+        "measured": [
+          {
+            "site_id": "ar-win-s2580-w06710",
+            "bbox": [
+              -67.19999999999999,
+              -25.900000000000002,
+              -67,
+              -25.7
+            ],
+            "area_km2": 444.4
+          }
+        ],
+        "matches": [],
+        "evaluated_site_ids": [
+          "ar-win-s2580-w06710"
+        ],
+        "notes": [
+          "Geometría pedida y medida coinciden: es la ventana completa del snapshot."
+        ]
+      },
+      "comparability": "partial",
+      "ordering_rule": "Primero se aplican los requisitos imprescindibles: un incumplimiento observado excluye la opción y un valor ausente o a escala inadecuada la deja con evidencia insuficiente. Entre las opciones con todos los imprescindibles cumplidos se ordena por (1) preferencias satisfechas, descendente; (2) similitud v3, descendente; (3) identificador del sector, ascendente. Las preferencias desconocidas no cuentan como cumplidas ni como incumplidas; se informan aparte y la comparación se rotula parcial. No existe un porcentaje de aptitud nuevo.",
+      "options": [
+        {
+          "site_id": "ar-win-s2580-w06710",
+          "name": "Puna de Catamarca y Salta · 25,8° S, 67,1° O",
+          "country": "AR",
+          "role": "candidate",
+          "status": "priorizado_para_reconocimiento",
+          "rank": 1,
+          "critical_failed": [],
+          "critical_unknown": [],
+          "preferences": {
+            "met": 1,
+            "unmet": 0,
+            "unknown": 1,
+            "total": 2
+          },
+          "requirement_results": [
+            {
+              "requirement_id": "ex1",
+              "label": "Mediana de pendiente regional",
+              "importance": "critical",
+              "kind": "measurable",
+              "required": "Mediana de pendiente regional: ≤ 9° · Ventana completa (~20 km)",
+              "status": "cumple",
+              "observed_value": 3.563,
+              "observed_unit": "degree",
+              "reason": "Valor observado 3,563° cumple la condición ≤ 9°.",
+              "evidence_ids": [
+                "ar-win-s2580-w06710-nasadem"
+              ],
+              "scale_note": "Mediana de la ventana completa, NASADEM agregado a ~471 m; no es pendiente puntual. Snapshot: Mediana de pendiente NASADEM mosaico, agregada 16×16 y comparada por razón con MOLA a escala equivalente.",
+              "period": null,
+              "conversion": null
+            },
+            {
+              "requirement_id": "ex2",
+              "label": "Fracción no vegetada",
+              "importance": "preference",
+              "kind": "measurable",
+              "required": "Fracción no vegetada: ≥ 95 % · Ventana completa (~20 km)",
+              "status": "cumple",
+              "observed_value": 0.995811,
+              "observed_unit": "ratio",
+              "reason": "Valor observado 0,995811 (fracción 0–1; 99,5811 %) cumple la condición ≥ 95 %.",
+              "evidence_ids": [
+                "ar-win-s2580-w06710-sentinel2"
+              ],
+              "scale_note": "Mediana de 12 mosaicos mensuales Sentinel-2 L2A (SCL clase 5); no prueba tracción ni mineralogía. Snapshot: Mediana de 12 mosaicos mensuales Sentinel-2 L2A: fracción SCL clase 5 dentro de píxeles válidos. La similitud usa directamente la continuidad no vegetada requerida por el perfil de prueba.",
+              "period": "2025-01-01T00:00:00Z – 2026-01-01T00:00:00Z",
+              "conversion": "Umbral en % convertido a fracción 0–1 dividiendo por 100; el snapshot guarda la fracción."
+            },
+            {
+              "requirement_id": "ex3",
+              "label": "Tracción",
+              "importance": "preference",
+              "kind": "unmeasured",
+              "status": "no_evaluable",
+              "required": "Tracción — No medido por este sistema.",
+              "observed_value": null,
+              "observed_unit": null,
+              "reason": "«Tracción» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible.",
+              "evidence_ids": [],
+              "scale_note": null,
+              "period": null,
+              "conversion": null
+            }
+          ],
+          "snapshot_scores": {
+            "similarity": 49.43,
+            "confidence": 77.4,
+            "stability": 96.81
+          },
+          "territorial_feasibility": "pending",
+          "what_would_change": [
+            "Medir «Tracción» a la escala requerida (preferencia): «Tracción» no está medido en el snapshot v3: queda como pendiente y no se interpreta como otra métrica disponible."
+          ],
+          "field_checks": [
+            "Confirmar límites, propiedad, acceso, seguridad y permisos con autoridades y propietarios.",
+            "Levantar obstáculos, pendiente y rugosidad a escala centimétrica/decimétrica.",
+            "Medir granulometría, cohesión, polvo, hundimiento y tracción del suelo para el rover.",
+            "Intersectar cartografía oficial de áreas protegidas, urbano e infraestructura antes de planificar campaña.",
+            "Solicitar revisión geológica de las unidades y afloramientos del polígono."
+          ],
+          "limitations": [
+            "Screening de escritorio: no reemplaza inspección de terreno, evaluación de seguridad ni permisos.",
+            "MOLA y NASADEM se comparan cerca de 460–480 m; NASADEM a 30 m solo sirve como screening y no describe obstáculos a escala de rueda.",
+            "Sentinel-2 SCL clase 5 mide superficie no vegetada, no composición mineral, cohesión ni mecánica de suelo.",
+            "No representa gravedad, atmósfera, presión, radiación ni química exacta del regolito marciano.",
+            "Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.",
+            "La confianza usa calidades asignadas por tipo de fuente (ADR-003), no incertidumbre medida; por eso casi no distingue entre sectores.",
+            "Los criterios «validated» están aprobados para screening por ADR-002 y ADR-003, sin validación experta externa ni de campo; la comparación topográfica es una razón de medianas, no una distancia entre distribuciones completas.",
+            "Piloto acotado: 50 ventanas de ~20 km en dos regiones de prueba de Chile y Argentina. No es una búsqueda nacional ni global, ni una muestra representativa.",
+            "La preselección usa solo prioridad topográfica; las ventanas no preseleccionadas no se evaluaron con Sentinel-2 ni POWER.",
+            "El catálogo de antecedentes es incompleto: ninguna ventana se declara nueva y no encontrar coincidencias no prueba novedad.",
+            "NASA POWER describe una celda MERRA-2 de 0,5° × 0,625°, mayor que la ventana: es contexto climático regional, no lluvia medida en el sitio, y ventanas vecinas pueden compartir la misma celda."
+          ]
+        }
+      ],
+      "recommended_site_ids": [
+        "ar-win-s2580-w06710"
+      ],
+      "none_prioritized": false,
+      "pending_requirements": [
+        "ex3"
+      ],
+      "open_questions": [],
+      "data_request": null,
+      "evidence": [
+        {
+          "evidence_id": "ar-win-s2580-w06710-nasadem",
+          "kind": "artifact",
+          "site_id": "ar-win-s2580-w06710",
+          "dataset_id": "derived-mola-nasadem-sentinel2-v3",
+          "claim": "Topografía terrestre: NASADEM_HGT.001 mosaico de 2 tile(s), agregado a ~470 m.",
+          "source_url": "https://doi.org/10.5067/MEaSUREs/NASADEM/NASADEM_HGT.001"
+        },
+        {
+          "evidence_id": "ar-win-s2580-w06710-sentinel2",
+          "kind": "artifact",
+          "site_id": "ar-win-s2580-w06710",
+          "dataset_id": "copernicus-sentinel2-l2a-surface-2025-v3-search",
+          "claim": "Superficie: 99,6 % no vegetada, mediana de 12 de 12 mosaicos mensuales Sentinel-2 L2A de 2025.",
+          "source_url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S2L2A.html"
+        }
+      ],
+      "limits": [
+        "Screening de escritorio sobre el snapshot science-screening-v3: prioriza reconocimiento; no aprueba, autoriza ni garantiza la seguridad de un sector.",
+        "Los requisitos son condiciones del ensayo definidas por el usuario, no estándares de NASA ni de otra agencia.",
+        "Las métricas son estadísticos de la ventana completa (análisis a ~471 m); no describen pendiente puntual, rocas, tracción ni suelo suelto.",
+        "El área es la extensión del polígono evaluado, no superficie libre ni utilizable.",
+        "SCL clase 5 mide superficie no vegetada; no prueba tracción ni mineralogía. NASA POWER es contexto regional: no aprueba lluvia local ni pronósticos.",
+        "La factibilidad territorial (permisos, acceso, áreas protegidas, propiedad) está pendiente y es independiente de este resultado.",
+        "Similitud y confianza son las del snapshot v3, sin recalcular; la similitud no es probabilidad de éxito. Es válido que ninguna opción resulte priorizada."
+      ]
+    },
+    "ai": {
+      "draft": null,
+      "explanation": {
+        "provenance": {
+          "provider": "anthropic",
+          "model": "claude-sonnet-5-5",
+          "request_id": "req_011Ch3teqxMdwPrJqPCngjWE",
+          "created_at": "2026-11-15T02:02:57.957Z",
+          "usage": {
+            "input_tokens": 6795,
+            "output_tokens": 719
+          },
+          "stop_reason": "end_turn"
+        },
+        "selection": {
+          "options": [
+            {
+              "site_id": "ar-win-s2580-w06710",
+              "key_requirement_ids": [
+                "ex3",
+                "ex1"
+              ],
+              "evidence_ids": [
+                "ar-win-s2580-w06710-nasadem"
+              ]
+            }
+          ],
+          "verification_ids": [
+            "ar-win-s2580-w06710|req|ex3",
+            "ar-win-s2580-w06710|fc|2",
+            "ar-win-s2580-w06710|fc|4",
+            "ar-win-s2580-w06710|fc|1"
+          ]
+        },
+        "request_fingerprint": "935fcd88caf3f644b7a53fb8fa892ab9d280e8de655b7c3133ba100c3ada3cdf",
+        "evaluation_fingerprint": "d27d8d0e491fbff34f33dae9a2435870f0c874ea221083949783e3ee90f4032f"
+      }
+    }
+  },
+  "geology_guidance": {
+    "mode": "ai",
+    "context_identity": {
+      "context_fingerprint": "33f4abc0e738e5be076fbee32e16d81c0009d669af59dd6fb8af51c394e4fcb9",
+      "subset_fingerprint": "96426d135d4e75e1538adb25dac6bbcee202f4cf7fc83c4834369b9f96eef2ac",
+      "subset_fingerprint_method": "SHA-256 del JSON canónico de la lista de subconjuntos geology-export incluidos en este archivo (cubre geometría, unidades, fuentes, citas, peticiones y metadatos de cada sector usado). Se recalcula aquí.",
+      "fingerprint_method": "SHA-256 del JSON canónico COMPLETO del contexto geológico validado (shared/mission/fingerprint.ts); no es el hash de los bytes del archivo.",
+      "verifiable_from_this_file": false,
+      "package_kind": "analogos-geology-context",
+      "package_schema_version": 1,
+      "snapshot_version": "science-screening-v3",
+      "pipeline_version": "0.2.0",
+      "candidates_file": "artifacts/science-v3/candidate-details.json",
+      "candidates_sha256": "83d2c4dd3f79aa74d1305a3eaa1c5649b6dcc3cba9c6b79f0688861bed9f36e4",
+      "note": "Este archivo trae solo los sectores usados (cada uno validable por sí solo); la identidad del paquete completo está DECLARADA y no puede recalcularse aquí, porque se omiten los demás sectores."
+    },
+    "geology_exports": [
+      {
+        "kind": "analogos-geology-export",
+        "schema_version": 1,
+        "status": "preliminary_geological_context",
+        "export_info": {
+          "description": "Contexto geológico cartográfico de un sector de AnalogOS, exportado de forma independiente. Describe qué unidades están cartografiadas en la capa oficial citada y qué parte del sector no tiene cobertura; no mide el terreno ni expresa aptitud, confianza ni compatibilidad planetaria.",
+          "how_to_read": [
+            "availability describe evidencia cartográfica, nunca aptitud: available = cobertura completa de esta capa sin ambigüedad ni descripciones ausentes; partial = hay huecos, solapes o descripciones ausentes; no_coverage = esta capa no cubre el sector; unavailable = hay evidencia no utilizable.",
+            "area_fractions son fracciones del área del sector y suman 1 sin renormalizar: unmapped + covered_unambiguous + covered_ambiguous + unusable_upper_bound. Cobertura no es precisión.",
+            "Este archivo es un subconjunto: contiene un solo sector y las peticiones que lo respaldan. full_candidates_file_sha256 es el hash del archivo completo candidate-details.json del que salió el paquete; este subconjunto no es ese archivo.",
+            "Las verification_questions son orientación editorial, no mediciones."
+          ],
+          "subset": true,
+          "package_kind": "analogos-geology-context",
+          "package_schema_version": 1,
+          "snapshot_version": "science-screening-v3",
+          "pipeline_version": "0.2.0",
+          "full_candidates_file": "artifacts/science-v3/candidate-details.json",
+          "full_candidates_file_sha256": "83d2c4dd3f79aa74d1305a3eaa1c5649b6dcc3cba9c6b79f0688861bed9f36e4"
+        },
+        "site": {
+          "site_id": "ar-win-s2580-w06710",
+          "name": "Puna de Catamarca y Salta · 25,8° S, 67,1° O",
+          "country": "AR",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -67.19999999999999,
+                  -25.900000000000002
+                ],
+                [
+                  -67,
+                  -25.900000000000002
+                ],
+                [
+                  -67,
+                  -25.7
+                ],
+                [
+                  -67.19999999999999,
+                  -25.7
+                ],
+                [
+                  -67.19999999999999,
+                  -25.900000000000002
+                ]
+              ]
+            ]
+          },
+          "source_id": "ar-segemar-sigam-e250k-unidad-geologica",
+          "request_ids": [
+            "16c2438d0ba8406c4f2492194b38359f5dd2fdb90517c374a20be505d7ec1f10"
+          ],
+          "aoi_area_km2": 444.409711,
+          "availability": "available",
+          "area_fractions": {
+            "unmapped": 0,
+            "covered_unambiguous": 1,
+            "covered_ambiguous": 0,
+            "unusable_upper_bound": 0,
+            "covered_total": 1,
+            "covered_by_units_without_description": 0
+          },
+          "feature_counts": {
+            "bbox_candidates": 28,
+            "positive_area": 27,
+            "no_positive_intersection": 1,
+            "invalid_geometry": 0,
+            "repaired_accepted": 0,
+            "rejected": 0
+          },
+          "units": [
+            {
+              "unit_id": "unit-12a6eab4c2ac",
+              "identity": {
+                "nro_hoja": "2566-III",
+                "cod_ulito": "25663444",
+                "nombre": "Complejo volcánico Galán (Piroclásticas intermedias)",
+                "descrip_litologica": "Ignimbrita dacítica"
+              },
+              "code": "25663444",
+              "name": "Complejo volcánico Galán (Piroclásticas intermedias)",
+              "description": "Ignimbrita dacítica",
+              "description_present": true,
+              "sheet": "2566-III",
+              "fraction_including_overlap": 0.457979244327349,
+              "fraction_unambiguous": 0.457979244327348,
+              "source_features": [
+                {
+                  "feature_id": "e250K_UnidadGeologica.112810",
+                  "properties": {
+                    "cod_ulito": 25663444,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Complejo volcánico Galán (Piroclásticas intermedias)",
+                    "descrip_litologica": "Ignimbrita dacítica",
+                    "edad_inf": "Plioceno",
+                    "edad_sup": "Plioceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Unidad",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFFF99"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113376",
+                  "properties": {
+                    "cod_ulito": 25663444,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Complejo volcánico Galán (Piroclásticas intermedias)",
+                    "descrip_litologica": "Ignimbrita dacítica",
+                    "edad_inf": "Plioceno",
+                    "edad_sup": "Plioceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Unidad",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFFF99"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113627",
+                  "properties": {
+                    "cod_ulito": 25663444,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Complejo volcánico Galán (Piroclásticas intermedias)",
+                    "descrip_litologica": "Ignimbrita dacítica",
+                    "edad_inf": "Plioceno",
+                    "edad_sup": "Plioceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Unidad",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFFF99"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113631",
+                  "properties": {
+                    "cod_ulito": 25663444,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Complejo volcánico Galán (Piroclásticas intermedias)",
+                    "descrip_litologica": "Ignimbrita dacítica",
+                    "edad_inf": "Plioceno",
+                    "edad_sup": "Plioceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Unidad",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFFF99"
+                  }
+                }
+              ],
+              "fraction_in_ambiguity": 1e-15
+            },
+            {
+              "unit_id": "unit-185f6126b275",
+              "identity": {
+                "nro_hoja": "2566-III",
+                "cod_ulito": "25663035",
+                "nombre": "Formación Tebequincho",
+                "descrip_litologica": "Dacitas y andesitas"
+              },
+              "code": "25663035",
+              "name": "Formación Tebequincho",
+              "description": "Dacitas y andesitas",
+              "description_present": true,
+              "sheet": "2566-III",
+              "fraction_including_overlap": 0.202883016810749,
+              "fraction_unambiguous": 0.202883016810749,
+              "source_features": [
+                {
+                  "feature_id": "e250K_UnidadGeologica.112791",
+                  "properties": {
+                    "cod_ulito": 25663035,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Formación Tebequincho",
+                    "descrip_litologica": "Dacitas y andesitas",
+                    "edad_inf": "Mioceno",
+                    "edad_sup": "Mioceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Formación",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFFF00"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.112805",
+                  "properties": {
+                    "cod_ulito": 25663035,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Formación Tebequincho",
+                    "descrip_litologica": "Dacitas y andesitas",
+                    "edad_inf": "Mioceno",
+                    "edad_sup": "Mioceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Formación",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFFF00"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113374",
+                  "properties": {
+                    "cod_ulito": 25663035,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Formación Tebequincho",
+                    "descrip_litologica": "Dacitas y andesitas",
+                    "edad_inf": "Mioceno",
+                    "edad_sup": "Mioceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Formación",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFFF00"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113417",
+                  "properties": {
+                    "cod_ulito": 25663035,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Formación Tebequincho",
+                    "descrip_litologica": "Dacitas y andesitas",
+                    "edad_inf": "Mioceno",
+                    "edad_sup": "Mioceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Formación",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFFF00"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113640",
+                  "properties": {
+                    "cod_ulito": 25663035,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Formación Tebequincho",
+                    "descrip_litologica": "Dacitas y andesitas",
+                    "edad_inf": "Mioceno",
+                    "edad_sup": "Mioceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Formación",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFFF00"
+                  }
+                }
+              ],
+              "fraction_in_ambiguity": 0
+            },
+            {
+              "unit_id": "unit-5f856fc0c4b4",
+              "identity": {
+                "nro_hoja": "2566-III",
+                "cod_ulito": "25663047",
+                "nombre": "Depósitos aluviales y coluviales",
+                "descrip_litologica": "Gravas arenas y arcillas"
+              },
+              "code": "25663047",
+              "name": "Depósitos aluviales y coluviales",
+              "description": "Gravas arenas y arcillas",
+              "description_present": true,
+              "sheet": "2566-III",
+              "fraction_including_overlap": 0.183715452700739,
+              "fraction_unambiguous": 0.183715452700739,
+              "source_features": [
+                {
+                  "feature_id": "e250K_UnidadGeologica.112801",
+                  "properties": {
+                    "cod_ulito": 25663047,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Depósitos aluviales y coluviales",
+                    "descrip_litologica": "Gravas arenas y arcillas",
+                    "edad_inf": "Holoceno",
+                    "edad_sup": "Holoceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Unidad",
+                    "genesis": "Ambiente contiental",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#F4E3C0"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113636",
+                  "properties": {
+                    "cod_ulito": 25663047,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Depósitos aluviales y coluviales",
+                    "descrip_litologica": "Gravas arenas y arcillas",
+                    "edad_inf": "Holoceno",
+                    "edad_sup": "Holoceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Unidad",
+                    "genesis": "Ambiente contiental",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#F4E3C0"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113827",
+                  "properties": {
+                    "cod_ulito": 25663047,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Depósitos aluviales y coluviales",
+                    "descrip_litologica": "Gravas arenas y arcillas",
+                    "edad_inf": "Holoceno",
+                    "edad_sup": "Holoceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Unidad",
+                    "genesis": "Ambiente contiental",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#F4E3C0"
+                  }
+                }
+              ],
+              "fraction_in_ambiguity": 0
+            },
+            {
+              "unit_id": "unit-a9fd0e768d01",
+              "identity": {
+                "nro_hoja": "2566-III",
+                "cod_ulito": "25663244",
+                "nombre": "Complejo volcánico Galán (Volcánicas)",
+                "descrip_litologica": "Lava post caldera"
+              },
+              "code": "25663244",
+              "name": "Complejo volcánico Galán (Volcánicas)",
+              "description": "Lava post caldera",
+              "description_present": true,
+              "sheet": "2566-III",
+              "fraction_including_overlap": 0.092153137636029,
+              "fraction_unambiguous": 0.092153137636029,
+              "source_features": [
+                {
+                  "feature_id": "e250K_UnidadGeologica.112864",
+                  "properties": {
+                    "cod_ulito": 25663244,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Complejo volcánico Galán (Volcánicas)",
+                    "descrip_litologica": "Lava post caldera",
+                    "edad_inf": "Plioceno",
+                    "edad_sup": "Plioceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Unidad",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFFF99"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.112865",
+                  "properties": {
+                    "cod_ulito": 25663244,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Complejo volcánico Galán (Volcánicas)",
+                    "descrip_litologica": "Lava post caldera",
+                    "edad_inf": "Plioceno",
+                    "edad_sup": "Plioceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Unidad",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFFF99"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113429",
+                  "properties": {
+                    "cod_ulito": 25663244,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Complejo volcánico Galán (Volcánicas)",
+                    "descrip_litologica": "Lava post caldera",
+                    "edad_inf": "Plioceno",
+                    "edad_sup": "Plioceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Unidad",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFFF99"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113446",
+                  "properties": {
+                    "cod_ulito": 25663244,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Complejo volcánico Galán (Volcánicas)",
+                    "descrip_litologica": "Lava post caldera",
+                    "edad_inf": "Plioceno",
+                    "edad_sup": "Plioceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Unidad",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFFF99"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113645",
+                  "properties": {
+                    "cod_ulito": 25663244,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Complejo volcánico Galán (Volcánicas)",
+                    "descrip_litologica": "Lava post caldera",
+                    "edad_inf": "Plioceno",
+                    "edad_sup": "Plioceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Unidad",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFFF99"
+                  }
+                }
+              ],
+              "fraction_in_ambiguity": 0
+            },
+            {
+              "unit_id": "unit-3df8f3ff12d2",
+              "identity": {
+                "nro_hoja": "2566-III",
+                "cod_ulito": "25663010",
+                "nombre": "Formación Falda Ciénaga",
+                "descrip_litologica": "Grauvacas y pelitas con intercalaciones de areniscas cuarzosas; lavas dacíticas y areniscas volcaniclásticas con anquimetamorfismo"
+              },
+              "code": "25663010",
+              "name": "Formación Falda Ciénaga",
+              "description": "Grauvacas y pelitas con intercalaciones de areniscas cuarzosas; lavas dacíticas y areniscas volcaniclásticas con anquimetamorfismo",
+              "description_present": true,
+              "sheet": "2566-III",
+              "fraction_including_overlap": 0.036239268942105,
+              "fraction_unambiguous": 0.036239268942105,
+              "source_features": [
+                {
+                  "feature_id": "e250K_UnidadGeologica.112798",
+                  "properties": {
+                    "cod_ulito": 25663010,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Formación Falda Ciénaga",
+                    "descrip_litologica": "Grauvacas y pelitas con intercalaciones de areniscas cuarzosas; lavas dacíticas y areniscas volcaniclásticas con anquimetamorfismo",
+                    "edad_inf": "Llanvirniano",
+                    "edad_sup": "Llandeiliano",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Formación",
+                    "genesis": "Ambiente marino",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#6DC397"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.112814",
+                  "properties": {
+                    "cod_ulito": 25663010,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Formación Falda Ciénaga",
+                    "descrip_litologica": "Grauvacas y pelitas con intercalaciones de areniscas cuarzosas; lavas dacíticas y areniscas volcaniclásticas con anquimetamorfismo",
+                    "edad_inf": "Llanvirniano",
+                    "edad_sup": "Llandeiliano",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Formación",
+                    "genesis": "Ambiente marino",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#6DC397"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.112822",
+                  "properties": {
+                    "cod_ulito": 25663010,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Formación Falda Ciénaga",
+                    "descrip_litologica": "Grauvacas y pelitas con intercalaciones de areniscas cuarzosas; lavas dacíticas y areniscas volcaniclásticas con anquimetamorfismo",
+                    "edad_inf": "Llanvirniano",
+                    "edad_sup": "Llandeiliano",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Formación",
+                    "genesis": "Ambiente marino",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#6DC397"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.112825",
+                  "properties": {
+                    "cod_ulito": 25663010,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Formación Falda Ciénaga",
+                    "descrip_litologica": "Grauvacas y pelitas con intercalaciones de areniscas cuarzosas; lavas dacíticas y areniscas volcaniclásticas con anquimetamorfismo",
+                    "edad_inf": "Llanvirniano",
+                    "edad_sup": "Llandeiliano",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Formación",
+                    "genesis": "Ambiente marino",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#6DC397"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113442",
+                  "properties": {
+                    "cod_ulito": 25663010,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Formación Falda Ciénaga",
+                    "descrip_litologica": "Grauvacas y pelitas con intercalaciones de areniscas cuarzosas; lavas dacíticas y areniscas volcaniclásticas con anquimetamorfismo",
+                    "edad_inf": "Llanvirniano",
+                    "edad_sup": "Llandeiliano",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Formación",
+                    "genesis": "Ambiente marino",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#6DC397"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113788",
+                  "properties": {
+                    "cod_ulito": 25663010,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Formación Falda Ciénaga",
+                    "descrip_litologica": "Grauvacas y pelitas con intercalaciones de areniscas cuarzosas; lavas dacíticas y areniscas volcaniclásticas con anquimetamorfismo",
+                    "edad_inf": "Llanvirniano",
+                    "edad_sup": "Llandeiliano",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Formación",
+                    "genesis": "Ambiente marino",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#6DC397"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113790",
+                  "properties": {
+                    "cod_ulito": 25663010,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Formación Falda Ciénaga",
+                    "descrip_litologica": "Grauvacas y pelitas con intercalaciones de areniscas cuarzosas; lavas dacíticas y areniscas volcaniclásticas con anquimetamorfismo",
+                    "edad_inf": "Llanvirniano",
+                    "edad_sup": "Llandeiliano",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Formación",
+                    "genesis": "Ambiente marino",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#6DC397"
+                  }
+                }
+              ],
+              "fraction_in_ambiguity": 0
+            },
+            {
+              "unit_id": "unit-a7e8e89a85df",
+              "identity": {
+                "nro_hoja": "2566-III",
+                "cod_ulito": "25663001",
+                "nombre": "Formación Pachamama",
+                "descrip_litologica": "Esquistos y gneises con intercalaciones de calizas y anfibolitas"
+              },
+              "code": "25663001",
+              "name": "Formación Pachamama",
+              "description": "Esquistos y gneises con intercalaciones de calizas y anfibolitas",
+              "description_present": true,
+              "sheet": "2566-III",
+              "fraction_including_overlap": 0.019840695170973,
+              "fraction_unambiguous": 0.019840695170973,
+              "source_features": [
+                {
+                  "feature_id": "e250K_UnidadGeologica.113312",
+                  "properties": {
+                    "cod_ulito": 25663001,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Formación Pachamama",
+                    "descrip_litologica": "Esquistos y gneises con intercalaciones de calizas y anfibolitas",
+                    "edad_inf": "Neoproterozoico",
+                    "edad_sup": "Neoproterozoico",
+                    "valor_edad": "Datación isotópica",
+                    "jerarquia": "Formación",
+                    "genesis": "Metamorfismo de medio a alto grado",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FEB342"
+                  }
+                }
+              ],
+              "fraction_in_ambiguity": 0
+            },
+            {
+              "unit_id": "unit-90987d443a58",
+              "identity": {
+                "nro_hoja": "2566-III",
+                "cod_ulito": "25663045",
+                "nombre": "Depósitos aterrazados",
+                "descrip_litologica": "Conglomerados con intercalaciones de areniscas, pelitas y tobas"
+              },
+              "code": "25663045",
+              "name": "Depósitos aterrazados",
+              "description": "Conglomerados con intercalaciones de areniscas, pelitas y tobas",
+              "description_present": true,
+              "sheet": "2566-III",
+              "fraction_including_overlap": 0.007189184412057,
+              "fraction_unambiguous": 0.007189184412057,
+              "source_features": [
+                {
+                  "feature_id": "e250K_UnidadGeologica.113487",
+                  "properties": {
+                    "cod_ulito": 25663045,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Depósitos aterrazados",
+                    "descrip_litologica": "Conglomerados con intercalaciones de areniscas, pelitas y tobas",
+                    "edad_inf": "Pleistoceno",
+                    "edad_sup": "Pleistoceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Unidad",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFF3B3"
+                  }
+                },
+                {
+                  "feature_id": "e250K_UnidadGeologica.113906",
+                  "properties": {
+                    "cod_ulito": 25663045,
+                    "nro_hoja": "2566-III",
+                    "nom_hoja": "CACHI",
+                    "nombre": "Depósitos aterrazados",
+                    "descrip_litologica": "Conglomerados con intercalaciones de areniscas, pelitas y tobas",
+                    "edad_inf": "Pleistoceno",
+                    "edad_sup": "Pleistoceno",
+                    "valor_edad": "Relación estratigráfica",
+                    "jerarquia": "Unidad",
+                    "genesis": "Igneo",
+                    "estra_local_tipo": null,
+                    "potencia": null,
+                    "rel_estrat": null,
+                    "estatus": null,
+                    "ref_denom_formal": null,
+                    "morfologia": null,
+                    "paleontologia": null,
+                    "estructura": null,
+                    "prov_geol": null,
+                    "distr_areal": null,
+                    "marco_tecto": null,
+                    "correlaciones": null,
+                    "color": "#FFF3B3"
+                  }
+                }
+              ],
+              "fraction_in_ambiguity": 0
+            }
+          ],
+          "geometry_diagnostics": [],
+          "verification_questions": [
+            "¿Qué unidades afloran realmente en el sector? Este mapa es regional (1:250.000): contrastar con la cartografía de detalle disponible y con observación en terreno."
+          ]
+        },
+        "source": {
+          "source_id": "ar-segemar-sigam-e250k-unidad-geologica",
+          "country": "AR",
+          "authority_original": "SEGEMAR (Servicio Geológico Minero Argentino)",
+          "distributor": "SEGEMAR, Sistema de Información Geológica Ambiental Minera (SIGAM), servicio WFS público",
+          "dataset_name": "Unidades geológicas 1:250.000",
+          "dataset_url": "https://sigam.segemar.gov.ar/sigam/geoservicios/",
+          "layer": "sigam:e250K_UnidadGeologica",
+          "scale_denominator": 250000,
+          "crs_declared": "urn:ogc:def:crs:EPSG::4326",
+          "license": {
+            "name": "Creative Commons Attribution 4.0 (CC BY 4.0), según lo declarado por SIGAM",
+            "url": "https://sigam.segemar.gov.ar/sigam/geoservicios/",
+            "declared_id": null,
+            "declared_by": "Página de geoservicios de SIGAM/SEGEMAR",
+            "scope": "Declaración general de la página de geoservicios; no se verificó una licencia específica de la capa."
+          },
+          "attribution": "SEGEMAR / SIGAM, capa sigam:e250K_UnidadGeologica (CC BY 4.0 declarada por SIGAM).",
+          "map_date": null,
+          "map_date_note": "El servicio no declara la fecha del levantamiento; cada hoja tiene su propia publicación que debe consultarse.",
+          "catalog_modified_at": null,
+          "encoding": "UTF-8",
+          "identity_fields": [
+            "nro_hoja",
+            "cod_ulito",
+            "nombre",
+            "descrip_litologica"
+          ],
+          "code_field": "cod_ulito",
+          "name_field": "nombre",
+          "description_field": "descrip_litologica",
+          "sheet_field": "nro_hoja",
+          "absent_description_markers": [
+            "",
+            "*"
+          ],
+          "requests": [
+            {
+              "request_id": "16c2438d0ba8406c4f2492194b38359f5dd2fdb90517c374a20be505d7ec1f10",
+              "role": "argentina_wfs",
+              "method": "GET",
+              "url": "https://sigam.segemar.gov.ar/geoserver217/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=sigam%3Ae250K_UnidadGeologica&maxFeatures=2000&srsName=EPSG%3A4326&bbox=-67.19999999999999%2C-25.900000000000002%2C-67.0%2C-25.7%2CEPSG%3A4326&outputFormat=application%2Fjson",
+              "response_sha256": "601841401446e8f7ff25b20ee372bb8f23392d51dac96b467712e8969e3971da",
+              "bytes": 314317,
+              "http_status": 200,
+              "content_type": "application/json;charset=UTF-8",
+              "acquired_at": "2026-11-14T23:39:57Z",
+              "site_id": "ar-win-s2580-w06710",
+              "server_timestamp": "2026-11-14T23:40:05.605Z",
+              "number_matched": 28,
+              "number_returned": 28
+            }
+          ],
+          "layer_features_total": null,
+          "layer_null_geometry_features": null,
+          "transformations": [
+            "WFS 1.0.0 GetFeature en https://sigam.segemar.gov.ar/geoserver217/ows, GeoJSON, srsName EPSG:4326 explícito, una petición por sector con su bbox exacta; las respuestas se verificaron íntegras (numberMatched = numberReturned, sin alcanzar el límite).",
+            "BBOX devuelve polígonos completos que pueden extenderse fuera de la consulta; se recortan al sector.",
+            "Validez y reparación se evalúan sobre las coordenadas originales lon/lat; luego los vértices se proyectan a EPSG:6933 (equivalente) y el recorte contra la geometría exacta del sector, la disolución y los solapes se hacen en ese plano, con aristas rectas en él (no es una integral geodésica exacta).",
+            "Entidades agrupadas por la identidad de fuente indicada; sus partes se disuelven, de modo que duplicados no suman área.",
+            "Solape entre unidades distintas se informa como ambigüedad; no se reparte ni se normaliza a 100 %.",
+            "Geometrías inválidas: make_valid contrastada con buffer(0); se rechaza la entidad si el área total original no es positiva y finita, si el área total reparada cambia más de 0,1 %, si alguno de los métodos no da polígonos válidos o si su diferencia simétrica recortada supera 0,1 % de la entidad o 0,05 % del sector. Una entidad rechazada resta su bbox∩sector de todas las unidades como cota superior de zona no utilizable.",
+            "Propiedades originales conservadas sin traducir ni clasificar; ningún campo vacío se completa."
+          ],
+          "limitations": [
+            "Escala 1:250.000, pero la capa no cubre todo el territorio: un sector puede quedar sin cobertura en esta capa.",
+            "Fecha del levantamiento desconocida (null); la edad por hoja requiere consultar su publicación.",
+            "Muchos campos de la capa vienen vacíos y se conservan vacíos."
+          ]
+        },
+        "processing": {
+          "shapely": "2.2.0",
+          "geos": "3.14.1",
+          "pyproj": "3.8.0",
+          "area_crs": "EPSG:6933",
+          "clip_space": "Validez y reparación en lon/lat (CRS84); recorte y superposición en el plano EPSG:6933 (aristas rectas en ese plano)"
+        },
+        "policy": {
+          "area_crs": "EPSG:6933",
+          "clip_space": "Validez y reparación en lon/lat (CRS84); recorte y superposición en el plano EPSG:6933 (aristas rectas en ese plano)",
+          "repair_entity_relative_limit": 0.001,
+          "repair_aoi_fraction_limit": 0.0005,
+          "repair_total_area_relative_limit": 0.001,
+          "repair_methods_compared": [
+            "make_valid",
+            "buffer(0)"
+          ],
+          "area_floor_m2": 0.000001,
+          "available_tolerance": 1e-8,
+          "sum_tolerance": 1e-9,
+          "provisional": true,
+          "note": "Umbrales de ingeniería provisionales aprobados por Codex; no son un estándar científico."
+        },
+        "limitations": [
+          "Cartografía regional: describe qué unidades están cartografiadas, no qué material aflora ni su estado superficial.",
+          "Cobertura del mapa no es precisión, confianza, aptitud ni verificación de campo; 100 % cubierto no significa 100 % acertado.",
+          "Una fracción sin cobertura significa que esta capa no tiene polígono allí; no implica ausencia de geología ni descarta el sector.",
+          "No se mezclan escalas: no se rellenan huecos con capas más generales (1:1.000.000 o 1:2.500.000).",
+          "No se infieren tracción, granulometría, resistencia, composición química ni compatibilidad planetaria calibrada.",
+          "El score del snapshot mantiene «Geología sin calibrar»: este paquete no lo modifica.",
+          "Umbrales de reparación y de estado son criterios de ingeniería provisionales, no estándares científicos.",
+          "Las áreas se miden con aristas rectas en el plano equivalente EPSG:6933 tras proyectar los vértices; no son mediciones geodésicas exactas."
+        ],
+        "editorial_note": "Las preguntas de verificación son orientación editorial para preparar el reconocimiento, no mediciones ni resultados de campo."
+      }
+    ],
+    "catalog": {
+      "catalog_fingerprint": "38d604f06425a33043c70b17bff35a0106cbf78516bb88af2c33710b4ef72237",
+      "subset_fingerprint": "96426d135d4e75e1538adb25dac6bbcee202f4cf7fc83c4834369b9f96eef2ac",
+      "request_fingerprint": "935fcd88caf3f644b7a53fb8fa892ab9d280e8de655b7c3133ba100c3ada3cdf",
+      "evaluation_fingerprint": "d27d8d0e491fbff34f33dae9a2435870f0c874ea221083949783e3ee90f4032f",
+      "scope_mode": "sector",
+      "ref_ids": [
+        "ar-win-s2580-w06710|geo|unit-12a6eab4c2ac|correspondencia_mapa_terreno",
+        "ar-win-s2580-w06710|geo|unit-12a6eab4c2ac|caracterizar_material_superficial",
+        "ar-win-s2580-w06710|geo|unit-12a6eab4c2ac|diversidad_litologica_muestreo",
+        "ar-win-s2580-w06710|geo|unit-185f6126b275|correspondencia_mapa_terreno",
+        "ar-win-s2580-w06710|geo|unit-185f6126b275|caracterizar_material_superficial",
+        "ar-win-s2580-w06710|geo|unit-185f6126b275|diversidad_litologica_muestreo",
+        "ar-win-s2580-w06710|geo|unit-5f856fc0c4b4|correspondencia_mapa_terreno",
+        "ar-win-s2580-w06710|geo|unit-5f856fc0c4b4|caracterizar_material_superficial",
+        "ar-win-s2580-w06710|geo|unit-5f856fc0c4b4|diversidad_litologica_muestreo",
+        "ar-win-s2580-w06710|geo|unit-a9fd0e768d01|correspondencia_mapa_terreno",
+        "ar-win-s2580-w06710|geo|unit-a9fd0e768d01|caracterizar_material_superficial",
+        "ar-win-s2580-w06710|geo|unit-a9fd0e768d01|diversidad_litologica_muestreo",
+        "ar-win-s2580-w06710|geo|unit-3df8f3ff12d2|correspondencia_mapa_terreno",
+        "ar-win-s2580-w06710|geo|unit-3df8f3ff12d2|caracterizar_material_superficial",
+        "ar-win-s2580-w06710|geo|unit-3df8f3ff12d2|diversidad_litologica_muestreo",
+        "ar-win-s2580-w06710|geo|unit-a7e8e89a85df|correspondencia_mapa_terreno",
+        "ar-win-s2580-w06710|geo|unit-a7e8e89a85df|caracterizar_material_superficial",
+        "ar-win-s2580-w06710|geo|unit-a7e8e89a85df|diversidad_litologica_muestreo",
+        "ar-win-s2580-w06710|geo|unit-90987d443a58|correspondencia_mapa_terreno",
+        "ar-win-s2580-w06710|geo|unit-90987d443a58|caracterizar_material_superficial",
+        "ar-win-s2580-w06710|geo|unit-90987d443a58|diversidad_litologica_muestreo",
+        "ar-win-s2580-w06710|geo|site|contrastar_escala"
+      ],
+      "excluded": []
+    },
+    "selection": {
+      "ref_ids": [
+        "ar-win-s2580-w06710|geo|unit-12a6eab4c2ac|caracterizar_material_superficial",
+        "ar-win-s2580-w06710|geo|unit-12a6eab4c2ac|correspondencia_mapa_terreno",
+        "ar-win-s2580-w06710|geo|unit-5f856fc0c4b4|caracterizar_material_superficial"
+      ]
+    },
+    "ai": {
+      "provenance": {
+        "provider": "anthropic",
+        "model": "claude-sonnet-5-5",
+        "request_id": "req_011Ch3teqxMdwPrJqPCngjWE",
+        "created_at": "2026-11-15T02:02:57.957Z",
+        "usage": {
+          "input_tokens": 6795,
+          "output_tokens": 719
+        },
+        "stop_reason": "end_turn"
+      },
+      "request_fingerprint": "935fcd88caf3f644b7a53fb8fa892ab9d280e8de655b7c3133ba100c3ada3cdf",
+      "evaluation_fingerprint": "d27d8d0e491fbff34f33dae9a2435870f0c874ea221083949783e3ee90f4032f",
+      "catalog_fingerprint": "38d604f06425a33043c70b17bff35a0106cbf78516bb88af2c33710b4ef72237"
+    },
+    "guidance": {
+      "source": "anthropic",
+      "notice": "Selección asistida por IA (Anthropic) entre referencias que calcula la app a partir de la cartografía oficial y de su objetivo confirmado. La IA no escribe hechos geológicos: cada punto es orientación editorial, no una medición.",
+      "scope_note": null,
+      "sites": [
+        {
+          "brief": {
+            "site_id": "ar-win-s2580-w06710",
+            "name": "Puna de Catamarca y Salta · 25,8° S, 67,1° O",
+            "option_status": "priorizado_para_reconocimiento",
+            "rank": 1,
+            "role": "candidate",
+            "availability": "available",
+            "applies_to": "evaluated_window",
+            "fractions": {
+              "unmapped": 0,
+              "covered_total": 1,
+              "covered_ambiguous": 0,
+              "unusable_upper_bound": 0,
+              "without_description": 0
+            },
+            "scale_denominator": 250000,
+            "source": {
+              "source_id": "ar-segemar-sigam-e250k-unidad-geologica",
+              "authority": "SEGEMAR (Servicio Geológico Minero Argentino)",
+              "distributor": "SEGEMAR, Sistema de Información Geológica Ambiental Minera (SIGAM), servicio WFS público",
+              "dataset_name": "Unidades geológicas 1:250.000",
+              "dataset_url": "https://sigam.segemar.gov.ar/sigam/geoservicios/",
+              "map_date": null
+            },
+            "units": [
+              {
+                "unit_id": "unit-12a6eab4c2ac",
+                "code": "25663444",
+                "name": "Complejo volcánico Galán (Piroclásticas intermedias)",
+                "description": "Ignimbrita dacítica",
+                "fraction": 0.457979244327349,
+                "fraction_unambiguous": 0.457979244327348,
+                "fraction_in_ambiguity": 1e-15
+              },
+              {
+                "unit_id": "unit-185f6126b275",
+                "code": "25663035",
+                "name": "Formación Tebequincho",
+                "description": "Dacitas y andesitas",
+                "fraction": 0.202883016810749,
+                "fraction_unambiguous": 0.202883016810749,
+                "fraction_in_ambiguity": 0
+              },
+              {
+                "unit_id": "unit-5f856fc0c4b4",
+                "code": "25663047",
+                "name": "Depósitos aluviales y coluviales",
+                "description": "Gravas arenas y arcillas",
+                "fraction": 0.183715452700739,
+                "fraction_unambiguous": 0.183715452700739,
+                "fraction_in_ambiguity": 0
+              },
+              {
+                "unit_id": "unit-a9fd0e768d01",
+                "code": "25663244",
+                "name": "Complejo volcánico Galán (Volcánicas)",
+                "description": "Lava post caldera",
+                "fraction": 0.092153137636029,
+                "fraction_unambiguous": 0.092153137636029,
+                "fraction_in_ambiguity": 0
+              },
+              {
+                "unit_id": "unit-3df8f3ff12d2",
+                "code": "25663010",
+                "name": "Formación Falda Ciénaga",
+                "description": "Grauvacas y pelitas con intercalaciones de areniscas cuarzosas; lavas dacíticas y areniscas volcaniclásticas con anquimetamorfismo",
+                "fraction": 0.036239268942105,
+                "fraction_unambiguous": 0.036239268942105,
+                "fraction_in_ambiguity": 0
+              },
+              {
+                "unit_id": "unit-a7e8e89a85df",
+                "code": "25663001",
+                "name": "Formación Pachamama",
+                "description": "Esquistos y gneises con intercalaciones de calizas y anfibolitas",
+                "fraction": 0.019840695170973,
+                "fraction_unambiguous": 0.019840695170973,
+                "fraction_in_ambiguity": 0
+              },
+              {
+                "unit_id": "unit-90987d443a58",
+                "code": "25663045",
+                "name": "Depósitos aterrazados",
+                "description": "Conglomerados con intercalaciones de areniscas, pelitas y tobas",
+                "fraction": 0.007189184412057,
+                "fraction_unambiguous": 0.007189184412057,
+                "fraction_in_ambiguity": 0
+              }
+            ],
+            "units_omitted": 0,
+            "limits": [
+              "Cartografía regional 1:250.000 (SEGEMAR (Servicio Geológico Minero Argentino)): no es medición de campo ni prueba de tracción, mecánica de suelos, equivalencia marciana, seguridad ni permisos.",
+              "Estado de evidencia: Cobertura cartográfica completa. Cobertura no es precisión ni aptitud.",
+              "La fecha del levantamiento geológico no está informada por la fuente.",
+              "Las unidades se listan por su fracción del sector; la capa no localiza dónde está cada una dentro de la ventana en esta ficha ni atribuye unidades al hueco. Los porcentajes de unidades no se suman: el solape cuenta en cada una."
+            ]
+          },
+          "items": [
+            {
+              "ref": {
+                "ref_id": "ar-win-s2580-w06710|geo|unit-12a6eab4c2ac|caracterizar_material_superficial",
+                "site_id": "ar-win-s2580-w06710",
+                "unit_id": "unit-12a6eab4c2ac",
+                "purpose": "caracterizar_material_superficial",
+                "text": "Medir en terreno granulometría, compactación y fricción del material superficial donde se cartografió «Complejo volcánico Galán (Piroclásticas intermedias)» (código 25663444); el mapa no los informa y no deben inferirse de su nombre. Orientación editorial, no medición."
+              },
+              "unit": {
+                "unit_id": "unit-12a6eab4c2ac",
+                "code": "25663444",
+                "name": "Complejo volcánico Galán (Piroclásticas intermedias)",
+                "description": "Ignimbrita dacítica",
+                "fraction": 0.457979244327349,
+                "fraction_unambiguous": 0.457979244327348,
+                "fraction_in_ambiguity": 1e-15
+              },
+              "purpose_label": "Caracterizar material superficial (a medir)"
+            },
+            {
+              "ref": {
+                "ref_id": "ar-win-s2580-w06710|geo|unit-12a6eab4c2ac|correspondencia_mapa_terreno",
+                "site_id": "ar-win-s2580-w06710",
+                "unit_id": "unit-12a6eab4c2ac",
+                "purpose": "correspondencia_mapa_terreno",
+                "text": "Comprobar en terreno si lo observado donde se cartografió «Complejo volcánico Galán (Piroclásticas intermedias)» (código 25663444) coincide con su descripción oficial. Orientación editorial, no medición."
+              },
+              "unit": {
+                "unit_id": "unit-12a6eab4c2ac",
+                "code": "25663444",
+                "name": "Complejo volcánico Galán (Piroclásticas intermedias)",
+                "description": "Ignimbrita dacítica",
+                "fraction": 0.457979244327349,
+                "fraction_unambiguous": 0.457979244327348,
+                "fraction_in_ambiguity": 1e-15
+              },
+              "purpose_label": "Comprobar correspondencia mapa-terreno"
+            },
+            {
+              "ref": {
+                "ref_id": "ar-win-s2580-w06710|geo|unit-5f856fc0c4b4|caracterizar_material_superficial",
+                "site_id": "ar-win-s2580-w06710",
+                "unit_id": "unit-5f856fc0c4b4",
+                "purpose": "caracterizar_material_superficial",
+                "text": "Medir en terreno granulometría, compactación y fricción del material superficial donde se cartografió «Depósitos aluviales y coluviales» (código 25663047); el mapa no los informa y no deben inferirse de su nombre. Orientación editorial, no medición."
+              },
+              "unit": {
+                "unit_id": "unit-5f856fc0c4b4",
+                "code": "25663047",
+                "name": "Depósitos aluviales y coluviales",
+                "description": "Gravas arenas y arcillas",
+                "fraction": 0.183715452700739,
+                "fraction_unambiguous": 0.183715452700739,
+                "fraction_in_ambiguity": 0
+              },
+              "purpose_label": "Caracterizar material superficial (a medir)"
+            }
+          ]
+        }
+      ],
+      "excluded": []
+    }
+  }
+}

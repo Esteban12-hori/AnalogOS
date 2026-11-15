@@ -2,6 +2,7 @@
 import { VisualContext } from '../../components/VisualContext'
 import type { CandidateSite, DataManifest, SearchResults } from '../../domain/contracts'
 import type { VisualContextState } from '../../data/loadVisualContext'
+import { limitationText } from '../../domain/geologyCopy'
 import { exportSiteJson } from '../actions'
 
 interface SourcesTabProps {
@@ -11,16 +12,18 @@ interface SourcesTabProps {
   search: SearchResults | null
   visual: VisualContextState
   onShowOnMap: () => void
+  /** El sector tiene su contexto geológico oficial válido (M9): actualiza la limitación histórica. */
+  hasGeology?: boolean
 }
 
-export function SourcesTab({ site, manifest, search, visual, onShowOnMap }: SourcesTabProps) {
+export function SourcesTab({ site, manifest, search, visual, onShowOnMap, hasGeology = false }: SourcesTabProps) {
   return (
     <div className="sources-tab">
       <VisualContext candidate={site} state={visual} onShowOnMap={onShowOnMap} />
       <section className="details-section two-column-notes">
         <div>
           <h3>Dónde falla la analogía</h3>
-          <ul>{site.limitations.map((item) => <li key={item}>{item}</li>)}</ul>
+          <ul>{site.limitations.map((item) => <li key={item}>{limitationText(item, hasGeology)}</li>)}</ul>
         </div>
         <div>
           <h3>Qué verificar en terreno</h3>

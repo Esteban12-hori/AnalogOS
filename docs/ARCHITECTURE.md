@@ -58,14 +58,14 @@ Los archivos deben validar contra `contracts/` antes del build.
 
 ## Estructura mínima de la web
 
-Tras integrar el rediseño con dev (ADR-010, ADR-013), la web es un escenario fijo con features
+Tras integrar el rediseño con dev (ADR-014, ADR-013), la web es un escenario fijo con features
 independientes que leen los stores compartidos; el planificador del equipo vive en `mission/` y
 `components/planner/` y se reutiliza dentro de «Tu misión».
 
 ```text
 apps/web/src/
 ├── App.tsx                  # carga en el límite y promesa del producto
-├── shell/                   # armazón: escenario, dock, riel, hoja, ficha (Origen, Método…)
+├── shell/                   # armazón: escenario, dock, riel, hoja, ficha (Origen, Geología, Método…)
 ├── state/                   # stores ui y mission (único escritor: el controlador de misión)
 ├── features/
 │   ├── globe/               # globo, paso a 2D, marcadores, mapa SVG sin WebGL (CandidateMap)

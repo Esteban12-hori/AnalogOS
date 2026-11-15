@@ -119,6 +119,10 @@
 .analysis-ai-button { justify-self: start; min-height: 34px; padding: 0 14px; border: 1px solid var(--ai-rule, var(--line-strong)); border-radius: 999px; background: transparent; color: var(--text); cursor: pointer; font: inherit; font-size: var(--fs-12); font-weight: 650; }
 .analysis-ai-button:hover { border-color: var(--sel-line); }
 .analysis-ai-button:focus-visible, .analysis-link:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+/* Canal geológico (M10): casilla explícita junto al botón; el aviso de envío cambia con ella. */
+.analysis-geo-opt { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: start; color: var(--muted); font-size: var(--fs-12); line-height: 1.45; cursor: pointer; }
+.analysis-geo-opt input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--blue-bright); }
+.analysis-geo-opt input:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 li[data-status="no_cumple"] > b { color: var(--text); }
 li[data-status="no_evaluable"] > b { color: var(--pending); }
 li[data-status="cumple"] > b { color: var(--earth-bright); }

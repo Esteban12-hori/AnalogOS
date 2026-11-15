@@ -4,7 +4,8 @@ import type { EvidenceBundle } from '../../shared/mission/types'
 import { AiCallError, type AiErrorCode } from './anthropic'
 import type { AiConfig } from './config'
 import { header, isOriginAllowed, RateLimiter, type HeaderBag } from './guard'
-import { ExplainInputError, runDraft, runExplain } from './operations'
+import type { ServerGeology } from './geology'
+import { ExplainInputError, checkGeologyChannel, runDraft, runExplain } from './operations'
 
 export const MAX_BODY_BYTES = 24 * 1024
 
@@ -26,6 +27,8 @@ export interface AiDeps {
   now: () => number
   limiter: RateLimiter
   bundle: EvidenceBundle
+  /** Paquete geológico del servidor (perezoso para no leer disco si el cliente no lo pide). Ausente = no disponible. */
+  geology?: () => ServerGeology
 }
 
 type ErrorCode =
@@ -39,6 +42,8 @@ type ErrorCode =
   | 'invalid_request'
   | 'stale_request'
   | 'nothing_to_explain'
+  | 'geology_context_unavailable'
+  | 'geology_context_stale'
 
 // Mensajes fijos: nunca se refleja texto del proveedor, de la clave ni del cuerpo del cliente.
 const ERRORS: Record<ErrorCode, [number, string]> = {
@@ -51,6 +56,8 @@ const ERRORS: Record<ErrorCode, [number, string]> = {
   invalid_request: [422, 'La solicitud no es válida o no está confirmada.'],
   stale_request: [409, 'La solicitud cambió; vuelva a confirmarla.'],
   nothing_to_explain: [422, 'No hay opciones evaluadas que explicar.'],
+  geology_context_unavailable: [409, 'El servidor no tiene un contexto geológico válido para esta versión. Puede reintentar sin geología.'],
+  geology_context_stale: [409, 'El contexto geológico del servidor es otro (versión distinta). Recargue la página o reintente sin geología.'],
   ai_unavailable: [503, 'La asistencia de IA no está disponible. El recorrido manual sigue funcionando.'],
   ai_timeout: [504, 'La IA tardó demasiado en responder.'],
   ai_rate_limited: [503, 'El proveedor de IA limitó las solicitudes; reintente más tarde.'],
@@ -112,28 +119,41 @@ export async function handleAiRequest(req: AiHttpRequest, deps: AiDeps): Promise
   if (body.operation === 'draft' && hasOnly(body, ['operation', 'client_request_id', 'brief'])) {
     if (typeof body.brief !== 'string' || !body.brief.trim() || body.brief.length > MAX_BRIEF_CHARS) return fail('bad_request', clientId)
     op = 'draft'
-  } else if (body.operation === 'explain' && hasOnly(body, ['operation', 'client_request_id', 'request', 'request_fingerprint'])) {
+  } else if (body.operation === 'explain' && hasOnly(body, ['operation', 'client_request_id', 'request', 'request_fingerprint', 'geology_context_fingerprint'])) {
     if (typeof body.request_fingerprint !== 'string' || !/^[0-9a-f]{64}$/.test(body.request_fingerprint)) return fail('bad_request', clientId)
+    if (body.geology_context_fingerprint !== undefined && (typeof body.geology_context_fingerprint !== 'string' || !/^[0-9a-f]{64}$/.test(body.geology_context_fingerprint))) return fail('bad_request', clientId)
     op = 'explain'
   } else {
     return fail('bad_request', clientId)
   }
 
+  // Canal geológico opt-in: se resuelve ANTES de la clave y del proveedor (el paquete se carga y valida de verdad).
+  const geologyFp = op === 'explain' && typeof body.geology_context_fingerprint === 'string' ? body.geology_context_fingerprint : undefined
+  let geology: ServerGeology | undefined
+  if (geologyFp !== undefined) {
+    geology = deps.geology?.() ?? { status: 'absent' }
+    try {
+      checkGeologyChannel(geology, geologyFp)
+    } catch (error) {
+      if (error instanceof ExplainInputError) return fail(error.code, clientId)
+      throw error
+    }
+  }
   if (!deps.config.apiKey) return fail('ai_unavailable', clientId)
   const limit = deps.limiter.check(req.clientKey || 'unknown', deps.now())
   if (!limit.ok) return fail('rate_limited', clientId, {}, { 'retry-after': String(limit.retryAfterSec) })
 
-  const ctx = { config: deps.config, fetchImpl: deps.fetchImpl, now: deps.now, bundle: deps.bundle }
+  const ctx = { config: deps.config, fetchImpl: deps.fetchImpl, now: deps.now, bundle: deps.bundle, geology }
   try {
     if (op === 'draft') {
       const r = await runDraft(ctx, body.brief as string)
       return { status: 200, headers: BASE_HEADERS, body: { ok: true, operation: 'draft', client_request_id: clientId, draft: r.proposal, provenance: r.provenance } }
     }
-    const r = await runExplain(ctx, body.request, body.request_fingerprint as string)
+    const r = await runExplain(ctx, body.request, body.request_fingerprint as string, geologyFp)
     return {
       status: 200,
       headers: BASE_HEADERS,
-      body: { ok: true, operation: 'explain', client_request_id: clientId, request_fingerprint: r.request_fingerprint, evaluation_fingerprint: r.evaluation_fingerprint, selection: r.selection, provenance: r.provenance },
+      body: { ok: true, operation: 'explain', client_request_id: clientId, request_fingerprint: r.request_fingerprint, evaluation_fingerprint: r.evaluation_fingerprint, selection: r.selection, provenance: r.provenance, ...(r.geology ? { geology: r.geology } : {}) },
     }
   } catch (error) {
     if (error instanceof AiCallError) return fail(error.code, clientId)

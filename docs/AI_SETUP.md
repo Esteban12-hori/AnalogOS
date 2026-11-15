@@ -28,7 +28,7 @@ Copiar `.env.example` a `.env` (ignorado por git) y completar:
 ## Endpoint `POST /api/ai`
 
 - Cuerpo JSON ≤ 24 KB; brief ≤ 3000 caracteres; `max_tokens` 2000; timeout cubre cabeceras **y** lectura del cuerpo.
-- Operaciones `draft` (`brief`) y `explain` (`request` confirmada + huella). `explain` recalcula la evaluación en el servidor desde `artifacts/science-v3` validado; no acepta hechos del cliente.
+- Operaciones `draft` (`brief`) y `explain` (`request` confirmada + huella + `geology_context_fingerprint` opcional). `explain` recalcula la evaluación en el servidor desde `artifacts/science-v3` validado; no acepta hechos ni geodatos del cliente.
 - La salida del proveedor se valida con JSON Schema estricto antes de usarse; negativa, truncado, IDs ajenos o JSON inválido se descartan sin reparar.
 - Errores con mensajes fijos: nunca se refleja el cuerpo del proveedor, la clave ni trazas. Sin logs de briefs.
 - Límite de frecuencia: 8 llamadas/min por cliente y 60/min global, **en memoria por instancia (no distribuido)**.
@@ -37,12 +37,24 @@ Copiar `.env.example` a `.env` (ignorado por git) y completar:
 ## Qué se envía a Anthropic
 
 - Borrador: el texto del brief.
-- Explicación: los nombres/detalles de los requisitos confirmados y los resultados ya calculados (estados, ids). **No** se envía el texto completo del brief.
+- Explicación (sin geología): los nombres/detalles de los requisitos confirmados y los resultados ya calculados (estados, ids). **No** se envía el texto completo del brief.
+- Explicación **con orientación geológica** (casilla opt-in en la pantalla de resultados): además se envían el **objetivo confirmado** (texto del brief, actividad, objetivo y requisitos) y la **cartografía geológica pública oficial** de los sectores evaluados y no descartados (nombre, código y descripción original de cada unidad, fracciones de cobertura, escala y fuente). Entrada típica ≈ 25 000 tokens.
 - El botón de cada operación lo explica junto a sí; el recorrido manual no transmite nada.
+
+## Orientación geológica (M10, opt-in)
+
+- El cliente declara `geology_context_fingerprint` (SHA-256 del JSON canónico completo del contexto validado en el navegador). El servidor carga su propio paquete (`server/ai/geology.ts`), lo valida con `shared/geology/context.ts` y comprueba el SHA-256 de los bytes de `candidate-details.json`. Sin huella no hay canal geológico y el comportamiento es el de M8.
+- Errores antes del proveedor: `geology_context_unavailable` (el servidor no tiene un paquete válido o falta) y `geology_context_stale` (otra versión), ambos 409; la UI ofrece «Reintentar sin geología».
+- La IA devuelve `geology_ref_ids` (hasta 3 por sector y 12 en total) tomados de un catálogo cerrado de pares unidad+propósito; cualquier id ajeno, repetido o fuera de tope descarta toda la respuesta. `max_tokens` 6000 solo con canal geológico (con 2000 la prueba real se truncaba).
+- Respuesta: `geology: { context_fingerprint, catalog_fingerprint, selection: { ref_ids } }`, separada de la selección M8. Objetivo, brief y descripciones de unidades viajan como datos JSON dentro de `<geology>` con `<` escapado (no pueden cerrar el delimitador).
+- Función Vercel: `vercel.json` incluye `artifacts/geology-context-v1/index.json` y `artifacts/science-v3/candidate-details.json` en `api/ai.ts`; `scripts/check-vercel-function.mjs` comprueba (en CI, sobre la función ya construida) que el paquete viaja y valida, y la ausencia/corrupción aisladas en una copia temporal.
+- Prueba real opcional: `npm run test:ai-live` incluye dos objetivos contrastantes (movilidad frente a muestreo); no asume estabilidad exacta del modelo.
+
+- **Recuperación acotada**: si la llamada tiene éxito pero la selección (M8 o geología) es semánticamente inválida, se hace una única segunda llamada con los mismos hechos/esquema y un recordatorio fijo por motivo tipado, dentro del plazo total configurado (la segunda usa el restante; sin restante ≥ 2 s no se intenta). No se reintenta ante timeout, negativa, límite de frecuencia, truncamiento ni errores upstream, ni M8 sin geología. La procedencia es la de la respuesta aceptada; el consumo de la primera no se agrega. El prompt fija `budget = min(12, 3 × sectores con referencias)`.
 
 ## Procedencia
 
-Cada llamada devuelve modelo, fecha, `request-id`, uso de tokens y `stop_reason`. El JSON exportado guarda borrador y explicación por separado, vinculados a su huella de entrada, con los cambios del usuario calculados (editados/quitados/añadidos). Si el usuario edita el brief después, el borrador deja de atribuirse a la IA.
+Cada llamada devuelve modelo, fecha, `request-id`, uso de tokens y `stop_reason`. El JSON exportado guarda borrador y explicación por separado (con geología, el wrapper `analogos-mission-geology-export` añade la selección geológica de la misma llamada), vinculados a su huella de entrada, con los cambios del usuario calculados (editados/quitados/añadidos). Si el usuario edita el brief después, el borrador deja de atribuirse a la IA.
 
 ## Despliegue dev verificado
 

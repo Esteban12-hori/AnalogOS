@@ -2,14 +2,14 @@
 
 - Estado: propuesto (2026-11-14). Integración ejecutada en `feature/mision-redesign` según `docs/INTEGRATION_PLAN.md`; requiere aceptación del equipo humano.
 - Fecha: 2026-11-14
-- Autorización: el usuario pidió directamente «fusiona en dev y haz push» y decidió integrar: la UI es la del rediseño (ADR-010) y por dentro se usan el motor determinista, la IA y los datos del equipo.
-- Relación: aplica ADR-008 (piloto de descubrimiento v3) y ADR-009 (recomendación guiada) sin cambiarlos. Sustituye ADR-011 (recálculo por pesos en el cliente) y ADR-012 (lktron).
+- Autorización: el usuario pidió directamente «fusiona en dev y haz push» y decidió integrar: la UI es la del rediseño (ADR-014, antes ADR-010) y por dentro se usan el motor determinista, la IA y los datos del equipo.
+- Relación: aplica ADR-008 (piloto de descubrimiento v3) y ADR-009 (recomendación guiada) sin cambiarlos. Sustituye ADR-015, antes ADR-011 (recálculo por pesos en el cliente) y ADR-012 (lktron).
 
 ## Contexto
 
 Dos líneas de trabajo avanzaron en paralelo desde `adcffcd`:
 
-- **Rediseño (esta rama):** escenario fijo con globo y paso a 2D, marcadores ●◆○, carrusel, líneas Tesla, riel de métricas, composer, Lectura y hoja móvil (ADR-010), con un motor propio que volvía a ponderar los 7 criterios (ADR-011) y una IA opcional por NDJSON (ADR-012).
+- **Rediseño (esta rama):** escenario fijo con globo y paso a 2D, marcadores ●◆○, carrusel, líneas Tesla, riel de métricas, composer, Lectura y hoja móvil (ADR-014), con un motor propio que volvía a ponderar los 7 criterios (ADR-015) y una IA opcional por NDJSON (ADR-012).
 - **Equipo (`origin/dev`):** snapshot científico v3 Chile–Argentina con búsqueda reproducible y Yungay como referencia (ADR-008), y un planificador con requisitos confirmados, evaluación determinista, exportación JSON e IA de Anthropic en el servidor (ADR-009), ya desplegado y verificado.
 
 Mantener los dos motores mostraría dos órdenes y dos «similitudes» para el mismo lugar, y ADR-009 (aceptado) prohíbe volver a ponderar.

@@ -34,7 +34,7 @@ const loading: AppData = { status: 'loading', snapshot: null, visual: { status: 
 
 afterEach(() => uiStore.reset())
 
-describe('layout del escenario fijo (ADR-010)', () => {
+describe('layout del escenario fijo (ADR-014)', () => {
   it('tres tramos y variantes compactas', () => {
     expect(stageTramo(1440)).toBe('wide')
     expect(stageTramo(1439)).toBe('medium')
@@ -152,7 +152,7 @@ describe('armazón: slots montados', () => {
     const full = renderToStaticMarkup(
       <FullDetail data={ready} site={candidates[0] as CandidateSite} placement="rail" onShowOnMap={() => undefined} />,
     )
-    for (const label of ['Métricas', 'Lectura', 'Origen', 'Señal', 'Comparar', 'Método', 'Fuentes']) expect(full).toContain(label)
+    for (const label of ['Métricas', 'Lectura', 'Origen', 'Geología', 'Señal', 'Comparar', 'Método', 'Fuentes']) expect(full).toContain(label)
     expect(full).not.toContain('Lectura IA')
     expect(full).toContain('Exportar ficha (JSON)')
     expect(full).toContain('Evaluar este sector')
@@ -160,6 +160,7 @@ describe('armazón: slots montados', () => {
     expect(detailTabs('sheet', 'mision')).toContain('mision')
     expect(detailTabs('rail', 'mision')).not.toContain('mision')
     expect(detailTabs('rail', 'explorar')).toContain('origen')
+    expect(detailTabs('rail', 'explorar')).toContain('geologia')
   })
 
   it('v3: la ficha rotula la referencia conocida (REF) y el país; Método explica cómo se buscaron', async () => {

@@ -347,8 +347,8 @@ origin/dev ya ocupa ADR-008 (`global-discovery-pilot`, aceptado) y ADR-009 (`mis
 
 | Actual (nuestra rama) | Nuevo | Estado tras la integración |
 |---|---|---|
-| `ADR-008-escenario-fijo-y-hoja.md` | `ADR-010-escenario-fijo-y-hoja.md` | Propuesto (sigue pendiente de aceptación humana). Se añade la relación: no afecta a ADR-008 ni ADR-009 del equipo |
-| `ADR-009-recalculo-determinista-en-cliente.md` | `ADR-011-recalculo-determinista-en-cliente.md` | **Sustituido por ADR-009** (recomendación guiada). No se integra; se conserva como registro de la decisión descartada |
+| `ADR-008-escenario-fijo-y-hoja.md` | `ADR-014-escenario-fijo-y-hoja.md` (ADR-010 hasta la fusión de M9/M10) | Propuesto (sigue pendiente de aceptación humana). Se añade la relación: no afecta a ADR-008 ni ADR-009 del equipo |
+| `ADR-009-recalculo-determinista-en-cliente.md` | `ADR-015-recalculo-determinista-en-cliente.md` (ADR-011 hasta la fusión de M9/M10) | **Sustituido por ADR-009** (recomendación guiada). No se integra; se conserva como registro de la decisión descartada |
 | `ADR-010-ia-opcional-fuera-del-flujo-central.md` | `ADR-012-ia-opcional-fuera-del-flujo-central.md` | **Sustituido por ADR-009 §7–9** (Anthropic solo en el servidor) |
 | — | `ADR-013-integracion-rediseno-planificador.md` | Propuesto. Registra cinco decisiones:<br>• la UI del rediseño aloja el planificador;<br>• validadores precompilados en el chunk principal y Ajv en runtime solo en el chunk de misión;<br>• la Lectura combina la plantilla determinista con una explicación de IA opcional;<br>• no hay llamadas automáticas a la IA;<br>• el flujo sin IA exige requisitos manuales (§3.6). |
 
@@ -368,8 +368,8 @@ origin/dev ya ocupa ADR-008 (`global-discovery-pilot`, aceptado) y ADR-009 (`mis
 4. Verificar con `git grep -nE "ADR-0(08|09|1[0-3])"` y revisar cada aparición:
    - ADR-008 = piloto de descubrimiento;
    - ADR-009 = recomendación guiada;
-   - ADR-010 = escenario fijo;
-   - ADR-011 y ADR-012 = sustituidos;
+   - ADR-014 = escenario fijo (era ADR-010; el equipo usó ADR-010/011 para la geología M9/M10);
+   - ADR-015 (era ADR-011) y ADR-012 = sustituidos;
    - ADR-013 = integración.
 
    Además, `ls docs/decisions | cut -c1-7 | sort | uniq -d` no debe devolver nada.
@@ -427,7 +427,7 @@ Línea base medida:
 
 | Test | Motivo |
 |---|---|
-| `features/engine/{aggregate,parity,profiles,scoreMission,demoMatcher,missionPhase}.test.ts` | Se retira el motor de recálculo por pesos (ADR-011, sustituido). Los casos de umbral de `missionPhase` se trasladan al composer |
+| `features/engine/{aggregate,parity,profiles,scoreMission,demoMatcher,missionPhase}.test.ts` | Se retira el motor de recálculo por pesos (ADR-015, sustituido). Los casos de umbral de `missionPhase` se trasladan al composer |
 | `tests/test_engine_parity.py` y `tests/fixtures/engine/` | Comprobaban que el port TS de `aggregate` daba lo mismo que `scoring.py`. Sin port, no hay paridad que verificar. `test_scoring.py` sigue cubriendo el pipeline |
 | `features/analysis/{lktron,ndjson,eventGate,analysisTokens,fnv,pregenerated,integration}.test.ts` | Se retiran el canal lktron NDJSON, los tokens `{{id}}`, la huella FNV y la prosa pregenerada (ADR-012, sustituido por ADR-009 §7–9) |
 | `apps/web/src/tests/aiContracts.test.ts` y `tests/test_ai_contracts.py` | Validaban `mission-interpretation`, `evidence-packet` y `ai-analysis`, que se retiran. Los nuevos contratos los cubren `missionEngine`, `plannerState` y `aiServer` |
@@ -555,7 +555,7 @@ Cada fase termina con su compuerta y su commit en español con los trailers de s
    - `project/NEXT_TASK.md`: registrar que el equipo humano pidió directamente esta integración y el push a dev, en un bloque «decisión directa del usuario» que conserve el encargo M8 aceptado de Codex.
 5. `docs/AI_SETUP.md` y `docs/DEV_AI_VERIFICATION.md` no se tocan.
 6. **Compuerta F6:**
-   - `git grep -nE "features/engine|MissionScoring|profileFromLevels|matchMissionDemo|motor determinista v"` vacío fuera de ADR-011 y del CHANGELOG;
+   - `git grep -nE "features/engine|MissionScoring|profileFromLevels|matchMissionDemo|motor determinista v"` vacío fuera de ADR-015 y del CHANGELOG;
    - las verificaciones de ADR de §6;
    - `npm run test` en verde.
 
@@ -597,7 +597,7 @@ Cada fase termina con su compuerta y su commit en español con los trailers de s
    - `App.tsx` contiene las dos frases exigidas;
    - `copy.test.ts` en verde;
    - ninguna superficie dice «M8», muestra un % de misión ni rotula «DEMO».
-10. **ADR:** 001–013 sin números repetidos; ADR-011 y ADR-012 marcados como sustituidos; ADR-013 propuesto; las referencias, revisadas.
+10. **ADR:** 001–015 sin números repetidos (tras la fusión de M9/M10, el escenario fijo y el recálculo pasaron a 014 y 015); ADR-015 y ADR-012 marcados como sustituidos; ADR-013 propuesto; las referencias, revisadas.
 11. **Documentación:**
     - STATUS y CHANGELOG conservan el texto de dev con un bloque nuevo arriba;
     - NEXT_TASK registra la decisión del usuario;
@@ -626,3 +626,23 @@ Cada fase termina con su compuerta y su commit en español con los trailers de s
 | Los fondos HLS de Domeyko y María Elena (v2) y la etiqueta «Norte de Chile» sobre ventanas argentinas | Mostrar solo las capas cuyo `site_id` exista en el snapshot activo, y rotular la región en la UI sin editar `basemaps.json`. Decisión del equipo |
 | Gobierno: el `CLAUDE.md` y el `NEXT_TASK` de dev dicen que Claude no tiene asignación | Registrar en STATUS, CHANGELOG y NEXT_TASK que el usuario pidió directamente esta integración y el push |
 | Push a dev = despliegue inmediato, porque el workflow no corre tests | F7 exige `verify` en local antes del push. Si el workflow falla, se corrige con un commit nuevo, nunca con `--force` |
+
+## 11. Fusión de M9/M10 del equipo (2026-11-15, `origin/dev` `d2252b6`)
+
+`origin/dev` avanzó de `92392f1` a `d2252b6` (M9: contexto geológico oficial por sector; M10: geología en la orientación de pruebas con IA; robustez de la función Vercel). Se fusionó sin squash. Todo lo del equipo queda **intacto**: `shared/`, `server/`, `api/`, `vercel.json`, `.github/`, `check-vercel-function.mjs`, `package*.json`, contratos y artefactos `geology-context-v1`, pipelines, evidencias y sus tests (`aiGeology`, `geologyGuidance`, `plannerGeology`, `plannerState`, `aiLive`, `test_geology_*`). Su UI se **portó** a la interfaz integrada, con los mismos textos y garantías.
+
+| Del equipo (dev) | En la interfaz integrada |
+|---|---|
+| `App.tsx` carga `loadGeologyContext` tras el snapshot | `App.tsx` lo pide en un momento ocioso por `data/loadAppGeology.ts` (chunk diferido: el validador usa Ajv en runtime). `AppData.geology` (opcional) lleva el estado y los sectores con ficha válida (`selectGeologySite`). Nunca bloquea nada |
+| `CandidateDetails` › `GeologyContext` (cobertura, unidades, procedencia, «Descargar contexto geológico (JSON)») | Pestaña **«Geología»** de la ficha (riel 520 px y hoja S2), después de «Origen»: `shell/detail/GeologyTab.tsx` monta `GeologyContext` del equipo sin cambios. Sus estilos pasan de `styles.css` a `shell/detail/geology.css` (se cargan con la pestaña) |
+| `ScoreBreakdown`: texto del criterio geológico pendiente con contexto | `MetricDetails` (Métricas) con `domain/geologyCopy.ts`: mismo texto; el criterio sigue «por calcular» y fuera del puntaje |
+| «Dónde falla la analogía»: limitación histórica actualizada | Pestaña «Fuentes»: mismo reemplazo, pero «se consulta en la pestaña «Geología»» en vez de «arriba» (el panel ya no está arriba) |
+| `usePlanner(bundle, geology)` › `GeologyUi`, `runExplain(withGeology?)`, exportación geológica | `missionController`: `setGeology`, catálogo cerrado por evaluación (`buildGeologyCatalog`, memorizado), `runExplain(withGeology?)` con `geologyContextFp`, `geology_context_changed`, `exportGeologyJson` (`buildMissionGeologyExport`) y `api().geologyUi`. El armazón registra el estado con `registerMissionGeology` (`runLoader`) |
+| `ResultView` › `AiPanel`: casilla «Incluir orientación geológica…», aviso único condicional, «Reintentar sin geología» | La Lectura (`AiControls`), donde vive «✦ Destacar motivos con IA»: mismos textos (constantes en `explanationToReading.ts`, cotejadas con el `AiPanel` del equipo en `ReadingView.test`). La casilla se deshabilita mientras la solicitud está en curso |
+| `ResultView` › `GeologyGuidance` y `PrintGeology` | «Tu misión» (`ResultView` compacto) muestra `GeologyGuidance` del equipo tras el resultado, con una línea que indica que la selección con IA se pide en la Lectura. El informe imprimible (`MissionPrintReport`) recibe `missionStore.geologyCatalog` e incluye `PrintGeology` |
+| `PlannerPanel(snapshot, intent, geology)` | Envoltorio con la misma firma: `usePlanner(bundle, geology)` + `PlannerView`, que pasa `geologyUi` a `ResultView` |
+
+**Garantías comprobadas:** la IA solo elige ids del catálogo cerrado; el reductor del equipo descarta toda respuesta cuyo contexto, catálogo, solicitud o evaluación no coincida; recibir el contexto o la selección no cambia `state.result` ni sus huellas (`MissionControllerGeology.test.ts` recalcula y compara); sin opt-in no se envía la huella y una respuesta con geología no pedida se descarta; la exportación M8 1.0 no cambia y la geológica valida con `validateAnyMissionExport`.
+
+**ADR:** el equipo numeró ADR-010 (contexto geológico, aceptado) y ADR-011 (orientación geológica) en dev. Los nuestros con esos números pasan a **ADR-014** (escenario fijo, propuesto) y **ADR-015** (recálculo en cliente, sustituido); ADR-012 y ADR-013 no cambian. Los bloques históricos de STATUS y CHANGELOG conservan la numeración de su fecha.
+

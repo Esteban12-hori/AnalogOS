@@ -1,6 +1,6 @@
-# ADR-011 — Recálculo determinista en el cliente para perfiles de misión
+# ADR-015 — Recálculo determinista en el cliente para perfiles de misión
 
-- Estado: **sustituido por ADR-009** (recomendación guiada del equipo: requisitos confirmados, `evaluateMission` y similitud v3 sin recalcular; prohíbe volver a ponderar). No se integra; se conserva como registro de la decisión descartada. Antes: propuesto (2026-11-14), numerado ADR-009 en la rama del rediseño.
+- Estado: **sustituido por ADR-009** (recomendación guiada del equipo: requisitos confirmados, `evaluateMission` y similitud v3 sin recalcular; prohíbe volver a ponderar). No se integra; se conserva como registro de la decisión descartada. Antes: propuesto (2026-11-14), numerado ADR-009 en la rama del rediseño y ADR-011 hasta la fusión de M9/M10 (2026-11-15), donde ADR-011 es del equipo.
 - Fecha: 2026-11-14 (sustitución: 2026-11-14, ADR-013)
 
 > **Sustituido.** Al integrar con dev (ADR-013) se retiraron `features/engine` (port de

@@ -1,0 +1,9 @@
+{
+  "note": "Caso AR6 sintético/público reproducido con /tmp/analogos-m10-debug-live.mjs tras la recuperación acotada. Sin claves ni datos privados. Antes: ai_invalid_output (6 refs para ar-win-s2580-w06710, tope 3).",
+  "runs": [
+    {"ok": true, "request_id": "req_011Ch3tLLv7K3aQoYphB5utz", "usage": {"input_tokens": 6795, "output_tokens": 666}},
+    {"ok": true, "request_id": "req_011Ch3tLjKjqSM5NNwSF7c3X", "usage": {"input_tokens": 6795, "output_tokens": 682}},
+    {"ok": true, "request_id": "req_011Ch3tM8ku85ww9uM2drYBZ", "usage": {"input_tokens": 6795, "output_tokens": 793}}
+  ],
+  "limits": "La procedencia es la de la respuesta aceptada; el consumo de una eventual primera llamada no se agrega. Las tres corridas no distinguen si hubo reintento."
+}

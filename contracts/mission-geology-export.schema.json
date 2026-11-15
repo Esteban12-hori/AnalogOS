@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analogos.local/contracts/mission-geology-export.schema.json",
+  "title": "AnalogOS · exportación de recomendación con orientación geológica (M10)",
+  "description": "Wrapper con kind y versión propios. Embebe SIN cambios una exportación M8 1.0 (mission_export, validada con su propio contrato) y añade la orientación geológica efectivamente usada, la identidad del contexto y su procedencia. Las exportaciones M8 1.0 existentes no cambian y siguen siendo válidas por sí solas. La coherencia semántica (catálogo recalculado, selección, huellas) la comprueba shared/geology/exportWrapper.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schema_version", "status", "export_info", "mission_export", "geology_guidance"],
+  "properties": {
+    "kind": { "const": "analogos-mission-geology-export" },
+    "schema_version": { "const": 1 },
+    "status": { "const": "preliminary_geological_guidance" },
+    "export_info": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "how_to_read", "embedded_mission_export_version"],
+      "properties": {
+        "description": { "type": "string", "minLength": 1 },
+        "how_to_read": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "embedded_mission_export_version": { "const": "1.0.0" }
+      }
+    },
+    "mission_export": { "type": "object" },
+    "geology_guidance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "context_identity", "geology_exports", "catalog", "selection", "ai", "guidance"],
+      "properties": {
+        "mode": { "enum": ["ai", "deterministic"] },
+        "context_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["context_fingerprint", "fingerprint_method", "subset_fingerprint", "subset_fingerprint_method", "verifiable_from_this_file", "package_kind", "package_schema_version", "snapshot_version", "pipeline_version", "candidates_file", "candidates_sha256", "note"],
+          "properties": {
+            "context_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "fingerprint_method": { "type": "string", "minLength": 1 },
+            "subset_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "subset_fingerprint_method": { "type": "string", "minLength": 1 },
+            "verifiable_from_this_file": { "const": false },
+            "package_kind": { "const": "analogos-geology-context" },
+            "package_schema_version": { "const": 1 },
+            "snapshot_version": { "type": "string", "minLength": 1 },
+            "pipeline_version": { "type": "string", "minLength": 1 },
+            "candidates_file": { "type": "string", "minLength": 1 },
+            "candidates_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "note": { "type": "string", "minLength": 1 }
+          }
+        },
+        "geology_exports": { "type": "array", "items": { "type": "object" } },
+        "catalog": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["catalog_fingerprint", "subset_fingerprint", "request_fingerprint", "evaluation_fingerprint", "scope_mode", "ref_ids", "excluded"],
+          "properties": {
+            "catalog_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "subset_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "request_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "evaluation_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "scope_mode": { "enum": ["catalog", "sector", "point", "bbox"] },
+            "ref_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "excluded": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["site_id", "name", "reason"],
+                "properties": { "site_id": { "type": "string" }, "name": { "type": "string" }, "reason": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "selection": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ref_ids"],
+          "properties": { "ref_ids": { "type": "array", "maxItems": 12, "items": { "type": "string", "minLength": 1 } } }
+        },
+        "ai": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["provenance", "request_fingerprint", "evaluation_fingerprint", "catalog_fingerprint"],
+              "properties": {
+                "provenance": { "type": "object" },
+                "request_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+                "evaluation_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+                "catalog_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+              }
+            }
+          ]
+        },
+        "guidance": { "type": "object" }
+      }
+    }
+  }
+}

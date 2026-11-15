@@ -22,6 +22,8 @@ export interface StructuredCall {
   user: string
   schema: Record<string, unknown>
   maxTokens: number
+  /** Plazo de ESTA llamada (por defecto el de la configuración); permite repartir un plazo total entre intentos. */
+  timeoutMs?: number
 }
 
 export interface StructuredResult {
@@ -43,7 +45,7 @@ export async function callStructured(
 ): Promise<StructuredResult> {
   if (!config.apiKey) throw new AiCallError('ai_unavailable')
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), config.timeoutMs)
+  const timer = setTimeout(() => controller.abort(), call.timeoutMs ?? config.timeoutMs)
   // Segunda red: si un fetch/cuerpo ignora la señal, la carrera igualmente corta al vencer el plazo.
   const abortion = new Promise<never>((_, reject) => {
     controller.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })))

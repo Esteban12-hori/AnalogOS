@@ -69,7 +69,7 @@ describe('summarizeRobustness', () => {
 })
 
 // La sensibilidad la escribe el pipeline (analysis-summary.json); la web solo la lee y compara
-// órdenes. Sin motor propio (ADR-011, sustituido): ningún recálculo en el navegador.
+// órdenes. Sin motor propio (ADR-015, sustituido): ningún recálculo en el navegador.
 describe('parseSensitivity (analysis-summary.json del pipeline)', () => {
   const summary = readJson('artifacts/science-v3/analysis-summary.json')
   const parsed = parseSensitivity(summary)

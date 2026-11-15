@@ -1,6 +1,8 @@
 /**
- * Ficha completa del lugar (ADR-010): riel de 520 px (≥1100) o S2 (<1100), con pestañas
- * Métricas · Lectura · [Tu misión] · Origen · Señal · Comparar · Método · Fuentes.
+ * Ficha completa del lugar (ADR-014): riel de 520 px (≥1100) o S2 (<1100), con pestañas
+ * Métricas · Lectura · [Tu misión] · Origen · Geología · Señal · Comparar · Método · Fuentes.
+ * «Geología» es el contexto geológico oficial del equipo (M9, `GeologyContext`) con su cobertura,
+ * procedencia y exportación; se descarga con su propio chunk (validador con Ajv).
  * Cabecera con país, rol (REF), «Exportar ficha (JSON)» y «Evaluar este sector» (ADR-013).
  * Métricas, Lectura y Tu misión son slots de features; el resto, contenido existente.
  */
@@ -12,7 +14,7 @@ import type { CandidateSite } from '../../domain/contracts'
 import { countryLabels, isReference, rankMap, splitByRole } from '../../domain/discovery'
 import { uiActions, useUi } from '../../state/ui'
 import { evaluateSector, exportSiteJson } from '../actions'
-import type { AppData } from '../appData'
+import { hasGeologyFor, type AppData } from '../appData'
 import { panelId, TabList, type TabItem } from '../Tabs'
 import { OriginSection } from './OriginSection'
 
@@ -21,13 +23,14 @@ const SurfaceSignals = lazy(() => import('../../components/SurfaceSignals').then
 const CandidateComparison = lazy(() => import('../../components/CandidateComparison').then((m) => ({ default: m.CandidateComparison })))
 const MethodTab = lazy(() => import('./MethodTab').then((m) => ({ default: m.MethodTab })))
 const SourcesTab = lazy(() => import('./SourcesTab').then((m) => ({ default: m.SourcesTab })))
+const GeologyTab = lazy(() => import('./GeologyTab').then((m) => ({ default: m.GeologyTab })))
 
-export type DetailTab = 'metricas' | 'lectura' | 'mision' | 'origen' | 'senal' | 'comparar' | 'metodo' | 'fuentes'
+export type DetailTab = 'metricas' | 'lectura' | 'mision' | 'origen' | 'geologia' | 'senal' | 'comparar' | 'metodo' | 'fuentes'
 
 export function detailTabs(placement: 'rail' | 'sheet', mode: 'explorar' | 'mision'): DetailTab[] {
   const tabs: DetailTab[] = ['metricas', 'lectura']
   if (placement === 'sheet' && mode === 'mision') tabs.push('mision')
-  tabs.push('origen', 'senal', 'comparar', 'metodo', 'fuentes')
+  tabs.push('origen', 'geologia', 'senal', 'comparar', 'metodo', 'fuentes')
   return tabs
 }
 
@@ -36,6 +39,7 @@ const LABELS: Record<DetailTab, string> = {
   lectura: 'Lectura',
   mision: 'Tu misión',
   origen: 'Origen',
+  geologia: 'Geología',
   senal: 'Señal',
   comparar: 'Comparar',
   metodo: 'Método',
@@ -84,6 +88,11 @@ export function FullDetail({ data, site, placement, onShowOnMap }: FullDetailPro
         {tab === 'lectura' && <div data-slot="full.reading"><ReadingPanel data={data} placement="full" /></div>}
         {tab === 'mision' && <div data-slot="full.mission"><MissionCard data={data} placement="sheet" /></div>}
         {tab === 'origen' && <OriginSection candidate={site} precedents={snapshot?.precedents ?? null} rank={reference ? null : rankOf.get(site.site_id) ?? null} />}
+        {tab === 'geologia' && (
+          <Suspense fallback={<Pending />}>
+            <GeologyTab data={data} site={site} />
+          </Suspense>
+        )}
         {tab === 'senal' && snapshot && (
           <Suspense fallback={<Pending />}>
             <SurfaceSignals candidates={snapshot.candidates} selectedId={site.site_id} series={snapshot.surfaceSeries} />
@@ -107,7 +116,7 @@ export function FullDetail({ data, site, placement, onShowOnMap }: FullDetailPro
         )}
         {tab === 'fuentes' && snapshot && (
           <Suspense fallback={<Pending />}>
-            <SourcesTab site={site} manifest={snapshot.manifest} search={snapshot.search ?? null} visual={data.visual} onShowOnMap={onShowOnMap} />
+            <SourcesTab site={site} manifest={snapshot.manifest} search={snapshot.search ?? null} visual={data.visual} onShowOnMap={onShowOnMap} hasGeology={hasGeologyFor(data, site.site_id)} />
           </Suspense>
         )}
       </div>

@@ -2,7 +2,7 @@
 
 - Estado: **sustituido por ADR-009 §7–9** (recomendación guiada del equipo: Anthropic solo en el servidor, selección de IDs validada). No se integra; se conserva como registro de la decisión descartada. Antes: propuesto (2026-11-14), numerado ADR-010 en la rama del rediseño.
 - Fecha: 2026-11-14 (sustitución: 2026-11-14, ADR-013)
-- Relación: `docs/UX_REDESIGN.md` §0.8–§0.9 y §5 (marcado como sustituido). Dependía de ADR-011 (también sustituido).
+- Relación: `docs/UX_REDESIGN.md` §0.8–§0.9 y §5 (marcado como sustituido). Dependía de ADR-015, antes ADR-011 (también sustituido).
 
 > **Sustituido.** Al integrar con dev (ADR-013) se retiraron el cliente lktron (NDJSON), los
 > contratos `mission-interpretation`, `evidence-packet` y `ai-analysis`, la huella FNV, los tokens

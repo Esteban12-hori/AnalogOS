@@ -11,7 +11,7 @@ Las URLs de 21st son las que citan las propuestas. Sus `.md` públicos solo trae
 > interfaz vigente, ahora sobre el snapshot científico **v3 Chile–Argentina** del equipo (ADR-008:
 > Yungay es referencia conocida, «REF», fuera del ranking) y sobre su **planificador** (ADR-009:
 > requisitos confirmados, `evaluateMission`, exportación JSON, IA de Anthropic solo en el servidor).
-> Quedan **sustituidos**: el recálculo por pesos en el cliente (ADR-011, antes ADR-009), el canal lktron
+> Quedan **sustituidos**: el recálculo por pesos en el cliente (ADR-015, antes ADR-011 y ADR-009), el canal lktron
 > y los contratos de §5 (ADR-012, antes ADR-010), los perfiles predefinidos, la coincidencia «DEMO · sin
 > IA» y la prosa pregenerada. Misión ya no calcula ningún %: muestra estados, puestos de la evaluación,
 > preferencias cumplidas y la similitud v3 sin recalcular. El detalle de la integración está en
@@ -36,8 +36,8 @@ Las URLs de 21st son las que citan las propuestas. Sus `.md` públicos solo trae
 9. **Misión funciona sin red.** *(Tras ADR-013: requisitos manuales o «Usar ejemplo», confirmación y evaluación determinista locales; la IA es una mejora opcional con botón explícito. Ya no hay perfiles predefinidos, «DEMO · sin IA» ni prosa pregenerada.)*
 10. **0 dependencias npm nuevas.** Presupuesto: +≤12 KB gz en el chunk principal, ≤2 KB gz en línea en el HTML, el resto diferido.
 11. **ADR** en `docs/decisions/` (renumerados al integrar con dev, que ya ocupaba ADR-008 y ADR-009):
-    - ADR-010: escenario fijo y hoja (antes ADR-008; propuesto).
-    - ADR-011: recálculo determinista en cliente para perfiles de misión (antes ADR-009; **sustituido por ADR-009 del equipo**).
+    - ADR-014: escenario fijo y hoja (antes ADR-010 y ADR-008; propuesto).
+    - ADR-015: recálculo determinista en cliente para perfiles de misión (antes ADR-011 y ADR-009; **sustituido por ADR-009 del equipo**).
     - ADR-012: IA opcional, fuera del flujo central (antes ADR-010; **sustituido por ADR-009 §7–9**).
     - ADR-013: integración del rediseño con el planificador, los datos v3 y la IA del equipo (propuesto).
     - (propuesta) MapLibre globe como motor único, después de la hackatón.
@@ -891,7 +891,7 @@ En todos los incrementos, `npm run build` y `npm run test` quedan en verde y se 
 
 1. **Datos de los 8 ◆.** ¿Quién los aporta y cómo? Hace falta coordenada o región y una fuente citada para cada uno. En particular, ¿«Atacama» es un punto en la zona de Yungay o el desierto completo?
 2. **lktron:** ¿tendrá salida estructurada (JSON Schema), NDJSON por objeto y soporte de AbortController? ¿Dónde corre y cómo se configura el endpoint sin subir secretos al repositorio?
-3. **Aprobaciones:** ADR-009 (de niveles a pesos y recálculo en cliente) por parte del equipo científico, y ADR-010 (excepción a «sin LLM en la demo central»: solo como mejora opcional, con el análisis pregenerado rotulado como no científico).
+3. **Aprobaciones:** ADR-009 (de niveles a pesos y recálculo en cliente; hoy ADR-015, sustituido) por parte del equipo científico, y ADR-010 (hoy ADR-012, sustituido; excepción a «sin LLM en la demo central»: solo como mejora opcional, con el análisis pregenerado rotulado como no científico).
 4. **Secciones actuales:** ¿se acepta mover Señal, Comparar y Método a pestañas de la ficha? Es la recomendación.
 5. **Rango térmico de Jezero:** ¿incorporar una medición marciana (MEDA) mediante ADR y fuente citada, o mantener «┆ Regla del perfil»?
 6. **Dispositivo de referencia:** ¿qué Android de gama media se usará para cerrar los valores de blur y tinte?

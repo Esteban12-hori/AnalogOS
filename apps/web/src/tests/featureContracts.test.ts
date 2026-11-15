@@ -12,7 +12,7 @@ const CONTRACT: Record<string, readonly string[]> = {
   'leaders/layoutLeaders': ['layoutLeaders', 'LEADER_GEOMETRY'],
   'leaders/principal': ['pickPrincipalMetrics', 'pickMissionMetrics'],
   boot: ['BootLayer', 'OrbitLoader', 'StatusChip', 'getBootMilestones', 'reportBootMilestone', 'useBootMilestones'],
-  // El motor propio (features/engine) se retiró: la evaluación es la del equipo (ADR-009, ADR-011).
+  // El motor propio (features/engine) se retiró: la evaluación es la del equipo (ADR-009, ADR-015).
   composer: ['Composer', 'MissionCard', 'focusComposer', 'registerMissionSnapshot', 'withController', 'MissionPrintHost'],
   // Sin lktron (ADR-012, sustituido): la Lectura usa la IA del equipo vía el controlador de misión.
   analysis: ['ReadingPanel', 'ReadingPill'],

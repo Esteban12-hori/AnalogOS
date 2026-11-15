@@ -34,6 +34,6 @@ export interface MissionCardProps {
 export { Composer } from './Composer'
 export { MissionCard } from './MissionCard'
 export { focusComposer } from './focus'
-export { registerMissionSnapshot, withController } from './runLoader'
+export { registerMissionGeology, registerMissionSnapshot, withController } from './runLoader'
 export { MissionPrintHost } from './printHost'
 export { useMissionOpenRequest } from './composerStore'

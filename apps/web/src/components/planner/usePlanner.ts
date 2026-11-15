@@ -3,13 +3,28 @@ import {
   MissionExportError, MissionInputError, buildMissionExport, buildRequest, evaluateMission, evaluationFingerprint, fingerprint,
   initialPlannerState, plannerReducer, type EvidenceBundle, type PlannerAction, type PlannerState,
 } from '../../mission'
-import { requestDraft, requestExplanation } from '../../mission/aiClient'
+import { buildGeologyCatalog, deterministicGeologyRefs, type GeologyCatalog } from '../../../../../shared/geology/guidance'
+import { GeologyExportError, buildMissionGeologyExport } from '../../../../../shared/geology/exportWrapper'
+import type { GeologyContextState } from '../../domain/geologyContext'
+import { GEOLOGY_ERROR_CODES, requestDraft, requestExplanation } from '../../mission/aiClient'
 
 const newRequestId = (): string => `req-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`
 
 /** URL del endpoint relativa al documento: en el ZIP estático (/AnalogOS/) no existe y la IA queda «no disponible». */
 function apiUrl(): string {
   return new URL(`${import.meta.env.BASE_URL}api/ai`, document.baseURI).toString()
+}
+
+/** Canal geológico (M10): contexto oficial validado, opt-in del usuario y catálogo de la evaluación vigente. */
+export interface GeologyUi {
+  /** Contexto oficial cargado y válido en el navegador (M9). Sin él no hay canal geológico y el resto sigue igual. */
+  available: boolean
+  unavailableReason: string | null
+  useGeology: boolean
+  setUseGeology: (value: boolean) => void
+  catalog: GeologyCatalog | null
+  onExportGeology: () => void
+  exportError: string | null
 }
 
 export interface PlannerApi {
@@ -19,18 +34,30 @@ export interface PlannerApi {
   evaluate: () => boolean
   evaluationError: string | null
   runDraft: () => void
-  runExplain: () => void
+  runExplain: (withGeology?: boolean) => void
+  geologyUi: GeologyUi
   exportJson: () => void
   exportError: string | null
 }
 
-export function usePlanner(bundle: EvidenceBundle): PlannerApi {
+export function usePlanner(bundle: EvidenceBundle, geology: GeologyContextState = { status: 'unavailable', reason: 'Sin contexto geológico.' }): PlannerApi {
   const [state, dispatch] = useReducer(plannerReducer, undefined, initialPlannerState)
   const latest = useRef(state)
   latest.current = state
+  const useGeologyRef = useRef(true)
   const controllers = useRef(new Map<string, AbortController>())
   const [evaluationError, setEvaluationError] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
+  const [geologyExportError, setGeologyExportError] = useState<string | null>(null)
+  const [useGeology, setUseGeologyState] = useState(true)
+  useGeologyRef.current = useGeology
+  const setUseGeology = useCallback((value: boolean) => setUseGeologyState(value), [])
+  const context = geology.status === 'ready' ? geology.context : null
+  // Huella del contexto COMPLETO validado (no es el hash de bytes). Se calcula una vez por carga.
+  const contextFp = useMemo(() => (context ? fingerprint(context) : null), [context])
+  useEffect(() => {
+    dispatch({ type: 'geology_context_changed' })
+  }, [contextFp])
 
   // Si el reductor cancela una solicitud (cambió el contenido), se aborta también la petición de red.
   useEffect(() => {
@@ -73,20 +100,23 @@ export function usePlanner(bundle: EvidenceBundle): PlannerApi {
     })
   }, [])
 
-  const runExplain = useCallback(() => {
+  const runExplain = useCallback((withGeology?: boolean) => {
     const s = latest.current
     const b = buildRequest(s)
     if (!s.result || !b.request || s.explain.status === 'pending') return
     const requestId = newRequestId()
     const ctl = new AbortController()
     controllers.current.set(requestId, ctl)
-    dispatch({ type: 'explain_start', requestId })
-    void requestExplanation({ requestId, request: b.request, requestFp: fingerprint(b.request), url: apiUrl(), signal: ctl.signal }).then((r) => {
+    // Opt-in explícito y solo con contexto válido; el catálogo se calcula aquí desde la evaluación vigente.
+    const wantGeology = (withGeology ?? useGeologyRef.current) && !!context && !!contextFp
+    const geologyCatalog = wantGeology && context && contextFp ? buildGeologyCatalog(s.result, context, contextFp) : undefined
+    dispatch({ type: 'explain_start', requestId, geologyCatalog })
+    void requestExplanation({ requestId, request: b.request, requestFp: fingerprint(b.request), url: apiUrl(), geologyContextFp: geologyCatalog ? contextFp ?? undefined : undefined, signal: ctl.signal }).then((r) => {
       controllers.current.delete(requestId)
-      if (r.ok) dispatch({ type: 'explain_ok', requestId, requestFp: r.value.requestFp, evaluationFp: r.value.evaluationFp, selection: r.value.selection, provenance: r.value.provenance })
-      else dispatch({ type: 'explain_fail', requestId, message: r.message, unavailable: r.unavailable })
+      if (r.ok) dispatch({ type: 'explain_ok', requestId, requestFp: r.value.requestFp, evaluationFp: r.value.evaluationFp, selection: r.value.selection, provenance: r.value.provenance, geology: r.value.geology })
+      else dispatch({ type: 'explain_fail', requestId, message: r.message, unavailable: r.unavailable, geologyFailure: !!r.code && (GEOLOGY_ERROR_CODES as readonly string[]).includes(r.code) })
     })
-  }, [])
+  }, [context, contextFp])
 
   const exportJson = useCallback(() => {
     const s = latest.current
@@ -107,5 +137,38 @@ export function usePlanner(bundle: EvidenceBundle): PlannerApi {
     }
   }, [bundle])
 
-  return { state, dispatch, built, evaluate, evaluationError, runDraft, runExplain, exportJson, exportError }
+  // Catálogo de la evaluación vigente (también sin IA: orientación determinista). Sin ventana evaluada no emite unidades.
+  const catalog = useMemo(() => (context && contextFp && state.result ? buildGeologyCatalog(state.result, context, contextFp) : null), [context, contextFp, state.result])
+
+  const exportGeologyJson = useCallback(() => {
+    const s = latest.current
+    const b = buildRequest(s)
+    if (!s.result || !b.request || !context || !contextFp) return
+    try {
+      const m8 = buildMissionExport(b.request, s.result, bundle, { draft: s.draft.record, explanation: s.explain.record })
+      const cat = buildGeologyCatalog(s.result, context, contextFp)
+      const rec = s.explain.geologyRecord
+      const ai = rec && s.explain.record && rec.catalog_fingerprint === cat.catalog_fingerprint
+      const doc = buildMissionGeologyExport(m8, s.result, context, contextFp, ai
+        ? { mode: 'ai', ref_ids: rec.selection.ref_ids, ai: { record: rec, provenance: s.explain.record!.provenance } }
+        : { mode: 'deterministic', ref_ids: deterministicGeologyRefs(cat).ref_ids }, { bundle })
+      const blob = new Blob([`${JSON.stringify(doc, null, 2)}\n`], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `analogos-recomendacion-geologia-${evaluationFingerprint(s.result).slice(0, 8)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      setGeologyExportError(null)
+    } catch (error) {
+      setGeologyExportError(error instanceof MissionExportError || error instanceof GeologyExportError ? error.message : 'No se pudo generar la exportación con geología.')
+    }
+  }, [bundle, context, contextFp])
+
+  const geologyUi: GeologyUi = {
+    available: !!context, unavailableReason: geology.status === 'unavailable' ? geology.reason : geology.status === 'loading' ? 'El contexto geológico todavía se está cargando.' : null,
+    useGeology, setUseGeology, catalog, onExportGeology: exportGeologyJson, exportError: geologyExportError,
+  }
+
+  return { state, dispatch, built, evaluate, evaluationError, runDraft, runExplain, geologyUi, exportJson, exportError }
 }

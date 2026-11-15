@@ -4,7 +4,7 @@ Este documento reparte los incrementos 3 a 10 de `docs/UX_REDESIGN.md` §7.1 ent
 
 - **Estado (2026-11-14):** las 8 ramas `build/*` quedaron fusionadas en `feature/mision-redesign`. Los ajustes del integrador y lo que sigue pendiente están en `project/STATUS.md`.
 - **Base:** rama `feature/mision-redesign`, en el commit que introduce este documento (`git log -1 -- docs/BUILD_CONTRACTS.md`). Ese commit trae los incrementos 0, 1 y 2: contratos, tokens, store, armazón y slots con stubs.
-- **Especificación:** `docs/UX_REDESIGN.md`. Decisiones: ADR-010 (escenario fijo, propuesto), ADR-011 y ADR-012 (sustituidos por ADR-009 del equipo) y ADR-013 (integración, propuesto), en `docs/decisions/`. Antes de integrar con dev se numeraban ADR-008, ADR-009 y ADR-010.
+- **Especificación:** `docs/UX_REDESIGN.md`. Decisiones: ADR-014 (escenario fijo, propuesto), ADR-015 y ADR-012 (sustituidos por ADR-009 del equipo) y ADR-013 (integración, propuesto), en `docs/decisions/`. Antes de integrar con dev se numeraban ADR-008, ADR-009 y ADR-010.
 - **Integración con dev (2026-11-14, ADR-013):** la interfaz de este reparto aloja ahora el snapshot v3, el planificador y la IA del equipo (`shared/mission`, `server/ai`). `engine` (§2.6) se retiró; `composer` (§2.7) y `analysis` (§2.8) cambiaron de interfaz, como se indica en cada sección. El plan completo está en `docs/INTEGRATION_PLAN.md`.
 - **Reglas del proyecto:** `CLAUDE.md` y `AGENTS.md`. Las más sensibles aquí:
   - la IA nunca puntúa ni produce cifras;
@@ -242,7 +242,7 @@ Todas las rutas son relativas a `apps/web/src/`, salvo que empiecen por la raíz
 
 ### 2.6 `engine` · incremento 8 · motor de misión determinista (sin UI) — **retirado**
 
-> **Retirado al integrar con dev (ADR-013; ADR-011 sustituido por ADR-009).** La evaluación es
+> **Retirado al integrar con dev (ADR-013; ADR-015 sustituido por ADR-009).** La evaluación es
 > `evaluateMission` del equipo (`shared/mission/evaluate.ts`): requisitos imprescindibles, luego
 > preferencias cumplidas, luego similitud v3, luego `site_id`. Se borraron `features/engine/**`,
 > `tests/fixtures/engine/**` y `tests/test_engine_parity.py`. Solo sobreviven los umbrales visuales
@@ -365,7 +365,9 @@ las líneas y la Lectura.
 | `ui.missionPhase` | composer (`idle → interpreting → profile → scoring → analysis`, `error`, `cancelled`), analysis (`analysis → done`) | composer, places, analysis, boot |
 | `ui.introPhase` | boot | globe |
 | `ui.cameraTouchedAt` | globe (`touchCamera`), composer (`resetCameraTouch`) | composer |
-| `missionStore` (`state/mission.ts`) | **solo composer** | places, metrics, leaders, globe, analysis |
+| `missionStore` (`state/mission.ts`) | **solo composer** (incluido `geologyCatalog`, M10) | places, metrics, leaders, globe, analysis, informe imprimible |
+| `composerStore.geology` · `useGeology` · `geologyExportError` | controlador de misión; la casilla de la Lectura escribe `useGeology` (`setUseGeology`) | «Tu misión», Lectura |
+| `AppData.geology` (contexto geológico M9, opcional) | **solo `App.tsx`** (chunk diferido `loadAppGeology`) | ficha («Geología», Métricas, Fuentes); el armazón lo registra en el controlador (`registerMissionGeology`) |
 | `stageBridge` (por cuadro) | **solo globe** | leaders |
 
 ---
@@ -408,10 +410,10 @@ Si una feature necesita un cambio aquí, lo pide en su entrega.
 <1100: una hoja (#mode-panel)                                                            │
   S0 → sheet.tray.places + sheet.tray.composer                                            │
   S1 → sheet.s1 (metrics) · sheet.head (composer «✦ Refinar») · sheet.list sin selección  │
-  S2 → ficha completa: full.metrics · full.reading · full.mission (Misión) · Señal…       │
+  S2 → ficha completa: full.metrics · full.reading · full.mission (Misión) · full.geology · Señal…       │
 ```
 
-Cada envoltorio lleva `data-slot="<nombre>"` en el DOM, para tests y QA.
+Cada envoltorio lleva `data-slot="<nombre>"` en el DOM, para tests y QA. La ficha completa (riel 520 px y S2) suma la pestaña «Geología» (`full.geology`, contexto geológico oficial M9 del equipo) después de «Origen».
 
 ---
 

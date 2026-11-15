@@ -1,9 +1,66 @@
 # Estado actual
 
-**Última actualización:** 2026-11-15, revisión de la integración del rediseño con dev: hallazgos corregidos en `feature/mision-redesign` (Claude Code, pedido directo del usuario). Antes: M8 publicado e IA verificada en dev (Codex).
-**Responsable del checkpoint:** Claude Code (integración); Codex (M8).
-**Milestone activo:** M8 aceptado y entregado. Integración del rediseño lista en `feature/mision-redesign`, pendiente de publicar en dev.
-**Estado general:** planificador de ensayo/sector con motor determinista, snapshot científico v3 y Anthropic opcional funcionando en dev. Siete áreas con evidencia; faltan capas territoriales, contraste local y revisión experta de campo.
+**Última actualización:** 2026-11-15, fusión de M9/M10 (`origin/dev` `d2252b6`) en `feature/mision-redesign` y porte de su UI a la interfaz integrada (Claude Code, encargo del flujo de integración). Antes: M10 publicado y verificado en dev (Codex).
+**Responsable del checkpoint:** Claude Code (integración); Codex (M8, M9, M10).
+**Milestone activo:** M10 aceptado y publicado en dev. La interfaz integrada con M9/M10 está lista en `feature/mision-redesign`, pendiente de publicar en dev.
+**Estado general:** planificador de ensayo/sector con motor determinista, snapshot científico v3, contexto geológico oficial por sector y orientación geológica opcional con Anthropic. Siete sectores con evidencia; faltan contraste de campo, capas territoriales y validación con usuarios.
+
+## Fusión de M9/M10 en la interfaz integrada (Claude Code, `feature/mision-redesign`, 2026-11-15)
+
+**Pedido:** fusionar `origin/dev` (`92392f1` → `d2252b6`, 7 commits de M9/M10) sin squash ni `--force`, conservar íntegro lo del equipo y portar su UI a la interfaz integrada con los mismos textos y garantías. **Push a `dev`: no se hizo.** No se tocaron `dev` ni `main` locales.
+
+### Qué funciona
+
+- **Ficha · pestaña «Geología»** (riel 520 px y hoja S2, después de «Origen»): el panel `GeologyContext` del equipo tal cual: estado de cobertura, barra y cifras (cubierto, sin cobertura, solape, sin descripción), escala, autoridad, unidades originales, procedencia con hash de cada petición, preguntas de terreno y «Descargar contexto geológico (JSON)» (`<site_id>-geology-context.json`). Sin paquete: «no disponible», y el resto de la ficha no cambia.
+- **Textos que dependen del contexto:** en «Métricas», el criterio geológico (sigue «por calcular», fuera del puntaje) dice «El contexto geológico oficial está disponible… Falta calibrar…». En «Fuentes», la limitación histórica remite a la pestaña «Geología». Los textos del snapshot no cambian.
+- **Misión · orientación geológica:** tras evaluar, «Tu misión» muestra «Orientación geológica para esta prueba» (`GeologyGuidance` del equipo): general sin IA o «Selección por IA», con límites, fuente oficial enlazada, unidades y «Descargar JSON con orientación geológica» (envoltorio M10, con la exportación M8 1.0 dentro). El informe imprimible la incluye (`PrintGeology`).
+- **Lectura · IA opcional:** junto a «✦ Destacar motivos con IA» está la casilla «Incluir orientación geológica de la prueba» (activa por defecto). El aviso de envío es uno solo y cambia con ella. Sin contexto: «Orientación geológica con IA no disponible: …». Si falla solo el canal geológico: «Reintentar sin geología». Los textos son los del `AiPanel` del equipo, y un test lo comprueba.
+- **Garantías:** el controlador de misión porta `usePlanner` del equipo. La huella del contexto solo se envía con la casilla marcada. El catálogo cerrado sale de la evaluación vigente. El reductor del equipo descarta toda selección que no coincida con el contexto, el catálogo, la solicitud o la evaluación. La IA no cambia `state.result`: el recálculo da las mismas huellas, estados y puestos.
+- **Sin IA o en el ZIP:** el recorrido manual es completo y no llama a `/api/ai`. Al pulsar el botón sin clave, la IA aparece como «no disponible», y la plantilla y la orientación general siguen.
+
+### Cómo ejecutarlo
+
+- `npm install`; `npm run dev`. IA local solo con `.env` (`docs/AI_SETUP.md`).
+- Verificación: `PATH=/ruta/a/venv-py311+:$PATH npm run verify`. M9/M10 necesitan `shapely` y `pyproj`: `pip install -e ".[dev]" pillow`.
+- Entrega: `npm run release:package` y después `(cd submission && shasum -a 256 -c analogos-static.zip.sha256)`.
+
+### Pruebas realizadas
+
+- `npm run verify`: **pytest 328 pasan, 5 omitidas**; `typecheck:server` correcto; **vitest 779 pasan, 3 omitidas** (IA real opt-in) en 61 archivos; build correcto.
+- Tests nuevos: `shell/detail/GeologyTab.test.tsx` (porta los dos bloques de `geologyContext.test.tsx` que usaban `CandidateDetails`, con los mismos textos), `features/composer/MissionControllerGeology.test.ts` (opt-in, huella, catálogo, descarte, reintento, cambio de contexto, recálculo idéntico y exportaciones validadas con `validateAnyMissionExport`) y `features/composer/MissionGeologyView.test.tsx` («Tu misión» compacto e informe). Ampliados: `ReadingView.test.tsx` (casilla, aviso condicional, reintento y paridad de textos con el `AiPanel` del equipo) y `shell.test.tsx` (pestaña).
+- Tests del equipo sin cambios: `aiGeology`, `geologyGuidance`, `plannerGeology`, `plannerState`, `plannerUi`, `aiLive`, `aiServer`, `missionEngine` y `test_geology_*`. En `geologyContext.test.tsx` solo se retiraron los dos bloques portados, con un comentario que indica dónde están.
+- **Navegador** (Chrome, build de producción en el puerto 4701): 56 comprobaciones correctas en 1440×900 y 390×844, y otras 56 con el ZIP servido bajo `/AnalogOS/`. Se recorrieron la ficha «Geología» y su exportación (JSON validado), «Métricas» y «Fuentes», el paso a 2D y la vuelta, y Misión sin clave (recorrido manual con 0 llamadas; al pulsar, 1 llamada con huella y «no disponible»). También `/api/ai` simulado por intercepción, con el **manejador real del servidor** y el paquete real; solo el proveedor estaba simulado. Resultados: «Selección por IA» con respaldo y límites, el resultado sin cambios, exportación con procedencia, canal geológico obsoleto con 409 y «Reintentar sin geología» sin huella, y en móvil «Tu misión», la Lectura y la pestaña «Tu misión» de S2. Hubo 0 errores de la app y ningún desborde horizontal. Sin red externa (ZIP): 24 comprobaciones correctas, y el único host bloqueado fue `gibs.earthdata.nasa.gov` (teselas opcionales).
+- **Peso:** chunk de entrada 123,65 KB gz (+0,75). CSS inicial 17,44 KB gz (sin cambio: los estilos geológicos se cargan con la pestaña). Diferidos: `GeologyTab` 2,8 KB gz + 1,0 KB gz de CSS; el validador geológico con Ajv (46,4 KB gz) se comparte con el chunk de misión y se pide en un momento ocioso tras el snapshot.
+- **Paquete:** `npm run release:package` → **73 entradas, 14.789.257 bytes, SHA-256 `30b2b1191489898b91e85aaf26f93104da62bc733d854ae0352e517bf2517c9c`** (`shasum -c` OK). Dos empaquetados a `/tmp` dan el mismo SHA. Cada entrada coincide byte a byte con dist, `geology-context-v1/index.json` es idéntico al artefacto y no hay secretos. SHA anterior de la entrega: `c5904c66…` (integración sin M9/M10). El del equipo en dev: `f76a9055…`.
+- **Invariantes:** sin diferencias con `origin/dev` en `shared/`, `server/`, `api/`, `vercel.json`, `.github/`, `check-vercel-function.mjs`, `package*.json`, `tsconfig.server.json`, `apps/web/src/mission/`, los artefactos (`geology-context-v1`, `science-v2/v3`, `demo`, `visual-context-v3`), evidencias, ADR-010/011 del equipo, `GeologyContext`, `GeologyGuidance`, `usePlanner`, `loadGeologyContext` ni los tests del equipo citados.
+
+### Archivos cambiados (resumen)
+
+- Nuevos: `data/loadAppGeology.ts`, `domain/geologyCopy.ts`, `shell/detail/GeologyTab.tsx`, `shell/detail/geology.css` (estilos M9 movidos desde `styles.css`) y los tres tests nombrados.
+- Adaptados: `App.tsx` (carga diferida), `shell/{appData,public,AppShell}.ts(x)`, `shell/detail/{FullDetail,SourcesTab}.tsx`, `features/metrics/MetricDetails.tsx`, `features/composer/{missionController,runLoader,composerStore,MissionPanel,PrintContent,index}.ts(x)`, `features/analysis/{ReadingView,explanationToReading,analysis.css}`, `state/mission.ts` (`geologyCatalog`), `components/planner/{ResultView,PlannerView,PlannerPanel}.tsx`, `scripts/package_release.py` y `tests/test_release_package.py` (las dos ramas).
+- Retirados otra vez, con sus cambios portados: `components/CandidateDetails.tsx` y `breakdown/ScoreBreakdown.tsx`.
+- Documentación: `docs/INTEGRATION_PLAN.md` §11, `docs/BUILD_CONTRACTS.md`, `docs/ARCHITECTURE.md`, `docs/DEMO_ACCEPTANCE.md`, `README.md` y ADR renumerados.
+
+### Decisiones nuevas
+
+- **ADR renumerados:** el equipo usa ADR-010 (contexto geológico, aceptado) y ADR-011 (orientación geológica). Los nuestros pasan a **ADR-014** (escenario fijo, propuesto) y **ADR-015** (recálculo en cliente, sustituido). ADR-012 y ADR-013 no cambian. Los bloques históricos de este archivo y del CHANGELOG conservan la numeración de su fecha.
+- **Una sola acción de IA:** la casilla geológica va en la Lectura, junto a «Destacar motivos con IA», y la orientación se ve en «Tu misión». «Tu misión» compacto no repite el `AiPanel`, como en la integración anterior. Una línea indica dónde pedir la selección con IA.
+- **Carga diferida del contexto geológico:** el validador del equipo usa Ajv en runtime, así que va en un chunk diferido que se pide en un momento ocioso. `AppData.geology` es opcional: ausente significa «cargando».
+- En «Fuentes», el reemplazo de la limitación dice «en la pestaña «Geología»» en lugar de «arriba», porque el panel ya no está arriba de la lista.
+
+### Bloqueos reales
+
+- El push a `dev` (que despliega en `analogos-dev.vercel.app`) no se hizo en este paso.
+- ADR-013 y ADR-014 requieren aceptación humana.
+- Sin clave real no se probó Anthropic. El canal geológico se probó con el manejador real y el proveedor simulado.
+
+### Próximos tres pasos exactos
+
+1. `git fetch origin` y confirmar que `origin/dev` sigue en `d2252b6`. Si avanzó, fusionar y repetir `npm run verify` y `npm run release:package`.
+2. `git push origin feature/mision-redesign:dev` (fast-forward, sin `--force`) y seguir `gh run watch` de `vercel-deploy.yml` (build, `check-vercel-function`, deploy y alias).
+3. En `analogos-dev.vercel.app` con sesión autorizada: «Destacar motivos con IA» real con la casilla geológica (sector AR6 como en M10), descargar el JSON con orientación geológica y validarlo con `validateAnyMissionExport`.
+
+**Handoff:** Codex puede retomar leyendo `prompts/RESUME_CODEX.md` y `project/STATUS.md` (este bloque), con `docs/INTEGRATION_PLAN.md` §11 como contexto de esta fusión.
 
 ## Revisión de la integración: hallazgos corregidos (Claude Code, `feature/mision-redesign`, 2026-11-15)
 
@@ -103,7 +160,46 @@
 
 **Handoff:** Codex puede retomar leyendo `prompts/RESUME_CODEX.md` y `project/STATUS.md` (este bloque), con `docs/INTEGRATION_PLAN.md` y ADR-013 como contexto de la integración.
 
-## Entrega vigente — dev e IA real comprobados
+
+## Entrega vigente — M10
+
+- Código desplegado `4708b42b4bd152dca74d3e009f233a910e458d8b`; Actions 43665786554 correcto; https://analogos-dev.vercel.app/. Checkpoint posterior solo documental/evidencia con `[skip ci]`. Main no modificado por esta entrega.
+- Claude implementó y corrigió bajo revisión de Codex. Fuentes SERNAGEOMIN/SEGEMAR, comprobaciones vinculadas al objetivo, cobertura/escala/límites visibles y exportación auditable. Reintento único ante selección inválida, plazo total conservado; sin cambiar score, requisitos, evaluación ni datos científicos.
+- 316 Python y 332 web correctos; typecheck/build, contrastes reales movilidad/muestreo, integridad del wrapper y regresión M8/M9. 33 archivos protegidos intactos. Función Vercel real probada antes del despliegue.
+- IA real en dev: AR6, tres comprobaciones con unidades SEGEMAR, tracción pendiente. Informe descargado validado y reconstruido idéntico con datos oficiales. Evidencia/captura: `submission/evidence/m10-dev-geology-export.json`, `submission/assets/analogos-m10-dev.jpg`. Detalle: `docs/DEV_AI_VERIFICATION.md` y `docs/CODEX_M10_REVIEW.md`.
+- ZIP vigente: 31 entradas, 13.255.407 bytes, SHA-256 `f76a905564f69737e763724da8467aff45dff1177e269a188a60da35807eb122`. QA local offline/subcarpeta, errores, móvil/teclado completado; impresión nativa pendiente.
+- NEXT_TASK accepted; Claude sin nueva asignación. No iniciar otro milestone automáticamente. Los bloques siguientes son historia, no el estado vigente.
+
+## Antecedente M9 — aceptado y publicado
+
+Ficha y exportación geológica oficial en siete sectores; cobertura/ambigüedad y escala explícitas. Revisión de datos/código y navegador offline, 390 px/teclado, errores de carga y descarga real completadas. 316 Python y 246 web correctos; typecheck/build; baseline49 intacto. ZIP 31 entradas, SHA-256 `eed868335c5374d20b05415a8627be9ec3f035c1dc10668bbe08f21e03f6520c`. Ver `docs/CODEX_M9_REVIEW.md`. Código desplegado `34e76b9`; Actions 43658989969 correcto. Geología y exportación remotas verificadas; ambas operaciones reales Anthropic correctas y JSON recalculado idéntico. Capturas y exportaciones en submission; detalle en `docs/DEV_AI_VERIFICATION.md`. El checkpoint documental posterior no cambia el despliegue. Sin cambio de score, ciencia ni IA geológica.
+
+## Encargo M9 autorizado — contexto geológico
+
+- Dan aprobó la recomendación: «ok saquemoslo que quede perfecto y que nada se rompa». Alcance en NEXT_TASK: ficha geológica, adquisición/contrato/exportación reproducibles y offline; ciencia, rankings e IA M8 conservados.
+- Claude implementa por fases con checkpoint/revisión de Codex. Sin mapa litológico, filtros nuevos ni score geológico. Codex hará aceptación y salida a dev tras verificar; main se conserva.
+- Baseline nuevo: `/tmp/analogos-m9-baseline-hashes.json`; M8 archivado en `project/tasks/M8_MISSION_RECOMMENDATION.md`. Investigación anterior preservada.
+
+## M9 fase B — ficha, exportación y paquete portable (Claude, en revisión de Codex)
+
+- Ficha «Contexto geológico» compacta y expandible en los siete sectores, exportación `<site_id>-geology-context.json` con contrato autocontenido, carga opcional validada (timeout incluye el cuerpo; sin llamadas a proveedores) y empaquetador con `geology-context-v1/index.json` opcional validado. No cambia score, confianza, restricciones, IA ni M8.
+- `npm run verify`: 316 Python, 245 web (+2 omitidas), typecheck/build correctos. `release:package` repetido idéntico: 31 entradas, SHA-256 `579a4fed…74be`. Baseline de 49 archivos intacto. Brechas: sin QA en navegador (Codex), la web no calcula SHA-256. Detalle en `project/M9_PROGRESS.md`; datos ignorados: `data/raw/geology-context-v1/` (~6,9 MB).
+
+## M9 fase A — contexto geológico (corregida tras la revisión de Codex)
+
+- Paquete real `artifacts/geology-context-v1/index.json` (SHA-256 `fe2552dd…856c`), contrato propio, pipeline `python -m pipelines.build_geology_context [--refresh|--offline]`, ADR-010 propuesto y `docs/GEOLOGY_CONTEXT.md`. Estados: Chile 1–3 y Yungay `partial` (≈99 %), Argentina 4 `partial` (50 %), Argentina 5 `no_coverage`, Argentina 6 `available`. Coinciden con la auditoría dentro de 5e-5 pp. Reparaciones aceptadas, sin máscaras.
+- Correcciones de revisión A: cambio de área total en reparaciones, validación de cada vértice, transacción caché+paquete con rollback, procedencia exacta por sector, caché y licencia estrictas. Paquete recalculado desde la caché sin red. Verificación: 297 Python, 196 web (+2 omitidas), typecheck/build correctos; rebuild offline idéntico; baseline de 49 archivos intacto.
+- Brecha de la fase A resuelta en B: el empaquetador ya admite `geology-context-v1/`. Raw ignorado: `data/raw/geology-context-v1/` (~6,9 MB).
+
+## Evaluación geológica posterior a M8 — Codex, 2026-11-14
+
+- Dan pidió analizar primero esfuerzo y valor. Evaluación terminada en `docs/GEOLOGY_FEASIBILITY.md`, con mediciones reproducibles en `docs/research/geology/`. No se inició integración de producto ni una tarea a Claude.
+- Descargas reales: SERNAGEOMIN distribuido por MMA a 1:1.000.000 cubre aproximadamente 99 % de las cuatro ventanas chilenas; SEGEMAR 250K cubre 50 %, 0 % y 100 % de las argentinas. Alternativas más generales verificadas por separado; huecos, solapamientos y geometrías inválidas explícitos.
+- Recomendación: contexto descriptivo y trazable por sector, estimado en 20–32 h de ingeniería/revisión; no activar `geologic_relevance` ni inferir tracción. Datos y código de ciencia, IA, UI y publicación sin cambios. Claude sigue esperando asignación.
+- Caché de investigación ignorada: `data/raw/geology-feasibility-20261114/`, 13 archivos, 20.873.381 bytes. Dependencias exploratorias aisladas en `/tmp/analogos-geology-audit-libs`, sin modificar dependencias de la app.
+- Verificación del producto: 177 Python y 196 web correctos, 2 pruebas de IA real omitidas; typecheck/build correctos. La auditoría de cobertura no es validación de campo.
+
+## Antecedente M8 — dev e IA real comprobados
 
 - URL: https://analogos-dev.vercel.app/. Código desplegado `9060970ecf71e3c68f7b11a8d220e37e49057dc8`; Actions 43639834860 correcto. El checkpoint posterior solo agrega documentación/evidencia con `[skip ci]` y conserva ese despliegue verificado. Main no se publica.
 - Dan autorizó subir a dev y verificar la IA. La clave está en GitHub Secrets, inyectada solo en runtime del deploy dev. Protección de Vercel conservada; clave ausente del código, bundle, ZIP y evidencia.

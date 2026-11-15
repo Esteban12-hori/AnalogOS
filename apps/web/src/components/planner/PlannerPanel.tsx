@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { DemoSnapshot } from '../../data/loadDemoSnapshot'
+import type { GeologyContextState } from '../../domain/geologyContext'
 import type { EvidenceBundle } from '../../mission'
 import { PlannerView, type PlannerIntent } from './PlannerView'
 import { usePlanner } from './usePlanner'
@@ -9,10 +10,10 @@ export type { PlannerIntent } from './PlannerView'
 /**
  * Planificador autónomo del equipo: su propio estado (usePlanner) y la vista completa. La interfaz
  * integrada usa `PlannerView` con el planificador compartido (ADR-013); este envoltorio conserva la
- * firma y el comportamiento del panel original.
+ * firma y el comportamiento del panel original, incluido el contexto geológico opcional (M10).
  */
-export function PlannerPanel({ snapshot, intent }: { snapshot: DemoSnapshot; intent: PlannerIntent | null }) {
+export function PlannerPanel({ snapshot, intent, geology }: { snapshot: DemoSnapshot; intent: PlannerIntent | null; geology?: GeologyContextState }) {
   const bundle = useMemo<EvidenceBundle>(() => ({ candidates: snapshot.candidates, manifest: snapshot.manifest, profile: snapshot.profile }), [snapshot])
-  const api = usePlanner(bundle)
+  const api = usePlanner(bundle, geology)
   return <PlannerView snapshot={snapshot} api={api} intent={intent} />
 }

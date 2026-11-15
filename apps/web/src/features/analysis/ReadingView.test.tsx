@@ -3,11 +3,22 @@
 // o IA del equipo) y hechos —, con el botón explícito de IA y su aviso literal de envío.
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it } from 'vitest'
+import { ResultView } from '../../components/planner/ResultView'
 import { composeExplanation, deterministicSelection, plannerReducer } from '../../mission'
 import type { AppData } from '../../shell/public'
+import { composerStore, initialComposerState } from '../composer/composerStore'
 import { INITIAL_MISSION_STATE, missionStore } from '../../state/mission'
 import { uiStore } from '../../state/ui'
 import { evaluateExample, readyData } from '../../tests/v3Support'
+import {
+  AI_SEND_NOTICE,
+  AI_SEND_NOTICE_GEOLOGY,
+  GEOLOGY_OPT_LABEL,
+  GEOLOGY_RETRY_LABEL,
+  GEOLOGY_RETRY_NOTICE,
+  GEOLOGY_WHERE,
+  geologyUnavailableNotice,
+} from './explanationToReading'
 import { ReadingSkeleton } from './ReadingPanel'
 import { ReadingPill } from './ReadingPill'
 import ReadingView from './ReadingView'
@@ -18,6 +29,7 @@ const text = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' '
 afterEach(() => {
   missionStore.reset()
   uiStore.reset()
+  composerStore.setState(initialComposerState())
 })
 
 function publish(state: ReturnType<typeof evaluateExample>['state'], source: 'deterministic_template' | 'anthropic' = 'deterministic_template') {
@@ -56,7 +68,8 @@ describe('ReadingView', () => {
     expect(html).toContain('Plantilla determinista sin IA')
     expect(html).toContain('Hechos del snapshot')
     expect(html).toContain('Destacar motivos con IA')
-    expect(html).toContain('Al pulsar el botón se envían a Anthropic los requisitos confirmados y los resultados ya calculados (no el texto completo del brief).')
+    // Aviso del equipo (M10): sin canal geológico tampoco se envía cartografía.
+    expect(html).toContain('Al pulsar el botón se envían a Anthropic los requisitos confirmados y los resultados ya calculados (no el texto completo del brief ni cartografía geológica).')
     // El único ✦ es el del botón: ningún bloque se presenta como redactado por la IA.
     expect(html.match(/✦/g)).toHaveLength(1)
   })
@@ -147,6 +160,76 @@ describe('ReadingView', () => {
 
   it('sin snapshot: espera neutra, sin cifras', () => {
     expect(render({ status: 'loading', snapshot: null, visual: { status: 'loading' }, error: null })).toContain('Esperando el snapshot validado')
+  })
+})
+
+describe('ReadingView · canal geológico de la IA (M10 del equipo)', () => {
+  const html = () => text(render())
+  const available = () => composerStore.setState({ geology: { available: true, unavailableReason: null } })
+
+  it('sin contexto geológico: aviso sin cartografía y motivo de «no disponible», sin casilla', () => {
+    publish(evaluateExample().state)
+    composerStore.setState({ geology: { available: false, unavailableReason: 'No se encontró el paquete geológico de esta versión.' } })
+    const out = html()
+    expect(out).toContain(AI_SEND_NOTICE)
+    expect(out).not.toContain(AI_SEND_NOTICE_GEOLOGY)
+    expect(out).toContain('Orientación geológica con IA no disponible: No se encontró el paquete geológico de esta versión. La explicación de requisitos funciona igual sin geología.')
+    expect(render()).not.toContain('type="checkbox"')
+  })
+
+  it('con contexto: casilla activa por defecto y UN solo aviso, el del envío con objetivo y cartografía', () => {
+    publish(evaluateExample().state)
+    available()
+    const markup = render()
+    expect(markup).toContain('type="checkbox"')
+    expect(markup).toMatch(/type="checkbox"[^>]*checked=""/)
+    const out = html()
+    expect(out).toContain(GEOLOGY_OPT_LABEL)
+    expect(out).toContain(AI_SEND_NOTICE_GEOLOGY)
+    expect(out).not.toContain('no el texto completo del brief ni cartografía') // aviso único y condicional
+    expect(out).toContain(GEOLOGY_WHERE)
+    // Al desmarcarla, vuelve el aviso sin cartografía.
+    composerStore.setState({ useGeology: false })
+    const off = html()
+    expect(off).toContain(AI_SEND_NOTICE)
+    expect(off).not.toContain(AI_SEND_NOTICE_GEOLOGY)
+    expect(off).not.toContain(GEOLOGY_WHERE)
+  })
+
+  it('con la solicitud en curso la casilla no cambia lo que ya se envió', () => {
+    const { state } = evaluateExample()
+    publish(plannerReducer(state, { type: 'explain_start', requestId: 'g-1' }))
+    available()
+    expect(render()).toMatch(/type="checkbox"[^>]*disabled=""/)
+  })
+
+  it('fallo solo del canal geológico: ofrece «Reintentar sin geología» y el resultado no cambia', () => {
+    const { state } = evaluateExample()
+    const started = plannerReducer(state, { type: 'explain_start', requestId: 'g-2' })
+    const failed = plannerReducer(started, { type: 'explain_fail', requestId: 'g-2', message: 'El servidor no tiene un contexto geológico válido para esta versión, así que no se pidió orientación geológica.', unavailable: false, geologyFailure: true })
+    expect(failed.explain.geologyFailed).toBe(true)
+    publish(failed)
+    available()
+    const out = html()
+    expect(out).toContain(GEOLOGY_RETRY_NOTICE)
+    expect(out).toContain(GEOLOGY_RETRY_LABEL)
+    expect(out).toContain('Plantilla determinista sin IA')
+  })
+
+  it('los textos son los mismos que los del panel de IA del equipo (ResultView sin variante compacta)', () => {
+    const { state, request, evaluation } = evaluateExample()
+    const props = { evaluation, request, state, candidates: readyData.snapshot!.candidates, onExplain: () => undefined, onExport: () => undefined, exportError: null, onEdit: () => undefined }
+    const team = (geo?: Parameters<typeof ResultView>[0]['geo']) => text(renderToStaticMarkup(<ResultView {...props} geo={geo} />))
+    const without = team({ available: false, unavailableReason: 'No se encontró el paquete geológico de esta versión.', useGeology: true, setUseGeology: () => undefined, catalog: null, onExportGeology: () => undefined, exportError: null })
+    expect(without).toContain(AI_SEND_NOTICE)
+    expect(without).toContain(geologyUnavailableNotice('No se encontró el paquete geológico de esta versión.'))
+    const withGeo = team({ available: true, unavailableReason: null, useGeology: true, setUseGeology: () => undefined, catalog: null, onExportGeology: () => undefined, exportError: null })
+    expect(withGeo).toContain(AI_SEND_NOTICE_GEOLOGY)
+    expect(withGeo).toContain(GEOLOGY_OPT_LABEL)
+    const failed = plannerReducer(plannerReducer(state, { type: 'explain_start', requestId: 'g-3' }), { type: 'explain_fail', requestId: 'g-3', message: 'x', unavailable: false, geologyFailure: true })
+    const retry = text(renderToStaticMarkup(<ResultView {...props} state={failed} />))
+    expect(retry).toContain(GEOLOGY_RETRY_NOTICE)
+    expect(retry).toContain(GEOLOGY_RETRY_LABEL)
   })
 })
 

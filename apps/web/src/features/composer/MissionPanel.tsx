@@ -7,6 +7,8 @@
  *
  * Nada aquí calcula: la evaluación es `evaluateMission` del equipo; la IA solo propone requisitos
  * (sin confirmar) cuando el usuario pulsa su botón, con el aviso de envío literal del equipo.
+ * Con el contexto geológico oficial, el resultado incluye la orientación geológica de la prueba
+ * (`GeologyGuidance` del equipo, M10) y su exportación; la selección con IA se pide en la Lectura.
  */
 import { useMemo, useSyncExternalStore } from 'react'
 import { PlannerView } from '../../components/planner/PlannerView'
@@ -41,8 +43,12 @@ function useSharedPlanner(controller: MissionController) {
   const state = useSyncExternalStore(controller.subscribe, controller.getState, controller.getState)
   const evaluationError = useComposer((composer) => composer.evaluationError)
   const exportError = useComposer((composer) => composer.exportError)
+  // Canal geológico (M10): disponibilidad, casilla y error de su exportación también rehacen la vista.
+  const geology = useComposer((composer) => composer.geology)
+  const useGeology = useComposer((composer) => composer.useGeology)
+  const geologyExportError = useComposer((composer) => composer.geologyExportError)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(() => controller.api(state), [controller, state, evaluationError, exportError])
+  return useMemo(() => controller.api(state), [controller, state, evaluationError, exportError, geology, useGeology, geologyExportError])
 }
 
 function HistoryBlock({ controller }: { controller: MissionController }) {

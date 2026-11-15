@@ -12,7 +12,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 import type { CandidateSite, DataManifest } from '../../domain/contracts'
 import { formatArea } from '../../domain/formatting'
-import { GLYPH, useReducedMotion, type AppData } from '../../shell/public'
+import { criterionExplanation } from '../../domain/geologyCopy'
+import { GLYPH, hasGeologyFor, useReducedMotion, type AppData } from '../../shell/public'
 import { uiActions, useUi } from '../../state/ui'
 import { buildMetricViews, limitingView } from './buildMetricViews'
 import { FadeNumber } from './FadeNumber'
@@ -172,7 +173,8 @@ function MetricBody({ view, context, site, data, detail }: BodyProps) {
       {pending ? (
         <div className="metrics-pending-box">
           <strong>{pendingText(view)}</strong>
-          {item?.explanation && <span>{item.explanation}</span>}
+          {/* Con el contexto geológico oficial del sector, el criterio geológico dice que está disponible pero sin calibrar (M9). */}
+          {item?.explanation && <span>{criterionExplanation(view.criterionId, item.explanation, hasGeologyFor(data, site.site_id))}</span>}
         </div>
       ) : (
         <>
