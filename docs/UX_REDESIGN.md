@@ -1,4 +1,4 @@
-<!-- Generado por el workflow analogos-ux-components (8 evaluadores en paralelo + director de diseño), 2026-11-14. Propuesta pendiente de aprobación. -->
+<!-- Generado por el workflow analogos-ux-components, 2026-11-14. Integración publicada en dev; ADR-013/014 aceptados por Codex el 2026-11-15. Ver CODEX_INTEGRATION_REVIEW.md para el alcance y los pendientes. -->
 
 # AnalogOS Chile · Decisión final de diseño (rediseño Explorar / Misión)
 

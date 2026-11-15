@@ -1,14 +1,22 @@
 # Estado actual
 
-**Última actualización:** 2026-11-15, presentación de producto (America/Santiago)
-**Responsable del checkpoint:** Codex
-**Milestone:** M10-GEOLOGY-AI completado, aceptado y publicado en dev.
-**Estado general:** planificador de pruebas/sectores con evaluación determinista, snapshot v3 y orientación geológica oficial seleccionada por Anthropic. Siete sectores del piloto; faltan contraste de campo, capas territoriales y validación con usuarios.
+**Última actualización:** 2026-11-15, aceptación de la integración Explorar/Misión (America/Santiago).
+**Responsable:** Codex. **Rama:** `dev`. **Estado:** integración aceptada; corrección de conservación del sector lista para publicación.
 
-**Última actualización:** 2026-11-15, revisión de la fusión de M9/M10 en `feature/mision-redesign`: hallazgos medio y bajos corregidos (Claude Code, encargo del flujo de integración). Antes: fusión de M9/M10 (`origin/dev` `d2252b6`) y porte de su UI a la interfaz integrada; M10 publicado y verificado en dev (Codex).
-**Responsable del checkpoint:** Claude Code (integración); Codex (M8, M9, M10).
-**Milestone activo:** M10 aceptado y publicado en dev. La interfaz integrada con M9/M10 está lista en `feature/mision-redesign`, pendiente de publicar en dev.
-**Estado general:** planificador de ensayo/sector con motor determinista, snapshot científico v3, contexto geológico oficial por sector y orientación geológica opcional con Anthropic. Siete sectores con evidencia; faltan contraste de campo, capas territoriales y validación con usuarios.
+## Checkpoint vigente — cierre del handoff de Gus
+
+- Integración `dd625b4` ya fusionada y publicada; [Actions 43678787020 correcto](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43678787020). Los bloqueos de fusión/push descritos más abajo son históricos.
+- **IA real comprobada en dev:** borrador de seis requisitos, confirmación explícita, evaluación AR6, explicación Anthropic y tres referencias geológicas de SEGEMAR. JSON descargado validado y reconstruido idéntico con los datos oficiales: `submission/evidence/integration-dev-geology-export.json`.
+- **Hallazgo corregido:** enviar un brief desde el dock tras «Evaluar este sector» ya no cambia el alcance a las siete áreas. Prueba de regresión primero roja, luego verde y comprobación en el navegador del build local.
+- **ADR-013 y ADR-014 aceptados por Codex. Yungay decidido:** fuera del ranking de Explorar; alternativa conocida evaluable/priorizable en Misión, siempre REF. Se conserva `shared/mission/evaluate.ts`, conforme a ADR-009 §5. Referencia de CLAUDE.md corregida a ADR-006/007/014.
+- **Verificación:** 333 Python y 784 web pasan; 3 web opt-in omitidos; tipos servidor y build correctos. ZIP regenerado, 73 entradas / 14.792.109 bytes; SHA-256 `d977f0adf4f9e7e3d2ee4e9b780ee7f00d7124def36b24e1369a7270e8e12393` y CRC verificados.
+- Núcleo científico, servidor, datos, dependencias y CI preservados. `outputs/` preexistente no incluido. Sin nueva asignación a Claude.
+- **Pendientes acotados:** navegación directa a Lectura desde popover móvil (alternativa Ficha → Lectura comprobada), GIBS sin red, paginación/impresión nativa e iOS real. No hay validación de campo ni garantía de aptitud territorial.
+- Revisión completa y evidencias: `docs/CODEX_INTEGRATION_REVIEW.md`. Continuidad: este bloque y `project/NEXT_TASK.md` prevalecen sobre los checkpoints históricos siguientes.
+
+---
+
+## Antecedentes históricos de la integración
 
 ## Revisión de la fusión M9/M10: hallazgos corregidos (Claude Code, `feature/mision-redesign`, 2026-11-15)
 

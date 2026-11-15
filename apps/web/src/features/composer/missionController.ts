@@ -416,7 +416,9 @@ export function createMissionController(deps: ControllerDeps): MissionController
     submitBrief(text) {
       const brief = text.slice(0, 3000)
       if (!brief.trim()) return
-      if (state.journey !== 'test') dispatch({ type: 'set_journey', journey: 'test' })
+      // El dock también describe una prueba sobre un sector ya elegido. Cambiar de recorrido
+      // aquí ampliaba silenciosamente su geometría al catálogo completo.
+      if (state.journey === null) dispatch({ type: 'set_journey', journey: 'test' })
       dispatch({ type: 'set_brief', brief })
       // El foco va al texto recién cargado: se ve aunque «Tu misión» sea una franja con scroll.
       controller.requestStep('describe', 'brief')

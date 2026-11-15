@@ -1,5 +1,7 @@
 # Contratos de construcción en paralelo (rediseño Explorar / Misión)
 
+> **Documento histórico de reparto.** Las ramas ya están integradas en `dev` (`dd625b4`). ADR-013 y ADR-014 aceptados por Codex el 2026-11-15; revisión en `docs/CODEX_INTEGRATION_REVIEW.md`. No asigna nuevos constructores ni autoriza trabajo paralelo: la asignación vigente vive en `project/NEXT_TASK.md`.
+
 Este documento reparte los incrementos 3 a 10 de `docs/UX_REDESIGN.md` §7.1 entre **8 constructores que trabajan a la vez en worktrees separados**. Cada uno edita solo su carpeta y los archivos que se le asignan aquí. Lo demás pertenece al **integrador**.
 
 - **Estado (2026-11-14):** las 8 ramas `build/*` quedaron fusionadas en `feature/mision-redesign`. Los ajustes del integrador y lo que sigue pendiente están en `project/STATUS.md`.

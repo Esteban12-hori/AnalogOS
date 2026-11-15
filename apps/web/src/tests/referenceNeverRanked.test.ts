@@ -2,8 +2,8 @@
 // carrusel, ni en el globo, ni en el riel, ni en los hechos de la Lectura, aunque su similitud
 // supere a la de varios candidatos. Un `rankCandidates(todos)` olvidado la pondría #4.
 // En Misión el motor del equipo (shared/mission/evaluate.ts) ordena todos los priorizados, REF
-// incluida: mientras el equipo no decida otra cosa (STATUS, decisión pendiente), la UI muestra ese
-// puesto SIEMPRE con «REF» al lado y la REF no cuenta en «N priorizados de M».
+// incluida: decisión aceptada en ADR-013 conforme a ADR-009 §5. La UI muestra ese puesto SIEMPRE
+// con «REF» al lado y la REF no cuenta entre los candidatos de «N priorizados de M».
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it } from 'vitest'

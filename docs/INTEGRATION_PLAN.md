@@ -1,5 +1,7 @@
 # Plan de integración: rediseño Explorar/Misión sobre origin/dev (M7 y M8)
 
+> **Cierre de revisión (2026-11-15):** integración publicada en `dev` en `dd625b4`, Actions 43678787020 correcto. Codex comprobó borrador y explicación geológica con Anthropic real y aceptó ADR-013/014. Ver `docs/CODEX_INTEGRATION_REVIEW.md` y el bloque vigente de STATUS. Los estados «plan sin ejecutar», ADR propuesto y push pendiente que siguen describen las etapas históricas del plan, no bloqueos actuales.
+
 - Fecha: 2026-11-14
 - Rama de trabajo: `feature/mision-redesign` (HEAD `9b32457`).
 - Destino: `origin/dev` (HEAD `92392f1`), que tiene 14 commits del equipo desde la base común `adcffcd`.

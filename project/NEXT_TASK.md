@@ -1,3 +1,14 @@
+# Revisión de la integración publicada — Codex (2026-11-15)
+
+- **Owner:** Codex. **Estado:** accepted; corrección verificada, publicación en curso. **Rama/base:** `dev`, `dd625b4`.
+- Dan entregó el handoff de Gus para continuar la integración ya fusionada y desplegada. Verificar IA real (borrador, explicación y geología AR6), decidir el tratamiento de Yungay en Misión, revisar ADR-013/014 y corregir la referencia de CLAUDE.md.
+- Corregir regresiones encontradas en este recorrido, verificar y publicar en dev bajo la autorización vigente. No modificar el núcleo científico ni main. Sin nueva asignación a Claude.
+- Hallazgo reproducido y corregido: «Evaluar este sector» → texto en el dock → «Enviar» conserva ahora recorrido y geometría elegidos. Prueba de regresión y recorrido local correctos.
+- Resultado: IA real AR6 comprobada, ADR-013/014 aceptados, Yungay conservado como alternativa conocida en Misión y separado del descubrimiento. Ver `docs/CODEX_INTEGRATION_REVIEW.md`; no hay nueva asignación a Claude.
+- Los bloques siguientes son antecedentes; el push pendiente allí descrito ya se completó en `dd625b4` (Actions 43678787020).
+
+---
+
 # Decisión directa del usuario — integración del rediseño con dev (2026-11-14)
 
 - **Pedido:** el usuario pidió directamente a Claude Code «fusiona en dev y haz push» y decidió integrar: la interfaz es la del rediseño (`feature/mision-redesign`, ADR-010, hoy ADR-014) y por dentro se usan el planificador determinista, la IA de Anthropic y los datos v3 del equipo (ADR-008, ADR-009). Registrado en ADR-013 y `docs/INTEGRATION_PLAN.md`.

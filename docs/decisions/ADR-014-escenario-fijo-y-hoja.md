@@ -1,6 +1,6 @@
 # ADR-014 — Escenario fijo (100dvh) con dock, riel y una sola hoja de 3 detents
 
-- Estado: propuesto (2026-11-14). Pendiente de aceptación del equipo humano. Numerado ADR-008 en la rama del rediseño; renumerado ADR-010 al integrar con dev (ADR-013), donde ADR-008 y ADR-009 ya eran del equipo, y ADR-014 al fusionar M9/M10 (2026-11-15), donde ADR-010 y ADR-011 son del equipo (contexto geológico y orientación geológica).
+- Estado: **accepted por Codex (2026-11-15)** como arquitectura de la interfaz del piloto, bajo la dirección delegada por Dan. Revisión en escritorio y viewport móvil de Chrome, con límites registrados en `docs/CODEX_INTEGRATION_REVIEW.md`; no equivale a certificar dispositivos iOS ni impresión nativa. El equipo humano conserva la autoridad final. Numerado originalmente ADR-008, luego ADR-010 y finalmente ADR-014 para preservar los ADR científicos del equipo.
 - Fecha: 2026-11-14
 - Relación: no afecta a ADR-008 (piloto de descubrimiento) ni a ADR-009 (recomendación guiada) del equipo; el escenario aloja sus datos y su planificador (ADR-013). Aplica `docs/UX_REDESIGN.md` §0–§2 y §3.8. Reemplaza el layout de ADR-006 punto 5 (ficha flotante y hero con scroll). Mantiene ADR-006/007 (globo con paso a 2D) y ADR-001 (SVG sin WebGL).
 
@@ -23,4 +23,4 @@ El sitio actual es un documento con scroll: hero «No buscamos…», ficha flota
 - Se elimina el hero y la ficha flotante; el contenido existente se reubica sin perderse (Métricas, Señal, Comparar, Método y Fuentes como pestañas).
 - El póster del globo y su prueba al píxel (`boot.test`) se alinean con los nuevos márgenes base; cambiar la altura del dock exige actualizar `stageGeometry.js` y `shell.css` juntos (lo verifica un test).
 - Riesgo iOS (pointercancel, scrollend): todo detent es alcanzable con botones y teclado; QA en dispositivo real pendiente (incremento 11).
-- Si no se acepta: se vuelve al layout de ADR-006 revirtiendo el armazón; los contratos y el store no dependen de esta decisión.
+- La aceptación conserva el escenario fijo; los ajustes pendientes de navegación móvil e impresión no autorizan a cambiar los contratos ni el motor científico.

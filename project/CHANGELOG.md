@@ -1,5 +1,13 @@
 # Changelog de trabajo
 
+## 2026-11-15 Codex · aceptación del rediseño integrado y conservación del sector
+
+- Revisión de `dev` `dd625b4` y prueba real desde la interfaz: borrador Anthropic, confirmación, evaluación AR6, explicación y orientación geológica SEGEMAR. Exportación descargada, validada y reconstruida idéntica; evidencia y captura incorporadas.
+- Corregida una regresión del dock: enviar el brief conservando el recorrido y la geometría evita ampliar AR6 a las siete ventanas. Test reproducido rojo/verde y recorrido comprobado en el build local; motor y servidor sin cambios.
+- ADR-013/014 aceptados. Yungay sigue REF fuera del ranking de descubrimiento y disponible como alternativa conocida en Misión (ADR-009 §5). Referencia 006/007/014 corregida en CLAUDE.md; planes históricos y checkpoint vigente aclarados.
+- `npm run verify`: 333 Python, 784 web, 3 web opt-in omitidos; tipos y build correctos. ZIP regenerado y verificado: 73 entradas, 14.792.109 bytes, SHA-256 `d977f0adf4f9e7e3d2ee4e9b780ee7f00d7124def36b24e1369a7270e8e12393`.
+- Pendientes documentados, sin atribuirlos a validación cumplida: navegación directa a Lectura móvil, GIBS sin red, impresión nativa e iOS real. Detalle en `docs/CODEX_INTEGRATION_REVIEW.md`.
+
 ## 2026-11-15 Codex · README orientado al producto
 
 - Presentación centrada en usuarios, problema, recorrido y evidencia de AnalogOS. Se retiran fechas del evento, tablas detalladas de puntajes y coordinación interna del README; se mantiene explícito el alcance real del piloto y el papel opcional de la IA.

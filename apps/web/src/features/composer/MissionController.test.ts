@@ -221,6 +221,21 @@ describe('controlador de misión', () => {
     expect(controller.getState()).toMatchObject({ journey: 'sector', scope: { mode: 'sector', siteId: 'ar-win-s2580-w06710' } })
     expect(h.composer.getState().stepRequest?.step).toBe('describe')
   })
+
+  it('enviar el brief después de elegir AR6 conserva su geometría hasta evaluar', () => {
+    const h = harness()
+    const controller = createMissionController(h.deps)
+    controller.startSector('ar-win-s2580-w06710')
+    controller.addMetricRequirement('median_slope_degree')
+    controller.dispatch({ type: 'update_requirement', id: controller.getState().requirements[0].requirement_id, patch: { valueText: ['9', ''] } })
+    controller.submitBrief('Reconocimiento regional para movilidad de rover en el sector elegido.')
+    expect(controller.getState()).toMatchObject({ journey: 'sector', confirmed: false, scope: { mode: 'sector', siteId: 'ar-win-s2580-w06710' } })
+    controller.dispatch({ type: 'confirm' })
+    expect(controller.evaluate()).toBe(true)
+    expect(controller.getState().result?.options.map((option) => option.site_id)).toEqual(['ar-win-s2580-w06710'])
+    expect(h.deps.requestDraft).not.toHaveBeenCalled()
+    expect(h.deps.requestExplanation).not.toHaveBeenCalled()
+  })
 })
 
 describe('fases y espera', () => {

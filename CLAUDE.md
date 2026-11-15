@@ -31,7 +31,7 @@ Antes de modificar archivos, ejecuta `git status --short`, confirma la rama y pr
 - Perfil: `mars-rover-screening-v3`, versión `3.0.0-preliminary`; fórmulas y pesos v2.
 - Alcance ejecutado: 50 ventanas en dos regiones, seis candidatos y Yungay como referencia fuera del ranking. Visión global; sin cobertura nacional o mundial ejecutada ni novedad confirmada.
 - Contexto visual: `artifacts/visual-context-v3/`; entrega `submission/analogos-static.zip` y checksum propio. Conservar paquete visual y ZIP v2.
-- Frontend: Vite + React + TypeScript; escenario fijo del rediseño (globo three.js con paso automático a MapLibre y fallback SVG local; ADR-006/007/010) que aloja el planificador, la búsqueda v3 y la IA del equipo (ADR-013); piloto científico en ADR-008.
+- Frontend: Vite + React + TypeScript; escenario fijo del rediseño (globo three.js con paso automático a MapLibre y fallback SVG local; ADR-006/007/014) que aloja el planificador, la búsqueda v3 y la IA del equipo (ADR-013); piloto científico en ADR-008.
 - Ciencia: MOLA + NASADEM multitesela + Sentinel-2 L2A + inventario HLS + NASA POWER.
 - Score determinista; similitud, confianza, estabilidad y factibilidad permanecen separadas.
 - Base static-first/offline. M8 autoriza endpoint opcional de IA y servidor local mínimo (ADR-009), conservando el flujo manual offline. No autenticación nueva, SAR ni perfil lunar.

@@ -1,6 +1,6 @@
 # ADR-013 — La interfaz del rediseño aloja el planificador, los datos v3 y la IA del equipo
 
-- Estado: propuesto (2026-11-14). Integración ejecutada en `feature/mision-redesign` según `docs/INTEGRATION_PLAN.md`; requiere aceptación del equipo humano.
+- Estado: **accepted por Codex (2026-11-15)**, bajo la dirección y revisión delegadas por Dan. Integración publicada en `dev` (`dd625b4`) y Anthropic real comprobado desde la UI; evidencia y límites en `docs/CODEX_INTEGRATION_REVIEW.md`. El equipo humano conserva la autoridad final.
 - Fecha: 2026-11-14
 - Autorización: el usuario pidió directamente «fusiona en dev y haz push» y decidió integrar: la UI es la del rediseño (ADR-014, antes ADR-010) y por dentro se usan el motor determinista, la IA y los datos del equipo.
 - Relación: aplica ADR-008 (piloto de descubrimiento v3) y ADR-009 (recomendación guiada) sin cambiarlos. Sustituye ADR-015, antes ADR-011 (recálculo por pesos en el cliente) y ADR-012 (lktron).
@@ -26,6 +26,8 @@ Mantener los dos motores mostraría dos órdenes y dos «similitudes» para el m
 
 - Misión deja de calcular un «% de misión»: muestra estado, puesto (solo priorizados), preferencias cumplidas, similitud/confianza/estabilidad v3 sin recalcular y «Factibilidad territorial: pendiente». Los pesos del riel y de las líneas son siempre los del snapshot; encima va la capa de requisitos (✓ ✕ ○).
 - Yungay (REF) queda fuera del ranking de Explorar en el carrusel, el globo, el riel, Comparar y la Lectura; un filtro por país conserva el puesto global.
+- **Decisión de aceptación sobre Misión:** se conserva `evaluateMission` sin cambios. Conforme a ADR-009 §5, Yungay puede priorizarse como alternativa conocida si cumple los requisitos confirmados. Su puesto en Misión es el de las alternativas evaluadas, siempre rotulado REF; el recuento de candidatos la excluye y dice aparte «REF también priorizada». Ese puesto no es un descubrimiento ni el ranking de Explorar. Mantener el mismo orden en la UI y la exportación evita dos resultados incompatibles.
+- Enviar o editar el brief desde el dock conserva el recorrido y la geometría ya elegidos; solo inicializa «Definir una prueba» cuando no existe recorrido. La confirmación sigue siendo explícita.
 - Se retiran `features/engine`, el canal lktron, la prosa pregenerada y los contratos `mission-interpretation`, `evidence-packet` y `ai-analysis`, con sus validadores, fixtures y tests (incluida la paridad TS↔Python del motor propio). El catálogo de ◆ (`reference-analog`) se conserva.
 - La edición tras evaluar invalida el resultado (reductor del equipo) y aborta la petición de IA en curso; el resultado anterior queda atenuado hasta reevaluar. El historial local pasa a v2 (brief, alcance y requisitos del usuario; nunca procedencia de la IA ni resultados).
 - El informe imprimible del equipo se monta una vez por página mientras haya una evaluación vigente.

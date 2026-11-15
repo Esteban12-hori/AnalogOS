@@ -1,4 +1,15 @@
-# IA verificada en dev — M10, con antecedentes M9/M8
+# IA verificada en dev — integración, con antecedentes M10/M9/M8
+
+## Integración Explorar/Misión — Codex, 2026-11-15
+
+Sobre `dd625b4` desplegado ([Actions 43678787020](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43678787020)), se probaron realmente **las dos operaciones de Anthropic desde la nueva interfaz**, con geología activada en la explicación. Brief sintético, seis requisitos propuestos sin confirmar, confirmación humana explícita de prueba, una ventana AR6 evaluada y tres referencias geológicas SEGEMAR seleccionadas. Ningún cambio de números, estados ni orden por la IA.
+
+- Borrador: `req_011Ch49r2xSqLrAHSpZDFz6w`, `2026-11-15T05:22:19.635Z`, `claude-sonnet-5-5`, tokens 2229/1842.
+- Explicación/geología: `req_011Ch49vXptJHdQhMzJSRTMq`, `2026-11-15T05:23:11.255Z`, mismo modelo, tokens 7536/374.
+- Ambas respuestas `end_turn`. Exportación `submission/evidence/integration-dev-geology-export.json`, validada con `validateAnyMissionExport` y reconstruida idéntica con `buildMissionGeologyExport` y datos oficiales. Captura `submission/assets/analogos-integration-dev.png`.
+- La revisión corrigió aparte la pérdida de alcance al enviar el brief desde el dock; no cambió el motor, el cliente de IA ni el servidor. Alcance de aceptación y pendientes en `docs/CODEX_INTEGRATION_REVIEW.md`.
+
+Los bloques siguientes conservan los resultados de sus respectivas versiones; no describen el número de pruebas ni el ZIP vigente.
 
 ## M10 — publicación y comprobación remota final (Codex, 2026-11-14 America/Santiago)
 
