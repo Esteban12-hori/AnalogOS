@@ -16,7 +16,9 @@ const GEOLOGY = join('artifacts', 'geology-context-v1', 'index.json')
 // (el repositorio) pueden enmascarar un archivo que falte en el paquete. El original no se modifica; el cwd se restaura al final.
 const scratch = mkdtempSync(join(tmpdir(), 'analogos-fn-check-'))
 const functionDir = join(scratch, 'main.func')
-cpSync(sourceDir, functionDir, { recursive: true, verbatimSymlinks: true })
+// La salida local de Vercel puede referenciar archivos trazados mediante enlaces al checkout.
+// Materializarlos mantiene los mismos bytes que se despliegan al aislar la función en /tmp.
+cpSync(sourceDir, functionDir, { recursive: true, dereference: true })
 process.chdir(scratch)
 delete process.env.ANTHROPIC_API_KEY
 process.env.LAMBDA_TASK_ROOT = functionDir
@@ -72,7 +74,7 @@ try {
 
   // Ausencia aislada (copia temporal; el paquete y el repositorio no se tocan): canal geológico no disponible, M8 intacto.
   const copy = join(scratch, 'sin-geologia.func')
-  cpSync(functionDir, copy, { recursive: true, verbatimSymlinks: true })
+  cpSync(functionDir, copy, { recursive: true, dereference: true })
   rmSync(join(copy, GEOLOGY))
   process.env.LAMBDA_TASK_ROOT = copy
   const absent = await (await load(copy))('POST', explain(fp))

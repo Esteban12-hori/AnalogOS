@@ -42,3 +42,8 @@ Otros puntos a comprobar al terminar:
 
 
 Prueba real inicial de Claude: movilidad y muestreo producen selecciones distintas. No sustituye revisión de integridad, fuentes y navegador.
+
+
+## Primer control de Vercel y corrección del aislamiento
+
+El primer push `ab13fb8` construyó correctamente, pero Actions 43664379073 detuvo la publicación al comprobar la función: el control copiaba literalmente enlaces de archivos trazados hacia fuera del paquete y dejaba roto el import de candidate-details.json al moverlo a /tmp. Codex reprodujo el fallo con una función y JSON enlazado; la misma función pasa al materializar los enlaces al copiar. El chequeo sigue aislado y conserva sus controles de ausencia/corrupción; no se eliminó ninguna validación. Script corregido; segundo despliegue pendiente. El alias dev no cambió en el primer intento.

@@ -1,5 +1,9 @@
 # Changelog de trabajo
 
+## 2026-11-14 Codex · corrección del control de empaquetado M10
+
+- El primer control real de Vercel detuvo la publicación por enlaces de JSON rotos al copiar la función a /tmp. Reproducido fuera del repositorio; la copia ahora materializa los archivos enlazados y conserva el aislamiento y los casos negativos. No cambia aplicación, IA, datos ni ZIP. Reintento dev tras validar la misma fixture antes/después.
+
 ## 2026-11-14 Codex · M10 aceptado localmente
 
 - Revisada implementación de Claude; cerrados tres fallos reproducidos de integridad del informe. Fuentes clicables, porcentajes con/sin solape y aviso de envío coherente. Codex corrigió desborde móvil de URL.
