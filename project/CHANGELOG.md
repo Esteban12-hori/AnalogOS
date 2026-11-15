@@ -1,5 +1,11 @@
 # Changelog de trabajo
 
+## 2026-11-15 Codex · README orientado al producto
+
+- Presentación centrada en usuarios, problema, recorrido y evidencia de AnalogOS. Se retiran fechas del evento, tablas detalladas de puntajes y coordinación interna del README; se mantiene explícito el alcance real del piloto y el papel opcional de la IA.
+- Nueva `docs/DEVELOPMENT.md` reúne instalación, verificación, empaquetado, reproducción de fuentes y continuidad. Se eliminan referencias locales fuera del repositorio y la afirmación antigua de cobertura nacional.
+- Cambio exclusivamente documental solicitado por Dan; ciencia, aplicación y despliegue M10 conservados. Verificación registrada en `project/tasks/README_PRODUCT.md`.
+
 ## 2026-11-15 Claude Code · revisión de la fusión M9/M10: hallazgos corregidos (rama feature/mision-redesign)
 
 - **«Tu misión» compacta (medio):** la orientación geológica del equipo va plegada después de exportar (`<details>` cerrado; resumen con el rótulo «Selección por IA» / «Orientación general sin IA» y «N sectores»), sin marco exterior. `GeologyGuidance` y la vista del equipo no cambian. «Descargar JSON» vuelve a 1.408 px en 1440 (estaba en 6.670), 1.235 en 1280 y 1.384 en 390.

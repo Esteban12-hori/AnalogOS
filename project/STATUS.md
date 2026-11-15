@@ -1,5 +1,10 @@
 # Estado actual
 
+**Última actualización:** 2026-11-15, presentación de producto (America/Santiago)
+**Responsable del checkpoint:** Codex
+**Milestone:** M10-GEOLOGY-AI completado, aceptado y publicado en dev.
+**Estado general:** planificador de pruebas/sectores con evaluación determinista, snapshot v3 y orientación geológica oficial seleccionada por Anthropic. Siete sectores del piloto; faltan contraste de campo, capas territoriales y validación con usuarios.
+
 **Última actualización:** 2026-11-15, revisión de la fusión de M9/M10 en `feature/mision-redesign`: hallazgos medio y bajos corregidos (Claude Code, encargo del flujo de integración). Antes: fusión de M9/M10 (`origin/dev` `d2252b6`) y porte de su UI a la interfaz integrada; M10 publicado y verificado en dev (Codex).
 **Responsable del checkpoint:** Claude Code (integración); Codex (M8, M9, M10).
 **Milestone activo:** M10 aceptado y publicado en dev. La interfaz integrada con M9/M10 está lista en `feature/mision-redesign`, pendiente de publicar en dev.
@@ -204,6 +209,13 @@
 
 **Handoff:** Codex puede retomar leyendo `prompts/RESUME_CODEX.md` y `project/STATUS.md` (este bloque), con `docs/INTEGRATION_PLAN.md` y ADR-013 como contexto de la integración.
 
+
+## Mantenimiento documental — README de producto
+
+- Dan solicitó orientar el README al producto y reducir contenido del evento. Codex reorganiza problema, usuarios, recorrido, evidencia, alcance y acceso local; operación y reproducción pasan a `docs/DEVELOPMENT.md`.
+- Se corrige la afirmación antigua de cobertura nacional: el alcance sigue siendo el piloto de dos regiones, seis candidatos y Yungay como referencia. Sin cambios de código, datos ni despliegue M10.
+- Encargo y verificación en `project/tasks/README_PRODUCT.md`. M10 sigue aceptado; Claude sin nueva asignación.
+- Contenido aceptado: 34 enlaces relativos comprobados; 316 Python y 332 web correctos (3 opt-in omitidas), typecheck/build correctos. Publicación documental con `[skip ci]`; `outputs/` local excluido.
 
 ## Entrega vigente — M10
 

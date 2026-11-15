@@ -9,6 +9,8 @@
 
 # M10 — Recomendación de prueba con evidencia geológica e IA
 
+> Mantenimiento documental posterior: [README de producto](tasks/README_PRODUCT.md), a cargo de Codex por solicitud de Dan. No reabre M10 ni asigna trabajo a Claude.
+
 - **Task ID:** M10-GEOLOGY-AI
 - **Owner:** Codex
 - **Status:** accepted — completado, publicado y verificado en dev por Codex
