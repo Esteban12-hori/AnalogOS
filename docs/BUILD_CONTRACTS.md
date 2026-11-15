@@ -307,6 +307,7 @@ las líneas y la Lectura.
 6. Editar tras evaluar: el reductor invalida; `missionStore.stale = true` y la petición en curso se aborta.
 
 **Interfaz añadida:** `registerMissionSnapshot(snapshot)`, `withController(fn)` y `MissionPrintHost` (informe imprimible único).
+M11: `MissionPrintHost` se monta siempre; sin evaluación vigente imprime un aviso (`printNoticeReason`). `printState.ts` registra qué resultado está montado en el informe, y «Imprimir informe» del resultado compacto solo se habilita cuando es el `planner.result` vigente. El compacto también ofrece «Ir a la Lectura» (`uiActions.requestReading()`).
 
 **Además:**
 - Muestra la espera con `OrbitLoader` de `boot`.
@@ -336,7 +337,8 @@ las líneas y la Lectura.
 | `left.reading` | ≥1440 en Misión, sección inferior del panel izquierdo | `<ReadingPanel placement="panel">` |
 | `rail.reading` | 1100–1439, pestaña «Lectura IA» del riel | `<ReadingPanel placement="rail">` |
 | `full.reading` | pestaña «Lectura IA» de la ficha completa o S2 | `<ReadingPanel placement="full">` |
-| `pill.reading` | ≥1100 en Explorar, arriba a la izquierda | `<ReadingPill>` |
+| `sheet.reading` | <1100, S2 sin ● seleccionado tras «Ir a la Lectura» (M11) | `<ReadingPanel placement="full">` |
+| `pill.reading` | ≥1100 en Explorar y 1100–1439 en Misión (M11), arriba a la izquierda | `<ReadingPill openSignal={ui.readingRequest}>` |
 
 **Interfaz:**
 - `ReadingPanel({ data, placement })` y `ReadingPill({ data })`.
@@ -367,6 +369,7 @@ las líneas y la Lectura.
 | `ui.missionPhase` | composer (`idle → interpreting → profile → scoring → analysis`, `error`, `cancelled`), analysis (`analysis → done`) | composer, places, analysis, boot |
 | `ui.introPhase` | boot | globe |
 | `ui.cameraTouchedAt` | globe (`touchCamera`), composer (`resetCameraTouch`) | composer |
+| `ui.readingRequest` | composer («Ir a la Lectura», `uiActions.requestReading()`, que también fija `mode: 'mision'`) | armazón (superficie según `readingRoute`), analysis (píldora) |
 | `missionStore` (`state/mission.ts`) | **solo composer** (incluido `geologyCatalog`, M10) | places, metrics, leaders, globe, analysis, informe imprimible |
 | `composerStore.geology` · `useGeology` · `geologyExportError` | controlador de misión; la casilla de la Lectura escribe `useGeology` (`setUseGeology`) | «Tu misión», Lectura |
 | `AppData.geology` (contexto geológico M9, opcional) | **solo `App.tsx`** (chunk diferido `loadAppGeology`) | ficha («Geología», Métricas, Fuentes); el armazón lo registra en el controlador (`registerMissionGeology`) |

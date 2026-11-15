@@ -388,7 +388,8 @@ export default function ReadingView({ data, placement }: ReadingPanelProps) {
   return (
     <section className="analysis" data-placement={placement} aria-labelledby={`${prefix}-title`} data-busy={mission && stale ? '' : undefined} aria-busy={mission && stale}>
       <header className="analysis-head">
-        <h2 id={`${prefix}-title`}>{model ? 'Lectura de tu misión' : 'Lectura determinista'}</h2>
+        {/* tabIndex -1: destino del foco de «Ir a la Lectura» (M11). */}
+        <h2 id={`${prefix}-title`} tabIndex={-1}>{model ? 'Lectura de tu misión' : 'Lectura determinista'}</h2>
       </header>
       {model ? (
         <>

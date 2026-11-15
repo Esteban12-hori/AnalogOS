@@ -108,6 +108,9 @@
 .planner.is-compact .pl-group h4 { margin: 0 0 6px; font-size: var(--fs-13); }
 .planner.is-compact .pl-diag, .planner.is-compact .pl-export { margin: 12px 0; padding: 10px 12px; }
 .planner.is-compact .pl-nav { margin-top: 10px; }
+/* «Ir a la Lectura» (M11, ronda 2): junto al resumen del resultado, objetivo táctil de 44 px. */
+.planner.is-compact .pl-reading-cta { margin: 10px 0 12px; }
+.planner.is-compact .pl-reading-link { min-height: 44px; padding: 0 18px; }
 .pl-clist { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .pl-copt { padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 12px; font-size: var(--fs-12); }
 .pl-copt.priorizado_para_reconocimiento { border-color: var(--blue-line); }

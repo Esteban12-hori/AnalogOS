@@ -1,3 +1,58 @@
+# M11 — Acceso directo a Lectura e informe imprimible
+
+- **Task ID:** M11-READING-PRINT
+- **Owner:** Codex
+- **Estado:** accepted — código revisado y aprobado por Codex; publicación dev/main y reprueba remota en curso. Evidencia: docs/CODEX_M11_REVIEW.md. Claude sin nueva asignación.
+  - `verify`: 333 Python, 798 web y 3 omitidas; build correcto.
+  - Entrega inicial de Claude por SSR/CSS; Codex completó después navegador y PDF nativo. Ver revisión M11.
+  - **Ronda 2 (Claude):** «Ir a la Lectura» se movió de la exportación al resumen del resultado compacto, tras `pl-lead` y antes de chips y grupos. Acción única, mínimo 44 px. Web 799 pasan y 3 omitidas; build correcto. Python no se repitió.
+  - **Ronda 3 (Claude):** solo cambia la tabla impresa de criterios. Recibe la clase `pl-criteria-table` y, en `@media print`, layout fijo con columnas al 18/15/13/20/18/16 %. Las palabras solo se parten si no caben; los enlaces y códigos sí se parten. No cambian texto, fuente, pantalla ni las otras tablas. Web 799 pasan y 3 omitidas; build correcto. El PDF nuevo lo genera Codex.
+- **Base:** dev `ce86a879905cb927d9881aae6ab564d9082f39fc`.
+- **Dirección, revisión y aceptación:** Codex. Dan pide delegar a Claude, supervisar y revisar todo antes de subir a dev. Claude no hace commit, push, merge, deploy ni cambia de rama. Codex publicará dev tras aceptar. **Ampliación posterior de Dan:** revisar todo y promover después a main/producción; esta promoción queda exclusivamente a cargo de Codex tras validar dev. Claude sigue sin autorización para publicar.
+
+## Primer checkpoint: solo lectura
+
+Lee AGENTS.md, CLAUDE.md, este bloque, STATUS, CHANGELOG y ADR-013/014. Confirma rama y diff; los cambios de asignación son de Codex y `outputs/` es ajeno. Inspecciona código y devuelve un plan breve con archivos, hallazgos y pruebas. Espera aprobación de Codex antes de editar. No subagentes. No leer credenciales ni .env; no herramientas de navegador externas. Codex hará las comprobaciones de navegador y PDF reales mediante su entorno controlado.
+
+## Ronda 3 — legibilidad del PDF real
+
+Codex obtuvo y revisó las 12 páginas de `submission/evidence/m11-seven-sectors-print.pdf`; ahora hay contenido completo hasta procedencia/huellas. Hallazgo visual: la tabla de criterios asigna muy poco ancho a «Requisito» y «Observado»: «Mediana de pendiente regional» y «Observado» quedan partidos en fragmentos de 2–4 letras, mientras Escala ocupa ~36%. Corregir SOLO presentación impresa de esa tabla, sin cambiar datos ni pantalla. Dar clase propia (p.ej. pl-criteria-table) y layout fijo con anchos equilibrados para las seis columnas (referencia: 16/16/12/18/22/16 %; ajustar con criterio), manteniendo enlaces que se parten, encabezado repetido y filas sin recortar. No limitar/ocultar textos ni reducir fuente para que quepa. No afectar tabla de requisitos confirmados de cinco columnas o Medidas de tres. Tests relacionados/build; no añadir tests que solo busquen cadenas CSS. Dejar review. Codex generará y verificará un nuevo PDF; el PDF añadido por Codex es evidencia provisional y no lo modifiques.
+
+## Ronda 2 — hallazgo de usabilidad de Codex
+
+Navegación y foco comprobados en Chrome 390×844, 1280×800 y 1440×900; también sin selección, Atrás y Escape. **Corregir antes de aceptar:** «Ir a la Lectura» queda junto a Exportar, después de toda la lista. En 390×844, el ejemplo de siete sectores sitúa el botón en y=1470 y mide solo 34 px de alto: no se encuentra en la primera vista del resultado. Mover UNA sola acción junto al resumen inicial del resultado compacto (después de pl-lead y antes de chips/grupos), con altura mínima de 44 px y margen adecuado; mantener el texto y comportamiento. No duplicarla ni presentarla como exportación. Añadir una regresión ligera de presencia única y orden anterior a los grupos de alternativas; Codex verificará visualmente la visibilidad real. Conservar el resto de la entrega revisada; sin cambios en ciencia, IA, servidor o rutas. Tests afectados y build; documentar ronda y volver a Owner Codex / Estado review. No hace falta repetir Python por este movimiento. Codex corrige el espacio final propio del encargo y hace verify final.
+
+## Plan aprobado por Codex (2026-11-15)
+
+Plan de Claude revisado. Se aprueba reutilizar la píldora de Lectura para Misión en 1100–1439, manteniendo selección; el CTA de Tu misión puede fijar modo Misión. En móvil conservar hoja única y alcance aunque no haya selección o sea ◆. Priorizar una solución pequeña; reintentos de foco acotados y cancelables, nada de focus trap nuevo. Navegar no consulta IA ni muta el planificador. Mantener el acceso al cambiar ancho sin saltos de selección.
+
+**Impresión:** Codex reprodujo y obtuvo PDF nativo de una página (`/tmp/analogos-m11-baseline.pdf`, siete sectores), cortado tras geometría: faltan resultados, geología y fuentes. Corregir resets/paginación y completar PrintGeology con la misma evidencia de pantalla. No añadir una explicación generada distinta: el informe ya incluye los motivos deterministas completos y procedencia; conservar ese alcance.
+
+**Ajuste al plan:** evitar imprimir automáticamente después de una espera asíncrona. Preferir botón deshabilitado «Preparando informe…» hasta que el informe vigente esté montado y un clic síncrono para imprimir. Ctrl+P durante carga/sin resultado debe mostrar aviso, nunca un informe viejo. No colas de impresión que puedan dispararse para otra misión tras editar. Pruebas de carga inicial, invalidación y sin catálogo. Solo una fuente de verdad para vigencia.
+
+Se autoriza implementar el plan con estos ajustes, tests y documentación. Claude deja review; Codex revisará navegador/PDF y release. No commits/push, no cambiar main, no nuevas dependencias, no editar ciencia/servidor. El objetivo nuevo de Dan es revisar el conjunto y luego publicar main/producción; Codex lo realizará después de probar dev.
+
+## Resultado esperado
+
+1. «Ir a la Lectura» es una acción visible y operativa desde el resultado compacto / Tu misión. En móvil abre la hoja y la pestaña Lectura; a 1100–1439 abre la superficie adecuada y ≥1440 enfoca el panel izquierdo. Debe funcionar sin sitio seleccionado, con selección de referencia, con evaluación sin candidatos priorizados y tras cambio de ancho. No cambiar selección, brief, requisitos, geometría, ranking ni iniciar IA por navegar. Cerrar/volver conserva el estado y el foco es accesible. No crear otro motor ni rediseñar la interfaz.
+2. Revisar y corregir impresión del informe integrado, incluida PrintGeology. Un solo informe vigente, completo, legible sobre fondo blanco, sin globo/dock/controles ni recorte por 100dvh/overflow. Paginación de informes largos, tablas y enlaces; contenido geológico y límites de evidencia íntegros, nunca convertir cartografía regional en aptitud. Sin geología debe funcionar igual. No imprimir un informe obsoleto al editar ni una página vacía por carga diferida.
+
+## Alcance y límites
+
+Se permiten cambios mínimos en shell, estado UI, features composer/analysis y componentes planner de presentación, CSS y tests asociados. Conserva contratos compartidos, ciencia, servidor, IA, datos, dependencias, CI y capturas del README. No modificar artifacts/, shared/, server/, api/, .github/, vercel.json ni secretos. No regenerar datos científicos. Codex regenerará el ZIP después de la revisión final si procede. No modificar outputs/ ni evidencias históricas.
+
+El resultado de navegación no depende de una alternativa seleccionada ni hereda datos de otra geometría. Preserva Yungay REF y el flujo manual sin IA. Una ruta accesible y acción ligera de UI son preferibles a duplicar estados del planificador. Si imprimir exige esperar a render, preservar activación del usuario y mostrar estado claro; no lanzar impresión automáticamente al evaluar.
+
+## Pruebas y entrega
+
+- Añadir regresiones significativas para navegación y selección/alcance preservados; no tests que solo busquen cadenas del código.
+- Verificar informe con/sin geología, texto largo, varios sectores, referencias/fuentes, resultado invalidado y carga inicial. Distinguir SSR/CSS de un PDF real: no afirmar comprobación nativa si no ocurrió.
+- Ejecutar tests relacionados, types/build y `PATH="$PWD/.venv/bin:$PATH" npm run verify` (guardar log fuera de repo; reportar resumen). No pruebas de IA real ni consumo externo necesarios para estas mejoras de presentación.
+- Actualizar STATUS/CHANGELOG y documentación de UX/contratos si cambia el canal de UI; registrar comandos, límites y archivos. Dejar este bloque con **Owner Codex / Estado review**. No autoaprobar.
+- Codex revisará diff, repetirá pruebas pertinentes y comprobará 390×844, 1280×800 y 1440×900, teclado, recorrido a Lectura y PDF real con geología antes de publicar dev.
+
+---
+
 # README de la nueva interfaz y promoción a producción — Codex (2026-11-15)
 
 - **Owner:** Codex. **Estado:** accepted; completado, publicado y comprobado. **Base:** `dev` `513c44a`; producción `origin/main` `437b515`, ancestro de dev.

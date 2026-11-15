@@ -433,6 +433,16 @@ Si no hay vuelo (el usuario movió la cámara, o hay reduced motion), todo apare
 
 **Secciones actuales.** Señal, Comparar y Método pasan a pestañas de la ficha completa (S2 en móvil, riel de 520 px en escritorio).
 
+**«Ir a la Lectura» (M11).** El resultado compacto de «Tu misión» lleva la acción «Ir a la Lectura» (también sin áreas priorizadas). Es una acción única, junto al resumen inicial: después de la frase principal y antes de los chips y los grupos, con un objetivo táctil de 44 px (ronda 2). `uiActions.requestReading()` fija Misión y aumenta `ui.readingRequest`; el armazón elige la superficie con la función pura `shell/readingRoute.ts`:
+- ≥1440: enfoca la Lectura del panel izquierdo.
+- 1100–1439: abre la píldora de Lectura, que en Misión se muestra con el rótulo «Lectura». El riel y la selección no cambian.
+- <1100 con un ● del snapshot: S2 en la pestaña «Lectura» de su ficha.
+- <1100 sin selección o con un ◆: S2 con la vista «Lectura» (slot `sheet.reading`). Atrás, Esc, «← Volver» y ✕ vuelven a S0 (sin selección) o a S1, sin borrar la selección.
+
+Antes de navegar se cierran los popovers abiertos. El foco va al título de la Lectura con un reintento acotado (2,5 s) que se cancela si el usuario pulsa una tecla o toca la pantalla. No hay focus trap nuevo. Navegar no cambia selección, brief, requisitos, alcance ni ranking, y no llama a la IA.
+
+**Impresión (M11).** En `@media print` el escenario fijo vuelve al flujo normal (`html`/`body`/`#root`/`.app` sin alto fijo ni `overflow`), y solo se ve `.mission-print`. Las secciones largas se parten entre páginas, las tablas repiten encabezado y los enlaces imprimen su URL. Sin informe vigente (carga inicial, prueba editada o informe aún en camino) se imprime un aviso. «Imprimir informe» queda deshabilitado con «Preparando informe…» hasta que el informe de la evaluación vigente (`planner.result`, única fuente) está montado; el clic imprime en el acto, sin impresión diferida.
+
 **21st:** [drawer/snap-points](https://21st.dev/@coss.com/components/drawer/snap-points.md) · [beui-bottom-sheet](https://21st.dev/@starc007/components/beui-bottom-sheet.md) · [bottom-sheet](https://21st.dev/@f0rextasy/components/bottom-sheet.md) · [segmented-control](https://21st.dev/@halaska-studio/components/segmented-control.md) · [glass-tabs](https://21st.dev/@deepraj21/components/glass-tabs.md) · [tabbar-v2](https://21st.dev/@f0rextasy/components/tabbar-v2.md) · [prompt-input-dynamic-grow](https://21st.dev/@zochory/components/prompt-input-dynamic-grow.md)
 
 ---

@@ -6,7 +6,7 @@
  * Cabecera con país, rol (REF), «Exportar ficha (JSON)» y «Evaluar este sector» (ADR-013).
  * Métricas, Lectura y Tu misión son slots de features; el resto, contenido existente.
  */
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { MissionCard } from '../../features/composer'
 import { MetricRail } from '../../features/metrics'
 import { ReadingPanel } from '../../features/analysis'
@@ -51,16 +51,21 @@ interface FullDetailProps {
   site: CandidateSite
   placement: 'rail' | 'sheet'
   onShowOnMap: () => void
+  /** Pide una pestaña desde fuera («Ir a la Lectura», M11); cada `nonce` nuevo la vuelve a abrir. */
+  tabRequest?: { tab: DetailTab; nonce: number } | null
 }
 
 function Pending() {
   return <p className="tab-loading" aria-busy="true">Cargando…</p>
 }
 
-export function FullDetail({ data, site, placement, onShowOnMap }: FullDetailProps) {
+export function FullDetail({ data, site, placement, onShowOnMap, tabRequest = null }: FullDetailProps) {
   const mode = useUi((state) => state.mode)
   const tabs = detailTabs(placement, mode)
-  const [requested, setTab] = useState<DetailTab>('metricas')
+  const [requested, setTab] = useState<DetailTab>(tabRequest?.tab ?? 'metricas')
+  useEffect(() => {
+    if (tabRequest) setTab(tabRequest.tab)
+  }, [tabRequest])
   const tab = tabs.includes(requested) ? requested : 'metricas'
   const snapshot = data.snapshot
   const prefix = `detail-${placement}`

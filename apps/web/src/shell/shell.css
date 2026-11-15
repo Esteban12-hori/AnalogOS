@@ -359,10 +359,40 @@ body { min-height: 0; }
 /* Informe imprimible de la misión (ADR-013): uno por página, montado en la raíz mientras haya una
    evaluación vigente. En pantalla no se ve; al imprimir es lo único visible. */
 .mission-print { display: none; }
+/* M11: el escenario fijo (html/body/#root a 100 % con overflow oculto y .app fixed) recortaba el
+   informe a una página; al imprimir todo vuelve al flujo normal y pagina. Sin informe vigente el
+   host imprime un aviso (nunca una página vacía ni un informe viejo). */
+@page { margin: 16mm 14mm; }
 @media print {
+  html, body, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; overscroll-behavior: auto; }
   html, body { background: #fff !important; color: #000 !important; }
-  .app > :not(.mission-print) { display: none !important; }
+  body::before { display: none !important; }
+  .app { position: static !important; inset: auto; overflow: visible !important; height: auto !important; }
+  .app > :not(.mission-print), [popover] { display: none !important; }
   .app > .mission-print { display: block !important; position: static; }
+  .mission-print a { color: #000 !important; text-decoration: underline; overflow-wrap: anywhere; }
+  /* Enlaces: la URL completa queda impresa (salvo cuando el texto ya es la URL). */
+  .mission-print a[href^="http"]:not(.pl-url)::after { content: " (" attr(href) ")"; font-size: 8.5pt; overflow-wrap: anywhere; }
+  .mission-print h1, .mission-print h2, .mission-print h3 { break-after: avoid-page; page-break-after: avoid; }
+  .mission-print p, .mission-print li, .mission-print td, .mission-print th, .mission-print code { overflow-wrap: anywhere; }
+  .mission-print thead { display: table-header-group; }
+  /* Bloque corto: las versiones y sus huellas se conservan juntas al cambiar de página. */
+  .mission-print .pl-print-provenance { break-inside: avoid; page-break-inside: avoid; }
+  .mission-print tr { break-inside: avoid; page-break-inside: avoid; }
+  .mission-print .pl-table-wrap { overflow: visible !important; }
+  .mission-print .pl-table { min-width: 0 !important; }
+  /* Ronda 3: tabla de criterios (seis columnas) con layout fijo y anchos equilibrados; con layout
+     automático, overflow-wrap:anywhere dejaba «Requisito» y «Observado» en ~6 % y partía palabras.
+     Las palabras solo se parten si no caben; los enlaces largos sí se parten. */
+  .mission-print .pl-criteria-table { table-layout: fixed; width: 100%; }
+  .mission-print .pl-criteria-table th, .mission-print .pl-criteria-table td { overflow-wrap: break-word; word-break: normal; hyphens: manual; }
+  .mission-print .pl-criteria-table a, .mission-print .pl-criteria-table code { overflow-wrap: anywhere; }
+  .mission-print .pl-criteria-table thead th:nth-child(1) { width: 18%; }
+  .mission-print .pl-criteria-table thead th:nth-child(2) { width: 15%; }
+  .mission-print .pl-criteria-table thead th:nth-child(3) { width: 13%; }
+  .mission-print .pl-criteria-table thead th:nth-child(4) { width: 20%; }
+  .mission-print .pl-criteria-table thead th:nth-child(5) { width: 18%; }
+  .mission-print .pl-criteria-table thead th:nth-child(6) { width: 16%; }
   .mission-print .pl-print-only { display: block !important; color: #000; font-size: 11pt; line-height: 1.4; }
   .mission-print .pl-print-only * { color: #000 !important; background: transparent !important; border-color: #888 !important; }
   .mission-print h1 { font-size: 18pt; }
@@ -371,8 +401,15 @@ body { min-height: 0; }
   .mission-print table { width: 100%; border-collapse: collapse; font-size: 9pt; }
   .mission-print th, .mission-print td { padding: 2pt 4pt; border: 1px solid #888; text-align: left; vertical-align: top; }
   .mission-print .pl-pre { white-space: pre-wrap; }
-  .mission-print .pl-print-opt { break-inside: avoid-page; }
-  .mission-print svg { max-width: 340px; }
+  /* Secciones largas (un sector con su tabla, la geología de un sector) SÍ se parten entre páginas:
+     evitarlo dejaba huecos o recortes. Solo la figura se mantiene entera. */
+  .mission-print .pl-print-opt, .mission-print .pl-print-only .pl-print-opt { break-inside: auto !important; page-break-inside: auto !important; }
+  .mission-print svg { max-width: 340px; break-inside: avoid; }
+  .mission-print .pl-fig-bg { fill: #fff; }
+  .mission-print .pl-win { fill: #eef6fb; stroke: #036; }
+  .mission-print .pl-win.measured { fill: #9cd3f0; }
+  .mission-print .pl-req { stroke: #c33; }
+  .mission-print .pl-fig-label { fill: #000; }
 }
 
 /* Acciones del lugar (ADR-013): «Evaluar este sector» y «Exportar ficha (JSON)». */

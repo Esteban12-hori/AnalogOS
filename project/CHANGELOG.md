@@ -1,5 +1,43 @@
 # Changelog de trabajo
 
+## 2026-11-15 Codex · aceptación M11 y QA independiente
+
+- Revisadas tres entregas de Claude: CTA móvil visible de 44 px, navegación sin alterar la misión y PDF completo con geología. Codex agrupó procedencia y huellas para evitar separación entre páginas.
+- QA Chrome móvil/intermedio/escritorio, referencia MDRS, sin selección, sin priorizados, fuera de cobertura, Atrás/Escape e invalidación. PDF nativo de 18 páginas renderizado y revisado; antes se recortaba a una página.
+- 333 Python/799 web, 3 opt-in omitidos, tipos/build correctos; 35 tests relacionados tras ajuste final. ZIP regenerado y verificado. Evidencia en docs/CODEX_M11_REVIEW.md. Publicación dev/main autorizada por Dan, en curso.
+
+## 2026-11-15 Claude · M11 ronda 3 en review
+
+- Tabla de criterios del informe impreso: `CriteriaTable` (`components/planner/ResultView.tsx`) recibe la clase `pl-criteria-table`. En `shell/shell.css` (`@media print`) usa `table-layout: fixed` con columnas al 18/15/13/20/18/16 %. Las celdas usan `overflow-wrap: break-word`, de modo que una palabra solo se parte si no cabe; los enlaces y códigos usan `anywhere`. Se conservan el encabezado repetido, las filas completas y las URL impresas. Sin cambios de texto, tamaño de fuente, pantalla ni en las tablas de requisitos confirmados (5 columnas) y Medidas (3).
+- `npm run test`: 799 pasan y 3 omitidas; `npm run build` correcto. No se generó un PDF nuevo; Codex lo verifica. El PDF provisional de Codex queda intacto.
+
+## 2026-11-15 Claude · M11 ronda 2 en review
+
+- Hallazgo de Codex en 390×844: el botón quedaba en y=1470 y medía 34 px. «Ir a la Lectura» pasa a ser una sola acción, situada después de `pl-lead` y antes de chips, grupos y exportación (`components/planner/ResultView.tsx`). Tiene `min-height: 44px` y margen propio (`features/composer/mission.css`). Texto y comportamiento sin cambios.
+- Regresión en `tests/readingPrint.test.tsx`: presencia única y orden, con y sin áreas priorizadas, y la acción fuera de la exportación. `npm run test`: 799 pasan y 3 omitidas; `npm run build` correcto. Python no se repitió (cambio solo de presentación). La visibilidad real la comprueba Codex.
+
+## 2026-11-15 Claude · M11-READING-PRINT en review
+
+- «Ir a la Lectura» desde el resultado compacto de «Tu misión», también sin áreas priorizadas. La acción `uiActions.requestReading()` fija Misión y la superficie se elige por tramo (`shell/readingRoute.ts`): panel izquierdo, píldora en Misión 1100–1439, pestaña Lectura de S2 o la nueva vista `sheet.reading` (sin ● o con ◆). La selección, el planificador y la IA quedan intactos.
+- Impresión:
+  - reset del escenario fijo en `@media print`, paginación, encabezados de tabla y URL;
+  - `PrintGeology` completo, con piezas compartidas con la pantalla;
+  - aviso cuando no hay informe vigente;
+  - botón «Imprimir informe» deshabilitado hasta que el informe vigente está montado (`printState.ts`), sin impresión diferida.
+- Archivos:
+  - `state/ui.ts`;
+  - `shell/{AppShell.tsx, readingRoute.ts, detail/FullDetail.tsx, shell.css}`;
+  - `features/analysis/{ReadingPill,ReadingView,index}`;
+  - `features/composer/{MissionPanel,PrintContent,printHost,printState}`;
+  - `components/planner/{ResultView,PlannerView,GeologyGuidance}`;
+  - tests `readingPrint.test.tsx` (nuevo) y `plannerGeology.test.tsx`;
+  - docs `BUILD_CONTRACTS.md`, `UX_REDESIGN.md` y READMEs de analysis/composer.
+- `PATH="$PWD/.venv/bin:$PATH" npm run verify`: 333 Python, 798 web y 3 omitidas; build correcto. No se comprobó un PDF nativo; queda para Codex.
+
+## 2026-11-15 Codex · asignación M11 a Claude
+
+- Dan pide resolver acceso a Lectura en móvil y revisar impresión del informe. Encargo y criterios en NEXT_TASK; checkpoint de plan previo a implementación y revisión independiente antes de publicar únicamente dev.
+
 ## 2026-11-15 Codex · producción verificada y screenshot publicado [skip ci]
 
 - Main avanzó sin force a `7e8c779`, igual que dev. Actions producción `43682694089` y dev `43682693561` correctos. La web pública carga el rediseño y snapshot v3.

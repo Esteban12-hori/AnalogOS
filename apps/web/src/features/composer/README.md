@@ -13,7 +13,10 @@ Flujo:
    aviso de envío del equipo). El borrador llega sin confirmar.
 3. **Confirmar y evaluar** con los botones del equipo. La evaluación es síncrona y determinista.
 4. **Resultado** en el carrusel, el globo, el riel, las líneas y la Lectura; en «Tu misión», el
-   `ResultView` compacto con «Descargar JSON», «Imprimir informe» y «Volver a editar».
+   `ResultView` compacto con «Ir a la Lectura» (M11, solo navega), «Descargar JSON», «Imprimir
+   informe» y «Volver a editar». «Imprimir informe» queda deshabilitado («Preparando informe…»)
+   hasta que `PrintContent` monta el informe de la evaluación vigente (`printState.ts`). Sin
+   evaluación vigente, `MissionPrintHost` imprime un aviso en lugar del informe.
 
 Editar tras evaluar invalida el resultado (reductor del equipo) y aborta en red la petición en
 curso; los resultados anteriores quedan a `--o-busy` hasta reevaluar.

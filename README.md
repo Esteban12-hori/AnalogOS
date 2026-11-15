@@ -17,7 +17,7 @@ AnalogOS reúne la exploración del lugar y la decisión sobre tu ensayo en una 
 | **Explorar** | Recorrer los sectores del piloto, filtrar candidatos por país y comparar sus condiciones regionales con la referencia de Jezero. Yungay aparece aparte como referencia conocida. |
 | **Misión** | Describir una prueba o partir de un sector, revisar y confirmar requisitos, y recibir una priorización respaldada por datos. «Tu misión» conserva el alcance elegido y la «Lectura» explica los resultados y lo que falta verificar. |
 
-Las métricas se muestran junto al lugar seleccionado para conectar cada cifra con su contexto. En móvil, una hoja reúne la ficha, la Lectura y Tu misión. Los análogos emblemáticos de otras regiones se presentan como antecedentes **por calcular**, sin puntajes ni recomendaciones inventadas.
+Las métricas se muestran junto al lugar seleccionado para conectar cada cifra con su contexto. En móvil, una hoja reúne la ficha, la Lectura y Tu misión; «Ir a la Lectura» abre la explicación directamente desde el resultado. Los análogos emblemáticos de otras regiones se presentan como antecedentes **por calcular**, sin puntajes ni recomendaciones inventadas.
 
 ## Para quién
 
@@ -28,7 +28,7 @@ Para responsables de campañas de robótica planetaria, equipos universitarios q
 1. **Define lo que quieres probar o elige un sector.** En Misión, describe el ensayo y revisa sus requisitos. Desde Explorar puedes abrir una ficha y elegir «Evaluar este sector». Completa los requisitos manualmente o pide a la IA un borrador que luego debes confirmar.
 2. **Compara los sectores disponibles.** El motor evalúa los requisitos confirmados y distingue cumplimiento, incompatibilidades y datos insuficientes. La similitud con Marte, la confianza en las fuentes y la factibilidad se muestran por separado.
 3. **Revisa el porqué y prepara el reconocimiento.** La Lectura separa el cálculo determinista de los motivos destacados con IA. La ficha «Geología» muestra la cartografía oficial; en Tu misión, la orientación geológica propone comprobaciones relevantes para el ensayo, como contrastar unidades del mapa o medir propiedades del terreno.
-4. **Comparte la decisión con tu equipo.** Exporta un informe JSON con requisitos, resultados, procedencia y verificaciones pendientes para poder revisar y reconstruir la evaluación.
+4. **Comparte la decisión con tu equipo.** Exporta un informe JSON con requisitos, resultados, procedencia y verificaciones pendientes para poder revisar y reconstruir la evaluación. También puedes imprimir o guardar en PDF el informe completo, incluida la evidencia geológica y sus fuentes.
 
 Por ejemplo, un equipo que prepara una prueba de navegación puede comparar condiciones de pendiente regional y superficie no vegetada, y salir con una lista de sectores para investigar. La tracción del rover y el acceso al terreno siguen siendo comprobaciones de campo.
 

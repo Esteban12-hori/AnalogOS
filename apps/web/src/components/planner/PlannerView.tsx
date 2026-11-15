@@ -44,6 +44,10 @@ export interface PlannerViewProps {
   resetHint?: string
   /** Contenido extra al pie (historial y Deshacer en «Tu misión»). */
   footer?: ReactNode
+  /** «Ir a la Lectura» del resultado compacto (interfaz integrada, M11). */
+  onOpenReading?: () => void
+  /** Informe imprimible de la evaluación vigente montado (interfaz integrada, M11); por defecto true. */
+  printReady?: boolean
 }
 const STEP_LABEL: Record<StepId, string> = { describe: 'Describir la prueba', scope: 'Elegir el sector', confirm: 'Confirmar y evaluar', result: 'Resultado' }
 const ORDER: Record<JourneyId, StepId[]> = {
@@ -59,7 +63,7 @@ const RESET_HINT = 'El texto vive solo en esta página; nada se guarda en el nav
  */
 let focusedRequestNonce = 0
 
-export function PlannerView({ snapshot, api, intent, compact = false, stepRequest = null, resetHint = RESET_HINT, footer }: PlannerViewProps) {
+export function PlannerView({ snapshot, api, intent, compact = false, stepRequest = null, resetHint = RESET_HINT, footer, onOpenReading, printReady }: PlannerViewProps) {
   const { state, dispatch, built, evaluate, evaluationError, runDraft, runExplain, geologyUi, exportJson, exportError } = api
   const [step, setStep] = useState<StepId>(() => initialStep(state))
   const titleId = `${useId().replace(/[^\w-]/g, '')}-planner-title`
@@ -279,7 +283,8 @@ export function PlannerView({ snapshot, api, intent, compact = false, stepReques
 
             {step === 'result' && state.result && built.request && (
               <ResultView evaluation={state.result} request={built.request} state={state} candidates={snapshot.candidates}
-                onExplain={runExplain} geo={geologyUi} onExport={exportJson} exportError={exportError} onEdit={() => dispatch({ type: 'unconfirm' })} compact={compact} />
+                onExplain={runExplain} geo={geologyUi} onExport={exportJson} exportError={exportError} onEdit={() => dispatch({ type: 'unconfirm' })} compact={compact}
+                onOpenReading={onOpenReading} printReady={printReady} />
             )}
           </div>
 

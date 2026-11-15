@@ -191,7 +191,8 @@ describe('UI de orientación geológica', () => {
     expect(withGeo).toContain('cartografía geológica pública oficial')
     expect(withGeo).toContain('href="https://lineasdebasepublicas')
     expect(withGeo.indexOf('pl-ai-title')).toBeLessThan(withGeo.indexOf('pl-geo-title')) // activación de la IA antes de las fichas largas
-    expect(withGeo).toContain('https://lineasdebasepublicas.mma.gob.cl/datos_abiertos/dataset/geologia-base</h3>') // URL impresa
+    // URL impresa como texto en el informe (M11: en la línea de fuente de cada sector, no solo en un enlace).
+    expect(withGeo.slice(withGeo.indexOf('pl-print-geo'))).toContain('>https://lineasdebasepublicas.mma.gob.cl/datos_abiertos/dataset/geologia-base</a>')
     expect(without.replace(/<[^>]+>/g, ' ')).not.toMatch(/M8/)
     expect(withGeo.replace(/<[^>]+>/g, ' ')).not.toMatch(/M8/)
     expect(without).toContain('no el texto completo del brief ni cartografía')

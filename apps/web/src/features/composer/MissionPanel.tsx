@@ -15,10 +15,12 @@ import { PlannerView } from '../../components/planner/PlannerView'
 import type { EvidenceBundle } from '../../mission/types'
 import { GLYPH } from '../../shell/public'
 import { useMission, type MissionSource } from '../../state/mission'
+import { uiActions } from '../../state/ui'
 import { useComposer, type ComposerState } from './composerStore'
 import { formatWhen } from './history'
 import { missionController, type MissionController } from './missionController'
 import { MISSION_PANEL_ID, type MissionPanelProps } from './panel'
+import { usePrintReady } from './printState'
 import './mission.css'
 
 const SOURCE_LABEL: Readonly<Record<MissionSource, string>> = {
@@ -109,6 +111,9 @@ export function MissionPanel({ data, placement, promise }: MissionPanelProps) {
   return <MissionPanelBody data={data} placement={placement} promise={promise} controller={missionController(bundle)} titleId={titleId} source={source} notice={notice} stepRequest={stepRequest} />
 }
 
+/** «Ir a la Lectura» (M11): solo UI; el armazón elige la superficie según el ancho. */
+const openReading = () => uiActions.requestReading()
+
 function MissionPanelBody({
   data,
   placement,
@@ -126,6 +131,7 @@ function MissionPanelBody({
   stepRequest: ComposerState['stepRequest']
 }) {
   const api = useSharedPlanner(controller)
+  const printReady = usePrintReady()
   const snapshot = data.snapshot!
   return (
     <section
@@ -154,6 +160,8 @@ function MissionPanelBody({
         stepRequest={stepRequest}
         resetHint={RESET_HINT}
         footer={<HistoryBlock controller={controller} />}
+        onOpenReading={openReading}
+        printReady={printReady}
       />
     </section>
   )

@@ -1,5 +1,7 @@
 # Prompt para que Codex retome el control
 
+**Checkpoint vigente 2026-11-15:** M11 implementado por Claude y aceptado por Codex tras tres rondas y QA real de Lectura móvil/PDF. Leer primero STATUS y docs/CODEX_M11_REVIEW.md. Dan autorizó revisar y publicar también main/producción; la publicación y reprueba remotas están en curso. Los pendientes móviles/impresión citados en los antecedentes de abajo ya se resolvieron. No iniciar otro milestone.
+
 Cuando Claude haya terminado, pide a Codex:
 
 ```text

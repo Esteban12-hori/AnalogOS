@@ -21,12 +21,13 @@ import { searchWithMode, uiActions, uiStore, useUi } from '../state/ui'
 import { SHELL_TEXT } from '../content/shell'
 import { geologyStateOf, isFixtureSnapshot, type AppData } from './appData'
 import { dataAttributionText } from './attribution'
-import { FullDetail } from './detail/FullDetail'
+import { FullDetail, type DetailTab } from './detail/FullDetail'
 import { GLYPH } from './glyphs'
 import { placeLabel } from './placeLabel'
 import { baseStageInsets, layoutCssVars, sheetDetentHeights, stageInsetsFor, type DetentId } from './layout'
 import { LiveRegion } from './LiveRegion'
 import { MODE_PANEL_ID, ModeTabs } from './ModeTabs'
+import { focusWhenReady, READING_TITLE_SELECTOR, readingRoute } from './readingRoute'
 import { RightRail } from './RightRail'
 import { Sheet } from './sheet/Sheet'
 import { useKeyboardInset } from './sheet/useKeyboardInset'
@@ -67,6 +68,15 @@ function focusFirst(scope: ParentNode, selectors: readonly string[]): boolean {
   return false
 }
 
+/** Cierra los popovers abiertos (p. ej. «Tu misión» <1440) antes de llevar a la Lectura. */
+function hideOpenPopovers(): void {
+  try {
+    document.querySelectorAll<HTMLElement>(':popover-open').forEach((el) => el.hidePopover())
+  } catch {
+    // Sin popovers nativos no hay nada que cerrar.
+  }
+}
+
 function usePageHidden(): boolean {
   const [hidden, setHidden] = useState(() => typeof document !== 'undefined' && document.hidden)
   useEffect(() => {
@@ -94,6 +104,10 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
   const [railFull, setRailFull] = useState(false)
   const [detent, setDetent] = useState<DetentId>('S0')
   const [focusSignal, setFocusSignal] = useState(0)
+  // «Ir a la Lectura» (M11): vista «Lectura» de S2 sin ● y detent al que se vuelve desde ella.
+  const readingRequest = useUi((state) => state.readingRequest)
+  const [sheetReading, setSheetReading] = useState<DetentId | null>(null)
+  const [detailTabRequest, setDetailTabRequest] = useState<{ tab: DetailTab; nonce: number } | null>(null)
   const keyboardInset = useKeyboardInset(narrow)
   const pageHidden = usePageHidden()
   const root = useRef<HTMLDivElement>(null)
@@ -148,6 +162,8 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
   const pushed = useRef(false)
   const detentRef = useRef(detent)
   detentRef.current = detent
+  const sheetReadingRef = useRef(sheetReading)
+  sheetReadingRef.current = sheetReading
   const changeDetent = useCallback((next: DetentId) => {
     // Salir de S2 por la UI consume la entrada de historial que se agregó al entrar.
     if (detentRef.current === 'S2' && next !== 'S2' && pushed.current) {
@@ -167,7 +183,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
     const onPop = () => {
       if (!pushed.current) return
       pushed.current = false
-      setDetent((current) => (current === 'S2' ? 'S1' : current))
+      setDetent((current) => (current === 'S2' ? sheetReadingRef.current ?? 'S1' : current))
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
@@ -180,7 +196,7 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
       // Un diálogo popover (Tu misión, recientes) se cierra con su propio Esc nativo: no se
       // cancela ni se borra la selección por debajo (APG, patrón de diálogo).
       if (insidePopover(event.target)) return
-      if (narrow && detent === 'S2') changeDetent('S1')
+      if (narrow && detent === 'S2') changeDetent(sheetReading ?? 'S1')
       else if (!narrow && railFull) setRailFull(false)
       else if (uiStore.getState().selection) uiActions.clearSelection()
       else return
@@ -188,7 +204,38 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [narrow, detent, railFull, changeDetent])
+  }, [narrow, detent, railFull, changeDetent, sheetReading])
+
+  // La vista «Lectura» de la hoja y la pestaña pedida solo valen en S2 bajo 1100 px: al salir se
+  // descartan (la próxima «Ficha» vuelve a abrir en Métricas).
+  useEffect(() => {
+    if (narrow && detent === 'S2') return
+    setSheetReading(null)
+    setDetailTabRequest(null)
+  }, [narrow, detent])
+
+  // ---- «Ir a la Lectura» (M11): superficie según el ancho; la selección no se toca ----------
+  const seenReadingRequest = useRef(readingRequest)
+  const cancelReadingFocus = useRef<() => void>(() => undefined)
+  useEffect(() => {
+    if (readingRequest === seenReadingRequest.current) return
+    seenReadingRequest.current = readingRequest
+    hideOpenPopovers()
+    const current = uiStore.getState().selection
+    const found = current?.kind === 'evaluated' && (data.snapshot?.candidates.some((item) => item.site_id === current.siteId) ?? false)
+    const route = readingRoute(tramo, current, found)
+    if (route.surface === 'sheet-tab') {
+      setSheetReading(null)
+      setDetailTabRequest({ tab: 'lectura', nonce: readingRequest })
+      changeDetent('S2')
+    } else if (route.surface === 'sheet-reading') {
+      setSheetReading(route.back)
+      changeDetent('S2')
+    }
+    cancelReadingFocus.current()
+    if (root.current) cancelReadingFocus.current = focusWhenReady(root.current, READING_TITLE_SELECTOR[route.surface])
+  }, [readingRequest]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => cancelReadingFocus.current(), [])
 
   // ---- Foco: ninguna transición de la hoja o del riel lo deja caer en <body> (WCAG 2.4.3) ----
   // Se recuerda el último elemento enfocado dentro de la app; si una transición lo desmonta, el
@@ -344,8 +391,9 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
       </div>
 
 
-      {!narrow && mode === 'explorar' && (
-        <div className="reading-pill-slot" data-slot="pill.reading" data-obstacle=""><ReadingPill data={data} /></div>
+      {/* Explorar ≥1100 y Misión 1100–1439 (M11: superficie de «Ir a la Lectura» sin panel izquierdo). */}
+      {!narrow && (mode === 'explorar' || tramo === 'medium') && (
+        <div className="reading-pill-slot" data-slot="pill.reading" data-obstacle=""><ReadingPill data={data} openSignal={readingRequest} /></div>
       )}
 
       {tramo === 'wide' && mode === 'mision' && (
@@ -380,12 +428,12 @@ export function AppShell({ data, promise }: { data: AppData; promise?: string })
           onDetentChange={changeDetent}
           heights={heights}
           side={sideSheet}
-          label={site ? placeLabel(site.name) : 'Lugares'}
+          label={sheetReading ? 'Lectura' : site ? placeLabel(site.name) : 'Lugares'}
           labelledBy={tabId('mode', mode)}
           keyboardOpen={keyboardInset > 0}
-          head={sheetHead({ detent, data, siteName: site ? placeLabel(site.name) : null, hasSelection: selection !== null, onDetent: changeDetent })}
+          head={sheetHead({ detent, data, siteName: site ? placeLabel(site.name) : null, hasSelection: selection !== null, onDetent: changeDetent, readingBack: sheetReading })}
         >
-          {sheetBody({ detent, data, site, selection, onShowOnMap: showOnMap, onListView: openList, promise })}
+          {sheetBody({ detent, data, site, selection, onShowOnMap: showOnMap, onListView: openList, promise, reading: sheetReading !== null, detailTabRequest })}
         </Sheet>
       )}
       </main>
@@ -402,10 +450,24 @@ interface SheetPartsArgs {
   siteName: string | null
   hasSelection: boolean
   onDetent: (detent: DetentId) => void
+  /** Vista «Lectura» de S2 (M11): detent al que se vuelve; null fuera de esa vista. */
+  readingBack?: DetentId | null
 }
 
-function sheetHead({ detent, data, siteName, hasSelection, onDetent }: SheetPartsArgs): ReactNode {
+export function sheetHead({ detent, data, siteName, hasSelection, onDetent, readingBack = null }: SheetPartsArgs): ReactNode {
   if (detent === 'S0') return null
+  if (detent === 'S2' && readingBack) {
+    // Lectura sin ● (sin selección o con ◆): volver o cerrar regresa sin borrar la selección.
+    return (
+      <>
+        <button type="button" className="sheet-back" onClick={() => onDetent(readingBack)}>← Volver</button>
+        <h2 className="sheet-title" tabIndex={-1}>Lectura</h2>
+        <button type="button" className="sheet-close" aria-label="Cerrar la Lectura" onClick={() => onDetent(readingBack)}>
+          {GLYPH.fail}
+        </button>
+      </>
+    )
+  }
   return (
     <>
       {detent === 'S2' && (
@@ -453,9 +515,12 @@ interface SheetBodyArgs {
   selection: { siteId: string; kind: 'evaluated' | 'reference' } | null
   onShowOnMap: () => void
   onListView: (open: boolean) => void
+  /** Vista «Lectura» de S2 sin ● seleccionado (M11). */
+  reading?: boolean
+  detailTabRequest?: { tab: DetailTab; nonce: number } | null
 }
 
-function sheetBody({ detent, data, site, selection, onShowOnMap, onListView, promise }: SheetBodyArgs): ReactNode {
+export function sheetBody({ detent, data, site, selection, onShowOnMap, onListView, promise, reading = false, detailTabRequest = null }: SheetBodyArgs): ReactNode {
   if (detent === 'S0') {
     return (
       <div className="sheet-tray">
@@ -464,8 +529,9 @@ function sheetBody({ detent, data, site, selection, onShowOnMap, onListView, pro
       </div>
     )
   }
+  if (reading && detent === 'S2') return <div data-slot="sheet.reading" className="sheet-reading"><ReadingPanel data={data} placement="full" /></div>
   if (selection?.kind === 'reference') return <div data-slot="sheet.reference"><ReferenceCard data={data} analogId={selection.siteId} /></div>
   if (site && detent === 'S1') return <div data-slot="sheet.s1"><MetricRail data={data} site={site} variant="sheet" onShowOnMap={onShowOnMap} /></div>
-  if (site) return <FullDetail data={data} site={site} placement="sheet" onShowOnMap={onShowOnMap} />
+  if (site) return <FullDetail data={data} site={site} placement="sheet" onShowOnMap={onShowOnMap} tabRequest={detailTabRequest} />
   return <div data-slot="sheet.list"><PlaceRail data={data} placement="sheet" listView onListViewChange={onListView} /></div>
 }

@@ -2,8 +2,8 @@
  * features/analysis — la Lectura (ADR-013): resultado de la evaluación del equipo, motivos
  * destacados (plantilla determinista o selección de Anthropic validada) y hechos del snapshot.
  * Slots: `left.reading` (panel ≥1440 en Misión), `rail.reading` (pestaña «Lectura» del riel en
- * 1100–1439), `full.reading` (pestaña de la ficha completa / S2) y `pill.reading` (píldora
- * «✦ Lectura» en Explorar ≥1100).
+ * 1100–1439), `full.reading` (pestaña de la ficha completa / S2), `sheet.reading` (vista «Lectura»
+ * de S2 sin ● seleccionado, M11) y `pill.reading` (píldora en Explorar ≥1100 y en Misión 1100–1439).
  *
  * INTERFAZ ESTABLE: tipos y firmas de este archivo (docs/BUILD_CONTRACTS.md §2.8).
  *
@@ -21,6 +21,8 @@ export interface ReadingPanelProps {
 
 export interface ReadingPillProps {
   data: AppData
+  /** Contador de «Ir a la Lectura» (M11): cada valor nuevo abre la píldora. */
+  openSignal?: number
 }
 
 export { ReadingPanel } from './ReadingPanel'

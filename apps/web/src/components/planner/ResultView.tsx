@@ -42,7 +42,7 @@ export function CriteriaTable({ results, map }: { results: RequirementResult[]; 
   if (!results.length) return <p className="pl-muted">No hay requisitos que evaluar.</p>
   return (
     <div className="pl-table-wrap">
-      <table className="pl-table">
+      <table className="pl-table pl-criteria-table">
         <thead><tr><th>Requisito</th><th>Exigido</th><th>Observado</th><th>Resultado</th><th>Escala · periodo</th><th>Evidencia</th></tr></thead>
         <tbody>
           {results.map((r) => (
@@ -201,6 +201,17 @@ interface Props {
    * misión. Sin esta prop, la vista es la del equipo.
    */
   compact?: boolean
+  /**
+   * «Ir a la Lectura» (interfaz integrada, M11): con esta prop el resultado compacto muestra la acción
+   * que lleva a la Lectura. Solo navega: no cambia selección, requisitos, alcance ni llama a la IA.
+   */
+  onOpenReading?: () => void
+  /**
+   * ¿El informe imprimible de ESTA evaluación ya está montado? (interfaz integrada, M11). Mientras no
+   * lo esté, «Imprimir informe» queda deshabilitado con «Preparando informe…»; el clic imprime en el
+   * acto, sin esperas ni impresiones diferidas. En la vista del equipo el informe va dentro (true).
+   */
+  printReady?: boolean
 }
 
 /** Resumen compacto de una opción: estado, puesto y lo que la bloquea (sin tablas). */
@@ -226,7 +237,7 @@ function CompactOption({ o }: { o: OptionEvaluation }) {
   )
 }
 
-export function ResultView({ evaluation: ev, request, state, candidates, onExplain, geo = NO_GEO, onExport, exportError, onEdit, compact = false }: Props) {
+export function ResultView({ evaluation: ev, request, state, candidates, onExplain, geo = NO_GEO, onExport, exportError, onEdit, compact = false, onOpenReading, printReady = true }: Props) {
   const byId = new Map(candidates.map((c) => [c.site_id, c]))
   const map = new Map(ev.evidence.map((e) => [e.evidence_id, e]))
   const group = (s: OptionStatus) => ev.options.filter((o) => o.status === s)
@@ -246,6 +257,8 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
           {ev.outcome === 'evaluated' && !top && <>Es un resultado válido: ningún sector cumple todo lo imprescindible con evidencia suficiente. Revise los motivos abajo.</>}
           {ev.outcome !== 'evaluated' && <>No se estimó nada con ventanas vecinas ni se consultaron satélites. Puede exportar la solicitud como diagnóstico.</>}
         </p>
+        {/* «Ir a la Lectura» (M11): acción única junto al resumen, en la primera vista del resultado compacto. */}
+        {compact && onOpenReading && <p className="pl-reading-cta"><button type="button" className="pl-reading-link" onClick={onOpenReading}>Ir a la Lectura</button></p>}
         <p className="pl-chips">
           <span className="pl-tag">{SCOPE_STATE[ev.resolution.state]}</span>
           {ev.comparability === 'partial' && <span className="pl-tag warn">Comparación parcial: hay preferencias que no se pudieron medir</span>}
@@ -296,7 +309,7 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
 
         <section className="pl-export" aria-label="Exportar">
           <button type="button" onClick={onExport}>Descargar JSON</button>
-          <button type="button" onClick={() => window.print()}>Imprimir informe</button>
+          <button type="button" disabled={!printReady} aria-busy={!printReady || undefined} onClick={() => window.print()}>{printReady ? 'Imprimir informe' : 'Preparando informe…'}</button>
           <button type="button" className="pl-ghost" onClick={onEdit}>Volver a editar</button>
           {exportError && <p className="pl-notice" role="alert">{exportError}</p>}
         </section>
@@ -397,11 +410,13 @@ function PrintReport({ ev, request, state, byId, map, headline, gview }: { ev: M
       <h2>Regla de orden</h2><p>{ev.ordering_rule}</p>
       <h2>Límites</h2><ul>{ev.limits.map((l) => <li key={l}>{l}</li>)}</ul>
       <h2>Evidencias</h2><ul>{ev.evidence.map((e) => <li key={e.evidence_id}><code>{e.evidence_id}</code> — {e.claim} {e.source_url ?? ''}</li>)}</ul>
-      <h2>Procedencia y versiones</h2>
-      <p>Snapshot {ev.snapshot_version} · perfil {ev.profile.id} {ev.profile.version} · reglas {ev.rules_version}.<br />
-        Borrador con IA: {draft ? `sí (${draft.provenance.model}, ${draft.provenance.created_at.slice(0, 10)}, ${draft.provenance.request_id ?? 'sin id'}); el usuario editó o confirmó los requisitos.` : 'no'}.<br />
-        Interpretación con IA: {expl ? `sí (${expl.provenance.model}, ${expl.provenance.created_at.slice(0, 10)}, ${expl.provenance.request_id ?? 'sin id'}); solo selecciona referencias.` : 'no'}.</p>
-      <p className="pl-mono">solicitud {ev.request_fingerprint} · evaluación {evaluationFingerprint(ev)}</p>
+      <section className="pl-print-provenance">
+        <h2>Procedencia y versiones</h2>
+        <p>Snapshot {ev.snapshot_version} · perfil {ev.profile.id} {ev.profile.version} · reglas {ev.rules_version}.<br />
+          Borrador con IA: {draft ? `sí (${draft.provenance.model}, ${draft.provenance.created_at.slice(0, 10)}, ${draft.provenance.request_id ?? 'sin id'}); el usuario editó o confirmó los requisitos.` : 'no'}.<br />
+          Interpretación con IA: {expl ? `sí (${expl.provenance.model}, ${expl.provenance.created_at.slice(0, 10)}, ${expl.provenance.request_id ?? 'sin id'}); solo selecciona referencias.` : 'no'}.</p>
+        <p className="pl-mono">solicitud {ev.request_fingerprint} · evaluación {evaluationFingerprint(ev)}</p>
+      </section>
     </article>
   )
 }

@@ -50,6 +50,11 @@ export type UiState = {
   introPhase: IntroPhase
   /** Decide si los resultados pueden volar al #1 (null = el usuario no tocó la cámara). */
   cameraTouchedAt: number | null
+  /**
+   * Aumenta con «Ir a la Lectura» (M11). El armazón decide la superficie según el ancho; pedirla no
+   * toca la selección, el planificador ni la IA.
+   */
+  readingRequest: number
 }
 
 export const ZERO_INSETS: StageInsets = Object.freeze({ top: 0, right: 0, bottom: 0, left: 0 })
@@ -81,6 +86,7 @@ export function createInitialUiState(search = ''): UiState {
     missionPhase: 'idle',
     introPhase: 'pending',
     cameraTouchedAt: null,
+    readingRequest: 0,
   }
 }
 
@@ -155,6 +161,13 @@ export const uiActions = {
   /** El globo/mapa lo llama ante cualquier input del usuario sobre la cámara. */
   touchCamera(at: number = Date.now()): void {
     uiStore.setState({ cameraTouchedAt: at })
+  },
+  /**
+   * «Ir a la Lectura» (resultado compacto de «Tu misión», M11): fija Misión y pide al armazón abrir la
+   * Lectura. Solo UI: no cambia la selección, el brief, los requisitos, el alcance ni llama a la IA.
+   */
+  requestReading(): void {
+    uiStore.setState((state) => ({ mode: 'mision', readingRequest: state.readingRequest + 1 }))
   },
   /** Al empezar una espera de IA: los resultados solo volarán al #1 si nadie toca la cámara. */
   resetCameraTouch(): void {

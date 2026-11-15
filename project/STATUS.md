@@ -1,3 +1,51 @@
+# M11 aceptado; publicación en curso — Codex, 2026-11-15
+
+- **Milestone activo:** M11-READING-PRINT. Claude implementó; Codex revisó tres rondas y completó QA real móvil/escritorio/PDF. Código aceptado; todavía falta la publicación y reprueba remotas.
+- **Funciona:** CTA visible con objetivo táctil 44 px; Lectura con/sin selección y referencias; navegación por teclado/Atrás; informe completo con geología; invalidación al editar. PDF de 18 páginas revisado, sin recortes.
+- **Verificación:** 333 Python, 799 web, 3 opt-in omitidos, tipos/build correctos. Después del último ajuste de presentación: 35 tests relacionados y build correctos. ZIP CRC/checksum OK: `e2edb58317fc51e85ef5bc4adf9d46a09b7255531bd332341e96e0b9e6f81c30`.
+- **Alcance:** ciencia, contratos, IA/servidor, datasets y dependencias intactos; `outputs/` ajeno no se incluye. iOS físico y fallo de GIBS por red siguen como límites de QA documentados.
+- **Autorización:** Dan amplió la tarea a revisar el conjunto y publicar main/producción después de comprobar dev. Solo Codex publica; Claude queda sin nueva asignación.
+- **Comandos/evidencia:** `docs/CODEX_M11_REVIEW.md`. No bloqueos.
+- **Próximos pasos:** 1) publicar/verificar dev; 2) avanzar main y comprobar producción e IA real; 3) registrar commits, Actions y evidencia final.
+
+---
+
+# M11 en review — Claude, 2026-11-15
+
+- **Ronda 3:** tabla impresa de criterios con layout fijo y seis columnas equilibradas (`pl-criteria-table`, solo `@media print`). Web 799 pasan y 3 omitidas; build correcto. El nuevo PDF lo verifica Codex.
+
+- **Ronda 2:** «Ir a la Lectura» es ahora una acción única junto al resumen del resultado compacto (tras `pl-lead`, antes de chips y grupos), con objetivo táctil de 44 px. Web 799 pasan y 3 omitidas; build correcto. La visibilidad en 390×844 queda para la comprobación de Codex.
+
+- **Entrega de Claude (sin commit):** «Ir a la Lectura» en el resultado compacto de «Tu misión» y corrección del informe imprimible, según el plan aprobado por Codex. Owner Codex, estado review.
+- **Navegación:** `uiActions.requestReading()` y `ui.readingRequest`. La superficie la decide la función pura `shell/readingRoute.ts`:
+  - ≥1440: panel izquierdo;
+  - 1100–1439: píldora, también en Misión, con el rótulo «Lectura»;
+  - <1100 con ●: S2 en la pestaña Lectura de la ficha;
+  - <1100 sin selección o con ◆: S2 con la vista `sheet.reading`; Volver, Esc, Atrás y ✕ regresan a S0 o S1 sin borrar la selección.
+
+  El foco va al título con un reintento acotado y cancelable. Navegar no cambia selección, planificador ni alcance, y no llama a la IA.
+- **Impresión:**
+  - reset de `html`/`body`/`#root`/`.app` en `@media print` (era la causa del PDF de una página);
+  - paginación: secciones que se parten, encabezado de tabla repetido, URL impresas;
+  - `PrintGeology` con la misma evidencia que la pantalla: aviso de capa aparte, cobertura, unidades, fuente y fecha, límites y excluidos;
+  - aviso impreso sin informe vigente (carga inicial, prueba editada o informe en camino);
+  - «Imprimir informe» deshabilitado con «Preparando informe…» hasta que el informe del `planner.result` vigente está montado (`printState.ts`); el clic imprime en el acto.
+- **Validación:** `PATH="$PWD/.venv/bin:$PATH" npm run verify` correcto: 333 Python; web 798 pasan y 3 opt-in omitidas (62 archivos); typecheck del servidor y build correctos. Nuevo `apps/web/src/tests/readingPrint.test.tsx` con 14 pruebas. Se ajustó una aserción de `plannerGeology.test.tsx`: la URL impresa pasa a la línea de fuente.
+- **Límites:** la comprobación es por SSR, lógica y CSS. No se generó un PDF nativo ni se usó navegador. Quedan pendientes, a cargo de Codex: 390×844, 1280×800, 1440×900, teclado y PDF real con geología. No hubo cambios en ciencia, `shared/`, servidor, contratos JSON, dependencias ni `outputs/`.
+
+---
+
+# M11 en preparación — Codex, 2026-11-15
+
+- **Milestone activo:** M11-READING-PRINT. Claude asignado al acceso directo a Lectura y presentación del informe; primer checkpoint solo lectura, pendiente de aprobación técnica de Codex.
+- **Base:** dev/main `ce86a87`, publicación anterior verificada. Funciona misión/IA/geología; pendientes navegación directa móvil y paginación nativa.
+- **Validación:** aún no hay cambios de código ni nuevas pruebas; baseline anterior 333 Python, 784 web y 3 opt-in omitidas, types/build correctos.
+- **Límites:** no ciencia/contratos/IA/datos/dependencias; `outputs/` ajeno preservado. Solo Codex publica dev tras aceptar; Dan amplió después el objetivo a revisión integral y promoción a main/producción una vez verificado dev.
+- **Bloqueos:** ninguno identificado. Próximos pasos: 1) revisar plan de Claude; 2) implementar y revisar con pruebas de UI/PDF; 3) aceptar, empaquetar y publicar dev.
+- Comandos previstos: `PATH="$PWD/.venv/bin:$PATH" npm run verify`; `PATH="$PWD/.venv/bin:$PATH" python scripts/package_release.py` después de aceptación.
+
+---
+
 # Estado actual
 
 ## Promoción a producción autorizada — 2026-11-15

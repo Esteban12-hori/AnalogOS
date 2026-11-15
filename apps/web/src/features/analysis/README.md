@@ -12,6 +12,10 @@ La Lectura tiene tres capas, siempre separadas (ADR-013, `docs/INTEGRATION_PLAN.
    limitante, satura, valor regional compartido, «no distingue», mejor de N (sin la REF) y robustez
    del orden leída de `analysis-summary.json` (`domain/sensitivity.ts`, `robustness.ts`).
 
+«Ir a la Lectura» (M11) llega aquí desde «Tu misión»: en Misión de 1100 a 1439 px la píldora es la
+superficie de la Lectura (rótulo «Lectura», prop `openSignal`). Bajo 1100 px, la hoja usa la pestaña de
+la ficha o el slot `sheet.reading`. El título de la vista acepta foco (`tabIndex=-1`).
+
 En Explorar no hay IA: la Lectura es «Lectura determinista». Nunca hay llamadas automáticas: el
 botón de IA pasa por el controlador de misión (`features/composer/missionController.ts`).
 
