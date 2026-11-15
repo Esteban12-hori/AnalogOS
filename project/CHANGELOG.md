@@ -1,5 +1,12 @@
 # Changelog de trabajo
 
+## 2026-11-15 Codex · README Explorar/Misión y promoción a producción
+
+- Dan autoriza pasar la entrega completa de dev a main y, tras publicar, reemplazar el screenshot con una captura de la nueva producción.
+- README presenta ambos modos, el recorrido desde un sector, Lectura y orientación geológica, uso móvil y análogos por calcular; enlace a la aplicación pública. Mantiene el alcance del piloto y Yungay REF.
+- Workflow entrega Anthropic también a main, exclusivamente en runtime desde el secreto existente; detiene la publicación si falta. Documentación de despliegue e IA actualizada.
+- Verificación previa: 333 Python, 784 web, 3 web opt-in omitidos, tipos/build correctos; paso de deploy con CLI simulada en dev/main con/sin clave correcto. Publicación y screenshot final se registrarán después de comprobar producción.
+
 ## 2026-11-15 Codex · cierre remoto de la integración [skip ci]
 
 - `9c183fb` publicado; Actions `43681551867` correcto, incluida función empaquetada y alias dev. Reprueba desde pestaña nueva: Enviar conserva AR6; borrador Anthropic y explicación/geología reales, seis requisitos confirmables y un único sector evaluado.

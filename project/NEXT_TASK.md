@@ -1,3 +1,13 @@
+# README de la nueva interfaz y promoción a producción — Codex (2026-11-15)
+
+- **Owner:** Codex. **Estado:** en curso. **Base:** `dev` `513c44a`; producción `origin/main` `437b515`, ancestro de dev.
+- **Autorización directa de Dan:** «actualiza el readme ahora que tiene nueva interfaz y pasemos a main todo, el push master para que pase a prod». El repositorio despliega producción desde `main`; no existe `master`.
+- Actualizar el README con Explorar/Misión, captura vigente y enlace público. Promover la entrega completa revisada a `main`, sin force. Configurar la IA en runtime de producción mediante el secreto existente de GitHub, como en dev; comprobar build, función y recorrido real publicado.
+- Preservar datos científicos, límites de aceptación y `outputs/` ajeno. Registrar resultado y sincronizar continuidad. No asigna trabajo a Claude.
+- Este encargo sustituye la restricción de no publicar main de la revisión anterior; los bloques siguientes son antecedentes.
+
+---
+
 # Revisión de la integración publicada — Codex (2026-11-15)
 
 - **Owner:** Codex. **Estado:** accepted; completado, publicado y comprobado con IA real. **Rama/base:** `dev`, `dd625b4`. **Entrega:** `9c183fb`, Actions `43681551867` correcto.

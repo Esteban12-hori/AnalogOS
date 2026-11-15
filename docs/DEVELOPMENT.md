@@ -153,6 +153,13 @@ python -m pipelines.build_demo --profile config/mission_profiles/mars-rover-mobi
 
 El frontend puede servirse estáticamente. La IA necesita además un servidor compatible con `api/ai.ts`, sus artefactos y configuración de entorno; el flujo del repositorio usa Vercel.
 
+| Rama | Entorno | URL |
+|---|---|---|
+| `main` | Producción | https://analogos.vercel.app/ |
+| `dev` | Preview del equipo | https://analogos-dev.vercel.app/ |
+
+El workflow `.github/workflows/vercel-deploy.yml` construye la web y comprueba el arranque de la función empaquetada antes de desplegar. Ambos entornos reciben la configuración de Anthropic solo en runtime desde GitHub Secrets. Para promover una versión revisada, integrar dev en main y hacer push sin force. No se usa una rama `master`.
+
 El entorno del equipo en dev conserva protección de acceso y no es una demo pública. Consulta [AI_SETUP.md](AI_SETUP.md) para configurar la función y [DEV_AI_VERIFICATION.md](DEV_AI_VERIFICATION.md) para la evidencia de verificación. Las pruebas reales consumen la API configurada:
 
 ```bash

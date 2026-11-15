@@ -4,9 +4,20 @@
 
 AnalogOS ayuda a equipos de robótica planetaria a priorizar terrenos terrestres para pruebas de movilidad, navegación y autonomía. Reúne datos satelitales, topografía, clima y cartografía geológica para responder una pregunta concreta: **¿qué sector merece una visita de reconocimiento para nuestra prueba y qué falta comprobar allí?**
 
-[Conocer el producto](https://analogos-landing.vercel.app/) · [Probar localmente](#probar-localmente) · [Documentación](#documentación)
+[Abrir AnalogOS](https://analogos.vercel.app/) · [Conocer el producto](https://analogos-landing.vercel.app/) · [Probar localmente](#probar-localmente) · [Documentación](#documentación)
 
-![Explorador de AnalogOS: sectores del piloto Chile–Argentina y ficha de evidencia](submission/assets/analogos-integrated-dev.jpg)
+![AnalogOS en modo Misión: globo, métricas del sector, lectura de resultados y requisitos del ensayo](submission/assets/analogos-integration-final-dev.png)
+
+## Explora el terreno. Define tu misión.
+
+AnalogOS reúne la exploración del lugar y la decisión sobre tu ensayo en una misma interfaz. El globo pasa a un mapa 2D al acercarte; el carrusel permite recorrer los lugares y la ficha reúne sus métricas, imágenes, geología y fuentes.
+
+| Modo | Qué puedes hacer |
+|---|---|
+| **Explorar** | Recorrer los sectores del piloto, filtrar candidatos por país y comparar sus condiciones regionales con la referencia de Jezero. Yungay aparece aparte como referencia conocida. |
+| **Misión** | Describir una prueba o partir de un sector, revisar y confirmar requisitos, y recibir una priorización respaldada por datos. «Tu misión» conserva el alcance elegido y la «Lectura» explica los resultados y lo que falta verificar. |
+
+Las métricas se muestran junto al lugar seleccionado para conectar cada cifra con su contexto. En móvil, una hoja reúne la ficha, la Lectura y Tu misión. Los análogos emblemáticos de otras regiones se presentan como antecedentes **por calcular**, sin puntajes ni recomendaciones inventadas.
 
 ## Para quién
 
@@ -14,9 +25,9 @@ Para responsables de campañas de robótica planetaria, equipos universitarios q
 
 ## De una prueba a una recomendación
 
-1. **Define lo que quieres probar o elige un sector.** Describe el ensayo y revisa sus requisitos. Puedes completarlos manualmente o pedir a la IA un borrador que luego debes confirmar.
+1. **Define lo que quieres probar o elige un sector.** En Misión, describe el ensayo y revisa sus requisitos. Desde Explorar puedes abrir una ficha y elegir «Evaluar este sector». Completa los requisitos manualmente o pide a la IA un borrador que luego debes confirmar.
 2. **Compara los sectores disponibles.** El motor evalúa los requisitos confirmados y distingue cumplimiento, incompatibilidades y datos insuficientes. La similitud con Marte, la confianza en las fuentes y la factibilidad se muestran por separado.
-3. **Revisa el porqué y prepara el reconocimiento.** Consulta mapas, imágenes, mediciones y fuentes. La orientación geológica destaca comprobaciones relevantes para el ensayo, como contrastar unidades del mapa o medir propiedades del terreno.
+3. **Revisa el porqué y prepara el reconocimiento.** La Lectura separa el cálculo determinista de los motivos destacados con IA. La ficha «Geología» muestra la cartografía oficial; en Tu misión, la orientación geológica propone comprobaciones relevantes para el ensayo, como contrastar unidades del mapa o medir propiedades del terreno.
 4. **Comparte la decisión con tu equipo.** Exporta un informe JSON con requisitos, resultados, procedencia y verificaciones pendientes para poder revisar y reconstruir la evaluación.
 
 Por ejemplo, un equipo que prepara una prueba de navegación puede comparar condiciones de pendiente regional y superficie no vegetada, y salir con una lista de sectores para investigar. La tracción del rover y el acceso al terreno siguen siendo comprobaciones de campo.
@@ -41,7 +52,7 @@ El recorrido manual funciona sin clave ni conexión después de instalar las dep
 
 ## Alcance actual
 
-AnalogOS está en fase de piloto para pruebas de rover marciano, con referencia regional en Jezero. La búsqueda abarca **50 ventanas en dos regiones de Chile y Argentina** y ofrece seis candidatos caracterizados, además de **Pampa Yungay como referencia conocida**, fuera del ranking de búsqueda.
+AnalogOS está en fase de piloto para pruebas de rover marciano, con referencia regional en Jezero. La búsqueda abarca **50 ventanas en dos regiones de Chile y Argentina** y ofrece seis candidatos caracterizados, además de **Pampa Yungay como referencia conocida**, fuera del ranking de búsqueda. En Misión, Yungay puede evaluarse como alternativa conocida para tu prueba, siempre identificada como REF.
 
 El objetivo es extender el método a más regiones. Hoy no hay cobertura mundial ni nacional completa: introducir un punto o un área nueva comprueba la disponibilidad de evidencia, pero no activa una adquisición automática de datos.
 

@@ -1,5 +1,16 @@
 # Estado actual
 
+## Promoción a producción autorizada — 2026-11-15
+
+- **Owner:** Codex. Dan pidió actualizar el README y pasar toda la entrega revisada de dev a main; precisó publicar primero y después sustituir el screenshot con una captura de la nueva producción.
+- Base dev `513c44a`; main remoto `437b515`, ancestro de dev. Se usa `main` (no existe master). Promoción por avance directo, sin force.
+- README actualizado con Explorar/Misión y enlace público. Captura nueva pendiente de observar la producción publicada.
+- Workflow preparado para entregar el secreto Anthropic existente solo en runtime de dev y main; sin clave, detiene el despliegue. Sin cambios de datos, motor o interfaz.
+- Verificación previa: 333 Python, 784 web, 3 web opt-in omitidos; tipos/build correctos. Cuatro escenarios del paso de despliegue comprobados con una CLI simulada: dev/main con y sin clave; no imprime la clave y main usa `--prod`. Enlaces locales del README correctos.
+- Publicación y comprobación remota en curso. Los checkpoints de abajo describen entregas anteriores.
+
+---
+
 **Última actualización:** 2026-11-15, aceptación de la integración Explorar/Misión (America/Santiago).
 **Responsable:** Codex. **Rama:** `dev`. **Estado:** integración aceptada, corrección publicada y comprobada con IA real.
 

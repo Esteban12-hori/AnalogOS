@@ -56,9 +56,9 @@ Copiar `.env.example` a `.env` (ignorado por git) y completar:
 
 Cada llamada devuelve modelo, fecha, `request-id`, uso de tokens y `stop_reason`. El JSON exportado guarda borrador y explicación por separado (con geología, el wrapper `analogos-mission-geology-export` añade la selección geológica de la misma llamada), vinculados a su huella de entrada, con los cambios del usuario calculados (editados/quitados/añadidos). Si el usuario edita el brief después, el borrador deja de atribuirse a la IA.
 
-## Despliegue dev verificado
+## Despliegue en dev y producción
 
-Dan autorizó la publicación. El workflow `vercel-deploy.yml` recibe `ANTHROPIC_API_KEY` desde GitHub Secrets y la inyecta con `vercel deploy --env` solo en runtime de `dev`, junto al modelo. No se entrega al build ni se necesita copiar `.env` al repositorio. Para rotarla, actualizar ese secreto y volver a desplegar dev. La protección de Vercel sigue activa. Referencia: [variables de runtime en Vercel CLI](https://vercel.com/docs/cli/deploy#env).
+Dan autorizó la promoción completa a producción el 2026-11-15. El workflow `vercel-deploy.yml` recibe `ANTHROPIC_API_KEY` desde GitHub Secrets y la inyecta con `vercel deploy --env` solo en runtime, junto al modelo, tanto para `dev` (preview) como para `main` (producción). No se entrega al build ni se necesita copiar `.env` al repositorio. Si falta el secreto, se detiene el despliegue. Para rotarla, actualizar ese secreto y volver a desplegar ambos entornos. La protección de dev se conserva. Referencia: [variables de runtime en Vercel CLI](https://vercel.com/docs/cli/deploy#env).
 
 - Handler, servidor local y función desplegada verificados, incluidas llamadas reales de borrador y explicación desde https://analogos-dev.vercel.app/. Evidencia, request IDs y exportación en `docs/DEV_AI_VERIFICATION.md`.
 - Código desplegado `9060970`; Actions 43639834860 correcto. Núcleo único en `shared/` para evitar mezclar paquetes CommonJS/ESM. CI comprueba arranque, contratos y snapshot del paquete real antes de desplegar.
