@@ -23,6 +23,8 @@ import {
   type MarkerModel,
 } from './markers'
 import { GLYPH } from '../../shell/public'
+import { useLocale } from '../../i18n'
+import { tGlobeMarkers } from '../../i18n/messages/globeMarkers'
 import './markers.css'
 import { similarityTone } from '../../domain/similarityScale'
 
@@ -40,8 +42,11 @@ export interface MarkerPinProps {
 }
 
 export function MarkerPin({ model, selected, hover, labeled, onActivate, rootRef, style }: MarkerPinProps) {
-  const score = markerScoreText(model)
-  const status = markerStatusText(model)
+  // Labels drawn outside the React flow (the globe moves them per frame) still re-render on a language change.
+  const locale = useLocale()
+  const t = tGlobeMarkers.in(locale)
+  const score = markerScoreText(model, locale)
+  const status = markerStatusText(model, locale)
   const badge = markerBadgeText(model)
   const className = `globe-pin is-${model.kind}${selected ? ' is-selected' : ''}${hover ? ' is-hover' : ''}`
   return (
@@ -61,7 +66,7 @@ export function MarkerPin({ model, selected, hover, labeled, onActivate, rootRef
           type="button"
           className="globe-pin-button"
           aria-pressed={selected}
-          aria-label={markerAriaLabel(model)}
+          aria-label={markerAriaLabel(model, locale)}
           onClick={() => onActivate(model)}
         >
           <span className="globe-pin-glyph" aria-hidden="true">{model.missionStatus === 'no_cumple_requisitos' ? GLYPH.fail : markerGlyph(model.kind)}</span>
@@ -70,9 +75,9 @@ export function MarkerPin({ model, selected, hover, labeled, onActivate, rootRef
             <span className="globe-pin-name">{model.name}</span>
             {score && <span className="globe-pin-score" data-sim-tone={similarityTone(model.score) ?? undefined}>{score}</span>}
             {status && <span className="globe-pin-status">{status}</span>}
-            {model.contains !== null && <span className="globe-pin-status">contains {model.contains} {model.contains === 1 ? 'sector' : 'sectors'}</span>}
-            {selected && model.kind === 'reference' && <span className="globe-pin-status">approximate area</span>}
-            {model.coincides.length > 0 && <span className="globe-pin-badge">◆ matches {model.coincides.join(' · ')}</span>}
+            {model.contains !== null && <span className="globe-pin-status">{t('pin.contains', { count: model.contains })}</span>}
+            {selected && model.kind === 'reference' && <span className="globe-pin-status">{t('pin.approximate')}</span>}
+            {model.coincides.length > 0 && <span className="globe-pin-badge">{t('pin.matches', { names: model.coincides.join(' · ') })}</span>}
           </span>
         </button>
       </div>
@@ -108,6 +113,7 @@ function listId(key: string): string {
 }
 
 export function ClusterChip({ clusterKey, counts, group, members, open, hover, onToggle, onActivate, rootRef, style }: ClusterChipProps) {
+  const locale = useLocale()
   const chip = useRef<HTMLButtonElement>(null)
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== 'Escape' || !open) return
@@ -127,7 +133,7 @@ export function ClusterChip({ clusterKey, counts, group, members, open, hover, o
           className="globe-cluster-chip"
           aria-expanded={open}
           aria-controls={open ? id : undefined}
-          aria-label={clusterAriaLabel(counts, group, open)}
+          aria-label={clusterAriaLabel(counts, group, open, locale)}
           onClick={() => onToggle(!open)}
         >
           <span className="globe-cluster-stack" aria-hidden="true">{clusterStack(kindsFromCounts(counts))}</span>
@@ -142,13 +148,13 @@ export function ClusterChip({ clusterKey, counts, group, members, open, hover, o
         {open && (
           <ul id={id} className="globe-cluster-list">
             {members === null ? (
-              <li className="globe-cluster-wait">Finding the places in the group…</li>
+              <li className="globe-cluster-wait">{tGlobeMarkers.in(locale)('cluster.wait')}</li>
             ) : (
               members.map((model) => {
-                const detail = markerScoreText(model) ?? markerStatusText(model)
+                const detail = markerScoreText(model, locale) ?? markerStatusText(model, locale)
                 return (
                   <li key={model.id}>
-                    <button type="button" className={`globe-cluster-item is-${model.kind}`} aria-label={markerAriaLabel(model)} onClick={() => onActivate(model)}>
+                    <button type="button" className={`globe-cluster-item is-${model.kind}`} aria-label={markerAriaLabel(model, locale)} onClick={() => onActivate(model)}>
                       <span className="globe-pin-glyph" aria-hidden="true">{markerGlyph(model.kind)}</span>
                       <span aria-hidden="true">
                         {markerBadgeText(model) && <b className="globe-pin-rank">{markerBadgeText(model)}</b>} {model.name}

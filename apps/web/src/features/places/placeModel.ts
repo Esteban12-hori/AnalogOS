@@ -16,7 +16,10 @@ import { availableCountries, filterByCountry, rankMap, splitByRole, type Country
 import { shortCandidateName } from '../../domain/formatting'
 import { MISSION_STATUS_LABEL, MISSION_STATUS_ORDER, missionOrder, missionSiteViews, type MissionSiteView, type SiteMissionStatus } from '../../domain/missionView'
 import type { MissionEvaluation } from '../../mission/types'
-import { displaySource } from '../../i18n/sourceText'
+import { getLocale, type Locale } from '../../i18n/core'
+import { tCommon } from '../../i18n/messages/common'
+import { tPlaces } from '../../i18n/messages/places'
+import { scienceText } from '../../i18n/science'
 
 export type ScoreSource = 'snapshot' | 'mission'
 
@@ -93,9 +96,12 @@ export interface PlaceModelInput {
   evaluation?: MissionEvaluation | null
   /** Explore country filter (keeps the global rank). */
   country?: CountryFilter
+  /** Language of the group labels (UI only: order, ranks and statuses never depend on it). Default: the current one. */
+  locale?: Locale
 }
 
-export function buildPlaceModel({ candidates, classification = NO_REFERENCES, evaluation = null, country = 'all' }: PlaceModelInput): PlaceModel {
+export function buildPlaceModel({ candidates, classification = NO_REFERENCES, evaluation = null, country = 'all', locale = getLocale() }: PlaceModelInput): PlaceModel {
+  const t = tPlaces.in(locale)
   const { badges, references } = classification
   const { ranked, references: known } = splitByRole(candidates)
   const ranks = rankMap(ranked)
@@ -127,12 +133,12 @@ export function buildPlaceModel({ candidates, classification = NO_REFERENCES, ev
     const ordered = missionOrder(evaluation, candidates.map((candidate) => candidate.site_id)).map((id) => place(byId.get(id)!))
     groups = MISSION_STATUS_ORDER.flatMap((status) => {
       const list = ordered.filter((item) => item.mission?.status === status)
-      return list.length ? [{ key: status, label: MISSION_STATUS_LABEL[status], status, role: null, places: list }] : []
+      return list.length ? [{ key: status, label: missionStatusLabel(status, locale), status, role: null, places: list }] : []
     })
   } else {
     const shown = country === 'all' ? ranked : filterByCountry(ranked, country)
-    groups = [{ key: 'candidates', label: 'Search candidates', status: null, role: 'candidate', places: shown.map(place) }]
-    if (known.length) groups.push({ key: 'reference', label: 'Known reference · not from the search', status: null, role: 'reference', places: known.map(place) })
+    groups = [{ key: 'candidates', label: t('group.candidates'), status: null, role: 'candidate', places: shown.map(place) }]
+    if (known.length) groups.push({ key: 'reference', label: t('group.reference'), status: null, role: 'reference', places: known.map(place) })
   }
 
   return {
@@ -147,14 +153,19 @@ export function buildPlaceModel({ candidates, classification = NO_REFERENCES, ev
   }
 }
 
-/** Short name of the sector ("Pampa Yungay", without "— screening sector"). */
-export function placeName(name: string): string {
-  return shortCandidateName(name).split(' — ')[0] ?? name
+/** Mission status label in a fixed language (the code is never translated). */
+function missionStatusLabel(status: SiteMissionStatus, locale: Locale): string {
+  return locale === getLocale() ? MISSION_STATUS_LABEL[status] : tCommon.in(locale)(`missionStatus.${status}`)
 }
 
-/** Visible name of an option (also for type-ahead search). */
-export function placeLabelOf(place: Place): string {
-  return place.kind === 'evaluated' ? placeName(place.candidate.name) : displaySource(place.analog.name)
+/** Short name of the sector ("Pampa Yungay", without "— screening sector"). */
+export function placeName(name: string, locale: Locale = getLocale()): string {
+  return shortCandidateName(name, locale).split(' — ')[0] ?? name
+}
+
+/** Visible name of an option (also for type-ahead search), in the interface language. */
+export function placeLabelOf(place: Place, locale: Locale = getLocale()): string {
+  return place.kind === 'evaluated' ? placeName(place.candidate.name, locale) : scienceText(place.analog.name, locale)
 }
 
 /** Listbox options in visual order: first the ● (by group), then the ◆. */
@@ -216,8 +227,11 @@ export function visibleRange(
   return first < 0 ? null : { first, last }
 }
 
-/** "1–4 of 11" (or "3 of 11" if only one fits). */
-export function rangeLabel(range: { first: number; last: number } | null, total: number): string {
-  if (!range || total === 0) return `${total} places`
-  return range.first === range.last ? `${range.first + 1} of ${total}` : `${range.first + 1}–${range.last + 1} of ${total}`
+/** "1–4 of 11" (or "3 of 11" if only one fits) / "1–4 de 11". */
+export function rangeLabel(range: { first: number; last: number } | null, total: number, locale: Locale = getLocale()): string {
+  const t = tPlaces.in(locale)
+  if (!range || total === 0) return t('count.places', { count: total })
+  return range.first === range.last
+    ? t('count.one', { position: range.first + 1, total })
+    : t('count.range', { first: range.first + 1, last: range.last + 1, total })
 }

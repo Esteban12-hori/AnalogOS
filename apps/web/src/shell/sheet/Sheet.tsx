@@ -6,6 +6,8 @@
  * - Low landscape (height ≤500 px): side sheet of 360 px, no dragging.
  */
 import { useRef, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
+import { useT } from '../../i18n'
+import { tShell } from '../../i18n/messages/shell'
 import { DETENTS, type DetentId } from '../layout'
 import { MODE_PANEL_ID } from '../ModeTabs'
 import { DETENT_SLOP_PX, resolveDetent } from './resolveDetent'
@@ -25,8 +27,6 @@ interface SheetProps {
   children: ReactNode
 }
 
-const DETENT_NAMES: Record<DetentId, string> = { S0: 'tray', S1: 'place', S2: 'details' }
-
 interface Drag {
   pointerId: number
   startY: number
@@ -39,6 +39,7 @@ interface Drag {
 }
 
 export function Sheet({ detent, onDetentChange, heights, side, label, labelledBy, head, keyboardOpen, children }: SheetProps) {
+  const t = useT(tShell)
   const sheet = useRef<HTMLElement>(null)
   const drag = useRef<Drag | null>(null)
   const suppressClick = useRef(false)
@@ -144,7 +145,7 @@ export function Sheet({ detent, onDetentChange, heights, side, label, labelledBy
         <button
           type="button"
           className="sheet-handle"
-          aria-label={`${label}: ${DETENT_NAMES[detent]}. Resize the sheet`}
+          aria-label={t('sheet.handle', { label, detent: t(`sheet.detent.${detent}`) })}
           aria-keyshortcuts="ArrowUp ArrowDown"
           onClick={onHandleClick}
           onKeyDown={onHandleKey}

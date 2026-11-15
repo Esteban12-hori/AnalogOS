@@ -4,7 +4,11 @@ import type {
 } from '../../domain/contracts'
 import { countryLabels, isReference } from '../../domain/discovery'
 import { formatScore, shortCandidateName } from '../../domain/formatting'
-import { displaySource } from '../../i18n/sourceText'
+import { useLocale } from '../../i18n'
+import { tCommon } from '../../i18n/messages/common'
+import { tGlobe } from '../../i18n/messages/globe'
+import { tShell } from '../../i18n/messages/shell'
+import { scienceText } from '../../i18n/science'
 
 interface CandidateMapProps {
   candidates: CandidateSite[]
@@ -104,15 +108,17 @@ export function CandidateMap({ candidates, rankOf, outline, search, precedents, 
   const references = candidates.filter(isReference).length
   const [insetX0, insetY0] = inset([frame.west, frame.north])
   const [insetX1, insetY1] = inset([frame.east, frame.south])
+  const locale = useLocale()
+  const t = tGlobe.in(locale)
 
   return (
     <div className="map-frame">
       <div className="map-heading">
         <div>
-          <span className="section-kicker">{search ? 'Chile–Argentina pilot' : 'Explorer'}</span>
-          <h2>{search ? 'Explored area' : 'Demo zones'}</h2>
+          <span className="section-kicker">{search ? tShell.in(locale)('brand.tagline') : t('svg.kickerExplorer')}</span>
+          <h2>{search ? t('svg.titleExplored') : t('svg.titleDemo')}</h2>
         </div>
-        <span className="offline-chip">Local SVG · works offline</span>
+        <span className="offline-chip">{t('svg.offline')}</span>
       </div>
 
       <svg
@@ -120,8 +126,8 @@ export function CandidateMap({ candidates, rankOf, outline, search, precedents, 
         viewBox={`0 0 ${frame.width} ${frame.height}`}
         role="img"
         aria-label={search
-          ? `Pilot map with ${search.counts.evaluated ?? 0} windows evaluated of ${search.counts.attempted ?? search.windows.length}, ${candidates.length - references} candidates and ${references} known reference`
-          : `Map with ${candidates.length} selectable zones`}
+          ? t('svg.ariaPilot', { evaluated: search.counts.evaluated ?? 0, attempted: search.counts.attempted ?? search.windows.length, candidates: candidates.length - references, references })
+          : t('svg.ariaDemo', { count: candidates.length })}
         preserveAspectRatio="xMidYMin meet"
       >
         <rect className="map-ocean" width={frame.width} height={frame.height} />
@@ -135,7 +141,7 @@ export function CandidateMap({ candidates, rankOf, outline, search, precedents, 
           })}
           {meridians.map((longitude) => {
             const [x] = project([longitude, frame.north])
-            return <g key={`lon${longitude}`}><line x1={x} x2={x} y1="0" y2={frame.height} /><text x={x + 4} y={frame.height - 6}>{Math.abs(longitude)}° O</text></g>
+            return <g key={`lon${longitude}`}><line x1={x} x2={x} y1="0" y2={frame.height} /><text x={x + 4} y={frame.height - 6}>{Math.abs(longitude)}° {t('svg.west')}</text></g>
           })}
         </g>
 
@@ -143,7 +149,7 @@ export function CandidateMap({ candidates, rankOf, outline, search, precedents, 
           <g className="search-layer" aria-hidden="true">
             {search.windows.map((item) => (
               <path className={`window ${windowClass[item.decision]}`} d={pathFor([bboxRing(item.bbox)], project)} key={item.window_id}>
-                <title>{`${displaySource(item.name)}: ${displaySource(item.decision_reason)}`}</title>
+                <title>{`${scienceText(item.name, locale)}: ${scienceText(item.decision_reason, locale)}`}</title>
               </path>
             ))}
             {search.regions.map((region) => {
@@ -177,7 +183,9 @@ export function CandidateMap({ candidates, rankOf, outline, search, precedents, 
                 role="button"
                 tabIndex={0}
                 aria-pressed={selected}
-                aria-label={`Select ${shortCandidateName(candidate.name)}${reference ? ', known reference' : `, candidate ${label}`}, similarity ${formatScore(candidate.similarity)}`}
+                aria-label={reference
+                  ? t('svg.selectReference', { name: shortCandidateName(candidate.name, locale), similarity: formatScore(candidate.similarity, locale) })
+                  : t('svg.selectCandidate', { name: shortCandidateName(candidate.name, locale), label, similarity: formatScore(candidate.similarity, locale) })}
                 onClick={() => onSelect(candidate.site_id)}
                 onKeyDown={(event) => activate(event, () => onSelect(candidate.site_id))}
               >
@@ -198,19 +206,19 @@ export function CandidateMap({ candidates, rankOf, outline, search, precedents, 
         </g>
       </svg>
 
-      <div className="map-legend" aria-label="Map legend">
+      <div className="map-legend" aria-label={t('svg.legend')}>
         {search ? (
           <>
-            <span><i className="legend-swatch candidate" /> Preselected candidate</span>
-            <span><i className="legend-swatch reference" /> Known reference</span>
-            <span><i className="legend-swatch evaluated" /> Evaluated window</span>
-            <span><i className="legend-swatch precedent" /> Contains a published coordinate</span>
-            <span><i className="legend-swatch point" /> Published sampling coordinate</span>
+            <span><i className="legend-swatch candidate" /> {t('svg.preselected')}</span>
+            <span><i className="legend-swatch reference" /> {tCommon.in(locale)('role.knownReference')}</span>
+            <span><i className="legend-swatch evaluated" /> {t('svg.evaluatedWindow')}</span>
+            <span><i className="legend-swatch precedent" /> {t('svg.precedent')}</span>
+            <span><i className="legend-swatch point" /> {t('svg.point')}</span>
           </>
         ) : (
-          <span><i className="legend-swatch candidate" /> Demo zone</span>
+          <span><i className="legend-swatch candidate" /> {t('svg.demoZone')}</span>
         )}
-        <span><i className="legend-swatch outline" /> Reference outline, not an official boundary</span>
+        <span><i className="legend-swatch outline" /> {t('legend.outline')}</span>
       </div>
     </div>
   )

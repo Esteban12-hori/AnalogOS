@@ -75,7 +75,8 @@ function App() {
       })
       .catch((error: unknown) => {
         if (!active) return
-        const message = error instanceof Error ? error.message : 'Unknown error while loading the snapshot.'
+        // Canonical English in state; a loader/contract detail is technical and shown as is (docs/I18N.md §11).
+        const message = error instanceof Error ? error.message : tShell.in('en')('app.unknownError')
         setState({ status: 'error', snapshot: null, error: message })
       })
     return () => {
@@ -89,7 +90,7 @@ function App() {
         <LiquidBackdrop />
         <span>{t('app.errorKicker')}</span>
         <h1>{t('app.errorTitle')}</h1>
-        <p role="alert">{state.error}</p>
+        <p role="alert">{state.error === tShell.in('en')('app.unknownError') ? t('app.unknownError') : state.error}</p>
         <button type="button" onClick={() => window.location.reload()}>{t('app.retry')}</button>
       </main>
     )

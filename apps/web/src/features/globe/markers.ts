@@ -16,9 +16,14 @@ import type { CandidateSite, Position, ReferenceAnalog } from '../../domain/cont
 import { countryLabels, rankMap, splitByRole } from '../../domain/discovery'
 import { formatScore, shortCandidateName } from '../../domain/formatting'
 import { geometryCenter, outerRings, type Vec3 } from '../../domain/globe'
-import { MISSION_STATUS_LABEL, MISSION_STATUS_ORDER, missionSiteViews, type SiteMissionStatus } from '../../domain/missionView'
+import { MISSION_STATUS_ORDER, missionSiteViews, type SiteMissionStatus } from '../../domain/missionView'
 import type { MissionEvaluation } from '../../mission/types'
 import { GLYPH } from '../../shell/public'
+import { getLocale, type Locale } from '../../i18n/core'
+import { withPercent } from '../../i18n/format'
+import { tCommon } from '../../i18n/messages/common'
+import { tGlobeMarkers } from '../../i18n/messages/globeMarkers'
+import { scienceText } from '../../i18n/science'
 import { displaySource } from '../../i18n/sourceText'
 import { analogCenter, approximateZoneRing, geometryInsideBbox, pointInGeometry } from './geometry'
 
@@ -64,11 +69,13 @@ export interface MarkerInput {
   analogs: readonly ReferenceAnalog[]
   /** Mission evaluation (team statuses and ranks); null = Explore (snapshot). */
   evaluation: MissionEvaluation | null
+  /** Language of the names (UI only; order, ranks and statuses never depend on it). Default: the current one. */
+  locale?: Locale
 }
 
 /** Short name («Pampa Yungay», without «— screening sector» or the fixture label). */
-export function placeName(name: string): string {
-  return shortCandidateName(name).split(' — ')[0] ?? name
+export function placeName(name: string, locale: Locale = getLocale()): string {
+  return shortCandidateName(name, locale).split(' — ')[0] ?? name
 }
 
 /** Sector country according to the snapshot (`country`); if not recorded, none is asserted. */
@@ -79,7 +86,7 @@ function candidateGroup(candidate: CandidateSite): string {
 const collator = new Intl.Collator('es-CL')
 
 /** Scene markers in stable priority order. */
-export function buildMarkerModels({ candidates, analogs, evaluation }: MarkerInput): MarkerModel[] {
+export function buildMarkerModels({ candidates, analogs, evaluation, locale = getLocale() }: MarkerInput): MarkerModel[] {
   // Global search rank (the same as the carousel, Compare and the team's SVG map).
   const ranks = rankMap(splitByRole(candidates).ranked)
   const views = missionSiteViews(evaluation, candidates.map((candidate) => candidate.site_id))
@@ -109,7 +116,7 @@ export function buildMarkerModels({ candidates, analogs, evaluation }: MarkerInp
       kind,
       selectionKind: 'evaluated',
       center,
-      name: placeName(candidate.name),
+      name: placeName(candidate.name, locale),
       rank,
       score,
       scoreSource: score === null ? null : 'snapshot',
@@ -125,6 +132,8 @@ export function buildMarkerModels({ candidates, analogs, evaluation }: MarkerInp
   }
 
   const references: MarkerModel[] = []
+  // Alphabetical priority of the ◆ by their English display name in EVERY language: the order never depends on it.
+  const sortKey = new Map<string, string>()
   for (const analog of analogs) {
     if (analog.location.kind === 'approximate_point') {
       const point: Position = [analog.location.lon, analog.location.lat]
@@ -132,24 +141,25 @@ export function buildMarkerModels({ candidates, analogs, evaluation }: MarkerInp
       const sector = host ? sectors.find((item) => item.id === host.site_id) : undefined
       if (sector) {
         // The cited point falls inside an evaluated sector: badge on that ●, no ◆ of its own.
-        sector.coincides.push(displaySource(analog.name))
+        sector.coincides.push(scienceText(analog.name, locale))
         continue
       }
     }
     const bbox = analog.location.kind === 'region' ? analog.location.bbox : null
     const contained = bbox ? candidates.filter((candidate) => geometryInsideBbox(candidate.geometry, bbox)).length : 0
+    sortKey.set(analog.id, displaySource(analog.name))
     references.push({
       id: analog.id,
       kind: 'reference',
       selectionKind: 'reference',
       center: analogCenter(analog),
-      name: displaySource(analog.name),
+      name: scienceText(analog.name, locale),
       rank: null,
       score: null,
       scoreSource: null,
       role: 'analog',
       missionStatus: null,
-      group: displaySource(analog.country),
+      group: scienceText(analog.country, locale),
       outline: approximateZoneRing(analog),
       coincides: [],
       contains: contained > 0 ? contained : null,
@@ -158,7 +168,7 @@ export function buildMarkerModels({ candidates, analogs, evaluation }: MarkerInp
   }
 
   sectors.sort((a, b) => a.tier - b.tier || (a.rank ?? 0) - (b.rank ?? 0) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
-  references.sort((a, b) => collator.compare(a.name, b.name) || (a.id < b.id ? -1 : 1))
+  references.sort((a, b) => collator.compare(sortKey.get(a.id) ?? a.name, sortKey.get(b.id) ?? b.name) || (a.id < b.id ? -1 : 1))
   return [...sectors.map(({ tier, ...model }) => { void tier; return model }), ...references].map((model, order) => ({ ...model, order }))
 }
 
@@ -410,9 +420,9 @@ export function markerGlyph(kind: MarkerKind): string {
   return kind === 'reference' ? GLYPH.reference : kind === 'insufficient' ? GLYPH.insufficient : GLYPH.evaluated
 }
 
-/** "75,7 %" with 1 fixed decimal (v3 similarity from the snapshot); null if the marker has no %. */
-export function markerScoreText(model: Pick<MarkerModel, 'score'>): string | null {
-  return model.score === null ? null : `${formatScore(model.score)}%`
+/** "75.7%" / "75,7 %" with 1 fixed decimal (v3 similarity from the snapshot); null if the marker has no %. */
+export function markerScoreText(model: Pick<MarkerModel, 'score'>, locale: Locale = getLocale()): string | null {
+  return model.score === null ? null : withPercent(formatScore(model.score, locale), locale)
 }
 
 /** Label badge: "#2" for a rank, "REF" for the known reference, null if there is none. */
@@ -422,46 +432,47 @@ export function markerBadgeText(model: Pick<MarkerModel, 'rank' | 'role'>): stri
 }
 
 /** Status without a figure: that of the Mission evaluation, "insufficient data" (○) or "to be calculated" (◆). */
-export function markerStatusText(model: Pick<MarkerModel, 'kind' | 'score'> & Partial<Pick<MarkerModel, 'missionStatus'>>): string | null {
-  if (model.missionStatus) return MISSION_STATUS_LABEL[model.missionStatus].toLocaleLowerCase('en')
-  if (model.kind === 'insufficient') return 'insufficient data'
-  if (model.kind === 'reference' || model.score === null) return 'not yet calculated'
+export function markerStatusText(model: Pick<MarkerModel, 'kind' | 'score'> & Partial<Pick<MarkerModel, 'missionStatus'>>, locale: Locale = getLocale()): string | null {
+  const common = tCommon.in(locale)
+  if (model.missionStatus) return common(`missionStatus.${model.missionStatus}`).toLocaleLowerCase(locale)
+  if (model.kind === 'insufficient') return common('status.insufficientDataLower')
+  if (model.kind === 'reference' || model.score === null) return common('status.notYetCalculated')
   return null
 }
 
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`
-}
-
 /** Visible label text (to estimate its width). */
-export function markerLabelText(model: MarkerModel): string {
+export function markerLabelText(model: MarkerModel, locale: Locale = getLocale()): string {
+  const t = tGlobeMarkers.in(locale)
   return [
     markerBadgeText(model) ?? '',
     model.name,
-    markerScoreText(model) ?? '',
-    markerStatusText(model) ?? '',
-    model.contains !== null ? `contains ${model.contains} sectors` : '',
-    model.coincides.length ? `◆ matches ${model.coincides.join(' · ')}` : '',
+    markerScoreText(model, locale) ?? '',
+    markerStatusText(model, locale) ?? '',
+    model.contains !== null ? t('pin.containsLabel', { count: model.contains }) : '',
+    model.coincides.length ? t('pin.matches', { names: model.coincides.join(' · ') }) : '',
   ].filter(Boolean).join('  ')
 }
 
 /** Accessible label of the marker button (the visible label stays aria-hidden). */
-export function markerAriaLabel(model: MarkerModel): string {
+export function markerAriaLabel(model: MarkerModel, locale: Locale = getLocale()): string {
+  const t = tGlobeMarkers.in(locale)
+  const common = tCommon.in(locale)
+  const status = (code: SiteMissionStatus) => common(`missionStatus.${code}`).toLocaleLowerCase(locale)
   const parts = [model.name]
   if (model.kind === 'reference') {
-    parts.push(`${model.group ? `${model.group}, ` : ''}emblematic analog not yet calculated, approximate area`)
-    if (model.contains) parts.push(`contains ${plural(model.contains, 'evaluated sector', 'evaluated sectors')}`)
+    parts.push(`${model.group ? `${model.group}, ` : ''}${t('aria.analog')}`)
+    if (model.contains) parts.push(t('aria.contains', { count: model.contains }))
   } else if (model.missionStatus) {
-    if (model.role === 'reference') parts.push('known reference')
-    parts.push(`${model.rank !== null ? `rank ${model.rank}, ` : ''}${MISSION_STATUS_LABEL[model.missionStatus].toLocaleLowerCase('en')}`)
+    if (model.role === 'reference') parts.push(t('aria.knownReference'))
+    parts.push(`${model.rank !== null ? t('aria.rank', { rank: model.rank }) : ''}${status(model.missionStatus)}`)
   } else if (model.kind === 'insufficient') {
-    parts.push('insufficient data')
+    parts.push(common('status.insufficientDataLower'))
   } else {
-    if (model.role === 'reference') parts.push('known reference, outside the ranking')
-    if (model.score !== null) parts.push(`${model.rank !== null ? `rank ${model.rank}, ` : ''}similarity ${markerScoreText(model)}`)
+    if (model.role === 'reference') parts.push(t('aria.referenceOutside'))
+    if (model.score !== null) parts.push(`${model.rank !== null ? t('aria.rank', { rank: model.rank }) : ''}${t('aria.similarity', { score: markerScoreText(model, locale) ?? '' })}`)
   }
   if (model.group && model.kind !== 'reference') parts.push(model.group)
-  if (model.coincides.length) parts.push(`matches ${model.coincides.join(' and ')}`)
+  if (model.coincides.length) parts.push(t('aria.matches', { names: model.coincides.join(t('aria.and')) }))
   return parts.join(', ')
 }
 
@@ -475,14 +486,15 @@ export function clusterText(counts: MarkerCounts, group: string): string {
   return [group, ...clusterParts(counts).map(({ kind, count }) => `${count} ${markerGlyph(kind)}`)].filter(Boolean).join(' · ')
 }
 
-export function clusterAriaLabel(counts: MarkerCounts, group: string, open: boolean): string {
+export function clusterAriaLabel(counts: MarkerCounts, group: string, open: boolean, locale: Locale = getLocale()): string {
+  const t = tGlobeMarkers.in(locale)
   const total = counts.evaluated + counts.insufficient + counts.reference
   const parts = [
-    counts.evaluated ? plural(counts.evaluated, 'evaluated', 'evaluated') : '',
-    counts.insufficient ? plural(counts.insufficient, 'with insufficient data', 'with insufficient data') : '',
-    counts.reference ? plural(counts.reference, 'analog not yet calculated', 'analogs not yet calculated') : '',
+    counts.evaluated ? t('cluster.evaluated', { count: counts.evaluated }) : '',
+    counts.insufficient ? t('cluster.insufficient', { count: counts.insufficient }) : '',
+    counts.reference ? t('cluster.analogs', { count: counts.reference }) : '',
   ].filter(Boolean)
-  return `Group of ${total} places${group ? ` in ${group}` : ''}: ${parts.join(', ')}. ${open ? 'Hide' : 'Show'} list`
+  return t('cluster.aria', { total, group: group ? t('cluster.in', { group }) : '', parts: parts.join(', '), action: open ? t('cluster.hide') : t('cluster.show') })
 }
 
 /** Stacked glyphs of the group (max. 4), in priority order. */

@@ -4,6 +4,7 @@
  * pull in `buildMetricViews` if nobody uses it there.
  */
 import { useMemo } from 'react'
+import { useLocale } from '../../i18n/react'
 import type { AppData } from '../../shell/public'
 import { buildMetricViews } from './buildMetricViews'
 import type { MetricView } from './index'
@@ -19,5 +20,6 @@ export function useMetricViews(data: AppData, siteId: string | null): MetricView
     [data.snapshot, siteId],
   )
   const context = useMetricContext(data, site)
-  return useMemo(() => (context ? buildMetricViews(context.input) : []), [context])
+  const locale = useLocale()
+  return useMemo(() => (context ? buildMetricViews(context.input, locale) : []), [context, locale])
 }

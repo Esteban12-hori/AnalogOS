@@ -1,6 +1,9 @@
 import type { CandidateSite } from '../domain/contracts'
 import { countryLabels, isReference } from '../domain/discovery'
 import { feasibilityLabels, formatScore, shortCandidateName } from '../domain/formatting'
+import { useLocale } from '../i18n'
+import { tCommon } from '../i18n/messages/common'
+import { tDetailTabs } from '../i18n/messages/detailTabs'
 
 export interface ComparisonRow {
   candidate: CandidateSite
@@ -42,15 +45,17 @@ interface CandidateComparisonProps {
 }
 
 export function CandidateComparison({ ranked, references, rankOf, selectedId, onSelect }: CandidateComparisonProps) {
+  const locale = useLocale()
+  const t = tDetailTabs.in(locale)
   const rows = comparisonRows(ranked, references, rankOf)
   return (
     <section id="comparison" className="comparison-section glass" aria-labelledby="comparison-title">
       <div className="comparison-heading">
         <div>
-          <span className="section-kicker">Quick comparison · snapshot not recalculated</span>
-          <h2 id="comparison-title">Three signals, one explainable decision</h2>
+          <span className="section-kicker">{t('compare.kicker')}</span>
+          <h2 id="comparison-title">{t('compare.title')}</h2>
         </div>
-        <p>Similarity prioritizes. Confidence and feasibility keep priority from being mistaken for approval.</p>
+        <p>{t('compare.lead')}</p>
       </div>
       <div className="comparison-grid">
         {rows.map(({ candidate, rank, reference, similarity, confidence, stability }) => {
@@ -63,16 +68,16 @@ export function CandidateComparison({ ranked, references, rankOf, selectedId, on
               aria-pressed={candidate.site_id === selectedId}
               onClick={() => onSelect(candidate.site_id)}
             >
-              <span className="comparison-rank">{reference ? 'REF · Known reference' : rank === null ? '—' : String(rank).padStart(2, '0')}</span>
-              <strong>{shortCandidateName(candidate.name)}</strong>
+              <span className="comparison-rank">{reference ? tCommon.in(locale)('role.refKnownReference') : rank === null ? '—' : String(rank).padStart(2, '0')}</span>
+              <strong>{shortCandidateName(candidate.name, locale)}</strong>
               <span>
                 {candidate.country ? `${countryLabels[candidate.country]} · ` : ''}{feasibilityLabels[candidate.feasibility]}
               </span>
               <dl>
-                <div><dt>Similarity</dt><dd>{similarity === null ? 'N/A' : formatScore(similarity)}</dd></div>
-                <div><dt>Confidence</dt><dd>{formatScore(confidence)}</dd></div>
-                <div><dt>Stability</dt><dd>{stability === null ? '—' : formatScore(stability)}</dd></div>
-                <div><dt>Evidence</dt><dd>{valid}/{candidate.score_breakdown.length}</dd></div>
+                <div><dt>{t('compare.similarity')}</dt><dd>{similarity === null ? t('compare.na') : formatScore(similarity, locale)}</dd></div>
+                <div><dt>{t('compare.confidence')}</dt><dd>{formatScore(confidence, locale)}</dd></div>
+                <div><dt>{t('compare.stability')}</dt><dd>{stability === null ? '—' : formatScore(stability, locale)}</dd></div>
+                <div><dt>{t('compare.evidence')}</dt><dd>{valid}/{candidate.score_breakdown.length}</dd></div>
               </dl>
             </button>
           )

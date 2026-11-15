@@ -1,3 +1,6 @@
+import { tCommon } from '../i18n/messages/common'
+import { localizedRecord } from '../domain/localizedLabels'
+
 /**
  * Glyphs with a fixed meaning (docs/UX_REDESIGN.md §2.4). Always use these constants:
  * the same symbol never means two different things on the site.
@@ -35,20 +38,5 @@ export const GLYPH = {
 
 export type GlyphName = keyof typeof GLYPH
 
-/** Text for screen readers and legends (the glyphs use aria-hidden). */
-export const GLYPH_MEANING: Readonly<Record<GlyphName, string>> = {
-  evaluated: 'evaluated place',
-  reference: 'emblematic analog, not yet calculated',
-  insufficient: 'insufficient data',
-  jezero: 'Jezero, Mars',
-  rule: 'profile rule',
-  ai: 'AI interpretation',
-  onGlobe: 'on the globe',
-  sector: 'sector (approximate area)',
-  moreDemanding: 'more demanding than Jezero',
-  lessDemanding: 'less demanding than Jezero',
-  weightUp: 'weight goes up',
-  weightDown: 'weight goes down',
-  ok: 'met',
-  fail: 'failed',
-}
+/** Text for screen readers and legends (the glyphs use aria-hidden), in the current language. */
+export const GLYPH_MEANING: Readonly<Record<GlyphName, string>> = localizedRecord(Object.keys(GLYPH) as GlyphName[], (name) => tCommon(`glyph.${name}`))

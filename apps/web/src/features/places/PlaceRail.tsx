@@ -19,6 +19,12 @@ import { RULES_VERSION } from '../../mission/catalog'
 import { GLYPH, useReducedMotion, type AppData } from '../../shell/public'
 import { useMission } from '../../state/mission'
 import { uiActions, useUi } from '../../state/ui'
+import { useLocale } from '../../i18n'
+import { tBoot } from '../../i18n/messages/boot'
+import { tCommon } from '../../i18n/messages/common'
+import { tPlaces } from '../../i18n/messages/places'
+import { tShell } from '../../i18n/messages/shell'
+import { catalogReason } from './catalogReason'
 import type { PlaceRailProps } from './index'
 import { DiagnosisNote, EvaluatedOption, ReferenceOption } from './PlaceOption'
 import { buildPlaceModel, nextOptionIndex, placeLabelOf, placeOrder, rangeLabel, typeaheadIndex, visibleRange, type Place } from './placeModel'
@@ -54,24 +60,28 @@ function focusVisible(element: Element): boolean {
 
 export function PlaceRail(props: PlaceRailProps) {
   const { data, placement } = props
+  const locale = useLocale()
+  const t = tPlaces.in(locale)
   if (data.status === 'ready' && data.snapshot) return <PlaceCarousel {...props} snapshot={data.snapshot} />
   if (data.status === 'error') {
     return (
       <div className="places" data-placement={placement}>
-        <p className="places-state"><span aria-hidden="true">{GLYPH.fail}</span> The places could not be loaded{data.error ? `: ${data.error}` : '.'}</p>
+        <p className="places-state"><span aria-hidden="true">{GLYPH.fail}</span> {data.error ? t('state.loadErrorDetail', { error: data.error }) : t('state.loadError')}</p>
       </div>
     )
   }
   return (
     <div className="places" data-placement={placement} aria-busy="true">
-      <div className="places-head"><p className="places-title">Places</p></div>
-      <p className="places-state">Loading validated snapshot…</p>
+      <div className="places-head"><p className="places-title">{t('title')}</p></div>
+      <p className="places-state">{tBoot.in(locale)('chip.loading')}</p>
       <div className="places-skeleton" aria-hidden="true"><i /><i /><i /></div>
     </div>
   )
 }
 
 function PlaceCarousel({ snapshot, placement, listView: listProp = false, onListViewChange, promise }: PlaceRailProps & { snapshot: Snapshot }) {
+  const locale = useLocale()
+  const t = tPlaces.in(locale)
   const listboxId = useId()
   const reduced = useReducedMotion()
   const mission = useUi((state) => state.mode) === 'mision'
@@ -87,8 +97,8 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
   const missionEvaluation = mission ? evaluation : null
   const busy = missionEvaluation !== null && stale
   const model = useMemo(
-    () => buildPlaceModel({ candidates: snapshot.candidates, classification, evaluation: missionEvaluation, country }),
-    [snapshot.candidates, classification, missionEvaluation, country],
+    () => buildPlaceModel({ candidates: snapshot.candidates, classification, evaluation: missionEvaluation, country, locale }),
+    [snapshot.candidates, classification, missionEvaluation, country, locale],
   )
   const options = useMemo(() => placeOrder(model), [model])
   const selectedId = selection?.siteId ?? null
@@ -262,7 +272,7 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
     if (event.key.length !== 1) return
     const now = Date.now()
     typed.current = { text: now - typed.current.at < TYPEAHEAD_MS ? typed.current.text + event.key : event.key, at: now }
-    const match = typeaheadIndex(options.map(placeLabelOf), typed.current.text, active)
+    const match = typeaheadIndex(options.map((option) => placeLabelOf(option, locale)), typed.current.text, active)
     if (match !== null) {
       event.preventDefault()
       focusOption(match)
@@ -281,26 +291,27 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
   const prioritized = missionEvaluation ? prioritizedCount(missionEvaluation) : { candidates: 0, of: 0, reference: false }
   // The mode is hidden in narrow containers (the sheet already has the tabs above it); the label
   // of the rules is never hidden: it says where the states come from.
+  const shell = tShell.in(locale)
   const title = fromMission
-    ? `Your mission · ${prioritized.candidates} prioritized${prioritized.reference ? ' + REF' : ''}`
-    : <>Places<span className="places-suffix"> · {mission ? 'Mission' : 'Explore'}</span></>
+    ? `${t('title.mission', { count: prioritized.candidates })}${prioritized.reference ? ' + REF' : ''}`
+    : <>{t('title')}<span className="places-suffix"> · {mission ? shell('mode.mission') : shell('mode.explore')}</span></>
   const note = fromMission
-    ? `${busy ? 'You edited the test: confirm and evaluate again · ' : ''}Statuses from the deterministic calculation (${RULES_VERSION}) · v3 similarity not recalculated · territorial feasibility pending`
+    ? `${busy ? t('note.busy') : ''}${t('note.statuses', { rules: RULES_VERSION })}`
     : mission
-      ? 'Not evaluated: define and confirm the requirements in “Your mission”. Snapshot v3 similarity.'
+      ? t('note.notEvaluated')
       : promise ?? null
   // Counts what is visible: ◆ with a card; those that match a sector are shown as a badge.
   const matched = new Set([...classification.badges.values()].flat().map((analog) => analog.id)).size
   const catalogNote =
     catalog.status === 'ready'
-      ? `${model.references.length} not yet calculated${matched > 0 ? ` · ${matched} ${matched === 1 ? 'matches a sector' : 'match sectors'}` : ''}`
-      : catalog.status === 'loading' ? 'loading…' : 'no catalog'
+      ? `${t('catalog.pending', { count: model.references.length })}${matched > 0 ? ` · ${t('catalog.matched', { count: matched })}` : ''}`
+      : catalog.status === 'loading' ? t('catalog.loading') : t('catalog.none')
 
   if (options.length === 0) {
     return (
       <div className="places" data-placement={placement}>
         <div className="places-head"><p className="places-title">{title}</p></div>
-        <p className="places-state">There are no places to show: the snapshot has no sectors.</p>
+        <p className="places-state">{t('state.empty')}</p>
       </div>
     )
   }
@@ -345,35 +356,35 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
 
   const evaluatedCount = model.evaluated.length
   const candidateGroup = model.groups.find((group) => group.role === 'candidate')
-  const filters: Array<[CountryFilter, string]> = [['all', 'All'], ...model.countries.map((code) => [code, countryLabels[code]] as [CountryFilter, string])]
+  const filters: Array<[CountryFilter, string]> = [['all', t('filter.all')], ...model.countries.map((code) => [code, countryLabels[code]] as [CountryFilter, string])]
   let offset = 0
   return (
     <div className="places" data-placement={placement} data-view={listView ? 'list' : 'carousel'} data-busy={busy ? '' : undefined} aria-busy={busy || undefined}>
       <div className="places-head">
         <p className="places-title">
           <span>{title}</span>
-          <small className="places-counts"><span aria-hidden="true">{GLYPH.evaluated}</span> {model.rankedCount} candidates · 1 REF</small>
-          <small className="places-catalog" title={catalog.status === 'unavailable' ? catalog.reason : undefined}><span aria-hidden="true">{GLYPH.reference}</span> {catalogNote}</small>
-          <small className="places-profile">{fromMission ? `status · rules ${RULES_VERSION}` : 'v3 similarity'}</small>
+          <small className="places-counts"><span aria-hidden="true">{GLYPH.evaluated}</span> {t('counts', { count: model.rankedCount })}</small>
+          <small className="places-catalog" title={catalog.status === 'unavailable' ? catalogReason(catalog.reason, locale) : undefined}><span aria-hidden="true">{GLYPH.reference}</span> {catalogNote}</small>
+          <small className="places-profile">{fromMission ? t('profile.mission', { rules: RULES_VERSION }) : tCommon.in(locale)('similarity.v3')}</small>
         </p>
         <div className="places-tools">
           {!fromMission && model.countries.length > 1 && (
-            <div className="country-filter places-filter" role="group" aria-label="Filter candidates by country">
+            <div className="country-filter places-filter" role="group" aria-label={t('filter.label')}>
               {filters.map(([value, label]) => (
                 <button type="button" key={value} aria-pressed={country === value} onClick={() => setCountry(value)}>{label}</button>
               ))}
             </div>
           )}
-          <span className="places-count">{listView ? `${options.length} places` : rangeLabel(range, options.length)}</span>
+          <span className="places-count">{listView ? t('count.places', { count: options.length }) : rangeLabel(range, options.length, locale)}</span>
           {canList && (
             <button type="button" className="places-tool" aria-controls={listboxId} onClick={toggleList}>
-              {listView ? 'Show carousel' : 'Show list'}
+              {listView ? t('view.carousel') : t('view.list')}
             </button>
           )}
           {!listView && (
             <>
-              <button type="button" className="places-tool places-arrow" aria-label="Previous places" aria-controls={listboxId} disabled={edges.start} onClick={() => scrollPage(-1)}>‹</button>
-              <button type="button" className="places-tool places-arrow" aria-label="Next places" aria-controls={listboxId} disabled={edges.end} onClick={() => scrollPage(1)}>›</button>
+              <button type="button" className="places-tool places-arrow" aria-label={t('aria.previous')} aria-controls={listboxId} disabled={edges.start} onClick={() => scrollPage(-1)}>‹</button>
+              <button type="button" className="places-tool places-arrow" aria-label={t('aria.next')} aria-controls={listboxId} disabled={edges.end} onClick={() => scrollPage(1)}>›</button>
             </>
           )}
         </div>
@@ -385,7 +396,7 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
         ref={track}
         id={listboxId}
         role="listbox"
-        aria-label="Places"
+        aria-label={t('title')}
         aria-orientation={listView ? 'vertical' : 'horizontal'}
         className="places-track"
         onKeyDown={onKeyDown}
@@ -393,7 +404,7 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
       >
         {candidateGroup && candidateGroup.places.length === 0 && (
           <p className="places-empty" role="status">
-            The search left no candidates {country === 'all' ? 'eligible' : `in ${countryLabels[country]}`}. The list is not filled with hand-picked sites.
+            {country === 'all' ? t('empty.all') : t('empty.country', { country: countryLabels[country] })}
           </p>
         )}
         {model.groups.map((group, groupIndex) => {
@@ -410,7 +421,7 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
               data-status={group.status ?? undefined}
             >
               <span id={`${listboxId}-g${groupIndex}`} role="presentation" className="places-group-label">
-                {group.role === 'reference' ? `Known reference: ${group.places.map((item) => placeLabelOf(item)).join(', ')}` : group.label}
+                {group.role === 'reference' ? t('group.referenceNamed', { names: group.places.map((item) => placeLabelOf(item, locale)).join(', ') }) : group.label}
               </span>
               {group.places.map((option, index) => renderOption(option, start + index))}
             </div>
@@ -419,7 +430,7 @@ function PlaceCarousel({ snapshot, placement, listView: listProp = false, onList
         {model.references.length > 0 && (
           <div role="group" aria-labelledby={`${listboxId}-g2`} className="places-group" data-kind="reference">
             <span id={`${listboxId}-g2`} role="presentation" className="places-group-label">
-              <span aria-hidden="true">{GLYPH.reference}</span> Emblematic analogs · not yet calculated
+              <span aria-hidden="true">{GLYPH.reference}</span> {t('group.emblematic')}
             </span>
             {model.references.map((option, index) => renderOption(option, evaluatedCount + index))}
           </div>

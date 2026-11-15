@@ -2,7 +2,9 @@
  * Manifest of 2D base maps baked by `pipelines/fetch_basemaps.py` (NASA GIBS).
  * If it is missing or invalid, the 2D map keeps working without local images.
  */
-import { displaySource } from '../i18n/sourceText'
+import { getLocale, type Locale } from '../i18n/core'
+import { tGlobe } from '../i18n/messages/globe'
+import { scienceText } from '../i18n/science'
 
 export type Bounds = [west: number, south: number, east: number, north: number]
 
@@ -91,8 +93,20 @@ export function boundsIntersect(a: Bounds, b: Bounds): boolean {
 
 export interface ActiveSource {
   id: string
+  /** Label and detail in the language current when the list was computed. */
   label: string
   detail: string
+  /** Same facts in another language (the stage keeps the list and re-renders it when the language changes). */
+  describe?: (locale: Locale) => { label: string; detail: string }
+}
+
+/** Label and detail of a source in a language (falls back to the stored text). */
+export function sourceIn(source: ActiveSource, locale: Locale = getLocale()): { label: string; detail: string } {
+  return source.describe ? source.describe(locale) : { label: source.label, detail: source.detail }
+}
+
+function described(id: string, describe: (locale: Locale) => { label: string; detail: string }): ActiveSource {
+  return { id, ...describe(getLocale()), describe }
 }
 
 export interface OnlineLayers {
@@ -115,30 +129,32 @@ export function activeSources(view: Bounds, zoom: number, basemaps: Basemap[], o
   const sources: ActiveSource[] = []
   const first = contexts[0]
   if (first) {
-    sources.push({ id: 'sentinel2-context', label: displaySource(first.label), detail: `${displaySource(first.source)} · ${contexts.length} sector(s)` })
+    sources.push(described('sentinel2-context', (locale) => ({
+      label: scienceText(first.label, locale),
+      detail: `${scienceText(first.source, locale)} · ${tGlobe.in(locale)('source.sectors', { count: contexts.length })}`,
+    })))
   }
   if (sectors.length) {
     const dates = sectors.flatMap((sector) => sector.dates.map((item) => item.split(':')[1] ?? item)).sort()
-    sources.push({
-      id: 'hls',
+    sources.push(described('hls', (locale) => ({
       label: 'NASA HLS S30/L30 · ~30 m',
-      detail: `Per-pixel median ${dates[0] ?? ''} – ${dates.at(-1) ?? ''} · ${sectors.length} sector(s)`,
-    })
+      detail: tGlobe.in(locale)('source.hlsDetail', { from: dates[0] ?? '', to: dates.at(-1) ?? '', sectors: tGlobe.in(locale)('source.sectors', { count: sectors.length }) }),
+    })))
   }
-  if (online.hls?.length && zoom >= 8) {
-    sources.push({
-      id: 'hls-online',
-      label: 'NASA HLS S30 online · ~30 m',
-      detail: `NASA GIBS · single date per pixel ${online.hls[0]} – ${online.hls.at(-1)} (clouds possible)`,
-    })
+  const hls = online.hls
+  if (hls?.length && zoom >= 8) {
+    sources.push(described('hls-online', (locale) => ({
+      label: tGlobe.in(locale)('source.hlsOnline'),
+      detail: tGlobe.in(locale)('source.hlsOnlineDetail', { from: hls[0] ?? '', to: hls.at(-1) ?? '' }),
+    })))
   }
   if (regional.length) {
-    sources.push({ id: 'bluemarble-local', label: 'NASA Blue Marble NG · ~500 m', detail: 'Local copy · northern Chile' })
+    sources.push(described('bluemarble-local', (locale) => ({ label: 'NASA Blue Marble NG · ~500 m', detail: tGlobe.in(locale)('source.regionalDetail') })))
   }
   if (online.blueMarble) {
-    sources.push({ id: 'gibs-online', label: 'NASA Blue Marble NG online · ~500 m', detail: 'NASA GIBS · rest of the world' })
+    sources.push(described('gibs-online', (locale) => ({ label: tGlobe.in(locale)('source.gibsOnline'), detail: tGlobe.in(locale)('source.gibsOnlineDetail') })))
   } else if (world.length) {
-    sources.push({ id: 'world-local', label: 'NASA Blue Marble NG · ~20 km', detail: 'Local world copy (offline)' })
+    sources.push(described('world-local', (locale) => ({ label: 'NASA Blue Marble NG · ~20 km', detail: tGlobe.in(locale)('source.worldDetail') })))
   }
   return sources
 }

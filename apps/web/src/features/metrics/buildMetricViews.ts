@@ -13,7 +13,11 @@
  */
 import type { CriterionId, MissionCriterion, ScoreBreakdownItem } from '../../domain/contracts'
 import { CRITERION_IDS, isCriterionId } from '../../domain/criteria'
-import { criterionLabels, formatRawValue } from '../../domain/formatting'
+import { formatRawValue } from '../../domain/formatting'
+import { localizedRecord } from '../../domain/localizedLabels'
+import { getLocale, type Locale } from '../../i18n/core'
+import { tCommon } from '../../i18n/messages/common'
+import { tMetricDetails } from '../../i18n/messages/metricDetails'
 import type { BuildMetricViewsInput, MetricView } from './index'
 
 /** Criteria with a comparable Martian value (Jezero MOLA medians) and the required unit. */
@@ -23,31 +27,15 @@ export const MARS_COMPARABLE: Readonly<Partial<Record<CriterionId, string>>> = O
   local_relief: 'meter',
 })
 
-/** Short name of each criterion in the UI (the same name in the rail, lines and Reading). */
-export const METRIC_LABELS: Readonly<Record<CriterionId, string>> = Object.freeze({
-  slope: 'Slope',
-  terrain_roughness: 'Roughness',
-  local_relief: 'Local relief',
-  bare_ground_fraction: 'Bare ground',
-  aridity_context: 'Aridity',
-  surface_temperature_variability: 'Thermal range',
-  geologic_relevance: 'Geology',
-})
+/** Short name of each criterion in the UI (the same name in the rail, lines and Reading), in the current language. */
+export const METRIC_LABELS: Readonly<Record<CriterionId, string>> = localizedRecord(CRITERION_IDS, (id) => tCommon(`criterion.${id}`))
 
-/** What each criterion measures, in one line. */
-export const METRIC_MEASURES: Readonly<Record<CriterionId, string>> = Object.freeze({
-  slope: 'Terrain median at ~480 m',
-  terrain_roughness: 'Median height difference between neighboring cells',
-  local_relief: 'Median height difference in 3×3 windows',
-  bare_ground_fraction: 'Pixels without vegetation · Sentinel-2 2025',
-  aridity_context: 'Climatological precipitation · NASA POWER',
-  surface_temperature_variability: 'Climatological surface amplitude',
-  geologic_relevance: 'Lithological compatibility with the objective',
-})
+/** What each criterion measures, in one line (current language). */
+export const METRIC_MEASURES: Readonly<Record<CriterionId, string>> = localizedRecord(CRITERION_IDS, (id) => tMetricDetails(`measure.${id}`))
 
 interface BoundedRule {
-  /** Text of the rule (┆). */
-  text: string
+  /** Text of the rule (┆), in the current language. */
+  readonly text: string
   /** The same formula applied by the pipeline; used for the consistency check. */
   similarity: (raw: number) => number
 }
@@ -57,23 +45,26 @@ interface BoundedRule {
  * (they are not planetary ranges). Before displaying them, it is verified that they reproduce the similarity of the
  * snapshot: if they do not match, the UI does not show the formula and issues a warning.
  */
+type RuleCriterion = 'bare_ground_fraction' | 'aridity_context' | 'surface_temperature_variability'
+
+function boundedRule(id: RuleCriterion, similarity: (raw: number) => number): BoundedRule {
+  return Object.freeze({
+    get text(): string {
+      return tMetricDetails(`rule.${id}`)
+    },
+    similarity,
+  })
+}
+
 export const BOUNDED_RULES: Readonly<Partial<Record<CriterionId, BoundedRule>>> = Object.freeze({
-  bare_ground_fraction: {
-    text: 'More ground without vegetation, more analog: similarity is the non-vegetated fraction (Sentinel-2, SCL class 5).',
-    similarity: (raw: number) => Math.max(0, Math.min(1, raw)),
-  },
-  aridity_context: {
-    text: 'Less rain, more analog: similarity is 1 ÷ (1 + rain ÷ 25 mm/year); it is 50 at 25 mm/year.',
-    similarity: (raw: number) => 1 / (1 + raw / 25),
-  },
-  surface_temperature_variability: {
-    text: 'More thermal amplitude, more analog, until it saturates at 45 K.',
-    similarity: (raw: number) => Math.min(raw / 45, 1),
-  },
+  bare_ground_fraction: boundedRule('bare_ground_fraction', (raw: number) => Math.max(0, Math.min(1, raw))),
+  aridity_context: boundedRule('aridity_context', (raw: number) => 1 / (1 + raw / 25)),
+  surface_temperature_variability: boundedRule('surface_temperature_variability', (raw: number) => Math.min(raw / 45, 1)),
 })
 
-export const GENERIC_RULE_TEXT = 'Bounded profile preference: similarity grows toward the preferred end and stops at its cap.'
-export const UNVERIFIED_RULE_TEXT = 'The known rule does not reproduce the snapshot similarity; check “Method” before interpreting it.'
+/** English source wording (tests, tools); the views carry `tMetricDetails('rule.generic' | 'rule.unverified')` of their language. */
+export const GENERIC_RULE_TEXT = tMetricDetails.in('en')('rule.generic')
+export const UNVERIFIED_RULE_TEXT = tMetricDetails.in('en')('rule.unverified')
 
 /** The pipeline rounds the similarity to 6 decimals. */
 export const RULE_TOLERANCE = 1e-5
@@ -98,17 +89,17 @@ function atBound(similarity: number | null): boolean {
   return similarity !== null && (similarity >= 1 - SATURATION_EPS || similarity <= SATURATION_EPS)
 }
 
-function siteValueText(item: ScoreBreakdownItem | null, unit: string): string {
+function siteValueText(item: ScoreBreakdownItem | null, unit: string, locale: Locale): string {
   const raw = item?.raw_value ?? null
-  if (isFiniteNumber(raw)) return formatRawValue(raw, unit)
+  if (isFiniteNumber(raw)) return formatRawValue(raw, unit, locale)
   if (typeof raw === 'string' && raw.trim()) return raw
   switch (item?.status) {
     case 'needs_calibration':
-      return 'not yet calculated'
+      return tCommon.in(locale)('status.notYetCalculated')
     case 'excluded':
-      return 'excluded'
+      return tMetricDetails.in(locale)('value.excluded')
     default:
-      return 'no data'
+      return tCommon.in(locale)('status.noData')
   }
 }
 
@@ -116,20 +107,23 @@ function ruleFor(
   criterion: MissionCriterion | null,
   id: CriterionId,
   item: ScoreBreakdownItem | null,
+  locale: Locale,
 ): MetricView['rule'] {
   if (criterion?.method !== 'bounded_preference') return null
+  const t = tMetricDetails.in(locale)
   const known = BOUNDED_RULES[id]
+  const knownText = known ? t(`rule.${id as RuleCriterion}`) : null
   const raw = item?.raw_value
   const s = item?.status === 'valid' ? item.normalized_similarity : null
   if (s === null || s === undefined || !isFiniteNumber(raw)) {
-    return { text: known?.text ?? GENERIC_RULE_TEXT, satisfied: null, consistent: null }
+    return { text: knownText ?? t('rule.generic'), satisfied: null, consistent: null }
   }
   const satisfied = s >= 1 - SATURATION_EPS
-  if (!known) return { text: GENERIC_RULE_TEXT, satisfied, consistent: null }
+  if (!known || knownText === null) return { text: t('rule.generic'), satisfied, consistent: null }
   const consistent = Math.abs(known.similarity(raw) - s) <= RULE_TOLERANCE
   return consistent
-    ? { text: known.text, satisfied, consistent: true }
-    : { text: UNVERIFIED_RULE_TEXT, satisfied: null, consistent: false }
+    ? { text: knownText, satisfied, consistent: true }
+    : { text: t('rule.unverified'), satisfied: null, consistent: false }
 }
 
 function sharedRegional(
@@ -160,8 +154,11 @@ function vsMarsFor(raw: unknown, valid: boolean, marsValue: MetricView['marsValu
   return { direction, ratio }
 }
 
-/** Sorts by the weight of the active profile; ties broken by the canonical order of criteria. */
-export function buildMetricViews(input: BuildMetricViewsInput): MetricView[] {
+/**
+ * Sorts by the weight of the active profile; ties broken by the canonical order of criteria. The texts of the views
+ * (label, measure, values, rule) are in `locale` (default: the current one); order, figures and flags never depend on it.
+ */
+export function buildMetricViews(input: BuildMetricViewsInput, locale: Locale = getLocale()): MetricView[] {
   const { site, sites, profile, weights, contributions, marsReference } = input
   const items = new Map<string, ScoreBreakdownItem>(site.score_breakdown.map((item) => [item.criterion_id, item]))
   const criteria = new Map<string, MissionCriterion>(profile.criteria.map((criterion) => [criterion.id, criterion]))
@@ -185,18 +182,18 @@ export function buildMetricViews(input: BuildMetricViewsInput): MetricView[] {
 
     const marsUnit = MARS_COMPARABLE[id]
     const marsRaw = marsUnit !== undefined && unit === marsUnit ? marsReference?.byCriterion[id] : undefined
-    const marsValue = isFiniteNumber(marsRaw) && marsRaw > 0 ? { raw: marsRaw, unit, text: formatRawValue(marsRaw, unit) } : null
+    const marsValue = isFiniteNumber(marsRaw) && marsRaw > 0 ? { raw: marsRaw, unit, text: formatRawValue(marsRaw, unit, locale) } : null
 
-    const rule = ruleFor(criterion, id, item)
+    const rule = ruleFor(criterion, id, item, locale)
     return {
       criterionId: id,
-      label: METRIC_LABELS[id] ?? criterionLabels[id] ?? criterion?.label ?? id,
-      measure: METRIC_MEASURES[id],
+      label: tCommon.in(locale)(`criterion.${id}`) || criterion?.label || id,
+      measure: tMetricDetails.in(locale)(`measure.${id}`),
       weight,
       baseWeight,
       status,
       similarity,
-      siteValue: { raw: item?.raw_value ?? null, unit, text: siteValueText(item, unit) },
+      siteValue: { raw: item?.raw_value ?? null, unit, text: siteValueText(item, unit, locale) },
       marsValue,
       rule,
       vsMars: vsMarsFor(item?.raw_value, valid, marsValue),

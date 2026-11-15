@@ -16,6 +16,9 @@ import { rankMap, splitByRole } from '../../domain/discovery'
 import type { MarsReference } from '../../domain/marsReference'
 import { missionOrder, missionSiteViews, type SiteMissionStatus } from '../../domain/missionView'
 import { validWeight } from '../../domain/scoring'
+import { getLocale, type Locale } from '../../i18n/core'
+import { useLocale } from '../../i18n/react'
+import { tMetrics } from '../../i18n/messages/metrics'
 import { METRICS, RULES_VERSION } from '../../mission/catalog'
 import type { MissionEvaluation, MissionRequest, OptionEvaluation, RequirementResult } from '../../mission/types'
 import type { AppData } from '../../shell/public'
@@ -57,8 +60,10 @@ export interface MissionLayer {
 
 export interface MetricContext {
   kind: 'base' | 'mission'
-  /** "base profile v3.0.0-…": always that of the snapshot. */
+  /** "base profile v3.0.0-…" / "perfil base v3.0.0-…": always that of the snapshot (label in the context's language). */
   profileLabel: string
+  /** Version of the snapshot base profile («3.0.0-…»). */
+  profileVersion: string
   /** Version of the Mission evaluation rules; null in Explore. */
   rulesVersion: string | null
   profileStatus: string
@@ -86,6 +91,8 @@ export interface ResolveMetricContextArgs {
   evaluation: MissionEvaluation | null
   request: MissionRequest | null
   stale?: boolean
+  /** Language of the labels (default: the current one); figures, order and statuses never depend on it. */
+  locale?: Locale
 }
 
 /** Distributes an option's requirement results among criteria, site and not measured. */
@@ -116,7 +123,7 @@ export function requirementLayer(option: OptionEvaluation | null, request: Missi
 
 /** Pure function: profile (always that of the snapshot), buildMetricViews input, figures and Mission layer. */
 export function resolveMetricContext(args: ResolveMetricContextArgs): MetricContext {
-  const { site, candidates, profile, marsReference, mode, evaluation, request, stale = false } = args
+  const { site, candidates, profile, marsReference, mode, evaluation, request, stale = false, locale = getLocale() } = args
   const sites = candidates.some((candidate) => candidate.site_id === site.site_id) ? candidates : [...candidates, site]
   const breakdown = site.score_breakdown
   const validCount = breakdown.filter((item) => item.status === 'valid').length
@@ -135,7 +142,8 @@ export function resolveMetricContext(args: ResolveMetricContextArgs): MetricCont
     criterionCount: breakdown.length,
   }
   const base = {
-    profileLabel: `base profile v${profile.version}`,
+    profileLabel: tMetrics.in(locale)('profile.label', { version: profile.version }),
+    profileVersion: profile.version,
     profileStatus: profile.status,
     input: { site, sites, profile, weights: null, contributions: null, marsReference },
     figures,
@@ -181,9 +189,10 @@ export function useMetricContext(data: AppData, site: CandidateSite | null): Met
   const evaluation = useMission((state) => state.evaluation)
   const request = useMission((state) => state.evaluatedRequest)
   const stale = useMission((state) => state.stale)
+  const locale = useLocale()
   const snapshot = data.snapshot
   return useMemo(() => {
     if (!site || !snapshot) return null
-    return resolveMetricContext({ site, candidates: snapshot.candidates, profile: snapshot.profile, marsReference: snapshot.marsReference, mode, evaluation, request, stale })
-  }, [site, snapshot, mode, evaluation, request, stale])
+    return resolveMetricContext({ site, candidates: snapshot.candidates, profile: snapshot.profile, marsReference: snapshot.marsReference, mode, evaluation, request, stale, locale })
+  }, [site, snapshot, mode, evaluation, request, stale, locale])
 }

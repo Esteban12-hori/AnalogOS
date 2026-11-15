@@ -2,26 +2,28 @@
 import type {
   CandidateSite, CountryCode, LiteratureStatus, PrecedentCatalog, PrecedentMatch, PrecedentRelation, SearchResults,
 } from './contracts'
+import { tCommon } from '../i18n/messages/common'
+import { localizedRecord } from './localizedLabels'
 import { rankCandidates } from './scoring'
 
 export type CountryFilter = 'all' | CountryCode
 
 export const countryLabels: Record<CountryCode, string> = { CL: 'Chile', AR: 'Argentina' }
 
-export const literatureLabels: Record<LiteratureStatus, string> = {
-  known_reference: 'Known reference',
-  known_analogue_overlap: 'Contains published precedents',
-  regional_precedent: 'Region with published precedents',
-  literature_review_pending: 'Literature review pending',
-  no_match_in_reviewed_sources: 'No match in the reviewed sources',
-}
+const LITERATURE_STATUSES: readonly LiteratureStatus[] = [
+  'known_reference',
+  'known_analogue_overlap',
+  'regional_precedent',
+  'literature_review_pending',
+  'no_match_in_reviewed_sources',
+]
 
-export const relationLabels: Record<PrecedentRelation, string> = {
-  contains_published_sampling_coordinate: 'The window contains published sampling coordinates',
-  study_area_overlap: 'Overlaps a published study area',
-  proximity_heuristic: 'Near a published coordinate (25 km heuristic, not the study perimeter)',
-  regional_precedent: 'Regional precedent, without coordinates in the reviewed sources',
-}
+/** Labels in the current language (domain/localizedLabels.ts); the exported record keeps the codes. */
+export const literatureLabels: Record<LiteratureStatus, string> = localizedRecord(LITERATURE_STATUSES, (code) => tCommon(`literature.${code}`))
+
+const RELATIONS: readonly PrecedentRelation[] = ['contains_published_sampling_coordinate', 'study_area_overlap', 'proximity_heuristic', 'regional_precedent']
+
+export const relationLabels: Record<PrecedentRelation, string> = localizedRecord(RELATIONS, (code) => tCommon(`relation.${code}`))
 
 export const isReference = (candidate: CandidateSite): boolean => candidate.role === 'reference'
 
