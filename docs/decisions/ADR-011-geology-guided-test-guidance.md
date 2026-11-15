@@ -1,6 +1,6 @@
 # ADR-011 — Orientación de pruebas con geología oficial e IA (canal opt-in)
 
-- Estado: **accepted** (Codex, tras implementación y correcciones de Claude, revisión independiente y QA local)
+- Estado: **accepted** (Codex, tras implementación y correcciones de Claude, revisión independiente, QA local y comprobación real en dev)
 - Fecha: 2026-11-14
 - Autorización: Dan: «hagamos que la IA use estos datos geológicos para mejorar las recomendaciones». Plan revisado por Codex en `project/NEXT_TASK.md` (M10-GEOLOGY-AI).
 
@@ -19,5 +19,9 @@
 
 - Sin validación de campo ni de equivalencia planetaria; umbrales de M9 provisionales. La selección de la IA es orientación priorizada, no una medición; no se asume estabilidad exacta del modelo (dos pruebas reales opt-in con objetivos contrastantes registran si difiere).
 - La web no verifica SHA-256 de bytes; el wrapper declara la identidad del paquete completo sin poder recalcularla (solo trae los sectores usados).
-- El prompt con geología pesa ≈ 25 000 tokens de entrada (siete sectores, 97 referencias). Latencia/costo no optimizados.
+- El prompt con geología pesa ≈ 29 000 tokens de entrada en el contraste final del catálogo completo (y 6795 en la prueba AR6). Latencia/costo no optimizados.
 - Función Vercel real verificada en Actions 43664952053: dos entradas filePathMap materializadas; carga de snapshot/geología y casos negativos correctos antes de publicar.
+
+## Verificación final
+
+Aceptación y publicación de Codex: código 4708b42b4bd152dca74d3e009f233a910e458d8b, Actions 43665786554; IA geológica real en dev y exportación reconstruida idéntica. 316 Python/332 web, typecheck/build, contraste movilidad/muestreo y QA local documentados en docs/CODEX_M10_REVIEW.md.

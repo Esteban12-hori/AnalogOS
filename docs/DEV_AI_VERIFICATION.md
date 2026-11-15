@@ -1,6 +1,22 @@
-# IA verificada en dev — M9 y antecedente M8
+# IA verificada en dev — M10, con antecedentes M9/M8
 
-## Publicación y regresión remota — Codex, 2026-11-14 (America/Santiago)
+## M10 — publicación y comprobación remota final (Codex, 2026-11-14 America/Santiago)
+
+**Completado, revisado y publicado en dev.** Implementación de Claude bajo encargo; revisión, devoluciones, correcciones y aceptación de Codex. Código `4708b42b4bd152dca74d3e009f233a910e458d8b`; [Actions correcto](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43665786554); [dev](https://analogos-dev.vercel.app/); deployment https://analogos-5plfynboc-pruebas-730d0f41.vercel.app. El checkpoint documental posterior usa `[skip ci]` y conserva este código desplegado. Esta entrega no modificó main, secretos ni protección Vercel.
+
+- La función Vercel real pasó el control aislado: dos entradas filePathMap materializadas; snapshot/contratos/geología cargan y validan; casos de ausencia/corrupción correctos antes de publicar.
+- Prueba real desde Chrome en dev, sector AR6 (`ar-win-s2580-w06710`), brief sintético de movilidad/reconocimiento geológico, pendiente regional ≤9° y preferencia no vegetada ≥95 %. El único sector evaluado quedó priorizado; tracción y factibilidad territorial pendientes. Son umbrales de demostración, no recomendaciones operativas.
+- Anthropic eligió tres referencias válidas: caracterizar material superficial en Complejo volcánico Galán y depósitos aluviales/coluviales, más comprobar correspondencia mapa–terreno del primero. Fuente SEGEMAR 1:250.000, cobertura 100 %, límites y enlace oficial visibles. Ningún cambio de evaluación, valores ni ranking.
+- Exportación descargada: `submission/evidence/m10-dev-geology-export.json`. Validada con `validateAnyMissionExport` y reconstruida idéntica con `buildMissionGeologyExport`, snapshot y contexto oficiales. Captura: `submission/assets/analogos-m10-dev.jpg`.
+- Procedencia: modelo `claude-sonnet-5-5`, `2026-11-15T02:02:57.957Z`, request `req_011Ch3teqxMdwPrJqPCngjWE`, tokens 6795/719, `end_turn`. Esta evidencia prueba la respuesta aceptada; no registra si se requirió el reintento interno ni agrega su consumo.
+- Verificación final: **316 Python, 332 web**, typecheck/build correctos. Dos objetivos reales finales contrastantes: movilidad y muestreo, 12 referencias válidas cada uno, propósitos distintos (`submission/evidence/m10-live-geology-evidence.json`). Tres consultas AR6 locales correctas; regresión M8/M9 y repros de integridad correctos; 33 archivos protegidos intactos.
+- ZIP vigente: **31 entradas, 13.255.407 bytes**, SHA-256 `f76a905564f69737e763724da8467aff45dff1177e269a188a60da35807eb122`, repetido idéntico. QA local offline/subcarpeta/ausencia de geología/móvil 390px/teclado documentado en `docs/CODEX_M10_REVIEW.md`; las últimas modificaciones solo añaden recuperación del servidor y motivos tipados de rechazo compartidos, sin cambiar el recorrido ni los datos.
+
+Antes de esta publicación, el modelo excedió el tope de tres referencias por sector en AR6. Se mantuvo el rechazo y se agregó una única segunda llamada con recordatorio controlado, mismos hechos y validación completa, dentro del plazo total. Si vuelve a fallar, la app conserva el resultado manual. No se amplían topes ni se recorta la salida. Los fallos iniciales de empaquetado quedaron resueltos antes de actualizar el alias.
+
+Límites: siete sectores del piloto; orientación de reconocimiento, sin validación geológica de campo, score litológico, tracción medida ni autorización de acceso. En M10 se probó remotamente la explicación con geología; la prueba remota de generación de borrador permanece como antecedente M9, no se atribuye una nueva ejecución a M10. La inspección de impresión nativa sigue pendiente. Claude queda sin nueva asignación.
+
+## Antecedente M9 — publicación y regresión remota
 
 **M9 completado y publicado en dev.** Código `34e76b9734efab2428013a13c6d0defb8d85d8f4`, Actions correcto: https://github.com/Esteban12-hori/AnalogOS/actions/runs/43658989969. Deploy https://analogos-nmyfr42k8-pruebas-730d0f41.vercel.app, alias https://analogos-dev.vercel.app/. El checkpoint posterior agrega solo documentos/evidencia con `[skip ci]` y conserva ese código desplegado. Main no cambió.
 

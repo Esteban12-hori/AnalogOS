@@ -1,6 +1,6 @@
 # Revisión independiente M10 — Codex
 
-**Estado: aceptado localmente; publicación y comprobación remota pendientes.** Implementación de Claude, devolución de Codex y correcciones completadas. Alcance autorizado: orientar ensayos con geología oficial; sin modificar evaluación, score ni datos científicos.
+**Estado: aceptado por Codex, publicado en dev y verificado remotamente.** Implementación de Claude, devolución de Codex y correcciones completadas. Alcance autorizado: orientar ensayos con geología oficial; sin modificar evaluación, score ni datos científicos.
 
 ## Resultado revisado
 
@@ -12,18 +12,18 @@
 
 Los tres repros iniciales ahora se rechazan: geometría desplazada 0,01°, URL de fuente alterada y selección de IA con sector inventado. El caso válido pasa. Se revisaron límites de propósito, geometría pedida/medida, estados y conservación de M8. El constructor exige contexto validado contra candidatos oficiales.
 
-- Verificación de Claude supervisada: **316 Python, 325 web**, tres pruebas reales opt-in omitidas por defecto; typecheck/build correctos (`/tmp/m10-verify.log`). La corrección final de CSS pasó build y validación de snapshot.
-- Dos consultas reales contrastantes finales en `submission/evidence/m10-live-geology-evidence.json`: movilidad 8 referencias y muestreo 10, con propósitos distintos. No se afirma calidad científica calibrada ni determinismo del modelo.
+- Verificación de Claude supervisada: **316 Python, 332 web**, tres pruebas reales opt-in omitidas por defecto; typecheck/build correctos (`/tmp/m10-verify2.log`, ronda final). La corrección final de CSS pasó build y validación de snapshot.
+- Dos consultas reales contrastantes finales en `submission/evidence/m10-live-geology-evidence.json`: movilidad 12 referencias y muestreo 12 (ronda final), con propósitos distintos. No se afirma calidad científica calibrada ni determinismo del modelo.
 - Navegador local real: explicación de movilidad con contexto geológico, tres referencias válidas (Qa/PE3i), tracción pendiente. Descarga en `submission/evidence/m10-local-geology-export.json`, validada y reconstruida idéntica con contexto/snapshot oficiales. Request `req_011Ch3rc6KyhKhPmVZ2CHY4t`, modelo claude-sonnet-5-5; 6514/313 tokens; end_turn.
 - Informes históricos M8/M9 continúan validando y reconstruyéndose. Scripts de auditoría de sesión: `/tmp/analogos-m10-independent-review.mjs`, `/tmp/analogos-m10-validate-exports.mjs`.
 - Navegador del ZIP bajo `/AnalogOS/`, conexiones externas bloqueadas por CSP: evaluación/contexto/exportación funcionan; IA no disponible se informa y conserva resultado. Sector AR-5 muestra 0 % y ninguna unidad. Rutas con paquete ausente e inválido mantienen evaluación y explicación sin geología.
 - Móvil **390 × 844**, teclado Enter en detalles; se detectó y corrigió desborde de URL con `overflow-wrap:anywhere`. Verificación final: ancho de documento 390, sin elementos geológicos fuera del ancho, contenido nuevo ≥12 px. Capturas en `submission/assets/analogos-m10-local.jpg` y `analogos-m10-mobile.jpg`.
 - **33 archivos únicos protegidos intactos**: ciencia, geología, perfiles, evaluación y ZIP histórico; 24 entradas de baseline +11 complementarias con duplicados. Código/evidencia/bundle/ZIP revisados contra credenciales locales, sin coincidencias.
-- ZIP final repetido idéntico: **31 entradas, 13,255,287 bytes**, SHA-256 `26bfbd68b3c7162db1c22ce3d640f6c8626f510107dd0587e6f6d3bfb09f06d1`.
+- ZIP final repetido idéntico: **31 entradas, 13,255,407 bytes**, SHA-256 `f76a905564f69737e763724da8467aff45dff1177e269a188a60da35807eb122`.
 
-## Límites y siguiente comprobación
+## Límites
 
-No se mide tracción, mecánica de suelos, aptitud planetaria ni permisos. La cobertura sigue siendo el piloto de siete sectores; no hay nuevos datos/candidatos. La IA prioriza comprobaciones; no añade un score geológico. La prueba de arranque local usa función emitida por TypeScript; la función Vercel real se probará en CI antes de cambiar el alias. Luego Codex verificará IA y exportación desde dev.
+No se mide tracción, mecánica de suelos, aptitud planetaria ni permisos. La cobertura sigue siendo el piloto de siete sectores; no hay nuevos datos/candidatos. La IA prioriza comprobaciones; no añade un score geológico. La función Vercel real, IA en dev y exportación descargada quedaron comprobadas; detalle en `docs/DEV_AI_VERIFICATION.md`.
 
 ## Hallazgos originales — resueltos
 
@@ -50,4 +50,20 @@ Los intentos `ab13fb8` (Actions 43664379073) y `e0e6f1c` (43664642031) construye
 
 ## Fiabilidad observada en dev y ronda 3
 
-Dos consultas AR6 en el primer despliegue M10 fueron rechazadas sin alterar el resultado. Reproducción local: selección M8 válida, seis referencias geológicas del mismo sector frente al tope de tres. Claude corrigió bajo nueva asignación de Codex: presupuesto efectivo explícito y una única nueva llamada ante selección inválida, sin recortar ni aceptar respuestas incorrectas. El plazo total se conserva y la procedencia es de la respuesta aceptada (no incluye consumo del intento descartado). 316 Python/332 web, typecheck/build correctos; tres consultas AR6 reales locales válidas. Revisado y aceptado por Codex. ZIP vigente: 31 entradas, 13,255,407 bytes, SHA-256 `f76a905564f69737e763724da8467aff45dff1177e269a188a60da35807eb122`. Dev se volverá a comprobar tras publicar esta corrección.
+Dos consultas AR6 en el primer despliegue M10 fueron rechazadas sin alterar el resultado. Reproducción local: selección M8 válida, seis referencias geológicas del mismo sector frente al tope de tres. Claude corrigió bajo nueva asignación de Codex: presupuesto efectivo explícito y una única nueva llamada ante selección inválida, sin recortar ni aceptar respuestas incorrectas. El plazo total se conserva y la procedencia es de la respuesta aceptada (no incluye consumo del intento descartado). 316 Python/332 web, typecheck/build correctos; tres consultas AR6 reales locales válidas. Revisado y aceptado por Codex. ZIP vigente: 31 entradas, 13,255,407 bytes, SHA-256 `f76a905564f69737e763724da8467aff45dff1177e269a188a60da35807eb122`. La comprobación remota final pasó; ver cierre siguiente.
+
+## M10 — publicación y comprobación remota final (Codex, 2026-11-14 America/Santiago)
+
+**Completado, revisado y publicado en dev.** Implementación de Claude bajo encargo; revisión, devoluciones, correcciones y aceptación de Codex. Código `4708b42b4bd152dca74d3e009f233a910e458d8b`; [Actions correcto](https://github.com/Esteban12-hori/AnalogOS/actions/runs/43665786554); [dev](https://analogos-dev.vercel.app/); deployment https://analogos-5plfynboc-pruebas-730d0f41.vercel.app. El checkpoint documental posterior usa `[skip ci]` y conserva este código desplegado. Esta entrega no modificó main, secretos ni protección Vercel.
+
+- La función Vercel real pasó el control aislado: dos entradas filePathMap materializadas; snapshot/contratos/geología cargan y validan; casos de ausencia/corrupción correctos antes de publicar.
+- Prueba real desde Chrome en dev, sector AR6 (`ar-win-s2580-w06710`), brief sintético de movilidad/reconocimiento geológico, pendiente regional ≤9° y preferencia no vegetada ≥95 %. El único sector evaluado quedó priorizado; tracción y factibilidad territorial pendientes. Son umbrales de demostración, no recomendaciones operativas.
+- Anthropic eligió tres referencias válidas: caracterizar material superficial en Complejo volcánico Galán y depósitos aluviales/coluviales, más comprobar correspondencia mapa–terreno del primero. Fuente SEGEMAR 1:250.000, cobertura 100 %, límites y enlace oficial visibles. Ningún cambio de evaluación, valores ni ranking.
+- Exportación descargada: `submission/evidence/m10-dev-geology-export.json`. Validada con `validateAnyMissionExport` y reconstruida idéntica con `buildMissionGeologyExport`, snapshot y contexto oficiales. Captura: `submission/assets/analogos-m10-dev.jpg`.
+- Procedencia: modelo `claude-sonnet-5-5`, `2026-11-15T02:02:57.957Z`, request `req_011Ch3teqxMdwPrJqPCngjWE`, tokens 6795/719, `end_turn`. Esta evidencia prueba la respuesta aceptada; no registra si se requirió el reintento interno ni agrega su consumo.
+- Verificación final: **316 Python, 332 web**, typecheck/build correctos. Dos objetivos reales finales contrastantes: movilidad y muestreo, 12 referencias válidas cada uno, propósitos distintos (`submission/evidence/m10-live-geology-evidence.json`). Tres consultas AR6 locales correctas; regresión M8/M9 y repros de integridad correctos; 33 archivos protegidos intactos.
+- ZIP vigente: **31 entradas, 13.255.407 bytes**, SHA-256 `f76a905564f69737e763724da8467aff45dff1177e269a188a60da35807eb122`, repetido idéntico. QA local offline/subcarpeta/ausencia de geología/móvil 390px/teclado documentado en `docs/CODEX_M10_REVIEW.md`; las últimas modificaciones solo añaden recuperación del servidor y motivos tipados de rechazo compartidos, sin cambiar el recorrido ni los datos.
+
+Antes de esta publicación, el modelo excedió el tope de tres referencias por sector en AR6. Se mantuvo el rechazo y se agregó una única segunda llamada con recordatorio controlado, mismos hechos y validación completa, dentro del plazo total. Si vuelve a fallar, la app conserva el resultado manual. No se amplían topes ni se recorta la salida. Los fallos iniciales de empaquetado quedaron resueltos antes de actualizar el alias.
+
+Límites: siete sectores del piloto; orientación de reconocimiento, sin validación geológica de campo, score litológico, tracción medida ni autorización de acceso. En M10 se probó remotamente la explicación con geología; la prueba remota de generación de borrador permanece como antecedente M9, no se atribuye una nueva ejecución a M10. La inspección de impresión nativa sigue pendiente. Claude queda sin nueva asignación.

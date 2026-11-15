@@ -2,7 +2,7 @@
 
 - **Task ID:** M10-GEOLOGY-AI
 - **Owner:** Codex
-- **Status:** accepted — Codex revisó la ronda 3; publicación y verificación final en curso
+- **Status:** accepted — completado, publicado y verificado en dev por Codex
 - **Branch:** dev
 - **Base commit:** bdbdab0603be6745993e1689f6dcec960d766c9e
 - **Dirección, revisión y aceptación:** Codex. Dan autorizó: «hagamos que la IA use estos datos geológicos para mejorar las recomendaciones. Dale la siguiente tarea a Claude y tú supervisa y revisa todo antes de subirlo a dev». Codex publicará dev después de aceptar. Claude no hace commit/push/deploy. Main intacto.
@@ -75,3 +75,7 @@ Tests proporcionales: primera respuesta 4 IDs válidos AR6 -> segunda3 válida; 
 ## Aceptación ronda 3 por Codex
 
 Revisados diff, límite de un reintento, plazo compartido, procedencia final, postvalidación completa y pruebas. 316 Python/332 web correctos. Repros de integridad y exports históricos siguen validando correctamente; 33 archivos protegidos intactos. Codex publica esta corrección y verifica dev. Claude sin nueva asignación.
+
+## Cierre definitivo de Codex
+
+Código 4708b42b4bd152dca74d3e009f233a910e458d8b; Actions 43665786554 correcto. IA geológica real en dev y exportación descargada verificadas contra los datos oficiales. Ver docs/DEV_AI_VERIFICATION.md y docs/CODEX_M10_REVIEW.md. Claude sin nueva tarea; main conservado por esta entrega.

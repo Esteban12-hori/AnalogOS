@@ -1,5 +1,11 @@
 # Changelog de trabajo
 
+## 2026-11-14 Codex · M10 publicado y verificado en dev
+
+- Código `4708b42b4bd152dca74d3e009f233a910e458d8b`, Actions 43665786554 correcto, función real aislada validada. IA remota AR6 correcta: tres referencias SEGEMAR, tracción pendiente; informe descargado validado y reconstruido idéntico.
+- 316 Python/332 web, typecheck/build correctos; contraste final movilidad/muestreo con 12 referencias cada uno y propósitos diferentes; regresión histórica e integridad correctas. ZIP `f76a905564f69737e763724da8467aff45dff1177e269a188a60da35807eb122`.
+- Evidencia y captura en submission; cierre en DEV_AI_VERIFICATION y CODEX_M10_REVIEW. Checkpoint documental `[skip ci]`, mismo código desplegado. Claude sin nueva tarea; no se modificó main.
+
 ## 2026-11-14 Codex · fiabilidad de la orientación geológica
 
 - Dev mostró exceso de referencias del modelo en AR6. Claude corrigió por encargo y Codex revisó una recuperación de un único reintento, conservando límites, validación y plazo total. 316 Python/332 web correctos; tres consultas reales AR6 válidas. ZIP actualizado. Publicación final en curso.

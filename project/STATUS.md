@@ -1,15 +1,20 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14, M10 aceptado localmente; publicación dev en curso (America/Santiago)
+**Última actualización:** 2026-11-14, cierre M10 (America/Santiago)
 **Responsable del checkpoint:** Codex
-**Milestone activo:** M10-GEOLOGY-AI aceptado localmente por Codex tras revisión de Claude; publicación y comprobación remota en curso.
-**Estado general:** planificador de ensayo/sector con motor determinista, snapshot científico v3 y Anthropic opcional funcionando en dev. Siete áreas con evidencia; faltan capas territoriales, contraste local y revisión experta de campo.
+**Milestone:** M10-GEOLOGY-AI completado, aceptado y publicado en dev.
+**Estado general:** planificador de pruebas/sectores con evaluación determinista, snapshot v3 y orientación geológica oficial seleccionada por Anthropic. Siete sectores del piloto; faltan contraste de campo, capas territoriales y validación con usuarios.
 
-## M10 — orientación geológica con IA, aceptada localmente
+## Entrega vigente — M10
 
-Catálogo de unidades y comprobaciones para la prueba, fuentes clicables, límites visibles, evidencia y exportación auditable. Revisión de integridad, regresión M8/M9 y navegador local/offline/móvil/teclado completadas. 316 Python y 325 web correctos; IA real contrastante y descarga local recalculada idéntica. Ciencia y geología originales intactas. ZIP SHA-256 `26bfbd68b3c7162db1c22ce3d640f6c8626f510107dd0587e6f6d3bfb09f06d1`. ADR-011 aceptado. Ver `docs/CODEX_M10_REVIEW.md`. Codex publica y verifica dev; Claude sin nueva asignación.
+- Código desplegado `4708b42b4bd152dca74d3e009f233a910e458d8b`; Actions 43665786554 correcto; https://analogos-dev.vercel.app/. Checkpoint posterior solo documental/evidencia con `[skip ci]`. Main no modificado por esta entrega.
+- Claude implementó y corrigió bajo revisión de Codex. Fuentes SERNAGEOMIN/SEGEMAR, comprobaciones vinculadas al objetivo, cobertura/escala/límites visibles y exportación auditable. Reintento único ante selección inválida, plazo total conservado; sin cambiar score, requisitos, evaluación ni datos científicos.
+- 316 Python y 332 web correctos; typecheck/build, contrastes reales movilidad/muestreo, integridad del wrapper y regresión M8/M9. 33 archivos protegidos intactos. Función Vercel real probada antes del despliegue.
+- IA real en dev: AR6, tres comprobaciones con unidades SEGEMAR, tracción pendiente. Informe descargado validado y reconstruido idéntico con datos oficiales. Evidencia/captura: `submission/evidence/m10-dev-geology-export.json`, `submission/assets/analogos-m10-dev.jpg`. Detalle: `docs/DEV_AI_VERIFICATION.md` y `docs/CODEX_M10_REVIEW.md`.
+- ZIP vigente: 31 entradas, 13.255.407 bytes, SHA-256 `f76a905564f69737e763724da8467aff45dff1177e269a188a60da35807eb122`. QA local offline/subcarpeta, errores, móvil/teclado completado; impresión nativa pendiente.
+- NEXT_TASK accepted; Claude sin nueva asignación. No iniciar otro milestone automáticamente. Los bloques siguientes son historia, no el estado vigente.
 
-## M9 — entrega actual aceptada y publicada
+## Antecedente M9 — aceptado y publicado
 
 Ficha y exportación geológica oficial en siete sectores; cobertura/ambigüedad y escala explícitas. Revisión de datos/código y navegador offline, 390 px/teclado, errores de carga y descarga real completadas. 316 Python y 246 web correctos; typecheck/build; baseline49 intacto. ZIP 31 entradas, SHA-256 `eed868335c5374d20b05415a8627be9ec3f035c1dc10668bbe08f21e03f6520c`. Ver `docs/CODEX_M9_REVIEW.md`. Código desplegado `34e76b9`; Actions 43658989969 correcto. Geología y exportación remotas verificadas; ambas operaciones reales Anthropic correctas y JSON recalculado idéntico. Capturas y exportaciones en submission; detalle en `docs/DEV_AI_VERIFICATION.md`. El checkpoint documental posterior no cambia el despliegue. Sin cambio de score, ciencia ni IA geológica.
 
@@ -38,7 +43,7 @@ Ficha y exportación geológica oficial en siete sectores; cobertura/ambigüedad
 - Caché de investigación ignorada: `data/raw/geology-feasibility-20261114/`, 13 archivos, 20.873.381 bytes. Dependencias exploratorias aisladas en `/tmp/analogos-geology-audit-libs`, sin modificar dependencias de la app.
 - Verificación del producto: 177 Python y 196 web correctos, 2 pruebas de IA real omitidas; typecheck/build correctos. La auditoría de cobertura no es validación de campo.
 
-## Entrega vigente — dev e IA real comprobados
+## Antecedente M8 — dev e IA real comprobados
 
 - URL: https://analogos-dev.vercel.app/. Código desplegado `9060970ecf71e3c68f7b11a8d220e37e49057dc8`; Actions 43639834860 correcto. El checkpoint posterior solo agrega documentación/evidencia con `[skip ci]` y conserva ese despliegue verificado. Main no se publica.
 - Dan autorizó subir a dev y verificar la IA. La clave está en GitHub Secrets, inyectada solo en runtime del deploy dev. Protección de Vercel conservada; clave ausente del código, bundle, ZIP y evidencia.
