@@ -18,8 +18,8 @@
 .metrics-summary { display: grid; gap: 8px; min-width: 0; }
 .metrics-score { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
 .metrics-score-glyph { color: var(--earth-bright); font-size: var(--fs-13); }
-.metrics-score-value { color: var(--earth-bright); font-size: var(--fs-place); font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
-.metrics-score-value small { color: var(--earth-bright); font-size: var(--fs-13); font-weight: 600; }
+.metrics-score-value { color: var(--sim, var(--earth-bright)); font-size: var(--fs-place); font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.metrics-score-value small { color: var(--sim, var(--earth-bright)); font-size: var(--fs-13); font-weight: 600; }
 .metrics-score-value.is-empty { color: var(--muted); font-size: var(--fs-body); }
 .metrics-score-label { color: var(--muted); font-size: var(--fs-12); }
 .metrics-profile { margin: 0; color: var(--muted); font-size: var(--fs-min); line-height: 1.4; }
@@ -38,7 +38,7 @@
 /* S1: ‹ % › */
 .metrics-sitenav { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 6px; }
 .metrics-sitenav-score { display: grid; gap: 2px; margin: 0; text-align: center; }
-.metrics-sitenav-score strong { color: var(--earth-bright); font-size: var(--fs-metric); font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.metrics-sitenav-score strong { color: var(--sim, var(--earth-bright)); font-size: var(--fs-metric); font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .metrics-sitenav-score small { color: var(--muted); font-size: var(--fs-min); }
 .metrics-rank { color: var(--text); font-weight: 600; }
 .metrics-figline { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 12px; margin: 0; color: var(--muted); font-size: var(--fs-min); font-variant-numeric: tabular-nums; }

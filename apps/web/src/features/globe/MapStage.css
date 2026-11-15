@@ -44,6 +44,10 @@
 .stage-legend b { color: var(--earth-bright, #3FB4EC); font-size: 11px; font-weight: 400; }
 .stage-legend b.is-reference { color: var(--muted, #94AABA); }
 .stage-legend b.is-insufficient { color: var(--pending, #6F889A); }
+.legend-sim { gap: 6px; }
+.legend-sim-step { display: inline-flex; align-items: center; gap: 3px; font-variant-numeric: tabular-nums; }
+.legend-sim-step i { width: 8px; height: 8px; border-radius: 50%; background: var(--sim); }
+.legend-sim-note { color: var(--pending, #6F889A); }
 .stage-source { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
 .stage-source small { color: var(--muted, #94AABA); font-family: var(--mono, ui-monospace, monospace); font-size: var(--fs-min, 10px); letter-spacing: var(--caps-tracking, .08em); text-transform: uppercase; }
 .stage-source span { display: inline-flex; flex-wrap: wrap; gap: 2px 8px; }

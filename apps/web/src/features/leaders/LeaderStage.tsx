@@ -12,6 +12,7 @@ import type { Size } from './frame'
 import { NO_MARS_TEXT, type LeaderHeaderModel, type LeaderLabelModel } from './labelModel'
 import { toRects, type LeaderStageBridge } from './projector'
 import './leaders.css'
+import { similarityTone } from '../../domain/similarityScale'
 
 export interface LeaderStageProps {
   siteId: string
@@ -237,7 +238,7 @@ function LeaderCard({ label }: { label: LeaderLabelModel }) {
         {reference.kind === 'rule' && <span className="leaders-rule">{GLYPH.rule} regla</span>}
         {reference.kind === 'none' && <span className="leaders-nomars">{NO_MARS_TEXT}</span>}
       </div>
-      <div className="leaders-sim">
+      <div className="leaders-sim" data-sim-tone={similarityTone(label.similarity, 0) ?? undefined}>
         {label.similarity !== null ? (
           <>
             <span className="leaders-bar"><span style={{ transform: `scaleX(${label.similarity / 100})` }} /></span>

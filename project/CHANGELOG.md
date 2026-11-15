@@ -1,6 +1,13 @@
 # Changelog de trabajo
 
 
+
+## 2026-11-15 Claude Code — escala de color de la similitud
+
+- Los % de similitud usan una escala: 0–49 rojo · 50–69 amarillo · 70–89 azul · 90–100 verde (`domain/similarityScale.ts`, tokens `--sim-*`). Se aplica a los anillos del carrusel y de cada criterio, al % del riel y de la hoja, a las líneas tipo Tesla y al rótulo del pin. Confianza y factibilidad no cambian.
+- El tono se calcula sobre el número tal como se muestra (un 69,6 que se ve «70» es azul). El número siempre está visible y la leyenda del escenario aclara «no es aptitud».
+- Verificado: `npm run verify` (328 Python, 805 web, typecheck:server, build); revisión en navegador a 1440 y 390.
+
 ## 2026-11-15 Claude Code — hoja móvil: lista vacía al deslizar
 
 - En móvil, al deslizar hacia arriba la hoja de lugares (o con «Ver lista»), la lista medía 0 px de alto (`flex: 1 1 0` sin alto en el padre) y quedaba recortada: pantalla vacía. En la hoja, la lista ahora toma el alto de su contenido y el scroll lo hace la propia hoja. El dock de escritorio conserva su scroll interno (`features/places/places.css`, test de regresión en `places.test.ts`).

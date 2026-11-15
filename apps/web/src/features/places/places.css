@@ -139,9 +139,10 @@
 .places-ring circle { fill: none; stroke-width: 3; }
 .places-ring-track { stroke: var(--line-strong); }
 .places-ring[data-empty] .places-ring-track { stroke: var(--pending); stroke-dasharray: 4 4; }
-.places-ring-value { stroke: var(--earth-bright); stroke-linecap: round; animation: places-ring var(--dur-6) var(--ease-emph) both; animation-delay: calc(var(--i, 0) * var(--stagger-list)); }
+.places-ring-value { stroke: var(--sim, var(--earth-bright)); stroke-linecap: round; animation: places-ring var(--dur-6) var(--ease-emph) both; animation-delay: calc(var(--i, 0) * var(--stagger-list)); }
 .places-ring b { position: absolute; top: 0; display: grid; place-items: center; width: 100%; height: 42px; font-size: var(--fs-13); font-variant-numeric: tabular-nums; }
 .places-ring[data-empty] b { color: var(--pending); }
+.places-ring[data-sim-tone] b { color: var(--sim); }
 .places-ring small { max-width: 100%; overflow: hidden; color: var(--muted); font-size: var(--fs-min); line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
 .places-ring .places-ring-tag { color: var(--pending); }
 

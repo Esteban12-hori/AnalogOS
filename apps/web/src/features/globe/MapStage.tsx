@@ -18,6 +18,7 @@ import './MapStage.css'
 
 import { GLOBE_TEXTURE_KM, hideBootStage, MAPLIBRE_WORKER_URL, prefetchToCache, whenIdle } from '../../data/preload'
 import { flatThresholds, type ViewInsets } from '../../domain/mapZoom'
+import { SIMILARITY_SCALE } from '../../domain/similarityScale'
 
 // three.js y MapLibre van en chunks aparte, pero se piden de inmediato: el globo al evaluar
 // este módulo (en paralelo con el snapshot) y el mapa 2D apenas el navegador queda ocioso.
@@ -513,6 +514,19 @@ export function MapStage({
               <span><b className="is-insufficient" aria-hidden="true">{GLYPH.insufficient}</b> datos insuficientes</span>
             </>
           )}
+          <span className="legend-sim" title="Más parecido a Marte con el perfil activo; no indica aptitud">
+            % similitud
+            {SIMILARITY_SCALE.map((step, index) => {
+              const next = SIMILARITY_SCALE[index + 1]
+              return (
+                <span key={step.tone} className="legend-sim-step">
+                  <i data-sim-tone={step.tone} aria-hidden="true" />
+                  {next ? `${step.min}–${next.min - 1}` : `≥${step.min}`}
+                </span>
+              )
+            })}
+            <span className="legend-sim-note">no es aptitud</span>
+          </span>
           <span className="legend-outline">Contorno referencial, no límite oficial</span>
         </div>
         <div className="stage-source">

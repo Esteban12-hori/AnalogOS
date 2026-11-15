@@ -62,6 +62,11 @@
 # Estado actual
 
 
+
+## Escala de color de la similitud (2026-11-15, Claude)
+
+- Rojo/amarillo/azul/verde según el % de similitud, con leyenda «no es aptitud». En `dev` local junto con la corrección de la lista móvil; pendiente de push y de que Danilo lo promueva a `main`.
+
 ## Corrección móvil (2026-11-15, Claude)
 
 - Lista vacía al deslizar hacia arriba la hoja de lugares: corregida en `dev` (CSS de `features/places`, con test). Pendiente que Danilo la promueva a `main`.

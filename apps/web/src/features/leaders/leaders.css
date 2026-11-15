@@ -119,12 +119,13 @@
 .leaders-bar > span {
   position: absolute;
   inset: 0;
-  background: var(--earth, #0297DE);
+  background: var(--sim, var(--earth, #0297DE));
   transform-origin: left center;
   transition: transform var(--dur-3) var(--ease-standard); /* barras sí transicionan; cifras no */
 }
 .leaders-bar.is-pending { background: none; border: 1px dashed var(--pending, #6F889A); height: 5px; }
 .leaders-pct { font-weight: 650; }
+.leaders-sim[data-sim-tone] .leaders-pct:not(.is-pending) { color: var(--sim); }
 .leaders-pct.is-pending { color: var(--pending, #6F889A); font-weight: 500; }
 .leaders-sim-word { color: var(--muted, #94AABA); font-size: var(--fs-min, 10px); }
 .leaders-note { max-width: 194px; color: var(--muted, #94AABA); font-size: var(--fs-min, 10px); }

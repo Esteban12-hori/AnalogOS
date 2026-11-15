@@ -46,6 +46,12 @@
   --error-text: var(--text, #EEF6FB);            /* error = neutro + ✕ + texto, role=alert */
   --error-line: var(--muted, #94AABA);
   --ai-rule: rgba(207, 233, 247, .5);            /* ✦ regla lateral de 2 px (hielo al 50 %) */
+  /* Escala de similitud (domain/similarityScale.ts): solo para %, nunca confianza ni factibilidad.
+     Luminosidades distintas para distinguir rojo/verde con daltonismo; el número siempre se muestra. */
+  --sim-low: #F0506E;   /* 0–49  rojo (distinto del naranja de Marte) */
+  --sim-mid: #F2C14E;   /* 50–69 amarillo */
+  --sim-good: #3FB4EC;  /* 70–89 azul */
+  --sim-high: #34D399;  /* 90–100 verde */
   --marker-bg: rgba(2, 7, 10, .88);              /* marcadores, etiquetas, tarjetas y chips: sin blur */
 
   /* Tipografía */
@@ -105,3 +111,10 @@
     --loop-max-iterations: 0;
   }
 }
+
+/* Cada elemento con data-sim-tone define --sim; los componentes lo usan con su color previo como respaldo. */
+[data-sim-tone="low"] { --sim: var(--sim-low); }
+[data-sim-tone="mid"] { --sim: var(--sim-mid); }
+[data-sim-tone="good"] { --sim: var(--sim-good); }
+[data-sim-tone="high"] { --sim: var(--sim-high); }
+

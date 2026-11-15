@@ -24,6 +24,7 @@ import type { MetricRailProps } from './index'
 import { useMetricContext, type MetricContext, type MissionLayer } from './metricContext'
 import { coverageText, siteShortName, siteSimilarityText } from './summaryText'
 import './metric-rail.css'
+import { similarityTone } from '../../domain/similarityScale'
 
 const loadDetails = () => import('./MetricDetails')
 const MetricDetails = lazy(loadDetails)
@@ -129,7 +130,7 @@ function Summary({ context, site }: { context: MetricContext; site: CandidateSit
     <section className="metrics-summary" aria-label="Cifras del lugar">
       <div className="metrics-score">
         <span className="metrics-score-glyph" aria-hidden="true">{scored ? GLYPH.evaluated : GLYPH.insufficient}</span>
-        <strong className={scored ? 'metrics-score-value' : 'metrics-score-value is-empty'}>
+        <strong className={scored ? 'metrics-score-value' : 'metrics-score-value is-empty'} data-sim-tone={similarityTone(figures.similarity) ?? undefined}>
           <FadeNumber value={figures.similarity}>{siteSimilarityText(figures)}</FadeNumber>
           {scored && <small> %</small>}
         </strong>
@@ -198,7 +199,7 @@ function SheetSummary({ context, site, data }: { context: MetricContext; site: C
           ‹
         </button>
         <p className="metrics-sitenav-score">
-          <strong>
+          <strong data-sim-tone={similarityTone(figures.similarity) ?? undefined}>
             {context.rank !== null && <span className="metrics-rank">#{context.rank}{context.kind === 'base' ? ` de ${context.rankedCount}` : ''} · </span>}
             {/* La REF nunca aparece sin su rótulo: en Misión el motor del equipo puede darle puesto. */}
             {context.role === 'reference' && <span className="metrics-rank">REF · </span>}

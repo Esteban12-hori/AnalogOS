@@ -7,6 +7,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import type { CriterionId } from '../../domain/contracts'
 import { formatWhole } from '../../domain/formatting'
 import type { MetricView } from './index'
+import { similarityTone } from '../../domain/similarityScale'
 
 const n1 = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
 const n0 = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 })
@@ -36,7 +37,7 @@ export function Ring({ value, size = 'md', excluded = false }: { value: number |
   const shown = excluded ? null : value
   const fraction = shown === null ? 0 : Math.max(0, Math.min(1, shown / 100))
   return (
-    <span className={`metrics-ring metrics-ring-${size}${shown === null ? ' is-empty' : ''}${excluded ? ' is-excluded' : ''}`} aria-hidden="true">
+    <span className={`metrics-ring metrics-ring-${size}${shown === null ? ' is-empty' : ''}${excluded ? ' is-excluded' : ''}`} data-sim-tone={similarityTone(shown, 0) ?? undefined} aria-hidden="true">
       <svg viewBox="0 0 44 44">
         <circle className="metrics-ring-track" cx="22" cy="22" r="18" pathLength={1} />
         {shown !== null && <circle className="metrics-ring-fill" cx="22" cy="22" r="18" pathLength={1} style={{ strokeDashoffset: 1 - fraction }} />}

@@ -24,6 +24,7 @@ import {
 } from './markers'
 import { GLYPH } from '../../shell/public'
 import './markers.css'
+import { similarityTone } from '../../domain/similarityScale'
 
 export type PinRef = (element: HTMLDivElement | null) => void
 
@@ -67,7 +68,7 @@ export function MarkerPin({ model, selected, hover, labeled, onActivate, rootRef
           <span className="globe-pin-label" aria-hidden="true">
             {badge && <b className="globe-pin-rank">{badge}</b>}
             <span className="globe-pin-name">{model.name}</span>
-            {score && <span className="globe-pin-score">{score}</span>}
+            {score && <span className="globe-pin-score" data-sim-tone={similarityTone(model.score) ?? undefined}>{score}</span>}
             {status && <span className="globe-pin-status">{status}</span>}
             {model.contains !== null && <span className="globe-pin-status">contiene {model.contains} {model.contains === 1 ? 'sector' : 'sectores'}</span>}
             {selected && model.kind === 'reference' && <span className="globe-pin-status">zona aproximada</span>}

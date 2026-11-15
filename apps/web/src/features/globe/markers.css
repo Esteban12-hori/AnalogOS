@@ -88,7 +88,7 @@
 .globe-pin.is-reference .globe-pin-label, .globe-pin.is-insufficient .globe-pin-label { border-style: dashed; border-color: rgba(111, 136, 154, .6); }
 .globe-pin.is-reference .globe-pin-label::before, .globe-pin.is-insufficient .globe-pin-label::before { border-top-color: rgba(148, 170, 186, .6); }
 .globe-pin-rank { color: var(--muted, #94AABA); font-family: var(--mono, ui-monospace, monospace); font-size: var(--fs-caps, 11px); font-weight: 700; }
-.globe-pin-score { color: var(--earth-bright, #3FB4EC); font-variant-numeric: tabular-nums; font-weight: 700; }
+.globe-pin-score { color: var(--sim, var(--earth-bright, #3FB4EC)); font-variant-numeric: tabular-nums; font-weight: 700; }
 .globe-pin-status { color: var(--muted, #94AABA); font-size: var(--fs-caps, 11px); font-weight: 500; }
 .globe-pin-badge { color: var(--muted, #94AABA); font-size: var(--fs-caps, 11px); font-weight: 500; }
 

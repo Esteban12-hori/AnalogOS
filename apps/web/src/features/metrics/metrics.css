@@ -31,7 +31,7 @@
 .metrics-ring-track { stroke: rgba(255, 255, 255, .08); }
 .metrics-ring.is-empty .metrics-ring-track { stroke: var(--pending); stroke-dasharray: .04 .04; opacity: .6; }
 .metrics-ring-fill {
-  stroke: var(--earth-bright); stroke-linecap: round; stroke-dasharray: 1;
+  stroke: var(--sim, var(--earth-bright)); stroke-linecap: round; stroke-dasharray: 1;
   transition: stroke-dashoffset var(--dur-6) var(--ease-enter);
   animation: metricsDraw var(--dur-6) var(--ease-enter) both;
 }
@@ -211,3 +211,4 @@
   .metrics-row-panel, .metrics-ring-fill { transition: none; }
 }
 @keyframes metricsFade { from { opacity: 0; } }
+.metrics-ring[data-sim-tone] > span { color: var(--sim); }

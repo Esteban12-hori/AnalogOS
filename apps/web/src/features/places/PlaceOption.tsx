@@ -15,6 +15,7 @@ import { MISSION_STATUS_LABEL, preferencesText, type SiteMissionStatus } from '.
 import type { MissionEvaluation } from '../../mission/types'
 import { GLYPH } from '../../shell/public'
 import { placeName, type EvaluatedPlace, type ReferencePlace } from './placeModel'
+import { similarityTone, similarityToneLabel } from '../../domain/similarityScale'
 
 type Vars = CSSProperties & Record<`--${string}`, string | number>
 
@@ -45,7 +46,7 @@ function Chip({ full, short, title }: { full: string; short: string; title: stri
 /** Anillo de similitud 0–100. El número aparece ya final: solo el trazo se dibuja. */
 export function SimilarityRing({ value, caption, tag }: { value: number | null; caption: string; tag?: string }) {
   return (
-    <span className="places-ring" data-empty={value === null ? '' : undefined}>
+    <span className="places-ring" data-empty={value === null ? '' : undefined} data-sim-tone={similarityTone(value) ?? undefined} title={similarityToneLabel(value) ?? undefined}>
       <svg viewBox="0 0 40 40" aria-hidden="true">
         <circle className="places-ring-track" cx="20" cy="20" r="17" pathLength={100} />
         {value !== null && (
