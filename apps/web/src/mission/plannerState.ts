@@ -1,13 +1,21 @@
 // Pure state of the M8 planner. The UI uses it as is with useReducer: this is where the rules of
 // invalidation (editing something clears results and cancels pending AI) and the protection against
 // late responses (only the response for the current requestId whose context has not changed is accepted) live.
+// Messages kept in the state (issues, draft/explain messages, warnings, open questions) are CANONICAL English
+// (`canonicalMessage`, ADR-017): the interface shows them with `displayMissionMessage`. Only the helpers that format
+// for display (`describeEditable`, `topicLabel`) and the content the user loads or creates in the interface
+// (`exampleState`, `defaultMetricRequirement`) follow the interface language.
 import { MAX_BRIEF_CHARS, METRICS, SUPPORTED_PROFILE_ID, UNMEASURED_TOPICS, detectUnmeasuredMentions } from './catalog'
 import { checkGeologySelection, type GeologyAiRecord, type GeologyCatalog } from '../../../../shared/geology/guidance'
 import { checkSelection } from './explanation'
 import type { AiDraftRecord, AiExplanationRecord, AiProvenance, DraftProposal } from './exportReport'
 import { fingerprint } from './fingerprint'
 import { evaluationFingerprint } from './evaluate'
-import { IMPORTANCE_LABEL, describeCondition, SCALE_LABEL, describeRequirementLine } from './format'
+import { describeRequirementLine } from './format'
+import { uiPack } from './pack'
+import { getLocale, type Locale } from '../i18n/locale'
+import { tMission } from '../i18n/messages/mission'
+import { canonicalMessage as msg } from './messages'
 import type { MeasurableRequirement, MetricId, MissionEvaluation, MissionRequest, MissionScope, Requirement } from './types'
 import { validateMissionRequest } from './validate'
 
@@ -102,32 +110,38 @@ export function parseNumber(text: string): number | null {
 
 export function toRequirement(e: EditableRequirement, confirmed: boolean): { ok: true; requirement: Requirement } | { ok: false; issue: string } {
   const base = { requirement_id: e.requirement_id, label: e.label.trim(), importance: e.importance, origin: e.origin, confirmed, source_quote: e.source_quote }
-  const tag = `“${e.label.trim() || e.requirement_id}”`
-  if (!base.label) return { ok: false, issue: `A requirement has no name.` }
+  const label = e.label.trim() || e.requirement_id
+  if (!base.label) return { ok: false, issue: msg('msg.unnamedRequirement') }
   if (e.kind === 'unmeasured') return { ok: true, requirement: { ...base, kind: 'unmeasured', topic_id: e.topic_id, detail: e.detail.trim() } }
   let value: MeasurableRequirement['value']
   if (e.operator === 'in') {
-    if (!e.countries.length) return { ok: false, issue: `${tag}: choose at least one country.` }
+    if (!e.countries.length) return { ok: false, issue: msg('msg.chooseCountry', { label }) }
     value = [...e.countries]
   } else if (e.operator === 'between') {
     const lo = parseNumber(e.valueText[0])
     const hi = parseNumber(e.valueText[1])
-    if (lo === null || hi === null) return { ok: false, issue: `${tag}: enter the minimum and maximum as numbers.` }
+    if (lo === null || hi === null) return { ok: false, issue: msg('msg.minMax', { label }) }
     value = [lo, hi]
   } else {
     const n = parseNumber(e.valueText[0])
-    if (n === null) return { ok: false, issue: `${tag}: enter the value as a number.` }
+    if (n === null) return { ok: false, issue: msg('msg.value', { label }) }
     value = n
   }
   return { ok: true, requirement: { ...base, kind: 'measurable', metric_id: e.metric_id, operator: e.operator, value, unit: e.unit, scale: e.scale } }
 }
 
 /** Summary line of a requirement being edited, with the effective condition (same wording as the result). */
-export function describeEditable(e: EditableRequirement, withImportance = true): string {
+export function describeEditable(e: EditableRequirement, withImportance = true, locale: Locale = getLocale()): string {
+  const pack = uiPack(locale)
+  const t = tMission.in(locale)
   const parsed = toRequirement(e, false)
-  if (parsed.ok) return withImportance ? describeRequirementLine(parsed.requirement) : `${parsed.requirement.label}: ${parsed.requirement.kind === 'unmeasured' ? `not measured${parsed.requirement.detail ? ` — ${parsed.requirement.detail}` : ''}` : `${describeCondition(parsed.requirement)} · ${SCALE_LABEL[parsed.requirement.scale]}`}`
+  if (parsed.ok) {
+    const r = parsed.requirement
+    if (withImportance) return describeRequirementLine(r, pack)
+    return `${r.label}: ${r.kind === 'unmeasured' ? `${t('editable.notMeasured')}${r.detail ? ` — ${r.detail}` : ''}` : `${pack.describeCondition(r)} · ${pack.scaleLabel[r.scale]}`}`
+  }
   const typed = e.kind === 'measurable' ? (e.operator === 'in' ? e.countries.join(', ') : e.valueText.filter(Boolean).join(' – ')) : ''
-  return `${e.label || 'Requirement'}: incomplete${typed ? ` (typed: ${typed})` : ''} (${IMPORTANCE_LABEL[e.importance]})`
+  return t('editable.incomplete', { label: e.label || t('requirement.unnamed'), typed: typed ? t('editable.typed', { text: typed }) : '', importance: pack.importanceLabel[e.importance] })
 }
 
 export function toEditable(r: Requirement): EditableRequirement {
@@ -145,18 +159,18 @@ export interface BuiltScope { scope: MissionScope | null; issues: string[] }
 
 export function buildScope(s: ScopeInput): BuiltScope {
   if (s.mode === 'catalog') return { scope: { mode: 'catalog' }, issues: [] }
-  if (s.mode === 'sector') return s.siteId ? { scope: { mode: 'sector', site_id: s.siteId }, issues: [] } : { scope: null, issues: ['Choose a sector.'] }
+  if (s.mode === 'sector') return s.siteId ? { scope: { mode: 'sector', site_id: s.siteId }, issues: [] } : { scope: null, issues: [msg('msg.chooseSector')] }
   if (s.mode === 'point') {
     const lon = parseNumber(s.lon)
     const lat = parseNumber(s.lat)
     const issues: string[] = []
-    if (lon === null) issues.push('Longitude: enter a number (e.g. -69.7).')
-    if (lat === null) issues.push('Latitude: enter a number (e.g. -25.0).')
+    if (lon === null) issues.push(msg('msg.lon'))
+    if (lat === null) issues.push(msg('msg.lat'))
     return lon === null || lat === null ? { scope: null, issues } : { scope: { mode: 'point', lon, lat, window_site_id: s.windowSiteId }, issues: [] }
   }
-  const parts: Array<[string, string]> = [['West', s.west], ['South', s.south], ['East', s.east], ['North', s.north]]
+  const parts: Array<['msg.west' | 'msg.south' | 'msg.east' | 'msg.north', string]> = [['msg.west', s.west], ['msg.south', s.south], ['msg.east', s.east], ['msg.north', s.north]]
   const nums = parts.map(([, t]) => parseNumber(t))
-  const issues = parts.flatMap(([name], i) => (nums[i] === null ? [`${name}: enter a number.`] : []))
+  const issues = parts.flatMap(([key], i) => (nums[i] === null ? [msg(key)] : []))
   return issues.length ? { scope: null, issues } : { scope: { mode: 'bbox', bbox: nums as [number, number, number, number], window_site_id: s.windowSiteId }, issues: [] }
 }
 
@@ -169,7 +183,8 @@ export function uncoveredMentions(state: Pick<PlannerState, 'brief' | 'requireme
 
 /** Saved open questions plus the unmeasured topics that the brief mentions and no requirement covers. */
 export function pendingQuestions(state: Pick<PlannerState, 'brief' | 'requirements' | 'openQuestions'>): string[] {
-  const detected = uncoveredMentions(state).map((m) => `The brief mentions “${m.matched_text}”: “${m.label}” is not measured in the snapshot; add it as a pending requirement if it matters.`)
+  // Canonical English: these questions travel in the request (record), whatever the interface language.
+  const detected = uncoveredMentions(state).map((m) => msg('msg.pendingMention', { text: m.matched_text, topic: m.label }))
   return [...new Set([...state.openQuestions, ...detected])].slice(0, 20)
 }
 
@@ -183,15 +198,15 @@ export function buildRequest(state: PlannerState): { request: MissionRequest | n
   }
   const scope = buildScope(state.scope)
   issues.push(...scope.issues)
-  if (state.brief.length > MAX_BRIEF_CHARS) issues.push(`The brief exceeds ${MAX_BRIEF_CHARS} characters.`)
-  if (state.target.kind === 'other' && !state.target.stated.trim()) issues.push('Describe the unsupported objective so it is kept in the report.')
+  if (state.brief.length > MAX_BRIEF_CHARS) issues.push(msg('msg.briefTooLong', { max: MAX_BRIEF_CHARS }))
+  if (state.target.kind === 'other' && !state.target.stated.trim()) issues.push(msg('msg.otherTarget'))
   if (issues.length || !scope.scope) return { request: null, issues }
   const request: MissionRequest = {
     schema_version: '1.0.0',
     brief: state.brief,
     activity: state.activity.trim(),
     target: state.target.kind === 'rover'
-      ? { profile_id: SUPPORTED_PROFILE_ID, stated: state.target.stated.trim() || 'Mars rover (Jezero reference)' }
+      ? { profile_id: SUPPORTED_PROFILE_ID, stated: state.target.stated.trim() || msg('rover') }
       : { profile_id: 'unsupported', stated: state.target.stated.trim() },
     requirements,
     open_questions: pendingQuestions(state).map((q) => q.slice(0, 300)),
@@ -233,7 +248,7 @@ function invalidate(s: PlannerState): PlannerState {
     confirmed: false,
     result: null,
     explain: IDLE_EXPLAIN,
-    draft: s.draft.status === 'pending' ? { ...s.draft, status: 'idle', requestId: null, briefFp: null, message: 'AI request canceled because the content changed.' } : s.draft,
+    draft: s.draft.status === 'pending' ? { ...s.draft, status: 'idle', requestId: null, briefFp: null, message: msg('msg.aiCanceledContent') } : s.draft,
   }
 }
 
@@ -258,7 +273,7 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
       return {
         ...base,
         brief: action.brief,
-        draft: { ...IDLE_DRAFT, message: state.draft.record ? 'The text changed: the requirements the AI proposed are now shown as edited by you.' : base.draft.message },
+        draft: { ...IDLE_DRAFT, message: state.draft.record ? msg('msg.briefChanged') : base.draft.message },
         requirements: state.requirements.map((r) => (r.origin === 'ai' ? { ...r, origin: 'user' as const } : r)),
       }
     }
@@ -323,7 +338,7 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
         requirements: [...kept, ...proposal.requirements.map(toEditable)],
         openQuestions: [...new Set([...state.openQuestions, ...proposal.open_questions])].slice(0, 20),
         draft: {
-          ...IDLE_DRAFT, status: 'done', warnings: otherTarget ? [...proposal.warnings, 'The AI understood that the objective is not a Mars rover; check the target before confirming.'] : proposal.warnings,
+          ...IDLE_DRAFT, status: 'done', warnings: otherTarget ? [...proposal.warnings, msg('msg.otherTargetWarning')] : proposal.warnings,
           record: { provenance: action.provenance, brief_fingerprint: d.briefFp ?? '', proposal },
         },
       }
@@ -340,7 +355,7 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
       const e = state.explain
       if (e.status !== 'pending' || e.requestId !== action.requestId || !state.result) return state // another request or already canceled: ignored
       // It is the response to the current request: if it does not match the calculation, it ends in error (it never stays "pending").
-      const discard = (): PlannerState => ({ ...state, explain: { ...state.explain, status: 'error', requestId: null, pendingCatalog: null, message: 'The AI response does not belong to the current calculation and was discarded.' } })
+      const discard = (): PlannerState => ({ ...state, explain: { ...state.explain, status: 'error', requestId: null, pendingCatalog: null, message: msg('msg.aiStale') } })
       if (action.requestFp !== e.requestFp || action.evaluationFp !== e.evaluationFp) return discard()
       if (state.result.request_fingerprint !== e.requestFp || evaluationFingerprint(state.result) !== e.evaluationFp) return discard()
       const checked = checkSelection(action.selection, state.result)
@@ -375,33 +390,49 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
   }
 }
 
-export function topicLabel(id: string): string {
-  return UNMEASURED_TOPICS.find((t) => t.id === id)?.label ?? 'Other unmeasured request'
+type TopicId = 'max_point_slope' | 'rock_size' | 'traction' | 'loose_soil' | 'road_access' | 'cost' | 'permits' | 'operational_date' | 'local_rain' | 'mobile_coverage'
+
+/** Label of an unmeasured topic in the interface language (the free topic: “Other unmeasured request”). */
+export function topicLabel(id: string, locale: Locale = getLocale()): string {
+  const t = tMission.in(locale)
+  return UNMEASURED_TOPICS.some((topic) => topic.id === id) ? t(`topic.${id as TopicId}`) : t('topic.other')
 }
 
-export function defaultMetricRequirement(metric: MetricId, id: string): EditableMeasurable {
+/** True when `label` is the default label of the topic in either interface language (it may follow a topic change). */
+export function isDefaultTopicLabel(label: string, id: string): boolean {
+  return label === topicLabel(id, 'en') || label === topicLabel(id, 'es')
+}
+
+/**
+ * New requirement for a metric, WITHOUT a value (the user types it). Its default name is the metric name in the
+ * interface language: once created it is the user's own label, kept as written in records and exports.
+ */
+export function defaultMetricRequirement(metric: MetricId, id: string, locale: Locale = getLocale()): EditableMeasurable {
   const spec = METRICS[metric]
   return {
-    kind: 'measurable', requirement_id: id, label: spec.label, importance: 'critical', origin: 'user', source_quote: null,
+    kind: 'measurable', requirement_id: id, label: locale === 'en' ? spec.label : tMission.in(locale)(`metric.${metric}`), importance: 'critical', origin: 'user', source_quote: null,
     metric_id: metric, operator: metric === 'country' ? 'in' : '<=', valueText: ['', ''], countries: metric === 'country' ? ['CL'] : [],
     unit: spec.canonical_unit, scale: 'window',
   }
 }
 
 /** EDITABLE example with sample values; it is not a recommendation. */
-export const EXAMPLE_BRIEF =
-  'Test autonomous navigation of a wheeled rover on arid, flat terrain. Must-have: regional median slope no greater than 3 degrees. ' +
-  'Preferred: at least 95% non-vegetated surface. Traction and permission from the landowner also matter, but this system does not measure them.'
+export const EXAMPLE_BRIEF = tMission.in('en')('example.brief')
 
-export function exampleState(): { brief: string; activity: string; requirements: Requirement[] } {
+/**
+ * Editable example in the interface language (same requirements, thresholds and scales in both languages: only the
+ * user-facing text differs). Once loaded it is the user's text and is kept as written, like any typed brief.
+ */
+export function exampleState(locale: Locale = getLocale()): { brief: string; activity: string; requirements: Requirement[] } {
+  const t = tMission.in(locale)
   const common = { importance: 'critical' as const, origin: 'user' as const, confirmed: false }
   return {
-    brief: EXAMPLE_BRIEF,
-    activity: 'Rover autonomous navigation test',
+    brief: t('example.brief'),
+    activity: t('example.activity'),
     requirements: [
-      { ...common, requirement_id: 'ex1', label: 'Regional median slope', source_quote: 'regional median slope no greater than 3 degrees', kind: 'measurable', metric_id: 'median_slope_degree', operator: '<=', value: 3, unit: 'degree', scale: 'window' },
-      { ...common, importance: 'preference', requirement_id: 'ex2', label: 'Non-vegetated fraction', source_quote: 'at least 95% non-vegetated surface', kind: 'measurable', metric_id: 'nonvegetated_fraction', operator: '>=', value: 95, unit: 'percent', scale: 'window' },
-      { ...common, importance: 'preference', requirement_id: 'ex3', label: 'Traction', source_quote: 'Traction', kind: 'unmeasured', topic_id: 'traction', detail: 'Not measured by this system.' },
+      { ...common, requirement_id: 'ex1', label: t('example.labelSlope'), source_quote: t('example.quoteSlope'), kind: 'measurable', metric_id: 'median_slope_degree', operator: '<=', value: 3, unit: 'degree', scale: 'window' },
+      { ...common, importance: 'preference', requirement_id: 'ex2', label: t('example.labelBare'), source_quote: t('example.quoteBare'), kind: 'measurable', metric_id: 'nonvegetated_fraction', operator: '>=', value: 95, unit: 'percent', scale: 'window' },
+      { ...common, importance: 'preference', requirement_id: 'ex3', label: t('example.labelTraction'), source_quote: t('example.quoteTraction'), kind: 'unmeasured', topic_id: 'traction', detail: t('example.detailTraction') },
     ],
   }
 }

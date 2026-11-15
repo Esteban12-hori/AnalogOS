@@ -6,6 +6,8 @@
  * 3 s and slowness notice at 10 s. There is no longer an in-house time limit: the cut-off is made by the team's AI client
  * at 45 s (CLIENT_TIMEOUT_MS) or by the user with «Cancel» (AbortSignal).
  */
+import { getLocale, type Locale } from '../../i18n/core'
+import { tComposer } from '../../i18n/messages/composer'
 import type { MissionPhase } from '../../state/ui'
 
 /** Visible stage of the wait: 0–300 ms still; from 300 ms orbit and light; 3 s counter; 10 s slow. */
@@ -36,19 +38,20 @@ export function isWaitingPhase(phase: MissionPhase): boolean {
   return phase === 'interpreting'
 }
 
-const STEP: Partial<Record<MissionPhase, string>> = {
-  interpreting: 'The AI proposes editable requirements · you confirm',
-  review: 'Review the requirements and confirm in “Your mission”',
-  scoring: 'Deterministic calculation in progress',
-  analysis: 'Results ready · the AI highlights reasons in Reading',
-  done: 'Results ready',
-  error: 'Could not be completed',
-  cancelled: 'Request canceled',
+const STEP: Partial<Record<MissionPhase, `phase.${'interpreting' | 'review' | 'scoring' | 'analysis' | 'done' | 'error' | 'cancelled'}`>> = {
+  interpreting: 'phase.interpreting',
+  review: 'phase.review',
+  scoring: 'phase.scoring',
+  analysis: 'phase.analysis',
+  done: 'phase.done',
+  error: 'phase.error',
+  cancelled: 'phase.cancelled',
 }
 
-/** Text of the actual phase (status line, orbit and card). */
-export function phaseLabel(phase: MissionPhase): string {
-  return STEP[phase] ?? ''
+/** Text of the actual phase (status line, orbit and card) in the interface language. */
+export function phaseLabel(phase: MissionPhase, locale: Locale = getLocale()): string {
+  const key = STEP[phase]
+  return key ? tComposer.in(locale)(key) : ''
 }
 
 /** Whole seconds elapsed for the counter visible from 3 s. */

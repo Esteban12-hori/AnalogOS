@@ -4,6 +4,7 @@
  * "Your mission". Shared state lives in `state/mission.ts` (written only by the mission controller)
  * and in `ui.missionPhase`.
  */
+import { composerNotice } from '../../mission/messageDisplay'
 import { createStore, useStore } from '../../state/store'
 import type { StepId } from '../../components/planner/PlannerView'
 import type { HistoryEntry } from './history'
@@ -18,7 +19,8 @@ export interface GeologyChannel {
   unavailableReason: string | null
 }
 
-export const GEOLOGY_LOADING_REASON = 'The geology context is still loading.'
+/** Canonical English (stored in the channel); shown with displayMissionMessage. */
+export const GEOLOGY_LOADING_REASON = composerNotice('notice.geologyLoading')
 
 export interface ComposerState {
   /** The mission chunk has loaded and the controller is ready. */
@@ -29,7 +31,7 @@ export interface ComposerState {
   history: readonly HistoryEntry[]
   /** Tests evaluated in this session (the last one is the current one): Undo restores the previous one. */
   undo: readonly HistoryEntry[]
-  /** Aviso no bloqueante («Solicitud cancelada…», «Restaurada…»). */
+  /** Non-blocking notice in canonical English (“Request canceled…”, “Test restored…”); shown with displayMissionMessage. */
   notice: string | null
   evaluationError: string | null
   exportError: string | null

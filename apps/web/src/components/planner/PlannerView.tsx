@@ -1,7 +1,11 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import type { CandidateSite } from '../../domain/contracts'
-import { shortCandidateName } from '../../domain/formatting'
+import { useLocale, useT } from '../../i18n'
+import { tMission } from '../../i18n/messages/mission'
+import { tPlanner } from '../../i18n/messages/planner'
 import { MAX_BRIEF_CHARS, exampleState, type JourneyId, type PlannerState } from '../../mission'
+import { displayMissionMessage } from '../../mission/messages'
+import { siteName } from '../../mission/siteName'
 import { ConfirmSummary } from './ConfirmSummary'
 import { RequirementEditor } from './RequirementEditor'
 import { ResultView } from './ResultView'
@@ -40,7 +44,7 @@ export interface PlannerViewProps {
    * brings focus to the step even if it was already open; with `target: 'brief'`, to the text of the test.
    */
   stepRequest?: { step: StepId; nonce: number; target?: 'brief' } | null
-  /** title of "Clear all"; by default, the team's (the standalone panel does not save anything). */
+  /** title of "Clear all"; by default, the team's in the interface language (the standalone panel saves nothing). */
   resetHint?: string
   /** Extra content at the bottom (history and Undo in "Your mission"). */
   footer?: ReactNode
@@ -49,13 +53,11 @@ export interface PlannerViewProps {
   /** Printable report of the current evaluation mounted (integrated interface, M11); defaults to true. */
   printReady?: boolean
 }
-const STEP_LABEL: Record<StepId, string> = { describe: 'Describe the test', scope: 'Choose the sector', confirm: 'Confirm and evaluate', result: 'Result' }
+const STEP_KEY = { describe: 'step.describe', scope: 'step.scope', confirm: 'step.confirm', result: 'step.result' } as const satisfies Record<StepId, string>
 const ORDER: Record<JourneyId, StepId[]> = {
   test: ['describe', 'scope', 'confirm', 'result'],
   sector: ['scope', 'describe', 'confirm', 'result'],
 }
-
-const RESET_HINT = 'The text lives only on this page; nothing is saved in the browser.'
 
 /**
  * Last external request that already moved the focus. A remount (e.g., returning to the Mission tab)
@@ -63,8 +65,11 @@ const RESET_HINT = 'The text lives only on this page; nothing is saved in the br
  */
 let focusedRequestNonce = 0
 
-export function PlannerView({ snapshot, api, intent, compact = false, stepRequest = null, resetHint = RESET_HINT, footer, onOpenReading, printReady }: PlannerViewProps) {
+export function PlannerView({ snapshot, api, intent, compact = false, stepRequest = null, resetHint, footer, onOpenReading, printReady }: PlannerViewProps) {
   const { state, dispatch, built, evaluate, evaluationError, runDraft, runExplain, geologyUi, exportJson, exportError } = api
+  const locale = useLocale()
+  const t = useT(tPlanner)
+  const tm = useT(tMission)
   const [step, setStep] = useState<StepId>(() => initialStep(state))
   const titleId = `${useId().replace(/[^\w-]/g, '')}-planner-title`
   const [announce, setAnnounce] = useState('')
@@ -105,7 +110,7 @@ export function PlannerView({ snapshot, api, intent, compact = false, stepReques
     }
     if (!journey) return
     const idx = steps.indexOf(step)
-    setAnnounce(`Step ${idx + 1} of ${steps.length}: ${STEP_LABEL[step]}`)
+    setAnnounce(t('step.announce', { n: idx + 1, total: steps.length, label: t(STEP_KEY[step]) }))
     const brief = focusBrief.current && step === 'describe' ? briefRef.current : null
     focusBrief.current = false
     // Focus scrolls the panel to the step (or the loaded text) even if "Your mission" is a strip.
@@ -116,13 +121,13 @@ export function PlannerView({ snapshot, api, intent, compact = false, stepReques
 
   const current = state.scope
   const scopeSummary = (() => {
-    if (current.mode === 'catalog') return 'Compare the seven areas'
+    if (current.mode === 'catalog') return t('bar.catalog')
     if (current.mode === 'sector') {
       const c = snapshot.candidates.find((x) => x.site_id === current.siteId)
-      return c ? `Sector: ${shortCandidateName(c.name)}` : 'No sector chosen'
+      return c ? t('bar.sector', { name: siteName(c.name, locale) }) : t('bar.noSector')
     }
-    if (current.mode === 'point') return `Point: ${current.lon || '…'}, ${current.lat || '…'}`
-    return `Rectangle: ${[current.west, current.south, current.east, current.north].map((v) => v || '…').join(', ')}`
+    if (current.mode === 'point') return t('bar.point', { lon: current.lon || '…', lat: current.lat || '…' })
+    return t('bar.bbox', { coords: [current.west, current.south, current.east, current.north].map((v) => v || '…').join(', ') })
   })()
 
   const idx = journey ? steps.indexOf(step) : -1
@@ -135,58 +140,55 @@ export function PlannerView({ snapshot, api, intent, compact = false, stepReques
   const briefCountId = compact ? `${titleId}-brief-count` : 'pl-brief-count'
   const briefField = (
     <label className="pl-field wide">
-      <span>Describe your test (optional, up to {MAX_BRIEF_CHARS} characters)</span>
+      <span>{t('brief.label', { max: MAX_BRIEF_CHARS })}</span>
       <textarea ref={briefRef} rows={compact ? 4 : 5} maxLength={MAX_BRIEF_CHARS} value={state.brief} onChange={(e) => dispatch({ type: 'set_brief', brief: e.target.value })}
-        placeholder="What you want to test, what is a must-have and what is preferred…" aria-describedby={briefCountId} />
+        placeholder={t('brief.placeholder')} aria-describedby={briefCountId} />
       <small id={briefCountId}>{state.brief.length} / {MAX_BRIEF_CHARS}</small>
     </label>
   )
   const exampleActions = (
     <div className="pl-actions">
-      <button type="button" onClick={() => dispatch({ type: 'load_example', example: exampleState() })}>Load an example</button>
-      <span className="pl-hint">Editable example with sample values: it is not a recommendation or a standard.</span>
+      <button type="button" onClick={() => dispatch({ type: 'load_example', example: exampleState(locale) })}>{t('example.load')}</button>
+      <span className="pl-hint">{t('example.hint')}</span>
     </div>
   )
 
   return (
     <section id={compact ? undefined : 'planner'} className={`planner${compact ? ' is-compact' : ' glass'}`} aria-labelledby={compact ? titleId : 'planner-title'}>
       {compact ? (
-        <h2 id={titleId} className="pl-sr">Test planner</h2>
+        <h2 id={titleId} className="pl-sr">{t('head.title')}</h2>
       ) : (
         <header className="pl-head">
-          <span className="section-kicker">Test planner</span>
-          <h2 id="planner-title">Which sector deserves reconnaissance for your test?</h2>
-          <p>Describe your test or choose a sector. The result says which area to prioritize, what rules it out and what still needs measuring, with real snapshot data and without approving anything.</p>
+          <span className="section-kicker">{t('head.title')}</span>
+          <h2 id="planner-title">{t('head.question')}</h2>
+          <p>{t('head.lead')}</p>
         </header>
       )}
 
-      <div className="pl-entry" role="group" aria-label="Choose a path">
+      <div className="pl-entry" role="group" aria-label={t('entry.group')}>
         <button type="button" className={`pl-card${journey === 'test' ? ' on' : ''}`} aria-pressed={journey === 'test'} onClick={() => { dispatch({ type: 'set_journey', journey: 'test' }); setStep('describe') }}>
-          <strong>Define a test</strong>
-          <span>Tell me what you want to test and I will show you which areas meet it and which do not.</span>
+          <strong>{t('entry.test')}</strong>
+          <span>{t('entry.testHint')}</span>
         </button>
         <button type="button" className={`pl-card${journey === 'sector' ? ' on' : ''}`} aria-pressed={journey === 'sector'} onClick={() => { dispatch({ type: 'set_journey', journey: 'sector' }); setStep('scope') }}>
-          <strong>Evaluate a sector</strong>
-          <span>Choose one of the seven areas with evidence, a point or a rectangle.</span>
+          <strong>{t('entry.sector')}</strong>
+          <span>{t('entry.sectorHint')}</span>
         </button>
       </div>
 
       {!journey && (
-        <p className="pl-hint pl-start">
-          First supported profile: Mars rover with the regional Jezero reference. Other objectives are kept as “not supported”.
-          It works offline and without AI; the AI is an optional helper.
-        </p>
+        <p className="pl-hint pl-start">{t('entry.start')}</p>
       )}
 
       {journey && (
         <div className="pl-flow">
-          <ol className="pl-steps" aria-label="Steps">
+          <ol className="pl-steps" aria-label={t('step.list')}>
             {steps.map((s, i) => {
               const disabled = s === 'result' && !state.result
               return (
                 <li key={s}>
                   <button type="button" disabled={disabled} aria-current={s === step ? 'step' : undefined} className={s === step ? 'on' : ''} onClick={() => setStep(s)}>
-                    <b>{i + 1}</b> {STEP_LABEL[s]}
+                    <b>{i + 1}</b> {t(STEP_KEY[s])}
                   </button>
                 </li>
               )
@@ -194,54 +196,54 @@ export function PlannerView({ snapshot, api, intent, compact = false, stepReques
           </ol>
           <div className="pl-bar">
             <span className="pl-tag">{scopeSummary}</span>
-            {step !== 'scope' && step !== 'result' && <button type="button" className="pl-ghost" onClick={() => setStep('scope')}>Change sector</button>}
-            <button type="button" className="pl-ghost" onClick={() => dispatch({ type: 'reset' })} title={resetHint}>Clear everything and start over</button>
+            {step !== 'scope' && step !== 'result' && <button type="button" className="pl-ghost" onClick={() => setStep('scope')}>{t('bar.changeSector')}</button>}
+            <button type="button" className="pl-ghost" onClick={() => dispatch({ type: 'reset' })} title={resetHint ?? t('reset.hint')}>{t('reset.button')}</button>
           </div>
 
           <div className="pl-body">
             {step === 'describe' && (
               <>
-                <h3 ref={headingRef} tabIndex={-1}>{idx + 1}. Describe your test</h3>
+                <h3 ref={headingRef} tabIndex={-1}>{t('step.headingDescribe', { n: idx + 1 })}</h3>
                 {/* In "Your mission" (panel strip) the example and the text go at the top: in view without scrolling. */}
                 {compact && exampleActions}
                 {compact && briefField}
                 <fieldset className="pl-modes">
-                  <legend>Objective</legend>
+                  <legend>{t('target.legend')}</legend>
                   <label className={`pl-radio${state.target.kind === 'rover' ? ' on' : ''}`}>
                     <input type="radio" name="target" checked={state.target.kind === 'rover'} onChange={() => dispatch({ type: 'set_target', target: { kind: 'rover', stated: '' } })} />
-                    <span><strong>Mars rover (Jezero reference)</strong><small>The only profile supported with real data.</small></span>
+                    <span><strong>{tm('rover')}</strong><small>{t('target.roverHint')}</small></span>
                   </label>
                   <label className={`pl-radio${state.target.kind === 'other' ? ' on' : ''}`}>
                     <input type="radio" name="target" checked={state.target.kind === 'other'} onChange={() => dispatch({ type: 'set_target', target: { kind: 'other', stated: state.target.stated } })} />
-                    <span><strong>Other objective / not supported</strong><small>Your request is kept, but nothing is calculated or recommended.</small></span>
+                    <span><strong>{t('target.other')}</strong><small>{t('target.otherHint')}</small></span>
                   </label>
                   {state.target.kind === 'other' && (
                     <label className="pl-field wide">
-                      <span>Describe it</span>
-                      <input type="text" maxLength={200} value={state.target.stated} onChange={(e) => dispatch({ type: 'set_target', target: { kind: 'other', stated: e.target.value } })} placeholder="E.g. lunar habitat, drilling…" />
+                      <span>{t('target.describe')}</span>
+                      <input type="text" maxLength={200} value={state.target.stated} onChange={(e) => dispatch({ type: 'set_target', target: { kind: 'other', stated: e.target.value } })} placeholder={t('target.placeholder')} />
                     </label>
                   )}
-                  {moonHint && <p className="pl-notice">The text mentions the Moon: the only supported profile is Mars rover. Choose “Other objective” if that applies.</p>}
+                  {moonHint && <p className="pl-notice">{t('target.moon')}</p>}
                 </fieldset>
 
                 {!compact && briefField}
                 <label className="pl-field wide">
-                  <span>Activity (optional)</span>
-                  <input type="text" maxLength={200} value={state.activity} onChange={(e) => dispatch({ type: 'set_activity', activity: e.target.value })} placeholder="E.g. rover autonomous navigation" />
+                  <span>{t('activity.label')}</span>
+                  <input type="text" maxLength={200} value={state.activity} onChange={(e) => dispatch({ type: 'set_activity', activity: e.target.value })} placeholder={t('activity.placeholder')} />
                 </label>
 
                 {!compact && exampleActions}
                 <div className="pl-ai-box">
                   <button type="button" onClick={runDraft} disabled={!state.brief.trim() || d.status === 'pending'} aria-busy={d.status === 'pending'}>
-                    {d.status === 'pending' ? 'Asking the AI…' : 'Propose requirements with AI (optional)'}
+                    {d.status === 'pending' ? t('ai.asking') : t('draft.button')}
                   </button>
-                  <p className="pl-hint">When you press it, the text of your test is sent to Anthropic to propose a draft. The manual flow sends nothing. The AI does not confirm or evaluate: you review and confirm.</p>
+                  <p className="pl-hint">{t('draft.hint')}</p>
                   <div aria-live="polite">
-                    {(d.status === 'error' || d.status === 'unavailable') && <p className="pl-notice">{d.message}</p>}
-                    {d.status === 'idle' && d.message && <p className="pl-hint">{d.message}</p>}
+                    {(d.status === 'error' || d.status === 'unavailable') && <p className="pl-notice">{d.message === null ? null : displayMissionMessage(d.message, locale)}</p>}
+                    {d.status === 'idle' && d.message && <p className="pl-hint">{displayMissionMessage(d.message, locale)}</p>}
                     {d.status === 'done' && (
-                      <p className="pl-ok">The AI proposed {aiReqs} requirement(s). Review them below: they are not confirmed.
-                        {d.warnings.map((w) => <span key={w} className="pl-notice block">{w}</span>)}</p>
+                      <p className="pl-ok">{t('draft.done', { count: aiReqs })}
+                        {d.warnings.map((w) => <span key={w} className="pl-notice block">{displayMissionMessage(w, locale)}</span>)}</p>
                     )}
                   </div>
                 </div>
@@ -251,33 +253,33 @@ export function PlannerView({ snapshot, api, intent, compact = false, stepReques
 
             {step === 'scope' && (
               <>
-                <h3 ref={headingRef} tabIndex={-1}>{idx + 1}. Choose the sector</h3>
+                <h3 ref={headingRef} tabIndex={-1}>{t('step.headingScope', { n: idx + 1 })}</h3>
                 <ScopePicker journey={journey} scope={state.scope} candidates={snapshot.candidates} dispatch={dispatch} />
               </>
             )}
 
             {step === 'confirm' && (
               <>
-                <h3 ref={headingRef} tabIndex={-1}>{idx + 1}. Confirm and evaluate</h3>
+                <h3 ref={headingRef} tabIndex={-1}>{t('step.headingConfirm', { n: idx + 1 })}</h3>
                 <ConfirmSummary state={state} candidates={snapshot.candidates} />
                 <ul className="pl-warns">
-                  {state.requirements.length === 0 && <li>Without requirements, every area is prioritized by similarity alone. Add requirements for a useful recommendation.</li>}
-                  {critUnmeasured > 0 && <li>{critUnmeasured} unmeasured must-have requirement(s): no area can be prioritized (insufficient evidence).</li>}
-                  {pointReqs > 0 && <li>{pointReqs} point-scale requirement(s): they are not assessed with window medians.</li>}
-                  {aiReqs > 0 && <li>{aiReqs} requirement(s) come from an unedited AI proposal; by confirming, you make them yours.</li>}
-                  {state.target.kind === 'other' && <li>The objective is not supported: a report without calculation or recommendation will be generated.</li>}
+                  {state.requirements.length === 0 && <li>{t('confirm.noRequirements')}</li>}
+                  {critUnmeasured > 0 && <li>{t('confirm.criticalUnmeasured', { count: critUnmeasured })}</li>}
+                  {pointReqs > 0 && <li>{t('confirm.pointScale', { count: pointReqs })}</li>}
+                  {aiReqs > 0 && <li>{t('confirm.aiUnedited', { count: aiReqs })}</li>}
+                  {state.target.kind === 'other' && <li>{t('confirm.unsupported')}</li>}
                 </ul>
-                {built.issues.length > 0 && <ul className="pl-problems" role="alert">{built.issues.map((i) => <li key={i}>{i}</li>)}</ul>}
+                {built.issues.length > 0 && <ul className="pl-problems" role="alert">{built.issues.map((i) => <li key={i}>{displayMissionMessage(i, locale)}</li>)}</ul>}
                 {!state.confirmed ? (
-                  <button type="button" disabled={built.issues.length > 0} onClick={() => dispatch({ type: 'confirm' })}>Confirm requirements and sector</button>
+                  <button type="button" disabled={built.issues.length > 0} onClick={() => dispatch({ type: 'confirm' })}>{t('confirm.button')}</button>
                 ) : (
                   <div className="pl-actions">
-                    <p className="pl-ok">Confirmed. If you change anything you will have to confirm again.</p>
-                    <button type="button" onClick={() => evaluate()}>Evaluate now</button>
-                    <button type="button" className="pl-ghost" onClick={() => dispatch({ type: 'unconfirm' })}>Edit</button>
+                    <p className="pl-ok">{t('confirm.done')}</p>
+                    <button type="button" onClick={() => evaluate()}>{t('confirm.evaluate')}</button>
+                    <button type="button" className="pl-ghost" onClick={() => dispatch({ type: 'unconfirm' })}>{t('confirm.edit')}</button>
                   </div>
                 )}
-                {evaluationError && <p className="pl-notice" role="alert">{evaluationError}</p>}
+                {evaluationError && <p className="pl-notice" role="alert">{displayMissionMessage(evaluationError, locale)}</p>}
               </>
             )}
 
@@ -289,9 +291,9 @@ export function PlannerView({ snapshot, api, intent, compact = false, stepReques
           </div>
 
           {step !== 'result' && (
-            <nav className="pl-nav" aria-label="Step navigation">
-              <button type="button" className="pl-ghost" disabled={idx <= 0} onClick={() => go(-1)}>← Back</button>
-              {step !== 'confirm' && <button type="button" onClick={() => go(1)}>Next →</button>}
+            <nav className="pl-nav" aria-label={t('nav.label')}>
+              <button type="button" className="pl-ghost" disabled={idx <= 0} onClick={() => go(-1)}>{t('nav.back')}</button>
+              {step !== 'confirm' && <button type="button" onClick={() => go(1)}>{t('nav.next')}</button>}
             </nav>
           )}
         </div>

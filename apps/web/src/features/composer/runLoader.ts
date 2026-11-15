@@ -5,6 +5,7 @@
  */
 import type { DemoSnapshot } from '../../data/loadDemoSnapshot'
 import type { GeologyContextState } from '../../domain/geologyContext'
+import { composerNotice } from '../../mission/messageDisplay'
 import type { EvidenceBundle } from '../../mission/types'
 import type { MissionController } from './missionController'
 import { composerStore } from './composerStore'
@@ -60,6 +61,7 @@ export function withController(fn: (controller: MissionController) => unknown): 
   loadController()
     .then(fn)
     .catch(() => {
-      composerStore.setState({ notice: 'The planner could not be loaded. Reload the page to try again.' })
+      // Canonical English: the composer shows it in the interface language (displayMissionMessage).
+      composerStore.setState({ notice: composerNotice('notice.loadFailed') })
     })
 }

@@ -15,8 +15,11 @@
 import type { CandidateSite, CriterionId, MissionProfile } from '../../domain/contracts'
 import { CRITERION_IDS, isCriterionId } from '../../domain/criteria'
 import { rankMap, splitByRole } from '../../domain/discovery'
-import { criterionLabels, feasibilityLabels, formatRatio, formatScore, formatWhole, shortCandidateName } from '../../domain/formatting'
-import { displaySource } from '../../i18n/sourceText'
+import { criterionLabels } from '../../domain/formatting'
+import { formatDecimal, formatInteger, formatScore, formatScorePercent, getLocale, withPercent, type Locale } from '../../i18n/core'
+import { tReading } from '../../i18n/messages/reading'
+import { scienceText } from '../../i18n/science'
+import { siteName } from '../../mission/siteName'
 import type { MetricView } from '../metrics'
 import { PERTURBATION, type RobustnessSummary } from './robustness'
 import type { ComparisonFacts, CriterionFact, DirectionFact, FactRef, FactsLayer, RobustnessFacts, SiteFacts } from './types'
@@ -30,12 +33,15 @@ const SITE_ID = /^(cl|ar)-[a-z0-9-]+$/
 
 type TopographicId = 'slope' | 'terrain_roughness' | 'local_relief'
 
-/** Direction phrase relative to Jezero, per topographic criterion (no figures). */
-export const DIRECTION_PHRASE: Readonly<Record<TopographicId, Readonly<Record<DirectionFact['direction'], string>>>> = {
-  slope: { more_demanding: 'steeper than Jezero', less_demanding: 'less steep than Jezero', similar: 'slope similar to Jezero' },
-  terrain_roughness: { more_demanding: 'rougher than Jezero', less_demanding: 'less rough than Jezero', similar: 'roughness similar to Jezero' },
-  local_relief: { more_demanding: 'more relief than Jezero', less_demanding: 'less relief than Jezero', similar: 'relief similar to Jezero' },
+/** Direction phrase relative to Jezero, per topographic criterion (no figures), in a language. */
+export function directionPhrase(id: TopographicId, direction: DirectionFact['direction'], locale: Locale = getLocale()): string {
+  return tReading.in(locale)(`direction.${id}.${direction}`)
 }
+
+/** English direction phrases (tests, tooling). */
+export const DIRECTION_PHRASE: Readonly<Record<TopographicId, Readonly<Record<DirectionFact['direction'], string>>>> = Object.fromEntries(
+  (['slope', 'terrain_roughness', 'local_relief'] as const).map((id) => [id, Object.fromEntries((['more_demanding', 'less_demanding', 'similar'] as const).map((d) => [d, directionPhrase(id, d, 'en')]))]),
+) as Record<TopographicId, Record<DirectionFact['direction'], string>>
 
 function isTopographic(id: CriterionId): id is TopographicId {
   return id === 'slope' || id === 'terrain_roughness' || id === 'local_relief'
@@ -52,15 +58,17 @@ export interface FactsInput {
   robustnessReason?: string | null
   /** Only these sites (e.g. those evaluated in Mission); absent = all. */
   onlySiteIds?: readonly string[] | null
+  /** Interface language of the fact texts (the current one by default). Figures and order do not depend on it. */
+  locale?: Locale
 }
 
-/** Short place name, without the "— sector …" suffix. */
-export function siteLabel(name: string): string {
-  return shortCandidateName(name).split(' — ')[0]?.trim() || name
+/** Short place name, without the "— sector …" suffix, in the interface language. */
+export function siteLabel(name: string, locale: Locale = getLocale()): string {
+  return siteName(name, locale).split(' — ')[0]?.trim() || name
 }
 
-function pct(value: number): string {
-  return `${formatWhole(value)} %`
+function pct(value: number, locale: Locale): string {
+  return `${formatInteger(value, locale)} %`
 }
 
 /** Search candidates in their global order and, separately, the known references. */
@@ -84,6 +92,8 @@ class FactBook {
 }
 
 export function buildFactsLayer(input: FactsInput): FactsLayer {
+  const locale = input.locale ?? getLocale()
+  const t = tReading.in(locale)
   const book = new FactBook()
   const { ranked, references } = ordered(input)
   const sites = [...ranked, ...references]
@@ -93,7 +103,9 @@ export function buildFactsLayer(input: FactsInput): FactsLayer {
   const rankedTotal = globalRank.size
   const labels = new Map<CriterionId, string>()
   for (const views of input.views.values()) for (const view of views) labels.set(view.criterionId, view.label)
-  const labelOf = (id: CriterionId): string => labels.get(id) ?? criterionLabels[id] ?? id
+  /** Criterion name: the metric view's in English (unchanged), the Spanish vocabulary in Spanish. */
+  const labelOf = (id: CriterionId): string => (locale === 'en' ? labels.get(id) ?? criterionLabels[id] ?? id : t(`criterion.${id}`))
+  const viewLabel = (id: CriterionId, view: MetricView): string => (locale === 'en' ? view.label : t(`criterion.${id}`))
   const viewOf = (siteId: string, id: CriterionId): MetricView | undefined => input.views.get(siteId)?.find((view) => view.criterionId === id)
   const robustnessBySite = new Map((input.robustness?.sites ?? []).map((row) => [row.siteId, row]))
 
@@ -115,11 +127,11 @@ export function buildFactsLayer(input: FactsInput): FactsLayer {
     const reference = site.role === 'reference'
     const similarity = site.similarity
     const insufficient = similarity === null
-    const similarityText = similarity !== null ? `${formatScore(similarity)}%` : 'insufficient data'
+    const similarityText = similarity !== null ? formatScorePercent(similarity, locale) : t('fact.insufficient')
     const position = globalRank.get(id)
     const rank = reference
-      ? book.add(`site:${id}:rank`, 'REF · known reference, outside the ranking')
-      : position !== undefined ? book.add(`site:${id}:rank`, `#${position} of ${rankedTotal}`) : null
+      ? book.add(`site:${id}:rank`, t('fact.rankReference'))
+      : position !== undefined ? book.add(`site:${id}:rank`, t('fact.rank', { rank: position, total: rankedTotal })) : null
     const confidenceValue = site.confidence
     const stabilityValue = site.stability ?? robustnessBySite.get(id)?.stability ?? null
     const coverageValue = (() => {
@@ -136,9 +148,9 @@ export function buildFactsLayer(input: FactsInput): FactsLayer {
       const raw = valid && typeof view.siteValue.raw === 'number' && Number.isFinite(view.siteValue.raw)
         ? book.add(`site:${id}:${criterionId}:raw`, view.siteValue.text)
         : null
-      const sim = view.similarity !== null ? book.add(`site:${id}:${criterionId}:sim`, pct(view.similarity)) : null
+      const sim = view.similarity !== null ? book.add(`site:${id}:${criterionId}:sim`, pct(view.similarity, locale)) : null
       const marsText = book.facts[`mars:${criterionId}`]
-      return { criterionId, label: view.label, raw, mars: marsText ? { id: `mars:${criterionId}`, text: marsText } : null, sim }
+      return { criterionId, label: viewLabel(criterionId, view), raw, mars: marsText ? { id: `mars:${criterionId}`, text: marsText } : null, sim }
     }
 
     for (const criterionId of CRITERION_IDS) {
@@ -148,9 +160,9 @@ export function buildFactsLayer(input: FactsInput): FactsLayer {
       const fact = criterionFact(criterionId, view)
       if (view.isLimiting && view.status === 'valid') limiting = fact
       if (isTopographic(criterionId) && view.vsMars && view.marsValue && view.status === 'valid') {
-        const ratio = book.add(`site:${id}:${criterionId}:ratio`, `${formatRatio(view.vsMars.ratio)}× Jezero`)
-        const phrase = book.add(`site:${id}:${criterionId}:vs_mars`, DIRECTION_PHRASE[criterionId][view.vsMars.direction])
-        if (ratio && phrase) directions.push({ criterionId, label: view.label, direction: view.vsMars.direction, ratio, phrase, raw: fact.raw, mars: fact.mars })
+        const ratio = book.add(`site:${id}:${criterionId}:ratio`, `${formatDecimal(view.vsMars.ratio, locale)}× Jezero`)
+        const phrase = book.add(`site:${id}:${criterionId}:vs_mars`, directionPhrase(criterionId, view.vsMars.direction, locale))
+        if (ratio && phrase) directions.push({ criterionId, label: viewLabel(criterionId, view), direction: view.vsMars.direction, ratio, phrase, raw: fact.raw, mars: fact.mars })
       }
       if (view.saturates && view.status === 'valid') saturates.push(fact)
     }
@@ -160,27 +172,27 @@ export function buildFactsLayer(input: FactsInput): FactsLayer {
       .map((item) => ({
         criterionId: item.criterion_id as CriterionId,
         label: labelOf(item.criterion_id as CriterionId),
-        status: item.status === 'needs_calibration' ? 'not yet calculated' : item.status === 'excluded' ? 'excluded' : 'no data',
+        status: item.status === 'needs_calibration' ? t('fact.missingPending') : item.status === 'excluded' ? t('fact.missingExcluded') : t('fact.missingNoData'),
       }))
 
     return {
       siteId: id,
-      name: siteLabel(site.name),
+      name: siteLabel(site.name, locale),
       reference,
       country: site.country ?? null,
       rank,
       similarity: book.add(`site:${id}:similarity`, similarityText),
       insufficient,
-      confidence: confidenceValue !== null ? book.add(`site:${id}:confidence`, formatScore(confidenceValue)) : null,
-      stability: stabilityValue !== null ? book.add(`site:${id}:stability`, formatScore(stabilityValue)) : null,
-      feasibility: book.add(`site:${id}:feasibility`, feasibilityLabels[site.feasibility]),
-      coverage: coverageValue !== null && Number.isFinite(coverageValue) ? book.add(`coverage:${id}`, `${formatWhole(coverageValue * 100)}% of the weight`) : null,
+      confidence: confidenceValue !== null ? book.add(`site:${id}:confidence`, formatScore(confidenceValue, locale)) : null,
+      stability: stabilityValue !== null ? book.add(`site:${id}:stability`, formatScore(stabilityValue, locale)) : null,
+      feasibility: book.add(`site:${id}:feasibility`, t(`feasibility.${site.feasibility}`)),
+      coverage: coverageValue !== null && Number.isFinite(coverageValue) ? book.add(`coverage:${id}`, t('fact.coverage', { percent: withPercent(formatInteger(coverageValue * 100, locale), locale) })) : null,
       directions,
       limiting,
       saturates,
       missing,
       checks: site.field_checks.slice(0, 99).map((text, index) => {
-        const trimmed = displaySource(text).trim()
+        const trimmed = scienceText(text, locale).trim()
         return { ref: `check:${id}:${index + 1}`, text: trimmed.length > CHECK_TEXT_MAX ? `${trimmed.slice(0, CHECK_TEXT_MAX - 1)}…` : trimmed }
       }).filter((check) => check.text.length > 0),
     }
@@ -189,7 +201,7 @@ export function buildFactsLayer(input: FactsInput): FactsLayer {
   const referenceFacts = references.map(factsOf)
 
   // ---- Comparison: candidates only (the REF does not compete in "best of N") ---------------------
-  const comparison = compare(ranked, book, viewOf, weightOf)
+  const comparison = compare(ranked, book, viewOf, weightOf, locale)
 
   // ---- Ranking gaps (candidates) ------------------------------------------------------
   const rankedScores = ranked.map((site) => site.similarity).filter((value): value is number => value !== null)
@@ -197,12 +209,12 @@ export function buildFactsLayer(input: FactsInput): FactsLayer {
   for (let index = 0; index + 1 < rankedScores.length; index += 1) {
     const a = rankedScores[index] as number
     const b = rankedScores[index + 1] as number
-    const gap = book.add(`rank:gap:${index + 1}:${index + 2}`, `${formatScore(a - b)} points`)
+    const gap = book.add(`rank:gap:${index + 1}:${index + 2}`, t('fact.gap', { value: formatScore(a - b, locale) }))
     if (gap) gaps.push(gap)
   }
 
   // ---- Robustness (pipeline sensitivity over the candidates) ----------------------------
-  const robustness = robustnessFacts(input, siteFacts, ranked, book, labelOf)
+  const robustness = robustnessFacts(input, siteFacts, ranked, book, labelOf, locale)
 
   return { sites: siteFacts, references: referenceFacts, comparison: { ...comparison, gaps }, robustness }
 }
@@ -212,6 +224,7 @@ function compare(
   book: FactBook,
   viewOf: (siteId: string, id: CriterionId) => MetricView | undefined,
   weightOf: (id: string) => number,
+  locale: Locale,
 ): Omit<ComparisonFacts, 'gaps'> {
   const noDiscrimination: Array<ComparisonFacts['noDiscrimination'][number]> = []
   const bestOfN: Array<ComparisonFacts['bestOfN'][number]> = []
@@ -230,7 +243,7 @@ function compare(
       .map((site) => ({ siteId: site.site_id, view: viewOf(site.site_id, criterionId) }))
       .filter((row): row is { siteId: string; view: MetricView } => row.view !== undefined && row.view.status === 'valid' && row.view.similarity !== null)
       .map((row) => ({ ...row, similarity: row.view.similarity as number }))
-    const label = rows[0]?.view.label ?? criterionLabels[criterionId] ?? criterionId
+    const label = locale === 'en' ? rows[0]?.view.label ?? criterionLabels[criterionId] ?? criterionId : tReading.in(locale)(`criterion.${criterionId}`)
 
     // What is shown is what gets compared: per-criterion similarity as an integer.
     const rounded = rows.map((row) => Math.round(row.similarity))
@@ -267,12 +280,14 @@ function robustnessFacts(
   sites: readonly CandidateSite[],
   book: FactBook,
   labelOf: (id: CriterionId) => string,
+  locale: Locale,
 ): RobustnessFacts {
+  const t = tReading.in(locale)
   const summary = input.robustness
   const bySite = new Map((summary?.sites ?? []).map((row) => [row.siteId, row]))
   const bars = sites.map((site, index) => {
     const stability = site.stability ?? bySite.get(site.site_id)?.stability ?? null
-    return { siteId: site.site_id, name: siteFacts[index]?.name ?? siteLabel(site.name), stability, text: stability === null ? null : formatScore(stability) }
+    return { siteId: site.site_id, name: siteFacts[index]?.name ?? siteLabel(site.name, locale), stability, text: stability === null ? null : formatScore(stability, locale) }
   })
   if (!summary) {
     return {
@@ -283,20 +298,20 @@ function robustnessFacts(
       topFlips: null,
       mostSensitive: null,
       sites: bars,
-      reason: input.robustnessReason ?? 'Order robustness not available: the snapshot does not include the pipeline sensitivity.',
+      reason: input.robustnessReason ?? t('fact.robustnessUnavailable'),
     }
   }
   const mostSensitive = summary.mostSensitive ? book.add('sens:most_sensitive', labelOf(summary.mostSensitive)) : null
   if (summary.status === 'insufficient') {
-    return { status: 'insufficient', perturbation: null, scenarios: null, flips: null, topFlips: null, mostSensitive, sites: bars, reason: 'Fewer than two places with a %: there is no order to compare.' }
+    return { status: 'insufficient', perturbation: null, scenarios: null, flips: null, topFlips: null, mostSensitive, sites: bars, reason: t('fact.robustnessInsufficient') }
   }
   const total = summary.scenarios
   return {
     status: 'ready',
-    perturbation: book.add('sens:perturbation', `±${formatWhole(PERTURBATION * 100)}% per weight`),
-    scenarios: book.add('sens:scenarios', `${total} scenarios`),
-    flips: book.add('sens:flips', summary.flips === 0 ? 'no scenario changes the order' : `${summary.flips} of ${total} scenarios change the order`),
-    topFlips: book.add('sens:top_flips', summary.topFlips === 0 ? 'no scenario changes the first place' : `${summary.topFlips} of ${total} scenarios change the first place`),
+    perturbation: book.add('sens:perturbation', t('fact.perturbation', { percent: withPercent(formatInteger(PERTURBATION * 100, locale), locale) })),
+    scenarios: book.add('sens:scenarios', t('fact.scenarios', { count: total })),
+    flips: book.add('sens:flips', summary.flips === 0 ? t('fact.flipsNone') : t('fact.flips', { flips: summary.flips, total })),
+    topFlips: book.add('sens:top_flips', summary.topFlips === 0 ? t('fact.topFlipsNone') : t('fact.topFlips', { flips: summary.topFlips, total })),
     mostSensitive,
     sites: bars,
     reason: null,

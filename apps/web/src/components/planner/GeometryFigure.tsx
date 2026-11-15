@@ -1,5 +1,7 @@
 import { siteRectangle, type Bbox, type ScopeResolution } from '../../mission'
 import type { CandidateSite } from '../../domain/contracts'
+import { useT } from '../../i18n'
+import { tPlanner } from '../../i18n/messages/planner'
 
 interface Props {
   candidates: CandidateSite[]
@@ -17,6 +19,7 @@ const PAD = 22
  * (dashed orange stroke) and measured geometry (blue fill). Equirectangular with cosine correction.
  */
 export function GeometryFigure({ candidates, resolution, highlightIds = [] }: Props) {
+  const t = useT(tPlanner)
   const rects = candidates.flatMap((c) => {
     const box = siteRectangle(c)
     return box ? [{ id: c.site_id, box, ref: c.role === 'reference', name: c.name }] : []
@@ -43,14 +46,14 @@ export function GeometryFigure({ candidates, resolution, highlightIds = [] }: Pr
   const Y = (lat: number) => oy + (n - lat) * scale
   const rectProps = (b: Bbox) => ({ x: X(b[0]), y: Y(b[3]), width: Math.max(1, X(b[2]) - X(b[0])), height: Math.max(1, Y(b[1]) - Y(b[3])) })
   const desc = [
-    resolution?.requested.bbox ? 'requested rectangle as a dashed outline' : resolution?.requested.point ? 'requested point' : '',
-    measured.size ? `${measured.size} measured window(s) filled` : 'no measured window',
+    resolution?.requested.bbox ? t('figure.requestedBbox') : resolution?.requested.point ? t('figure.requestedPoint') : '',
+    measured.size ? t('figure.measured', { count: measured.size }) : t('figure.noMeasured'),
   ].filter(Boolean).join('; ')
 
   return (
     <figure className="pl-figure">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Geometry diagram: ${desc}. North up.`}>
-        <title>Requested and measured geometry</title>
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('figure.aria', { desc })}>
+        <title>{t('figure.title')}</title>
         <rect x="0.5" y="0.5" width={W - 1} height={H - 1} rx="12" className="pl-fig-bg" />
         {shown.map((r) => (
           <g key={r.id}>
@@ -63,11 +66,11 @@ export function GeometryFigure({ candidates, resolution, highlightIds = [] }: Pr
         <text x={W - 14} y="16" className="pl-fig-label" textAnchor="end">N ↑</text>
       </svg>
       <figcaption>
-        <span><i className="pl-key win" /> Window with evidence</span>
-        <span><i className="pl-key ref" /> Reference (REF)</span>
-        <span><i className="pl-key measured" /> Measured (evaluated)</span>
-        <span><i className="pl-key req" /> Requested geometry</span>
-        {farAway && <strong>Outside the windows with evidence: there is no data for this geometry.</strong>}
+        <span><i className="pl-key win" /> {t('figure.keyWindow')}</span>
+        <span><i className="pl-key ref" /> {t('figure.keyReference')}</span>
+        <span><i className="pl-key measured" /> {t('figure.keyMeasured')}</span>
+        <span><i className="pl-key req" /> {t('figure.keyRequested')}</span>
+        {farAway && <strong>{t('figure.farAway')}</strong>}
       </figcaption>
     </figure>
   )

@@ -1,11 +1,17 @@
 import { useState } from 'react'
+import { useLocale, useT, type Locale } from '../../i18n'
+import { tMission } from '../../i18n/messages/mission'
+import { tPlanner } from '../../i18n/messages/planner'
 import {
-  METRICS, UNMEASURED_TOPICS, defaultMetricRequirement, describeEditable, SCALE_LABEL, topicLabel, uncoveredMentions,
+  METRICS, UNMEASURED_TOPICS, defaultMetricRequirement, describeEditable, isDefaultTopicLabel, topicLabel, uncoveredMentions,
   type EditableMeasurable, type EditableRequirement, type EditableUnmeasured, type MetricId, type PlannerAction, type PlannerState,
 } from '../../mission'
+import { displayMissionMessage } from '../../mission/messages'
+import { uiPack } from '../../mission/pack'
 
-const OPERATORS: Record<string, string> = { '<=': 'at most (≤)', '>=': 'at least (≥)', between: 'between', in: 'one of' }
-const UNITS: Record<string, string> = { degree: '° (degrees)', meter: 'm (meters)', ratio: '0–1 fraction', percent: '% (percent)', km2: 'km²', iso_alpha2: 'country code' }
+const UNIT_IDS = ['degree', 'meter', 'ratio', 'percent', 'km2', 'iso_alpha2'] as const
+type UnitId = (typeof UNIT_IDS)[number]
+const isUnitId = (unit: string): unit is UnitId => (UNIT_IDS as readonly string[]).includes(unit)
 const COMMON: MetricId[] = ['median_slope_degree', 'nonvegetated_fraction', 'country']
 const MORE: MetricId[] = ['terrain_roughness_meter', 'local_relief_meter', 'polygon_area_km2']
 
@@ -14,9 +20,13 @@ interface Props {
   dispatch: (a: PlannerAction) => void
 }
 
-const summary = (r: EditableRequirement): string => describeEditable(r, false)
+const summary = (r: EditableRequirement, locale: Locale): string => describeEditable(r, false, locale)
 
 function MeasurableCard({ r, dispatch }: { r: EditableMeasurable; dispatch: Props['dispatch'] }) {
+  const locale = useLocale()
+  const t = useT(tPlanner)
+  const tm = useT(tMission)
+  const pack = uiPack(locale)
   const spec = METRICS[r.metric_id]
   const up = (patch: Partial<EditableMeasurable>) => dispatch({ type: 'update_requirement', id: r.requirement_id, patch })
   const idp = `${r.requirement_id}-`
@@ -25,8 +35,8 @@ function MeasurableCard({ r, dispatch }: { r: EditableMeasurable; dispatch: Prop
       <div className="pl-req-grid">
         {r.metric_id === 'country' ? (
           <fieldset className="pl-checks">
-            <legend>Allowed countries</legend>
-            {[['CL', 'Chile'], ['AR', 'Argentina']].map(([code, name]) => (
+            <legend>{t('req.countries')}</legend>
+            {(['CL', 'AR'] as const).map((code) => [code, tm(`country.${code}`)] as const).map(([code, name]) => (
               <label key={code}>
                 <input type="checkbox" checked={r.countries.includes(code)}
                   onChange={(e) => up({ countries: e.target.checked ? [...r.countries, code].sort() : r.countries.filter((c) => c !== code) })} />
@@ -37,84 +47,87 @@ function MeasurableCard({ r, dispatch }: { r: EditableMeasurable; dispatch: Prop
         ) : (
           <>
             <label className="pl-field">
-              <span>Condition</span>
+              <span>{t('req.condition')}</span>
               <select value={r.operator} onChange={(e) => up({ operator: e.target.value as EditableMeasurable['operator'] })}>
-                {spec.operators.map((o) => <option key={o} value={o}>{OPERATORS[o]}</option>)}
+                {spec.operators.map((o) => <option key={o} value={o}>{t(`op.${o}`)}</option>)}
               </select>
             </label>
             <label className="pl-field">
-              <span>{r.operator === 'between' ? 'Minimum' : 'Value'}</span>
+              <span>{r.operator === 'between' ? t('req.minimum') : t('req.value')}</span>
               <input type="text" inputMode="decimal" autoComplete="off" value={r.valueText[0]} onChange={(e) => up({ valueText: [e.target.value, r.valueText[1]] })} />
             </label>
             {r.operator === 'between' && (
               <label className="pl-field">
-                <span>Maximum</span>
+                <span>{t('req.maximum')}</span>
                 <input type="text" inputMode="decimal" autoComplete="off" value={r.valueText[1]} onChange={(e) => up({ valueText: [r.valueText[0], e.target.value] })} />
               </label>
             )}
             <label className="pl-field">
-              <span>Unit</span>
+              <span>{t('req.unit')}</span>
               <select value={r.unit} onChange={(e) => up({ unit: e.target.value })}>
-                {spec.units.map((u) => <option key={u} value={u}>{UNITS[u]}</option>)}
+                {spec.units.map((u) => <option key={u} value={u}>{isUnitId(u) ? t(`unit.${u}`) : u}</option>)}
               </select>
             </label>
           </>
         )}
         <label className="pl-field">
-          <span>Importance</span>
+          <span>{t('req.importance')}</span>
           <select value={r.importance} onChange={(e) => up({ importance: e.target.value as 'critical' | 'preference' })}>
-            <option value="critical">Must-have</option>
-            <option value="preference">Preference</option>
+            <option value="critical">{tm('importance.critical')}</option>
+            <option value="preference">{tm('importance.preference')}</option>
           </select>
         </label>
       </div>
       <details className="pl-more">
-        <summary>More options</summary>
+        <summary>{t('req.more')}</summary>
         <div className="pl-req-grid">
           <label className="pl-field">
-            <span>Name</span>
+            <span>{t('req.name')}</span>
             <input type="text" maxLength={120} value={r.label} onChange={(e) => up({ label: e.target.value })} />
           </label>
           <label className="pl-field">
-            <span>Requirement scale</span>
+            <span>{t('req.scale')}</span>
             <select value={r.scale} onChange={(e) => up({ scale: e.target.value as 'window' | 'point' })}>
-              <option value="window">{SCALE_LABEL.window}</option>
-              <option value="point">{SCALE_LABEL.point}</option>
+              <option value="window">{pack.scaleLabel.window}</option>
+              <option value="point">{pack.scaleLabel.point}</option>
             </select>
           </label>
         </div>
-        <p className="pl-hint" id={`${idp}scale`}>{spec.scale_note}</p>
+        <p className="pl-hint" id={`${idp}scale`}>{locale === 'en' ? spec.scale_note : pack.metricScaleNote[r.metric_id]}</p>
       </details>
     </>
   )
 }
 
 function UnmeasuredCard({ r, dispatch }: { r: EditableUnmeasured; dispatch: Props['dispatch'] }) {
+  const locale = useLocale()
+  const t = useT(tPlanner)
+  const tm = useT(tMission)
   const up = (patch: Partial<EditableUnmeasured>) => dispatch({ type: 'update_requirement', id: r.requirement_id, patch })
   return (
     <>
-      <p className="pl-hint warn">This system does not measure this request. It is kept as pending: it never counts as met and never approves a sector.</p>
+      <p className="pl-hint warn">{t('req.unmeasuredNote')}</p>
       <div className="pl-req-grid">
         <label className="pl-field">
-          <span>Topic</span>
-          <select value={r.topic_id} onChange={(e) => up({ topic_id: e.target.value, label: r.label === topicLabel(r.topic_id) ? topicLabel(e.target.value) : r.label })}>
-            {UNMEASURED_TOPICS.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-            <option value="other_unmeasured">Other unmeasured request</option>
+          <span>{t('req.topic')}</span>
+          <select value={r.topic_id} onChange={(e) => up({ topic_id: e.target.value, label: isDefaultTopicLabel(r.label, r.topic_id) ? topicLabel(e.target.value, locale) : r.label })}>
+            {UNMEASURED_TOPICS.map((topic) => <option key={topic.id} value={topic.id}>{topicLabel(topic.id, locale)}</option>)}
+            <option value="other_unmeasured">{tm('topic.other')}</option>
           </select>
         </label>
         <label className="pl-field">
-          <span>Name</span>
+          <span>{t('req.name')}</span>
           <input type="text" maxLength={120} value={r.label} onChange={(e) => up({ label: e.target.value })} />
         </label>
         <label className="pl-field wide">
-          <span>Detail (optional)</span>
+          <span>{t('req.detail')}</span>
           <input type="text" maxLength={300} value={r.detail} onChange={(e) => up({ detail: e.target.value })} />
         </label>
         <label className="pl-field">
-          <span>Importance</span>
+          <span>{t('req.importance')}</span>
           <select value={r.importance} onChange={(e) => up({ importance: e.target.value as 'critical' | 'preference' })}>
-            <option value="critical">Must-have (leaves the sector with insufficient evidence)</option>
-            <option value="preference">Preference</option>
+            <option value="critical">{t('req.criticalUnmeasured')}</option>
+            <option value="preference">{tm('importance.preference')}</option>
           </select>
         </label>
       </div>
@@ -124,57 +137,60 @@ function UnmeasuredCard({ r, dispatch }: { r: EditableUnmeasured; dispatch: Prop
 
 export function RequirementEditor({ state, dispatch }: Props) {
   const [choice, setChoice] = useState('')
+  const locale = useLocale()
+  const t = useT(tPlanner)
+  const tm = useT(tMission)
   const nextId = () => `u${state.counter + 1}`
   const add = (value: string) => {
     setChoice('')
     if (!value) return
     if (value === 'unmeasured') {
-      dispatch({ type: 'add_requirement', requirement: { kind: 'unmeasured', requirement_id: nextId(), label: 'Unmeasured request', importance: 'preference', origin: 'user', source_quote: null, topic_id: 'other_unmeasured', detail: '' } })
+      dispatch({ type: 'add_requirement', requirement: { kind: 'unmeasured', requirement_id: nextId(), label: tm('requirement.newUnmeasured'), importance: 'preference', origin: 'user', source_quote: null, topic_id: 'other_unmeasured', detail: '' } })
     } else {
-      dispatch({ type: 'add_requirement', requirement: defaultMetricRequirement(value as MetricId, nextId()) })
+      dispatch({ type: 'add_requirement', requirement: defaultMetricRequirement(value as MetricId, nextId(), locale) })
     }
   }
   const mentions = uncoveredMentions(state)
   return (
     <div className="pl-reqs">
       <div className="pl-reqs-head">
-        <h3>Your test requirements</h3>
+        <h3>{t('req.heading')}</h3>
         <label className="pl-add">
-          <span className="pl-sr">Add requirement</span>
+          <span className="pl-sr">{t('req.add')}</span>
           <select value={choice} onChange={(e) => add(e.target.value)}>
-            <option value="">+ Add requirement…</option>
-            <optgroup label="Common">{COMMON.map((m) => <option key={m} value={m}>{METRICS[m].label}</option>)}</optgroup>
-            <optgroup label="More measurements">{MORE.map((m) => <option key={m} value={m}>{METRICS[m].label}</option>)}</optgroup>
-            <optgroup label="Not measured"><option value="unmeasured">Request the system does not measure (traction, permits…)</option></optgroup>
+            <option value="">{t('req.addPlaceholder')}</option>
+            <optgroup label={t('req.groupCommon')}>{COMMON.map((m) => <option key={m} value={m}>{tm(`metric.${m}`)}</option>)}</optgroup>
+            <optgroup label={t('req.groupMore')}>{MORE.map((m) => <option key={m} value={m}>{tm(`metric.${m}`)}</option>)}</optgroup>
+            <optgroup label={t('req.groupUnmeasured')}><option value="unmeasured">{t('req.addUnmeasured')}</option></optgroup>
           </select>
         </label>
       </div>
-      <p className="pl-hint">The calculation uses only the requirements in this list, once confirmed. The brief text is context and is not interpreted as evaluated requirements.</p>
-      {state.requirements.length === 0 && <p className="pl-empty">There are no requirements yet. Without them, every area would be prioritized by similarity alone.</p>}
+      <p className="pl-hint">{t('req.hint')}</p>
+      {state.requirements.length === 0 && <p className="pl-empty">{t('req.empty')}</p>}
       <ul className="pl-req-list">
         {state.requirements.map((r) => (
           <li key={r.requirement_id} className={`pl-req-card ${r.kind}`}>
             <div className="pl-req-top">
-              <strong>{summary(r)}</strong>
-              <span className={`pl-tag ${r.origin === 'ai' ? 'ai' : ''}`}>{r.origin === 'ai' ? 'Proposed by AI' : 'You'}</span>
-              <span className={`pl-tag ${r.importance === 'critical' ? 'crit' : ''}`}>{r.importance === 'critical' ? 'Must-have' : 'Preference'}</span>
-              <button type="button" className="pl-ghost" onClick={() => dispatch({ type: 'remove_requirement', id: r.requirement_id })} aria-label={`Remove requirement ${r.label}`}>Remove</button>
+              <strong>{summary(r, locale)}</strong>
+              <span className={`pl-tag ${r.origin === 'ai' ? 'ai' : ''}`}>{r.origin === 'ai' ? tm('origin.ai') : tm('origin.you')}</span>
+              <span className={`pl-tag ${r.importance === 'critical' ? 'crit' : ''}`}>{tm(`importance.${r.importance}`)}</span>
+              <button type="button" className="pl-ghost" onClick={() => dispatch({ type: 'remove_requirement', id: r.requirement_id })} aria-label={t('req.removeLabel', { label: r.label })}>{t('req.remove')}</button>
             </div>
-            {r.source_quote && <blockquote className="pl-quote">Quote from the brief: “{r.source_quote}”</blockquote>}
+            {r.source_quote && <blockquote className="pl-quote">{t('req.quote', { quote: r.source_quote })}</blockquote>}
             {r.kind === 'measurable' ? <MeasurableCard r={r} dispatch={dispatch} /> : <UnmeasuredCard r={r} dispatch={dispatch} />}
           </li>
         ))}
       </ul>
       {(mentions.length > 0 || state.openQuestions.length > 0) && (
         <div className="pl-pending">
-          <h4>Pending items detected</h4>
-          <p className="pl-hint">They are kept in the request and in the report even if you do not turn them into requirements.</p>
+          <h4>{t('req.pendingTitle')}</h4>
+          <p className="pl-hint">{t('req.pendingHint')}</p>
           <ul>
-            {state.openQuestions.map((q) => <li key={q}>{q}</li>)}
+            {state.openQuestions.map((q) => <li key={q}>{displayMissionMessage(q, locale)}</li>)}
             {mentions.map((m) => (
               <li key={m.topic_id}>
-                The brief mentions “{m.matched_text}” — {m.label} (not measured).
-                <button type="button" onClick={() => dispatch({ type: 'add_requirement', requirement: { kind: 'unmeasured', requirement_id: nextId(), label: m.label, importance: 'preference', origin: 'user', source_quote: null, topic_id: m.topic_id, detail: '' } })}>Add as a pending requirement</button>
+                {t('req.mention', { text: m.matched_text, label: topicLabel(m.topic_id, locale) })}
+                <button type="button" onClick={() => dispatch({ type: 'add_requirement', requirement: { kind: 'unmeasured', requirement_id: nextId(), label: topicLabel(m.topic_id, locale), importance: 'preference', origin: 'user', source_quote: null, topic_id: m.topic_id, detail: '' } })}>{t('req.addPending')}</button>
               </li>
             ))}
           </ul>

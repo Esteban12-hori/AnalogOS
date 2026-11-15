@@ -11,11 +11,14 @@
  * "Your mission", recents and suggestions travel in the mission chunk.
  */
 import { useEffect } from 'react'
+import { useT } from '../../i18n'
+import { tComposer } from '../../i18n/messages/composer'
+import { tShell } from '../../i18n/messages/shell'
 import { uiActions, useUi } from '../../state/ui'
 import { useComposer } from './composerStore'
 import { focusComposer } from './focus'
 import { isWaitingPhase } from './labels'
-import { GlobeOrbit, MissionComposer, PROMPT } from './MissionComposer'
+import { GlobeOrbit, MissionComposer } from './MissionComposer'
 import { anyPopoverOpen } from './popover'
 import { withController } from './runLoader'
 import type { ComposerProps } from './index'
@@ -45,6 +48,8 @@ export function Composer({ data, placement, onRequestTray }: ComposerProps) {
   const phase = useUi((state) => state.missionPhase)
   const wait = useComposer((state) => state.wait)
   const waiting = isWaitingPhase(phase)
+  const t = useT(tComposer)
+  const tS = useT(tShell)
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -68,9 +73,9 @@ export function Composer({ data, placement, onRequestTray }: ComposerProps) {
     return (
       <>
         <button type="button" className="composer-refine" aria-busy={waiting || undefined} onClick={() => onRequestTray?.()}>
-          {waiting ? 'Proposing…' : 'Refine'}
+          {waiting ? t('proposing') : t('refine')}
         </button>
-        <GlobeOrbit active={waiting && wait !== 'quiet'} label="Proposing requirements…" />
+        <GlobeOrbit active={waiting && wait !== 'quiet'} label={t('proposingRequirements')} />
       </>
     )
   }
@@ -78,7 +83,7 @@ export function Composer({ data, placement, onRequestTray }: ComposerProps) {
   if (mode === 'explorar') {
     return (
       <button type="button" className="composer-pill" data-placement={placement} aria-keyshortcuts="/" onClick={openMission}>
-        <span className="composer-pill-text">{PROMPT}</span>
+        <span className="composer-pill-text">{tS('composerPrompt')}</span>
         <kbd aria-hidden="true">/</kbd>
       </button>
     )

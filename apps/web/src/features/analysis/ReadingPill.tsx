@@ -7,6 +7,8 @@
  * selection, and the label changes to "Reading" because there it may include the selection requested from the AI.
  */
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
+import { useT } from '../../i18n'
+import { tComposer } from '../../i18n/messages/composer'
 import { useUi } from '../../state/ui'
 import type { ReadingPillProps } from './index'
 import { preloadReading, ReadingPanel } from './ReadingPanel'
@@ -19,6 +21,7 @@ export function ReadingPill({ data, openSignal }: ReadingPillProps) {
   const ready = data.status === 'ready'
   const mission = useUi((state) => state.mode) === 'mision'
   const seenSignal = useRef(openSignal)
+  const t = useT(tComposer)
 
   useEffect(() => {
     if (!ready) setOpen(false)
@@ -61,7 +64,7 @@ export function ReadingPill({ data, openSignal }: ReadingPillProps) {
         }}
       >
         <span className="analysis-pill-star" aria-hidden="true">≡</span>
-        <span>{mission ? 'Reading' : 'Deterministic reading'}</span>
+        <span>{mission ? t('reading.title') : t('reading.deterministic')}</span>
         <span className="analysis-pill-caret" aria-hidden="true">⌄</span>
       </button>
       <div id={popId} className="analysis-pop" hidden={!open}>
