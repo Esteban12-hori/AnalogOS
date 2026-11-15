@@ -1,5 +1,13 @@
 # Changelog de trabajo
 
+## 2026-11-15 Claude Code · revisión de la fusión M9/M10: hallazgos corregidos (rama feature/mision-redesign)
+
+- **«Tu misión» compacta (medio):** la orientación geológica del equipo va plegada después de exportar (`<details>` cerrado; resumen con el rótulo «Selección por IA» / «Orientación general sin IA» y «N sectores»), sin marco exterior. `GeologyGuidance` y la vista del equipo no cambian. «Descargar JSON» vuelve a 1.408 px en 1440 (estaba en 6.670), 1.235 en 1280 y 1.384 en 390.
+- **Ficha:** la tira de pestañas difumina el borde que esconde pestañas y lleva la activa a la vista sin mover la hoja (`Tabs.tsx`, `overflowEdges`/`revealDelta` con tests). La cabecera de «Geología» en 390 ya no se parte en dos columnas.
+- **Docs:** invariantes corregidos en STATUS e `INTEGRATION_PLAN` §11 (`apps/web/package.json` y los archivos de mapas base difieren desde antes de la fusión); `DEMO_ACCEPTANCE` describe el pliegue.
+- Sin corregir: `CLAUDE.md:34` (ADR-010 → 014, queda para una persona), «Ir a la Lectura» en móvil y teselas GIBS sin conexión (bajos, no triviales).
+- `npm run verify`: 328 Python (5 omitidas), 783 web (3 omitidas), `typecheck:server` y build. Chrome en el puerto 4731 (1440, 1280, 390): build correcto, ZIP bajo `/AnalogOS/` 96/96 y sin red 32/32, 0 errores de la app. ZIP: 73 entradas, 14.792.111 bytes, SHA-256 `cd09543ce3d882f07aeddd5d357b763203b105eb631c860e8cee9d591327fda2`. `origin/dev` avanzó a `e074762` (solo docs): hay que fusionarlo antes del push. Sin push.
+
 ## 2026-11-15 Claude Code · fusión de M9/M10 en la interfaz integrada (rama feature/mision-redesign)
 
 - `git merge origin/dev` (`d2252b6`, 7 commits de M9/M10), sin squash ni `--force`. Todo lo del equipo queda intacto: `shared/`, `server/`, `api/`, `vercel.json`, workflows, `check-vercel-function`, contratos, artefactos geológicos, pipelines, evidencias y tests. Conflictos resueltos en `App.tsx`, `PlannerPanel`, `ResultView`, `styles.css`, `discovery.test`, `package_release.py`, `test_release_package.py` (se conservan las dos ramas), docs y ZIP. `CandidateDetails` y `ScoreBreakdown` siguen retirados y sus cambios se portaron.

@@ -13,7 +13,7 @@ import { baseStageInsets, railWidth, sheetDetentHeights, stageInsetsFor, STAGE_G
 import { dataAttribution, dataAttributionText } from '../shell/attribution'
 import { RightRail } from '../shell/RightRail'
 import { keyboardInsetFrom, KEYBOARD_MIN_PX } from '../shell/sheet/useKeyboardInset'
-import { nextTabIndex } from '../shell/Tabs'
+import { nextTabIndex, overflowEdges, revealDelta, TAB_EDGE_FADE } from '../shell/Tabs'
 import { uiStore } from '../state/ui'
 
 const root = resolve(__dirname, '../../../..')
@@ -112,6 +112,20 @@ describe('utilidades del armazón', () => {
     expect(nextTabIndex('Home', 4, 6)).toBe(0)
     expect(nextTabIndex('End', 0, 6)).toBe(5)
     expect(nextTabIndex('a', 0, 6)).toBeNull()
+  })
+
+  it('tira de pestañas: marca los bordes con pestañas ocultas y lleva la activa fuera del difuminado', () => {
+    // Ficha a 1440 con 8 pestañas: 581 px de contenido en 486 px visibles.
+    expect(overflowEdges({ scrollLeft: 0, scrollWidth: 581, clientWidth: 486 })).toEqual({ start: false, end: true })
+    expect(overflowEdges({ scrollLeft: 40, scrollWidth: 581, clientWidth: 486 })).toEqual({ start: true, end: true })
+    expect(overflowEdges({ scrollLeft: 95, scrollWidth: 581, clientWidth: 486 })).toEqual({ start: true, end: false })
+    expect(overflowEdges({ scrollLeft: 0, scrollWidth: 486.5, clientWidth: 486 })).toEqual({ start: false, end: false })
+    // «Fuentes» en [1434−925, 1506−925] = [509, 581] de una lista de 486: se desplaza hasta dejarla entera más el difuminado.
+    expect(revealDelta(509, 581, 486)).toBe(581 - (486 - TAB_EDGE_FADE))
+    expect(revealDelta(100, 160, 486)).toBe(0)
+    expect(revealDelta(10, 70, 486)).toBe(10 - TAB_EDGE_FADE)
+    // Pestaña más ancha que la vista: prima su comienzo.
+    expect(revealDelta(100, 700, 486)).toBe(100 - TAB_EDGE_FADE)
   })
 
   it('formatScore usa 1 decimal fijo: «50,0» y «77,5»', () => {

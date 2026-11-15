@@ -1,9 +1,53 @@
 # Estado actual
 
-**Última actualización:** 2026-11-15, fusión de M9/M10 (`origin/dev` `d2252b6`) en `feature/mision-redesign` y porte de su UI a la interfaz integrada (Claude Code, encargo del flujo de integración). Antes: M10 publicado y verificado en dev (Codex).
+**Última actualización:** 2026-11-15, revisión de la fusión de M9/M10 en `feature/mision-redesign`: hallazgos medio y bajos corregidos (Claude Code, encargo del flujo de integración). Antes: fusión de M9/M10 (`origin/dev` `d2252b6`) y porte de su UI a la interfaz integrada; M10 publicado y verificado en dev (Codex).
 **Responsable del checkpoint:** Claude Code (integración); Codex (M8, M9, M10).
 **Milestone activo:** M10 aceptado y publicado en dev. La interfaz integrada con M9/M10 está lista en `feature/mision-redesign`, pendiente de publicar en dev.
 **Estado general:** planificador de ensayo/sector con motor determinista, snapshot científico v3, contexto geológico oficial por sector y orientación geológica opcional con Anthropic. Siete sectores con evidencia; faltan contraste de campo, capas territoriales y validación con usuarios.
+
+## Revisión de la fusión M9/M10: hallazgos corregidos (Claude Code, `feature/mision-redesign`, 2026-11-15)
+
+**Pedido:** corregir los hallazgos de la revisión de `c1065d1` (1 medio y 6 bajos; ninguno alto), verificar cada uno, repetir `verify`, el paquete y el recorrido en navegador. **Push a `dev`: no se hizo.** No se tocaron `dev` ni `main` locales.
+
+### Qué cambió (y cómo se comprobó)
+
+- **Medio · «Tu misión» compacta:** `GeologyGuidance` del equipo ya no se despliega entre el titular y la exportación. Va **después** de «Descargar JSON», «Imprimir informe» y «Volver a editar», dentro de un `<details class="pl-more pl-geo-fold">` cerrado por defecto. El resumen dice «Orientación geológica para esta prueba», el rótulo del equipo («Selección por IA» u «Orientación general sin IA») y «N sectores». Dentro, el componente del equipo sin cambios (mismos textos, límites, fuente, unidades y «Descargar JSON con orientación geológica»), más la línea que dice dónde pedir la selección con IA. En la variante compacta se quita el marco exterior de `.pl-geo` y su h3 queda solo para lectores de pantalla (el resumen ya lo muestra). La vista del equipo (sin `compact`) no cambia. Medido en Chrome (contenedor de «Tu misión», alto del scroll y posición de «Descargar JSON»): **1440** 344 px de franja, scroll 6.863 → **1.658**, botón 6.670 → **1.408** (antes de la fusión: 1.601 y 1.408); **1280** (popover) 5.586 → **1.454**, botón 5.424 → **1.235**; **390** (popover) 6.763 → **1.647**, botón 6.557 → **1.384**. El ancho útil de cada sector sube a 326/426/332 px. Con la IA simulada, el resumen dice «Selección por IA» sin abrir el pliegue.
+- **Bajo · tira de pestañas de la ficha:** `TabList` marca `data-more-start` / `data-more-end` cuando quedan pestañas ocultas y el CSS difumina ese borde (28 px). Además lleva la pestaña activa fuera del difuminado moviendo solo la tira (sin `scrollIntoView`, que movería la hoja o el riel). Chrome en 1440, 1280 y 390: al abrir, borde final difuminado; con «Fuentes» activa, queda entera y se difumina el inicio; Inicio vuelve a «Métricas» y la tira al comienzo. Funciones puras `overflowEdges` y `revealDelta` con tests.
+- **Bajo · cabecera de «Geología» en 390:** `.geology-context .subheading-row` hace `flex-wrap` y, en ≤480 px, el subtítulo baja entero bajo el título. Chrome: título y subtítulo en una línea cada uno (antes, dos líneas cada uno lado a lado).
+- **Bajo · invariantes del STATUS:** el bloque de la fusión decía «sin diferencias con `origin/dev` en `package*.json`». Ahora dice «`package.json` raíz y `package-lock.json`» y aclara que `apps/web/package.json` difiere desde la integración anterior (`build` ejecuta `build-validators.mjs --check`; `vercel build` + `check-vercel-function.mjs` verificados). Se corrigió igual `docs/INTEGRATION_PLAN.md` §11, que además decía «pipelines» intactos: `pipelines/fetch_basemaps.py`, `artifacts/basemaps/` y `contracts/reference-analog.schema.json` difieren desde el rediseño (mapas base y referencias del escenario, no artefactos científicos).
+- Documentación: `docs/INTEGRATION_PLAN.md` §11 (fila de «Tu misión») y `docs/DEMO_ACCEPTANCE.md` (paso de la orientación geológica) describen el pliegue.
+
+### Hallazgos no corregidos
+
+- **Bajo · `CLAUDE.md:34`** sigue citando «ADR-006/007/010» para el escenario fijo; tras la renumeración debe decir **«ADR-006/007/014»** (ADR-010 es ahora la geología del equipo). No se editó: este agente no cambia `CLAUDE.md` por encargo de un flujo automatizado. Queda para una persona (cambio de una línea).
+- **Bajo · «Ir a la Lectura» desde «Tu misión» en móvil:** la pista sigue siendo texto. La Lectura vive en tres sitios según el ancho (panel izquierdo ≥1440, pestaña del riel 1100–1439, pestaña de S2 <1100) y la pestaña activa es estado local de cada lista; un botón que navegue exige un canal compartido en `uiActions` (selección + hoja S2 + pestaña). No es trivial.
+- **Bajo · teselas GIBS sin conexión** (anterior a la fusión): el 2D sigue pidiéndolas y la consola registra los fallos de red; el mapa se ve con las imágenes locales. Quitar las fuentes tras el primer fallo toca el ciclo de vida del mapa y el informe de fuentes activas (atribución). Sin cambio.
+
+### Pruebas realizadas
+
+- `npm run verify`: **pytest 328 pasan, 5 omitidas**; `typecheck:server` correcto; **vitest 783 pasan, 3 omitidas** (IA real opt-in) en 61 archivos (+4: pliegue después de exportar y cerrado, resumen con «Selección por IA», vista del equipo sin cambios, bordes de la tira); build correcto. Chunk de entrada 123,97 KB gz (+0,32); CSS inicial 17,52 KB gz (+0,08).
+- **Paquete:** `npm run release:package` → **73 entradas, 14.792.111 bytes, SHA-256 `cd09543ce3d882f07aeddd5d357b763203b105eb631c860e8cee9d591327fda2`**; `shasum -c` OK; un segundo empaquetado a `/tmp` da el mismo SHA; el contenido coincide con `apps/web/dist` (salvo `.vite`); `geology-context-v1/index.json` idéntico al artefacto; sin claves. SHA anterior: `30b2b119…`.
+- **Navegador** (Chrome, puerto 4731, 1440×900, 1280×800 y 390×844; `/tmp/claude-pw/geo4731/walk.mjs`): sobre el build, todas correctas; sobre el ZIP bajo `/AnalogOS/`, **96/96**; sin red externa, **32/32** (único host bloqueado: `gibs.earthdata.nasa.gov`). Incluye ficha «Geología» y su exportación, Métricas y Fuentes, 2D y vuelta, Misión sin clave (0 llamadas en el recorrido manual; 1 con huella al pulsar), `/api/ai` simulado con el manejador real del servidor (resultado sin cambios, exportación con procedencia), canal geológico obsoleto y «Reintentar sin geología», y en móvil el popover, la Lectura y la pestaña «Tu misión» de S2. 0 errores de la app y sin desborde horizontal.
+
+### Archivos cambiados
+
+- `apps/web/src/components/planner/ResultView.tsx` (`CompactGeology`, `COMPACT_GEOLOGY_WHERE`), `features/composer/mission.css`, `features/composer/MissionGeologyView.test.tsx`, `shell/Tabs.tsx`, `shell/shell.css`, `shell/detail/geology.css`, `tests/shell.test.tsx`.
+- `project/STATUS.md`, `project/CHANGELOG.md`, `docs/INTEGRATION_PLAN.md`, `docs/DEMO_ACCEPTANCE.md`, `submission/analogos-static.zip(.sha256)`.
+- Sin cambios en `shared/`, `server/`, `api/`, `apps/web/src/mission/`, `GeologyGuidance`, `GeologyContext`, artefactos, CI ni dependencias.
+
+### Bloqueos reales
+
+- **`origin/dev` avanzó** de `d2252b6` a `e074762` (`e074762` «Presenta AnalogOS como producto y separa la guía técnica [skip ci]», solo documentación: `README.md`, `docs/DEVELOPMENT.md` nuevo, `project/{CHANGELOG,NEXT_TASK,STATUS}.md`, `project/tasks/README_PRODUCT.md`). El push de esta rama a `dev` ya **no es fast-forward**: hay que fusionarlo antes. `git merge-tree` anticipa conflictos solo en `README.md`, `project/CHANGELOG.md` y `project/STATUS.md`.
+- ADR-013 y ADR-014 requieren aceptación humana; `CLAUDE.md:34` requiere el cambio de una línea descrito arriba.
+- Sin clave real no se probó Anthropic con la interfaz integrada.
+
+### Próximos tres pasos exactos
+
+1. `git merge origin/dev` (`e074762`) en `feature/mision-redesign`: resolver `README.md` (conservar la presentación de producto del equipo y llevar a `docs/DEVELOPMENT.md` lo técnico de la interfaz integrada), `CHANGELOG.md` y `STATUS.md` (conservar las dos ramas); repetir `npm run verify` y `npm run release:package` (el ZIP no incluye el README; el SHA no debería cambiar).
+2. `git push origin feature/mision-redesign:dev` (fast-forward, sin `--force`) y seguir `gh run watch` de `vercel-deploy.yml`.
+3. En `analogos-dev.vercel.app` con sesión autorizada: «Destacar motivos con IA» real con la casilla geológica (sector AR6), abrir el pliegue de «Tu misión», descargar el JSON con orientación geológica y validarlo con `validateAnyMissionExport`.
+
+**Handoff:** Codex puede retomar leyendo `prompts/RESUME_CODEX.md` y `project/STATUS.md` (este bloque y el de la fusión), con `docs/INTEGRATION_PLAN.md` §11 como contexto.
 
 ## Fusión de M9/M10 en la interfaz integrada (Claude Code, `feature/mision-redesign`, 2026-11-15)
 
@@ -32,7 +76,7 @@
 - **Navegador** (Chrome, build de producción en el puerto 4701): 56 comprobaciones correctas en 1440×900 y 390×844, y otras 56 con el ZIP servido bajo `/AnalogOS/`. Se recorrieron la ficha «Geología» y su exportación (JSON validado), «Métricas» y «Fuentes», el paso a 2D y la vuelta, y Misión sin clave (recorrido manual con 0 llamadas; al pulsar, 1 llamada con huella y «no disponible»). También `/api/ai` simulado por intercepción, con el **manejador real del servidor** y el paquete real; solo el proveedor estaba simulado. Resultados: «Selección por IA» con respaldo y límites, el resultado sin cambios, exportación con procedencia, canal geológico obsoleto con 409 y «Reintentar sin geología» sin huella, y en móvil «Tu misión», la Lectura y la pestaña «Tu misión» de S2. Hubo 0 errores de la app y ningún desborde horizontal. Sin red externa (ZIP): 24 comprobaciones correctas, y el único host bloqueado fue `gibs.earthdata.nasa.gov` (teselas opcionales).
 - **Peso:** chunk de entrada 123,65 KB gz (+0,75). CSS inicial 17,44 KB gz (sin cambio: los estilos geológicos se cargan con la pestaña). Diferidos: `GeologyTab` 2,8 KB gz + 1,0 KB gz de CSS; el validador geológico con Ajv (46,4 KB gz) se comparte con el chunk de misión y se pide en un momento ocioso tras el snapshot.
 - **Paquete:** `npm run release:package` → **73 entradas, 14.789.257 bytes, SHA-256 `30b2b1191489898b91e85aaf26f93104da62bc733d854ae0352e517bf2517c9c`** (`shasum -c` OK). Dos empaquetados a `/tmp` dan el mismo SHA. Cada entrada coincide byte a byte con dist, `geology-context-v1/index.json` es idéntico al artefacto y no hay secretos. SHA anterior de la entrega: `c5904c66…` (integración sin M9/M10). El del equipo en dev: `f76a9055…`.
-- **Invariantes:** sin diferencias con `origin/dev` en `shared/`, `server/`, `api/`, `vercel.json`, `.github/`, `check-vercel-function.mjs`, `package*.json`, `tsconfig.server.json`, `apps/web/src/mission/`, los artefactos (`geology-context-v1`, `science-v2/v3`, `demo`, `visual-context-v3`), evidencias, ADR-010/011 del equipo, `GeologyContext`, `GeologyGuidance`, `usePlanner`, `loadGeologyContext` ni los tests del equipo citados.
+- **Invariantes:** sin diferencias con `origin/dev` en `shared/`, `server/`, `api/`, `vercel.json`, `.github/`, `check-vercel-function.mjs`, `package.json` raíz y `package-lock.json`, `tsconfig.server.json`, `apps/web/src/mission/`, los artefactos (`geology-context-v1`, `science-v2/v3`, `demo`, `visual-context-v3`), evidencias, ADR-010/011 del equipo, `GeologyContext`, `GeologyGuidance`, `usePlanner`, `loadGeologyContext` ni los tests del equipo citados. `apps/web/package.json` difiere desde la integración anterior: `build` ejecuta `build-validators.mjs --check`; `vercel build` + `check-vercel-function.mjs` verificados. También difieren, desde el rediseño, `pipelines/fetch_basemaps.py`, `artifacts/basemaps/` y `contracts/reference-analog.schema.json` (mapas base y referencias del escenario, no artefactos científicos).
 
 ### Archivos cambiados (resumen)
 

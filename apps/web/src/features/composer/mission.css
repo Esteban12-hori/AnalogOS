@@ -120,3 +120,14 @@
 .pl-copt-prefs { display: block; margin-top: 4px; color: var(--muted); }
 .pl-copt .pl-blockers { margin: 6px 0 0; font-size: var(--fs-min); }
 .mission-extras { display: grid; gap: 8px; margin-top: 8px; }
+/* Orientación geológica (M10) plegada después de exportar: el resumen lleva el rótulo del equipo
+   y el número de sectores; dentro, sin el marco exterior (ya está en la tarjeta o el popover) y sin
+   repetir a la vista el título del resumen (sigue en el árbol: nombra la sección). */
+.planner.is-compact .pl-geo-fold { margin: 12px 0; }
+.planner.is-compact .pl-geo-fold > summary { flex-wrap: wrap; gap: 4px 8px; min-height: 36px; font-size: var(--fs-13); font-weight: 650; }
+.planner.is-compact .pl-geo-fold > summary .pl-tag { min-height: 22px; padding: 1px 8px; font-size: var(--fs-12); }
+.planner.is-compact .pl-geo-fold > summary small { color: var(--muted); font-size: var(--fs-min); font-weight: 500; }
+.planner.is-compact .pl-geo-fold > summary:focus-visible { outline: var(--focus-ring); outline-offset: 2px; border-radius: 6px; }
+.planner.is-compact .pl-geo-fold .pl-geo { margin: 6px 0 0; padding: 0; border: 0; border-radius: 0; }
+.planner.is-compact .pl-geo-fold .pl-geo > h3 { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.planner.is-compact .pl-geo-site { padding: 8px 10px; }

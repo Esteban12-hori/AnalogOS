@@ -7,7 +7,7 @@ import {
 import { GeometryFigure } from './GeometryFigure'
 import { GeologyGuidance, PrintGeology, guidanceView } from './GeologyGuidance'
 import type { GeologyUi } from './usePlanner'
-import type { GeologyCatalog } from '../../../../../shared/geology/guidance'
+import type { GeologyCatalog, GeologyGuidanceView } from '../../../../../shared/geology/guidance'
 
 const STATUS: Record<OptionStatus, string> = {
   priorizado_para_reconocimiento: 'Priorizado para reconocimiento',
@@ -292,10 +292,7 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
         {ev.open_questions.length > 0 && <details className="pl-more"><summary>Preguntas abiertas ({ev.open_questions.length})</summary><ul>{ev.open_questions.map((q) => <li key={q}>{q}</li>)}</ul></details>}
 
         {ev.outcome === 'evaluated' && !compact && <AiPanel state={state} evaluation={ev} onExplain={onExplain} geo={geo} />}
-        {ev.outcome === 'evaluated' && gview && compact && (
-          <p className="pl-hint pl-geo-where">La selección geológica con IA se pide con «Destacar motivos con IA» en la Lectura, marcando la orientación geológica.</p>
-        )}
-        {ev.outcome === 'evaluated' && gview && <GeologyGuidance view={gview} onExport={geo.onExportGeology} exportError={geo.exportError} />}
+        {ev.outcome === 'evaluated' && gview && !compact && <GeologyGuidance view={gview} onExport={geo.onExportGeology} exportError={geo.exportError} />}
 
         <section className="pl-export" aria-label="Exportar">
           <button type="button" onClick={onExport}>Descargar JSON</button>
@@ -303,6 +300,8 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
           <button type="button" className="pl-ghost" onClick={onEdit}>Volver a editar</button>
           {exportError && <p className="pl-notice" role="alert">{exportError}</p>}
         </section>
+
+        {ev.outcome === 'evaluated' && gview && compact && <CompactGeology view={gview} geo={geo} />}
 
         <details className="pl-more"><summary>Límites, evidencias y detalle técnico</summary>
           <h5>Límites</h5><ul>{ev.limits.map((l) => <li key={l}>{l}</li>)}</ul>
@@ -316,6 +315,31 @@ export function ResultView({ evaluation: ev, request, state, candidates, onExpla
 
       {!compact && <PrintReport ev={ev} request={request} state={state} byId={byId} map={map} headline={headline} gview={gview} />}
     </div>
+  )
+}
+
+/** Pista de «Tu misión» compacta: dónde se pide la selección geológica con IA (botón de la Lectura). */
+export const COMPACT_GEOLOGY_WHERE = 'La selección geológica con IA se pide con «Destacar motivos con IA» en la Lectura, marcando la orientación geológica.'
+
+/**
+ * «Tu misión» compacta (interfaz integrada): la orientación geológica del equipo va plegada DESPUÉS
+ * de exportar, para que el resultado y sus acciones no queden miles de píxeles más abajo. El resumen
+ * repite el rótulo del equipo («Selección por IA» u «Orientación general sin IA») y cuántos sectores
+ * trae; dentro, `GeologyGuidance` sin cambios (mismos textos, límites, fuente y exportación).
+ */
+function CompactGeology({ view, geo }: { view: GeologyGuidanceView; geo: GeologyUi }) {
+  const ai = view.source === 'anthropic'
+  const count = view.sites.length
+  return (
+    <details className="pl-more pl-geo-fold">
+      <summary>
+        <span>Orientación geológica para esta prueba</span>
+        <span className={`pl-tag ${ai ? 'ai' : ''}`}>{ai ? 'Selección por IA' : 'Orientación general sin IA'}</span>
+        <small>{count} {count === 1 ? 'sector' : 'sectores'}</small>
+      </summary>
+      <p className="pl-hint pl-geo-where">{COMPACT_GEOLOGY_WHERE}</p>
+      <GeologyGuidance view={view} onExport={geo.onExportGeology} exportError={geo.exportError} />
+    </details>
   )
 }
 
