@@ -1,9 +1,16 @@
 # Estado actual
 
-**Última actualización:** 2026-11-14, cierre M10 (America/Santiago)
+**Última actualización:** 2026-11-15, presentación de producto (America/Santiago)
 **Responsable del checkpoint:** Codex
 **Milestone:** M10-GEOLOGY-AI completado, aceptado y publicado en dev.
 **Estado general:** planificador de pruebas/sectores con evaluación determinista, snapshot v3 y orientación geológica oficial seleccionada por Anthropic. Siete sectores del piloto; faltan contraste de campo, capas territoriales y validación con usuarios.
+
+## Mantenimiento documental — README de producto
+
+- Dan solicitó orientar el README al producto y reducir contenido del evento. Codex reorganiza problema, usuarios, recorrido, evidencia, alcance y acceso local; operación y reproducción pasan a `docs/DEVELOPMENT.md`.
+- Se corrige la afirmación antigua de cobertura nacional: el alcance sigue siendo el piloto de dos regiones, seis candidatos y Yungay como referencia. Sin cambios de código, datos ni despliegue M10.
+- Encargo y verificación en `project/tasks/README_PRODUCT.md`. M10 sigue aceptado; Claude sin nueva asignación.
+- Contenido aceptado: 34 enlaces relativos comprobados; 316 Python y 332 web correctos (3 opt-in omitidas), typecheck/build correctos. Publicación documental con `[skip ci]`; `outputs/` local excluido.
 
 ## Entrega vigente — M10
 

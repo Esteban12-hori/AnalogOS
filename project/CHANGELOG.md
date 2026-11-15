@@ -1,5 +1,11 @@
 # Changelog de trabajo
 
+## 2026-11-15 Codex · README orientado al producto
+
+- Presentación centrada en usuarios, problema, recorrido y evidencia de AnalogOS. Se retiran fechas del evento, tablas detalladas de puntajes y coordinación interna del README; se mantiene explícito el alcance real del piloto y el papel opcional de la IA.
+- Nueva `docs/DEVELOPMENT.md` reúne instalación, verificación, empaquetado, reproducción de fuentes y continuidad. Se eliminan referencias locales fuera del repositorio y la afirmación antigua de cobertura nacional.
+- Cambio exclusivamente documental solicitado por Dan; ciencia, aplicación y despliegue M10 conservados. Verificación registrada en `project/tasks/README_PRODUCT.md`.
+
 ## 2026-11-14 Codex · M10 publicado y verificado en dev
 
 - Código `4708b42b4bd152dca74d3e009f233a910e458d8b`, Actions 43665786554 correcto, función real aislada validada. IA remota AR6 correcta: tres referencias SEGEMAR, tracción pendiente; informe descargado validado y reconstruido idéntico.
