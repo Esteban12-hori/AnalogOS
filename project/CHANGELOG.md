@@ -1,5 +1,41 @@
 # Changelog de trabajo
 
+## 2026-11-14 Codex · M9 aceptado localmente y listo para dev
+
+- Revisión independiente de A/B, cierres adversos y procedencia. Ficha oficial, exportación propia y paquete portable; ciencia y núcleo M8 intactos. Ajustes de legibilidad (12 px mínimo), errores de carga comprensibles y advertencias históricas actualizadas solo en presentación.
+- 316 Python, 246 web (+2 opt-in omitidos), typecheck/build, baseline49 intacto. ZIP determinista de 31 entradas, SHA-256 `eed86833…6520c`. Navegador offline en subcarpeta, móvil/teclado, carga ausente/inválida y descarga real validada.
+- Publicación dev y verificación remota en curso; no promoción a main. Informe en `docs/CODEX_M9_REVIEW.md`.
+
+## 2026-11-14 Claude Code · M9 fase B (ficha, exportación, empaquetador) — entrega para revisión
+
+- Dos bordes de A cerrados con regresiones: `publish` declara `PackageStateError` si no puede restaurar el respaldo del mismo par; los anillos GeoJSON deben cerrar exactamente.
+- Política pura separada en `pipelines/geology_policy.py`; validador único `geology_contract` (sin Shapely/pyproj/requests) con exportación `geology-export` autocontenida. Web: validación espejo, carga con timeout que cubre el cuerpo, ficha compacta/expandible con redondeo honesto y descarga de JSON. Empaquetador con paquete geológico opcional y validado.
+- 316 Python, 245 web, build y ZIP repetido idéntico (31 entradas, SHA-256 `579a4fed…74be`); baseline intacto. Sin commit, push ni deploy; QA de navegador y publicación a cargo de Codex.
+
+## 2026-11-14 Claude Code · M9 fase A corregida tras la revisión de Codex
+
+- Cinco hallazgos cerrados con regresiones: límite de cambio de área total en reparaciones (original no positivo ⇒ rechazo con máscara), validación estructural de cada vértice antes de Shapely y antes de instalar caché, transacción caché+paquete con rollback (`prepare_raw` + `publish`), procedencia exacta por sector (rol, `site_id`, bbox de la URL sin redondeo) y chilena ligada a la descarga de la capa.
+- Caché con nombre/symlink comprobados antes de abrir; licencia leída de CKAN (rechazo si no es cc-zero); narrativa de formatos solo de lo observado; SIGAM corregido; método alineado con la superposición en EPSG:6933. Prueba de texto del código sustituida por una funcional.
+- Paquete real recalculado desde la caché sin red (SHA-256 `fe2552dd…856c`, rebuild idéntico). 297 Python, 196 web, typecheck y build correctos; baseline intacto. Fase B pendiente; `release:package` sigue fallando hasta B. Sin commit ni push.
+
+## 2026-11-14 Claude Code · M9 fase A (datos, contrato, pruebas) — entrega para revisión
+
+- Adquisición pública acotada (CKAN + ZIP Chile inspeccionado por contenido + un WFS 1.0.0 por sector argentino), caché raw ignorada con petición exacta/SHA-256/`acquired_at`, validación de truncamiento, CRS, rangos y bbox por entidad. Sin credenciales.
+- Recorte/partición en plano EPSG:6933 con ambigüedad, huecos y descripción ausente separados; reparación `make_valid` vs `buffer(0)` con límites 0,1 %/0,05 % y máscara conservadora en rechazo; estados conservadores. Contrato `geology-context` + semántica (geometría exacta, cierre de áreas, estado recalculado).
+- Paquete real de siete sectores; rebuild offline idéntico. 248 Python, 196 web, typecheck y build correctos; baseline intacto. `release:package` falla hasta la fase B (lista del empaquetador). ADR-010 propuesto. Sin commit ni push; fase B pendiente.
+
+## 2026-11-14 Codex — M9 autorizado y asignado a Claude
+
+- Dan aprobó implementar y sacar el contexto geológico recomendado. Encargo M9 en NEXT_TASK, revisión de datos y producto entre fases, M8 archivado y baseline protegido.
+- Dos fuentes oficiales, siete sectores, cobertura/ambigüedad explícitas, ficha/exportación y paquete offline. Ciencia, rankings e IA actual conservados. Codex verifica antes de dev.
+
+## 2026-11-14 Codex — evaluación de valor y esfuerzo de geología oficial
+
+- Auditadas las siete geometrías v3 contra datos públicos reales: SERNAGEOMIN vía MMA y WFS SEGEMAR. Chile ≈99 % de cobertura a 1:1M; Argentina 50/0/100 % a 1:250K. Probadas alternativas 1M/2,5M sin confundir su detalle ni rellenar silenciosamente huecos.
+- Detectados formatos intercambiados en el catálogo chileno, geometrías inválidas y solapamientos; contraste SHP/GeoJSON de 306 geometrías próximas sin discrepancias. Consultas argentinas individuales y regional coinciden al recortar.
+- Informe `docs/GEOLOGY_FEASIBILITY.md`, cálculo offline y evidencia con hashes en `docs/research/geology/`. Recomendación: primer corte descriptivo, 20–32 h estimadas; ranking/calibración geológica pendientes. No se asignó implementación a Claude ni se publicó.
+- Caché pública local de 20.873.381 bytes en `data/raw/geology-feasibility-20261114/` ignorada; dependencias de investigación aisladas en `/tmp`. Sin cambios de app, IA ni ciencia. `npm run verify`: 177 Python, 196 web, typecheck/build correctos; 2 opt-in omitidos.
+
 ## 2026-11-14 Codex — dev e IA real verificados
 
 - Publicación corregida `9060970`, Actions 43639834860 correcto, alias `https://analogos-dev.vercel.app/`. Main y protección de acceso sin cambios.

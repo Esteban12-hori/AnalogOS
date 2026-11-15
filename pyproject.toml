@@ -16,6 +16,7 @@ dependencies = [
   "python-dotenv>=1,<2",
   "pyproj>=3.6",
   "requests>=2.32,<3",
+  "shapely>=2.2,<2.3",
 ]
 
 [project.optional-dependencies]

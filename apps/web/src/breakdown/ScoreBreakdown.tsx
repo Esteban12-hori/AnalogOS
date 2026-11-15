@@ -13,6 +13,7 @@ import './score-breakdown.css'
 interface ScoreBreakdownProps {
   items: readonly ScoreBreakdownItem[]
   marsReference: MarsReference | null
+  geologyContextAvailable?: boolean
 }
 
 const n1 = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
@@ -218,7 +219,7 @@ function visualFor(item: ScoreBreakdownItem, mars?: number): ReactNode {
   }
 }
 
-function CriterionCard({ item, index, mars }: { item: ScoreBreakdownItem; index: number; mars?: number }) {
+function CriterionCard({ item, index, mars, geologyContextAvailable }: { item: ScoreBreakdownItem; index: number; mars?: number; geologyContextAvailable?: boolean }) {
   const meta = META[item.criterion_id]
   const valid = item.status === 'valid'
   const visual = valid ? visualFor(item, mars) : null
@@ -249,7 +250,9 @@ function CriterionCard({ item, index, mars }: { item: ScoreBreakdownItem; index:
       ) : (
         <div className="sb-pending">
           <strong>{criterionStatusLabels[item.status]}</strong>
-          <span>{item.explanation}</span>
+          <span>{geologyContextAvailable && item.criterion_id === 'geologic_relevance'
+            ? 'El contexto geológico oficial está disponible con sus límites de cobertura. Falta calibrar su compatibilidad con el objetivo y revisarla con especialistas; permanece fuera del puntaje.'
+            : item.explanation}</span>
         </div>
       )}
 
@@ -261,7 +264,7 @@ function CriterionCard({ item, index, mars }: { item: ScoreBreakdownItem; index:
   )
 }
 
-export function ScoreBreakdown({ items, marsReference }: ScoreBreakdownProps) {
+export function ScoreBreakdown({ items, marsReference, geologyContextAvailable = false }: ScoreBreakdownProps) {
   const validCount = items.filter((item) => item.status === 'valid').length
   return (
     <section className="details-section sb-section" aria-labelledby="breakdown-heading">
@@ -276,7 +279,7 @@ export function ScoreBreakdown({ items, marsReference }: ScoreBreakdownProps) {
       </div>
       <div className="sb-list">
         {items.map((item, index) => (
-          <CriterionCard key={item.criterion_id} item={item} index={index} mars={marsReference?.byCriterion[item.criterion_id]} />
+          <CriterionCard key={item.criterion_id} item={item} index={index} mars={marsReference?.byCriterion[item.criterion_id]} geologyContextAvailable={geologyContextAvailable} />
         ))}
       </div>
     </section>

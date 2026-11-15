@@ -609,3 +609,48 @@ a { color: inherit; }
 .hero .details-header > div:first-child { flex-basis: 100%; min-width: 0; }
 .hero .detail-actions { flex-wrap: wrap; }
 @media (max-width: 760px) { .discovery-workspace { grid-template-columns: 1fr; } .discovery-section { margin: 18px 8px; } }
+
+/* Contexto geológico (M9): ficha compacta con detalle expandible, en el vidrio existente */
+.geology-context { min-width: 0; }
+.geology-summary { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255, 255, 255, .03); }
+.geology-summary > p, .geology-source-line { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.geology-state { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 10px; }
+.geology-state strong { font-size: 12px; color: #D3E2EC; }
+.geology-state span { color: var(--sand); font-size: 12px; }
+.geology-state-available { border-color: var(--blue-line); }
+.geology-state-no_coverage, .geology-state-unavailable { border-style: dashed; }
+.geology-bar { display: flex; height: 8px; overflow: hidden; border-radius: 99px; background: rgba(255, 255, 255, .08); }
+.geology-bar span { display: block; height: 100%; min-width: 0; }
+.geology-bar-unambiguous { background: var(--mint); }
+.geology-bar-ambiguous { background: repeating-linear-gradient(45deg, var(--sand) 0 3px, rgba(255, 255, 255, .25) 3px 5px); }
+.geology-bar-unusable { background: #8B3A2B; }
+.geology-bar-unmapped { background: transparent; }
+.geology-figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 6px 12px; margin: 0; }
+.geology-figures div { min-width: 0; }
+.geology-figures dt { color: var(--muted-2); font-size: 12px; }
+.geology-figures dd { margin: 2px 0 0; color: #D3E2EC; font-size: 12px; }
+.geology-note, .geology-unavailable, .geology-empty { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.geology-unavailable { padding: 11px 12px; border: 1px dashed var(--line-strong); border-radius: 10px; }
+.geology-details { margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.geology-details summary { cursor: pointer; color: var(--mint); min-height: 36px; }
+.geology-details summary:focus-visible, .geology-actions button:focus-visible, .geology-provenance a:focus-visible { outline: 2px solid var(--sand); outline-offset: 2px; }
+.geology-units, .geology-questions { display: grid; gap: 10px; margin: 8px 0 0; padding: 0; list-style: none; }
+.geology-questions { padding-left: 16px; list-style: disc; gap: 5px; }
+.geology-units li { display: grid; gap: 3px; min-width: 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; }
+.geology-unit-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; min-width: 0; }
+.geology-unit-head strong { min-width: 0; color: #D3E2EC; font-size: 12px; overflow-wrap: anywhere; }
+.geology-unit-head code { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12px; color: var(--sand); }
+.geology-unit-share { color: var(--mint); font-size: 12px; }
+.geology-units p { margin: 0; overflow-wrap: anywhere; }
+.geology-units small { color: var(--muted-2); font-size: 12px; overflow-wrap: anywhere; }
+.geology-provenance { display: grid; gap: 6px; margin: 8px 0 0; }
+.geology-provenance div { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 8px; }
+.geology-provenance dt { color: var(--muted-2); }
+.geology-provenance dd { margin: 0; overflow-wrap: anywhere; }
+.geology-provenance a { color: var(--sand); }
+.geology-provenance code { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12px; }
+.geology-actions { margin-top: 10px; }
+.geology-actions button { min-height: 40px; padding: 7px 12px; border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255, 255, 255, .04); color: var(--text); cursor: pointer; font-size: 12px; }
+.geology-actions button:hover { border-color: var(--blue-line); background: var(--blue-soft); }
+.geology-error { margin: 6px 0 0; color: var(--orange-bright); font-size: 12px; }
+@media (max-width: 480px) { .geology-provenance div { grid-template-columns: minmax(0, 1fr); gap: 1px; } }

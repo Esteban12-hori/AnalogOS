@@ -1,0 +1,792 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analogos.cl/schemas/geology-export.schema.json",
+  "title": "AnalogOS Geology Export v1",
+  "description": "Exportación geológica independiente de UN sector: subconjunto autodescriptivo del paquete geology-context-v1 con solo las peticiones que lo respaldan. Contrato autocontenido (sus $defs duplican los de geology-context; una prueba vigila que no diverjan). No es el paquete completo ni su hash; no expresa aptitud.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "schema_version",
+    "status",
+    "export_info",
+    "site",
+    "source",
+    "processing",
+    "policy",
+    "limitations",
+    "editorial_note"
+  ],
+  "properties": {
+    "kind": {
+      "const": "analogos-geology-export"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "status": {
+      "const": "preliminary_geological_context"
+    },
+    "export_info": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "how_to_read",
+        "subset",
+        "package_kind",
+        "package_schema_version",
+        "snapshot_version",
+        "pipeline_version",
+        "full_candidates_file",
+        "full_candidates_file_sha256"
+      ],
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "how_to_read": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "subset": {
+          "const": true
+        },
+        "package_kind": {
+          "const": "analogos-geology-context"
+        },
+        "package_schema_version": {
+          "const": 1
+        },
+        "snapshot_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pipeline_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "full_candidates_file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "full_candidates_file_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "site": {
+      "$ref": "#/$defs/site"
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "processing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "shapely",
+        "geos",
+        "pyproj",
+        "area_crs",
+        "clip_space"
+      ],
+      "properties": {
+        "shapely": {
+          "type": "string"
+        },
+        "geos": {
+          "type": "string"
+        },
+        "pyproj": {
+          "type": "string"
+        },
+        "area_crs": {
+          "const": "EPSG:6933"
+        },
+        "clip_space": {
+          "type": "string"
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "area_crs",
+        "clip_space",
+        "repair_entity_relative_limit",
+        "repair_aoi_fraction_limit",
+        "repair_total_area_relative_limit",
+        "repair_methods_compared",
+        "area_floor_m2",
+        "available_tolerance",
+        "sum_tolerance",
+        "provisional",
+        "note"
+      ],
+      "properties": {
+        "area_crs": {
+          "const": "EPSG:6933"
+        },
+        "clip_space": {
+          "type": "string"
+        },
+        "repair_entity_relative_limit": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "repair_aoi_fraction_limit": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "repair_total_area_relative_limit": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "repair_methods_compared": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2
+        },
+        "area_floor_m2": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "available_tolerance": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "sum_tolerance": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "provisional": {
+          "const": true
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "editorial_note": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "httpsUrl": {
+      "type": "string",
+      "pattern": "^https://[^\\s]+$"
+    },
+    "utcTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "Polygon",
+            "MultiPolygon"
+          ]
+        },
+        "coordinates": {
+          "type": "array",
+          "minItems": 1
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "role",
+        "method",
+        "url",
+        "response_sha256",
+        "bytes",
+        "http_status",
+        "content_type",
+        "acquired_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/sha256"
+        },
+        "role": {
+          "enum": [
+            "chile_catalog_metadata",
+            "chile_layer",
+            "argentina_wfs"
+          ]
+        },
+        "method": {
+          "const": "GET"
+        },
+        "url": {
+          "$ref": "#/$defs/httpsUrl"
+        },
+        "response_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "http_status": {
+          "const": 200
+        },
+        "content_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "acquired_at": {
+          "$ref": "#/$defs/utcTime"
+        },
+        "site_id": {
+          "type": "string"
+        },
+        "server_timestamp": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "number_matched": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "number_returned": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resource_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "labeled_format": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "actual_format": {
+          "type": "string"
+        },
+        "zip_member": {
+          "type": "string"
+        },
+        "member_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "rejected_resources": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "country",
+        "authority_original",
+        "distributor",
+        "dataset_name",
+        "dataset_url",
+        "layer",
+        "scale_denominator",
+        "crs_declared",
+        "license",
+        "attribution",
+        "map_date",
+        "map_date_note",
+        "catalog_modified_at",
+        "encoding",
+        "identity_fields",
+        "code_field",
+        "name_field",
+        "description_field",
+        "sheet_field",
+        "absent_description_markers",
+        "requests",
+        "layer_features_total",
+        "layer_null_geometry_features",
+        "transformations",
+        "limitations"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "pattern": "^(cl|ar)-[a-z0-9-]+$"
+        },
+        "country": {
+          "enum": [
+            "CL",
+            "AR"
+          ]
+        },
+        "authority_original": {
+          "type": "string",
+          "minLength": 1
+        },
+        "distributor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataset_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataset_url": {
+          "$ref": "#/$defs/httpsUrl"
+        },
+        "layer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scale_denominator": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "crs_declared": {
+          "type": "string"
+        },
+        "license": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "declared_id",
+            "url",
+            "declared_by",
+            "scope"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "declared_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "url": {
+              "$ref": "#/$defs/httpsUrl"
+            },
+            "declared_by": {
+              "type": "string"
+            },
+            "scope": {
+              "type": "string"
+            }
+          }
+        },
+        "attribution": {
+          "type": "string",
+          "minLength": 1
+        },
+        "map_date": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "map_date_note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "catalog_modified_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encoding": {
+          "const": "UTF-8"
+        },
+        "identity_fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "code_field": {
+          "type": "string"
+        },
+        "name_field": {
+          "type": "string"
+        },
+        "description_field": {
+          "type": "string"
+        },
+        "sheet_field": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "absent_description_markers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "requests": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/request"
+          }
+        },
+        "layer_features_total": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "layer_null_geometry_features": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "transformations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "fractions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unmapped",
+        "covered_unambiguous",
+        "covered_ambiguous",
+        "unusable_upper_bound",
+        "covered_total",
+        "covered_by_units_without_description"
+      ],
+      "properties": {
+        "unmapped": {
+          "$ref": "#/$defs/fraction"
+        },
+        "covered_unambiguous": {
+          "$ref": "#/$defs/fraction"
+        },
+        "covered_ambiguous": {
+          "$ref": "#/$defs/fraction"
+        },
+        "unusable_upper_bound": {
+          "$ref": "#/$defs/fraction"
+        },
+        "covered_total": {
+          "$ref": "#/$defs/fraction"
+        },
+        "covered_by_units_without_description": {
+          "$ref": "#/$defs/fraction"
+        }
+      }
+    },
+    "unit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit_id",
+        "identity",
+        "code",
+        "name",
+        "description",
+        "description_present",
+        "sheet",
+        "fraction_including_overlap",
+        "fraction_unambiguous",
+        "fraction_in_ambiguity",
+        "source_features"
+      ],
+      "properties": {
+        "unit_id": {
+          "type": "string",
+          "pattern": "^unit-[0-9a-f]{12}$"
+        },
+        "identity": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description_present": {
+          "type": "boolean"
+        },
+        "sheet": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fraction_including_overlap": {
+          "$ref": "#/$defs/fraction"
+        },
+        "fraction_unambiguous": {
+          "$ref": "#/$defs/fraction"
+        },
+        "fraction_in_ambiguity": {
+          "$ref": "#/$defs/fraction"
+        },
+        "source_features": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "feature_id",
+              "properties"
+            ],
+            "properties": {
+              "feature_id": {
+                "type": "string"
+              },
+              "properties": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": [
+        "feature_id",
+        "validity_reason",
+        "method",
+        "status"
+      ],
+      "properties": {
+        "feature_id": {
+          "type": "string"
+        },
+        "validity_reason": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "accepted_no_positive_intersection",
+            "rejected"
+          ]
+        },
+        "rejection_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "limitation": {
+          "type": "string"
+        }
+      }
+    },
+    "site": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "site_id",
+        "name",
+        "country",
+        "geometry",
+        "aoi_area_km2",
+        "source_id",
+        "request_ids",
+        "availability",
+        "area_fractions",
+        "feature_counts",
+        "units",
+        "geometry_diagnostics",
+        "verification_questions"
+      ],
+      "properties": {
+        "site_id": {
+          "type": "string",
+          "pattern": "^(cl|ar)-[a-z0-9-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "country": {
+          "enum": [
+            "CL",
+            "AR"
+          ]
+        },
+        "geometry": {
+          "$ref": "#/$defs/geometry"
+        },
+        "aoi_area_km2": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "source_id": {
+          "type": "string"
+        },
+        "request_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/sha256"
+          }
+        },
+        "availability": {
+          "enum": [
+            "available",
+            "partial",
+            "no_coverage",
+            "unavailable"
+          ]
+        },
+        "area_fractions": {
+          "$ref": "#/$defs/fractions"
+        },
+        "feature_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bbox_candidates",
+            "positive_area",
+            "no_positive_intersection",
+            "invalid_geometry",
+            "repaired_accepted",
+            "rejected"
+          ],
+          "properties": {
+            "bbox_candidates": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "positive_area": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "no_positive_intersection": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "invalid_geometry": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "repaired_accepted": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rejected": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "units": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/unit"
+          }
+        },
+        "geometry_diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/diagnostic"
+          }
+        },
+        "verification_questions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

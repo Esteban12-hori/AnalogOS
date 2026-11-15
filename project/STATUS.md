@@ -2,8 +2,37 @@
 
 **Última actualización:** 2026-11-14, M8 publicado e IA verificada en dev (America/Santiago)
 **Responsable del checkpoint:** Codex
-**Milestone activo:** M8 aceptado y entregado. Claude espera nueva asignación.
+**Milestone activo:** M9-GEOLOGY-CONTEXT aceptado localmente por Codex. Publicación y verificación en dev en curso; M8 conservado.
 **Estado general:** planificador de ensayo/sector con motor determinista, snapshot científico v3 y Anthropic opcional funcionando en dev. Siete áreas con evidencia; faltan capas territoriales, contraste local y revisión experta de campo.
+
+## M9 — aceptación local de Codex
+
+Ficha y exportación geológica oficial en siete sectores; cobertura/ambigüedad y escala explícitas. Revisión de datos/código y navegador offline, 390 px/teclado, errores de carga y descarga real completadas. 316 Python y 246 web correctos; typecheck/build; baseline49 intacto. ZIP 31 entradas, SHA-256 `eed868335c5374d20b05415a8627be9ec3f035c1dc10668bbe08f21e03f6520c`. Ver `docs/CODEX_M9_REVIEW.md`. Falta comprobar publicación dev y regresión remota IA antes de cerrar M9. Sin cambio de score, ciencia ni IA geológica.
+
+## Encargo M9 autorizado — contexto geológico
+
+- Dan aprobó la recomendación: «ok saquemoslo que quede perfecto y que nada se rompa». Alcance en NEXT_TASK: ficha geológica, adquisición/contrato/exportación reproducibles y offline; ciencia, rankings e IA M8 conservados.
+- Claude implementa por fases con checkpoint/revisión de Codex. Sin mapa litológico, filtros nuevos ni score geológico. Codex hará aceptación y salida a dev tras verificar; main se conserva.
+- Baseline nuevo: `/tmp/analogos-m9-baseline-hashes.json`; M8 archivado en `project/tasks/M8_MISSION_RECOMMENDATION.md`. Investigación anterior preservada.
+
+## M9 fase B — ficha, exportación y paquete portable (Claude, en revisión de Codex)
+
+- Ficha «Contexto geológico» compacta y expandible en los siete sectores, exportación `<site_id>-geology-context.json` con contrato autocontenido, carga opcional validada (timeout incluye el cuerpo; sin llamadas a proveedores) y empaquetador con `geology-context-v1/index.json` opcional validado. No cambia score, confianza, restricciones, IA ni M8.
+- `npm run verify`: 316 Python, 245 web (+2 omitidas), typecheck/build correctos. `release:package` repetido idéntico: 31 entradas, SHA-256 `579a4fed…74be`. Baseline de 49 archivos intacto. Brechas: sin QA en navegador (Codex), la web no calcula SHA-256. Detalle en `project/M9_PROGRESS.md`; datos ignorados: `data/raw/geology-context-v1/` (~6,9 MB).
+
+## M9 fase A — contexto geológico (corregida tras la revisión de Codex)
+
+- Paquete real `artifacts/geology-context-v1/index.json` (SHA-256 `fe2552dd…856c`), contrato propio, pipeline `python -m pipelines.build_geology_context [--refresh|--offline]`, ADR-010 propuesto y `docs/GEOLOGY_CONTEXT.md`. Estados: Chile 1–3 y Yungay `partial` (≈99 %), Argentina 4 `partial` (50 %), Argentina 5 `no_coverage`, Argentina 6 `available`. Coinciden con la auditoría dentro de 5e-5 pp. Reparaciones aceptadas, sin máscaras.
+- Correcciones de revisión A: cambio de área total en reparaciones, validación de cada vértice, transacción caché+paquete con rollback, procedencia exacta por sector, caché y licencia estrictas. Paquete recalculado desde la caché sin red. Verificación: 297 Python, 196 web (+2 omitidas), typecheck/build correctos; rebuild offline idéntico; baseline de 49 archivos intacto.
+- Brecha de la fase A resuelta en B: el empaquetador ya admite `geology-context-v1/`. Raw ignorado: `data/raw/geology-context-v1/` (~6,9 MB).
+
+## Evaluación geológica posterior a M8 — Codex, 2026-11-14
+
+- Dan pidió analizar primero esfuerzo y valor. Evaluación terminada en `docs/GEOLOGY_FEASIBILITY.md`, con mediciones reproducibles en `docs/research/geology/`. No se inició integración de producto ni una tarea a Claude.
+- Descargas reales: SERNAGEOMIN distribuido por MMA a 1:1.000.000 cubre aproximadamente 99 % de las cuatro ventanas chilenas; SEGEMAR 250K cubre 50 %, 0 % y 100 % de las argentinas. Alternativas más generales verificadas por separado; huecos, solapamientos y geometrías inválidas explícitos.
+- Recomendación: contexto descriptivo y trazable por sector, estimado en 20–32 h de ingeniería/revisión; no activar `geologic_relevance` ni inferir tracción. Datos y código de ciencia, IA, UI y publicación sin cambios. Claude sigue esperando asignación.
+- Caché de investigación ignorada: `data/raw/geology-feasibility-20261114/`, 13 archivos, 20.873.381 bytes. Dependencias exploratorias aisladas en `/tmp/analogos-geology-audit-libs`, sin modificar dependencias de la app.
+- Verificación del producto: 177 Python y 196 web correctos, 2 pruebas de IA real omitidas; typecheck/build correctos. La auditoría de cobertura no es validación de campo.
 
 ## Entrega vigente — dev e IA real comprobados
 

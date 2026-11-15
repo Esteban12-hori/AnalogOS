@@ -46,7 +46,7 @@ npm run release:package
 (cd submission && shasum -a 256 -c analogos-static.zip.sha256)
 ```
 
-El comando reconstruye el frontend, comprueba que el build contenga solo `index.html`, el JS/CSS y assets alcanzables desde el manifiesto de Vite, los mapas base locales permitidos, los siete archivos `science-v3/` y el contexto visual (`visual-context-v3/index.json` más una imagen por sitio del snapshot, con el SHA-256 que declara ese índice), y escribe `submission/analogos-static.zip` con su SHA-256. La lista de imágenes se deriva de la metadata validada, no de un patrón por extensión. El ZIP v2 (`analogos-chile-static.zip`) se conserva como histórico y no se regenera. El ZIP es determinista para un mismo build. Si la validación falla, la entrega anterior no se toca.
+El comando reconstruye el frontend, comprueba que el build contenga solo `index.html`, el JS/CSS y assets alcanzables desde el manifiesto de Vite, los mapas base locales permitidos, los siete archivos `science-v3/` y el contexto visual (`visual-context-v3/index.json` más una imagen por sitio del snapshot, con el SHA-256 que declara ese índice) y, si el build lo trae, el contexto geológico (`geology-context-v1/index.json`, único archivo permitido en esa carpeta y validado completo; sin carpeta, el ZIP sale como antes), y escribe `submission/analogos-static.zip` con su SHA-256. La lista de imágenes se deriva de la metadata validada, no de un patrón por extensión. El ZIP v2 (`analogos-chile-static.zip`) se conserva como histórico y no se regenera. El ZIP es determinista para un mismo build. Si la validación falla, la entrega anterior no se toca.
 
 El build usa rutas relativas: carga igual en la raíz o en un subdirectorio. Para probarlo por HTTP local en `/AnalogOS/`:
 
@@ -68,6 +68,17 @@ python -m pipelines.fetch_visual_context --snapshot v3 --refresh  # consulta de 
 ```
 
 Qué mirar, qué se observó y qué falta está en `docs/VISUAL_REVIEW.md`; la decisión, en `docs/decisions/ADR-005-offline-visual-context.md`.
+
+### Contexto geológico oficial (M9)
+
+La ficha de cada sector trae «Contexto geológico»: qué unidades cartografió SERNAGEOMIN (vía MMA, 1:1.000.000) o SEGEMAR/SIGAM (1:250.000), qué parte del sector no tiene cobertura, cuánto se solapa entre unidades distintas, con escala y fuente visibles, un detalle expandible de unidades originales, preguntas de verificación y una exportación JSON propia. Es cartografía regional: **cobertura del mapa no es precisión, confianza ni aptitud**, y no cambia similitud, confianza, restricciones, IA ni la recomendación de M8. La geología del puntaje sigue sin calibrar; este contexto no implica compatibilidad planetaria calibrada.
+
+```bash
+python -m pipelines.build_geology_context --offline   # reconstruye desde data/raw/geology-context-v1/ (sin red ni credenciales)
+python -m pipelines.build_geology_context --refresh   # descarga pública nueva (CKAN, ZIP de Chile, un WFS por sector argentino)
+```
+
+La web solo lee `geology-context-v1/index.json` del build (con timeout, límite de tamaño y validación completa); si falta o es inválido, muestra «no disponible» y todo lo demás funciona. Operación, fuentes, licencias y límites: `docs/GEOLOGY_CONTEXT.md`; decisión: `docs/decisions/ADR-010-geology-context.md`.
 
 ## Reproducir la búsqueda v3
 

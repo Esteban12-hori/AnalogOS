@@ -26,6 +26,8 @@
 - IDE Chile: https://www.ide.cl/
 - SERNAGEOMIN: https://www.sernageomin.cl/geologia-general/
 - Portal Geomin: https://portalgeomin.sernageomin.cl/
+- Geología Base (SERNAGEOMIN vía MMA, CKAN, CC0 declarada): https://lineasdebasepublicas.mma.gob.cl/datos_abiertos/dataset/geologia-base
+- Geoservicios SIGAM/SEGEMAR (WFS, CC BY 4.0 declarada por la página): https://sigam.segemar.gov.ar/sigam/geoservicios/ — usos y límites en `docs/GEOLOGY_CONTEXT.md`
 
 ## Accesos a preparar
 

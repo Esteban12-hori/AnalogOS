@@ -1,0 +1,2212 @@
+{
+  "status": "feasibility_audit_not_production_or_field_validation",
+  "audit_date": "2026-11-14",
+  "base_commit": "92392f1181133ee2b86fb6b13c97ec9b10de021d",
+  "method": "Intersection in lon/lat; area EPSG:6933. Invalid nearby geometries repaired with make_valid only for audit; original inputs unchanged. Unit overlaps remain explicit. No lithology classification, score, confidence or field suitability derived.",
+  "candidate_input_sha256": "83d2c4dd3f79aa74d1305a3eaa1c5649b6dcc3cba9c6b79f0688861bed9f36e4",
+  "raw_input_sha256": {
+    "ar-1m-noa.json": "7324545c0adc2c8d43889081a432367d3057d64b9a27697b8ebd61964e1cd20f",
+    "ar-250k-region.json": "a55e222bff743e32f0add441620e36e6e67fc8d3a994c20267d95efcc05e140c",
+    "ar-2_5m.json": "943404bad385bdca143edf2145b0c6ab834c9f87a24107a66088502d830a8378",
+    "ar-independent-checks.json": "223a03fd9b747c04a3700e73a4fd5cc8499297d5e5fedbfde9fa5e105a3c7f92",
+    "ar-individual-requests.json": "43890a73a8cc549acc5abce79a5e59f16775df0900c67543ad8d6463bf9ec5fd",
+    "ar-wfs-capabilities.xml": "265936be1d7896438068f7cbbd359dc0013055fafc7718e030304004ccf8a613",
+    "ar-win-s2580-w06710.json": "aec3a1d2a56f13e956d94a9976b0e49bc56446107a6cebbfeade8b54b89a829e",
+    "ar-win-s2620-w06750.json": "9b0b343ee18a1db1b8dc30a84d4fb79484c6cb41d642190dceaf877d0646f22b",
+    "ar-win-s2640-w06730.json": "007778489720c86c14a9a90469236d212e1a6e0a73060e193699e44e839ea40c",
+    "cl-ckan-metadata.json": "5251e2d0b6763fd9d421aefd40016308f1804cc71356b650f1c9901ba8a25a7f",
+    "cl-independent-checks.json": "14863d5ca898f210e3ed5e24ef2dfd43935a303d0ccfd2d55e02e7850f04f42c",
+    "cl-resource-labeled-geojson.zip": "7fd897d55a314e89069b355f7ab0fa42a46d3f7bb4ba4209c17dd2431c2aac21",
+    "cl-resource-labeled-shp.zip": "916fad22c88644a486dd6d58e94788e0401264d3eea65a2238d1f10a0b8995a3"
+  },
+  "source_counts": [
+    {
+      "layer": "SERNAGEOMIN via MMA: Geología Base",
+      "features": 16364,
+      "null_or_empty_geometry_count": 115,
+      "server_timestamp": null
+    },
+    {
+      "layer": "sigam:e250K_UnidadGeologica",
+      "features": 700,
+      "null_or_empty_geometry_count": 0,
+      "server_timestamp": "2026-11-14T21:58:44.690Z"
+    },
+    {
+      "layer": "sigam:e1M.NOA.Geol",
+      "features": 169,
+      "null_or_empty_geometry_count": 0,
+      "server_timestamp": "2026-11-14T22:02:01.900Z"
+    },
+    {
+      "layer": "sigam:e2.5M.UnidadesGeologicas",
+      "features": 27,
+      "null_or_empty_geometry_count": 0,
+      "server_timestamp": "2026-11-14T22:01:52.154Z"
+    }
+  ],
+  "measurements": [
+    {
+      "site_id": "cl-win-s2500-w06970",
+      "country": "CL",
+      "layer": "SERNAGEOMIN via MMA: Geología Base",
+      "scale_denominator": 1000000,
+      "area_km2_equal_area": 447.301089,
+      "intersecting_features_with_positive_area": 18,
+      "coverage_pct": 99.389364,
+      "unmapped_pct": 0.610636,
+      "description_coverage_pct": 99.389364,
+      "cross_unit_overlap_pct": 0.831551,
+      "overlap_excess_pct": 0.832141,
+      "invalid_nearby_feature_ids_repaired_for_audit": [
+        "824",
+        "846",
+        "9388"
+      ],
+      "units": [
+        {
+          "key": [
+            "Qa",
+            "Depositos aluviales, subordinadamente coluviales o lacustres",
+            "grava,arena,limo"
+          ],
+          "feature_ids": [
+            "824"
+          ],
+          "original_properties": {
+            "objectid": 824,
+            "region": "Antofagasta",
+            "cod_geologia": "Qa",
+            "lithostrat": "Depositos aluviales, subordinadamente coluviales o lacustres",
+            "rock_rank": "Informal unit",
+            "age_min": "Holoceno",
+            "age_max": "Pleistoceno",
+            "lithology": "grava,arena,limo",
+            "cod_epsg": 4326,
+            "area_hectareas": 207886.0
+          },
+          "mapped_area_pct_including_overlap": 42.60071,
+          "unambiguous_area_pct": 41.945485
+        },
+        {
+          "key": [
+            "PE3i",
+            "Secuencias y complejos volcanicos continentales",
+            "andesita basaltica,dacita,volcanico piroclastico"
+          ],
+          "feature_ids": [
+            "8187",
+            "8188",
+            "8190",
+            "8193"
+          ],
+          "original_properties": {
+            "objectid": 8193,
+            "region": "Antofagasta",
+            "cod_geologia": "PE3i",
+            "lithostrat": "Secuencias y complejos volcanicos continentales",
+            "rock_rank": "Lithostratigraphic Assemblage",
+            "age_min": "Eoceno inferior",
+            "age_max": "Paleoceno",
+            "lithology": "andesita basaltica,dacita,volcanico piroclastico",
+            "cod_epsg": 4326,
+            "area_hectareas": 36846.0
+          },
+          "mapped_area_pct_including_overlap": 22.916862,
+          "unambiguous_area_pct": 22.613161
+        },
+        {
+          "key": [
+            "PE3a",
+            "Secuencias y complejos volcanicos continentales acidos",
+            "dacita,riolita,volcanico piroclastico"
+          ],
+          "feature_ids": [
+            "7576",
+            "7577",
+            "7578",
+            "7579",
+            "7580",
+            "7586"
+          ],
+          "original_properties": {
+            "objectid": 7586,
+            "region": "Antofagasta",
+            "cod_geologia": "PE3a",
+            "lithostrat": "Secuencias y complejos volcanicos continentales acidos",
+            "rock_rank": "Complex",
+            "age_min": "Eoceno inferior",
+            "age_max": "Paleoceno",
+            "lithology": "dacita,riolita,volcanico piroclastico",
+            "cod_epsg": 4326,
+            "area_hectareas": 6799.0
+          },
+          "mapped_area_pct_including_overlap": 21.305934,
+          "unambiguous_area_pct": 21.015598
+        },
+        {
+          "key": [
+            "M1c",
+            "Secuencias sedimentarias de abanicos aluviales, pedimento o fluviales",
+            "grava,arena,limo,ignimbrita"
+          ],
+          "feature_ids": [
+            "7231",
+            "7237",
+            "7244"
+          ],
+          "original_properties": {
+            "objectid": 7244,
+            "region": "Antofagasta",
+            "cod_geologia": "M1c",
+            "lithostrat": "Secuencias sedimentarias de abanicos aluviales, pedimento o fluviales",
+            "rock_rank": "Lithostratigraphic Assemblage",
+            "age_min": "Mioceno medio",
+            "age_max": "Mioceno inferior",
+            "lithology": "grava,arena,limo,ignimbrita",
+            "cod_epsg": 4326,
+            "area_hectareas": 3895.0
+          },
+          "mapped_area_pct_including_overlap": 9.721396,
+          "unambiguous_area_pct": 9.473191
+        },
+        {
+          "key": [
+            "MP1c",
+            "Secuencias sedimentarias clasticas de piedemonte, aluviales, coluviales o fluvia",
+            "conglomerado,arenisca,limolita"
+          ],
+          "feature_ids": [
+            "9388",
+            "9389",
+            "9397",
+            "9416"
+          ],
+          "original_properties": {
+            "objectid": 9416,
+            "region": "Antofagasta",
+            "cod_geologia": "MP1c",
+            "lithostrat": "Secuencias sedimentarias clasticas de piedemonte, aluviales, coluviales o fluvia",
+            "rock_rank": "Informal unit",
+            "age_min": "Plioceno",
+            "age_max": "Mioceno superior",
+            "lithology": "conglomerado,arenisca,limolita",
+            "cod_epsg": 4326,
+            "area_hectareas": 31639.0
+          },
+          "mapped_area_pct_including_overlap": 3.676604,
+          "unambiguous_area_pct": 3.5104
+        }
+      ]
+    },
+    {
+      "site_id": "cl-win-s2480-w06950",
+      "country": "CL",
+      "layer": "SERNAGEOMIN via MMA: Geología Base",
+      "scale_denominator": 1000000,
+      "area_km2_equal_area": 448.010432,
+      "intersecting_features_with_positive_area": 19,
+      "coverage_pct": 99.224112,
+      "unmapped_pct": 0.775888,
+      "description_coverage_pct": 99.224112,
+      "cross_unit_overlap_pct": 0.823327,
+      "overlap_excess_pct": 0.823344,
+      "invalid_nearby_feature_ids_repaired_for_audit": [
+        "824"
+      ],
+      "units": [
+        {
+          "key": [
+            "Qa",
+            "Depositos aluviales, subordinadamente coluviales o lacustres",
+            "grava,arena,limo"
+          ],
+          "feature_ids": [
+            "824"
+          ],
+          "original_properties": {
+            "objectid": 824,
+            "region": "Antofagasta",
+            "cod_geologia": "Qa",
+            "lithostrat": "Depositos aluviales, subordinadamente coluviales o lacustres",
+            "rock_rank": "Informal unit",
+            "age_min": "Holoceno",
+            "age_max": "Pleistoceno",
+            "lithology": "grava,arena,limo",
+            "cod_epsg": 4326,
+            "area_hectareas": 207886.0
+          },
+          "mapped_area_pct_including_overlap": 55.891448,
+          "unambiguous_area_pct": 55.201153
+        },
+        {
+          "key": [
+            "PE3a",
+            "Secuencias y complejos volcanicos continentales acidos",
+            "dacita,riolita,volcanico piroclastico"
+          ],
+          "feature_ids": [
+            "7580",
+            "7581",
+            "7582",
+            "7588",
+            "7590",
+            "7592",
+            "7593"
+          ],
+          "original_properties": {
+            "objectid": 7593,
+            "region": "Antofagasta",
+            "cod_geologia": "PE3a",
+            "lithostrat": "Secuencias y complejos volcanicos continentales acidos",
+            "rock_rank": "Complex",
+            "age_min": "Eoceno inferior",
+            "age_max": "Paleoceno",
+            "lithology": "dacita,riolita,volcanico piroclastico",
+            "cod_epsg": 4326,
+            "area_hectareas": 315.0
+          },
+          "mapped_area_pct_including_overlap": 20.356618,
+          "unambiguous_area_pct": 20.067261
+        },
+        {
+          "key": [
+            "MP1c",
+            "Secuencias sedimentarias clasticas de piedemonte, aluviales, coluviales o fluvia",
+            "conglomerado,arenisca,limolita"
+          ],
+          "feature_ids": [
+            "9400",
+            "9402",
+            "9403",
+            "9423",
+            "9424",
+            "9425",
+            "9453"
+          ],
+          "original_properties": {
+            "objectid": 9453,
+            "region": "Antofagasta",
+            "cod_geologia": "MP1c",
+            "lithostrat": "Secuencias sedimentarias clasticas de piedemonte, aluviales, coluviales o fluvia",
+            "rock_rank": "Informal unit",
+            "age_min": "Plioceno",
+            "age_max": "Mioceno superior",
+            "lithology": "conglomerado,arenisca,limolita",
+            "cod_epsg": 4326,
+            "area_hectareas": 8706.0
+          },
+          "mapped_area_pct_including_overlap": 16.385859,
+          "unambiguous_area_pct": 15.939026
+        },
+        {
+          "key": [
+            "M1c",
+            "Secuencias sedimentarias de abanicos aluviales, pedimento o fluviales",
+            "grava,arena,limo,ignimbrita"
+          ],
+          "feature_ids": [
+            "7257"
+          ],
+          "original_properties": {
+            "objectid": 7257,
+            "region": "Antofagasta",
+            "cod_geologia": "M1c",
+            "lithostrat": "Secuencias sedimentarias de abanicos aluviales, pedimento o fluviales",
+            "rock_rank": "Lithostratigraphic Assemblage",
+            "age_min": "Mioceno medio",
+            "age_max": "Mioceno inferior",
+            "lithology": "grava,arena,limo,ignimbrita",
+            "cod_epsg": 4326,
+            "area_hectareas": 3782.0
+          },
+          "mapped_area_pct_including_overlap": 6.150819,
+          "unambiguous_area_pct": 5.977814
+        },
+        {
+          "key": [
+            "Ks3i",
+            "Secuencias volcanicas continentales",
+            "basalto,dacita,volcanico piroclastico,sedimentario"
+          ],
+          "feature_ids": [
+            "3663"
+          ],
+          "original_properties": {
+            "objectid": 3663,
+            "region": "Antofagasta",
+            "cod_geologia": "Ks3i",
+            "lithostrat": "Secuencias volcanicas continentales",
+            "rock_rank": "Lithostratigraphic Assemblage",
+            "age_min": "Cretacico superior",
+            "age_max": "Cretacico superior",
+            "lithology": "basalto,dacita,volcanico piroclastico,sedimentario",
+            "cod_epsg": 4326,
+            "area_hectareas": 1259.0
+          },
+          "mapped_area_pct_including_overlap": 0.78049,
+          "unambiguous_area_pct": 0.758243
+        },
+        {
+          "key": [
+            "J1m",
+            "Secuencias sedimentarias marinas carbonatadas y clasticas",
+            "caliza,lutita,arenisca calcarea,yeso"
+          ],
+          "feature_ids": [
+            "1993",
+            "1998"
+          ],
+          "original_properties": {
+            "objectid": 1998,
+            "region": "Antofagasta",
+            "cod_geologia": "J1m",
+            "lithostrat": "Secuencias sedimentarias marinas carbonatadas y clasticas",
+            "rock_rank": "Lithostratigraphic Assemblage",
+            "age_min": "Barremiano",
+            "age_max": "Jurasico",
+            "lithology": "caliza,lutita,arenisca calcarea,yeso",
+            "cod_epsg": 4326,
+            "area_hectareas": 358.0
+          },
+          "mapped_area_pct_including_overlap": 0.482223,
+          "unambiguous_area_pct": 0.457287
+        }
+      ]
+    },
+    {
+      "site_id": "cl-win-s2520-w06950",
+      "country": "CL",
+      "layer": "SERNAGEOMIN via MMA: Geología Base",
+      "scale_denominator": 1000000,
+      "area_km2_equal_area": 446.586338,
+      "intersecting_features_with_positive_area": 19,
+      "coverage_pct": 99.286114,
+      "unmapped_pct": 0.713886,
+      "description_coverage_pct": 99.286114,
+      "cross_unit_overlap_pct": 0.558495,
+      "overlap_excess_pct": 0.558505,
+      "invalid_nearby_feature_ids_repaired_for_audit": [
+        "824",
+        "9388"
+      ],
+      "units": [
+        {
+          "key": [
+            "Qa",
+            "Depositos aluviales, subordinadamente coluviales o lacustres",
+            "grava,arena,limo"
+          ],
+          "feature_ids": [
+            "742"
+          ],
+          "original_properties": {
+            "objectid": 742,
+            "region": "Antofagasta",
+            "cod_geologia": "Qa",
+            "lithostrat": "Depositos aluviales, subordinadamente coluviales o lacustres",
+            "rock_rank": "Informal unit",
+            "age_min": "Holoceno",
+            "age_max": "Pleistoceno",
+            "lithology": "grava,arena,limo",
+            "cod_epsg": 4326,
+            "area_hectareas": 70634.0
+          },
+          "mapped_area_pct_including_overlap": 42.794369,
+          "unambiguous_area_pct": 42.396459
+        },
+        {
+          "key": [
+            "M1c",
+            "Secuencias sedimentarias de abanicos aluviales, pedimento o fluviales",
+            "grava,arena,limo,ignimbrita"
+          ],
+          "feature_ids": [
+            "7220",
+            "7221",
+            "7222",
+            "7223",
+            "7225",
+            "7227",
+            "7228",
+            "7229",
+            "7232",
+            "7233",
+            "7239"
+          ],
+          "original_properties": {
+            "objectid": 7239,
+            "region": "Antofagasta",
+            "cod_geologia": "M1c",
+            "lithostrat": "Secuencias sedimentarias de abanicos aluviales, pedimento o fluviales",
+            "rock_rank": "Lithostratigraphic Assemblage",
+            "age_min": "Mioceno medio",
+            "age_max": "Mioceno inferior",
+            "lithology": "grava,arena,limo,ignimbrita",
+            "cod_epsg": 4326,
+            "area_hectareas": 17399.0
+          },
+          "mapped_area_pct_including_overlap": 23.602774,
+          "unambiguous_area_pct": 23.279379
+        },
+        {
+          "key": [
+            "PE3i",
+            "Secuencias y complejos volcanicos continentales",
+            "andesita basaltica,dacita,volcanico piroclastico"
+          ],
+          "feature_ids": [
+            "8181",
+            "8184",
+            "8185",
+            "8190"
+          ],
+          "original_properties": {
+            "objectid": 8185,
+            "region": "Antofagasta",
+            "cod_geologia": "PE3i",
+            "lithostrat": "Secuencias y complejos volcanicos continentales",
+            "rock_rank": "Lithostratigraphic Assemblage",
+            "age_min": "Eoceno inferior",
+            "age_max": "Paleoceno",
+            "lithology": "andesita basaltica,dacita,volcanico piroclastico",
+            "cod_epsg": 4326,
+            "area_hectareas": 874.0
+          },
+          "mapped_area_pct_including_overlap": 20.403448,
+          "unambiguous_area_pct": 20.217535
+        },
+        {
+          "key": [
+            "MP1c",
+            "Secuencias sedimentarias clasticas de piedemonte, aluviales, coluviales o fluvia",
+            "conglomerado,arenisca,limolita"
+          ],
+          "feature_ids": [
+            "9388"
+          ],
+          "original_properties": {
+            "objectid": 9388,
+            "region": "Antofagasta",
+            "cod_geologia": "MP1c",
+            "lithostrat": "Secuencias sedimentarias clasticas de piedemonte, aluviales, coluviales o fluvia",
+            "rock_rank": "Informal unit",
+            "age_min": "Plioceno",
+            "age_max": "Mioceno superior",
+            "lithology": "conglomerado,arenisca,limolita",
+            "cod_epsg": 4326,
+            "area_hectareas": 15159.0
+          },
+          "mapped_area_pct_including_overlap": 9.682995,
+          "unambiguous_area_pct": 9.596506
+        },
+        {
+          "key": [
+            "PE3a",
+            "Secuencias y complejos volcanicos continentales acidos",
+            "dacita,riolita,volcanico piroclastico"
+          ],
+          "feature_ids": [
+            "7580"
+          ],
+          "original_properties": {
+            "objectid": 7580,
+            "region": "Antofagasta",
+            "cod_geologia": "PE3a",
+            "lithostrat": "Secuencias y complejos volcanicos continentales acidos",
+            "rock_rank": "Complex",
+            "age_min": "Eoceno inferior",
+            "age_max": "Paleoceno",
+            "lithology": "dacita,riolita,volcanico piroclastico",
+            "cod_epsg": 4326,
+            "area_hectareas": 24831.0
+          },
+          "mapped_area_pct_including_overlap": 2.946769,
+          "unambiguous_area_pct": 2.870416
+        },
+        {
+          "key": [
+            "Ks3i",
+            "Secuencias volcanicas continentales",
+            "basalto,dacita,volcanico piroclastico,sedimentario"
+          ],
+          "feature_ids": [
+            "3661"
+          ],
+          "original_properties": {
+            "objectid": 3661,
+            "region": "Antofagasta",
+            "cod_geologia": "Ks3i",
+            "lithostrat": "Secuencias volcanicas continentales",
+            "rock_rank": "Lithostratigraphic Assemblage",
+            "age_min": "Cretacico superior",
+            "age_max": "Cretacico superior",
+            "lithology": "basalto,dacita,volcanico piroclastico,sedimentario",
+            "cod_epsg": 4326,
+            "area_hectareas": 1029.0
+          },
+          "mapped_area_pct_including_overlap": 0.414265,
+          "unambiguous_area_pct": 0.367315
+        }
+      ]
+    },
+    {
+      "site_id": "cl-pampa-yungay-screening",
+      "country": "CL",
+      "layer": "SERNAGEOMIN via MMA: Geología Base",
+      "scale_denominator": 1000000,
+      "area_km2_equal_area": 450.519184,
+      "intersecting_features_with_positive_area": 28,
+      "coverage_pct": 99.068499,
+      "unmapped_pct": 0.931501,
+      "description_coverage_pct": 99.068499,
+      "cross_unit_overlap_pct": 1.183521,
+      "overlap_excess_pct": 1.18413,
+      "invalid_nearby_feature_ids_repaired_for_audit": [
+        "824",
+        "846"
+      ],
+      "units": [
+        {
+          "key": [
+            "Kiag",
+            "Rocas Plutonicas Cretacico Inferior-Cretacico Superior",
+            "diorita,monzodiorita,granodiorita,monzogranito"
+          ],
+          "feature_ids": [
+            "5785",
+            "5786",
+            "5787",
+            "5788",
+            "5791"
+          ],
+          "original_properties": {
+            "objectid": 5791,
+            "region": "Antofagasta",
+            "cod_geologia": "Kiag",
+            "lithostrat": "Rocas Plutonicas Cretacico Inferior-Cretacico Superior",
+            "rock_rank": "Suite",
+            "age_min": "Cretacico superior",
+            "age_max": "Cretacico inferior",
+            "lithology": "diorita,monzodiorita,granodiorita,monzogranito",
+            "cod_epsg": 4326,
+            "area_hectareas": 27590.0
+          },
+          "mapped_area_pct_including_overlap": 37.665935,
+          "unambiguous_area_pct": 37.063924
+        },
+        {
+          "key": [
+            "M1c",
+            "Secuencias sedimentarias de abanicos aluviales, pedimento o fluviales",
+            "grava,arena,limo,ignimbrita"
+          ],
+          "feature_ids": [
+            "7284",
+            "7285",
+            "7289",
+            "7311"
+          ],
+          "original_properties": {
+            "objectid": 7311,
+            "region": "Antofagasta",
+            "cod_geologia": "M1c",
+            "lithostrat": "Secuencias sedimentarias de abanicos aluviales, pedimento o fluviales",
+            "rock_rank": "Lithostratigraphic Assemblage",
+            "age_min": "Mioceno medio",
+            "age_max": "Mioceno inferior",
+            "lithology": "grava,arena,limo,ignimbrita",
+            "cod_epsg": 4326,
+            "area_hectareas": 32933.0
+          },
+          "mapped_area_pct_including_overlap": 26.469849,
+          "unambiguous_area_pct": 26.109678
+        },
+        {
+          "key": [
+            "Jig",
+            "Plutones Flamenco y Caldera-Pajonales",
+            "diorita,gabro,monzodiorita cuarcifera,granodioriorita"
+          ],
+          "feature_ids": [
+            "6103",
+            "6104",
+            "6106"
+          ],
+          "original_properties": {
+            "objectid": 6106,
+            "region": "Antofagasta",
+            "cod_geologia": "Jig",
+            "lithostrat": "Plutones Flamenco y Caldera-Pajonales",
+            "rock_rank": "Unit",
+            "age_min": "Jurasico inferior",
+            "age_max": "Jurasico inferior",
+            "lithology": "diorita,gabro,monzodiorita cuarcifera,granodioriorita",
+            "cod_epsg": 4326,
+            "area_hectareas": 2375.0
+          },
+          "mapped_area_pct_including_overlap": 13.538306,
+          "unambiguous_area_pct": 13.114097
+        },
+        {
+          "key": [
+            "Qa",
+            "Depositos aluviales, subordinadamente coluviales o lacustres",
+            "grava,arena,limo"
+          ],
+          "feature_ids": [
+            "815",
+            "824",
+            "830",
+            "846"
+          ],
+          "original_properties": {
+            "objectid": 846,
+            "region": "Antofagasta",
+            "cod_geologia": "Qa",
+            "lithostrat": "Depositos aluviales, subordinadamente coluviales o lacustres",
+            "rock_rank": "Informal unit",
+            "age_min": "Holoceno",
+            "age_max": "Pleistoceno",
+            "lithology": "grava,arena,limo",
+            "cod_epsg": 4326,
+            "area_hectareas": 129519.0
+          },
+          "mapped_area_pct_including_overlap": 12.075088,
+          "unambiguous_area_pct": 11.583253
+        },
+        {
+          "key": [
+            "MP1c",
+            "Secuencias sedimentarias clasticas de piedemonte, aluviales, coluviales o fluvia",
+            "conglomerado,arenisca,limolita"
+          ],
+          "feature_ids": [
+            "9497",
+            "9503",
+            "9509",
+            "9513",
+            "9516",
+            "9518",
+            "9529",
+            "9536",
+            "9540"
+          ],
+          "original_properties": {
+            "objectid": 9540,
+            "region": "Antofagasta",
+            "cod_geologia": "MP1c",
+            "lithostrat": "Secuencias sedimentarias clasticas de piedemonte, aluviales, coluviales o fluvia",
+            "rock_rank": "Informal unit",
+            "age_min": "Plioceno",
+            "age_max": "Mioceno superior",
+            "lithology": "conglomerado,arenisca,limolita",
+            "cod_epsg": 4326,
+            "area_hectareas": 1075.0
+          },
+          "mapped_area_pct_including_overlap": 7.187721,
+          "unambiguous_area_pct": 6.789766
+        },
+        {
+          "key": [
+            "Kia3",
+            "Secuencias y complejos volcanicos continentales",
+            "basalto,andesita,riolita,sedimentario"
+          ],
+          "feature_ids": [
+            "3280",
+            "3286",
+            "3290"
+          ],
+          "original_properties": {
+            "objectid": 3290,
+            "region": "Antofagasta",
+            "cod_geologia": "Kia3",
+            "lithostrat": "Secuencias y complejos volcanicos continentales",
+            "rock_rank": "Lithostratigraphic Assemblage",
+            "age_min": "Cretacico inferior",
+            "age_max": "Cretacico inferior",
+            "lithology": "basalto,andesita,riolita,sedimentario",
+            "cod_epsg": 4326,
+            "area_hectareas": 1320.0
+          },
+          "mapped_area_pct_including_overlap": 3.315729,
+          "unambiguous_area_pct": 3.224288
+        }
+      ]
+    },
+    {
+      "site_id": "ar-win-s2620-w06750",
+      "country": "AR",
+      "layer": "sigam:e250K_UnidadGeologica",
+      "scale_denominator": 250000,
+      "area_km2_equal_area": 442.93172,
+      "intersecting_features_with_positive_area": 44,
+      "coverage_pct": 49.998418,
+      "unmapped_pct": 50.001582,
+      "description_coverage_pct": 49.998418,
+      "cross_unit_overlap_pct": 0.0,
+      "overlap_excess_pct": 0,
+      "invalid_nearby_feature_ids_repaired_for_audit": [
+        "e250K_UnidadGeologica.117363"
+      ],
+      "units": [
+        {
+          "key": [
+            "2769-II",
+            "27692028",
+            "Depósitos aluviales actuales",
+            "Limos , arenas y gravas"
+          ],
+          "feature_ids": [
+            "e250K_UnidadGeologica.118163",
+            "e250K_UnidadGeologica.118164"
+          ],
+          "original_properties": {
+            "cod_ulito": 27692028,
+            "nro_hoja": "2769-II",
+            "nom_hoja": "PASO DE SAN FRANCISCO",
+            "nombre": "Depósitos aluviales actuales",
+            "descrip_litologica": "Limos , arenas y gravas",
+            "edad_inf": "Holoceno",
+            "edad_sup": "Holoceno",
+            "valor_edad": null,
+            "jerarquia": "Unidad",
+            "genesis": "Continental",
+            "estra_local_tipo": null,
+            "potencia": null,
+            "rel_estrat": null,
+            "estatus": null,
+            "ref_denom_formal": null,
+            "morfologia": null,
+            "paleontologia": null,
+            "estructura": null,
+            "prov_geol": null,
+            "distr_areal": null,
+            "marco_tecto": null,
+            "correlaciones": null,
+            "color": "#F4DFB7"
+          },
+          "mapped_area_pct_including_overlap": 22.528304,
+          "unambiguous_area_pct": 22.528304
+        },
+        {
+          "key": [
+            "2769-II",
+            "27692008",
+            "Formación Patquía - De la Cuesta",
+            "Sedimentitas rojas conglomerados y areniscas, depósitos de abanícos aluviales en la parte inferior y fluviales en la superior"
+          ],
+          "feature_ids": [
+            "e250K_UnidadGeologica.117347",
+            "e250K_UnidadGeologica.117387",
+            "e250K_UnidadGeologica.117493",
+            "e250K_UnidadGeologica.117518",
+            "e250K_UnidadGeologica.117523",
+            "e250K_UnidadGeologica.117529",
+            "e250K_UnidadGeologica.118165"
+          ],
+          "original_properties": {
+            "cod_ulito": 27692008,
+            "nro_hoja": "2769-II",
+            "nom_hoja": "PASO DE SAN FRANCISCO",
+            "nombre": "Formación Patquía - De la Cuesta",
+            "descrip_litologica": "Sedimentitas rojas conglomerados y areniscas, depósitos de abanícos aluviales en la parte inferior y fluviales en la superior",
+            "edad_inf": "Pérmico",
+            "edad_sup": "Pérmico",
+            "valor_edad": null,
+            "jerarquia": "Formación",
+            "genesis": "Continental",
+            "estra_local_tipo": null,
+            "potencia": null,
+            "rel_estrat": null,
+            "estatus": null,
+            "ref_denom_formal": null,
+            "morfologia": null,
+            "paleontologia": null,
+            "estructura": null,
+            "prov_geol": null,
+            "distr_areal": null,
+            "marco_tecto": null,
+            "correlaciones": null,
+            "color": "#F04028"
+          },
+          "mapped_area_pct_including_overlap": 12.740004,
+          "unambiguous_area_pct": 12.740004
+        },
+        {
+          "key": [
+            "2769-II",
+            "27692010",
+            "Formación Geste",
+            "Areniscas finas a medianas, conglomerados y pelitas, sedimentitas roj ambiente fluvial"
+          ],
+          "feature_ids": [
+            "e250K_UnidadGeologica.117363",
+            "e250K_UnidadGeologica.117463",
+            "e250K_UnidadGeologica.117473",
+            "e250K_UnidadGeologica.117476",
+            "e250K_UnidadGeologica.117507",
+            "e250K_UnidadGeologica.117510",
+            "e250K_UnidadGeologica.118173"
+          ],
+          "original_properties": {
+            "cod_ulito": 27692010,
+            "nro_hoja": "2769-II",
+            "nom_hoja": "PASO DE SAN FRANCISCO",
+            "nombre": "Formación Geste",
+            "descrip_litologica": "Areniscas finas a medianas, conglomerados y pelitas, sedimentitas roj ambiente fluvial",
+            "edad_inf": "Eoceno",
+            "edad_sup": "Eoceno",
+            "valor_edad": null,
+            "jerarquia": "Formación",
+            "genesis": "Continental",
+            "estra_local_tipo": null,
+            "potencia": null,
+            "rel_estrat": null,
+            "estatus": null,
+            "ref_denom_formal": null,
+            "morfologia": null,
+            "paleontologia": null,
+            "estructura": null,
+            "prov_geol": null,
+            "distr_areal": null,
+            "marco_tecto": null,
+            "correlaciones": null,
+            "color": "#FDB46C"
+          },
+          "mapped_area_pct_including_overlap": 4.865746,
+          "unambiguous_area_pct": 4.865746
+        },
+        {
+          "key": [
+            "2769-II",
+            "27692029",
+            "Depósitos lacustres",
+            "Limos y arcillas"
+          ],
+          "feature_ids": [
+            "e250K_UnidadGeologica.117378",
+            "e250K_UnidadGeologica.117398",
+            "e250K_UnidadGeologica.117414",
+            "e250K_UnidadGeologica.117425",
+            "e250K_UnidadGeologica.117427",
+            "e250K_UnidadGeologica.117438",
+            "e250K_UnidadGeologica.117456",
+            "e250K_UnidadGeologica.117512",
+            "e250K_UnidadGeologica.117513",
+            "e250K_UnidadGeologica.118166",
+            "e250K_UnidadGeologica.118168",
+            "e250K_UnidadGeologica.118169"
+          ],
+          "original_properties": {
+            "cod_ulito": 27692029,
+            "nro_hoja": "2769-II",
+            "nom_hoja": "PASO DE SAN FRANCISCO",
+            "nombre": "Depósitos lacustres",
+            "descrip_litologica": "Limos y arcillas",
+            "edad_inf": "Holoceno",
+            "edad_sup": "Holoceno",
+            "valor_edad": null,
+            "jerarquia": "Unidad",
+            "genesis": "Continental",
+            "estra_local_tipo": null,
+            "potencia": null,
+            "rel_estrat": null,
+            "estatus": null,
+            "ref_denom_formal": null,
+            "morfologia": null,
+            "paleontologia": null,
+            "estructura": null,
+            "prov_geol": null,
+            "distr_areal": null,
+            "marco_tecto": null,
+            "correlaciones": null,
+            "color": "#F4DBAE"
+          },
+          "mapped_area_pct_including_overlap": 3.021794,
+          "unambiguous_area_pct": 3.021794
+        },
+        {
+          "key": [
+            "2769-II",
+            "27692005",
+            "Formación Falda Ciénaga",
+            "Grauvacas y pelitas, depósitos turbidíticos de talud, anquimetamorfismo"
+          ],
+          "feature_ids": [
+            "e250K_UnidadGeologica.117283",
+            "e250K_UnidadGeologica.117343",
+            "e250K_UnidadGeologica.117346",
+            "e250K_UnidadGeologica.117361",
+            "e250K_UnidadGeologica.117369",
+            "e250K_UnidadGeologica.117377",
+            "e250K_UnidadGeologica.117384",
+            "e250K_UnidadGeologica.117397",
+            "e250K_UnidadGeologica.117419",
+            "e250K_UnidadGeologica.117420",
+            "e250K_UnidadGeologica.117524",
+            "e250K_UnidadGeologica.117528",
+            "e250K_UnidadGeologica.118167"
+          ],
+          "original_properties": {
+            "cod_ulito": 27692005,
+            "nro_hoja": "2769-II",
+            "nom_hoja": "PASO DE SAN FRANCISCO",
+            "nombre": "Formación Falda Ciénaga",
+            "descrip_litologica": "Grauvacas y pelitas, depósitos turbidíticos de talud, anquimetamorfismo",
+            "edad_inf": "Ordovícico medio",
+            "edad_sup": "Ordovícico medio",
+            "valor_edad": null,
+            "jerarquia": "Formación",
+            "genesis": "Marino",
+            "estra_local_tipo": null,
+            "potencia": null,
+            "rel_estrat": null,
+            "estatus": null,
+            "ref_denom_formal": null,
+            "morfologia": null,
+            "paleontologia": null,
+            "estructura": null,
+            "prov_geol": null,
+            "distr_areal": null,
+            "marco_tecto": null,
+            "correlaciones": null,
+            "color": "#4DB47E"
+          },
+          "mapped_area_pct_including_overlap": 2.867193,
+          "unambiguous_area_pct": 2.867193
+        },
+        {
+          "key": [
+            "2769-II",
+            "27692030",
+            "Depósitos coluviales",
+            "Limos, arenas y conglomerados"
+          ],
+          "feature_ids": [
+            "e250K_UnidadGeologica.117284",
+            "e250K_UnidadGeologica.117412"
+          ],
+          "original_properties": {
+            "cod_ulito": 27692030,
+            "nro_hoja": "2769-II",
+            "nom_hoja": "PASO DE SAN FRANCISCO",
+            "nombre": "Depósitos coluviales",
+            "descrip_litologica": "Limos, arenas y conglomerados",
+            "edad_inf": "Holoceno",
+            "edad_sup": "Holoceno",
+            "valor_edad": null,
+            "jerarquia": "Unidad",
+            "genesis": "Continental",
+            "estra_local_tipo": null,
+            "potencia": null,
+            "rel_estrat": null,
+            "estatus": null,
+            "ref_denom_formal": null,
+            "morfologia": null,
+            "paleontologia": null,
+            "estructura": null,
+            "prov_geol": null,
+            "distr_areal": null,
+            "marco_tecto": null,
+            "correlaciones": null,
+            "color": "#F4FFFF"
+          },
+          "mapped_area_pct_including_overlap": 2.359487,
+          "unambiguous_area_pct": 2.359487
+        },
+        {
+          "key": [
+            "2769-II",
+            "27692026",
+            "Abanicos aluviales viejos",
+            "Conglomerados gruesos"
+          ],
+          "feature_ids": [
+            "e250K_UnidadGeologica.117390"
+          ],
+          "original_properties": {
+            "cod_ulito": 27692026,
+            "nro_hoja": "2769-II",
+            "nom_hoja": "PASO DE SAN FRANCISCO",
+            "nombre": "Abanicos aluviales viejos",
+            "descrip_litologica": "Conglomerados gruesos",
+            "edad_inf": "Pleistoceno superior",
+            "edad_sup": "Pleistoceno superior",
+            "valor_edad": null,
+            "jerarquia": "Unidad",
+            "genesis": "Continental",
+            "estra_local_tipo": null,
+            "potencia": null,
+            "rel_estrat": null,
+            "estatus": null,
+            "ref_denom_formal": null,
+            "morfologia": null,
+            "paleontologia": null,
+            "estructura": null,
+            "prov_geol": null,
+            "distr_areal": null,
+            "marco_tecto": null,
+            "correlaciones": null,
+            "color": "#FFF2D3"
+          },
+          "mapped_area_pct_including_overlap": 1.61589,
+          "unambiguous_area_pct": 1.61589
+        }
+      ]
+    },
+    {
+      "site_id": "ar-win-s2640-w06730",
+      "country": "AR",
+      "layer": "sigam:e250K_UnidadGeologica",
+      "scale_denominator": 250000,
+      "area_km2_equal_area": 442.184674,
+      "intersecting_features_with_positive_area": 0,
+      "coverage_pct": 0.0,
+      "unmapped_pct": 100.0,
+      "description_coverage_pct": 0.0,
+      "cross_unit_overlap_pct": 0.0,
+      "overlap_excess_pct": 0,
+      "invalid_nearby_feature_ids_repaired_for_audit": [],
+      "units": []
+    },
+    {
+      "site_id": "ar-win-s2580-w06710",
+      "country": "AR",
+      "layer": "sigam:e250K_UnidadGeologica",
+      "scale_denominator": 250000,
+      "area_km2_equal_area": 444.409711,
+      "intersecting_features_with_positive_area": 27,
+      "coverage_pct": 100.0,
+      "unmapped_pct": 0.0,
+      "description_coverage_pct": 100.0,
+      "cross_unit_overlap_pct": 0.0,
+      "overlap_excess_pct": 0.0,
+      "invalid_nearby_feature_ids_repaired_for_audit": [],
+      "units": [
+        {
+          "key": [
+            "2566-III",
+            "25663444",
+            "Complejo volcánico Galán (Piroclásticas intermedias)",
+            "Ignimbrita dacítica"
+          ],
+          "feature_ids": [
+            "e250K_UnidadGeologica.112810",
+            "e250K_UnidadGeologica.113376",
+            "e250K_UnidadGeologica.113627",
+            "e250K_UnidadGeologica.113631"
+          ],
+          "original_properties": {
+            "cod_ulito": 25663444,
+            "nro_hoja": "2566-III",
+            "nom_hoja": "CACHI",
+            "nombre": "Complejo volcánico Galán (Piroclásticas intermedias)",
+            "descrip_litologica": "Ignimbrita dacítica",
+            "edad_inf": "Plioceno",
+            "edad_sup": "Plioceno",
+            "valor_edad": "Relación estratigráfica",
+            "jerarquia": "Unidad",
+            "genesis": "Igneo",
+            "estra_local_tipo": null,
+            "potencia": null,
+            "rel_estrat": null,
+            "estatus": null,
+            "ref_denom_formal": null,
+            "morfologia": null,
+            "paleontologia": null,
+            "estructura": null,
+            "prov_geol": null,
+            "distr_areal": null,
+            "marco_tecto": null,
+            "correlaciones": null,
+            "color": "#FFFF99"
+          },
+          "mapped_area_pct_including_overlap": 45.797924,
+          "unambiguous_area_pct": 45.797924
+        },
+        {
+          "key": [
+            "2566-III",
+            "25663035",
+            "Formación Tebequincho",
+            "Dacitas y andesitas"
+          ],
+          "feature_ids": [
+            "e250K_UnidadGeologica.112791",
+            "e250K_UnidadGeologica.112805",
+            "e250K_UnidadGeologica.113374",
+            "e250K_UnidadGeologica.113417",
+            "e250K_UnidadGeologica.113640"
+          ],
+          "original_properties": {
+            "cod_ulito": 25663035,
+            "nro_hoja": "2566-III",
+            "nom_hoja": "CACHI",
+            "nombre": "Formación Tebequincho",
+            "descrip_litologica": "Dacitas y andesitas",
+            "edad_inf": "Mioceno",
+            "edad_sup": "Mioceno",
+            "valor_edad": "Relación estratigráfica",
+            "jerarquia": "Formación",
+            "genesis": "Igneo",
+            "estra_local_tipo": null,
+            "potencia": null,
+            "rel_estrat": null,
+            "estatus": null,
+            "ref_denom_formal": null,
+            "morfologia": null,
+            "paleontologia": null,
+            "estructura": null,
+            "prov_geol": null,
+            "distr_areal": null,
+            "marco_tecto": null,
+            "correlaciones": null,
+            "color": "#FFFF00"
+          },
+          "mapped_area_pct_including_overlap": 20.288302,
+          "unambiguous_area_pct": 20.288302
+        },
+        {
+          "key": [
+            "2566-III",
+            "25663047",
+            "Depósitos aluviales y coluviales",
+            "Gravas arenas y arcillas"
+          ],
+          "feature_ids": [
+            "e250K_UnidadGeologica.112801",
+            "e250K_UnidadGeologica.113636",
+            "e250K_UnidadGeologica.113827"
+          ],
+          "original_properties": {
+            "cod_ulito": 25663047,
+            "nro_hoja": "2566-III",
+            "nom_hoja": "CACHI",
+            "nombre": "Depósitos aluviales y coluviales",
+            "descrip_litologica": "Gravas arenas y arcillas",
+            "edad_inf": "Holoceno",
+            "edad_sup": "Holoceno",
+            "valor_edad": "Relación estratigráfica",
+            "jerarquia": "Unidad",
+            "genesis": "Ambiente contiental",
+            "estra_local_tipo": null,
+            "potencia": null,
+            "rel_estrat": null,
+            "estatus": null,
+            "ref_denom_formal": null,
+            "morfologia": null,
+            "paleontologia": null,
+            "estructura": null,
+            "prov_geol": null,
+            "distr_areal": null,
+            "marco_tecto": null,
+            "correlaciones": null,
+            "color": "#F4E3C0"
+          },
+          "mapped_area_pct_including_overlap": 18.371545,
+          "unambiguous_area_pct": 18.371545
+        },
+        {
+          "key": [
+            "2566-III",
+            "25663244",
+            "Complejo volcánico Galán (Volcánicas)",
+            "Lava post caldera"
+          ],
+          "feature_ids": [
+            "e250K_UnidadGeologica.112864",
+            "e250K_UnidadGeologica.112865",
+            "e250K_UnidadGeologica.113429",
+            "e250K_UnidadGeologica.113446",
+            "e250K_UnidadGeologica.113645"
+          ],
+          "original_properties": {
+            "cod_ulito": 25663244,
+            "nro_hoja": "2566-III",
+            "nom_hoja": "CACHI",
+            "nombre": "Complejo volcánico Galán (Volcánicas)",
+            "descrip_litologica": "Lava post caldera",
+            "edad_inf": "Plioceno",
+            "edad_sup": "Plioceno",
+            "valor_edad": "Relación estratigráfica",
+            "jerarquia": "Unidad",
+            "genesis": "Igneo",
+            "estra_local_tipo": null,
+            "potencia": null,
+            "rel_estrat": null,
+            "estatus": null,
+            "ref_denom_formal": null,
+            "morfologia": null,
+            "paleontologia": null,
+            "estructura": null,
+            "prov_geol": null,
+            "distr_areal": null,
+            "marco_tecto": null,
+            "correlaciones": null,
+            "color": "#FFFF99"
+          },
+          "mapped_area_pct_including_overlap": 9.215314,
+          "unambiguous_area_pct": 9.215314
+        },
+        {
+          "key": [
+            "2566-III",
+            "25663010",
+            "Formación Falda Ciénaga",
+            "Grauvacas y pelitas con intercalaciones de areniscas cuarzosas; lavas dacíticas y areniscas volcaniclásticas con anquimetamorfismo"
+          ],
+          "feature_ids": [
+            "e250K_UnidadGeologica.112798",
+            "e250K_UnidadGeologica.112814",
+            "e250K_UnidadGeologica.112822",
+            "e250K_UnidadGeologica.112825",
+            "e250K_UnidadGeologica.113442",
+            "e250K_UnidadGeologica.113788",
+            "e250K_UnidadGeologica.113790"
+          ],
+          "original_properties": {
+            "cod_ulito": 25663010,
+            "nro_hoja": "2566-III",
+            "nom_hoja": "CACHI",
+            "nombre": "Formación Falda Ciénaga",
+            "descrip_litologica": "Grauvacas y pelitas con intercalaciones de areniscas cuarzosas; lavas dacíticas y areniscas volcaniclásticas con anquimetamorfismo",
+            "edad_inf": "Llanvirniano",
+            "edad_sup": "Llandeiliano",
+            "valor_edad": "Relación estratigráfica",
+            "jerarquia": "Formación",
+            "genesis": "Ambiente marino",
+            "estra_local_tipo": null,
+            "potencia": null,
+            "rel_estrat": null,
+            "estatus": null,
+            "ref_denom_formal": null,
+            "morfologia": null,
+            "paleontologia": null,
+            "estructura": null,
+            "prov_geol": null,
+            "distr_areal": null,
+            "marco_tecto": null,
+            "correlaciones": null,
+            "color": "#6DC397"
+          },
+          "mapped_area_pct_including_overlap": 3.623927,
+          "unambiguous_area_pct": 3.623927
+        },
+        {
+          "key": [
+            "2566-III",
+            "25663001",
+            "Formación Pachamama",
+            "Esquistos y gneises con intercalaciones de calizas y anfibolitas"
+          ],
+          "feature_ids": [
+            "e250K_UnidadGeologica.113312"
+          ],
+          "original_properties": {
+            "cod_ulito": 25663001,
+            "nro_hoja": "2566-III",
+            "nom_hoja": "CACHI",
+            "nombre": "Formación Pachamama",
+            "descrip_litologica": "Esquistos y gneises con intercalaciones de calizas y anfibolitas",
+            "edad_inf": "Neoproterozoico",
+            "edad_sup": "Neoproterozoico",
+            "valor_edad": "Datación isotópica",
+            "jerarquia": "Formación",
+            "genesis": "Metamorfismo de medio a alto grado",
+            "estra_local_tipo": null,
+            "potencia": null,
+            "rel_estrat": null,
+            "estatus": null,
+            "ref_denom_formal": null,
+            "morfologia": null,
+            "paleontologia": null,
+            "estructura": null,
+            "prov_geol": null,
+            "distr_areal": null,
+            "marco_tecto": null,
+            "correlaciones": null,
+            "color": "#FEB342"
+          },
+          "mapped_area_pct_including_overlap": 1.98407,
+          "unambiguous_area_pct": 1.98407
+        },
+        {
+          "key": [
+            "2566-III",
+            "25663045",
+            "Depósitos aterrazados",
+            "Conglomerados con intercalaciones de areniscas, pelitas y tobas"
+          ],
+          "feature_ids": [
+            "e250K_UnidadGeologica.113487",
+            "e250K_UnidadGeologica.113906"
+          ],
+          "original_properties": {
+            "cod_ulito": 25663045,
+            "nro_hoja": "2566-III",
+            "nom_hoja": "CACHI",
+            "nombre": "Depósitos aterrazados",
+            "descrip_litologica": "Conglomerados con intercalaciones de areniscas, pelitas y tobas",
+            "edad_inf": "Pleistoceno",
+            "edad_sup": "Pleistoceno",
+            "valor_edad": "Relación estratigráfica",
+            "jerarquia": "Unidad",
+            "genesis": "Igneo",
+            "estra_local_tipo": null,
+            "potencia": null,
+            "rel_estrat": null,
+            "estatus": null,
+            "ref_denom_formal": null,
+            "morfologia": null,
+            "paleontologia": null,
+            "estructura": null,
+            "prov_geol": null,
+            "distr_areal": null,
+            "marco_tecto": null,
+            "correlaciones": null,
+            "color": "#FFF3B3"
+          },
+          "mapped_area_pct_including_overlap": 0.718918,
+          "unambiguous_area_pct": 0.718918
+        }
+      ]
+    },
+    {
+      "site_id": "ar-win-s2620-w06750",
+      "country": "AR",
+      "layer": "sigam:e1M.NOA.Geol",
+      "scale_denominator": 1000000,
+      "area_km2_equal_area": 442.93172,
+      "intersecting_features_with_positive_area": 19,
+      "coverage_pct": 100.0,
+      "unmapped_pct": 0.0,
+      "description_coverage_pct": 100.0,
+      "cross_unit_overlap_pct": 0.0,
+      "overlap_excess_pct": 0,
+      "invalid_nearby_feature_ids_repaired_for_audit": [
+        "e1M.NOA.Geol.495"
+      ],
+      "units": [
+        {
+          "key": [
+            "PlQs",
+            "Plioceno-Cuaternario",
+            "Dep¢sitos fluviales, aluviales, e¢licos, coluviales, glaciales y fluvio-glaciales"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.495"
+          ],
+          "original_properties": {
+            "unidad": "PlQs",
+            "edad": "Plioceno-Cuaternario",
+            "tipoderoca": "Dep¢sitos fluviales, aluviales, e¢licos, coluviales, glaciales y fluvio-glaciales"
+          },
+          "mapped_area_pct_including_overlap": 51.095492,
+          "unambiguous_area_pct": 51.095492
+        },
+        {
+          "key": [
+            "PlQv",
+            "Plioceno-Cuaternario ( <5 Ma )",
+            "Rocas volc nicas mesosil¡cicas a b s¡cas.  Incluje avalanchas de detritos"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.1378",
+            "e1M.NOA.Geol.1379",
+            "e1M.NOA.Geol.1381",
+            "e1M.NOA.Geol.1394",
+            "e1M.NOA.Geol.1396"
+          ],
+          "original_properties": {
+            "unidad": "PlQv",
+            "edad": "Plioceno-Cuaternario ( <5 Ma )",
+            "tipoderoca": "Rocas volc nicas mesosil¡cicas a b s¡cas.  Incluje avalanchas de detritos"
+          },
+          "mapped_area_pct_including_overlap": 18.779655,
+          "unambiguous_area_pct": 18.779655
+        },
+        {
+          "key": [
+            "Pis",
+            "Paleozoico inferior",
+            "Rocas sedimentarias marinas y continentales"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.573",
+            "e1M.NOA.Geol.578",
+            "e1M.NOA.Geol.599",
+            "e1M.NOA.Geol.603",
+            "e1M.NOA.Geol.621"
+          ],
+          "original_properties": {
+            "unidad": "Pis",
+            "edad": "Paleozoico inferior",
+            "tipoderoca": "Rocas sedimentarias marinas y continentales"
+          },
+          "mapped_area_pct_including_overlap": 18.204062,
+          "unambiguous_area_pct": 18.204062
+        },
+        {
+          "key": [
+            "EMis",
+            "Eoceno-Mioceno inferior",
+            "Rocas sedimentarias continentales con intercalaciones evapor¡ticas"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.593",
+            "e1M.NOA.Geol.601",
+            "e1M.NOA.Geol.605",
+            "e1M.NOA.Geol.616"
+          ],
+          "original_properties": {
+            "unidad": "EMis",
+            "edad": "Eoceno-Mioceno inferior",
+            "tipoderoca": "Rocas sedimentarias continentales con intercalaciones evapor¡ticas"
+          },
+          "mapped_area_pct_including_overlap": 7.737957,
+          "unambiguous_area_pct": 7.737957
+        },
+        {
+          "key": [
+            "Piv",
+            "Paleozoico inferior",
+            "Rocas sedimentarias marinas con intercalaciones volc nicas. Localmente rocas b sicas y ultrab sicas"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.1182",
+            "e1M.NOA.Geol.1186"
+          ],
+          "original_properties": {
+            "unidad": "Piv",
+            "edad": "Paleozoico inferior",
+            "tipoderoca": "Rocas sedimentarias marinas con intercalaciones volc nicas. Localmente rocas b sicas y ultrab sicas"
+          },
+          "mapped_area_pct_including_overlap": 2.202132,
+          "unambiguous_area_pct": 2.202132
+        },
+        {
+          "key": [
+            "Mst",
+            "Mioceno superior ( 11-5 Ma )",
+            "Rocas pirocl sticas"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.594"
+          ],
+          "original_properties": {
+            "unidad": "Mst",
+            "edad": "Mioceno superior ( 11-5 Ma )",
+            "tipoderoca": "Rocas pirocl sticas"
+          },
+          "mapped_area_pct_including_overlap": 1.13554,
+          "unambiguous_area_pct": 1.13554
+        },
+        {
+          "key": [
+            "PTs",
+            "Paleozoico superior-Tri sico",
+            "Rocas sedimentarias marinas y continentales"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.592"
+          ],
+          "original_properties": {
+            "unidad": "PTs",
+            "edad": "Paleozoico superior-Tri sico",
+            "tipoderoca": "Rocas sedimentarias marinas y continentales"
+          },
+          "mapped_area_pct_including_overlap": 0.845163,
+          "unambiguous_area_pct": 0.845163
+        }
+      ]
+    },
+    {
+      "site_id": "ar-win-s2640-w06730",
+      "country": "AR",
+      "layer": "sigam:e1M.NOA.Geol",
+      "scale_denominator": 1000000,
+      "area_km2_equal_area": 442.184674,
+      "intersecting_features_with_positive_area": 5,
+      "coverage_pct": 47.608967,
+      "unmapped_pct": 52.391033,
+      "description_coverage_pct": 47.608967,
+      "cross_unit_overlap_pct": 0.0,
+      "overlap_excess_pct": 0.0,
+      "invalid_nearby_feature_ids_repaired_for_audit": [
+        "e1M.NOA.Geol.495"
+      ],
+      "units": [
+        {
+          "key": [
+            "PlQs",
+            "Plioceno-Cuaternario",
+            "Dep¢sitos fluviales, aluviales, e¢licos, coluviales, glaciales y fluvio-glaciales"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.495"
+          ],
+          "original_properties": {
+            "unidad": "PlQs",
+            "edad": "Plioceno-Cuaternario",
+            "tipoderoca": "Dep¢sitos fluviales, aluviales, e¢licos, coluviales, glaciales y fluvio-glaciales"
+          },
+          "mapped_area_pct_including_overlap": 35.110906,
+          "unambiguous_area_pct": 35.110906
+        },
+        {
+          "key": [
+            "PlQv",
+            "Plioceno-Cuaternario ( <5 Ma )",
+            "Rocas volc nicas mesosil¡cicas a b s¡cas.  Incluje avalanchas de detritos"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.1395"
+          ],
+          "original_properties": {
+            "unidad": "PlQv",
+            "edad": "Plioceno-Cuaternario ( <5 Ma )",
+            "tipoderoca": "Rocas volc nicas mesosil¡cicas a b s¡cas.  Incluje avalanchas de detritos"
+          },
+          "mapped_area_pct_including_overlap": 9.795553,
+          "unambiguous_area_pct": 9.795553
+        },
+        {
+          "key": [
+            "PC-Cis",
+            "Prec mbrico-C mbrico inferior",
+            "Rocas metam¢rficas de grado bajo a medio"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.1088",
+            "e1M.NOA.Geol.1089",
+            "e1M.NOA.Geol.1090"
+          ],
+          "original_properties": {
+            "unidad": "PC-Cis",
+            "edad": "Prec mbrico-C mbrico inferior",
+            "tipoderoca": "Rocas metam¢rficas de grado bajo a medio"
+          },
+          "mapped_area_pct_including_overlap": 2.702509,
+          "unambiguous_area_pct": 2.702509
+        }
+      ]
+    },
+    {
+      "site_id": "ar-win-s2580-w06710",
+      "country": "AR",
+      "layer": "sigam:e1M.NOA.Geol",
+      "scale_denominator": 1000000,
+      "area_km2_equal_area": 444.409711,
+      "intersecting_features_with_positive_area": 13,
+      "coverage_pct": 97.784759,
+      "unmapped_pct": 2.215241,
+      "description_coverage_pct": 97.784759,
+      "cross_unit_overlap_pct": 0.0,
+      "overlap_excess_pct": 0.0,
+      "invalid_nearby_feature_ids_repaired_for_audit": [],
+      "units": [
+        {
+          "key": [
+            "PlQt",
+            "Plioceno-Cuaternario ( <5 Ma )",
+            "Rocas pirocl sticas"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.483",
+            "e1M.NOA.Geol.509",
+            "e1M.NOA.Geol.510"
+          ],
+          "original_properties": {
+            "unidad": "PlQt",
+            "edad": "Plioceno-Cuaternario ( <5 Ma )",
+            "tipoderoca": "Rocas pirocl sticas"
+          },
+          "mapped_area_pct_including_overlap": 49.194654,
+          "unambiguous_area_pct": 49.194654
+        },
+        {
+          "key": [
+            "Msv",
+            "Mioceno superior ( 11-5 Ma )",
+            "Rocas volc nicas mesosil¡cicas a b s¡cas"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.974",
+            "e1M.NOA.Geol.980",
+            "e1M.NOA.Geol.983",
+            "e1M.NOA.Geol.985"
+          ],
+          "original_properties": {
+            "unidad": "Msv",
+            "edad": "Mioceno superior ( 11-5 Ma )",
+            "tipoderoca": "Rocas volc nicas mesosil¡cicas a b s¡cas"
+          },
+          "mapped_area_pct_including_overlap": 19.708273,
+          "unambiguous_area_pct": 19.708273
+        },
+        {
+          "key": [
+            "PlQs",
+            "Plioceno-Cuaternario",
+            "Dep¢sitos fluviales, aluviales, e¢licos, coluviales, glaciales y fluvio-glaciales"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.475"
+          ],
+          "original_properties": {
+            "unidad": "PlQs",
+            "edad": "Plioceno-Cuaternario",
+            "tipoderoca": "Dep¢sitos fluviales, aluviales, e¢licos, coluviales, glaciales y fluvio-glaciales"
+          },
+          "mapped_area_pct_including_overlap": 13.219806,
+          "unambiguous_area_pct": 13.219806
+        },
+        {
+          "key": [
+            "PlQv",
+            "Plioceno-Cuaternario ( <5 Ma )",
+            "Rocas volc nicas mesosil¡cicas a b s¡cas.  Incluje avalanchas de detritos"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.1350",
+            "e1M.NOA.Geol.1353"
+          ],
+          "original_properties": {
+            "unidad": "PlQv",
+            "edad": "Plioceno-Cuaternario ( <5 Ma )",
+            "tipoderoca": "Rocas volc nicas mesosil¡cicas a b s¡cas.  Incluje avalanchas de detritos"
+          },
+          "mapped_area_pct_including_overlap": 8.783809,
+          "unambiguous_area_pct": 8.783809
+        },
+        {
+          "key": [
+            "Pis",
+            "Paleozoico inferior",
+            "Rocas sedimentarias marinas y continentales"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.457",
+            "e1M.NOA.Geol.532"
+          ],
+          "original_properties": {
+            "unidad": "Pis",
+            "edad": "Paleozoico inferior",
+            "tipoderoca": "Rocas sedimentarias marinas y continentales"
+          },
+          "mapped_area_pct_including_overlap": 4.752654,
+          "unambiguous_area_pct": 4.752654
+        },
+        {
+          "key": [
+            "PC-Cis",
+            "Prec mbrico-C mbrico inferior",
+            "Rocas metam¢rficas de grado bajo a medio"
+          ],
+          "feature_ids": [
+            "e1M.NOA.Geol.1082"
+          ],
+          "original_properties": {
+            "unidad": "PC-Cis",
+            "edad": "Prec mbrico-C mbrico inferior",
+            "tipoderoca": "Rocas metam¢rficas de grado bajo a medio"
+          },
+          "mapped_area_pct_including_overlap": 2.125563,
+          "unambiguous_area_pct": 2.125563
+        }
+      ]
+    },
+    {
+      "site_id": "ar-win-s2620-w06750",
+      "country": "AR",
+      "layer": "sigam:e2.5M.UnidadesGeologicas",
+      "scale_denominator": 2500000,
+      "area_km2_equal_area": 442.93172,
+      "intersecting_features_with_positive_area": 7,
+      "coverage_pct": 100.0,
+      "unmapped_pct": 0.0,
+      "description_coverage_pct": 99.878609,
+      "cross_unit_overlap_pct": 0.0,
+      "overlap_excess_pct": 0,
+      "invalid_nearby_feature_ids_repaired_for_audit": [
+        "e2.5M.UnidadesGeologicas.67",
+        "e2.5M.UnidadesGeologicas.75",
+        "e2.5M.UnidadesGeologicas.78"
+      ],
+      "units": [
+        {
+          "key": [
+            "Q1f",
+            "Depósitos aluviales aterrazados y niveles de agradación indiferenciados",
+            "Depósitos detríticos de gravas, arenas, limos"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.189"
+          ],
+          "original_properties": {
+            "sigla": "Q1f",
+            "nombre": "Depósitos aluviales aterrazados y niveles de agradación indiferenciados",
+            "ambiente": "Ambiente continental, abanico aluvial. Cuenca intracratónica",
+            "edad_inf": "Pleistoceno",
+            "edad_sup": "Pleistoceno",
+            "litologia": "Depósitos detríticos de gravas, arenas, limos",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "",
+            "ruleid": 118
+          },
+          "mapped_area_pct_including_overlap": 46.528124,
+          "unambiguous_area_pct": 46.528124
+        },
+        {
+          "key": [
+            "Qα",
+            "Volcanitas de arco básicas a mesosilícieas",
+            "Basaltos y andesitas"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.51"
+          ],
+          "original_properties": {
+            "sigla": "Qα",
+            "nombre": "Volcanitas de arco básicas a mesosilícieas ",
+            "ambiente": "Margen convergente. Magmatismo calcoalcalino de arco",
+            "edad_inf": "Pleistoceno",
+            "edad_sup": "Holoceno",
+            "litologia": "Basaltos y andesitas",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "Complejo Tuzgle, volcanes monogénicos",
+            "ruleid": 147
+          },
+          "mapped_area_pct_including_overlap": 20.826664,
+          "unambiguous_area_pct": 20.826664
+        },
+        {
+          "key": [
+            "PTc",
+            "Depósitos de plataforma",
+            "Conglomerados, areniscas conglomerádicas, areniscas, pelitas y limolitas y calizas"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.185"
+          ],
+          "original_properties": {
+            "sigla": "PTc",
+            "nombre": "Depósitos de plataforma",
+            "ambiente": "Ambiente marino - Plataforma",
+            "edad_inf": "Pérmico",
+            "edad_sup": "Triásico",
+            "litologia": "Conglomerados, areniscas conglomerádicas, areniscas, pelitas y limolitas y calizas",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "Formaciones  Arizaro y Cauchari, Grupo Paganzo",
+            "ruleid": 110
+          },
+          "mapped_area_pct_including_overlap": 14.199318,
+          "unambiguous_area_pct": 14.199318
+        },
+        {
+          "key": [
+            "Ec",
+            "Sedimentitas continentales",
+            "Conglomerados, areniscas, limolitas, arcillolitas comunmente con niveles salinos y yesíferos"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.69"
+          ],
+          "original_properties": {
+            "sigla": "Ec",
+            "nombre": "Sedimentitas continentales",
+            "ambiente": "Ambiente continental",
+            "edad_inf": "Paleógeno",
+            "edad_sup": "Paleógeno",
+            "litologia": "Conglomerados, areniscas, limolitas, arcillolitas comunmente con niveles salinos y yesíferos ",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "Formaciones Pozuelos, Vizcachera y equivalentes",
+            "ruleid": 23
+          },
+          "mapped_area_pct_including_overlap": 9.526706,
+          "unambiguous_area_pct": 9.526706
+        },
+        {
+          "key": [
+            "Om",
+            "Sedimentitas marinas",
+            "Secuencias turbidíticas integradas por areniscas cuarcíferas, areniscas, grauvacas, pelitas, limolitas y lutitas y, subordinadamente, calizas"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.67"
+          ],
+          "original_properties": {
+            "sigla": "Om",
+            "nombre": "Sedimentitas marinas",
+            "ambiente": "Ambiente marino profundo",
+            "edad_inf": "Ordovícico",
+            "edad_sup": "Ordovícico",
+            "litologia": "Secuencias turbidíticas integradas por areniscas cuarcíferas, areniscas, grauvacas, pelitas, limolitas y lutitas y, subordinadamente, calizas",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "Grupo Santa Victoria y equivalentes",
+            "ruleid": 100
+          },
+          "mapped_area_pct_including_overlap": 6.977217,
+          "unambiguous_area_pct": 6.977217
+        },
+        {
+          "key": [
+            "Qa",
+            "Depósitos pedemontanos, gravas y arenas",
+            "Depósitos detríticos de gravas, arenas, limos"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.78"
+          ],
+          "original_properties": {
+            "sigla": "Qa",
+            "nombre": "Depósitos pedemontanos, gravas y arenas",
+            "ambiente": "Ambiente continental, abanico aluvial. Cuenca intracratónica",
+            "edad_inf": "Holoceno",
+            "edad_sup": "Holoceno",
+            "litologia": "Depósitos detríticos de gravas, arenas, limos",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "",
+            "ruleid": 128
+          },
+          "mapped_area_pct_including_overlap": 1.820581,
+          "unambiguous_area_pct": 1.820581
+        },
+        {
+          "key": [
+            "Agua",
+            "Cuerpo de agua",
+            ""
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.170"
+          ],
+          "original_properties": {
+            "sigla": "Agua",
+            "nombre": "Cuerpo de agua",
+            "ambiente": "",
+            "edad_inf": null,
+            "edad_sup": null,
+            "litologia": "",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "",
+            "ruleid": 1
+          },
+          "mapped_area_pct_including_overlap": 0.121391,
+          "unambiguous_area_pct": 0.121391
+        }
+      ]
+    },
+    {
+      "site_id": "ar-win-s2640-w06730",
+      "country": "AR",
+      "layer": "sigam:e2.5M.UnidadesGeologicas",
+      "scale_denominator": 2500000,
+      "area_km2_equal_area": 442.184674,
+      "intersecting_features_with_positive_area": 3,
+      "coverage_pct": 100.0,
+      "unmapped_pct": 0.0,
+      "description_coverage_pct": 100.0,
+      "cross_unit_overlap_pct": 0.0,
+      "overlap_excess_pct": 0,
+      "invalid_nearby_feature_ids_repaired_for_audit": [
+        "e2.5M.UnidadesGeologicas.67",
+        "e2.5M.UnidadesGeologicas.75",
+        "e2.5M.UnidadesGeologicas.78"
+      ],
+      "units": [
+        {
+          "key": [
+            "NP€gP",
+            "Metamorfitas de grado medio con metamorfismo pampeano",
+            "Esquistos cuarzo-feldespáticos-biotíticos-moscovíticos, anfibolitas, gneises, ortogneises, migmatitas, metagranitos"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.75"
+          ],
+          "original_properties": {
+            "sigla": "NP€gP",
+            "nombre": "Metamorfitas de grado medio con metamorfismo pampeano ",
+            "ambiente": "Ambiente marino. Rocas metamórficas de bajo grado",
+            "edad_inf": "Proterozoico superior",
+            "edad_sup": "Cámbrico",
+            "litologia": "Esquistos cuarzo-feldespáticos-biotíticos-moscovíticos, anfibolitas, gneises, ortogneises, migmatitas, metagranitos",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "Complejo Salar Centenario, Fm. Pachamama y equivalentes",
+            "ruleid": 87
+          },
+          "mapped_area_pct_including_overlap": 56.061903,
+          "unambiguous_area_pct": 56.061903
+        },
+        {
+          "key": [
+            "Q1f",
+            "Depósitos aluviales aterrazados y niveles de agradación indiferenciados",
+            "Depósitos detríticos de gravas, arenas, limos"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.189"
+          ],
+          "original_properties": {
+            "sigla": "Q1f",
+            "nombre": "Depósitos aluviales aterrazados y niveles de agradación indiferenciados",
+            "ambiente": "Ambiente continental, abanico aluvial. Cuenca intracratónica",
+            "edad_inf": "Pleistoceno",
+            "edad_sup": "Pleistoceno",
+            "litologia": "Depósitos detríticos de gravas, arenas, limos",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "",
+            "ruleid": 118
+          },
+          "mapped_area_pct_including_overlap": 31.299549,
+          "unambiguous_area_pct": 31.299549
+        },
+        {
+          "key": [
+            "Qα",
+            "Volcanitas de arco básicas a mesosilícieas",
+            "Basaltos y andesitas"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.51"
+          ],
+          "original_properties": {
+            "sigla": "Qα",
+            "nombre": "Volcanitas de arco básicas a mesosilícieas ",
+            "ambiente": "Margen convergente. Magmatismo calcoalcalino de arco",
+            "edad_inf": "Pleistoceno",
+            "edad_sup": "Holoceno",
+            "litologia": "Basaltos y andesitas",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "Complejo Tuzgle, volcanes monogénicos",
+            "ruleid": 147
+          },
+          "mapped_area_pct_including_overlap": 12.638548,
+          "unambiguous_area_pct": 12.638548
+        }
+      ]
+    },
+    {
+      "site_id": "ar-win-s2580-w06710",
+      "country": "AR",
+      "layer": "sigam:e2.5M.UnidadesGeologicas",
+      "scale_denominator": 2500000,
+      "area_km2_equal_area": 444.409711,
+      "intersecting_features_with_positive_area": 6,
+      "coverage_pct": 100.0,
+      "unmapped_pct": 0.0,
+      "description_coverage_pct": 100.0,
+      "cross_unit_overlap_pct": 0.0,
+      "overlap_excess_pct": 0,
+      "invalid_nearby_feature_ids_repaired_for_audit": [
+        "e2.5M.UnidadesGeologicas.67",
+        "e2.5M.UnidadesGeologicas.75",
+        "e2.5M.UnidadesGeologicas.78"
+      ],
+      "units": [
+        {
+          "key": [
+            "N2i",
+            "Ignimbritas",
+            "Tobas, ignimbritas dacíticas-riodacíticas, flujos piroclásticos dacíticos a riodacíticos, depósitos de caída"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.70"
+          ],
+          "original_properties": {
+            "sigla": "N2i",
+            "nombre": "Ignimbritas",
+            "ambiente": "Margen convergente. Magmatismo calcoalcalino de arco",
+            "edad_inf": "Neógeno",
+            "edad_sup": "Neógeno",
+            "litologia": "Tobas, ignimbritas dacíticas-riodacíticas, flujos piroclásticos dacíticos a riodacíticos, depósitos de caída",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "Formaciones Abra de Gallo, Jama, Pululus y equivalentes",
+            "ruleid": 72
+          },
+          "mapped_area_pct_including_overlap": 56.104217,
+          "unambiguous_area_pct": 56.104217
+        },
+        {
+          "key": [
+            "N1α",
+            "Volcanitas de arco",
+            "Lavas dacíticas, andesíticas y basálticas, brechas autoclásticas de composición andesítica y depósitos de bloques y ceniza (block and ash) asociados a estrato volcanes"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.168"
+          ],
+          "original_properties": {
+            "sigla": "N1α",
+            "nombre": "Volcanitas de arco",
+            "ambiente": "Margen convergente. Magmatismo calcoalcalino de arco",
+            "edad_inf": "Neógeno",
+            "edad_sup": "Neógeno",
+            "litologia": "Lavas dacíticas, andesíticas y basálticas, brechas autoclásticas de composición andesítica y depósitos de bloques y ceniza (block and ash) asociados a estrato volcanes",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "Complejos volcánicos Abra Grande, Pairique Torona,Coranzuli, Panizo y equivalentes",
+            "ruleid": 67
+          },
+          "mapped_area_pct_including_overlap": 19.753522,
+          "unambiguous_area_pct": 19.753522
+        },
+        {
+          "key": [
+            "Qa",
+            "Depósitos pedemontanos, gravas y arenas",
+            "Depósitos detríticos de gravas, arenas, limos"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.78"
+          ],
+          "original_properties": {
+            "sigla": "Qa",
+            "nombre": "Depósitos pedemontanos, gravas y arenas",
+            "ambiente": "Ambiente continental, abanico aluvial. Cuenca intracratónica",
+            "edad_inf": "Holoceno",
+            "edad_sup": "Holoceno",
+            "litologia": "Depósitos detríticos de gravas, arenas, limos",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "",
+            "ruleid": 128
+          },
+          "mapped_area_pct_including_overlap": 13.654746,
+          "unambiguous_area_pct": 13.654746
+        },
+        {
+          "key": [
+            "Ovm",
+            "Secuencias volcanosedimentarias",
+            "Cuarcitas, pelitas, areniscas, calizas, grauvacas; con intercalaciones de riolitas, dacitas, traquiandesitas, diabasas, andesitas basálticas, lavas basálticas almohadilladas, ignimbritas y tobas"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.80"
+          ],
+          "original_properties": {
+            "sigla": "Ovm",
+            "nombre": "Secuencias volcanosedimentarias  ",
+            "ambiente": "Ambiente marino. Volcanismo de arco asociado",
+            "edad_inf": "Ordovícico",
+            "edad_sup": "Ordovícico",
+            "litologia": "Cuarcitas, pelitas, areniscas, calizas, grauvacas; con intercalaciones de riolitas, dacitas, traquiandesitas, diabasas, andesitas basálticas, lavas basálticas almohadilladas, ignimbritas y tobas",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "Formaciones Coquena, Cortaderas y equivalentes",
+            "ruleid": 103
+          },
+          "mapped_area_pct_including_overlap": 7.77084,
+          "unambiguous_area_pct": 7.77084
+        },
+        {
+          "key": [
+            "NP€gP",
+            "Metamorfitas de grado medio con metamorfismo pampeano",
+            "Esquistos cuarzo-feldespáticos-biotíticos-moscovíticos, anfibolitas, gneises, ortogneises, migmatitas, metagranitos"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.75"
+          ],
+          "original_properties": {
+            "sigla": "NP€gP",
+            "nombre": "Metamorfitas de grado medio con metamorfismo pampeano ",
+            "ambiente": "Ambiente marino. Rocas metamórficas de bajo grado",
+            "edad_inf": "Proterozoico superior",
+            "edad_sup": "Cámbrico",
+            "litologia": "Esquistos cuarzo-feldespáticos-biotíticos-moscovíticos, anfibolitas, gneises, ortogneises, migmatitas, metagranitos",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "Complejo Salar Centenario, Fm. Pachamama y equivalentes",
+            "ruleid": 87
+          },
+          "mapped_area_pct_including_overlap": 2.585299,
+          "unambiguous_area_pct": 2.585299
+        },
+        {
+          "key": [
+            "Qα",
+            "Volcanitas de arco básicas a mesosilícieas",
+            "Basaltos y andesitas"
+          ],
+          "feature_ids": [
+            "e2.5M.UnidadesGeologicas.51"
+          ],
+          "original_properties": {
+            "sigla": "Qα",
+            "nombre": "Volcanitas de arco básicas a mesosilícieas ",
+            "ambiente": "Margen convergente. Magmatismo calcoalcalino de arco",
+            "edad_inf": "Pleistoceno",
+            "edad_sup": "Holoceno",
+            "litologia": "Basaltos y andesitas",
+            "region": "Región I: Puna, Cordillera Oriental, Sierras Subandinas",
+            "unidades": "Complejo Tuzgle, volcanes monogénicos",
+            "ruleid": 147
+          },
+          "mapped_area_pct_including_overlap": 0.131375,
+          "unambiguous_area_pct": 0.131375
+        }
+      ]
+    }
+  ],
+  "independent_argentina_check": [
+    {
+      "site_id": "ar-win-s2620-w06750",
+      "regional_vs_individual_query_equal": true,
+      "symmetric_difference_square_degrees": 0.0
+    },
+    {
+      "site_id": "ar-win-s2640-w06730",
+      "regional_vs_individual_query_equal": true,
+      "symmetric_difference_square_degrees": 0.0
+    },
+    {
+      "site_id": "ar-win-s2580-w06710",
+      "regional_vs_individual_query_equal": true,
+      "symmetric_difference_square_degrees": 0.0
+    }
+  ],
+  "independent_chile_check": {
+    "SHP_GeoJSON_compared": 306,
+    "geometry_mismatches": [],
+    "sites": [
+      {
+        "site_id": "cl-win-s2500-w06970",
+        "cross_unit_overlap_pct": 0.8315511583771736
+      },
+      {
+        "site_id": "cl-win-s2480-w06950",
+        "cross_unit_overlap_pct": 0.8233265580650327
+      },
+      {
+        "site_id": "cl-win-s2520-w06950",
+        "cross_unit_overlap_pct": 0.55849526134583
+      },
+      {
+        "site_id": "cl-pampa-yungay-screening",
+        "cross_unit_overlap_pct": 1.1835208532256876
+      }
+    ]
+  },
+  "individual_argentina_requests": [
+    {
+      "site_id": "ar-win-s2620-w06750",
+      "request_url": "https://sigam.segemar.gov.ar/geoserver217/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=sigam%3Ae250K_UnidadGeologica&maxFeatures=1000&srsName=EPSG%3A4326&bbox=-67.6%2C-26.3%2C-67.4%2C-26.099999999999998%2CEPSG%3A4326&outputFormat=application%2Fjson",
+      "features": 46,
+      "numberMatched": 46,
+      "timestamp": "2026-11-14T22:56:14.907Z"
+    },
+    {
+      "site_id": "ar-win-s2640-w06730",
+      "request_url": "https://sigam.segemar.gov.ar/geoserver217/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=sigam%3Ae250K_UnidadGeologica&maxFeatures=1000&srsName=EPSG%3A4326&bbox=-67.39999999999999%2C-26.5%2C-67.2%2C-26.299999999999997%2CEPSG%3A4326&outputFormat=application%2Fjson",
+      "features": 0,
+      "numberMatched": 0,
+      "timestamp": "2026-11-14T22:56:14.782Z"
+    },
+    {
+      "site_id": "ar-win-s2580-w06710",
+      "request_url": "https://sigam.segemar.gov.ar/geoserver217/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=sigam%3Ae250K_UnidadGeologica&maxFeatures=1000&srsName=EPSG%3A4326&bbox=-67.19999999999999%2C-25.900000000000002%2C-67.0%2C-25.7%2CEPSG%3A4326&outputFormat=application%2Fjson",
+      "features": 28,
+      "numberMatched": 28,
+      "timestamp": "2026-11-14T22:56:05.696Z"
+    }
+  ]
+}

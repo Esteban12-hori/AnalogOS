@@ -5,13 +5,19 @@ Uso: ``npm run release:package`` (construye antes) o, con el build ya hecho,
 
 Solo entra al ZIP una lista explícita: ``index.html``, los JS/CSS compilados
 que ese HTML referencia de forma relativa, los archivos fijos de ``science-v3/``
-y el contexto visual (``visual-context-v3/index.json`` más una imagen por sitio
-de ``candidate-details.json``, con el SHA-256 que declara ese índice). La lista
+el contexto visual (``visual-context-v3/index.json`` más una imagen por sitio
+de ``candidate-details.json``, con el SHA-256 que declara ese índice) y, si el build lo trae, el contexto
+geológico (``geology-context-v1/index.json``, único archivo permitido en esa carpeta). La lista
 de imágenes se deriva de metadata validada, nunca de un patrón por extensión.
 Si el build trae ``.vite/manifest.json``, también entran los chunks diferidos,
 CSS y assets (worker, texturas) alcanzables desde la entrada que referencia
 ``index.html``; nada que el manifiesto no alcance. El manifiesto no entra al ZIP.
 Los mapas base 2D (``basemaps/``) son opcionales, pero solo con nombres fijos.
+El contexto geológico es OPCIONAL: sin carpeta ``geology-context-v1/`` el ZIP sale como antes (igual que la web,
+que muestra «no disponible»); con carpeta, el paquete debe validar COMPLETO (contrato JSON Schema y semántica,
+incluido el SHA-256 de los bytes de ``candidate-details.json``) con el validador único de
+``pipelines.geology_contract``, que se importa solo en ese caso y no arrastra Shapely, pyproj ni requests
+(sí ``jsonschema``, ya dependencia de los pipelines). Un paquete inválido detiene el empaquetado: no se relaja.
 Cualquier archivo adicional, enlace simbólico, referencia no portable,
 archivo requerido ausente o destino solapado con el build detiene el
 empaquetado antes de escribir nada.
@@ -57,6 +63,9 @@ SCIENCE_FILES = (
 # Contexto visual: el índice y exactamente una imagen por sitio del snapshot; ningún otro PNG o JSON.
 VISUAL_DIR = "visual-context-v3"
 VISUAL_INDEX = f"{VISUAL_DIR}/index.json"
+# Contexto geológico M9: opcional; la validación la hace el módulo único de pipelines (no se copia aquí).
+GEOLOGY_DIR = "geology-context-v1"
+GEOLOGY_INDEX = f"{GEOLOGY_DIR}/index.json"
 SITE_ID = re.compile(r"^(cl|ar)-[a-z0-9-]+$")  # mismo patrón del contrato: sin barras ni rutas relativas
 # Mapas base 2D horneados por pipelines/fetch_basemaps.py: opcionales, nombres fijos.
 BASEMAP_FILES = (
@@ -151,8 +160,10 @@ def allowed_files(dist: Path) -> list[str]:
 
     images = visual_images(dist)
     optional = [name for name in BASEMAP_FILES if (dist / name).exists() or (dist / name).is_symlink()]
+    geology = [GEOLOGY_INDEX] if (dist / GEOLOGY_DIR).exists() or (dist / GEOLOGY_DIR).is_symlink() else []
     allowed = sorted({
         "index.html", *assets, *_manifest_assets(dist, assets), *SCIENCE_FILES, VISUAL_INDEX, *images, *optional,
+        *geology,
     })
     found = set()
     for folder, folders, files in os.walk(dist):
@@ -171,6 +182,8 @@ def allowed_files(dist: Path) -> list[str]:
     if missing:
         raise ReleaseError("Faltan archivos requeridos o referenciados: " + ", ".join(missing))
     _check_visual_hashes(dist, images)
+    if geology:
+        _check_geology(dist)
     return allowed
 
 
@@ -217,6 +230,26 @@ def _check_visual_hashes(dist: Path, images: list[str]) -> None:
     for name, expected in declared.items():
         if hashlib.sha256((dist / name).read_bytes()).hexdigest() != expected:
             raise ReleaseError(f"El SHA-256 de {name} no coincide con el declarado en {VISUAL_INDEX}.")
+
+
+def _check_geology(dist: Path) -> None:
+    """Paquete geológico presente: debe validar completo contra los bytes de ``candidate-details.json`` de este build."""
+    index = _load(dist, GEOLOGY_INDEX)
+    candidates_path = dist / CANDIDATES
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from pipelines.contracts import ContractError  # importación diferida: solo si hay paquete geológico
+        from pipelines.geology_contract import validate_package
+    except ImportError as error:
+        raise ReleaseError(
+            f"Hay {GEOLOGY_INDEX} pero no se pudo cargar su validador ({error}); instala las dependencias de pipelines "
+            "(jsonschema) o retira el paquete geológico del build."
+        ) from None
+    try:
+        validate_package(index, _load(dist, CANDIDATES), candidates_path.read_bytes())
+    except (ContractError, KeyError, TypeError, ValueError, AttributeError) as error:
+        raise ReleaseError(f"{GEOLOGY_INDEX} no es válido para este build: {error}") from None
 
 
 def _same_target(first: Path, second: Path) -> bool:

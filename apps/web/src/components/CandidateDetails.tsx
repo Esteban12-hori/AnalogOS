@@ -4,6 +4,8 @@ import type { MarsReference } from '../domain/marsReference'
 import type { VisualContextState } from '../data/loadVisualContext'
 import { buildExport, splitByRole, countryLabels, isReference, literatureLabels, matchDetails, relationLabels } from '../domain/discovery'
 import { VisualContext } from './VisualContext'
+import { GeologyContext } from './GeologyContext'
+import { selectGeologySite, type GeologyContextState } from '../domain/geologyContext'
 import {
   feasibilityLabels,
   formatArea,
@@ -19,6 +21,8 @@ interface CandidateDetailsProps {
   profile: MissionProfile
   marsReference: MarsReference | null
   visual: VisualContextState
+  /** Contexto geológico opcional; si falta o es inválido la ficha muestra «no disponible». */
+  geology: GeologyContextState
   search: SearchResults | null
   precedents: PrecedentCatalog | null
   /** Si existe, la imagen se ve en el mapa 2D y el panel muestra un botón en vez de repetirla. */
@@ -37,8 +41,9 @@ function Metric({ label, value, hint, muted = false }: { label: string; value: s
   )
 }
 
-export function CandidateDetails({ candidate, candidates, onSelect, profile, marsReference, visual, search, precedents, onShowOnMap, onEvaluate }: CandidateDetailsProps) {
+export function CandidateDetails({ candidate, candidates, onSelect, profile, marsReference, visual, geology, search, precedents, onShowOnMap, onEvaluate }: CandidateDetailsProps) {
   const { ranked, references } = splitByRole(candidates)
+  const hasGeologyContext = selectGeologySite(geology, candidate).status === 'ready'
   const reference = isReference(candidate)
   const statusLabel = candidate.status === 'fixture' ? 'Fixture'
     : reference ? 'Referencia conocida'
@@ -169,12 +174,16 @@ export function CandidateDetails({ candidate, candidates, onSelect, profile, mar
 
       <VisualContext candidate={candidate} state={visual} onShowOnMap={onShowOnMap} />
 
-      <ScoreBreakdown items={candidate.score_breakdown} marsReference={marsReference} />
+      <GeologyContext key={candidate.site_id} candidate={candidate} state={geology} />
+
+      <ScoreBreakdown items={candidate.score_breakdown} marsReference={marsReference} geologyContextAvailable={hasGeologyContext} />
 
       <section className="details-section two-column-notes">
         <div>
           <h3>Dónde falla la analogía</h3>
-          <ul>{candidate.limitations.map((item) => <li key={item}>{item}</li>)}</ul>
+          <ul>{candidate.limitations.map((item) => <li key={item}>{hasGeologyContext && item === 'Geología, áreas protegidas, urbano, propiedad y acceso permanecen pendientes de evidencia oficial integrada en ambos países.'
+            ? 'La cartografía geológica regional se consulta arriba con sus huecos y límites. La calibración geológica y la evidencia territorial de áreas protegidas, urbano, propiedad y acceso siguen pendientes.'
+            : item}</li>)}</ul>
         </div>
         <div>
           <h3>Qué verificar en terreno</h3>

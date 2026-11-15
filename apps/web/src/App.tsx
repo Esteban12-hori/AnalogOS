@@ -7,6 +7,8 @@ import { SurfaceSignals } from './components/SurfaceSignals'
 import { LiquidBackdrop, useLiquidPointer } from './liquid/LiquidGlass'
 import { loadDemoSnapshot, SNAPSHOT_PATH, type DemoSnapshot } from './data/loadDemoSnapshot'
 import { loadVisualContext, type VisualContextState } from './data/loadVisualContext'
+import { loadGeologyContext } from './data/loadGeologyContext'
+import type { GeologyContextState } from './domain/geologyContext'
 import { availableCountries, filterByCountry, initialSelection, splitByRole, summarizeSearch, type CountryFilter } from './domain/discovery'
 import { formatScore } from './domain/formatting'
 import { CandidateRanking } from './components/CandidateRanking'
@@ -95,6 +97,7 @@ function App() {
   const [selectedId, setSelectedId] = useState('')
   const [country, setCountry] = useState<CountryFilter>('all')
   const [visual, setVisual] = useState<VisualContextState>({ status: 'loading' })
+  const [geology, setGeology] = useState<GeologyContextState>({ status: 'loading' })
   const [intent, setIntent] = useState<PlannerIntent | null>(null)
 
   const openPlanner = (journey: PlannerIntent['journey'], siteId?: string) => {
@@ -112,6 +115,19 @@ function App() {
       active = false
     }
   }, [])
+
+  // El contexto geológico es opcional: se valida contra los candidatos ya cargados y nunca bloquea la ficha ni M8.
+  const candidatesForGeology = loadState.status === 'ready' ? loadState.snapshot.candidates : null
+  useEffect(() => {
+    if (!candidatesForGeology) return
+    let active = true
+    void loadGeologyContext(candidatesForGeology).then((state) => {
+      if (active) setGeology(state)
+    })
+    return () => {
+      active = false
+    }
+  }, [candidatesForGeology])
 
   useEffect(() => {
     let active = true
@@ -239,6 +255,7 @@ function App() {
           precedents={snapshot.precedents}
           marsReference={snapshot.marsReference}
           visual={visual}
+          geology={geology}
           onEvaluate={(siteId) => openPlanner('sector', siteId)}
           onShowOnMap={() => {
             setMapFocus((value) => value + 1)

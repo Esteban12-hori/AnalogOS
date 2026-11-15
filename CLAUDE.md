@@ -25,7 +25,7 @@ Antes de modificar archivos, ejecuta `git status --short`, confirma la rama y pr
 
 ## Estado actual que no debes revertir
 
-- M8 aceptado y publicado en dev por Codex, con ambas operaciones de Anthropic verificadas realmente. Ver `docs/DEV_AI_VERIFICATION.md`; núcleo compartido en `shared/`, reexports en web. Sin nueva asignación a Claude.
+- M8 aceptado y publicado en dev por Codex, con ambas operaciones de Anthropic verificadas realmente. Ver `docs/DEV_AI_VERIFICATION.md`; núcleo compartido en `shared/`, reexports en web. M9 es la nueva asignación definida en NEXT_TASK; preservar M8.
 - Rama de implementación: `dev`.
 - Snapshot activo: `artifacts/science-v3/`; v2 se conserva como histórico, byte a byte.
 - Perfil: `mars-rover-screening-v3`, versión `3.0.0-preliminary`; fórmulas y pesos v2.

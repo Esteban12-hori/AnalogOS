@@ -191,7 +191,7 @@ describe('ranking y ficha', () => {
   })
 
   const details = (candidate: CandidateSite, withSearch = true) => renderToStaticMarkup(
-    <CandidateDetails candidate={candidate} candidates={candidates} onSelect={() => undefined} marsReference={null} profile={profile} visual={loading}
+    <CandidateDetails candidate={candidate} candidates={candidates} onSelect={() => undefined} marsReference={null} profile={profile} visual={loading} geology={{ status: 'loading' }}
       search={withSearch ? search : null} precedents={withSearch ? precedents : null} />,
   )
 
